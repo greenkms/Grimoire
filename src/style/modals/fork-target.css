@@ -1,0 +1,21 @@
+/* Fork Target Modal */
+.grimoire-fork-target-modal {
+  max-width: 340px;
+}
+
+.grimoire-fork-target-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.grimoire-fork-target-option {
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-normal);
+  font-size: 14px;
+}
+
+.grimoire-fork-target-option:hover {
+  background: var(--background-modifier-hover);
+}

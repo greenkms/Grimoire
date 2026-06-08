@@ -1,0 +1,564 @@
+/* AskUserQuestion - inline widget rendered in chat panel */
+
+.grimoire-ask-question-inline {
+  font-family: var(--font-monospace);
+  font-size: 12px;
+  outline: none;
+}
+
+.grimoire-ask-inline-title {
+  font-weight: 700;
+  color: var(--text-muted);
+  padding: 6px 10px 0;
+}
+
+/* ── Tab bar ─────────────────────────────────── */
+
+.grimoire-ask-tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  line-height: 1.4;
+}
+
+.grimoire-ask-tab {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  user-select: none;
+  color: var(--text-muted);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.grimoire-ask-tab:hover {
+  color: var(--text-normal);
+}
+
+.grimoire-ask-tab.is-active {
+  background: hsla(55, 30%, 50%, 0.18);
+  color: var(--text-normal);
+}
+
+.grimoire-ask-tab-label {
+  font-weight: 600;
+  max-width: 14ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-ask-tab-tick {
+  color: var(--color-green);
+  font-weight: 700;
+}
+
+.grimoire-ask-tab-submit-check {
+  color: var(--color-green);
+  white-space: pre;
+}
+
+/* ── Content area ────────────────────────────── */
+
+.grimoire-ask-content {
+  padding: 8px 10px;
+}
+
+.grimoire-ask-question-text {
+  font-weight: 700;
+  color: var(--text-normal);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+/* ── Item list ───────────────────────────────── */
+
+.grimoire-ask-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+
+.grimoire-ask-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 3px 4px;
+  cursor: pointer;
+  line-height: 1.4;
+  color: var(--text-normal);
+  border-radius: 3px;
+}
+
+.grimoire-ask-item:hover {
+  background: var(--background-modifier-hover);
+}
+
+.grimoire-ask-cursor {
+  display: inline-block;
+  width: 2ch;
+  flex-shrink: 0;
+  color: var(--text-accent);
+  font-weight: 700;
+}
+
+.grimoire-ask-item-num {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.grimoire-ask-item-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.grimoire-ask-label-row {
+  display: flex;
+  align-items: baseline;
+}
+
+.grimoire-ask-item-label {
+  font-weight: 600;
+}
+
+.grimoire-ask-item-desc {
+  color: var(--text-muted);
+  font-weight: 400;
+  line-height: 1.4;
+  margin-top: 1px;
+}
+
+/* Selected items: green text */
+.grimoire-ask-item.is-selected .grimoire-ask-item-label {
+  color: var(--color-green);
+}
+
+/* Disabled items: muted text */
+.grimoire-ask-item.is-disabled .grimoire-ask-item-label {
+  color: var(--text-faint);
+}
+
+/* ── Multi-select brackets ───────────────────── */
+
+.grimoire-ask-check {
+  color: var(--text-faint);
+  flex-shrink: 0;
+  white-space: pre;
+}
+
+.grimoire-ask-check.is-checked {
+  color: var(--color-green);
+}
+
+/* ── Single-select check mark ────────────────── */
+
+.grimoire-ask-check-mark {
+  color: var(--color-green);
+  font-weight: 700;
+}
+
+/* ── Custom input ────────────────────────────── */
+
+.grimoire-ask-item input.grimoire-ask-custom-text,
+.grimoire-ask-item input.grimoire-ask-custom-text:hover,
+.grimoire-ask-item input.grimoire-ask-custom-text:focus {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font-family: var(--font-monospace);
+  font-size: inherit;
+  color: var(--text-normal);
+  outline: none;
+  padding: 0;
+  width: 0;
+  height: auto;
+  min-height: 0;
+  line-height: 1.4;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.grimoire-ask-custom-text::placeholder {
+  color: var(--text-faint);
+}
+
+/* ── Submit review tab ───────────────────────── */
+
+.grimoire-ask-review-title {
+  font-weight: 700;
+  color: var(--text-normal);
+  margin-bottom: 6px;
+}
+
+.grimoire-ask-review {
+  font-family: var(--font-monospace);
+  margin-bottom: 16px;
+}
+
+.grimoire-tool-content .grimoire-ask-review {
+  font-size: 12px;
+}
+
+.grimoire-ask-review:last-child {
+  margin-bottom: 0;
+}
+
+.grimoire-ask-review-pair {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.grimoire-ask-review-pair:last-child {
+  margin-bottom: 0;
+}
+
+.grimoire-ask-review-num {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.grimoire-ask-review-body {
+  min-width: 0;
+}
+
+.grimoire-ask-review-q-text {
+  color: var(--text-muted);
+}
+
+.grimoire-ask-review-a-text {
+  color: var(--text-normal);
+}
+
+.grimoire-ask-review-empty {
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+.grimoire-ask-review-prompt {
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+/* ── Hints ───────────────────────────────────── */
+
+.grimoire-ask-hints {
+  color: var(--text-faint);
+  padding-top: 6px;
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+/* ── Approval header (inline permission request) ── */
+
+.grimoire-ask-approval-info {
+  padding: 8px 10px;
+}
+
+.grimoire-ask-approval-tool {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--background-secondary);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.grimoire-ask-approval-icon {
+  color: var(--grimoire-brand);
+}
+
+.grimoire-ask-approval-tool-name {
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.grimoire-ask-approval-reason {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.grimoire-ask-approval-blocked-path {
+  font-family: var(--font-monospace);
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 3px 6px;
+  background: var(--background-primary-alt);
+  border-radius: 4px;
+  margin-bottom: 6px;
+  word-break: break-all;
+}
+
+.grimoire-ask-approval-agent {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.grimoire-ask-approval-desc {
+  padding: 8px 10px;
+  background: var(--background-primary-alt);
+  border-radius: 6px;
+  font-family: var(--font-monospace);
+  font-size: 12px;
+  color: var(--text-normal);
+  word-break: break-all;
+}
+
+/* Docked command permission request */
+.grimoire-composer--asking .grimoire-input-container {
+  pointer-events: none;
+}
+
+.grimoire-permission-anchor {
+  position: absolute;
+  right: var(--grimoire-window-padding-x, 13px);
+  bottom: 13px;
+  left: var(--grimoire-window-padding-x, 13px);
+  z-index: 40;
+  outline: none;
+}
+
+.grimoire-permission-request {
+  overflow: hidden;
+  border-radius: var(--grimoire-radius-3);
+  background: color-mix(in srgb, var(--grimoire-panel-2) 97%, #000);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px var(--grimoire-accent-line);
+}
+
+.grimoire-permission-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 13px 11px;
+  border-bottom: 1px solid var(--grimoire-line);
+}
+
+.grimoire-permission-shield {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--grimoire-radius-1);
+  background: var(--grimoire-accent-soft);
+  color: var(--grimoire-accent-text);
+  box-shadow: inset 0 0 0 1px var(--grimoire-accent-line);
+}
+
+.grimoire-permission-shield svg,
+.grimoire-permission-shield .svg-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.grimoire-permission-title-block {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.grimoire-permission-title {
+  color: var(--text-normal);
+  font-size: 13px;
+  font-weight: 620;
+  line-height: 1.2;
+}
+
+.grimoire-permission-subtitle {
+  color: var(--grimoire-workbench-faint);
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.grimoire-permission-tool {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  margin-left: auto;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--grimoire-raise-2);
+  color: var(--grimoire-workbench-muted);
+  font-family: var(--font-monospace);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.grimoire-permission-tool svg,
+.grimoire-permission-tool .svg-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.grimoire-permission-body {
+  display: grid;
+  gap: 10px;
+  padding: 12px 13px;
+}
+
+.grimoire-permission-command {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  padding: 11px 12px;
+  border-radius: var(--grimoire-radius-2);
+  background: var(--grimoire-sink);
+  box-shadow: inset 0 0 0 1px var(--grimoire-line-2);
+}
+
+.grimoire-permission-dollar {
+  color: var(--grimoire-accent-text);
+  font-family: var(--font-monospace);
+  font-size: 12px;
+  font-weight: 760;
+  line-height: 1;
+}
+
+.grimoire-permission-command code {
+  color: var(--text-normal);
+  font-family: var(--font-monospace);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.grimoire-permission-description,
+.grimoire-permission-reason,
+.grimoire-permission-agent {
+  color: var(--grimoire-workbench-faint);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.grimoire-permission-blocked-path {
+  color: var(--grimoire-workbench-muted);
+  font-family: var(--font-monospace);
+  font-size: 11px;
+  word-break: break-word;
+}
+
+.grimoire-permission-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 7px;
+  padding: 0 13px 13px;
+}
+
+.grimoire-permission-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: var(--grimoire-radius-1);
+  color: var(--text-normal);
+  font-size: 12px;
+  font-weight: 620;
+  line-height: 1;
+  transition:
+    background 0.13s ease,
+    color 0.13s ease,
+    filter 0.13s ease,
+    transform 0.06s ease,
+    box-shadow 0.13s ease;
+}
+
+.grimoire-permission-button:active {
+  transform: translateY(1px);
+}
+
+.grimoire-permission-button svg,
+.grimoire-permission-button .svg-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.grimoire-permission-button--allow {
+  background: var(--grimoire-brand);
+  color: var(--text-on-accent);
+  box-shadow: 0 6px 16px rgba(var(--grimoire-brand-rgb), 0.24);
+}
+
+.grimoire-permission-button--allow:hover {
+  filter: brightness(1.08);
+}
+
+.grimoire-permission-button--always,
+.grimoire-permission-button--other {
+  background: var(--grimoire-raise-2);
+}
+
+.grimoire-permission-button--always:hover,
+.grimoire-permission-button--other:hover {
+  background: rgba(var(--grimoire-brand-rgb), 0.16);
+  color: var(--grimoire-accent-text);
+}
+
+.grimoire-permission-button--reject {
+  margin-left: auto;
+  background: transparent;
+  color: var(--grimoire-workbench-faint);
+  box-shadow: inset 0 0 0 1px var(--grimoire-line-2);
+}
+
+.grimoire-permission-button--reject:hover {
+  color: var(--grimoire-error);
+  box-shadow: inset 0 0 0 1px rgba(var(--grimoire-error-rgb), 0.45);
+}
+
+.grimoire-permission-compat-label,
+.grimoire-permission-option-description {
+  display: none;
+}
+
+.grimoire-permission-foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 13px;
+  border-top: 1px solid var(--grimoire-line);
+  color: var(--grimoire-workbench-faint);
+  font-family: var(--font-monospace);
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.grimoire-permission-foot kbd {
+  padding: 3px 5px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--grimoire-raise-2);
+  color: var(--grimoire-workbench-muted);
+  font-family: var(--font-monospace);
+  font-size: 9.5px;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.grimoire-permission-key-escape {
+  text-transform: lowercase;
+}
+
+.grimoire-permission-separator {
+  color: var(--grimoire-line-3);
+}

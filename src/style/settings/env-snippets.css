@@ -1,0 +1,366 @@
+/* Context Limits Styles */
+.grimoire-context-limits-container {
+  margin-top: 16px;
+}
+
+.grimoire-context-limits-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  margin-top: 16px;
+  padding: 0 12px;
+}
+
+.grimoire-context-limits-label {
+  font-size: var(--font-ui-small);
+  color: var(--text-muted);
+  font-weight: var(--font-medium);
+}
+
+.grimoire-context-limits-desc {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+  padding: 0 12px;
+  margin-bottom: 8px;
+}
+
+.grimoire-context-limits-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.grimoire-context-limits-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: var(--background-secondary);
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.grimoire-context-limits-item:hover {
+  background: var(--background-modifier-hover);
+}
+
+.grimoire-context-limits-model {
+  font-family: var(--font-monospace);
+  font-size: var(--font-ui-small);
+  color: var(--text-normal);
+  flex: 1;
+  min-width: 0;
+  word-break: break-all;
+}
+
+.grimoire-context-limits-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 16px;
+  flex-shrink: 0;
+}
+
+.grimoire-context-alias-input {
+  width: 180px;
+  padding: 4px 8px;
+  font-size: var(--font-ui-small);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+}
+
+.grimoire-context-alias-input:focus {
+  border-color: var(--interactive-accent);
+  outline: none;
+}
+
+.grimoire-context-limits-input {
+  width: 80px;
+  padding: 4px 8px;
+  font-size: var(--font-ui-small);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+}
+
+.grimoire-context-limits-input:focus {
+  border-color: var(--interactive-accent);
+  outline: none;
+}
+
+.grimoire-context-limits-input.grimoire-input-error {
+  border-color: var(--text-error);
+}
+
+.grimoire-context-limit-validation {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-error);
+  margin-left: 4px;
+}
+
+/* Environment Snippets Styles */
+.grimoire-env-snippets-container {
+  margin-top: 16px;
+}
+
+.grimoire-snippet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  margin-top: 16px;
+  padding: 0 12px;
+}
+
+.grimoire-snippet-label {
+  font-size: var(--font-ui-small);
+  color: var(--text-muted);
+  font-weight: var(--font-medium);
+}
+
+.grimoire-save-env-btn {
+  padding: 6px 16px;
+  font-size: 13px;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.grimoire-save-env-btn:hover {
+  opacity: 0.9;
+}
+
+.grimoire-snippet-empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--background-secondary);
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.grimoire-snippet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.grimoire-snippet-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: var(--background-secondary);
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.grimoire-snippet-item:hover {
+  background: var(--background-modifier-hover);
+}
+
+.grimoire-snippet-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.grimoire-snippet-name {
+  font-weight: 600;
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+
+.grimoire-snippet-description {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.grimoire-snippet-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: 16px;
+  flex-shrink: 0;
+}
+
+.grimoire-restore-snippet-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.grimoire-restore-snippet-btn:hover {
+  opacity: 0.9;
+}
+
+.grimoire-edit-snippet-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  background: var(--background-modifier-border);
+  color: var(--text-normal);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.grimoire-edit-snippet-btn:hover {
+  background: var(--background-modifier-border-hover);
+}
+
+.grimoire-delete-snippet-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  background: var(--background-modifier-error);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.grimoire-delete-snippet-btn:hover {
+  opacity: 0.9;
+}
+
+/* Env Snippet Modal */
+.grimoire-env-snippet-modal .modal-content {
+  max-width: 550px;
+  width: 550px;
+  padding: 16px;
+}
+
+.grimoire-env-snippet-modal h2 {
+  margin: 0 0 16px 0;
+}
+
+.grimoire-env-snippet-modal .setting-item {
+  padding: 8px 0;
+  margin: 0;
+}
+
+.grimoire-env-snippet-modal .setting-item-info {
+  margin-bottom: 4px;
+}
+
+/* Full-width env vars textarea setting */
+.grimoire-env-snippet-setting {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.grimoire-env-snippet-setting .setting-item-info {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.grimoire-env-snippet-control {
+  width: 100%;
+}
+
+.grimoire-env-snippet-control textarea {
+  width: 100%;
+  min-width: 100%;
+  font-family: var(--font-monospace);
+  font-size: 12px;
+  resize: vertical;
+}
+
+.grimoire-snippet-preview {
+  margin: 8px 0;
+  padding: 6px;
+  background: var(--background-secondary);
+  border-radius: 6px;
+}
+
+.grimoire-env-preview {
+  background: var(--background-primary);
+  padding: 6px;
+  border-radius: 4px;
+  font-family: var(--font-monospace);
+  font-size: 11px;
+  line-height: 1.3;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--text-muted);
+  max-height: 120px;
+  overflow-y: auto;
+  margin: 0;
+}
+
+.grimoire-snippet-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+
+.grimoire-cancel-btn,
+.grimoire-save-btn {
+  padding: 6px 16px;
+  font-size: 13px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.grimoire-cancel-btn {
+  background: var(--background-modifier-border);
+  color: var(--text-normal);
+}
+
+.grimoire-cancel-btn:hover {
+  background: var(--background-modifier-border-hover);
+}
+
+.grimoire-save-btn {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.grimoire-save-btn:hover {
+  opacity: 0.9;
+}
+
+/* Context limits section in snippet modal */
+.grimoire-snippet-context-limits {
+  margin-top: 1em;
+}
+
+.grimoire-snippet-context-limits .setting-item-description {
+  margin-bottom: 0.5em;
+}
+
+.grimoire-snippet-limit-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.grimoire-snippet-limit-model {
+  font-family: var(--font-monospace);
+  font-size: var(--font-ui-small);
+}
+
+.grimoire-snippet-limit-spacer {
+  flex: 1;
+}
+
+.grimoire-snippet-limit-input {
+  width: 80px;
+}
+
+.grimoire-snippet-alias-input {
+  width: 160px;
+}

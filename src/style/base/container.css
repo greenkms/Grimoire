@@ -1,0 +1,511 @@
+.grimoire-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+  background: var(--grimoire-workbench-bg);
+  color: var(--text-normal);
+  font-family: var(--font-text);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.grimoire-container--chat-window {
+  --grimoire-window-padding-x: 13px;
+  --grimoire-window-radius: 0;
+  background: var(--grimoire-panel);
+}
+
+.grimoire-chat-window-shell {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--grimoire-window-radius);
+  background: var(--grimoire-panel);
+  box-shadow: none;
+}
+
+.grimoire-chat-window-shell::before {
+  display: none;
+}
+
+.grimoire-tab-content-container,
+.grimoire-tab-chat-window {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.grimoire-tab-chat-window {
+  height: 100%;
+}
+
+.grimoire-chat-window-grid {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.grimoire-chat-scroll {
+  min-height: 0;
+  overflow: hidden auto;
+  padding: 6px var(--grimoire-window-padding-x) 14px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--grimoire-line-3) transparent;
+}
+
+.grimoire-chat-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.grimoire-chat-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.grimoire-chat-scroll::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: var(--grimoire-workbench-border-strong);
+}
+
+.grimoire-chat-scroll.grimoire-chat-scroll--quiet {
+  scrollbar-width: none;
+}
+
+.grimoire-chat-scroll.grimoire-chat-scroll--quiet::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.grimoire-panel-content {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  min-height: 100%;
+  gap: 14px;
+}
+
+.grimoire-panel-view {
+  min-width: 0;
+}
+
+.grimoire-panel-view[hidden] {
+  display: none !important;
+}
+
+.grimoire-chat-panel {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.grimoire-sources-panel,
+.grimoire-context-panel {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.grimoire-panel-section-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  color: var(--grimoire-workbench-faint);
+  font-family: var(--font-monospace);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.grimoire-panel-section-count {
+  color: var(--grimoire-workbench-ghost);
+  font-family: var(--font-monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: none;
+}
+
+.grimoire-source-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.grimoire-source-filter {
+  appearance: none;
+  height: 28px;
+  min-width: 0;
+  border: 0 !important;
+  border-radius: var(--grimoire-radius-1);
+  background: var(--grimoire-raise) !important;
+  color: var(--grimoire-workbench-faint);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 550;
+  line-height: 1;
+  box-shadow: none !important;
+  text-align: center;
+  transition: background 0.14s ease, color 0.14s ease, box-shadow 0.14s ease;
+}
+
+.grimoire-source-filter:hover {
+  background: var(--grimoire-raise-2) !important;
+  color: var(--grimoire-workbench-muted);
+  box-shadow: none !important;
+}
+
+.grimoire-source-filter.is-active {
+  background: var(--grimoire-accent-soft) !important;
+  color: var(--grimoire-accent-text);
+  box-shadow: inset 0 0 0 1px var(--grimoire-accent-line) !important;
+}
+
+.grimoire-rail-kicker {
+  color: var(--grimoire-workbench-faint);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.grimoire-context-summary {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 0;
+}
+
+.grimoire-context-summary-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 12px 0;
+  border: 0;
+  border-top: 1px solid var(--grimoire-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.grimoire-context-summary-row:first-child {
+  border-top: 0;
+}
+
+.grimoire-context-summary-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.grimoire-context-summary-title,
+.grimoire-context-summary-detail {
+  display: block;
+  overflow: hidden;
+  max-width: 100%;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-context-summary-title {
+  color: var(--text-normal);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.grimoire-context-summary-detail {
+  color: var(--grimoire-workbench-faint);
+  font-size: 11px;
+}
+
+.grimoire-context-summary-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  max-width: 92px;
+  height: 21px;
+  overflow: hidden;
+  padding: 0 7px;
+  border: 0;
+  border-radius: var(--grimoire-radius-1);
+  color: var(--grimoire-workbench-faint);
+  background: var(--grimoire-raise-2);
+  font-family: var(--font-monospace);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.grimoire-context-summary-badge.is-active {
+  background: var(--grimoire-accent-soft);
+  color: var(--grimoire-accent-text);
+}
+
+.grimoire-context-memory-panel,
+.grimoire-source-card-stack {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 0;
+}
+
+.grimoire-context-section,
+.grimoire-note-memory-card,
+.grimoire-source-card {
+  border: 0;
+  border-top: 1px solid var(--grimoire-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.grimoire-context-section {
+  padding: 10px 0;
+}
+
+.grimoire-context-section-title {
+  margin-bottom: 6px;
+  color: var(--text-normal);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.grimoire-context-empty,
+.grimoire-source-empty,
+.grimoire-source-more {
+  color: var(--grimoire-workbench-muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.grimoire-source-empty,
+.grimoire-source-more {
+  align-self: center;
+  margin-top: 7px;
+  padding: 8px;
+  border: 1px dashed var(--grimoire-workbench-border);
+  border-radius: 5px;
+}
+
+.grimoire-note-memory-card,
+.grimoire-source-card {
+  appearance: none;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  display: grid;
+  box-sizing: border-box;
+  align-items: start;
+  justify-content: stretch;
+  gap: 3px 8px;
+  padding: 8px 4px;
+  border-width: 0 !important;
+  border-top-width: 1px !important;
+  color: var(--text-normal);
+  font: inherit;
+  line-height: normal;
+  text-align: left;
+  white-space: normal;
+  cursor: pointer;
+  background: transparent !important;
+  box-shadow: none !important;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.grimoire-note-memory-card {
+  grid-template-columns: minmax(0, 1fr) max-content;
+  grid-template-areas:
+    "title badge"
+    "path path";
+  min-height: 58px;
+}
+
+.grimoire-source-card {
+  grid-template-columns: minmax(0, 1fr) max-content;
+  grid-template-areas:
+    "dot title score"
+    "dot path score";
+  grid-template-columns: 7px minmax(0, 1fr) max-content;
+  min-height: 47px;
+}
+
+.grimoire-note-memory-card:hover,
+.grimoire-source-card:hover {
+  background: var(--grimoire-raise) !important;
+  box-shadow: none !important;
+}
+
+.grimoire-note-memory-title,
+.grimoire-source-card-title {
+  display: block;
+  overflow: hidden;
+  max-width: 100%;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-note-memory-title {
+  grid-area: title;
+}
+
+.grimoire-source-card-title {
+  grid-area: title;
+}
+
+.grimoire-source-card-dot {
+  grid-area: dot;
+  align-self: center;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--grimoire-workbench-faint);
+}
+
+.grimoire-source-card[data-source-kind="current"] .grimoire-source-card-dot {
+  background: var(--grimoire-ok);
+}
+
+.grimoire-note-memory-path,
+.grimoire-source-card-path,
+.grimoire-source-card-score {
+  display: block;
+  overflow: hidden;
+  max-width: 100%;
+  color: var(--grimoire-workbench-muted);
+  font-size: 11px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-note-memory-path {
+  grid-area: path;
+}
+
+.grimoire-source-card-path {
+  grid-area: path;
+  min-width: 0;
+}
+
+.grimoire-source-card-score {
+  grid-area: score;
+  align-self: center;
+  max-width: 84px;
+  min-width: 34px;
+  height: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 7px;
+  border: 0;
+  border-radius: var(--grimoire-radius-1);
+  background: var(--grimoire-accent-soft);
+  color: var(--grimoire-accent-text);
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.grimoire-source-card[data-source-kind="current"] .grimoire-source-card-score {
+  background: rgba(var(--grimoire-ok-rgb), 0.13);
+  color: var(--grimoire-ok);
+  text-transform: uppercase;
+}
+
+.grimoire-note-memory-badge {
+  grid-area: badge;
+  justify-self: end;
+  align-self: start;
+  min-width: 34px;
+  height: 21px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 7px;
+  border: 1px solid rgba(var(--grimoire-brand-rgb), 0.46);
+  border-radius: 5px;
+  background: rgba(var(--grimoire-brand-rgb), 0.13);
+  color: var(--text-normal);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.grimoire-composer-surface {
+  position: relative;
+  overflow: visible;
+  padding: 6px var(--grimoire-window-padding-x) 13px;
+  background: var(--grimoire-panel);
+}
+
+.grimoire-composer-surface .grimoire-input-container,
+.grimoire-sources-panel .grimoire-status-panel-container {
+  padding: 0;
+}
+
+.grimoire-operational-panel {
+  flex: 0 0 auto;
+  min-height: 0;
+}
+
+@media (max-width: 460px) {
+  .grimoire-container--chat-window {
+    --grimoire-window-padding-x: 10px;
+  }
+
+  .grimoire-chat-window-shell {
+    border-radius: 0;
+    border-inline: 0;
+  }
+}
+
+.grimoire-hidden {
+  display: none !important;
+}
+
+.grimoire-visible-block {
+  display: block !important;
+}
+
+.grimoire-visible-flex {
+  display: flex !important;
+}
+
+.grimoire-provider-icon-variant--dark {
+  display: none;
+}
+
+body.theme-dark .grimoire-provider-icon-variant--light {
+  display: none;
+}
+
+body.theme-dark .grimoire-provider-icon-variant--dark {
+  display: inline;
+}

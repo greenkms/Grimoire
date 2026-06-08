@@ -1,0 +1,507 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "remove": "Remove",
+    "clear": "Clear",
+    "clearAll": "Clear all",
+    "loading": "Loading",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "confirm": "Confirm",
+    "settings": "Settings",
+    "advanced": "Advanced",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "platform": "Platform",
+    "refresh": "Refresh",
+    "rewind": "Rewind"
+  },
+  "chat": {
+    "rewind": {
+      "confirmMessage": "Rewind to this point? File changes after this message will be reverted. Rewinding does not affect files edited manually or via bash.",
+      "confirmMessageConversationOnly": "Rewind conversation to this point? File changes will be kept.",
+      "confirmButton": "Rewind",
+      "ariaLabel": "Rewind to here",
+      "menuConversationOnly": "Rewind conversation only",
+      "menuCodeAndConversation": "Rewind code + conversation",
+      "notice": "Rewound: {count} file(s) reverted",
+      "noticeConversationOnly": "Rewound conversation; file changes kept",
+      "noticeSaveFailed": "Rewound: {count} file(s) reverted, but failed to save state: {error}",
+      "noticeConversationOnlySaveFailed": "Rewound conversation, but failed to save state: {error}",
+      "failed": "Rewind failed: {error}",
+      "cannot": "Cannot rewind: {error}",
+      "unavailableStreaming": "Cannot rewind while streaming",
+      "unavailableNoUuid": "Cannot rewind: missing message identifiers"
+    },
+    "fork": {
+      "ariaLabel": "Fork conversation",
+      "chooseTarget": "Fork conversation",
+      "targetNewTab": "New tab",
+      "targetCurrentTab": "Current tab",
+      "maxTabsReached": "Cannot fork: maximum {count} tabs reached",
+      "notice": "Forked to new tab",
+      "noticeCurrentTab": "Forked in current tab",
+      "failed": "Fork failed: {error}",
+      "unavailableStreaming": "Cannot fork while streaming",
+      "unavailableNoUuid": "Cannot fork: missing message identifiers",
+      "unavailableNoResponse": "Cannot fork: no response to fork from",
+      "errorMessageNotFound": "Message not found",
+      "errorNoSession": "No session ID available",
+      "errorNoActiveTab": "No active tab",
+      "commandNoMessages": "Cannot fork: no messages in conversation",
+      "commandNoAssistantUuid": "Cannot fork: no assistant response with identifiers"
+    },
+    "bangBash": {
+      "placeholder": "> Run a bash command...",
+      "commandPanel": "Command panel",
+      "copyAriaLabel": "Copy latest command output",
+      "clearAriaLabel": "Clear bash output",
+      "commandLabel": "{command}",
+      "statusLabel": "Status: {status}",
+      "collapseOutput": "Collapse command output",
+      "expandOutput": "Expand command output",
+      "running": "Running...",
+      "copyFailed": "Failed to copy to clipboard"
+    },
+    "orchestrator": {
+      "planTitle": "Orchestrator plan",
+      "workerCount": "Workers: {count}",
+      "spawnWorkers": "Spawn workers",
+      "toggleTitle": "Orchestrator mode",
+      "toggleAriaLabel": "Toggle orchestrator mode",
+      "toggleFailed": "Failed to toggle orchestrator mode"
+    },
+    "vaultSearch": {
+      "toolName": "Vault search",
+      "toolDescription": "Search vault notes for this turn",
+      "sources": "Vault search: {count} {sourceLabel}",
+      "sourceSingular": "source",
+      "sourcePlural": "sources",
+      "failed": "Vault search failed: {message}"
+    },
+    "relevantNotes": {
+      "label": "Related",
+      "empty": "No source notes yet"
+    },
+    "greetings": {
+      "day": {
+        "sunday": {
+          "plain": "Happy Sunday",
+          "named": "Happy Sunday, {name}"
+        },
+        "sundaySession": "Sunday session?",
+        "weekend": "Welcome to the weekend",
+        "weekendNamed": "Welcome to the weekend, {name}",
+        "monday": {
+          "plain": "Happy Monday",
+          "named": "Happy Monday, {name}"
+        },
+        "backAtIt": {
+          "plain": "Back at it!",
+          "named": "Back at it, {name}"
+        },
+        "tuesday": {
+          "plain": "Happy Tuesday",
+          "named": "Happy Tuesday, {name}"
+        },
+        "wednesday": {
+          "plain": "Happy Wednesday",
+          "named": "Happy Wednesday, {name}"
+        },
+        "thursday": {
+          "plain": "Happy Thursday",
+          "named": "Happy Thursday, {name}"
+        },
+        "friday": {
+          "plain": "Happy Friday",
+          "named": "Happy Friday, {name}"
+        },
+        "fridayFeeling": {
+          "plain": "That Friday feeling",
+          "named": "That Friday feeling, {name}"
+        },
+        "saturday": {
+          "plain": "Happy Saturday!",
+          "named": "Happy Saturday, {name}!"
+        }
+      },
+      "time": {
+        "morning": {
+          "plain": "Good morning",
+          "named": "Good morning, {name}"
+        },
+        "coffee": "Coffee and Grimoire time?",
+        "morningNotes": "Morning notes, assemble.",
+        "freshContext": "Fresh context, fresh coffee.",
+        "afternoon": {
+          "plain": "Good afternoon",
+          "named": "Good afternoon, {name}"
+        },
+        "hey": {
+          "plain": "Hey there",
+          "named": "Hey there, {name}"
+        },
+        "howsItGoing": {
+          "plain": "How's it going?",
+          "named": "How's it going, {name}?"
+        },
+        "afternoonContext": "Afternoon context check?",
+        "evening": {
+          "plain": "Good evening",
+          "named": "Good evening, {name}"
+        },
+        "eveningShort": {
+          "plain": "Evening",
+          "named": "Evening, {name}"
+        },
+        "howWasDay": {
+          "plain": "How was your day?",
+          "named": "How was your day, {name}?"
+        },
+        "eveningEdits": "Evening edits, low drama.",
+        "nightOwl": "Hello, night owl",
+        "lateSession": "Late session, quiet keys.",
+        "vaultLateHours": "The vault keeps late hours."
+      },
+      "general": {
+        "hey": {
+          "plain": "Hey there",
+          "named": "Hey there, {name}"
+        },
+        "hi": {
+          "plain": "Hi, how are you?",
+          "named": "Hi {name}, how are you?"
+        },
+        "howsItGoing": {
+          "plain": "How's it going?",
+          "named": "How's it going, {name}?"
+        },
+        "welcomeBack": {
+          "plain": "Welcome back!",
+          "named": "Welcome back, {name}!"
+        },
+        "whatsNew": {
+          "plain": "What's new?",
+          "named": "What's new, {name}?"
+        },
+        "returns": "{name} returns!",
+        "readyNamed": "Ready when you are, {name}.",
+        "right": "You are absolutely right!",
+        "ready": "Ready when you are.",
+        "untangling": "What are we untangling today?",
+        "suspiciousPlan": "Bring me a note and a mildly suspicious plan."
+      },
+      "quips": {
+        "vaultAwake": "The vault is awake.",
+        "notesReceipts": "Your notes brought receipts.",
+        "askBoldly": "Ask boldly. Undo exists.",
+        "backlinks": "Ready when the backlinks are.",
+        "spell": "Today's spell: fewer tabs, better answers.",
+        "cleanDiff": "A clean diff is a kind of magic.",
+        "caffeinated": "The model is caffeinated. Probably.",
+        "noPressure": "No pressure, just a vault full of context.",
+        "summonContext": "Summon context, then be specific.",
+        "earnKeep": "Let us make this note earn its keep."
+      }
+    }
+  },
+  "settings": {
+    "title": "Grimoire Settings",
+    "tabs": {
+      "general": "General",
+      "claude": "Claude",
+      "codex": "Codex"
+    },
+    "display": "Display",
+    "appearance": {
+      "name": "Appearance theme",
+      "desc": "Choose how Grimoire blends into the current Obsidian theme. Provider badges keep their own status color.",
+      "saveFailed": "Failed to save appearance theme",
+      "options": {
+        "violet": {
+          "name": "Obsidian Violet",
+          "desc": "Native dark UI, mineral purple"
+        },
+        "graphite": {
+          "name": "Graphite Blue",
+          "desc": "Cool engineering surface"
+        },
+        "rune": {
+          "name": "Rune Ember",
+          "desc": "Legacy warm Grimoire accent"
+        },
+        "verdant": {
+          "name": "Verdant",
+          "desc": "Deep dark with fresh green accent"
+        }
+      }
+    },
+    "conversations": "Conversations",
+    "content": "Content",
+    "input": "Input",
+    "diagnostics": "Diagnostics",
+    "setup": "Setup",
+    "models": "Models",
+    "experimental": "Experimental",
+    "userName": {
+      "name": "What should Grimoire call you?",
+      "desc": "Your name for personalized greetings (leave empty for generic greetings)"
+    },
+    "excludedTags": {
+      "name": "Excluded tags",
+      "desc": "Notes with these tags will not auto-load as context (one per line, without #)"
+    },
+    "mediaFolder": {
+      "name": "Media folder",
+      "desc": "Folder containing attachments/images. When notes use ![[image.jpg]], Claude will look here. Leave empty for vault root."
+    },
+    "systemPrompt": {
+      "name": "Custom system prompt",
+      "desc": "Additional instructions appended to the default system prompt"
+    },
+    "autoTitle": {
+      "name": "Auto-generate conversation titles",
+      "desc": "Automatically generate conversation titles after the first user message is sent."
+    },
+    "titleModel": {
+      "name": "Title generation model",
+      "desc": "Model used for auto-generating conversation titles.",
+      "auto": "Auto (active provider)"
+    },
+    "navMappings": {
+      "name": "Vim-style navigation mappings",
+      "desc": "One mapping per line. Format: \"map <key> <action>\" (actions: scrollUp, scrollDown, focusInput)."
+    },
+    "requireCommandOrControlEnterToSend": {
+      "name": "Require Command/Ctrl+Enter to send",
+      "desc": "When enabled, Enter inserts a newline. Command+Enter sends on macOS; Ctrl+Enter sends on Windows and Linux."
+    },
+    "usageIndicators": {
+      "name": "Usage indicators",
+      "desc": "Show plan usage and API spend indicators beside the model selector and inside the model menu."
+    },
+    "debugLogging": {
+      "name": "Debug logging",
+      "desc": "Write sanitized technical logs to .grimoire/logs/YYYY-MM-DD.jsonl only while enabled. Prompts, answers, note contents, paths, environment values, and secrets are redacted."
+    },
+    "hotkeys": "Hotkeys",
+    "inlineEditHotkey": {
+      "name": "Inline Edit",
+      "descWithKey": "Current hotkey: {hotkey}",
+      "descNoKey": "No hotkey set",
+      "btnChange": "Change",
+      "btnSet": "Set hotkey"
+    },
+    "openChatHotkey": {
+      "name": "Open Chat",
+      "descWithKey": "Current hotkey: {hotkey}",
+      "descNoKey": "No hotkey set",
+      "btnChange": "Change",
+      "btnSet": "Set hotkey"
+    },
+    "newSessionHotkey": {
+      "name": "New Session",
+      "descWithKey": "Current hotkey: {hotkey}",
+      "descNoKey": "No hotkey set",
+      "btnChange": "Change",
+      "btnSet": "Set hotkey"
+    },
+    "newTabHotkey": {
+      "name": "New Tab",
+      "descWithKey": "Current hotkey: {hotkey}",
+      "descNoKey": "No hotkey set",
+      "btnChange": "Change",
+      "btnSet": "Set hotkey"
+    },
+    "closeTabHotkey": {
+      "name": "Close Tab",
+      "descWithKey": "Current hotkey: {hotkey}",
+      "descNoKey": "No hotkey set",
+      "btnChange": "Change",
+      "btnSet": "Set hotkey"
+    },
+    "slashCommands": {
+      "name": "Commands and Skills",
+      "desc": "Manage vault-level commands and skills stored in .claude/commands/ and .claude/skills/. Triggered by /name."
+    },
+    "hiddenSlashCommands": {
+      "name": "Hidden Commands and Skills",
+      "desc": "Hide specific commands and skills from the dropdown. Useful for hiding Claude Code entries that are not relevant to Grimoire. Enter names without the leading slash, one per line.",
+      "placeholder": "commit\nbuild\ntest"
+    },
+    "mcpServers": {
+      "name": "MCP Servers",
+      "desc": "Manage vault-level MCP server configurations stored in .claude/mcp.json. Servers with context-saving mode require @mention to activate."
+    },
+    "subagents": {
+      "name": "Subagents",
+      "desc": "Manage vault-level subagents stored in .claude/agents/. Each Markdown file defines one custom agent.",
+      "noAgents": "No subagents configured. Click + to create one.",
+      "deleteConfirm": "Delete subagent \"{name}\"?",
+      "saveFailed": "Failed to save subagent: {message}",
+      "refreshFailed": "Failed to refresh subagents: {message}",
+      "deleteFailed": "Failed to delete subagent: {message}",
+      "renameCleanupFailed": "Warning: could not remove old file for \"{name}\"",
+      "created": "Subagent \"{name}\" created",
+      "updated": "Subagent \"{name}\" updated",
+      "deleted": "Subagent \"{name}\" deleted",
+      "duplicateName": "An agent named \"{name}\" already exists",
+      "descriptionRequired": "Description is required",
+      "promptRequired": "System prompt is required",
+      "modal": {
+        "titleEdit": "Edit Subagent",
+        "titleAdd": "Add Subagent",
+        "name": "Name",
+        "nameDesc": "Lowercase letters, numbers, and hyphens only",
+        "namePlaceholder": "code-reviewer",
+        "description": "Description",
+        "descriptionDesc": "Brief description of this agent",
+        "descriptionPlaceholder": "Reviews code for bugs and style",
+        "advancedOptions": "Advanced options",
+        "model": "Model",
+        "modelDesc": "Model override for this agent",
+        "tools": "Tools",
+        "toolsDesc": "Comma-separated list of allowed tools (empty = all)",
+        "disallowedTools": "Disallowed tools",
+        "disallowedToolsDesc": "Comma-separated list of tools to disallow",
+        "skills": "Skills",
+        "skillsDesc": "Comma-separated list of skills",
+        "prompt": "System prompt",
+        "promptDesc": "Instructions for the agent",
+        "promptPlaceholder": "You are a code reviewer. Analyze the given code for..."
+      }
+    },
+    "environment": "Environment",
+    "customVariables": {
+      "name": "Custom variables",
+      "desc": "Environment variables for Claude SDK (KEY=VALUE format, one per line). Shell export prefix supported."
+    },
+    "envSnippets": {
+      "name": "Snippets",
+      "addBtn": "Add snippet",
+      "noSnippets": "No saved environment snippets yet. Click + to save your current environment configuration.",
+      "nameRequired": "Please enter a name for the snippet",
+      "modal": {
+        "titleEdit": "Edit snippet",
+        "titleSave": "Save snippet",
+        "name": "Name",
+        "namePlaceholder": "A descriptive name for this environment configuration",
+        "description": "Description",
+        "descPlaceholder": "Optional description",
+        "envVars": "Environment variables",
+        "envVarsPlaceholder": "KEY=VALUE format, one per line (export prefix supported)",
+        "save": "Save",
+        "update": "Update",
+        "cancel": "Cancel"
+      }
+    },
+    "customModelOverrides": {
+      "name": "Custom model overrides",
+      "desc": "Set model selector aliases and context window sizes for custom models."
+    },
+    "customModelAliases": {
+      "placeholder": "Alias"
+    },
+    "customContextLimits": {
+      "name": "Custom Context Limits",
+      "desc": "Set context window sizes for your custom models. Leave empty to use the default (200k tokens).",
+      "invalid": "Invalid format. Use: 256k, 1m, or exact count (1000-10000000)."
+    },
+    "enableOpus1M": {
+      "name": "Opus 1M context window",
+      "desc": "Show Opus 1M in the model selector. Included with Max, Team, and Enterprise plans. API and Pro users need extra usage."
+    },
+    "enableSonnet1M": {
+      "name": "Sonnet 1M context window",
+      "desc": "Show Sonnet 1M in the model selector. Requires extra usage on Max, Team, and Enterprise plans. API and Pro users need extra usage."
+    },
+    "customModels": {
+      "name": "Custom models",
+      "desc": "Append additional Claude model IDs to the picker, one per line. Environment model overrides still replace the picker.",
+      "placeholder": "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
+    },
+    "enableChrome": {
+      "name": "Enable Chrome extension",
+      "desc": "Allow Claude to interact with Chrome via the claude-in-chrome extension. Requires the extension to be installed. Requires session restart."
+    },
+    "enableBangBash": {
+      "name": "Enable bash mode (!)",
+      "desc": "Type ! on empty input to enter bash mode. Runs commands directly via Node.js child_process. Requires view reopen.",
+      "validation": {
+        "noNode": "Node.js not found on PATH. Install Node.js or check your PATH configuration."
+      }
+    },
+    "maxTabs": {
+      "name": "Maximum chat tabs",
+      "desc": "Maximum number of concurrent chat tabs (1-10).",
+      "warning": "Higher tab counts may affect performance and memory usage."
+    },
+    "tabBarPosition": {
+      "name": "Tab bar position",
+      "desc": "Choose where to display tab badges and action buttons",
+      "input": "Above input (default)",
+      "header": "In header"
+    },
+    "enableAutoScroll": {
+      "name": "Auto-scroll during streaming",
+      "desc": "Automatically scroll to the bottom as Claude streams responses. Disable to stay at the top and read from the beginning."
+    },
+    "deferMathRenderingDuringStreaming": {
+      "name": "Defer math rendering during streaming",
+      "desc": "Show raw LaTeX while responses stream, then render math once when each text block completes."
+    },
+    "chatViewPlacement": {
+      "name": "Open Grimoire in",
+      "desc": "Choose where the chat panel opens when it is created",
+      "rightSidebar": "Right sidebar",
+      "leftSidebar": "Left sidebar",
+      "mainTab": "Main editor tab"
+    },
+    "cliPath": {
+      "name": "Claude CLI path",
+      "desc": "Custom path to Claude Code CLI. Leave empty for auto-detection.",
+      "descWindows": "For the native installer, use claude.exe. For npm/pnpm/yarn or other package manager installs, use the cli-wrapper.cjs path (not claude.cmd).",
+      "descUnix": "Paste the output of \"which claude\" — works for both native and npm/pnpm/yarn installs.",
+      "validation": {
+        "notExist": "Path does not exist",
+        "isDirectory": "Path is a directory, not a file"
+      }
+    },
+    "language": {
+      "name": "Language",
+      "desc": "Change the display language of the plugin interface"
+    },
+    "contextEngine": {
+      "name": "Context engine",
+      "desc": "Configure vault search and relevant note context.",
+      "vaultSearchEnabled": "Enable vault search",
+      "vaultSearchMaxResults": "Vault search results",
+      "vaultSearchMaxSnippetChars": "Vault search snippet length",
+      "relevantNotesEnabled": "Enable relevant notes",
+      "relevantNotesMaxResults": "Relevant notes results"
+    },
+    "projectWorkspaces": {
+      "name": "Project workspaces",
+      "desc": "Save scoped instructions and context sources for recurring work.",
+      "none": "No workspace",
+      "add": "Add workspace",
+      "delete": "Delete",
+      "workspaceName": "Workspace name",
+      "systemPrompt": "Workspace system prompt",
+      "vaultFolders": "Workspace vault folders",
+      "vaultFiles": "Workspace vault files",
+      "tags": "Workspace tags",
+      "externalPaths": "Workspace external paths",
+      "provider": "Workspace provider",
+      "model": "Workspace model",
+      "untitled": "Untitled workspace",
+      "new": "New workspace",
+      "changeFailed": "Failed to change project workspace"
+    }
+  }
+}

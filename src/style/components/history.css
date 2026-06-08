@@ -1,0 +1,324 @@
+.grimoire-history-menu {
+  position: absolute;
+  top: 13px;
+  right: 13px;
+  bottom: 13px;
+  left: 13px;
+  z-index: 40;
+  display: none;
+  overflow: hidden;
+  border: 1px solid rgba(var(--grimoire-brand-rgb), 0.24);
+  border-radius: var(--grimoire-radius-3);
+  background: color-mix(in srgb, var(--grimoire-panel-2) 99%, #050508);
+  box-shadow:
+    0 18px 52px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.035) inset;
+  animation: grimoire-pop 0.14s ease-out;
+}
+
+.grimoire-history-menu.visible {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.grimoire-history-header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 13px;
+  border-bottom: 1px solid var(--grimoire-line);
+}
+
+.grimoire-history-title {
+  min-width: 0;
+  color: var(--text-normal);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.grimoire-history-header-spacer {
+  flex: 1 1 auto;
+}
+
+.grimoire-history-count {
+  padding: 4px 7px;
+  border-radius: var(--grimoire-radius-1);
+  background: var(--grimoire-raise-2);
+  color: var(--grimoire-workbench-faint);
+  font-family: var(--font-monospace);
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.grimoire-history-close {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--grimoire-radius-1);
+  background: transparent;
+  color: var(--grimoire-workbench-faint);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.grimoire-history-close:hover {
+  background: rgba(255, 255, 255, 0.065);
+  color: var(--text-normal);
+}
+
+.grimoire-history-close svg {
+  width: 15px;
+  height: 15px;
+}
+
+.grimoire-history-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 13px;
+  border-bottom: 1px solid var(--grimoire-line);
+}
+
+.grimoire-history-search-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: var(--grimoire-workbench-faint);
+}
+
+.grimoire-history-search-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.grimoire-history-search-input {
+  min-width: 0;
+  flex: 1 1 auto;
+  border: 0;
+  box-shadow: none;
+  outline: 0;
+  background: transparent;
+  color: var(--text-normal);
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.grimoire-history-search-input:focus {
+  border: 0;
+  box-shadow: none;
+  outline: 0;
+}
+
+.grimoire-history-search-input::placeholder {
+  color: var(--grimoire-workbench-ghost);
+}
+
+.grimoire-history-list {
+  min-height: 0;
+  overflow: hidden auto;
+  padding: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+}
+
+.grimoire-history-group {
+  display: grid;
+  gap: 2px;
+}
+
+.grimoire-history-group + .grimoire-history-group {
+  margin-top: 6px;
+}
+
+.grimoire-history-group-label {
+  padding: 8px 10px 6px;
+  color: var(--text-faint);
+  font-family: var(--font-monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.grimoire-history-empty {
+  display: grid;
+  place-items: center;
+  min-height: 130px;
+  padding: 32px 20px;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.grimoire-history-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: var(--grimoire-radius-2);
+  cursor: pointer;
+  outline: 0;
+  transition: background 0.13s ease;
+}
+
+.grimoire-history-item:hover,
+.grimoire-history-item:focus-visible {
+  background: var(--grimoire-raise-2);
+}
+
+.grimoire-history-item.active {
+  cursor: default;
+  background: transparent;
+}
+
+.grimoire-history-item.is-open:not(.active) {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.grimoire-history-provider-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--grimoire-history-provider-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--grimoire-history-provider-color) 17%, transparent);
+}
+
+.grimoire-history-item-content {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.grimoire-history-item-title {
+  overflow: hidden;
+  color: var(--text-normal);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-history-item-meta {
+  overflow: hidden;
+  color: var(--text-faint);
+  font-size: 11px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-history-item-time {
+  color: var(--grimoire-workbench-ghost);
+  font-family: var(--font-monospace);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  transition: opacity 0.12s ease;
+}
+
+.grimoire-history-item:hover .grimoire-history-item-time {
+  opacity: 0;
+}
+
+.grimoire-history-item:focus-within .grimoire-history-item-time {
+  opacity: 0;
+}
+
+.grimoire-history-item-actions {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  display: flex;
+  gap: 3px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition: opacity 0.12s ease;
+}
+
+.grimoire-history-item:hover .grimoire-history-item-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.grimoire-history-item:focus-within .grimoire-history-item-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.grimoire-action-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--grimoire-radius-1);
+  background: var(--grimoire-raise);
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.grimoire-action-btn:hover {
+  background: var(--grimoire-raise-2);
+  color: var(--text-normal);
+}
+
+.grimoire-action-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.grimoire-delete-btn:hover {
+  background: rgba(224, 122, 122, 0.16);
+  color: var(--color-red);
+}
+
+.grimoire-rename-input {
+  width: 100%;
+  padding: 2px 4px;
+  border: 1px solid var(--interactive-accent);
+  border-radius: 4px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.grimoire-rename-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+/* Loading indicator for title generation. */
+.grimoire-action-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: spin 1s linear infinite;
+  opacity: 0.6;
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grimoire-history-menu,
+  .grimoire-history-item,
+  .grimoire-history-item-actions,
+  .grimoire-history-item-time,
+  .grimoire-action-btn {
+    animation: none;
+    transition: none;
+  }
+}

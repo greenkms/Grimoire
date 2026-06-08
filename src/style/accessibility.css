@@ -1,0 +1,41 @@
+/* Accessibility - Focus Visible Styles */
+
+/* outline + offset + border-radius */
+.grimoire-tool-header:focus-visible,
+.grimoire-thinking-header:focus-visible,
+.grimoire-subagent-header:focus-visible,
+.grimoire-header-btn:focus-visible,
+.grimoire-model-btn:focus-visible,
+.grimoire-thinking-current:focus-visible {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* outline + offset only */
+.grimoire-action-btn:focus-visible,
+.grimoire-toggle-switch:focus-visible,
+.grimoire-file-chip:focus-visible,
+.grimoire-relevant-note:focus-visible,
+.grimoire-image-chip:focus-visible,
+.grimoire-file-chip-remove:focus-visible,
+.grimoire-image-remove:focus-visible,
+.grimoire-image-modal-close:focus-visible,
+.grimoire-approved-remove-btn:focus-visible,
+.grimoire-save-env-btn:focus-visible,
+.grimoire-restore-snippet-btn:focus-visible,
+.grimoire-edit-snippet-btn:focus-visible,
+.grimoire-delete-snippet-btn:focus-visible,
+.grimoire-cancel-btn:focus-visible,
+.grimoire-save-btn:focus-visible,
+.grimoire-code-lang-label:focus-visible {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: 2px;
+}
+
+/* outline + negative offset + border-radius */
+.grimoire-history-item-content:focus-visible {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: -2px;
+  border-radius: 4px;
+}

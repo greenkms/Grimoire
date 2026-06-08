@@ -1,0 +1,190 @@
+.grimoire-tab-bar-container {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 5px;
+}
+
+.grimoire-tab-badges {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  min-width: 0;
+  overflow: auto hidden;
+  scrollbar-width: none;
+}
+
+.grimoire-tab-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 28px;
+  width: auto;
+  height: 26px;
+  flex: 0 0 auto;
+  padding: 0 8px 0 10px;
+  border: 0;
+  border-radius: var(--grimoire-radius-1);
+  font-family: var(--font-monospace);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--grimoire-workbench-faint);
+  background: transparent;
+  box-shadow: none;
+  transition: color 0.14s ease, background 0.14s ease;
+}
+
+.grimoire-tab-badge:hover {
+  background: var(--grimoire-raise-2);
+  color: var(--grimoire-workbench-muted);
+}
+
+.grimoire-tab-badge-active {
+  background: var(--grimoire-accent-soft);
+  color: var(--grimoire-accent-text);
+}
+
+.grimoire-tab-badge-streaming::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--grimoire-ok);
+}
+
+.grimoire-tab-badge-streaming[data-provider="claude"] {
+  --grimoire-ok: var(--grimoire-provider-claude, #d97757);
+}
+
+.grimoire-tab-badge-streaming[data-provider="codex"] {
+  --grimoire-ok: var(--grimoire-provider-codex, #19c37d);
+}
+
+.grimoire-tab-badge-streaming[data-provider="gemini"] {
+  --grimoire-ok: var(--grimoire-provider-gemini, #5b8def);
+}
+
+.grimoire-tab-badge-streaming[data-provider="opencode"] {
+  --grimoire-ok: var(--grimoire-provider-opencode, #e0b341);
+}
+
+.grimoire-tab-badge-attention {
+  color: var(--text-error);
+}
+
+.grimoire-tab-badge-idle {
+  color: var(--grimoire-workbench-faint);
+}
+
+.grimoire-tab-badge[data-orchestrator="true"] {
+  border-style: double;
+}
+
+.grimoire-tab-badge[data-worker="true"] {
+  border-style: dashed;
+}
+
+.grimoire-tab-badge-close {
+  display: grid;
+  position: static;
+  place-items: center;
+  width: 12px;
+  height: 18px;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--grimoire-workbench-faint);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.12s ease, color 0.12s ease;
+}
+
+.grimoire-panel-tabs {
+  display: flex;
+  gap: 2px;
+  margin: 0 13px 2px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.grimoire-panel-tab {
+  appearance: none;
+  position: relative;
+  min-width: 0;
+  height: 26px;
+  overflow: visible;
+  padding: 0 11px;
+  border: 0 !important;
+  border-radius: 0;
+  background: transparent !important;
+  color: var(--grimoire-workbench-faint);
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 1;
+  box-shadow: none !important;
+  cursor: pointer;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.14s ease;
+}
+
+.grimoire-panel-tab:hover {
+  background: transparent !important;
+  color: var(--grimoire-workbench-muted);
+  box-shadow: none !important;
+}
+
+.grimoire-panel-tab.is-active {
+  color: var(--text-normal);
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.grimoire-panel-tab.is-active::after {
+  content: "";
+  position: absolute;
+  right: 11px;
+  bottom: 0;
+  left: 11px;
+  height: 1.5px;
+  border-radius: 2px;
+  background: var(--grimoire-brand) !important;
+  opacity: 1;
+}
+
+.grimoire-tab-badge:hover .grimoire-tab-badge-close,
+.grimoire-tab-badge-active .grimoire-tab-badge-close {
+  opacity: 0.62;
+}
+
+.grimoire-tab-badge-close:hover {
+  background: transparent;
+  color: var(--text-normal);
+  opacity: 1;
+}
+
+.grimoire-tab-content-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.grimoire-tab-content {
+  position: relative; /* For scroll-to-bottom button positioning */
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}

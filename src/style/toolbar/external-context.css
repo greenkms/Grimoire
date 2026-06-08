@@ -1,0 +1,249 @@
+/* External Context Selector */
+.grimoire-external-context-selector {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
+}
+
+.grimoire-external-context-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.grimoire-external-context-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: var(--text-faint);
+  transition: color 0.15s ease;
+}
+
+.grimoire-external-context-icon-wrapper:hover .grimoire-external-context-icon {
+  color: var(--text-normal);
+}
+
+.grimoire-external-context-icon.active {
+  color: var(--grimoire-brand);
+  animation: external-context-glow 2s ease-in-out infinite;
+}
+
+.grimoire-external-context-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.grimoire-external-context-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--grimoire-brand);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+.grimoire-external-context-badge.visible {
+  opacity: 1;
+}
+
+.grimoire-external-context-dropdown {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 100%;
+  margin-bottom: 4px;
+  min-width: 260px;
+  max-width: 320px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  z-index: 100;
+}
+
+.grimoire-external-context-selector:hover .grimoire-external-context-dropdown {
+  opacity: 1;
+  visibility: visible;
+}
+
+.grimoire-external-context-header {
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.grimoire-external-context-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.grimoire-external-context-empty {
+  padding: 16px 12px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-style: italic;
+}
+
+.grimoire-external-context-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  gap: 8px;
+  border-bottom: 1px solid var(--background-modifier-border-focus);
+}
+
+.grimoire-external-context-item:last-child {
+  border-bottom: none;
+}
+
+.grimoire-external-context-text {
+  flex: 1;
+  font-size: 12px;
+  font-family: var(--font-monospace);
+  color: var(--text-normal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-container--chat-window .grimoire-external-context-selector {
+  flex: 0 0 auto;
+  margin-left: 0;
+}
+
+.grimoire-container--chat-window .grimoire-external-context-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  min-width: 43px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: var(--grimoire-radius-1);
+  background: var(--grimoire-raise);
+  color: var(--grimoire-workbench-muted);
+  font-family: var(--font-monospace);
+  font-size: 11px;
+  line-height: 1;
+}
+
+.grimoire-container--chat-window .grimoire-external-context-icon-wrapper::before {
+  content: "Files";
+}
+
+.grimoire-container--chat-window .grimoire-external-context-icon {
+  display: none;
+}
+
+.grimoire-container--chat-window .grimoire-external-context-icon-wrapper:hover {
+  background: var(--grimoire-raise-2);
+  color: var(--text-normal);
+}
+
+.grimoire-container--chat-window .grimoire-external-context-badge.visible {
+  top: -5px;
+  right: -5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--grimoire-brand);
+  color: var(--text-on-accent);
+  font-size: 9px;
+  opacity: 1;
+}
+
+.grimoire-container--chat-window .grimoire-external-context-dropdown {
+  position: fixed;
+  right: auto;
+  bottom: var(--grimoire-external-context-dropdown-bottom, 72px);
+  left: var(--grimoire-external-context-dropdown-left, 10px);
+  box-sizing: border-box;
+  width: var(--grimoire-external-context-dropdown-width, min(320px, calc(100vw - 20px)));
+  min-width: 0;
+  max-width: none;
+  max-height: var(--grimoire-external-context-dropdown-max-height, 260px);
+  overflow: hidden;
+  transform: none;
+  border-color: var(--grimoire-line-3);
+  background: color-mix(in srgb, var(--grimoire-panel-2) 97%, #000);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.48);
+  z-index: 10002;
+  animation: grimoire-pop 0.14s ease-out;
+}
+
+.grimoire-container--chat-window .grimoire-external-context-list {
+  max-height: calc(var(--grimoire-external-context-dropdown-max-height, 260px) - 42px);
+}
+
+.grimoire-external-context-lock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-muted);
+  opacity: 0.4;
+  transition: all 0.15s ease;
+}
+
+.grimoire-external-context-lock:hover {
+  background: var(--background-modifier-hover);
+  opacity: 0.8;
+}
+
+.grimoire-external-context-lock.locked {
+  color: var(--grimoire-brand);
+  opacity: 0.9;
+}
+
+.grimoire-external-context-lock.locked:hover {
+  opacity: 1;
+}
+
+.grimoire-external-context-lock svg {
+  width: 12px;
+  height: 12px;
+}
+
+.grimoire-external-context-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-muted);
+  opacity: 0.6;
+  transition: all 0.15s ease;
+}
+
+.grimoire-external-context-remove:hover {
+  background: rgba(var(--grimoire-error-rgb), 0.15);
+  color: var(--grimoire-error);
+  opacity: 1;
+}
+
+.grimoire-external-context-remove svg {
+  width: 14px;
+  height: 14px;
+}

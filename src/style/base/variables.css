@@ -1,0 +1,79 @@
+/* Brand & semantic color tokens */
+.grimoire-container {
+  --grimoire-brand: #8b5cf6;
+  --grimoire-brand-rgb: 139, 92, 246;
+  --grimoire-surface-glow: rgba(139, 92, 246, 0.14);
+  --grimoire-workbench-bg: var(--background-primary);
+  --grimoire-workbench-surface: var(--background-secondary);
+  --grimoire-workbench-surface-raised: var(--background-modifier-hover);
+  --grimoire-workbench-border: var(--background-modifier-border);
+  --grimoire-workbench-border-strong: var(--background-modifier-border-hover);
+  --grimoire-workbench-muted: var(--text-muted);
+  --grimoire-workbench-faint: var(--text-faint);
+  --grimoire-panel: var(--background-secondary);
+  --grimoire-panel-2: var(--background-primary);
+  --grimoire-raise: rgba(255, 255, 255, 0.028);
+  --grimoire-raise-2: rgba(255, 255, 255, 0.05);
+  --grimoire-sink: rgba(0, 0, 0, 0.16);
+  --grimoire-line: rgba(255, 255, 255, 0.06);
+  --grimoire-line-2: rgba(255, 255, 255, 0.1);
+  --grimoire-line-3: rgba(255, 255, 255, 0.16);
+  --grimoire-accent-soft: rgba(var(--grimoire-brand-rgb), 0.13);
+  --grimoire-accent-line: rgba(var(--grimoire-brand-rgb), 0.42);
+  --grimoire-accent-text: color-mix(in srgb, var(--grimoire-brand) 48%, var(--text-normal));
+  --grimoire-ok: #63d39a;
+  --grimoire-ok-rgb: 99, 211, 154;
+  --grimoire-warn: #d6a662;
+  --grimoire-radius-1: 6px;
+  --grimoire-radius-2: 9px;
+  --grimoire-radius-3: 13px;
+  --grimoire-brand-claude: #d97757;
+  --grimoire-brand-claude-rgb: 217, 119, 87;
+  --grimoire-brand-codex: #19c37d;
+  --grimoire-brand-codex-rgb: 25, 195, 125;
+  --grimoire-brand-gemini: #5b8def;
+  --grimoire-brand-gemini-rgb: 91, 141, 239;
+  --grimoire-brand-opencode: #e0b341;
+  --grimoire-brand-opencode-rgb: 224, 179, 65;
+  --grimoire-provider-claude: var(--grimoire-brand-claude);
+  --grimoire-provider-codex: var(--grimoire-brand-codex);
+  --grimoire-provider-gemini: var(--grimoire-brand-gemini);
+  --grimoire-provider-opencode: var(--grimoire-brand-opencode);
+  --grimoire-error: #dc3545;
+  --grimoire-error-rgb: 220, 53, 69;
+  --grimoire-compact: #5bc0de;
+}
+
+.grimoire-container[data-theme="violet"] {
+  --grimoire-brand: #8b5cf6;
+  --grimoire-brand-rgb: 139, 92, 246;
+  --grimoire-surface-glow: rgba(139, 92, 246, 0.14);
+}
+
+.grimoire-container[data-theme="graphite"] {
+  --grimoire-brand: #6ea8ff;
+  --grimoire-brand-rgb: 110, 168, 255;
+  --grimoire-surface-glow: rgba(110, 168, 255, 0.12);
+}
+
+.grimoire-container[data-theme="rune"] {
+  --grimoire-brand: #d97757;
+  --grimoire-brand-rgb: 217, 119, 87;
+  --grimoire-surface-glow: rgba(217, 119, 87, 0.13);
+}
+
+.grimoire-container[data-theme="verdant"] {
+  --grimoire-brand: #34b87a;
+  --grimoire-brand-rgb: 52, 184, 122;
+  --grimoire-surface-glow: rgba(52, 184, 122, 0.13);
+}
+
+body.theme-light .grimoire-container {
+  --grimoire-raise: rgba(24, 18, 34, 0.035);
+  --grimoire-raise-2: rgba(24, 18, 34, 0.07);
+  --grimoire-sink: rgba(24, 18, 34, 0.045);
+  --grimoire-line: rgba(24, 18, 34, 0.08);
+  --grimoire-line-2: rgba(24, 18, 34, 0.13);
+  --grimoire-line-3: rgba(24, 18, 34, 0.2);
+  --grimoire-accent-text: color-mix(in srgb, var(--grimoire-brand) 72%, var(--text-normal));
+}

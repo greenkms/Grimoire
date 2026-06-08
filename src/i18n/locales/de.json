@@ -1,0 +1,507 @@
+{
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "add": "Hinzufügen",
+    "remove": "Entfernen",
+    "clear": "Löschen",
+    "clearAll": "Alle löschen",
+    "loading": "Lädt",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "warning": "Warnung",
+    "confirm": "Bestätigen",
+    "settings": "Einstellungen",
+    "advanced": "Erweitert",
+    "enabled": "Aktiviert",
+    "disabled": "Deaktiviert",
+    "platform": "Plattform",
+    "refresh": "Aktualisieren",
+    "rewind": "Zurückspulen"
+  },
+  "chat": {
+    "rewind": {
+      "confirmMessage": "Zu diesem Punkt zurückspulen? Dateiänderungen nach dieser Nachricht werden rückgängig gemacht. Das Zurückspulen betrifft keine manuell oder über Bash bearbeiteten Dateien.",
+      "confirmMessageConversationOnly": "Konversation zu diesem Punkt zurückspulen? Dateiänderungen bleiben erhalten.",
+      "confirmButton": "Zurückspulen",
+      "ariaLabel": "Hierher zurückspulen",
+      "menuConversationOnly": "Nur Konversation zurückspulen",
+      "menuCodeAndConversation": "Code + Konversation zurückspulen",
+      "notice": "Zurückgespult: {count} Datei(en) wiederhergestellt",
+      "noticeConversationOnly": "Konversation zurückgespult; Dateiänderungen bleiben erhalten",
+      "noticeSaveFailed": "Zurückgespult: {count} Datei(en) wiederhergestellt, aber Status konnte nicht gespeichert werden: {error}",
+      "noticeConversationOnlySaveFailed": "Konversation zurückgespult, aber Status konnte nicht gespeichert werden: {error}",
+      "failed": "Zurückspulen fehlgeschlagen: {error}",
+      "cannot": "Zurückspulen nicht möglich: {error}",
+      "unavailableStreaming": "Zurückspulen während des Streamings nicht möglich",
+      "unavailableNoUuid": "Zurückspulen nicht möglich: Nachrichtenkennungen fehlen"
+    },
+    "fork": {
+      "ariaLabel": "Konversation verzweigen",
+      "chooseTarget": "Konversation verzweigen",
+      "targetNewTab": "Neuer Tab",
+      "targetCurrentTab": "Aktueller Tab",
+      "maxTabsReached": "Verzweigung nicht möglich: maximal {count} Tabs erreicht",
+      "notice": "In neuem Tab verzweigt",
+      "noticeCurrentTab": "Im aktuellen Tab verzweigt",
+      "failed": "Verzweigung fehlgeschlagen: {error}",
+      "unavailableStreaming": "Verzweigung während des Streamings nicht möglich",
+      "unavailableNoUuid": "Verzweigung nicht möglich: Nachrichtenkennungen fehlen",
+      "unavailableNoResponse": "Verzweigung nicht möglich: keine Antwort zum Verzweigen vorhanden",
+      "errorMessageNotFound": "Nachricht nicht gefunden",
+      "errorNoSession": "Keine Sitzungs-ID verfügbar",
+      "errorNoActiveTab": "Kein aktiver Tab",
+      "commandNoMessages": "Verzweigung nicht möglich: keine Nachrichten in der Konversation",
+      "commandNoAssistantUuid": "Verzweigung nicht möglich: keine Assistentenantwort mit Kennungen"
+    },
+    "bangBash": {
+      "placeholder": "> Einen Bash-Befehl ausführen...",
+      "commandPanel": "Befehlspanel",
+      "copyAriaLabel": "Neueste Befehlsausgabe kopieren",
+      "clearAriaLabel": "Bash-Ausgabe löschen",
+      "commandLabel": "{command}",
+      "statusLabel": "Status des Befehls: {status}",
+      "collapseOutput": "Befehlsausgabe einklappen",
+      "expandOutput": "Befehlsausgabe ausklappen",
+      "running": "Wird ausgeführt...",
+      "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen"
+    },
+    "orchestrator": {
+      "planTitle": "Orchestrator-Plan",
+      "workerCount": "Worker: {count}",
+      "spawnWorkers": "Worker starten",
+      "toggleTitle": "Orchestrator-Modus",
+      "toggleAriaLabel": "Orchestrator-Modus umschalten",
+      "toggleFailed": "Orchestrator-Modus konnte nicht umgeschaltet werden"
+    },
+    "vaultSearch": {
+      "toolName": "Tresorsuche",
+      "toolDescription": "Tresornotizen für diesen Durchlauf durchsuchen",
+      "sources": "Tresorsuche: {count} {sourceLabel}",
+      "sourceSingular": "Quelle",
+      "sourcePlural": "Quellen",
+      "failed": "Tresorsuche fehlgeschlagen: {message}"
+    },
+    "relevantNotes": {
+      "label": "Verwandt",
+      "empty": "Noch keine Quellnotizen"
+    },
+    "greetings": {
+      "day": {
+        "sunday": {
+          "plain": "Schönen Sonntag",
+          "named": "Schönen Sonntag, {name}"
+        },
+        "sundaySession": "Sonntagssitzung?",
+        "weekend": "Willkommen im Wochenende",
+        "weekendNamed": "Willkommen im Wochenende, {name}",
+        "monday": {
+          "plain": "Schönen Montag",
+          "named": "Schönen Montag, {name}"
+        },
+        "backAtIt": {
+          "plain": "Wieder dran!",
+          "named": "Wieder dran, {name}"
+        },
+        "tuesday": {
+          "plain": "Schönen Dienstag",
+          "named": "Schönen Dienstag, {name}"
+        },
+        "wednesday": {
+          "plain": "Schönen Mittwoch",
+          "named": "Schönen Mittwoch, {name}"
+        },
+        "thursday": {
+          "plain": "Schönen Donnerstag",
+          "named": "Schönen Donnerstag, {name}"
+        },
+        "friday": {
+          "plain": "Schönen Freitag",
+          "named": "Schönen Freitag, {name}"
+        },
+        "fridayFeeling": {
+          "plain": "Dieses Freitagsgefühl",
+          "named": "Dieses Freitagsgefühl, {name}"
+        },
+        "saturday": {
+          "plain": "Schönen Samstag!",
+          "named": "Schönen Samstag, {name}!"
+        }
+      },
+      "time": {
+        "morning": {
+          "plain": "Guten Morgen",
+          "named": "Guten Morgen, {name}"
+        },
+        "coffee": "Kaffee und Grimoire?",
+        "morningNotes": "Morgennotizen, versammelt euch.",
+        "freshContext": "Frischer Kontext, frischer Kaffee.",
+        "afternoon": {
+          "plain": "Guten Nachmittag",
+          "named": "Guten Nachmittag, {name}"
+        },
+        "hey": {
+          "plain": "Hallo",
+          "named": "Hallo, {name}"
+        },
+        "howsItGoing": {
+          "plain": "Wie läuft es?",
+          "named": "Wie läuft es, {name}?"
+        },
+        "afternoonContext": "Nachmittags-Kontextcheck?",
+        "evening": {
+          "plain": "Guten Abend",
+          "named": "Guten Abend, {name}"
+        },
+        "eveningShort": {
+          "plain": "Abend",
+          "named": "Abend, {name}"
+        },
+        "howWasDay": {
+          "plain": "Wie war dein Tag?",
+          "named": "Wie war dein Tag, {name}?"
+        },
+        "eveningEdits": "Abendliche Änderungen, wenig Drama.",
+        "nightOwl": "Hallo, Nachteule",
+        "lateSession": "Späte Sitzung, leise Tasten.",
+        "vaultLateHours": "Der Vault macht Überstunden."
+      },
+      "general": {
+        "hey": {
+          "plain": "Hallo",
+          "named": "Hallo, {name}"
+        },
+        "hi": {
+          "plain": "Hi, wie geht es dir?",
+          "named": "Hi {name}, wie geht es dir?"
+        },
+        "howsItGoing": {
+          "plain": "Wie läuft es?",
+          "named": "Wie läuft es, {name}?"
+        },
+        "welcomeBack": {
+          "plain": "Willkommen zurück!",
+          "named": "Willkommen zurück, {name}!"
+        },
+        "whatsNew": {
+          "plain": "Was gibt es Neues?",
+          "named": "Was gibt es Neues, {name}?"
+        },
+        "returns": "{name} ist zurück!",
+        "readyNamed": "Bereit, wenn du es bist, {name}.",
+        "right": "Du hast absolut recht!",
+        "ready": "Bereit, wenn du es bist.",
+        "untangling": "Was entwirren wir heute?",
+        "suspiciousPlan": "Bring mir eine Notiz und einen leicht verdächtigen Plan."
+      },
+      "quips": {
+        "vaultAwake": "Der Vault ist wach.",
+        "notesReceipts": "Deine Notizen haben Belege mitgebracht.",
+        "askBoldly": "Frag mutig. Rückgängig gibt es.",
+        "backlinks": "Bereit, sobald die Backlinks bereit sind.",
+        "spell": "Heutiger Zauber: weniger Tabs, bessere Antworten.",
+        "cleanDiff": "Ein sauberer Diff ist eine Art Magie.",
+        "caffeinated": "Das Modell ist koffeiniert. Wahrscheinlich.",
+        "noPressure": "Kein Druck, nur ein Vault voller Kontext.",
+        "summonContext": "Beschwöre Kontext, dann werde konkret.",
+        "earnKeep": "Lassen wir diese Notiz ihren Platz verdienen."
+      }
+    }
+  },
+  "settings": {
+    "title": "Grimoire Einstellungen",
+    "tabs": {
+      "general": "Allgemein",
+      "claude": "Claude",
+      "codex": "Codex"
+    },
+    "display": "Anzeige",
+    "appearance": {
+      "name": "Appearance theme",
+      "desc": "Choose how Grimoire blends into the current Obsidian theme. Provider badges keep their own status color.",
+      "saveFailed": "Failed to save appearance theme",
+      "options": {
+        "violet": {
+          "name": "Obsidian Violet",
+          "desc": "Native dark UI, mineral purple"
+        },
+        "graphite": {
+          "name": "Graphite Blue",
+          "desc": "Cool engineering surface"
+        },
+        "rune": {
+          "name": "Rune Ember",
+          "desc": "Legacy warm Grimoire accent"
+        },
+        "verdant": {
+          "name": "Verdant",
+          "desc": "Deep dark with fresh green accent"
+        }
+      }
+    },
+    "conversations": "Unterhaltungen",
+    "content": "Inhalte",
+    "input": "Eingabe",
+    "diagnostics": "Diagnose",
+    "setup": "Einrichtung",
+    "models": "Modelle",
+    "experimental": "Experimentell",
+    "userName": {
+      "name": "Wie soll Grimoire dich nennen?",
+      "desc": "Dein Name für personalisierte Begrüßungen (leer lassen für allgemeine Begrüßungen)"
+    },
+    "excludedTags": {
+      "name": "Ausgeschlossene Tags",
+      "desc": "Notizen mit diesen Tags werden nicht automatisch als Kontext geladen (einer pro Zeile, ohne #)"
+    },
+    "mediaFolder": {
+      "name": "Medienordner",
+      "desc": "Ordner mit Anhängen/Bildern. Wenn Notizen ![[image.jpg]] verwenden, sucht Claude hier. Leer lassen für Vault-Stammverzeichnis."
+    },
+    "systemPrompt": {
+      "name": "Benutzerdefinierter System-Prompt",
+      "desc": "Zusätzliche Anweisungen, die an den Standard-System-Prompt angehängt werden"
+    },
+    "autoTitle": {
+      "name": "Konversationstitel automatisch generieren",
+      "desc": "Generiert automatisch Konversationstitel nach der ersten Nutzernachricht."
+    },
+    "titleModel": {
+      "name": "Titel-Generierungsmodell",
+      "desc": "Modell zur automatischen Generierung von Konversationstiteln.",
+      "auto": "Automatisch (aktiver Anbieter)"
+    },
+    "navMappings": {
+      "name": "Vim-Style Navigationszuordnungen",
+      "desc": "Eine Zuordnung pro Zeile. Format: \"map <Taste> <Aktion>\" (Aktionen: scrollUp, scrollDown, focusInput)."
+    },
+    "requireCommandOrControlEnterToSend": {
+      "name": "Command/Ctrl+Enter zum Senden erfordern",
+      "desc": "Wenn aktiviert, fügt Enter einen Zeilenumbruch ein. Command+Enter sendet unter macOS; Ctrl+Enter sendet unter Windows und Linux."
+    },
+    "usageIndicators": {
+      "name": "Usage indicators",
+      "desc": "Show plan usage and API spend indicators beside the model selector and inside the model menu."
+    },
+    "debugLogging": {
+      "name": "Debug-Protokollierung",
+      "desc": "Schreibt bereinigte technische Logs nur bei Aktivierung nach .grimoire/logs/YYYY-MM-DD.jsonl. Prompts, Antworten, Notizinhalte, Pfade, Umgebungswerte und Geheimnisse werden redigiert."
+    },
+    "hotkeys": "Tastenkürzel",
+    "inlineEditHotkey": {
+      "name": "Inline-Bearbeitung",
+      "descWithKey": "Aktuelles Tastenkürzel: {hotkey}",
+      "descNoKey": "Kein Tastenkürzel festgelegt",
+      "btnChange": "Ändern",
+      "btnSet": "Festlegen"
+    },
+    "openChatHotkey": {
+      "name": "Chat öffnen",
+      "descWithKey": "Aktuelles Tastenkürzel: {hotkey}",
+      "descNoKey": "Kein Tastenkürzel festgelegt",
+      "btnChange": "Ändern",
+      "btnSet": "Festlegen"
+    },
+    "newSessionHotkey": {
+      "name": "Neue Sitzung",
+      "descWithKey": "Aktuelles Tastenkürzel: {hotkey}",
+      "descNoKey": "Kein Tastenkürzel festgelegt",
+      "btnChange": "Ändern",
+      "btnSet": "Festlegen"
+    },
+    "newTabHotkey": {
+      "name": "Neuer Tab",
+      "descWithKey": "Aktuelles Tastenkürzel: {hotkey}",
+      "descNoKey": "Kein Tastenkürzel festgelegt",
+      "btnChange": "Ändern",
+      "btnSet": "Festlegen"
+    },
+    "closeTabHotkey": {
+      "name": "Tab schließen",
+      "descWithKey": "Aktuelles Tastenkürzel: {hotkey}",
+      "descNoKey": "Kein Tastenkürzel festgelegt",
+      "btnChange": "Ändern",
+      "btnSet": "Festlegen"
+    },
+    "slashCommands": {
+      "name": "Befehle und Fähigkeiten",
+      "desc": "Verwalte Vault-Befehle und -Fähigkeiten in .claude/commands/ und .claude/skills/. Ausgelöst durch /Name."
+    },
+    "hiddenSlashCommands": {
+      "name": "Ausgeblendete Befehle und Fähigkeiten",
+      "desc": "Bestimmte Befehle und Fähigkeiten aus dem Dropdown ausblenden. Nützlich, um Claude Code-Einträge auszublenden, die für Grimoire nicht relevant sind. Gib Namen ohne führenden Schrägstrich ein, einen pro Zeile.",
+      "placeholder": "commit\nbuild\ntest"
+    },
+    "mcpServers": {
+      "name": "MCP-Server",
+      "desc": "Verwalte Vault-MCP-Serverkonfigurationen in .claude/mcp.json. Server mit Kontext-Speichermodus benötigen @mention zur Aktivierung."
+    },
+    "subagents": {
+      "name": "Sub-Agenten",
+      "desc": "Verwalte Vault-Sub-Agenten in .claude/agents/. Jede Markdown-Datei definiert einen benutzerdefinierten Agenten.",
+      "noAgents": "Keine Sub-Agenten konfiguriert. Klicke auf +, um einen zu erstellen.",
+      "deleteConfirm": "Sub-Agent \"{name}\" löschen?",
+      "saveFailed": "Sub-Agent konnte nicht gespeichert werden: {message}",
+      "refreshFailed": "Sub-Agenten konnten nicht aktualisiert werden: {message}",
+      "deleteFailed": "Sub-Agent konnte nicht gelöscht werden: {message}",
+      "renameCleanupFailed": "Warnung: Alte Datei für \"{name}\" konnte nicht entfernt werden",
+      "created": "Sub-Agent \"{name}\" erstellt",
+      "updated": "Sub-Agent \"{name}\" aktualisiert",
+      "deleted": "Sub-Agent \"{name}\" gelöscht",
+      "duplicateName": "Ein Agent mit dem Namen \"{name}\" existiert bereits",
+      "descriptionRequired": "Beschreibung ist erforderlich",
+      "promptRequired": "System-Prompt ist erforderlich",
+      "modal": {
+        "titleEdit": "Sub-Agent bearbeiten",
+        "titleAdd": "Sub-Agent hinzufügen",
+        "name": "Name",
+        "nameDesc": "Nur Kleinbuchstaben, Zahlen und Bindestriche",
+        "namePlaceholder": "code-reviewer",
+        "description": "Beschreibung",
+        "descriptionDesc": "Kurzbeschreibung dieses Agenten",
+        "descriptionPlaceholder": "Prüft Code auf Fehler und Stil",
+        "advancedOptions": "Erweiterte Optionen",
+        "model": "Modell",
+        "modelDesc": "Modellüberschreibung für diesen Agenten",
+        "tools": "Tools",
+        "toolsDesc": "Kommagetrennte Liste zulässiger Tools (leer = alle)",
+        "disallowedTools": "Nicht erlaubte Tools",
+        "disallowedToolsDesc": "Kommagetrennte Liste der zu verbietenden Tools",
+        "skills": "Fähigkeiten",
+        "skillsDesc": "Kommagetrennte Liste von Fähigkeiten",
+        "prompt": "System-Prompt",
+        "promptDesc": "Anweisungen für den Agenten",
+        "promptPlaceholder": "Du bist ein Code-Reviewer. Analysiere den angegebenen Code auf..."
+      }
+    },
+    "environment": "Umgebung",
+    "customVariables": {
+      "name": "Benutzerdefinierte Variablen",
+      "desc": "Umgebungsvariablen für Claude SDK (KEY=VALUE-Format, eine pro Zeile). Export-Präfix unterstützt."
+    },
+    "envSnippets": {
+      "name": "Snippets",
+      "addBtn": "Snippet hinzufügen",
+      "noSnippets": "Keine gespeicherten Umgebungsvariablen-Snippets. Klicken Sie auf +, um Ihre aktuelle Konfiguration zu speichern.",
+      "nameRequired": "Bitte geben Sie einen Namen für das Snippet ein",
+      "modal": {
+        "titleEdit": "Snippet bearbeiten",
+        "titleSave": "Snippet speichern",
+        "name": "Name",
+        "namePlaceholder": "Ein beschreibender Name für diese Umgebungskonfiguration",
+        "description": "Beschreibung",
+        "descPlaceholder": "Optionale Beschreibung",
+        "envVars": "Umgebungsvariablen",
+        "envVarsPlaceholder": "KEY=VALUE-Format, eine pro Zeile (export-Präfix unterstützt)",
+        "save": "Speichern",
+        "update": "Aktualisieren",
+        "cancel": "Abbrechen"
+      }
+    },
+    "customModelOverrides": {
+      "name": "Benutzerdefinierte Modellüberschreibungen",
+      "desc": "Legen Sie Aliasnamen in der Modellauswahl und Kontextfenstergrößen für benutzerdefinierte Modelle fest."
+    },
+    "customModelAliases": {
+      "placeholder": "Alias"
+    },
+    "customContextLimits": {
+      "name": "Benutzerdefinierte Kontextlimits",
+      "desc": "Legen Sie die Kontextfenstergrößen für Ihre benutzerdefinierten Modelle fest. Leer lassen für den Standardwert (200k Token).",
+      "invalid": "Ungültiges Format. Verwenden Sie: 256k, 1m oder exakte Anzahl (1000-10000000)."
+    },
+    "enableOpus1M": {
+      "name": "Opus 1M Kontextfenster",
+      "desc": "Opus 1M in der Modellauswahl anzeigen. In Max-, Team- und Enterprise-Plänen enthalten. API- und Pro-Nutzer benötigen zusätzliche Nutzung."
+    },
+    "enableSonnet1M": {
+      "name": "Sonnet 1M Kontextfenster",
+      "desc": "Sonnet 1M in der Modellauswahl anzeigen. Erfordert zusätzliche Nutzung bei Max-, Team- und Enterprise-Plänen. API- und Pro-Nutzer benötigen zusätzliche Nutzung."
+    },
+    "customModels": {
+      "name": "Custom models",
+      "desc": "Append additional Claude model IDs to the picker, one per line. Environment model overrides still replace the picker.",
+      "placeholder": "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
+    },
+    "enableChrome": {
+      "name": "Chrome-Erweiterung aktivieren",
+      "desc": "Erlaubt Claude die Interaktion mit Chrome über die claude-in-chrome-Erweiterung. Die Erweiterung muss installiert sein. Erfordert Neustart der Sitzung."
+    },
+    "enableBangBash": {
+      "name": "Bash-Modus (!) aktivieren",
+      "desc": "Gib ! in ein leeres Eingabefeld ein, um den Bash-Modus zu starten. Führt Befehle direkt über Node.js child_process aus. Die Ansicht muss neu geöffnet werden.",
+      "validation": {
+        "noNode": "Node.js wurde auf PATH nicht gefunden. Installiere Node.js oder prüfe deine PATH-Konfiguration."
+      }
+    },
+    "maxTabs": {
+      "name": "Maximale Chat-Tabs",
+      "desc": "Maximale Anzahl gleichzeitiger Chat-Tabs (1-10). Jeder Tab verwendet eine separate Claude-Sitzung.",
+      "warning": "Mehr als 5 Tabs können Leistung und Speichernutzung beeinträchtigen."
+    },
+    "tabBarPosition": {
+      "name": "Tab-Leiste Position",
+      "desc": "Wählen Sie, wo Tab-Badges und Aktionsschaltflächen angezeigt werden",
+      "input": "Über Eingabefeld (Standard)",
+      "header": "In Kopfzeile"
+    },
+    "enableAutoScroll": {
+      "name": "Automatisches Scrollen während Streaming",
+      "desc": "Automatisch nach unten scrollen, während Claude Antworten streamt. Deaktivieren, um oben zu bleiben und von Anfang an zu lesen."
+    },
+    "deferMathRenderingDuringStreaming": {
+      "name": "Mathe-Rendering während Streaming aufschieben",
+      "desc": "LaTeX während des Streamings roh anzeigen und Mathematik einmal rendern, wenn der Textblock abgeschlossen ist."
+    },
+    "chatViewPlacement": {
+      "name": "Grimoire öffnen in",
+      "desc": "Wählen Sie, wo das Chat-Panel beim Erstellen geöffnet wird",
+      "rightSidebar": "Rechte Seitenleiste",
+      "leftSidebar": "Linke Seitenleiste",
+      "mainTab": "Haupteditor-Tab"
+    },
+    "cliPath": {
+      "name": "Claude CLI-Pfad",
+      "desc": "Benutzerdefinierter Pfad zum Claude Code CLI. Leer lassen für automatische Erkennung.",
+      "descWindows": "Für den nativen Installer verwenden Sie claude.exe. Für npm/pnpm/yarn oder andere Paketmanager-Installationen verwenden Sie den cli-wrapper.cjs-Pfad (nicht claude.cmd).",
+      "descUnix": "Fügen Sie die Ausgabe von \"which claude\" ein — funktioniert sowohl für native als auch npm/pnpm/yarn-Installationen.",
+      "validation": {
+        "notExist": "Pfad existiert nicht",
+        "isDirectory": "Pfad ist ein Verzeichnis, keine Datei"
+      }
+    },
+    "language": {
+      "name": "Sprache",
+      "desc": "Anzeigesprache der Plugin-Oberfläche ändern"
+    },
+    "contextEngine": {
+      "name": "Kontext-Engine",
+      "desc": "Tresorsuche und Kontext für verwandte Notizen konfigurieren.",
+      "vaultSearchEnabled": "Tresorsuche aktivieren",
+      "vaultSearchMaxResults": "Tresorsuche-Ergebnisse",
+      "vaultSearchMaxSnippetChars": "Tresorsuche-Ausschnittlänge",
+      "relevantNotesEnabled": "Verwandte Notizen aktivieren",
+      "relevantNotesMaxResults": "Ergebnisse verwandter Notizen"
+    },
+    "projectWorkspaces": {
+      "name": "Projektarbeitsbereiche",
+      "desc": "Bereichsbezogene Anweisungen und Kontextquellen für wiederkehrende Arbeit speichern.",
+      "none": "Kein Arbeitsbereich",
+      "add": "Arbeitsbereich hinzufügen",
+      "delete": "Löschen",
+      "workspaceName": "Arbeitsbereichsname",
+      "systemPrompt": "Systemprompt des Arbeitsbereichs",
+      "vaultFolders": "Tresorordner",
+      "vaultFiles": "Tresordateien",
+      "tags": "Arbeitsbereichs-Tags",
+      "externalPaths": "Externe Pfade des Arbeitsbereichs",
+      "provider": "Arbeitsbereichsanbieter",
+      "model": "Arbeitsbereichsmodell",
+      "untitled": "Unbenannter Arbeitsbereich",
+      "new": "Neuer Arbeitsbereich",
+      "changeFailed": "Projektarbeitsbereich konnte nicht gewechselt werden"
+    }
+  }
+}

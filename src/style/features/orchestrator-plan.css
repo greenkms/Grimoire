@@ -1,0 +1,63 @@
+/* Orchestrator plan - inline worker approval */
+
+.grimoire-orchestrator-plan-inline {
+  margin: 6px 10px 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 12px;
+}
+
+.grimoire-orchestrator-plan-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.grimoire-orchestrator-plan-title {
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.grimoire-orchestrator-plan-count,
+.grimoire-orchestrator-plan-task-id {
+  color: var(--text-faint);
+  font-family: var(--font-monospace);
+}
+
+.grimoire-orchestrator-plan-tasks {
+  margin: 0 0 8px;
+  padding-left: 18px;
+}
+
+.grimoire-orchestrator-plan-task {
+  margin: 3px 0;
+}
+
+.grimoire-orchestrator-plan-task-description {
+  line-height: 1.4;
+}
+
+.grimoire-orchestrator-plan-task-id {
+  margin-top: 1px;
+  font-size: 11px;
+}
+
+.grimoire-orchestrator-plan-approval {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.grimoire-orchestrator-plan-button {
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.grimoire-orchestrator-plan-inline.is-resolved .grimoire-orchestrator-plan-button {
+  opacity: 0.7;
+}

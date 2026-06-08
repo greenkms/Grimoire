@@ -1,0 +1,90 @@
+<!doctype html>
+<html><head><meta charset="utf-8"/>
+<style>
+:root, body.theme-dark {
+  --background-primary: #1e1e1e; --background-secondary: #161616;
+  --background-modifier-border: #2a2a2a; --background-modifier-border-hover: #3a3a3a;
+  --background-modifier-hover: rgba(255,255,255,0.075); --background-modifier-form-field: #1a1a1a;
+  --background-modifier-error: #5c2b29;
+  --text-normal: #dadada; --text-muted: #999; --text-faint: #666; --text-on-accent: #fff;
+  --interactive-accent: #7c3aed; --interactive-normal: #2a2a2a;
+  --color-green: #63d39a; --font-monospace: ui-monospace, Menlo, monospace;
+  --font-ui-small: 13px; --font-ui-smaller: 12px; --font-ui-medium: 15px; --font-medium: 500; --font-semibold: 600;
+  --input-height: 30px; --button-radius: 5px; --size-4-1: 4px; --size-4-3: 12px;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--background-primary); color: var(--text-normal); font-family: -apple-system, sans-serif; padding: 24px; }
+button { font-family: inherit; font-size: var(--font-ui-small); color: var(--text-normal); background-color: var(--interactive-normal); padding: var(--size-4-1) var(--size-4-3); height: var(--input-height); border: 0; border-radius: var(--button-radius); white-space: nowrap; cursor: pointer; }
+.setting-item { display: flex; align-items: center; justify-content: space-between; padding: 0.75em 0; border-top: 1px solid var(--background-modifier-border); }
+.setting-item-info { margin-right: 20px; flex: 1 1 auto; }
+.setting-item-description { font-size: var(--font-ui-smaller); color: var(--text-muted); padding-top: 5px; line-height: 1.3; }
+.setting-item-control { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex: 0 0 auto; }
+.setting-item-heading { padding-top: 36px; }
+.setting-item-heading .setting-item-name { font-size: var(--font-ui-medium); font-weight: var(--font-semibold); }
+input[type=text], input[type=search] { height: var(--input-height); padding: 0 8px; border: 1px solid var(--background-modifier-border); border-radius: var(--button-radius); background: var(--background-modifier-form-field); color: var(--text-normal); font-size: var(--font-ui-small); }
+select { height: var(--input-height); border: 1px solid var(--background-modifier-border); border-radius: var(--button-radius); background-color: var(--interactive-normal); color: var(--text-normal); font-size: var(--font-ui-small); }
+input[type=checkbox] { width: 16px; height: 16px; }
+</style>
+<link rel="stylesheet" href="../styles.css"/>
+</head>
+<body class="theme-dark">
+<div class="grimoire-settings" data-theme="violet">
+  <div class="grimoire-settings-tab-content grimoire-settings-tab-content--active">
+
+    <div class="grimoire-provider-disabled-notice"><p class="setting-item-description"><strong>OpenCode is disabled.</strong> Enable it under General → Providers to use these settings and show its models in the selector.</p></div>
+
+    <div class="setting-item setting-item-heading"><div class="setting-item-info"><div class="setting-item-name">Setup</div></div></div>
+    <div class="setting-item">
+      <div class="setting-item-info"><div class="setting-item-name">CLI path</div><div class="setting-item-description">Optional absolute path to the OpenCode CLI. Leave empty to use <code>opencode</code> from PATH.</div></div>
+      <div class="setting-item-control"><input type="text" class="grimoire-settings-cli-path-input" placeholder="/usr/local/bin/opencode"></div>
+    </div>
+
+    <div class="setting-item setting-item-heading"><div class="setting-item-info"><div class="setting-item-name">Models</div></div></div>
+    <div class="setting-item">
+      <div class="setting-item-info"><div class="setting-item-name">Visible models</div><div class="setting-item-description">Choose which OpenCode models appear in the chat selector.</div></div>
+    </div>
+
+    <div class="grimoire-opencode-model-picker">
+      <div class="grimoire-opencode-model-picker-summary">Visible: <span class="grimoire-opencode-model-picker-summary-value">2</span><span> of 22 discovered • 8 providers</span></div>
+
+      <div class="grimoire-opencode-model-picker-selected">
+        <div class="grimoire-opencode-model-picker-selected-header">
+          <span class="grimoire-opencode-model-picker-selected-label">Selected (2)</span>
+          <button class="grimoire-opencode-model-picker-selected-clear">Clear all</button>
+        </div>
+        <div class="grimoire-opencode-model-picker-selected-rows">
+          <div class="grimoire-opencode-model-picker-selected-row">
+            <div class="grimoire-opencode-model-picker-selected-info">
+              <div class="grimoire-opencode-model-picker-selected-title"><span class="grimoire-opencode-model-picker-selected-badge">Anthropic</span><span class="grimoire-opencode-model-picker-selected-name">claude-opus-4.6</span></div>
+              <div class="grimoire-opencode-model-picker-selected-id">anthropic/claude-opus-4.6</div>
+            </div>
+            <div class="grimoire-opencode-model-picker-selected-controls"><input class="grimoire-opencode-model-picker-selected-alias" type="text" placeholder="Anthropic/claude-opus-4.6"><button class="grimoire-opencode-model-picker-selected-remove">×</button></div>
+          </div>
+          <div class="grimoire-opencode-model-picker-selected-row">
+            <div class="grimoire-opencode-model-picker-selected-info">
+              <div class="grimoire-opencode-model-picker-selected-title"><span class="grimoire-opencode-model-picker-selected-badge">OpenAI</span><span class="grimoire-opencode-model-picker-selected-name">gpt-5.4</span></div>
+              <div class="grimoire-opencode-model-picker-selected-id">openai/gpt-5.4</div>
+            </div>
+            <div class="grimoire-opencode-model-picker-selected-controls"><input class="grimoire-opencode-model-picker-selected-alias" type="text" placeholder="OpenAI/gpt-5.4"><button class="grimoire-opencode-model-picker-selected-remove">×</button></div>
+          </div>
+        </div>
+      </div>
+
+      <details class="grimoire-opencode-model-picker-catalog" open>
+        <summary class="grimoire-opencode-model-picker-catalog-summary"><span class="grimoire-opencode-model-picker-catalog-caret">▸</span><span class="grimoire-opencode-model-picker-catalog-title">Browse models</span><span class="grimoire-opencode-model-picker-catalog-count">22 available</span></summary>
+        <div class="grimoire-opencode-model-picker-controls">
+          <input class="grimoire-opencode-model-picker-search" type="search" placeholder="Filter by model, provider, or ID…">
+          <select class="grimoire-opencode-model-picker-provider"><option>All providers (22)</option></select>
+        </div>
+        <div class="grimoire-opencode-model-picker-list">
+          <label class="grimoire-opencode-model-picker-row grimoire-opencode-model-picker-row--selected"><input type="checkbox" checked><div class="grimoire-opencode-model-picker-row-text"><div class="grimoire-opencode-model-picker-row-header"><span class="grimoire-opencode-model-picker-row-name">claude-opus-4.6</span><span class="grimoire-opencode-model-picker-row-badge">Anthropic</span></div><div class="grimoire-opencode-model-picker-row-meta">anthropic/claude-opus-4.6</div></div></label>
+          <label class="grimoire-opencode-model-picker-row"><input type="checkbox"><div class="grimoire-opencode-model-picker-row-text"><div class="grimoire-opencode-model-picker-row-header"><span class="grimoire-opencode-model-picker-row-name">claude-sonnet-4.6</span><span class="grimoire-opencode-model-picker-row-badge">Anthropic</span></div><div class="grimoire-opencode-model-picker-row-meta">anthropic/claude-sonnet-4.6</div></div></label>
+          <label class="grimoire-opencode-model-picker-row"><input type="checkbox"><div class="grimoire-opencode-model-picker-row-text"><div class="grimoire-opencode-model-picker-row-header"><span class="grimoire-opencode-model-picker-row-name">gemini-3-pro</span><span class="grimoire-opencode-model-picker-row-badge">Google</span></div><div class="grimoire-opencode-model-picker-row-meta">google/gemini-3-pro</div></div></label>
+          <label class="grimoire-opencode-model-picker-row"><input type="checkbox"><div class="grimoire-opencode-model-picker-row-text"><div class="grimoire-opencode-model-picker-row-header"><span class="grimoire-opencode-model-picker-row-name">grok-4-fast</span><span class="grimoire-opencode-model-picker-row-badge">xAI</span></div><div class="grimoire-opencode-model-picker-row-meta">xai/grok-4-fast</div></div></label>
+        </div>
+      </details>
+    </div>
+
+  </div>
+</div>
+</body></html>

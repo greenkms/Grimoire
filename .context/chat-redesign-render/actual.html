@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grimoire chat redesign render</title>
+  <link rel="stylesheet" href="../../styles.css?v=chat-redesign-dot">
+  <style>
+    :root {
+      --background-primary: #161619;
+      --background-primary-alt: #17171a;
+      --background-secondary: #1b1b1f;
+      --background-modifier-hover: rgba(255, 255, 255, 0.05);
+      --background-modifier-border: rgba(255, 255, 255, 0.06);
+      --background-modifier-border-hover: rgba(255, 255, 255, 0.16);
+      --background-modifier-form-field: rgba(255, 255, 255, 0.04);
+      --text-normal: #ece8f2;
+      --text-muted: #a79eb3;
+      --text-faint: #7b7286;
+      --text-error: #e07a7a;
+      --text-on-accent: #ffffff;
+      --interactive-accent: #8b5cf6;
+      --font-text: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --font-interface: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --font-monospace: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+      color: var(--text-normal);
+      font-family: var(--font-text);
+    }
+
+    .render-stage {
+      width: 448px;
+      height: 540px;
+      background: var(--background-secondary);
+    }
+
+    .render-stage .grimoire-container {
+      width: 100%;
+      height: 100%;
+    }
+
+    .render-stage[data-state="model"] .grimoire-model-selector {
+      z-index: 30;
+    }
+
+    .render-stage[data-state="model"] .grimoire-model-selector {
+      position: static;
+    }
+
+    .render-stage[data-state="model"] .grimoire-model-selector.open .grimoire-model-dropdown {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .render-stage[data-state="model"] .grimoire-model-dropdown {
+      --grimoire-model-dropdown-bottom: 193px;
+      --grimoire-model-dropdown-left: 13px;
+      --grimoire-model-dropdown-width: 434px;
+      --grimoire-model-dropdown-max-height: 346px;
+    }
+
+    .render-stage:not([data-state="model"]) .grimoire-model-dropdown {
+      display: none;
+    }
+
+    .render-stage[data-state="sources"] .grimoire-chat-panel,
+    .render-stage[data-state="sources"] .grimoire-context-panel,
+    .render-stage[data-state="context"] .grimoire-chat-panel,
+    .render-stage[data-state="context"] .grimoire-sources-panel {
+      display: none !important;
+    }
+
+    .render-stage[data-state="chat"] .grimoire-sources-panel,
+    .render-stage[data-state="chat"] .grimoire-context-panel,
+    .render-stage[data-state="model"] .grimoire-sources-panel,
+    .render-stage[data-state="model"] .grimoire-context-panel {
+      display: none !important;
+    }
+
+    .render-stage[data-state="sources"] .grimoire-sources-panel,
+    .render-stage[data-state="context"] .grimoire-context-panel {
+      display: grid !important;
+    }
+  </style>
+</head>
+<body class="theme-dark">
+  <div class="render-stage" data-state="chat">
+    <div class="grimoire-container grimoire-container--chat-window grimoire-container--header-mode" data-provider="claude" data-theme="violet">
+      <div class="grimoire-chat-window-shell">
+        <header class="grimoire-header grimoire-session-strip">
+          <div class="grimoire-title-slot">
+            <div class="grimoire-tab-bar-container">
+              <div class="grimoire-tab-badges">
+                <div class="grimoire-tab-badge grimoire-tab-badge-active" aria-label="Editor's feedback.md">1<div class="grimoire-tab-badge-close">×</div></div>
+                <div class="grimoire-tab-badge grimoire-tab-badge-streaming" data-provider="codex" aria-label="Chapter 03.md">2</div>
+                <div class="grimoire-tab-badge grimoire-tab-badge-idle" aria-label="Vault search">3</div>
+              </div>
+            </div>
+          </div>
+          <div class="grimoire-header-actions grimoire-header-actions-slot">
+            <div class="grimoire-header-actions">
+              <div class="grimoire-context-meter" role="button" tabindex="0" style="--grimoire-context-meter-pct: 24" data-tooltip="48k / 200k" aria-label="Context window 24% used">
+                <div class="grimoire-context-meter-ring"></div>
+                <span class="grimoire-context-meter-percent">24%</span>
+                <div class="grimoire-context-meter-tip">
+                  <div class="grimoire-context-meter-tip-primary">48k / 200k tokens</div>
+                  <div class="grimoire-context-meter-tip-secondary">152k left</div>
+                </div>
+              </div>
+              <div class="grimoire-header-btn grimoire-new-tab-btn">+</div>
+              <div class="grimoire-header-btn grimoire-appearance-btn">◐</div>
+            </div>
+          </div>
+        </header>
+
+        <div class="grimoire-tab-content-container grimoire-tab-content-container--chat-window">
+          <div class="grimoire-tab-content grimoire-tab-chat-window">
+            <div class="grimoire-chat-window-grid">
+              <nav class="grimoire-panel-tabs">
+                <button class="grimoire-panel-tab is-active" data-panel-view="chat">Chat</button>
+                <button class="grimoire-panel-tab" data-panel-view="sources">Sources</button>
+                <button class="grimoire-panel-tab" data-panel-view="context">Context</button>
+              </nav>
+
+              <div class="grimoire-chat-scroll">
+                <div class="grimoire-panel-content">
+                  <div class="grimoire-panel-view grimoire-chat-panel is-active">
+                    <div class="grimoire-bound-status">
+                      <span class="grimoire-bound-status-dot"></span>
+                      <span class="grimoire-bound-status-note">Editor's feedback.md</span>
+                      <span class="grimoire-bound-status-meta">3 linked notes · safe mode</span>
+                    </div>
+                    <div class="grimoire-messages-wrapper">
+                      <div class="grimoire-messages">
+                        <article class="grimoire-message grimoire-message-user" data-role="user">
+                          <div class="grimoire-message-content">What is the one editorial problem I should fix first?</div>
+                        </article>
+                        <article class="grimoire-message grimoire-message-assistant" data-role="assistant">
+                          <div class="grimoire-message-content">
+                            <div class="grimoire-text-block">
+                              <h2>Find the scene function first</h2>
+                              <p>The feedback points to one core issue: several scenes are doing the same emotional job. Pick one bazaar sequence and make it carry the climb instead of polishing every paragraph.</p>
+                              <p>Name each beat's function first, then strip the checklist-like logic out of the rewrite.</p>
+                            </div>
+                          </div>
+                        </article>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="grimoire-panel-view grimoire-sources-panel">
+                    <div class="grimoire-panel-section-heading">
+                      <span>Sources in tab 1</span>
+                      <span class="grimoire-panel-section-count">3 shown</span>
+                    </div>
+                    <div class="grimoire-source-filters">
+                      <button class="grimoire-source-filter is-active">All</button>
+                      <button class="grimoire-source-filter">Linked</button>
+                      <button class="grimoire-source-filter">Current</button>
+                    </div>
+                    <div class="grimoire-source-card-stack">
+                      <button class="grimoire-source-card"><span class="grimoire-source-card-title">Books / Dramaturgy</span><span class="grimoire-source-card-path">scene function · pressure · reader state</span><span class="grimoire-source-card-score">91%</span></button>
+                      <button class="grimoire-source-card"><span class="grimoire-source-card-title">Books / Antislop</span><span class="grimoire-source-card-path">remove checklist-like machine logic</span><span class="grimoire-source-card-score">84%</span></button>
+                      <button class="grimoire-source-card"><span class="grimoire-source-card-title">Editor's feedback.md</span><span class="grimoire-source-card-path">current note · selected paragraph</span><span class="grimoire-source-card-score">LIVE</span></button>
+                    </div>
+                  </div>
+
+                  <div class="grimoire-panel-view grimoire-context-panel">
+                    <div class="grimoire-panel-section-heading">
+                      <span>Context memory · tab 1</span>
+                    </div>
+                    <div class="grimoire-context-summary">
+                      <div class="grimoire-context-summary-row"><div class="grimoire-context-summary-copy"><strong class="grimoire-context-summary-title">Editor's feedback.md</strong><span class="grimoire-context-summary-detail">bound to this chat tab</span></div><span class="grimoire-context-summary-badge is-active">active</span></div>
+                      <div class="grimoire-context-summary-row"><div class="grimoire-context-summary-copy"><strong class="grimoire-context-summary-title">Opus 4.6</strong><span class="grimoire-context-summary-detail">Claude Code · High effort · provider state preserved</span></div><span class="grimoire-context-summary-badge">model</span></div>
+                      <div class="grimoire-context-summary-row"><div class="grimoire-context-summary-copy"><strong class="grimoire-context-summary-title">Safe mode</strong><span class="grimoire-context-summary-detail">ask before file edits and MCP writes</span></div><span class="grimoire-context-summary-badge is-active">on</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grimoire-composer-surface grimoire-composer">
+                <div class="grimoire-input-container grimoire-composer-shell">
+                  <div class="grimoire-input-wrapper">
+                    <div class="grimoire-context-row has-content">
+                      <div class="grimoire-file-chip"><span class="grimoire-file-chip-name">Editor's feedback.md</span><span class="grimoire-file-chip-remove">×</span></div>
+                      <div class="grimoire-mode-selector"><span class="grimoire-mode-label active">safe edits</span></div>
+                    </div>
+                    <textarea class="grimoire-input">Ask Grimoire about this note...</textarea>
+                    <div class="grimoire-input-toolbar">
+                      <div class="grimoire-model-context-stack">
+                        <div class="grimoire-model-selector">
+                          <div class="grimoire-model-btn"><span class="grimoire-model-label">Opus 4.6</span><span class="grimoire-model-chevron">⌃</span></div>
+                          <div class="grimoire-model-dropdown">
+                            <div class="grimoire-model-search"><span class="grimoire-model-search-icon">⌕</span><input class="grimoire-model-search-input" value="" placeholder="Search models..."><span class="grimoire-model-search-kbd">⌘K</span></div>
+                            <div class="grimoire-model-group-section is-open">
+                              <button class="grimoire-model-group">Claude Code</button>
+                              <div class="grimoire-model-group-options">
+                                <div class="grimoire-model-option selected"><span class="grimoire-model-provider-icon"></span><span class="grimoire-model-option-copy"><span class="grimoire-model-option-label">Opus 4.6</span></span></div>
+                                <div class="grimoire-model-option"><span class="grimoire-model-provider-icon"></span><span class="grimoire-model-option-copy"><span class="grimoire-model-option-label">Sonnet 4.6</span></span></div>
+                                <div class="grimoire-model-option"><span class="grimoire-model-provider-icon"></span><span class="grimoire-model-option-copy"><span class="grimoire-model-option-label">Sonnet 4.6 · 1M</span></span></div>
+                                <div class="grimoire-model-option"><span class="grimoire-model-provider-icon"></span><span class="grimoire-model-option-copy"><span class="grimoire-model-option-label">Haiku 4.6</span></span></div>
+                              </div>
+                            </div>
+                            <div class="grimoire-model-group-section is-open"><button class="grimoire-model-group">Codex</button><div class="grimoire-model-group-options"><div class="grimoire-model-option"><span class="grimoire-model-provider-icon"></span><span class="grimoire-model-option-copy"><span class="grimoire-model-option-label">GPT-5.4</span></span></div><div class="grimoire-model-option"><span class="grimoire-model-provider-icon"></span><span class="grimoire-model-option-copy"><span class="grimoire-model-option-label">GPT-5.4 Codex</span></span></div></div></div>
+                            <div class="grimoire-model-group-section"><button class="grimoire-model-group">Gemini</button><div class="grimoire-model-group-options"></div></div>
+                            <div class="grimoire-model-group-section"><button class="grimoire-model-group">OpenCode</button><div class="grimoire-model-group-options"></div></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="grimoire-thinking-selector"><div class="grimoire-thinking-effort"><div class="grimoire-thinking-gears"><div class="grimoire-thinking-current">High</div></div></div></div>
+                      <div class="grimoire-external-context-selector"><div class="grimoire-external-context-icon-wrapper"><span class="grimoire-external-context-badge"></span></div></div>
+                      <div class="grimoire-permission-toggle"><span class="grimoire-permission-label" role="button" aria-pressed="true">Safe</span></div>
+                      <div class="grimoire-orchestrator-toggle"><div class="grimoire-orchestrator-button" aria-pressed="false">⌘</div></div>
+                      <button class="grimoire-send-button">Send</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const state = params.get('state') || 'chat';
+    const stage = document.querySelector('.render-stage');
+    stage.dataset.state = state;
+    document.querySelectorAll('.grimoire-panel-tab').forEach((tab) => {
+      const on = tab.dataset.panelView === (state === 'model' ? 'chat' : state);
+      tab.classList.toggle('is-active', on);
+    });
+    if (state === 'model') {
+      document.querySelector('.grimoire-model-selector').classList.add('open');
+    }
+  </script>
+</body>
+</html>

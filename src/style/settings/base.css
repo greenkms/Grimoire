@@ -1,0 +1,975 @@
+/* ============================================================
+   Grimoire settings — visual system
+   Recreates the "Simple / Advanced" settings redesign on top of
+   Obsidian's native Setting API. Surfaces, text, and borders use
+   Obsidian theme tokens so the screen adapts to light/dark; the
+   violet accent comes from the per-appearance-theme brand token so
+   the settings tab keeps Grimoire's identity.
+   Geometry (radii, spacing, control sizes) mirrors the design
+   prototype in design_handoff_settings_redesign/design.
+   ============================================================ */
+
+/* ── Brand accent, scoped per appearance theme (mirrors base/variables.css) ── */
+.grimoire-settings {
+  --grimoire-brand: #8b5cf6;
+  --grimoire-brand-rgb: 139, 92, 246;
+
+  /* Geometry tokens from the prototype */
+  --gs-r1: 6px;
+  --gs-r2: 9px;
+  --gs-r3: 13px;
+  --gs-pill: 999px;
+
+  /* Provider identity hues */
+  --gs-dot-claude: #d97757;
+  --gs-dot-codex: #19c37d;
+  --gs-dot-gemini: #5b8def;
+  --gs-dot-opencode: #e0b341;
+}
+
+.grimoire-settings[data-theme="graphite"] {
+  --grimoire-brand: #6ea8ff;
+  --grimoire-brand-rgb: 110, 168, 255;
+}
+
+.grimoire-settings[data-theme="rune"] {
+  --grimoire-brand: #d97757;
+  --grimoire-brand-rgb: 217, 119, 87;
+}
+
+.grimoire-settings[data-theme="verdant"] {
+  --grimoire-brand: #34b87a;
+  --grimoire-brand-rgb: 52, 184, 122;
+}
+
+/* ── Layout: centered single column, like the prototype window ── */
+.grimoire-settings {
+  max-width: 760px;
+  margin: 0 auto;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ── Tab bar ── */
+.grimoire-settings-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+  padding: 0 2px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.grimoire-settings-tab {
+  position: relative;
+  height: 38px;
+  padding: 0 15px;
+  border: none;
+  border-radius: var(--gs-r1) var(--gs-r1) 0 0;
+  background: transparent;
+  color: var(--text-faint);
+  font-size: 13.5px;
+  font-weight: 550;
+  cursor: pointer;
+  margin-bottom: -1px;
+  transition: color 0.14s ease;
+}
+
+.grimoire-settings-tab:hover {
+  color: var(--text-muted);
+}
+
+.grimoire-settings-tab--active {
+  color: var(--text-normal);
+}
+
+.grimoire-settings-tab--active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgb(var(--grimoire-brand-rgb));
+}
+
+.grimoire-settings-tab-status {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 7px;
+  border-radius: var(--gs-pill);
+  background: var(--text-faint);
+  vertical-align: 1px;
+}
+
+.grimoire-settings-tab-status.is-enabled {
+  background: var(--color-green);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-green) 18%, transparent);
+}
+
+.grimoire-settings-tab-content {
+  display: none;
+  padding: 0 2px 40px;
+}
+
+.grimoire-settings-tab-content--active {
+  display: block;
+}
+
+/* ── Section headings (setHeading()) → prototype .sec ── */
+.grimoire-settings .setting-item-heading {
+  padding: 22px 2px 4px;
+  margin: 0;
+  border: none;
+}
+
+.grimoire-settings .setting-item-heading:first-child {
+  padding-top: 6px;
+}
+
+.grimoire-settings .setting-item-heading .setting-item-name {
+  color: var(--text-normal);
+  font-size: 14px;
+  font-weight: 680;
+  letter-spacing: -0.01em;
+}
+
+.grimoire-settings .setting-item-heading .setting-item-description {
+  margin-top: 2px;
+  color: var(--text-faint);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+/* ── Setting rows → prototype .row ──
+   Force the prototype's flat row look: neutralize any boxed-card styling a
+   community Obsidian theme may apply to .setting-item, leaving only the
+   hairline divider. */
+.grimoire-settings .setting-item {
+  align-items: center;
+  gap: 24px;
+  margin: 0;
+  padding: 16px 2px;
+  border: none;
+  border-top: 1px solid var(--background-modifier-border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* First row after a heading (or the very first row) has no divider */
+.grimoire-settings .setting-item-heading + .setting-item,
+.grimoire-settings .setting-item-heading + .grimoire-provider-settings-desc + .setting-item,
+.grimoire-settings .setting-item:first-child {
+  border-top: none;
+}
+
+.grimoire-settings .setting-item-name {
+  color: var(--text-normal);
+  font-size: 13.5px;
+  font-weight: 580;
+}
+
+.grimoire-settings .setting-item-description {
+  margin-top: 3px;
+  color: var(--text-faint);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.grimoire-settings .setting-item-description code {
+  padding: 1.5px 5px;
+  border-radius: 5px;
+  background: var(--background-modifier-form-field);
+  color: var(--grimoire-brand);
+  font-family: var(--font-monospace);
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+/* Stacked rows (textareas) — label on top, control full width below */
+.grimoire-settings .setting-item:has(textarea) {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.grimoire-settings .setting-item:has(textarea) .setting-item-control {
+  width: 100%;
+  justify-content: stretch;
+}
+
+/* ============================================================
+   Control atoms — restyle Obsidian's native controls to match
+   the prototype's .field / .toggle / select.field / .slider.
+   Selectors are scoped under .grimoire-settings and use class +
+   element specificity to win over Obsidian defaults without
+   !important.
+   ============================================================ */
+
+/* Text + search inputs → .field */
+.grimoire-settings .setting-item-control input[type="text"],
+.grimoire-settings .setting-item-control input[type="search"],
+.grimoire-settings .setting-item-control input:not([type]) {
+  height: 32px;
+  min-width: 200px;
+  padding: 0 11px;
+  border: none;
+  border-radius: var(--gs-r1);
+  background: var(--background-modifier-form-field);
+  box-shadow: inset 0 0 0 1px var(--background-modifier-border-hover);
+  color: var(--text-normal);
+  font-size: 13px;
+}
+
+.grimoire-settings .setting-item-control input[type="text"]:focus,
+.grimoire-settings .setting-item-control input[type="search"]:focus {
+  box-shadow: inset 0 0 0 1px rgba(var(--grimoire-brand-rgb), 0.55);
+}
+
+.grimoire-settings .setting-item-control input::placeholder {
+  color: var(--text-faint);
+}
+
+/* Dropdowns → select.field with a custom chevron */
+.grimoire-settings .setting-item-control select.dropdown {
+  height: 32px;
+  min-width: 132px;
+  padding: 0 30px 0 11px;
+  border: none;
+  border-radius: var(--gs-r1);
+  background-color: var(--background-modifier-form-field);
+  box-shadow: inset 0 0 0 1px var(--background-modifier-border-hover);
+  color: var(--text-normal);
+  font-size: 13px;
+  cursor: pointer;
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-faint) 50%),
+    linear-gradient(135deg, var(--text-faint) 50%, transparent 50%);
+  background-position: calc(100% - 15px) 14px, calc(100% - 10px) 14px;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.grimoire-settings .setting-item-control select.dropdown:focus {
+  box-shadow: inset 0 0 0 1px rgba(var(--grimoire-brand-rgb), 0.55);
+}
+
+/* Textareas → textarea.field (mono, full width) */
+.grimoire-settings .setting-item-control textarea {
+  width: 100%;
+  min-height: 84px;
+  padding: 9px 11px;
+  border: none;
+  border-radius: var(--gs-r1);
+  background: var(--background-modifier-form-field);
+  box-shadow: inset 0 0 0 1px var(--background-modifier-border-hover);
+  color: var(--text-normal);
+  font-family: var(--font-monospace);
+  font-size: 12.5px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.grimoire-settings .setting-item-control textarea:focus {
+  box-shadow: inset 0 0 0 1px rgba(var(--grimoire-brand-rgb), 0.55);
+}
+
+.grimoire-settings .setting-item-control textarea::placeholder {
+  color: var(--text-faint);
+}
+
+/* Sliders → .slider (violet accent) */
+.grimoire-settings .setting-item-control input[type="range"].slider {
+  width: 168px;
+  accent-color: rgb(var(--grimoire-brand-rgb));
+}
+
+.grimoire-settings .grimoire-slider-value {
+  min-width: 16px;
+  margin-left: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-monospace);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* ── Provider enable rows (General → Providers) ── */
+.grimoire-provider-settings-desc {
+  margin: -2px 0 2px;
+  padding: 0 2px;
+}
+
+.grimoire-provider-settings-desc p {
+  margin: 0;
+  color: var(--text-faint);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.grimoire-settings .grimoire-provider-row .setting-item-info {
+  position: relative;
+  padding-left: 18px;
+}
+
+/* Provider dot — always tinted in the provider's brand hue */
+.grimoire-settings .grimoire-provider-row .setting-item-info::before {
+  content: "";
+  position: absolute;
+  top: 0.55em;
+  left: 2px;
+  width: 9px;
+  height: 9px;
+  border-radius: var(--gs-pill);
+  background: var(--gs-provider-dot, var(--text-faint));
+}
+
+/* Enabled providers get a soft status ring around the dot */
+.grimoire-settings .grimoire-provider-row.is-enabled .setting-item-info::before {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gs-provider-dot, var(--interactive-accent)) 18%, transparent);
+}
+
+.grimoire-provider-row--claude {
+  --gs-provider-dot: var(--gs-dot-claude);
+}
+
+.grimoire-provider-row--codex {
+  --gs-provider-dot: var(--gs-dot-codex);
+}
+
+.grimoire-provider-row--gemini {
+  --gs-provider-dot: var(--gs-dot-gemini);
+}
+
+.grimoire-provider-row--opencode {
+  --gs-provider-dot: var(--gs-dot-opencode);
+}
+
+/* ── Provider-disabled notice → .note-card ── */
+.grimoire-provider-disabled-notice {
+  margin: 14px 0 4px;
+  padding: 13px 15px;
+  border: 1px solid rgba(var(--grimoire-brand-rgb), 0.42);
+  border-radius: var(--gs-r2);
+  background: rgba(var(--grimoire-brand-rgb), 0.07);
+}
+
+.grimoire-provider-disabled-notice p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.grimoire-provider-disabled-notice strong {
+  color: var(--grimoire-brand);
+}
+
+/* ============================================================
+   Advanced disclosure → .adv / .adv-toggle / .adv-wrap / .adv-body
+   ============================================================ */
+.grimoire-adv {
+  margin-top: 30px;
+  padding-top: 4px;
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+.grimoire-adv-toggle {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: auto;
+  gap: 11px;
+  margin-top: 8px;
+  padding: 16px 14px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--gs-r2);
+  background: color-mix(in srgb, var(--background-secondary) 78%, transparent);
+  color: var(--text-normal);
+  cursor: pointer;
+  text-align: left;
+  white-space: normal;
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+
+.grimoire-adv-toggle:hover,
+.grimoire-adv-toggle.is-open {
+  background: var(--background-modifier-hover);
+  border-color: var(--background-modifier-border-hover);
+}
+
+.grimoire-adv-chevron {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--background-modifier-border-hover);
+  border-radius: var(--gs-pill);
+  background: var(--background-modifier-form-field);
+  color: var(--text-muted);
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), color 0.14s ease, background 0.14s ease, border-color 0.14s ease;
+}
+
+.grimoire-adv-chevron svg {
+  width: 13px;
+  height: 13px;
+}
+
+.grimoire-adv-toggle.is-open .grimoire-adv-chevron {
+  transform: rotate(90deg);
+  border-color: rgba(var(--grimoire-brand-rgb), 0.42);
+  background: rgba(var(--grimoire-brand-rgb), 0.13);
+  color: rgb(var(--grimoire-brand-rgb));
+}
+
+.grimoire-adv-copy {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 2px;
+}
+
+.grimoire-adv-title {
+  color: var(--text-normal);
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.grimoire-adv-summary {
+  color: var(--text-faint);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.grimoire-adv-count {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border: 1px solid var(--background-modifier-border-hover);
+  border-radius: var(--gs-pill);
+  background: var(--background-modifier-form-field);
+  color: var(--text-faint);
+  font-family: var(--font-monospace);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  transition: opacity 0.16s ease;
+}
+
+.grimoire-adv-toggle.is-open .grimoire-adv-count {
+  opacity: 0;
+}
+
+/* Expanding wrapper — grid-rows 0fr → 1fr for a smooth height anim */
+.grimoire-adv-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.24s ease;
+}
+
+.grimoire-adv-wrap.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+/* Suppress the transition on first mount (tab opens already-expanded) */
+.grimoire-adv-wrap--no-transition {
+  transition: none;
+}
+
+.grimoire-adv-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.grimoire-adv-body {
+  margin-top: 6px;
+  padding: 4px 16px 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--gs-r2);
+  background: color-mix(in srgb, var(--background-primary) 86%, var(--background-modifier-border) 14%);
+}
+
+.grimoire-adv-body .setting-item-heading:first-child {
+  padding-top: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grimoire-adv-wrap,
+  .grimoire-adv-chevron,
+  .grimoire-adv-count {
+    transition: none;
+  }
+}
+
+/* ============================================================
+   Appearance theme cards → .themes / .tcard
+   ============================================================ */
+.grimoire-appearance-section {
+  padding: 4px 0 6px;
+}
+
+.grimoire-appearance-heading {
+  padding: 22px 2px 0;
+  color: var(--text-normal);
+  font-size: 13.5px;
+  font-weight: 580;
+}
+
+.grimoire-appearance-desc {
+  padding: 3px 2px 0;
+  color: var(--text-faint);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.grimoire-appearance-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px 0 4px;
+}
+
+.grimoire-theme-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 11px;
+  /* height:auto overrides Obsidian's fixed button height so the
+     description grows the card instead of overflowing below it. */
+  height: auto;
+  padding: 14px;
+  border: 1px solid var(--background-modifier-border-hover);
+  border-radius: var(--gs-r2);
+  background: var(--interactive-normal);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--background-modifier-border) 70%, transparent),
+    0 1px 2px rgba(0, 0, 0, 0.22);
+  color: var(--text-normal);
+  text-align: left;
+  white-space: normal;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
+}
+
+.grimoire-theme-card:hover {
+  background: var(--background-modifier-hover);
+}
+
+.grimoire-theme-card.is-active {
+  background: rgba(var(--grimoire-brand-rgb), 0.13);
+  box-shadow:
+    inset 0 0 0 1.5px rgba(var(--grimoire-brand-rgb), 0.42),
+    0 1px 2px rgba(0, 0, 0, 0.22);
+  border-color: transparent;
+}
+
+.grimoire-theme-swatch {
+  width: 14px;
+  height: 14px;
+  margin-top: 2px;
+  border-radius: var(--gs-pill);
+  flex: 0 0 auto;
+  /* background-color + box-shadow ring are set inline per theme card */
+}
+
+.grimoire-theme-card-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.grimoire-theme-card-name {
+  min-width: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  text-overflow: ellipsis;
+  color: var(--text-normal);
+  font-size: 13px;
+  font-weight: 580;
+}
+
+.grimoire-theme-card-desc {
+  display: block;
+  min-width: 0;
+  color: var(--text-faint);
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+/* ── Hotkey grid → .hkgrid / .hk ── */
+.grimoire-hotkey-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px 0 4px;
+}
+
+.grimoire-hotkey-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 13px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--gs-r1);
+  background: color-mix(in srgb, var(--background-secondary) 70%, transparent);
+  cursor: pointer;
+  transition: background 0.14s ease;
+}
+
+.grimoire-hotkey-item:hover {
+  background: var(--background-modifier-hover);
+}
+
+.grimoire-hotkey-name {
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.grimoire-hotkey-badge {
+  padding: 5px 7px;
+  border-radius: 5px;
+  background: var(--background-modifier-form-field);
+  box-shadow: inset 0 0 0 1px var(--background-modifier-border-hover);
+  color: var(--text-normal);
+  font-family: var(--font-monospace);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ── Media folder input keeps a compact width ── */
+.grimoire-settings-media-input {
+  min-width: 0;
+  width: 200px;
+}
+
+/* ============================================================
+   Retained utilities (used by sub-managers and shared panels).
+   ============================================================ */
+
+/* Codex placeholder */
+.grimoire-settings-codex-placeholder {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+/* Custom section descriptions - align with rows */
+.grimoire-sp-settings-desc,
+.grimoire-mcp-settings-desc,
+.grimoire-approved-desc {
+  padding: 0 2px;
+}
+
+.grimoire-sp-settings-desc p,
+.grimoire-mcp-settings-desc p {
+  margin: 0 0 6px;
+  color: var(--text-faint);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+/* Unified icon action buttons for settings */
+.grimoire-settings-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.grimoire-settings-action-btn:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.grimoire-settings-action-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.grimoire-settings-delete-btn:hover {
+  color: var(--text-error);
+}
+
+.grimoire-setting-validation {
+  font-size: var(--font-ui-smaller);
+  margin-top: -0.25em;
+  margin-bottom: 0.5em;
+}
+
+.grimoire-setting-validation-error {
+  color: var(--text-error);
+}
+
+.grimoire-setting-validation-warning {
+  color: var(--text-warning);
+}
+
+.grimoire-settings-cli-path-input {
+  width: 100%;
+}
+
+.grimoire-settings-cli-path-input.grimoire-input-error,
+.grimoire-settings .grimoire-input-error {
+  box-shadow: inset 0 0 0 1px var(--text-error);
+}
+
+/* ── Context-engine + project-workspace settings (advanced) ── */
+.grimoire-settings-panel {
+  margin: 14px 0 0;
+  padding: 18px 22px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--background-secondary) 70%, transparent);
+}
+
+.grimoire-context-engine-settings {
+  display: grid;
+  gap: 10px;
+}
+
+.grimoire-context-engine-settings h3,
+.grimoire-project-workspaces-settings h3 {
+  margin: 0;
+  color: var(--text-normal);
+  font-size: var(--font-ui-medium);
+  font-weight: var(--font-semibold);
+  line-height: 1.25;
+}
+
+.grimoire-context-engine-settings p {
+  margin: 0 0 4px;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  line-height: 1.4;
+}
+
+.grimoire-context-engine-setting {
+  display: grid;
+  grid-template-columns: minmax(220px, 360px) minmax(76px, 180px);
+  justify-content: start;
+  align-items: center;
+  gap: 16px;
+  min-height: 34px;
+}
+
+.grimoire-context-engine-setting-label {
+  min-width: 0;
+  color: var(--text-normal);
+  font-size: var(--font-ui-small);
+  line-height: 1.3;
+}
+
+.grimoire-context-engine-setting-control {
+  display: flex;
+  justify-content: flex-start;
+  min-width: 0;
+}
+
+.grimoire-context-engine-setting-control input[type="number"] {
+  width: 120px;
+}
+
+.grimoire-context-engine-setting-control input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: rgb(var(--grimoire-brand-rgb));
+}
+
+.grimoire-project-workspaces-settings {
+  display: grid;
+  gap: 12px;
+}
+
+.grimoire-project-workspaces-header {
+  display: grid;
+  grid-template-columns: minmax(220px, 360px) minmax(120px, 180px);
+  justify-content: start;
+  align-items: center;
+  gap: 16px;
+}
+
+.grimoire-project-workspaces-list {
+  display: grid;
+  gap: 10px;
+}
+
+.grimoire-project-workspace-item {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-primary);
+}
+
+.grimoire-project-workspace-item input,
+.grimoire-project-workspace-item textarea {
+  width: 100%;
+}
+
+.grimoire-project-workspace-add {
+  justify-self: start;
+}
+
+@media (max-width: 720px) {
+  .grimoire-appearance-grid,
+  .grimoire-hotkey-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .grimoire-context-engine-setting,
+  .grimoire-project-workspaces-header {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .grimoire-context-engine-setting-control {
+    justify-content: flex-start;
+  }
+}
+
+/* ── Shared settings panel layout (slash-settings + agent-settings) ── */
+.grimoire-sp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 0 2px;
+}
+
+.grimoire-sp-label {
+  font-size: var(--font-ui-small);
+  color: var(--text-muted);
+  font-weight: var(--font-medium);
+}
+
+.grimoire-sp-header-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.grimoire-sp-empty-state {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--background-secondary) 70%, transparent);
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.grimoire-sp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.grimoire-sp-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 12px;
+  background: color-mix(in srgb, var(--background-secondary) 70%, transparent);
+  border-radius: 6px;
+}
+
+.grimoire-sp-item:hover {
+  background: var(--background-modifier-hover);
+}
+
+.grimoire-sp-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.grimoire-sp-item-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.grimoire-sp-item-name {
+  font-weight: 600;
+  font-family: var(--font-monospace);
+  color: var(--text-normal);
+}
+
+.grimoire-sp-item-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.grimoire-sp-item-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: 16px;
+  flex-shrink: 0;
+}
+
+.grimoire-sp-advanced-section {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 0 12px;
+  margin: 8px 0;
+}
+
+.grimoire-sp-advanced-summary {
+  cursor: pointer;
+  padding: 8px 0;
+  font-size: var(--font-ui-small);
+  color: var(--text-muted);
+  font-weight: var(--font-medium);
+}
+
+.grimoire-sp-advanced-section[open] .grimoire-sp-advanced-summary {
+  margin-bottom: 4px;
+}
+
+.grimoire-sp-modal .modal-content {
+  max-width: 600px;
+  width: auto;
+}
+
+.grimoire-sp-content-area {
+  width: 100%;
+  font-family: var(--font-monospace);
+  font-size: 13px;
+  padding: 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  resize: vertical;
+  margin-top: 8px;
+}
+
+.grimoire-sp-content-area:focus {
+  outline: none;
+  border-color: rgb(var(--grimoire-brand-rgb));
+}
+
+.grimoire-sp-modal-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  justify-content: flex-end;
+}

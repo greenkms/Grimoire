@@ -1,0 +1,67 @@
+@keyframes thinking-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes external-context-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px rgba(var(--grimoire-brand-rgb), 0.4));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 6px rgba(var(--grimoire-brand-rgb), 0.8));
+  }
+}
+
+@keyframes mcp-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px rgba(124, 58, 237, 0.4));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 8px rgba(124, 58, 237, 0.9));
+  }
+}
+
+@keyframes grimoire-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes grimoire-pop {
+  from {
+    opacity: 0;
+    transform: translateY(7px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grimoire-container *,
+  .grimoire-container *::before,
+  .grimoire-container *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+}

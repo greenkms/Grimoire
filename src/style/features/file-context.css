@@ -1,0 +1,204 @@
+/* @ Mention dropdown */
+.grimoire-mention-dropdown {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  margin-bottom: 4px;
+  background: var(--background-secondary);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.grimoire-mention-dropdown.visible {
+  display: block;
+}
+
+/* Fixed positioning for inline editor */
+.grimoire-mention-dropdown-fixed {
+  position: fixed;
+  bottom: var(--grimoire-fixed-dropdown-bottom);
+  left: var(--grimoire-fixed-dropdown-left);
+  right: auto;
+  width: var(--grimoire-fixed-dropdown-width);
+  z-index: 10001;
+}
+
+.grimoire-mention-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.grimoire-mention-item:hover,
+.grimoire-mention-item.selected {
+  background: var(--background-modifier-hover);
+}
+
+.grimoire-mention-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.grimoire-mention-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.grimoire-mention-path {
+  font-size: 13px;
+  color: var(--text-normal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-mention-empty {
+  padding: 12px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* Scrollbar for mention dropdown */
+.grimoire-mention-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.grimoire-mention-dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.grimoire-mention-dropdown::-webkit-scrollbar-thumb {
+  background: var(--background-modifier-border);
+  border-radius: 3px;
+}
+
+/* MCP items in @-mention dropdown */
+.grimoire-mention-item.mcp-server .grimoire-mention-icon {
+  color: var(--interactive-accent);
+}
+
+.grimoire-mention-item.vault-folder .grimoire-mention-icon {
+  color: var(--text-muted);
+}
+
+.grimoire-mention-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.grimoire-mention-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--interactive-accent);
+}
+
+.grimoire-mention-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Context file items in @-mention dropdown */
+.grimoire-mention-item.context-file .grimoire-mention-icon {
+  color: var(--grimoire-brand);
+}
+
+.grimoire-mention-item.context-file .grimoire-mention-text {
+  flex-direction: row;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.grimoire-mention-item.context-file .grimoire-mention-name-context {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* Context folder filter items in @-mention dropdown */
+.grimoire-mention-item.context-folder .grimoire-mention-icon {
+  color: var(--text-muted);
+}
+
+.grimoire-mention-name-folder {
+  color: var(--text-normal);
+  font-weight: 500;
+}
+
+.grimoire-mention-name-context {
+  color: var(--text-normal);
+}
+
+/* Agent folder items in @-mention dropdown */
+.grimoire-mention-item.agent-folder .grimoire-mention-icon {
+  color: var(--link-color);
+}
+
+.grimoire-mention-name-agent-folder {
+  color: var(--link-color);
+  font-weight: 600;
+}
+
+/* Agent items in @-mention dropdown (inside @Agents/) */
+.grimoire-mention-item.agent .grimoire-mention-icon {
+  color: var(--link-color);
+}
+
+.grimoire-mention-item.agent .grimoire-mention-text {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.grimoire-mention-item.agent .grimoire-mention-name-agent {
+  color: var(--text-normal);
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.grimoire-mention-item.agent .grimoire-mention-agent-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.grimoire-container--chat-window .grimoire-file-chip {
+  max-width: min(220px, 100%);
+  border-radius: 5px;
+}
+
+.grimoire-container--chat-window .grimoire-file-chip-name,
+.grimoire-container--chat-window .grimoire-note-memory-title,
+.grimoire-container--chat-window .grimoire-note-memory-path,
+.grimoire-container--chat-window .grimoire-source-card-title,
+.grimoire-container--chat-window .grimoire-source-card-path {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -1,0 +1,93 @@
+import { createCodexWorkspaceServices } from '@/providers/codex/app/CodexWorkspaceServices';
+import { getCodexModelDiscoveryState } from '@/providers/codex/modelDiscoveryState';
+import { CodexModelListingService } from '@/providers/codex/runtime/CodexModelListingService';
+
+describe('createCodexWorkspaceServices', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('requests active-tab runtime warmup so Codex can discover models before the first turn', async () => {
+    const vaultAdapter = {
+      delete: jest.fn(),
+      ensureFolder: jest.fn(),
+      exists: jest.fn().mockResolvedValue(false),
+      listFiles: jest.fn().mockResolvedValue([]),
+      read: jest.fn(),
+      write: jest.fn(),
+    };
+    const homeAdapter = {
+      delete: jest.fn(),
+      ensureFolder: jest.fn(),
+      exists: jest.fn().mockResolvedValue(false),
+      listFiles: jest.fn().mockResolvedValue([]),
+      read: jest.fn(),
+      write: jest.fn(),
+    };
+    const plugin = {
+      app: {
+        vault: {
+          adapter: { basePath: '/repo' },
+        },
+      },
+    };
+
+    const services = await createCodexWorkspaceServices(plugin as any, vaultAdapter as any, homeAdapter as any);
+
+    expect(services.usageProvider).toBeDefined();
+    expect(services.tabWarmupPolicy?.resolveMode({
+      conversation: null,
+      externalContextPaths: [],
+      plugin: plugin as any,
+      runtime: null,
+      tab: {
+        conversationId: null,
+        draftModel: 'gpt-5.5',
+        lifecycleState: 'blank',
+        providerId: 'codex',
+      },
+    })).toBe('runtime');
+  });
+
+  it('refreshes Codex model discovery through the workspace model catalog', async () => {
+    const listModelsSpy = jest
+      .spyOn(CodexModelListingService.prototype, 'listModels')
+      .mockResolvedValue([{ id: 'gpt-5.6', label: 'GPT-5.6', description: 'Latest' }]);
+    const vaultAdapter = {
+      delete: jest.fn(),
+      ensureFolder: jest.fn(),
+      exists: jest.fn().mockResolvedValue(false),
+      listFiles: jest.fn().mockResolvedValue([]),
+      read: jest.fn(),
+      write: jest.fn(),
+    };
+    const homeAdapter = {
+      delete: jest.fn(),
+      ensureFolder: jest.fn(),
+      exists: jest.fn().mockResolvedValue(false),
+      listFiles: jest.fn().mockResolvedValue([]),
+      read: jest.fn(),
+      write: jest.fn(),
+    };
+    const plugin = {
+      app: {
+        vault: {
+          adapter: { basePath: '/repo' },
+        },
+      },
+      settings: {},
+    };
+
+    const services = await createCodexWorkspaceServices(plugin as any, vaultAdapter as any, homeAdapter as any);
+    const changed = await services.modelCatalog?.refreshModels({
+      plugin: plugin as any,
+      settings: plugin.settings,
+    });
+
+    expect(changed).toBe(true);
+    expect(listModelsSpy).toHaveBeenCalledWith();
+    expect(getCodexModelDiscoveryState(plugin.settings).discoveredModels).toEqual([
+      { id: 'gpt-5.6', label: 'GPT-5.6', description: 'Latest' },
+    ]);
+  });
+});

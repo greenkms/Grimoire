@@ -1,0 +1,29 @@
+.grimoire-vault-search-sources {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+}
+
+.grimoire-vault-search-source {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 2px 6px;
+  background: var(--background-secondary);
+  color: var(--text-normal);
+}
+
+button.grimoire-vault-search-source {
+  cursor: pointer;
+}
+
+button.grimoire-vault-search-source:hover {
+  background: var(--background-modifier-hover);
+}
+
+.grimoire-vault-search-overflow {
+  color: var(--text-faint);
+}

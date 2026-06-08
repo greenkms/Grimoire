@@ -1,0 +1,119 @@
+/* Resume Session Dropdown */
+.grimoire-resume-dropdown {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  margin-bottom: 4px;
+  background: var(--background-secondary);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  max-height: 400px;
+  overflow: hidden;
+}
+
+.grimoire-resume-dropdown.visible {
+  display: block;
+}
+
+.grimoire-resume-header {
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.grimoire-resume-list {
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.grimoire-resume-empty {
+  padding: 16px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.grimoire-resume-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--background-modifier-border);
+  transition: background 0.1s ease;
+}
+
+.grimoire-resume-item:last-child {
+  border-bottom: none;
+}
+
+.grimoire-resume-item:hover,
+.grimoire-resume-item.selected {
+  background: var(--background-modifier-hover);
+}
+
+.grimoire-resume-item.current {
+  background: var(--background-secondary);
+  border-inline-start: 2px solid var(--interactive-accent);
+  padding-inline-start: 10px;
+}
+
+.grimoire-resume-item-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.grimoire-resume-item-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.grimoire-resume-item.current .grimoire-resume-item-icon {
+  color: var(--interactive-accent);
+}
+
+.grimoire-resume-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.grimoire-resume-item-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-normal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.grimoire-resume-item-date {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 2px;
+}
+
+/* Scrollbar */
+.grimoire-resume-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.grimoire-resume-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.grimoire-resume-list::-webkit-scrollbar-thumb {
+  background: var(--background-modifier-border);
+  border-radius: 3px;
+}

@@ -1,0 +1,143 @@
+/* Thinking selector (effort for adaptive models, token budget for custom) */
+.grimoire-thinking-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Effort / budget container (shared layout) */
+.grimoire-thinking-effort,
+.grimoire-thinking-budget {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.grimoire-thinking-label-text {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.grimoire-thinking-gears {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  z-index: 1;
+}
+
+/* Current selection (visible when collapsed) */
+.grimoire-thinking-current {
+  padding: 3px 8px;
+  font-size: 11px;
+  color: var(--grimoire-brand);
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 3px;
+  white-space: nowrap;
+  background: transparent;
+}
+
+/* Options container - expands vertically upward */
+.grimoire-thinking-options {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 4px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  z-index: 100;
+}
+
+/* Expand only when the current value is clicked. */
+.grimoire-thinking-gears.open .grimoire-thinking-options {
+  opacity: 1;
+  visibility: visible;
+}
+
+.grimoire-thinking-gears.open {
+  z-index: 10003;
+}
+
+.grimoire-thinking-gear {
+  padding: 3px 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.1s ease, color 0.1s ease;
+  white-space: nowrap;
+}
+
+.grimoire-thinking-gear:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.grimoire-thinking-gear.selected {
+  background: rgba(var(--grimoire-brand-rgb), 0.15);
+  color: var(--grimoire-brand);
+  font-weight: 500;
+}
+
+.grimoire-container--chat-window .grimoire-thinking-selector {
+  flex: 0 0 auto;
+  gap: 0;
+  min-width: 0;
+}
+
+.grimoire-container--chat-window .grimoire-thinking-effort,
+.grimoire-container--chat-window .grimoire-thinking-budget {
+  gap: 0;
+  min-width: 0;
+}
+
+.grimoire-container--chat-window .grimoire-thinking-label-text {
+  display: none;
+}
+
+.grimoire-container--chat-window .grimoire-thinking-current {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 74px;
+  height: 24px;
+  overflow: hidden;
+  padding: 0 7px;
+  border: 0;
+  border-radius: var(--grimoire-radius-1);
+  background: var(--grimoire-raise);
+  color: var(--grimoire-workbench-muted);
+  font-family: var(--font-monospace);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-container--chat-window .grimoire-thinking-gears:hover .grimoire-thinking-current {
+  background: var(--grimoire-raise-2);
+  color: var(--text-normal);
+}
+
+.grimoire-container--chat-window .grimoire-thinking-options {
+  bottom: calc(100% + 8px);
+  min-width: 112px;
+  margin-bottom: 0;
+  overflow: hidden;
+  border-color: var(--grimoire-line-3);
+  border-radius: var(--grimoire-radius-2);
+  background: var(--grimoire-panel-2);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.48);
+  z-index: 10004;
+  animation: grimoire-pop 0.14s ease-out;
+}

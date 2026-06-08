@@ -1,0 +1,537 @@
+/* Input area */
+.grimoire-input-container {
+  position: relative;
+  padding: 10px 0 0 0;
+}
+
+/* Resize handle at the top edge of the input wrapper. */
+.grimoire-input-resize-handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  cursor: ns-resize;
+  z-index: 1;
+}
+
+.grimoire-input-resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--background-modifier-border);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.grimoire-input-resize-handle:hover::after,
+body.grimoire-dragging-ns .grimoire-input-resize-handle::after {
+  opacity: 1;
+}
+
+body.grimoire-dragging-ns {
+  cursor: ns-resize;
+  user-select: none;
+}
+
+/* Input wrapper (border container) - flex column so textarea expands when no chips */
+/* Height calculation: context row (36px) + textarea min (60px) + toolbar (38px) + border (2px) = 136px */
+.grimoire-input-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: var(--grimoire-input-wrapper-height, auto);
+  min-height: 140px;
+  border: 1px solid var(--grimoire-workbench-border);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(var(--grimoire-brand-rgb), 0.055), transparent 42%),
+    var(--grimoire-workbench-bg);
+  box-shadow: inset 0 1px 0 rgba(var(--grimoire-brand-rgb), 0.08);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.grimoire-input-wrapper:focus-within {
+  border-color: rgba(var(--grimoire-brand-rgb), 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(var(--grimoire-brand-rgb), 0.12),
+    0 0 0 1px rgba(var(--grimoire-brand-rgb), 0.12);
+}
+
+/* Context row (file chip start, selection indicator end) - inside input wrapper at top */
+/* Collapsed by default; expanded via .has-content class; textarea fills remaining space */
+.grimoire-context-row {
+  display: none;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-shrink: 0;
+  padding: 8px 10px 0 10px;
+  gap: 8px;
+}
+
+/* Show context row when it has visible content */
+.grimoire-context-row.has-content {
+  display: flex;
+}
+
+/* Nav row (tab badges start, header icons end) - above input wrapper */
+.grimoire-input-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0 7px 0;
+  min-height: 0;
+}
+
+.grimoire-input-nav-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Header mode: hide nav row above input (content moved to header) */
+.grimoire-container--header-mode .grimoire-input-nav-row {
+  display: none;
+}
+
+/* Selection indicator (shown when text is selected in editor) */
+/* Match file chip height (24px): chip has 16px remove button + 6px padding + 2px border */
+/* Indicator: 12px text + 10px padding (5+5) + 2px border = 24px */
+.grimoire-selection-indicator,
+.grimoire-browser-selection-indicator,
+.grimoire-canvas-indicator {
+  color: var(--grimoire-brand);
+  font-size: 12px;
+  line-height: 1;
+  opacity: 0.9;
+  pointer-events: none;
+  white-space: nowrap;
+  padding: 5px 6px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  margin-inline-start: auto;
+  flex-shrink: 0;
+  order: 4;
+  max-width: min(100%, clamp(220px, 64vw, 560px));
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.grimoire-input {
+  width: 100%;
+  flex: 1 1 0;
+  min-height: var(--grimoire-textarea-min-height, 60px);
+  max-height: var(--grimoire-textarea-max-height, none);
+  resize: none;
+  padding: 10px 11px;
+  border: none !important;
+  border-radius: 8px;
+  background: transparent !important;
+  color: var(--text-normal);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: none !important;
+  overflow-y: auto;
+  unicode-bidi: plaintext; /* Proper BiDi text handling for mixed RTL/LTR */
+}
+
+.grimoire-input:hover,
+.grimoire-input:focus {
+  outline: none !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.grimoire-input::placeholder {
+  color: var(--grimoire-workbench-muted);
+}
+
+/* Input toolbar */
+.grimoire-input-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-shrink: 0;
+  padding: 5px 7px 7px 7px;
+  gap: 4px;
+  min-width: 0;
+  border-top: 1px solid rgba(var(--grimoire-brand-rgb), 0.08);
+}
+
+/* File indicator (attached files) */
+.grimoire-file-indicator {
+  display: none;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.grimoire-file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px 3px 8px;
+  background: rgba(var(--grimoire-brand-rgb), 0.07);
+  border: 1px solid rgba(var(--grimoire-brand-rgb), 0.18);
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1;
+  max-width: 200px;
+  cursor: pointer;
+}
+
+.grimoire-file-chip-icon {
+  display: flex;
+  align-items: center;
+  color: var(--grimoire-brand);
+  flex-shrink: 0;
+}
+
+.grimoire-file-chip-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+.grimoire-file-chip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-normal);
+}
+
+.grimoire-file-chip-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.grimoire-file-chip-remove:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.grimoire-file-chip:hover {
+  background: rgba(var(--grimoire-brand-rgb), 0.12);
+}
+
+.grimoire-relevant-notes-container {
+  display: flex;
+  align-items: center;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.grimoire-relevant-notes-slot:empty {
+  display: none;
+}
+
+.grimoire-relevant-notes {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.grimoire-relevant-notes-label {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 1px;
+  color: var(--grimoire-workbench-faint);
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.grimoire-relevant-note {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 88px;
+  height: 20px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--grimoire-workbench-muted);
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  box-shadow: none !important;
+  flex: 0 1 auto;
+}
+
+.grimoire-relevant-note:hover {
+  background: rgba(var(--grimoire-brand-rgb), 0.1);
+  color: var(--text-normal);
+}
+
+.grimoire-relevant-note:active {
+  background: rgba(var(--grimoire-brand-rgb), 0.14);
+}
+
+.grimoire-relevant-notes-more {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 4px;
+  color: var(--grimoire-workbench-faint);
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+/* Composer queue status row (queued follow-up preview + steer action) */
+.grimoire-input-queue-row {
+  display: none;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: normal;
+  align-items: center;
+  gap: 8px;
+  padding: 0 2px 8px 2px;
+}
+
+.grimoire-queue-indicator-text {
+  min-width: 0;
+  flex: 1 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.grimoire-queue-indicator-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.grimoire-queue-indicator-action {
+  flex: 0 0 auto;
+  padding: 1px 8px;
+  border: 0;
+  background: transparent;
+  color: var(--interactive-accent);
+  font: inherit;
+  cursor: pointer;
+}
+
+.grimoire-queue-indicator-action:hover {
+  text-decoration: underline;
+}
+
+.grimoire-queue-indicator-action[disabled] {
+  color: var(--text-faint);
+  cursor: default;
+  text-decoration: none;
+}
+
+.grimoire-queue-indicator-icon-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.grimoire-queue-indicator-icon-action:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.grimoire-queue-indicator-icon-action svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Light blue border when instruction mode is active */
+.grimoire-input-instruction-mode {
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 1px #60a5fa;
+}
+
+/* Pink border when bash mode is active */
+.grimoire-input-bang-bash-mode {
+  border-color: #f472b6 !important;
+  box-shadow: 0 0 0 1px #f472b6;
+}
+
+/* Monospace input while in bash mode */
+.grimoire-input-wrapper.grimoire-input-bang-bash-mode .grimoire-input {
+  font-family: var(--font-monospace);
+}
+
+.grimoire-container--chat-window .grimoire-composer-shell {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  padding: 11px;
+  border: 0;
+  border-radius: var(--grimoire-radius-3);
+  background: var(--grimoire-sink);
+  box-shadow: inset 0 0 0 1px var(--grimoire-line-2);
+  overflow: visible;
+  transition: box-shadow 0.14s ease;
+}
+
+.grimoire-container--chat-window .grimoire-composer-shell:focus-within {
+  box-shadow: inset 0 0 0 1px var(--grimoire-accent-line);
+}
+
+.grimoire-container--chat-window .grimoire-input-queue-row {
+  padding: 0;
+}
+
+.grimoire-container--chat-window .grimoire-input-nav-row {
+  padding: 0;
+}
+
+.grimoire-container--chat-window.grimoire-container--header-mode .grimoire-input-nav-row,
+.grimoire-container--chat-window .grimoire-input-nav-row:empty {
+  display: none;
+}
+
+.grimoire-container--chat-window .grimoire-input-wrapper {
+  height: var(--grimoire-input-wrapper-height, auto);
+  min-height: 112px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.grimoire-container--chat-window .grimoire-input-wrapper:focus-within {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.grimoire-container--chat-window .grimoire-context-row {
+  padding: 0;
+  gap: 5px;
+}
+
+.grimoire-container--chat-window .grimoire-input {
+  min-height: var(--grimoire-textarea-min-height, 46px);
+  max-height: var(--grimoire-textarea-max-height, 120px);
+  padding: 3px 2px;
+  border-radius: 0;
+  font-size: 13px;
+}
+
+.grimoire-container--chat-window .grimoire-input-toolbar {
+  display: grid;
+  align-items: stretch;
+  justify-content: stretch;
+  gap: 9px;
+  width: 100%;
+  min-height: 31px;
+  padding: 0;
+  border-top: 0;
+  overflow: visible;
+  scrollbar-width: none;
+}
+
+.grimoire-container--chat-window .grimoire-input-toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+.grimoire-container--chat-window .grimoire-input-toolbar-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.grimoire-container--chat-window .grimoire-input-toolbar-model-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 7px;
+}
+
+.grimoire-container--chat-window .grimoire-input-toolbar-actions-row {
+  gap: 7px;
+}
+
+.grimoire-container--chat-window .grimoire-model-context-stack {
+  flex: 0 1 auto;
+  width: auto;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.grimoire-container--chat-window .grimoire-model-btn {
+  min-width: 0;
+  max-width: min(100%, 178px);
+  border-radius: var(--grimoire-radius-1);
+}
+
+.grimoire-container--chat-window .grimoire-model-label {
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-container--chat-window .grimoire-input-toolbar .grimoire-context-meter,
+.grimoire-container--chat-window .grimoire-project-workspace-selector {
+  display: none;
+}
+
+.grimoire-send-button {
+  flex: 0 0 auto;
+  justify-self: end;
+  height: 31px;
+  margin-inline-start: auto;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--grimoire-radius-1);
+  background: var(--grimoire-brand);
+  color: var(--text-on-accent);
+  font-weight: 760;
+  line-height: 1;
+  box-shadow: 0 8px 20px rgba(var(--grimoire-brand-rgb), 0.2);
+  cursor: pointer;
+}
+
+.grimoire-send-button:hover {
+  filter: brightness(1.05);
+}

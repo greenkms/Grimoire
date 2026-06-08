@@ -1,0 +1,92 @@
+/* Permission Mode Toggle */
+.grimoire-permission-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding-left: 12px;
+  padding-right: 8px;
+}
+
+.grimoire-permission-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  min-width: 28px;
+}
+
+.grimoire-permission-label.plan-active {
+  color: rgb(92, 148, 140);
+  font-weight: 600;
+}
+
+.grimoire-toggle-switch {
+  width: 32px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--background-modifier-border);
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.grimoire-toggle-switch::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.grimoire-toggle-switch:hover {
+  background: var(--background-modifier-hover);
+}
+
+.grimoire-toggle-switch.active {
+  background: rgba(var(--grimoire-brand-rgb), 0.3);
+}
+
+.grimoire-toggle-switch.active::after {
+  transform: translateX(14px);
+  background: var(--grimoire-brand);
+}
+
+.grimoire-container--chat-window .grimoire-permission-toggle {
+  flex: 0 0 auto;
+  gap: 0;
+  margin-left: 0;
+  padding: 0;
+}
+
+.grimoire-container--chat-window .grimoire-permission-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 92px;
+  height: 24px;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0 7px;
+  border: 0;
+  border-radius: var(--grimoire-radius-1);
+  background: var(--grimoire-accent-soft);
+  color: var(--grimoire-accent-text);
+  font-family: var(--font-monospace);
+  font-size: 11px;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.grimoire-container--chat-window .grimoire-permission-label:hover {
+  filter: brightness(1.08);
+}
+
+.grimoire-container--chat-window .grimoire-toggle-switch {
+  display: none;
+}

@@ -1,0 +1,60 @@
+/* Codex fast-mode / service-tier toggle */
+.grimoire-service-tier-toggle {
+  display: flex;
+  align-items: center;
+  padding-left: 2px;
+}
+
+.grimoire-service-tier-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  color: var(--text-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.grimoire-service-tier-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grimoire-service-tier-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.grimoire-service-tier-button:hover {
+  background: var(--background-modifier-hover);
+}
+
+.grimoire-service-tier-button.active {
+  color: var(--grimoire-brand);
+}
+
+.grimoire-container--chat-window .grimoire-service-tier-toggle {
+  flex: 0 0 auto;
+  padding-left: 0;
+}
+
+.grimoire-container--chat-window .grimoire-service-tier-button {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--grimoire-workbench-border);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.032);
+  color: var(--grimoire-workbench-muted);
+}
+
+.grimoire-container--chat-window .grimoire-service-tier-button:hover,
+.grimoire-container--chat-window .grimoire-service-tier-button.active {
+  border-color: rgba(var(--grimoire-brand-rgb), 0.46);
+  background: rgba(var(--grimoire-brand-rgb), 0.13);
+  color: var(--text-normal);
+}

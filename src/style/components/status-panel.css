@@ -1,0 +1,208 @@
+/* Status Panel - persistent bottom panel for todos and command output */
+
+.grimoire-status-panel-container {
+  flex-shrink: 0;
+  padding: 0 2px;
+}
+
+.grimoire-status-panel {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--grimoire-workbench-border);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(var(--grimoire-brand-rgb), 0.055), transparent 50%),
+    var(--grimoire-workbench-surface);
+}
+
+/* Todo Section */
+
+.grimoire-status-panel-todos {
+  margin-top: 0;
+}
+
+.grimoire-status-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 4px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+  overflow: hidden;
+}
+
+.grimoire-status-panel-header:hover {
+  background: var(--grimoire-workbench-surface-raised);
+}
+
+.grimoire-status-panel-header:focus-visible {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: 2px;
+}
+
+.grimoire-status-panel-icon {
+  display: flex;
+  align-items: center;
+  color: var(--grimoire-brand);
+  flex-shrink: 0;
+}
+
+.grimoire-status-panel-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.grimoire-status-panel-label {
+  font-family: var(--font-monospace);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-normal);
+}
+
+.grimoire-status-panel-current {
+  flex: 1;
+  font-family: var(--font-monospace);
+  font-size: 12px;
+  color: var(--grimoire-workbench-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-status-panel-status {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.grimoire-status-panel-status svg {
+  width: 14px;
+  height: 14px;
+}
+
+.grimoire-status-panel-status.status-completed {
+  color: var(--color-green);
+}
+
+.grimoire-status-panel-content {
+  padding: 4px 0 0 0;
+}
+
+/* Individual todo item - shared by status panel and inline tool via .grimoire-todo-list-container */
+.grimoire-todo-list-container .grimoire-todo-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 1px 0;
+}
+
+.grimoire-todo-list-container .grimoire-todo-status-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.grimoire-todo-list-container .grimoire-todo-status-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+.grimoire-todo-list-container .grimoire-todo-text {
+  font-family: var(--font-monospace);
+  font-size: 12px;
+  line-height: 1.4;
+  flex: 1;
+  padding-left: 12px;
+}
+
+.grimoire-todo-list-container .grimoire-todo-pending .grimoire-todo-status-icon {
+  color: var(--text-normal);
+}
+
+.grimoire-todo-list-container .grimoire-todo-pending .grimoire-todo-status-icon svg {
+  transform: scale(2);
+}
+
+.grimoire-todo-list-container .grimoire-todo-pending .grimoire-todo-text {
+  color: var(--text-normal);
+}
+
+.grimoire-todo-list-container .grimoire-todo-in_progress .grimoire-todo-status-icon {
+  color: var(--grimoire-brand);
+}
+
+.grimoire-todo-list-container .grimoire-todo-in_progress .grimoire-todo-status-icon svg {
+  transform: scale(2);
+}
+
+.grimoire-todo-list-container .grimoire-todo-in_progress .grimoire-todo-text {
+  color: var(--text-normal);
+}
+
+.grimoire-todo-list-container .grimoire-todo-completed .grimoire-todo-status-icon {
+  color: var(--color-green);
+}
+
+.grimoire-todo-list-container .grimoire-todo-completed .grimoire-todo-text {
+  color: var(--text-muted);
+}
+
+/* Bash Output Section */
+
+.grimoire-status-panel-bash {
+  margin-bottom: 6px;
+}
+
+.grimoire-status-panel-bash-header {
+  padding: 3px 4px;
+}
+
+.grimoire-status-panel-bash-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.grimoire-status-panel-bash-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  color: var(--text-muted);
+}
+
+.grimoire-status-panel-bash-action:hover {
+  background: var(--grimoire-workbench-surface-raised);
+  color: var(--text-normal);
+}
+
+.grimoire-status-panel-bash-content {
+  padding-top: 4px;
+  max-height: min(40vh, 320px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.grimoire-status-panel-bash-entry {
+  margin: 4px 0;
+}
+
+.grimoire-status-panel-bash-entry .grimoire-tool-icon svg {
+  width: 14px;
+  height: 14px;
+  position: relative;
+  top: -1px;
+}
+
+.grimoire-status-panel-bash-entry .grimoire-tool-call {
+  margin: 0;
+}
+
+/* Keep bash output blocks from growing without bound */
+.grimoire-status-panel-bash-entry .grimoire-tool-result-text {
+  max-height: 200px;
+  overflow-y: auto;
+  word-break: break-word;
+}
