@@ -10,6 +10,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT">
+  <img src="https://img.shields.io/github/v/release/sandsaber/Grimoire?label=release" alt="Latest release">
   <img src="https://img.shields.io/badge/Obsidian-1.7.2%2B-7c3aed" alt="Obsidian 1.7.2+">
   <img src="https://img.shields.io/badge/platform-desktop-lightgrey" alt="Desktop only">
 </p>
@@ -53,15 +54,26 @@ It's built for people who already work in Obsidian and want AI help that behaves
 
 Grimoire is a desktop plugin. It drives your provider CLIs locally, so there's no mobile build.
 
-### With BRAT (recommended before public release)
+### With BRAT
 
-Want Grimoire before it reaches the community store, or prefer to track the newest builds? Use BRAT:
+BRAT can install Grimoire from GitHub Releases and keep it updated from tagged builds:
 
 1. Install the "Obsidian42 - BRAT" plugin.
 2. In BRAT, add a beta plugin from `sandsaber/Grimoire`.
 3. Enable Grimoire.
 
-### From Community plugins (planned public release)
+### From GitHub Releases
+
+Install the current release manually if you don't use BRAT:
+
+1. Download `main.js`, `manifest.json`, and `styles.css` from the latest [Grimoire release](https://github.com/sandsaber/Grimoire/releases/latest).
+2. Create `/path/to/your/vault/.obsidian/plugins/grimoire`.
+3. Put all three files in that folder.
+4. Enable Grimoire from Settings, Community plugins.
+
+### From Community plugins
+
+Once Grimoire is listed in the Obsidian community plugin directory:
 
 1. Open Settings, go to Community plugins, and turn off Restricted mode if it's on.
 2. Click Browse, search for Grimoire, and install it.
@@ -259,6 +271,12 @@ npm run build:release
 ```
 
 `npm run build:release` refreshes the generated `main.js`, the root `styles.css`, and `dist/grimoire`.
+
+## Releases
+
+Grimoire releases are published from semver tags such as `1.0.0`. The release workflow runs the local gate, builds the Obsidian bundle, verifies that the tag matches `package.json` and `manifest.json`, then attaches `main.js`, `manifest.json`, and `styles.css` to the GitHub Release.
+
+Obsidian and BRAT consume those release assets directly. Use `main` for releasable development, then publish by tagging the version that matches the manifest.
 
 ## Roadmap
 
