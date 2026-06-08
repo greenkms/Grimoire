@@ -1430,7 +1430,7 @@ export class ExternalContextSelector {
     const ownerView = this.container.ownerDocument.defaultView;
     const viewportWidth = ownerView?.innerWidth ?? window.innerWidth;
     const viewportHeight = ownerView?.innerHeight ?? window.innerHeight;
-    const composerEl = this.container.closest('.grimoire-composer-shell') as HTMLElement | null;
+    const composerEl = this.container.closest('.grimoire-composer-shell');
     const composerRect = typeof composerEl?.getBoundingClientRect === 'function'
       ? composerEl.getBoundingClientRect()
       : null;

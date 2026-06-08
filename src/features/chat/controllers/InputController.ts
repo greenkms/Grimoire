@@ -1245,7 +1245,7 @@ export class InputController {
 
   private createAssistantMessage(queryOptions?: ChatRuntimeQueryOptions): ChatMessage {
     const settings = this.deps.getActiveProviderSettings?.()
-      ?? this.deps.plugin.settings as unknown as Record<string, unknown>;
+      ?? this.deps.plugin.settings;
     return {
       id: this.deps.generateId(),
       role: 'assistant',
@@ -1838,13 +1838,13 @@ export class InputController {
       .reverse()
       .find((candidate) => {
         if (!expectedSummary) return true;
-        const summaryEl = candidate.querySelector('.grimoire-tool-summary') as HTMLElement | null;
+        const summaryEl = candidate.querySelector('.grimoire-tool-summary');
         return summaryEl?.textContent === expectedSummary;
       });
 
     if (!toolEl) return () => undefined;
 
-    const resultEl = toolEl.querySelector('.grimoire-tool-result') as HTMLElement | null;
+    const resultEl = toolEl.querySelector('.grimoire-tool-result');
     const previousResult = resultEl?.textContent ?? '';
     toolEl.addClass('is-awaiting');
     resultEl?.setText('Awaiting you');
@@ -1862,7 +1862,7 @@ export class InputController {
     const inputEl = this.deps.getInputEl();
     const previousPlaceholder = inputEl.placeholder;
     const previousDisabled = inputEl.disabled;
-    const sendButtonEl = composerEl.querySelector('.grimoire-send-button') as HTMLButtonElement | null;
+    const sendButtonEl = composerEl.querySelector('.grimoire-send-button');
     const previousSendDisabled = sendButtonEl?.getAttribute('disabled') ?? null;
 
     composerEl.addClass('grimoire-composer--asking');

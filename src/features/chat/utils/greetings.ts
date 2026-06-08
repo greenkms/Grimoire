@@ -1,5 +1,4 @@
 import { t } from '../../../i18n/i18n';
-import type { TranslationKey } from '../../../i18n/types';
 
 type GreetingInput = {
   day: number;
@@ -19,7 +18,7 @@ function normalizeName(name?: string | null): string {
 }
 
 function translateGreeting(key: GreetingKey, name: string): string {
-  return t(key as TranslationKey, name ? { name } : undefined);
+  return t(key, name ? { name } : undefined);
 }
 
 function resolveGreeting(entry: GreetingEntry, name: string): string {

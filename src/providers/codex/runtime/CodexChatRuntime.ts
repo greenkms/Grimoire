@@ -845,7 +845,7 @@ export class CodexChatRuntime implements ChatRuntime {
       }
 
       const changed = updateCodexModelDiscoveryState(
-        this.plugin.settings as unknown as Record<string, unknown>,
+        this.plugin.settings,
         { discoveredModels: models },
       );
       if (changed) {

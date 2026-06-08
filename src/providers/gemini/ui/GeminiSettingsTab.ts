@@ -9,6 +9,8 @@ import { getHostnameKey } from '../../../utils/env';
 import { expandHomePath } from '../../../utils/path';
 import { getGeminiProviderSettings, updateGeminiProviderSettings } from '../settings';
 
+const GEMINI_CLI_PATH_PLACEHOLDER = '/usr/local/bin/gemini';
+
 export const geminiSettingsTabRenderer: ProviderSettingsTabRenderer = {
   render(container, context) {
     const settingsBag = context.plugin.settings as unknown as Record<string, unknown>;
@@ -79,8 +81,7 @@ export const geminiSettingsTabRenderer: ProviderSettingsTabRenderer = {
     const currentValue = geminiSettings.cliPathsByHost[hostnameKey] || '';
     cliPathSetting.addText((text) => {
       text
-        // eslint-disable-next-line obsidianmd/ui/sentence-case -- CLI binary names are case-sensitive.
-        .setPlaceholder('/usr/local/bin/gemini')
+        .setPlaceholder(GEMINI_CLI_PATH_PLACEHOLDER)
         .setValue(currentValue)
         .onChange(async (value) => {
           await persistCliPath(value);

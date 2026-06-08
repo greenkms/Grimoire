@@ -47,12 +47,12 @@ export class InlineOrchestratorPlan {
       cls: 'grimoire-orchestrator-plan-button grimoire-orchestrator-plan-spawn-button',
       text: t('chat.orchestrator.spawnWorkers'),
       attr: { type: 'button' },
-    }) as HTMLButtonElement;
+    });
     this.cancelButton = approvalEl.createEl('button', {
       cls: 'grimoire-orchestrator-plan-button grimoire-orchestrator-plan-cancel-button',
       text: t('common.cancel'),
       attr: { type: 'button' },
-    }) as HTMLButtonElement;
+    });
 
     this.spawnButton.addEventListener('click', () => {
       this.handleResolve({ type: 'spawn_workers', plan: this.plan });

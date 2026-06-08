@@ -115,7 +115,7 @@ function getToolGroupKey(toolCall: ToolCallInfo): string | null {
 
 export function canGroupToolCalls(toolCalls: ToolCallInfo[]): boolean {
   if (toolCalls.length < 2) return false;
-  const key = getToolGroupKey(toolCalls[0]!);
+  const key = getToolGroupKey(toolCalls[0]);
   return key !== null && toolCalls.every(toolCall => getToolGroupKey(toolCall) === key);
 }
 
@@ -1017,17 +1017,17 @@ function syncToolHeaderText(
   toolEl: HTMLElement,
   toolCall: ToolCallInfo,
 ): void {
-  const nameEl = toolEl.querySelector('.grimoire-tool-name') as HTMLElement | null;
+  const nameEl = toolEl.querySelector('.grimoire-tool-name');
   if (nameEl) {
     nameEl.setText(getToolDisplayName(toolCall));
   }
 
-  const summaryEl = toolEl.querySelector('.grimoire-tool-summary') as HTMLElement | null;
+  const summaryEl = toolEl.querySelector('.grimoire-tool-summary');
   if (summaryEl) {
     summaryEl.setText(getToolSummary(toolCall.name, toolCall.input));
   }
 
-  const resultEl = toolEl.querySelector('.grimoire-tool-result') as HTMLElement | null;
+  const resultEl = toolEl.querySelector('.grimoire-tool-result');
   if (resultEl) {
     resultEl.setText(getResultLabel(toolCall));
   }
@@ -1268,7 +1268,7 @@ function getGroupStatus(toolCalls: ToolCallInfo[]): ToolCallInfo['status'] {
 }
 
 function getToolGroupName(toolCalls: ToolCallInfo[]): string {
-  const key = getToolGroupKey(toolCalls[0]!);
+  const key = getToolGroupKey(toolCalls[0]);
   const status = getGroupStatus(toolCalls);
   switch (key) {
     case 'vault-search':
@@ -1283,7 +1283,7 @@ function getToolGroupName(toolCalls: ToolCallInfo[]): string {
 }
 
 function getToolGroupIcon(toolCalls: ToolCallInfo[]): string {
-  const key = getToolGroupKey(toolCalls[0]!);
+  const key = getToolGroupKey(toolCalls[0]);
   switch (key) {
     case 'vault-search':
     case 'web-search':
@@ -1303,7 +1303,7 @@ function getToolGroupSummary(toolCalls: ToolCallInfo[]): string {
 }
 
 function getToolGroupCountLabel(toolCalls: ToolCallInfo[]): string {
-  const key = getToolGroupKey(toolCalls[0]!);
+  const key = getToolGroupKey(toolCalls[0]);
   const count = toolCalls.length;
   const noun = key === 'vault-search' || key === 'web-search'
     ? (count === 1 ? 'query' : 'queries')

@@ -67,7 +67,7 @@ function createCheckboxInput(
       'aria-label': label,
       type: 'checkbox',
     },
-  }) as HTMLInputElement;
+  });
   input.checked = value;
   input.addEventListener('change', () => {
     void onChange(input.checked);
@@ -91,7 +91,7 @@ function createNumberInput(
       type: 'number',
       value: String(value),
     },
-  }) as HTMLInputElement;
+  });
   input.value = String(value);
   input.addEventListener('change', () => {
     const nextValue = parseBoundedInteger(input.value, value, options.min, options.max);

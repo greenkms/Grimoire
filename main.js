@@ -1,4 +1,4 @@
-/* Grimoire 1.0.5 */
+/* Grimoire 1.0.6 */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -81057,6 +81057,7 @@ var fs19 = __toESM(require("fs"));
 var import_obsidian17 = require("obsidian");
 init_env();
 init_path();
+var GEMINI_CLI_PATH_PLACEHOLDER = "/usr/local/bin/gemini";
 var geminiSettingsTabRenderer = {
   render(container, context) {
     const settingsBag = context.plugin.settings;
@@ -81113,7 +81114,7 @@ var geminiSettingsTabRenderer = {
     };
     const currentValue = geminiSettings.cliPathsByHost[hostnameKey] || "";
     cliPathSetting.addText((text) => {
-      text.setPlaceholder("/usr/local/bin/gemini").setValue(currentValue).onChange(async (value) => {
+      text.setPlaceholder(GEMINI_CLI_PATH_PLACEHOLDER).setValue(currentValue).onChange(async (value) => {
         await persistCliPath(value);
       });
       text.inputEl.addClass("grimoire-settings-cli-path-input");
@@ -93809,7 +93810,7 @@ var SelectionController = class {
     return (_c2 = (_b4 = ownerDocument == null ? void 0 : ownerDocument.activeElement) != null ? _b4 : (_a5 = this.inputEl.ownerDocument) == null ? void 0 : _a5.activeElement) != null ? _c2 : null;
   }
   isFocusWithinChatSidebar() {
-    var _a5, _b4, _c2, _d, _e2;
+    var _a5, _b4, _c2;
     const activeElement = this.getActiveElement(this.focusScopeEl.ownerDocument);
     if (activeElement !== null && (activeElement === this.focusScopeEl || this.focusScopeEl.contains(activeElement))) {
       return true;
@@ -93817,8 +93818,8 @@ var SelectionController = class {
     if (!this.ownViewType) {
       return false;
     }
-    const activeLeaf = (_c2 = this.app.workspace.activeLeaf) != null ? _c2 : (_b4 = (_a5 = this.app.workspace).getMostRecentLeaf) == null ? void 0 : _b4.call(_a5);
-    return ((_e2 = (_d = activeLeaf == null ? void 0 : activeLeaf.view) == null ? void 0 : _d.getViewType) == null ? void 0 : _e2.call(_d)) === this.ownViewType;
+    const activeLeaf = (_a5 = this.app.workspace.activeLeaf) != null ? _a5 : this.app.workspace.getMostRecentLeaf();
+    return ((_c2 = (_b4 = activeLeaf == null ? void 0 : activeLeaf.view) == null ? void 0 : _b4.getViewType) == null ? void 0 : _c2.call(_b4)) === this.ownViewType;
   }
   isNativeEditorSelectionVisible(sel) {
     if (!sel.editorView || sel.from === void 0 || sel.to === void 0) {

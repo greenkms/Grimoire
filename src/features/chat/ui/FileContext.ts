@@ -319,7 +319,7 @@ export class FileContextManager {
   }
 
   private createNoteMemoryCard(filePath: string, badge: string): HTMLElement {
-    const card = this.createMemoryText('button', 'grimoire-note-memory-card', '') as HTMLButtonElement;
+    const card = this.createMemoryText('button', 'grimoire-note-memory-card', '');
     card.type = 'button';
     card.title = filePath;
     card.addEventListener('click', () => {

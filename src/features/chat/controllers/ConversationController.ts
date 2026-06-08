@@ -632,7 +632,7 @@ export class ConversationController {
         placeholder: 'Search past chats...',
         autocomplete: 'off',
       },
-    }) as HTMLInputElement;
+    });
     const list = container.createDiv({ cls: 'grimoire-history-list' });
 
     const renderList = (rawQuery = ''): void => {

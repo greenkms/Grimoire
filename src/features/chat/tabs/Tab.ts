@@ -199,7 +199,7 @@ function mergeDraftSettingsSnapshot(
   const merged: TabProviderSettings = {
     ...baseSettings,
     ...draftSettings,
-  } as TabProviderSettings;
+  };
 
   const baseProviderConfigs = isRecord(baseSettings.providerConfigs)
     ? baseSettings.providerConfigs
@@ -1198,7 +1198,7 @@ function buildTabDOM(contentEl: HTMLElement): TabDOMElements {
 }
 
 function attachInputResizeHandle(dom: TabDOMElements): () => void {
-  const viewport = dom.inputWrapper.closest('.grimoire-container') as HTMLElement | null;
+  const viewport = dom.inputWrapper.closest<HTMLElement>('.grimoire-container');
   if (!viewport) {
     return () => {};
   }

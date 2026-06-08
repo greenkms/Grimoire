@@ -736,11 +736,11 @@ export class GrimoireSettingTab extends PluginSettingTab {
       const copy = card.createSpan({ cls: 'grimoire-theme-card-copy' });
       copy.createSpan({
         cls: 'grimoire-theme-card-name',
-        text: t(`settings.appearance.options.${theme.id}.name` as TranslationKey),
+        text: t(`settings.appearance.options.${theme.id}.name`),
       });
       copy.createSpan({
         cls: 'grimoire-theme-card-desc',
-        text: t(`settings.appearance.options.${theme.id}.desc` as TranslationKey),
+        text: t(`settings.appearance.options.${theme.id}.desc`),
       });
     }
   }

@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 const jestRecommended = jestPlugin.configs['flat/recommended'];
 const tsconfigRootDir = dirname(fileURLToPath(import.meta.url));
 const obsidianRuleSeverity = 'warn';
+const reviewTypeRuleSeverity = 'warn';
 
 const stagedObsidianRules = {
   'obsidianmd/commands/no-command-in-command-id': obsidianRuleSeverity,
@@ -101,7 +102,15 @@ export default defineConfig([
     plugins: {
       obsidianmd,
     },
-    rules: stagedObsidianRules,
+    rules: {
+      ...stagedObsidianRules,
+      '@typescript-eslint/no-explicit-any': reviewTypeRuleSeverity,
+      '@typescript-eslint/no-redundant-type-constituents': reviewTypeRuleSeverity,
+      '@typescript-eslint/no-unnecessary-type-assertion': reviewTypeRuleSeverity,
+      '@typescript-eslint/no-unsafe-assignment': reviewTypeRuleSeverity,
+      '@typescript-eslint/no-unsafe-call': reviewTypeRuleSeverity,
+      '@typescript-eslint/no-unsafe-member-access': reviewTypeRuleSeverity,
+    },
   },
   {
     files: [

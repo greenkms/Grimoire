@@ -43,7 +43,7 @@ function cloneAssistantResponseMetadata(
     if (typeof value === 'string') {
       const trimmed = value.trim();
       if (trimmed) {
-        clone[key] = trimmed as AssistantResponseMetadata[K];
+        clone[key] = trimmed;
       }
     }
   };

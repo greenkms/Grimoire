@@ -133,7 +133,7 @@ function parseCodexRateLimits(payload: unknown): ProviderPlanUsage | null {
 
 function extractWindowCandidates(source: unknown): Array<{ key?: string; value: unknown }> {
   if (Array.isArray(source)) {
-    return source.map(value => ({ value }));
+    return (source as unknown[]).map(value => ({ value }));
   }
 
   if (!isRecord(source)) {
@@ -316,7 +316,7 @@ function readNumber(record: Record<string, unknown>, keys: string[]): number | n
   return null;
 }
 
-function readValue(record: Record<string, unknown>, keys: string[]): unknown | null {
+function readValue(record: Record<string, unknown>, keys: string[]): unknown {
   for (const key of keys) {
     if (key in record) {
       return record[key];

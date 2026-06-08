@@ -437,7 +437,7 @@ export class StreamController {
     const entries = Array.from(state.pendingTools.entries());
     let index = 0;
     while (index < entries.length) {
-      const [toolId, pending] = entries[index]!;
+      const [toolId, pending] = entries[index];
       const parentEl = pending.parentEl;
       const groupEntries = parentEl && !isWriteEditTool(pending.toolCall.name)
         ? this.collectPendingToolGroup(entries, index, parentEl)
@@ -475,7 +475,7 @@ export class StreamController {
     const groupEntries: Array<[string, { toolCall: ToolCallInfo; parentEl: HTMLElement | null }]> = [];
 
     for (let index = startIndex; index < entries.length; index++) {
-      const entry = entries[index]!;
+      const entry = entries[index];
       const [, pending] = entry;
       if (pending.parentEl !== parentEl || isWriteEditTool(pending.toolCall.name)) break;
 
