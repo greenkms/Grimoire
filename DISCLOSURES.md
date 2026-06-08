@@ -99,3 +99,26 @@ Updates are delivered through the normal Obsidian community plugin flow, BRAT, o
 Grimoire is published under the MIT license. See [LICENSE](LICENSE).
 
 Grimoire does not include closed-source Grimoire code. External provider CLIs, SDKs, MCP servers, and model vendors are separate projects with their own licenses and policies.
+
+## Dependencies and known advisories
+
+The Obsidian community plugin review may report "Potentially vulnerable dependency" warnings for packages such as `hono`, `@hono/node-server`, `fast-uri`, `ip-address`, `qs`, `@anthropic-ai/sdk`, `ws`, and `brace-expansion`. These are all transitive dependencies inherited from the official provider SDKs (`@anthropic-ai/claude-agent-sdk`) and the Model Context Protocol SDK (`@modelcontextprotocol/sdk`), plus development-only tooling (ESLint, Jest, jsdom). None are direct Grimoire dependencies.
+
+These advisories do not affect Grimoire:
+
+- Every flagged package is pinned through npm `overrides` in `package.json` to a release **above** its advisory range, and the committed `package-lock.json` resolves to those safe versions.
+- The review bot walks the full dependency graph and flags packages by name and declared range. It does not account for the pinned `overrides`, so it keeps surfacing the advisories even though the installed and bundled versions are not vulnerable.
+- Most flagged packages are never shipped to users: `brace-expansion` and `ws` are development-only, and `hono`, `@hono/node-server`, `ip-address`, and `qs` are tree-shaken out of the release bundle because Grimoire only uses the client-side portions of the MCP SDK. Only `fast-uri` and `@anthropic-ai/sdk` are present in the built `main.js`, both at safe versions.
+
+| Package | Source | In `main.js` | Locked version | Advisory range | Status |
+|---|---|---|---|---|---|
+| `hono` | MCP SDK | No (tree-shaken) | 4.12.24 | `<4.12.21` | Above range |
+| `@hono/node-server` | MCP SDK | No (tree-shaken) | 1.19.14 | `<1.19.13` | Above range |
+| `fast-uri` | MCP SDK (AJV) | Yes | 3.1.2 | `<=3.1.1` | Above range |
+| `ip-address` | MCP SDK (Express) | No (tree-shaken) | 10.2.0 | `<=10.1.0` | Above range |
+| `qs` | MCP SDK (Express) | No (tree-shaken) | 6.15.2 | `>=6.11.1 <=6.15.1` | Above range |
+| `@anthropic-ai/sdk` | Claude Agent SDK | Yes | 0.93.0 | `>=0.79.0 <0.91.1` | Above range |
+| `ws` | jsdom (dev only) | No | 8.21.0 | `>=8.0.0 <8.20.1` | Dev-only, above range |
+| `brace-expansion` | ESLint/Jest (dev only) | No | 5.0.6 | `>=5.0.0 <5.0.6` | Dev-only, above range |
+
+The `npm run review:deps` check (run automatically by `npm run build:release`) parses `package-lock.json` and fails the release build if any of these packages resolves into its advisory range, so the safe versions are enforced on every release.
