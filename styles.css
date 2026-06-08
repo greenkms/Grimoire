@@ -436,7 +436,6 @@ body.theme-light .grimoire-container {
 }
 
 .grimoire-source-card {
-  grid-template-columns: minmax(0, 1fr) max-content;
   grid-template-areas:
     "dot title score"
     "dot path score";
@@ -8082,13 +8081,13 @@ code .grimoire-file-link:hover {
 }
 
 /* Stacked rows (textareas) — label on top, control full width below */
-.grimoire-settings .setting-item:has(textarea) {
+.grimoire-settings .setting-item.grimoire-settings-textarea-row {
   flex-direction: column;
   align-items: stretch;
   gap: 10px;
 }
 
-.grimoire-settings .setting-item:has(textarea) .setting-item-control {
+.grimoire-settings .setting-item.grimoire-settings-textarea-row .setting-item-control {
   width: 100%;
   justify-content: stretch;
 }

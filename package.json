@@ -1,6 +1,6 @@
 {
   "name": "grimoire",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Local-first AI agents for Obsidian: Claude Code, Codex, Gemini CLI, and OpenCode in a vault-native side panel.",
   "main": "main.js",
   "scripts": {

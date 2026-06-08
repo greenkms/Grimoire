@@ -53,6 +53,27 @@ describe('rendererSafeUnref helpers', () => {
     expect(findUnsafeTimerUnrefSites(result.contents)).toEqual([]);
   });
 
+  it('patches claude-sdk process close when minified identifiers change', () => {
+    const input = [
+      'if ($ && !$.killed && $.exitCode === null) setTimeout((Q) => {',
+      '  if (Q.killed || Q.exitCode !== null) return;',
+      '  Q.kill("SIGTERM"), setTimeout((J) => {',
+      '    if (J.exitCode === null) J.kill("SIGKILL");',
+      '  }, 5e3, Q).unref();',
+      '}, wx, $).unref(), $.once("exit", () => D5.delete($));',
+    ].join('\n');
+
+    const result = patchRendererUnsafeUnrefSites(input);
+
+    expect(result.appliedPatches).toEqual([
+      { name: 'claude-sdk-process-transport-close', count: 1 },
+    ]);
+    expect(result.contents).toContain('processKillTimer.unref?.();');
+    expect(result.contents).toContain('forceKillTimer.unref?.();');
+    expect(result.contents).toContain('D5.delete($)');
+    expect(findUnsafeTimerUnrefSites(result.contents)).toEqual([]);
+  });
+
   it('reports remaining direct timer .unref() calls but ignores guarded usage', () => {
     const input = [
       'const timer = setTimeout(run, 1000);',

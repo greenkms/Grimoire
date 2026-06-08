@@ -229,6 +229,14 @@ export class GrimoireSettingTab extends PluginSettingTab {
         renderAdvancedSection: (target, opts) => this.renderAdvancedSection(target, providerId, opts),
       });
     }
+
+    this.markTextareaRows(containerEl);
+  }
+
+  private markTextareaRows(containerEl: HTMLElement): void {
+    for (const textarea of containerEl.querySelectorAll('textarea')) {
+      textarea.closest<HTMLElement>('.setting-item')?.addClass('grimoire-settings-textarea-row');
+    }
   }
 
   private isAdvancedSectionOpen(id: string): boolean {

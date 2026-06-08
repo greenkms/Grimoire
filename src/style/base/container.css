@@ -345,7 +345,6 @@
 }
 
 .grimoire-source-card {
-  grid-template-columns: minmax(0, 1fr) max-content;
   grid-template-areas:
     "dot title score"
     "dot path score";

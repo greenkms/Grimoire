@@ -1,12 +1,21 @@
 export function extractAssistantText(
-  message: { type: string; message?: { content?: unknown } }
+  message: { type: string; message?: unknown }
 ): string {
-  const content = message.message?.content;
-  if (message.type !== 'assistant' || !Array.isArray(content)) {
+  if (message.type !== 'assistant') {
     return '';
   }
 
-  return (content as unknown[])
+  const payload = message.message;
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return '';
+  }
+
+  const content = (payload as Record<string, unknown>).content;
+  if (!Array.isArray(content)) {
+    return '';
+  }
+
+  return content
     .filter((block): block is { type: 'text'; text: string } => {
       if (!block || typeof block !== 'object' || Array.isArray(block)) {
         return false;

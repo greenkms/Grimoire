@@ -189,13 +189,13 @@
 }
 
 /* Stacked rows (textareas) — label on top, control full width below */
-.grimoire-settings .setting-item:has(textarea) {
+.grimoire-settings .setting-item.grimoire-settings-textarea-row {
   flex-direction: column;
   align-items: stretch;
   gap: 10px;
 }
 
-.grimoire-settings .setting-item:has(textarea) .setting-item-control {
+.grimoire-settings .setting-item.grimoire-settings-textarea-row .setting-item-control {
   width: 100%;
   justify-content: stretch;
 }

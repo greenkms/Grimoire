@@ -72,6 +72,14 @@ npm run build:release
 
 `npm run build:release` refreshes generated `main.js`, root `styles.css`, and `dist/grimoire`. Generated release artifacts must match source output after the build.
 
+Before a public release, Obsidian community plugin submission, or release meant for external review, also run:
+
+```bash
+npm audit --omit=dev
+```
+
+Fix production dependency advisories when an upstream-compatible update is available. If a warning remains because it comes from an embedded provider SDK or required runtime behavior, document the reason in `DISCLOSURES.md` rather than leaving it unexplained.
+
 ## Testing Rules
 
 - Tests mirror `src/` under `tests/unit/` and `tests/integration/`.
