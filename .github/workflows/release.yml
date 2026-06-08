@@ -109,6 +109,7 @@ jobs:
           if gh release view "${tag}" >/dev/null 2>&1; then
             gh release edit "${tag}" \
               --title "${title}" \
+              --target "${GITHUB_SHA}" \
               --notes-file RELEASE_NOTES.md
             gh release upload "${tag}" \
               dist/grimoire/main.js \
@@ -121,6 +122,7 @@ jobs:
               dist/grimoire/manifest.json \
               dist/grimoire/styles.css \
               --title "${title}" \
+              --target "${GITHUB_SHA}" \
               --notes-file RELEASE_NOTES.md \
               --verify-tag
           fi
