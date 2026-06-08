@@ -615,11 +615,7 @@ function getHostnameKey() {
   return cachedDeviceSettingsKey;
 }
 function getLegacyHostnameKey() {
-  try {
-    return os4.hostname();
-  } catch (e2) {
-    return "";
-  }
+  return "";
 }
 function migrateLegacyHostnameKeyedMap(entries, currentKey, legacyHostnameKey) {
   if (!currentKey || !legacyHostnameKey || currentKey === legacyHostnameKey) {
@@ -661,11 +657,10 @@ function formatContextLimit(tokens) {
   }
   return tokens.toLocaleString();
 }
-var fs4, os4, path4, isWindows, PATH_SEPARATOR, NODE_EXECUTABLE, DEVICE_SETTINGS_STORAGE_KEY, cachedDeviceSettingsKey, MIN_CONTEXT_LIMIT, MAX_CONTEXT_LIMIT;
+var fs4, path4, isWindows, PATH_SEPARATOR, NODE_EXECUTABLE, DEVICE_SETTINGS_STORAGE_KEY, cachedDeviceSettingsKey, MIN_CONTEXT_LIMIT, MAX_CONTEXT_LIMIT;
 var init_env = __esm({
   "src/utils/env.ts"() {
     fs4 = __toESM(require("fs"));
-    os4 = __toESM(require("os"));
     path4 = __toESM(require("path"));
     init_path();
     isWindows = process.platform === "win32";
@@ -1717,7 +1712,7 @@ __export(regexes_exports, {
   extendedDuration: () => extendedDuration,
   guid: () => guid,
   hex: () => hex,
-  hostname: () => hostname2,
+  hostname: () => hostname,
   html5Email: () => html5Email,
   idnEmail: () => idnEmail,
   integer: () => integer,
@@ -1784,7 +1779,7 @@ function fixedBase64(bodyLength, padding) {
 function fixedBase64url(length) {
   return new RegExp(`^[A-Za-z0-9_-]{${length}}$`);
 }
-var cuid, cuid2, ulid, xid, ksuid, nanoid, duration, extendedDuration, guid, uuid, uuid4, uuid6, uuid7, email, html5Email, rfc5322Email, unicodeEmail, idnEmail, browserEmail, _emoji, ipv4, ipv6, mac, cidrv4, cidrv6, base64, base64url, hostname2, domain, e164, dateSource, date, string, bigint, integer, number, boolean, _null, _undefined, lowercase, uppercase, hex, md5_hex, md5_base64, md5_base64url, sha1_hex, sha1_base64, sha1_base64url, sha256_hex, sha256_base64, sha256_base64url, sha384_hex, sha384_base64, sha384_base64url, sha512_hex, sha512_base64, sha512_base64url;
+var cuid, cuid2, ulid, xid, ksuid, nanoid, duration, extendedDuration, guid, uuid, uuid4, uuid6, uuid7, email, html5Email, rfc5322Email, unicodeEmail, idnEmail, browserEmail, _emoji, ipv4, ipv6, mac, cidrv4, cidrv6, base64, base64url, hostname, domain, e164, dateSource, date, string, bigint, integer, number, boolean, _null, _undefined, lowercase, uppercase, hex, md5_hex, md5_base64, md5_base64url, sha1_hex, sha1_base64, sha1_base64url, sha256_hex, sha256_base64, sha256_base64url, sha384_hex, sha384_base64, sha384_base64url, sha512_hex, sha512_base64, sha512_base64url;
 var init_regexes = __esm({
   "node_modules/zod/v4/core/regexes.js"() {
     init_util();
@@ -1822,7 +1817,7 @@ var init_regexes = __esm({
     cidrv6 = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|::|([0-9a-fA-F]{1,4})?::([0-9a-fA-F]{1,4}:?){0,6})\/(12[0-8]|1[01][0-9]|[1-9]?[0-9])$/;
     base64 = /^$|^(?:[0-9a-zA-Z+/]{4})*(?:(?:[0-9a-zA-Z+/]{2}==)|(?:[0-9a-zA-Z+/]{3}=))?$/;
     base64url = /^[A-Za-z0-9_-]*$/;
-    hostname2 = /^(?=.{1,253}\.?$)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[-0-9a-zA-Z]{0,61}[0-9a-zA-Z])?)*\.?$/;
+    hostname = /^(?=.{1,253}\.?$)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[-0-9a-zA-Z]{0,61}[0-9a-zA-Z])?)*\.?$/;
     domain = /^([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
     e164 = /^\+[1-9]\d{6,14}$/;
     dateSource = `(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))`;
@@ -13226,7 +13221,7 @@ __export(schemas_exports3, {
   guid: () => guid2,
   hash: () => hash,
   hex: () => hex2,
-  hostname: () => hostname3,
+  hostname: () => hostname2,
   httpUrl: () => httpUrl,
   instanceof: () => _instanceof,
   int: () => int,
@@ -13373,7 +13368,7 @@ function jwt(params) {
 function stringFormat(format, fnOrRegex, _params = {}) {
   return _stringFormat(ZodCustomStringFormat, format, fnOrRegex, _params);
 }
-function hostname3(_params) {
+function hostname2(_params) {
   return _stringFormat(ZodCustomStringFormat, "hostname", regexes_exports.hostname, _params);
 }
 function hex2(_params) {
@@ -42260,10 +42255,10 @@ async function probeRuntimeCommands(plugin) {
 // src/providers/claude/plugins/PluginManager.ts
 var fs5 = __toESM(require("fs"));
 var import_obsidian2 = require("obsidian");
-var os5 = __toESM(require("os"));
+var os4 = __toESM(require("os"));
 var path5 = __toESM(require("path"));
-var INSTALLED_PLUGINS_PATH = path5.join(os5.homedir(), ".claude", "plugins", "installed_plugins.json");
-var GLOBAL_SETTINGS_PATH = path5.join(os5.homedir(), ".claude", "settings.json");
+var INSTALLED_PLUGINS_PATH = path5.join(os4.homedir(), ".claude", "plugins", "installed_plugins.json");
+var GLOBAL_SETTINGS_PATH = path5.join(os4.homedir(), ".claude", "settings.json");
 function readJsonFile(filePath) {
   try {
     if (!fs5.existsSync(filePath)) {
@@ -42377,7 +42372,7 @@ init_path();
 
 // src/providers/claude/cli/findClaudeCLIPath.ts
 var fs6 = __toESM(require("fs"));
-var os6 = __toESM(require("os"));
+var os5 = __toESM(require("os"));
 var path6 = __toESM(require("path"));
 init_path();
 var CLAUDE_CODE_PACKAGE_SEGMENTS = ["node_modules", "@anthropic-ai", "claude-code"];
@@ -42491,7 +42486,7 @@ function addClaudeCodeEntrypointPaths(paths, packageParent) {
   }
 }
 function getNpmClaudeCodeEntrypointPaths() {
-  const homeDir = os6.homedir();
+  const homeDir = os5.homedir();
   const isWindows2 = process.platform === "win32";
   const entrypointPaths = [];
   if (isWindows2) {
@@ -42516,7 +42511,7 @@ function getNpmClaudeCodeEntrypointPaths() {
   return entrypointPaths;
 }
 function findClaudeCLIPath(pathValue) {
-  const homeDir = os6.homedir();
+  const homeDir = os5.homedir();
   const isWindows2 = process.platform === "win32";
   const customEntries = dedupePaths(parsePathEntries(pathValue));
   if (customEntries.length > 0) {
@@ -62915,14 +62910,14 @@ function hydrateFallbackAskUserAnswers(messages) {
 // src/providers/claude/history/sdkSessionPaths.ts
 var import_fs4 = require("fs");
 var fs9 = __toESM(require("fs/promises"));
-var os7 = __toESM(require("os"));
+var os6 = __toESM(require("os"));
 var path7 = __toESM(require("path"));
 function encodeVaultPathForSDK(vaultPath) {
   const absolutePath = path7.resolve(vaultPath);
   return absolutePath.replace(/[^a-zA-Z0-9]/g, "-");
 }
 function getSDKProjectsPath() {
-  return path7.join(os7.homedir(), ".claude", "projects");
+  return path7.join(os6.homedir(), ".claude", "projects");
 }
 function isPathSafeId(value) {
   if (!value || value.length === 0 || value.length > 128) {
@@ -65558,7 +65553,7 @@ var QueryOptionsBuilder = class _QueryOptionsBuilder {
 
 // src/providers/claude/runtime/ClaudeRewindService.ts
 var fs11 = __toESM(require("fs/promises"));
-var os8 = __toESM(require("os"));
+var os7 = __toESM(require("os"));
 var path9 = __toESM(require("path"));
 function resolveRewindFilePath(filePath, vaultPath) {
   if (path9.isAbsolute(filePath)) {
@@ -65593,7 +65588,7 @@ async function createClaudeRewindBackup(filesChanged, vaultPath) {
   if (!filesChanged || filesChanged.length === 0) {
     return null;
   }
-  const backupRoot = await fs11.mkdtemp(path9.join(os8.tmpdir(), "grimoire-rewind-"));
+  const backupRoot = await fs11.mkdtemp(path9.join(os7.tmpdir(), "grimoire-rewind-"));
   const entries = [];
   const backupPathForIndex = (index) => path9.join(backupRoot, String(index));
   for (let i2 = 0; i2 < filesChanged.length; i2++) {
@@ -71434,7 +71429,7 @@ var fs15 = __toESM(require("fs"));
 
 // src/providers/codex/history/CodexHistoryStore.ts
 var fs14 = __toESM(require("fs"));
-var os9 = __toESM(require("os"));
+var os8 = __toESM(require("os"));
 var path14 = __toESM(require("path"));
 
 // src/providers/codex/normalization/codexAssistantTextSanitizer.ts
@@ -72482,7 +72477,7 @@ function deriveCodexMemoriesDirFromSessionsRoot(sessionsDir) {
   const pathModule = getPathModuleForSessionPath(sessionsDir);
   return pathModule.join(pathModule.dirname(sessionsDir), "memories");
 }
-function findCodexSessionFile(threadId, root = path14.join(os9.homedir(), ".codex", "sessions")) {
+function findCodexSessionFile(threadId, root = path14.join(os8.homedir(), ".codex", "sessions")) {
   if (!threadId || !SAFE_SESSION_ID_PATTERN.test(threadId) || !fs14.existsSync(root)) {
     return null;
   }
@@ -73122,7 +73117,7 @@ var codexSubagentLifecycleAdapter = {
 
 // src/providers/codex/runtime/CodexChatRuntime.ts
 var fs16 = __toESM(require("fs"));
-var os10 = __toESM(require("os"));
+var os9 = __toESM(require("os"));
 var path15 = __toESM(require("path"));
 init_path();
 
@@ -75054,12 +75049,12 @@ User: ${turn.prompt}`
       externalContextPaths,
       "external context path"
     );
-    const memoriesDirTarget = (_c = (_a3 = deriveCodexMemoriesDirFromSessionsRoot(transcriptRootTargetHint)) != null ? _a3 : this.resolveMemoriesDirTarget(sessionFilePathHint)) != null ? _c : ((_b2 = this.launchSpec) == null ? void 0 : _b2.target.method) === "wsl" ? null : path15.join(os10.homedir(), ".codex", "memories");
+    const memoriesDirTarget = (_c = (_a3 = deriveCodexMemoriesDirFromSessionsRoot(transcriptRootTargetHint)) != null ? _a3 : this.resolveMemoriesDirTarget(sessionFilePathHint)) != null ? _c : ((_b2 = this.launchSpec) == null ? void 0 : _b2.target.method) === "wsl" ? null : path15.join(os9.homedir(), ".codex", "memories");
     const writableRoots = [
       (_e = (_d2 = this.launchSpec) == null ? void 0 : _d2.targetCwd) != null ? _e : getVaultPath(this.plugin.app),
       ...mappedExternalContextPaths,
       memoriesDirTarget,
-      this.mapHostPathToTarget(os10.tmpdir()),
+      this.mapHostPathToTarget(os9.tmpdir()),
       ((_f = this.launchSpec) == null ? void 0 : _f.target.platformFamily) === "unix" ? "/tmp" : null,
       this.mapHostPathToTarget(process.env.TMPDIR)
     ].filter((value) => typeof value === "string" && value.trim().length > 0);
@@ -75197,7 +75192,7 @@ User: ${turn.prompt}`
     };
     try {
       if (images && images.length > 0) {
-        tempDir = fs16.mkdtempSync(path15.join(os10.tmpdir(), "grimoire-codex-images-"));
+        tempDir = fs16.mkdtempSync(path15.join(os9.tmpdir(), "grimoire-codex-images-"));
         for (let i2 = 0; i2 < images.length; i2++) {
           const img = images[i2];
           if (!img.mediaType.startsWith("image/")) continue;
@@ -77669,7 +77664,7 @@ var fs21 = __toESM(require("node:fs"));
 
 // src/providers/opencode/runtime/OpencodePaths.ts
 var fs20 = __toESM(require("node:fs"));
-var os11 = __toESM(require("node:os"));
+var os10 = __toESM(require("node:os"));
 var path17 = __toESM(require("node:path"));
 var OPENCODE_APP_NAME = "opencode";
 var DEFAULT_DATABASE_NAME = "opencode.db";
@@ -77680,7 +77675,7 @@ function resolveOpencodeDataDir(env = process.env) {
   if (xdgDataHome) {
     return path17.join(xdgDataHome, OPENCODE_APP_NAME);
   }
-  const home = env.HOME || os11.homedir();
+  const home = env.HOME || os10.homedir();
   if (process.platform === "win32") {
     const appData = env.APPDATA || env.LOCALAPPDATA || path17.join(home, "AppData", "Roaming");
     return path17.join(appData, OPENCODE_APP_NAME);
@@ -77723,7 +77718,7 @@ function resolveExistingOpencodeDatabasePath(preferredPath, env = process.env) {
 function getOpencodeDatabasePathCandidates(env) {
   const candidates = [];
   const seen = /* @__PURE__ */ new Set();
-  const home = env.HOME || os11.homedir();
+  const home = env.HOME || os10.homedir();
   const dataDirs = [
     resolveOpencodeDataDir(env),
     path17.join(home, "Library", "Application Support", OPENCODE_APP_NAME)
@@ -96493,7 +96488,7 @@ function createInputResizeHandle({
 
 // src/features/chat/ui/InputToolbar.ts
 var import_obsidian39 = require("obsidian");
-var os12 = __toESM(require("os"));
+var os11 = __toESM(require("os"));
 var path24 = __toESM(require("path"));
 init_path();
 function runToolbarAction(action, failureMessage) {
@@ -97734,7 +97729,7 @@ var ExternalContextSelector = class {
   /** Shorten path for display (replace home dir with ~) */
   shortenPath(fullPath) {
     try {
-      const homeDir = os12.homedir();
+      const homeDir = os11.homedir();
       const normalize3 = (value) => value.replace(/\\/g, "/");
       const normalizedFull = normalize3(fullPath);
       const normalizedHome = normalize3(homeDir);

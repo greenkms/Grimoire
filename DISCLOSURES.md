@@ -30,6 +30,16 @@ Network use can happen when the user enables or configures external tools:
 - User-approved shell commands or provider tools may access the network if the command or tool does so.
 - Installation and updates happen through Obsidian, BRAT, npm, or GitHub Releases, depending on the user's installation path.
 
+## System, shell, and filesystem access
+
+Grimoire is desktop-only because it launches local CLI agents. To do that, it uses Node.js filesystem and process APIs.
+
+Grimoire may inspect environment variables such as `PATH`, `HOME`, `APPDATA`, and provider-specific configuration variables to locate installed CLIs, Node.js, provider data directories, and user-configured runtime settings. Grimoire does not read `os.hostname()`, `os.userInfo()`, or `os.networkInterfaces()`.
+
+Grimoire uses direct filesystem access for provider-owned files and runtime data that are outside the Obsidian vault API, including external context paths, provider history stores, CLI discovery, provider configuration, and Grimoire-owned `.grimoire/` data.
+
+Grimoire launches subprocesses for provider CLIs, MCP transports, and user-approved shell commands. Shell execution is core to the plugin: provider CLIs and commands run locally with the permissions granted by the user's operating system and the selected provider permission mode.
+
 ## Data sent to providers
 
 When a provider is enabled and the user sends a turn, the provider CLI may receive:
@@ -56,6 +66,16 @@ Grimoire stores its own data under:
 Grimoire also reads and preserves provider-native vault files such as `.claude/`, `.codex/`, and `.opencode/` when the corresponding provider integration uses them.
 
 Users can add external context paths outside the vault. When they do, Grimoire may read those paths to surface files as selectable context for provider turns. Provider CLIs and user-approved shell commands may also access files outside the vault according to the provider's runtime and permission settings.
+
+## Vault enumeration and clipboard access
+
+Grimoire enumerates vault files to power note mentions, search, context selection, and vault text indexing. This gives the plugin access to vault file paths and, when selected or indexed, vault file contents.
+
+Grimoire uses clipboard access only for explicit user actions such as copying code or markdown, importing MCP configuration from the clipboard, and accepting pasted images or text in the composer.
+
+## Dynamic code in bundled dependencies
+
+Grimoire's own source code does not call `eval()` or `new Function()`. The bundled release includes official provider and MCP SDK dependencies that contain runtime schema-validation code using generated functions, including AJV-based validators. Grimoire does not use this mechanism to execute user prompts, note contents, or downloaded plugin code.
 
 ## Logging
 

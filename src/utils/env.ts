@@ -1,5 +1,4 @@
 import * as fs from 'fs';
-import * as os from 'os';
 import * as path from 'path';
 
 import { parsePathEntries, resolveNvmDefaultBin } from './path';
@@ -395,11 +394,7 @@ export function getHostnameKey(): string {
 }
 
 export function getLegacyHostnameKey(): string {
-  try {
-    return os.hostname();
-  } catch {
-    return '';
-  }
+  return '';
 }
 
 export function migrateLegacyHostnameKeyedMap<T extends string>(
