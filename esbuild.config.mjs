@@ -29,6 +29,7 @@ if (existsSync('.env.local')) {
 }
 
 const prod = process.argv[2] === 'production';
+const packageJson = JSON.parse(readFileSync('package.json', 'utf-8'));
 
 const patchCodexSdkImportMeta = {
   name: 'patch-codex-sdk-import-meta',
@@ -135,6 +136,9 @@ const context = await esbuild.context({
   logLevel: 'info',
   sourcemap: prod ? false : 'inline',
   treeShaking: true,
+  banner: {
+    js: `/* Grimoire ${packageJson.version} */`,
+  },
   outfile: 'main.js',
 });
 

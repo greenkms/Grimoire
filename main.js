@@ -1,3 +1,4 @@
+/* Grimoire 1.0.5 */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;

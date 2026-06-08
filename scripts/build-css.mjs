@@ -13,6 +13,7 @@ const ROOT = join(__dirname, '..');
 const STYLE_DIR = join(ROOT, 'src', 'style');
 const OUTPUT = join(ROOT, 'styles.css');
 const INDEX_FILE = join(STYLE_DIR, 'index.css');
+const packageJson = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf-8'));
 
 const IMPORT_PATTERN = /^\s*@import\s+(?:url\()?['"]([^'"]+)['"]\)?\s*;/gm;
 
@@ -56,7 +57,9 @@ function listCssFiles(dir, baseDir = dir) {
 
 function build() {
   const moduleOrder = getModuleOrder();
-  const parts = ['/* Grimoire Plugin Styles */\n/* Built from src/style/ modules */\n'];
+  const parts = [
+    `/* Grimoire Plugin Styles ${packageJson.version} */\n/* Built from src/style/ modules */\n`,
+  ];
   const missingFiles = [];
   const invalidImports = [];
   const normalizedImports = [];
