@@ -1,0 +1,295 @@
+# Grimoire
+
+<p align="center">
+  <img src="../../assets/readme/grimoire-logo.png" alt="Grimoire 標誌" width="240">
+</p>
+
+<p align="center">
+  <strong>面向 Obsidian vault 的 local-first AI 代理。</strong>
+</p>
+
+<p align="center">
+  <a href="../../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.ru.md">Русский</a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="授權：MIT">
+  <img src="https://img.shields.io/github/v/release/sandsaber/Grimoire?label=release" alt="最新版本">
+  <img src="https://img.shields.io/badge/Obsidian-1.7.2%2B-7c3aed" alt="Obsidian 1.7.2+">
+  <img src="https://img.shields.io/badge/platform-desktop-lightgrey" alt="僅桌面端">
+</p>
+
+<p align="center">
+  <img src="../../assets/readme/chat-workspace.png" alt="Grimoire 側邊欄與 Obsidian 筆記並排執行" width="100%">
+</p>
+
+<p align="center">
+  <sub>在筆記所在的同一個 Obsidian workspace 中，與本地 CLI 代理對話。</sub>
+</p>
+
+Grimoire 將 agentic CLI 助手帶入 Obsidian。Claude Code、Codex、Gemini CLI 和 OpenCode 都在同一個側邊欄中執行：讀取筆記、編輯檔案、執行命令、呼叫工具，並把 session history 保存在真實的 vault context 中。Grimoire 不經過自家伺服器：沒有 telemetry、沒有 hosted backend，也沒有夾在你和 provider 之間的 proxy。
+
+它面向已經在 Obsidian 中工作的人：你可以使用本地 context、本地檔案、明確選擇的 provider，並在介面中直接看到 usage 和 cost。
+
+> 英文 [README](../../README.md) 是專案的 canonical 文件。此繁體中文版本與 `1.0.0` 首個 release 之後的文件保持同步。
+
+## 為什麼選擇 Grimoire
+
+- 在筆記中直接使用你已經信任的 CLI 代理。
+- 從 composer 切換 provider。Claude Code、Codex、Gemini CLI 和 OpenCode 共用一個 model picker。
+- 讓每一次 turn 都基於 vault context。可以 mention 筆記、資料夾和 MCP tools，不需要手動複製路徑。
+- 在選擇模型的位置直接看到 cost 和 limits。
+- 保持 local-first。Grimoire 不收集 telemetry，不 proxy prompts，也不執行 backend。
+
+## 各 provider 能做什麼
+
+| 能力 | Claude Code | Codex | Gemini CLI | OpenCode |
+| --- | --- | --- | --- | --- |
+| 本地 persistent runtime | 是 | 是 | 是 | 是 |
+| 原生 history hydration | 是 | 是 | 是 | 是 |
+| Plan mode | 是 | 是 | 是 | 是 |
+| Image attachments | 是 | 是 | 是 | 是 |
+| Instruction mode | 是 | 是 | 是 | 是 |
+| Reasoning effort controls | 是 | 是 | 是 | 是 |
+| Rewind | 是 | 否 | 否 | 否 |
+| Fork | 是 | 是 | 否 | 否 |
+| Provider slash commands | 是 | 否 | 否 | 是 |
+| Grimoire-managed MCP UI | 是 | 否 | 否 | 否 |
+
+## 安裝
+
+Grimoire 是桌面端 plugin。它會在本地驅動你的 provider CLIs，因此沒有 mobile build。
+
+### 使用 BRAT
+
+BRAT 可以從 GitHub Releases 安裝 Grimoire，並透過 tagged builds 保持更新：
+
+1. 安裝 "Obsidian42 - BRAT" plugin。
+2. 在 BRAT 中新增來自 `sandsaber/Grimoire` 的 beta plugin。
+3. 啟用 Grimoire。
+
+### 使用 GitHub Releases
+
+如果不使用 BRAT，可以手動安裝目前 release：
+
+1. 從最新的 [Grimoire release](https://github.com/sandsaber/Grimoire/releases/latest) 下載 `main.js`、`manifest.json` 和 `styles.css`。
+2. 建立 `/path/to/your/vault/.obsidian/plugins/grimoire`。
+3. 將三個檔案都放入該資料夾。
+4. 在 Settings, Community plugins 中啟用 Grimoire。
+
+### 使用 Community plugins
+
+當 Grimoire 被列入 Obsidian community plugin directory 後：
+
+1. 開啟 Settings，進入 Community plugins，如有需要先關閉 Restricted mode。
+2. 點擊 Browse，搜尋 Grimoire 並安裝。
+3. 啟用 Grimoire，然後透過 ribbon 或 command palette 開啟面板。
+
+### 從原始碼安裝
+
+建構 release bundle，並放入你的 vault：
+
+```bash
+npm install
+npm run build:release
+
+mkdir -p /path/to/your/vault/.obsidian/plugins/grimoire
+cp dist/grimoire/main.js dist/grimoire/manifest.json dist/grimoire/styles.css \
+  /path/to/your/vault/.obsidian/plugins/grimoire/
+```
+
+然後在 Settings, Community plugins 中啟用 Grimoire。
+
+無論使用哪種安裝方式，請先安裝至少一個 CLI provider。Grimoire 包裝 provider CLIs，但不會取代它們的 account setup、model access、quotas 或 terms。
+
+## 設定 provider
+
+在 Settings, Grimoire, Providers 中啟用你需要的 providers，它們會出現在 model selector 中。Codex 在首次啟動時預設啟用；其他 providers 是 opt-in。
+
+<p align="center">
+  <img src="../../assets/readme/settings-providers.png" alt="Grimoire 設定中的 provider toggles、provider tabs 和 appearance themes" width="100%">
+</p>
+
+### Claude Code
+
+如果你需要 Claude 的 native project memory、slash commands、MCP configuration、plans、rewind/fork，並希望透過 Claude subscription 或 API key 工作，可以選擇 Claude Code。
+
+```bash
+npm install -g @anthropic-ai/claude-code
+claude
+```
+
+先透過 Claude Code 完成認證，然後在 Grimoire 中啟用它。
+
+- [Claude Code getting started](https://code.claude.com/docs/en/getting-started)
+- [Claude Code CLI reference](https://code.claude.com/docs/en/cli-usage)
+
+在 Grimoire 中，Claude Code 會讀取並保留你的 `.claude/` 檔案，執行在 Claude Code SDK 上，並支援 slash commands、MCP settings、agents、skills、plans、rewind 和 fork。當 Claude 同時回報 quota 和 cost 時，你會並排看到 quota windows 和 API spend。
+
+### Codex
+
+Codex 是首次啟動時的預設 provider。選擇它可以在本地 CLI 中使用 OpenAI Codex，並透過 ChatGPT plan 或 API key 登入。
+
+```bash
+npm install -g @openai/codex
+codex
+```
+
+你也可以透過官方 Codex installer 或 Homebrew 安裝。先執行一次並登入，然後在 Grimoire 中啟用。
+
+- [Codex CLI README](https://github.com/openai/codex/blob/main/README.md)
+- [Codex getting started](https://github.com/openai/codex/blob/main/docs/getting-started.md)
+- [OpenAI code generation guide](https://developers.openai.com/api/docs/guides/code-generation)
+
+在 Grimoire 中，Codex 透過 app-server protocol 執行，支援 native history、fork、plan mode、image input 和 reasoning effort controls。當 Codex 回報 rate-limit metadata 時，plan usage 會顯示出來。
+
+### Gemini CLI
+
+選擇 Gemini CLI 可以透過 ACP runtime 使用 Google Gemini models。
+
+```bash
+npm install -g @google/gemini-cli
+gemini
+```
+
+Gemini CLI 支援 Google login、Gemini API keys 和 Vertex AI，具體取決於你的設定。先完成認證，然後在 Grimoire 中啟用它。
+
+- [Gemini CLI documentation](https://google-gemini.github.io/gemini-cli/docs/)
+- [Gemini CLI deployment](https://google-gemini.github.io/gemini-cli/docs/get-started/deployment.html)
+- [Gemini CLI authentication](https://google-gemini.github.io/gemini-cli/docs/get-started/authentication.html)
+
+在 Grimoire 中，Gemini 透過 ACP over stdio 執行，支援 persistent runtime、native history、plan mode、images 和 reasoning controls。Auxiliary workflows 目前保持最小。Daily quota 尚未接入，因此 Grimoire 只會在 Gemini 回報 cost 時顯示它。
+
+### OpenCode
+
+如果你想使用自帶 provider configuration 的 model-agnostic agent，可以選擇 OpenCode。
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/opencode-ai/opencode/refs/heads/main/install | bash
+opencode
+```
+
+Homebrew 和 Go installs 也可以。先在 OpenCode 中設定 provider credentials，然後在 Grimoire 中啟用。
+
+- [OpenCode GitHub repository](https://github.com/opencode-ai/opencode)
+- [OpenCode provider docs](https://opencode.ai/docs/providers)
+- [OpenCode config docs](https://opencode.ai/docs/config)
+
+在 Grimoire 中，OpenCode 透過 ACP 執行，使用 Grimoire-managed launch artifacts，並支援 persistent runtime、native history、plan mode、image input、provider commands 和 reasoning effort。當 cost metadata 可用時，它會顯示 monthly spend。
+
+## 第一次聊天
+
+1. 在 composer 中選擇 provider 和 model。
+2. 設定 reasoning effort 和 permission mode。
+3. Mention 你希望納入 scope 的筆記、資料夾或 context。
+4. 傳送 turn。
+5. 在面板裡查看 tool calls、usage 和輸出。
+
+## 功能
+
+### Chat workspace
+
+一個專注的側邊欄，支援多個 tabs。每個 tab 都保留自己的 draft、provider、model、context 和 runtime。關閉再開啟 Obsidian 後，sessions 會恢復，並且每個 response 都保留 provider、model 和 reasoning effort。Rewind 和 fork 會在目前 provider 支援時出現。你一旦手動捲動去閱讀歷史，auto-scroll 會自動讓位。
+
+### Model selector
+
+一個 picker，按 provider 分組，並按 label 排序：Claude Code、Codex、Gemini、OpenCode。Search 會匹配 labels、descriptions、groups 和 model IDs。Catalogs 會 lazy load，並記住你摺疊過的 groups。你可以在 settings 中新增 custom aliases 和 context-window overrides。Claude 的 1M variants 是額外 options，不會替代 base models。
+
+<p align="center">
+  <img src="../../assets/readme/model-selector-usage.png" alt="Grimoire model selector 顯示 provider groups、model search 和 plan usage" width="100%">
+</p>
+
+### Usage 和 cost
+
+Model selector 旁邊的 badge 會持續顯示目前 provider 的 usage；model menu 中有更完整的 readouts：如果 provider 暴露 quota windows 就顯示 quota，如果只有 cost 可用就顯示 spend。Refresh 進行中或失敗時，最後一次成功的數值會保留，因此 meter 不會突然清空。如果你想要更安靜的 UI，可以在 settings 中關閉整個 usage/cost 顯示。
+
+| Provider | Usage 來源 |
+| --- | --- |
+| Claude Code | SDK rate-limit events、可選的 `.grimoire/claude/statusline-usage.json` 和 SDK result cost metadata |
+| Codex | Account rate-limit notifications，以及可用時的 `account/rateLimits/read` |
+| Gemini CLI | Gemini 回報時的 ACP cost metadata；daily quota 尚未接入 |
+| OpenCode | 從 ACP 和 session cost metadata 聚合的 monthly spend |
+
+### Context 和 mentions
+
+可以直接在 composer 中 mention vault notes 和 folders，拉入 current 或 linked note，並在 settings 中新增 persistent external context paths。Provider 支援 image input 時，可以貼上或拖放圖片。支援的 provider integrations 中也可以 mention MCP servers。
+
+### Inline editing
+
+對選取文字執行 "Grimoire: Inline edit"。Prompt 會在文字旁開啟，edit 會以 diff 回傳，你可以 accept 或 reject，並且會透過 provider-backed inline edit service 執行。它既支援替換 selection，也支援插入新文字。
+
+### Commands
+
+Built-in commands 覆蓋 Grimoire workflows，例如 image generation 和 resume。Provider 暴露的自有 commands，例如 Claude Code slash commands 和 OpenCode runtime commands，會透過 provider-owned catalogs 顯示。你可以在 settings 中隱藏不使用的 commands。
+
+### Image generation
+
+貼上或拖放圖片即可附加到 turn。Built-in `/image [prompt]` command 本身不會呼叫任何 image API。它會向目前 provider 傳送一個普通 turn，指示 provider 使用你已設定的 image generation 能力：provider-native tooling、MCP tools 或 local command。Agent 會把結果保存到 vault，並回傳類似 `![[path/to/image.png]]` 的 embed。如果沒有設定 image generation，你會得到一條普通回覆，說明缺少什麼。
+
+### Safety 和 permissions
+
+Permission modes 屬於 provider，因此 Grimoire 透過 shared composer controls 顯示它們，而不是重新實作一套。Safe mode 和 permission prompts 在工作時保持可見。Bang-bash mode 只會在 enabled provider 提供時顯示。Configured MCP servers、shell access 和 API keys 都應該被視為 sensitive，因為它們確實 sensitive。
+
+### Debug logging
+
+預設關閉。啟用後，Grimoire 會將 sanitized JSONL 寫入 `.grimoire/logs/YYYY-MM-DD.jsonl`，其中 prompts、answers、note contents、paths、environment values 和 secrets 都會被 redact。它用於診斷 provider 和 runtime issues，而不是保存 transcript。
+
+### Settings
+
+General settings 覆蓋 auto-scroll、title generation、usage indicators、debug logging、locale、tabs，以及哪個 provider 擁有 settings view。Per-provider tabs 處理 CLI paths、model behavior、commands、agents、skills 和 provider-owned config。你還可以設定 project workspace environment variables，並按 provider scoped。
+
+## Grimoire 將資料存放在哪裡
+
+| Path | 內容 |
+| --- | --- |
+| `.grimoire/grimoire-settings.json` | App settings 和 provider configuration |
+| `.grimoire/sessions/*.meta.json` | Session metadata |
+| `.grimoire/logs/YYYY-MM-DD.jsonl` | Opt-in sanitized debug logs |
+| `.grimoire/claude/statusline-usage.json` | 用於 plan meter 的 Claude usage snapshot |
+
+Provider-native files under `.claude/`, `.codex/`, and `.opencode/` 會被原地讀取和寫入，因此你的 provider setup 在 Grimoire 之外仍然可攜。
+
+## 隱私
+
+Grimoire 執行在 Obsidian 內部、你的電腦上。它沒有 backend，不新增 telemetry，也不會把 prompts、answers、notes、files、tool output、API keys 或 usage logs 上傳到任何 Grimoire service。它唯一會寫入的 logs 是上面提到的 optional sanitized debug logs，並且這些 logs 留在你的 vault 中。
+
+它無法隱藏的是 provider 本身。你啟用的 CLI 會收到 prompt、你選擇的 context，以及 request 所需的 files、images、tool output 和 commands。該 CLI 可能會存取 Anthropic、OpenAI、Google、你設定的 OpenCode vendors、MCP servers，或者任何你設定過的其他目標。Terms、retention、billing、rate limits 和 privacy policies 屬於 provider，而不是 Grimoire。Grimoire 的職責是在 Obsidian 中讓這條邊界清楚可見，並由你控制。
+
+## Development
+
+```bash
+npm install
+npm run dev
+npm run typecheck
+npm run lint
+npm run test
+npm run build
+npm run build:release
+```
+
+在發布或 push 重要 UI/provider changes 之前，請執行完整 local gate：
+
+```bash
+npm run test -- --selectProjects unit
+npm run typecheck
+npm run lint
+npm run build:release
+```
+
+`npm run build:release` 會刷新 generated `main.js`、root `styles.css` 和 `dist/grimoire`。
+
+## Releases
+
+Grimoire releases 透過 semver tags 發布，例如 `1.0.0`。Release workflow 會執行 local gate，建構 Obsidian bundle，驗證 tag 與 `package.json` 和 `manifest.json` 匹配，然後將 `main.js`、`manifest.json` 和 `styles.css` 附加到 GitHub Release。
+
+Obsidian 和 BRAT 會直接消費這些 release assets。使用 `main` 做 releasable development，然後透過與 manifest version 匹配的 tag 發布。
+
+## Roadmap
+
+目前 Grimoire 隨 Claude Code、Codex、Gemini CLI 和 OpenCode 一起發布。
+
+下一步計畫：Qwen Code、GitHub Copilot CLI、其他 ACP-compatible providers，以及當 runtime 足夠穩定可嵌入 Obsidian 時的 local model CLIs。Implementation notes 位於 [docs/provider-roadmap.md](../provider-roadmap.md)。
+
+## 授權
+
+MIT。參見 [LICENSE](../../LICENSE)。
