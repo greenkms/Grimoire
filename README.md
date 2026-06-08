@@ -253,6 +253,8 @@ Grimoire runs inside Obsidian, on your machine. It has no backend, adds no telem
 
 What it can't hide is the provider itself. Whichever CLI you enable receives the prompt, the context you selected, and the files, images, tool output, and commands a request needs. That CLI may then talk to Anthropic, OpenAI, Google, your configured OpenCode vendors, MCP servers, or anything else it's set up to reach. Terms, retention, billing, rate limits, and privacy policies are the provider's, not Grimoire's. Grimoire's job is to make that boundary visible and keep it under your control inside Obsidian.
 
+For an Obsidian policy-oriented summary of network use, account requirements, external file access, logging, and telemetry, see [DISCLOSURES.md](DISCLOSURES.md).
+
 ## Development
 
 ```bash
