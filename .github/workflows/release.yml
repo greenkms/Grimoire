@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Setup Node 22
         uses: actions/setup-node@v6
@@ -68,15 +70,46 @@ jobs:
             dist/grimoire/manifest.json
             dist/grimoire/styles.css
 
+      - name: Generate release notes
+        run: |
+          set -euo pipefail
+
+          tag="${GITHUB_REF_NAME}"
+          current_commit="$(git rev-list -n 1 "${tag}")"
+          previous_tag="$(
+            git tag --merged "${current_commit}" --sort=-v:refname \
+              | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' \
+              | grep -v "^${tag}$" \
+              | head -n 1 || true
+          )"
+
+          {
+            echo "Grimoire ${tag}"
+            echo
+
+            if [ -n "${previous_tag}" ]; then
+              compare_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/compare/${previous_tag}...${tag}"
+              echo "Changes since [${previous_tag}](${compare_url}):"
+              echo
+              git log --no-merges --pretty=format:'- %s (`%h`)' "${previous_tag}..${tag}"
+            else
+              echo "Changes in this release:"
+              echo
+              git log --no-merges --pretty=format:'- %s (`%h`)' --max-count=20 "${tag}"
+            fi
+          } > RELEASE_NOTES.md
+
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           tag="${GITHUB_REF_NAME}"
           title="Grimoire ${tag}"
-          notes="Grimoire ${tag}"
 
           if gh release view "${tag}" >/dev/null 2>&1; then
+            gh release edit "${tag}" \
+              --title "${title}" \
+              --notes-file RELEASE_NOTES.md
             gh release upload "${tag}" \
               dist/grimoire/main.js \
               dist/grimoire/manifest.json \
@@ -88,6 +121,6 @@ jobs:
               dist/grimoire/manifest.json \
               dist/grimoire/styles.css \
               --title "${title}" \
-              --notes "${notes}" \
+              --notes-file RELEASE_NOTES.md \
               --verify-tag
           fi
