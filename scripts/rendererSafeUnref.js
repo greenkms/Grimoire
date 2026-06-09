@@ -1,5 +1,45 @@
 const UNSAFE_TIMER_UNREF_PATTERNS = [
   {
+    name: 'claude-sdk-process-transport-close-win32',
+    pattern: /if \(([A-Za-z_$][A-Za-z0-9_$]*) && !\1\.killed && \1\.exitCode === null\) setTimeout\(\(([A-Za-z_$][A-Za-z0-9_$]*), ([A-Za-z_$][A-Za-z0-9_$]*)\) => \{\s*if \(\2\.exitCode !== null\) \{\s*\3\(\);\s*return;\s*\}\s*if \(process\.platform === "win32"\) \{\s*setTimeout\(\(([A-Za-z_$][A-Za-z0-9_$]*), ([A-Za-z_$][A-Za-z0-9_$]*)\) => \{\s*if \(\4\.exitCode === null\) \4\.kill\("SIGKILL"\);\s*\5\(\);\s*\}, 5e3, \2, \3\)\.unref\(\);\s*return;\s*\}\s*\2\.kill\("SIGTERM"\), setTimeout\(\(([A-Za-z_$][A-Za-z0-9_$]*)\) => \{\s*if \(\6\.exitCode === null\) \6\.kill\("SIGKILL"\);\s*\}, 5e3, \2\)\.unref\(\), \3\(\);\s*\}, ([A-Za-z_$][A-Za-z0-9_$]*), \1, ([A-Za-z_$][A-Za-z0-9_$]*)\)\.unref\(\), \1\.once\("exit", (\(\) => (?:\{[^{}]*\}|[^;{}]+))\);/g,
+    replacement: (
+      _match,
+      processVariable,
+      _processParam,
+      _completeParam,
+      _winProcessParam,
+      _winCompleteParam,
+      _forceKillParam,
+      timeoutVariable,
+      completeCallback,
+      exitHandler,
+    ) =>
+      `if (${processVariable} && !${processVariable}.killed && ${processVariable}.exitCode === null) {` +
+      '\n      const processKillTimer = setTimeout((childProcess, onClose) => {' +
+      '\n        if (childProcess.exitCode !== null) {' +
+      '\n          onClose();' +
+      '\n          return;' +
+      '\n        }' +
+      '\n        if (process.platform === "win32") {' +
+      '\n          const windowsForceKillTimer = setTimeout((windowsProcess, windowsOnClose) => {' +
+      '\n            if (windowsProcess.exitCode === null) windowsProcess.kill("SIGKILL");' +
+      '\n            windowsOnClose();' +
+      '\n          }, 5e3, childProcess, onClose);' +
+      '\n          windowsForceKillTimer.unref?.();' +
+      '\n          return;' +
+      '\n        }' +
+      '\n        childProcess.kill("SIGTERM");' +
+      '\n        const forceKillTimer = setTimeout((forceKillProcess) => {' +
+      '\n          if (forceKillProcess.exitCode === null) forceKillProcess.kill("SIGKILL");' +
+      '\n        }, 5e3, childProcess);' +
+      '\n        forceKillTimer.unref?.();' +
+      '\n        onClose();' +
+      `\n      }, ${timeoutVariable}, ${processVariable}, ${completeCallback});` +
+      '\n      processKillTimer.unref?.();' +
+      `\n      ${processVariable}.once("exit", ${exitHandler});` +
+      '\n    }',
+  },
+  {
     name: 'claude-sdk-process-transport-close',
     pattern: /if \(\$ && !\$\.killed && \$\.exitCode === null\) setTimeout\(\(([A-Za-z_$][A-Za-z0-9_$]*)\) => \{\s*if \(\1\.killed \|\| \1\.exitCode !== null\) return;\s*\1\.kill\("SIGTERM"\), setTimeout\(\(([A-Za-z_$][A-Za-z0-9_$]*)\) => \{\s*if \(\2\.exitCode === null\) \2\.kill\("SIGKILL"\);\s*\}, 5e3, \1\)\.unref\(\);\s*\}, ([A-Za-z_$][A-Za-z0-9_$]*), \$\)\.unref\(\), \$\.once\("exit", (\(\) => (?:\{[^{}]*\}|[^;{}]+))\);/g,
     replacement:

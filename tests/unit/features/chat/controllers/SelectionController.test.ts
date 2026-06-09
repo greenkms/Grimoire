@@ -132,7 +132,9 @@ describe('SelectionController', () => {
     const view = { editor, getMode: () => 'source', file: { path: 'notes/test.md' } };
     app = {
       workspace: {
+        activeLeaf: null,
         getActiveViewOfType: jest.fn().mockReturnValue(view),
+        getMostRecentLeaf: jest.fn(() => app.workspace.activeLeaf),
       },
     };
 

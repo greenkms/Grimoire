@@ -75,7 +75,7 @@ Install the current release manually if you don't use BRAT:
 3. Put all three files in that folder.
 4. Enable Grimoire from Settings, Community plugins.
 
-### From Community plugins
+### From Community plugins (in progress)
 
 Once Grimoire is listed in the Obsidian community plugin directory:
 

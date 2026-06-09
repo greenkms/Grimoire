@@ -259,8 +259,7 @@ export class SelectionController {
       return false;
     }
 
-    const activeLeaf = this.app.workspace.activeLeaf
-      ?? this.app.workspace.getMostRecentLeaf();
+    const activeLeaf = this.app.workspace.getMostRecentLeaf();
     return activeLeaf?.view?.getViewType?.() === this.ownViewType;
   }
 

@@ -1,5 +1,3 @@
-import js from '@eslint/js';
-import tseslint from '@typescript-eslint/eslint-plugin';
 import jestPlugin from 'eslint-plugin-jest';
 import obsidianmd from 'eslint-plugin-obsidianmd';
 import { DEFAULT_ACRONYMS } from 'eslint-plugin-obsidianmd/dist/lib/rules/ui/acronyms.js';
@@ -11,40 +9,10 @@ import { fileURLToPath } from 'node:url';
 
 const jestRecommended = jestPlugin.configs['flat/recommended'];
 const tsconfigRootDir = dirname(fileURLToPath(import.meta.url));
-const obsidianRuleSeverity = 'warn';
-const reviewTypeRuleSeverity = 'warn';
 
-const stagedObsidianRules = {
-  'obsidianmd/commands/no-command-in-command-id': obsidianRuleSeverity,
-  'obsidianmd/commands/no-command-in-command-name': obsidianRuleSeverity,
-  'obsidianmd/commands/no-default-hotkeys': obsidianRuleSeverity,
-  'obsidianmd/commands/no-plugin-id-in-command-id': obsidianRuleSeverity,
-  'obsidianmd/commands/no-plugin-name-in-command-name': obsidianRuleSeverity,
-  'obsidianmd/detach-leaves': obsidianRuleSeverity,
-  'obsidianmd/editor-drop-paste': obsidianRuleSeverity,
-  'obsidianmd/hardcoded-config-path': obsidianRuleSeverity,
-  'obsidianmd/no-forbidden-elements': obsidianRuleSeverity,
-  'obsidianmd/no-global-this': obsidianRuleSeverity,
-  'obsidianmd/no-plugin-as-component': obsidianRuleSeverity,
-  'obsidianmd/no-sample-code': obsidianRuleSeverity,
-  'obsidianmd/no-static-styles-assignment': obsidianRuleSeverity,
-  'obsidianmd/no-tfile-tfolder-cast': obsidianRuleSeverity,
-  'obsidianmd/no-unsupported-api': obsidianRuleSeverity,
-  'obsidianmd/no-view-references-in-plugin': obsidianRuleSeverity,
-  'obsidianmd/object-assign': obsidianRuleSeverity,
-  'obsidianmd/platform': obsidianRuleSeverity,
-  'obsidianmd/prefer-abstract-input-suggest': obsidianRuleSeverity,
-  'obsidianmd/prefer-active-doc': obsidianRuleSeverity,
-  'obsidianmd/prefer-file-manager-trash-file': obsidianRuleSeverity,
-  'obsidianmd/prefer-get-language': obsidianRuleSeverity,
-  'obsidianmd/prefer-instanceof': obsidianRuleSeverity,
-  'obsidianmd/prefer-window-timers': obsidianRuleSeverity,
-  'obsidianmd/regex-lookbehind': obsidianRuleSeverity,
-  'obsidianmd/sample-names': obsidianRuleSeverity,
-  'obsidianmd/settings-tab/no-manual-html-headings': obsidianRuleSeverity,
-  'obsidianmd/settings-tab/no-problematic-settings-headings': obsidianRuleSeverity,
+const projectObsidianRuleOverrides = {
   'obsidianmd/ui/sentence-case': [
-    obsidianRuleSeverity,
+    'error',
     {
       ignoreWords: ['Grimoire', 'Codex', 'OpenCode', 'WSL'],
       brands: [...DEFAULT_BRANDS, 'Grimoire', 'Codex', 'OpenCode'],
@@ -53,14 +21,13 @@ const stagedObsidianRules = {
       enforceCamelCaseLower: true,
     },
   ],
-  'obsidianmd/vault/iterate': obsidianRuleSeverity,
 };
 
 export default defineConfig([
   {
     ignores: ['dist/**', 'node_modules/**', 'coverage/**', 'main.js'],
   },
-  js.configs.recommended,
+  ...obsidianmd.configs.recommended,
   {
     files: ['esbuild.config.mjs', 'scripts/**/*.js', 'scripts/**/*.mjs'],
     languageOptions: {
@@ -70,10 +37,18 @@ export default defineConfig([
         process: 'readonly',
       },
     },
+    rules: {
+      'no-console': 'off',
+    },
   },
-  ...tseslint.configs['flat/recommended'],
   {
     files: ['src/**/*.ts', 'tests/**/*.ts'],
+    languageOptions: {
+      parserOptions: {
+        project: './tsconfig.json',
+        tsconfigRootDir,
+      },
+    },
     plugins: {
       'simple-import-sort': simpleImportSort,
     },
@@ -93,23 +68,8 @@ export default defineConfig([
   },
   {
     files: ['src/**/*.ts'],
-    languageOptions: {
-      parserOptions: {
-        project: './tsconfig.json',
-        tsconfigRootDir,
-      },
-    },
-    plugins: {
-      obsidianmd,
-    },
     rules: {
-      ...stagedObsidianRules,
-      '@typescript-eslint/no-explicit-any': reviewTypeRuleSeverity,
-      '@typescript-eslint/no-redundant-type-constituents': reviewTypeRuleSeverity,
-      '@typescript-eslint/no-unnecessary-type-assertion': reviewTypeRuleSeverity,
-      '@typescript-eslint/no-unsafe-assignment': reviewTypeRuleSeverity,
-      '@typescript-eslint/no-unsafe-call': reviewTypeRuleSeverity,
-      '@typescript-eslint/no-unsafe-member-access': reviewTypeRuleSeverity,
+      ...projectObsidianRuleOverrides,
     },
   },
   {

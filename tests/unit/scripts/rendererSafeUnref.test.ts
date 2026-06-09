@@ -74,6 +74,38 @@ describe('rendererSafeUnref helpers', () => {
     expect(findUnsafeTimerUnrefSites(result.contents)).toEqual([]);
   });
 
+  it('patches the claude-sdk win32-aware process close timeout shape', () => {
+    const input = [
+      'if (t3 && !t3.killed && t3.exitCode === null) setTimeout((r, o) => {',
+      '  if (r.exitCode !== null) {',
+      '    o();',
+      '    return;',
+      '  }',
+      '  if (process.platform === "win32") {',
+      '    setTimeout((n, i) => {',
+      '      if (n.exitCode === null) n.kill("SIGKILL");',
+      '      i();',
+      '    }, 5e3, r, o).unref();',
+      '    return;',
+      '  }',
+      '  r.kill("SIGTERM"), setTimeout((n) => {',
+      '    if (n.exitCode === null) n.kill("SIGKILL");',
+      '  }, 5e3, r).unref(), o();',
+      '}, tH, t3, e).unref(), t3.once("exit", () => bd.delete(t3));',
+    ].join('\n');
+
+    const result = patchRendererUnsafeUnrefSites(input);
+
+    expect(result.appliedPatches).toEqual([
+      { name: 'claude-sdk-process-transport-close-win32', count: 1 },
+    ]);
+    expect(result.contents).toContain('processKillTimer.unref?.();');
+    expect(result.contents).toContain('windowsForceKillTimer.unref?.();');
+    expect(result.contents).toContain('forceKillTimer.unref?.();');
+    expect(result.contents).toContain('t3.once("exit", () => bd.delete(t3));');
+    expect(findUnsafeTimerUnrefSites(result.contents)).toEqual([]);
+  });
+
   it('reports remaining direct timer .unref() calls but ignores guarded usage', () => {
     const input = [
       'const timer = setTimeout(run, 1000);',

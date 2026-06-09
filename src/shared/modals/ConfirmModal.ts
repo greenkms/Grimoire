@@ -1,6 +1,20 @@
-import { type App,Modal, Setting } from 'obsidian';
+import { type App, Modal, Setting } from 'obsidian';
 
 import { t } from '../../i18n/i18n';
+
+type DestructiveButtonCompat = {
+  setDestructive?: () => unknown;
+  setWarning?: () => unknown;
+};
+
+function markButtonDestructive(button: unknown): void {
+  const compat = button as DestructiveButtonCompat;
+  if (typeof compat.setDestructive === 'function') {
+    compat.setDestructive();
+    return;
+  }
+  compat.setWarning?.();
+}
 
 export function confirmDelete(app: App, message: string): Promise<boolean> {
   return new Promise(resolve => {
@@ -39,16 +53,15 @@ class ConfirmModal extends Modal {
           .setButtonText(t('common.cancel'))
           .onClick(() => this.close())
       )
-      .addButton(btn =>
-        btn
-          .setButtonText(this.confirmText)
-          .setWarning()
-          .onClick(() => {
-            this.resolved = true;
-            this.resolve(true);
-            this.close();
-          })
-      );
+      .addButton(btn => {
+        btn.setButtonText(this.confirmText);
+        markButtonDestructive(btn);
+        btn.onClick(() => {
+          this.resolved = true;
+          this.resolve(true);
+          this.close();
+        });
+      });
   }
 
   onClose() {

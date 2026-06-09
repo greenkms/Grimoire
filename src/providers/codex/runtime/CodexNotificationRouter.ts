@@ -883,9 +883,9 @@ function stringifyRawOutput(value: unknown): string {
 
   try {
     const result = JSON.stringify(value);
-    return typeof result === 'string' ? result : String(value);
+    return typeof result === 'string' ? result : '';
   } catch {
-    return String(value);
+    return '';
   }
 }
 

@@ -117,6 +117,13 @@ function addHotkeySettingRow(
   item.addEventListener('click', () => openHotkeySettings(app));
 }
 
+function refreshSettingsTab(tab: PluginSettingTab): void {
+  // Obsidian 1.13 prefers declarative settings, but this tab still owns a
+  // custom provider-aware layout that needs an imperative re-render.
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
+  tab.display();
+}
+
 const APPEARANCE_THEME_OPTIONS: Array<{
   accent: string;
   id: GrimoireAppearanceTheme;
@@ -283,7 +290,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
             }
             this.plugin.settings.locale = locale;
             await this.plugin.saveSettings();
-            this.display();
+            refreshSettingsTab(this);
           });
       });
 
@@ -337,7 +344,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             this.plugin.settings.enableAutoTitleGeneration = value;
             await this.plugin.saveSettings();
-            this.display();
+            refreshSettingsTab(this);
           })
       );
 
@@ -644,7 +651,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
     }
     await this.plugin.saveSettings();
     this.refreshModelSelectors();
-    this.display();
+    refreshSettingsTab(this);
   }
 
   private renderProviderEnableRow(
