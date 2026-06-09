@@ -106,9 +106,11 @@ The Obsidian community plugin review may report "Potentially vulnerable dependen
 
 These advisories do not affect Grimoire:
 
-- Every flagged package is pinned through npm `overrides` in `package.json` to a release **above** its advisory range, and the committed `package-lock.json` resolves to those safe versions.
-- The review bot walks the full dependency graph and flags packages by name and declared range. It does not account for the pinned `overrides`, so it keeps surfacing the advisories even though the installed and bundled versions are not vulnerable.
-- Most flagged packages are never shipped to users: `brace-expansion` and `ws` are development-only, and `hono`, `@hono/node-server`, `ip-address`, and `qs` are tree-shaken out of the release bundle because Grimoire only uses the client-side portions of the MCP SDK. Only `fast-uri` and `@anthropic-ai/sdk` are present in the built `main.js`, both at safe versions.
+- The committed `package-lock.json` resolves every flagged package to a release above the advisory range listed by the review report.
+- Grimoire no longer uses npm `overrides` for these packages; the safe versions are selected by the current dependency graph.
+- `npm audit --omit=dev` reports zero vulnerabilities.
+- The review bot appears to walk the full dependency graph and surface package-name advisory matches as "Potentially vulnerable dependency" warnings. The warning asks for verification; it is not the same result as an installed-version vulnerability from `npm audit`.
+- Most flagged packages are never shipped to users: `brace-expansion` and `ws` are development-only, and `hono`, `@hono/node-server`, `ip-address`, and `qs` are tree-shaken out of the release bundle because Grimoire only uses the client-side portions of the MCP SDK. `fast-uri` is present in the built `main.js` at a safe version. `@anthropic-ai/sdk` is used through the Claude Agent SDK and is locked above the advisory range.
 
 | Package | Source | In `main.js` | Locked version | Advisory range | Status |
 |---|---|---|---|---|---|
@@ -119,6 +121,6 @@ These advisories do not affect Grimoire:
 | `qs` | MCP SDK (Express) | No (tree-shaken) | 6.15.2 | `>=6.11.1 <=6.15.1` | Above range |
 | `@anthropic-ai/sdk` | Claude Agent SDK | Yes | 0.93.0 | `>=0.79.0 <0.91.1` | Above range |
 | `ws` | jsdom (dev only) | No | 8.21.0 | `>=8.0.0 <8.20.1` | Dev-only, above range |
-| `brace-expansion` | ESLint/Jest (dev only) | No | 5.0.6 | `>=5.0.0 <5.0.6` | Dev-only, above range |
+| `brace-expansion` | ESLint/Jest (dev only) | No | 5.0.6 for the flagged v5 range; other nested dev-only copies are 1.x/2.x | `>=5.0.0 <5.0.6` | Dev-only, above range |
 
 The `npm run review:deps` check (run automatically by `npm run build:release`) parses `package-lock.json` and fails the release build if any of these packages resolves into its advisory range, so the safe versions are enforced on every release.
