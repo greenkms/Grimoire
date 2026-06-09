@@ -1,4 +1,4 @@
-/* Grimoire 1.0.7 */
+/* Grimoire 1.0.8 */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -26097,7 +26097,6 @@ var import_os5 = require("os");
 var import_path18 = require("path");
 var import_child_process5 = require("child_process");
 var import_fs8 = require("fs");
-var import_meta = {};
 var fz = Object.create;
 var { getPrototypeOf: mz, defineProperty: kg, getOwnPropertyNames: gz } = Object;
 var hz = Object.prototype.hasOwnProperty;
@@ -26126,7 +26125,7 @@ function Sz(e, t3) {
 var xr = (e, t3) => {
   for (var r in t3) kg(e, r, { get: t3[r], enumerable: true, configurable: true, set: Sz.bind(t3, r) });
 };
-var Ot = (0, import_node_module.createRequire)(import_meta.url);
+var Ot = __filename;
 var wz = Symbol.dispose || /* @__PURE__ */ Symbol.for("Symbol.dispose");
 var kz = Symbol.asyncDispose || /* @__PURE__ */ Symbol.for("Symbol.asyncDispose");
 var _e = (e, t3, r) => {
@@ -45698,7 +45697,7 @@ function Xx(e, t3, r, o) {
   if ($r && u.spawnClaudeCodeProcess) ee("sessionStore with custom spawnClaudeCodeProcess: ensure the subprocess CLAUDE_CONFIG_DIR matches the parent (same path, same separators) or transcript_mirror frames will be dropped.", { level: "warn" });
   let vg = u.pathToClaudeCodeExecutable;
   if (!vg) {
-    let $t = (0, import_url.fileURLToPath)(import_meta.url), nr = (0, import_module.createRequire)($t), eo = AT((Jo) => nr.resolve(Jo));
+    let $t = __filename, nr = (0, import_module.createRequire)($t), eo = AT((Jo) => nr.resolve(Jo));
     if (!eo) throw Error(`Native CLI binary for ${process.platform}-${process.arch} not found. Reinstall @anthropic-ai/claude-agent-sdk without --omit=optional, or set options.pathToClaudeCodeExecutable.`);
     vg = eo;
   }

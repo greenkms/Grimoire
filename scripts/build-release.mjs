@@ -21,4 +21,8 @@ execFileSync(process.execPath, ['scripts/build.mjs', 'production'], {
 });
 
 const result = createReleaseBundle({ rootDir: ROOT });
+execFileSync(process.execPath, ['scripts/verify-release-load.cjs', join(result.outputDir, 'main.js')], {
+  cwd: ROOT,
+  stdio: 'inherit',
+});
 console.log(`Built release bundle: ${result.outputDir}`);

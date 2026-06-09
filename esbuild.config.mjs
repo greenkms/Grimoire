@@ -47,6 +47,65 @@ const patchCodexSdkImportMeta = {
   },
 };
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function replaceImportedAliasCall(contents, importName, moduleNamePattern, replacement) {
+  const importPattern = new RegExp(
+    `import\\{[^}]*${importName} as ([A-Za-z_$][A-Za-z0-9_$]*)[^}]*\\}from["']${moduleNamePattern}["']`,
+    'g',
+  );
+  const aliases = [...contents.matchAll(importPattern)].map(match => match[1]);
+  let nextContents = contents;
+
+  for (const alias of aliases) {
+    const callPattern = new RegExp(`${escapeRegExp(alias)}\\(import\\.meta\\.url\\)`, 'g');
+    nextContents = nextContents.replace(callPattern, replacement);
+  }
+
+  return nextContents;
+}
+
+const patchClaudeSdkImportMeta = {
+  name: 'patch-claude-sdk-import-meta',
+  setup(build) {
+    build.onLoad(
+      { filter: /[\\/]node_modules[\\/]@anthropic-ai[\\/]claude-agent-sdk[\\/]sdk\.mjs$/ },
+      async (args) => {
+        let contents = await fsPromises.readFile(args.path, 'utf8');
+
+        contents = replaceImportedAliasCall(
+          contents,
+          'createRequire',
+          'node:module',
+          '__filename',
+        );
+        contents = replaceImportedAliasCall(
+          contents,
+          'fileURLToPath',
+          '(?:node:)?url',
+          '__filename',
+        );
+
+        const remainingImportMetaUrl = (contents.match(/import\.meta\.url/g) || []).length;
+        if (remainingImportMetaUrl > 0) {
+          return {
+            errors: [{
+              text: `Unhandled Claude Agent SDK import.meta.url references: ${remainingImportMetaUrl}`,
+            }],
+          };
+        }
+
+        return {
+          contents,
+          loader: 'js',
+        };
+      },
+    );
+  },
+};
+
 const patchRendererUnsafeUnref = {
   name: 'patch-renderer-unsafe-unref',
   setup(build) {
@@ -113,7 +172,7 @@ const copyToObsidian = {
 const context = await esbuild.context({
   entryPoints: ['src/main.ts'],
   bundle: true,
-  plugins: [patchCodexSdkImportMeta, patchRendererUnsafeUnref, copyToObsidian],
+  plugins: [patchCodexSdkImportMeta, patchClaudeSdkImportMeta, patchRendererUnsafeUnref, copyToObsidian],
   external: [
     'obsidian',
     'electron',
