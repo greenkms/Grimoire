@@ -28,7 +28,7 @@ describe('model-selector.css', () => {
   it('adds spacing inside the model search container', () => {
     const css = readModelSelectorCss();
     const searchRule = getRule(css, '.grimoire-model-search');
-    expect(searchRule).toContain('padding: 7px 8px');
+    expect(searchRule).toContain('padding: 10px 12px');
   });
 
   it('frames the model search container so it does not bleed past the dropdown edges', () => {
