@@ -2,17 +2,15 @@
    Grimoire settings — visual system
    Recreates the "Simple / Advanced" settings redesign on top of
    Obsidian's native Setting API. Surfaces, text, and borders use
-   Obsidian theme tokens so the screen adapts to light/dark; the
-   violet accent comes from the per-appearance-theme brand token so
-   the settings tab keeps Grimoire's identity.
+   Obsidian theme tokens so the screen adapts to light/dark.
    Geometry (radii, spacing, control sizes) mirrors the design
    prototype in design_handoff_settings_redesign/design.
    ============================================================ */
 
-/* ── Brand accent, scoped per appearance theme (mirrors base/variables.css) ── */
+/* ── Obsidian accent and settings-local tokens ── */
 .grimoire-settings {
-  --grimoire-brand: #8b5cf6;
-  --grimoire-brand-rgb: 139, 92, 246;
+  --grimoire-brand: var(--interactive-accent, var(--color-accent));
+  --grimoire-brand-rgb: var(--interactive-accent-rgb, var(--color-accent-rgb, 127, 95, 217));
 
   /* Geometry tokens from the prototype */
   --gs-r1: 6px;
@@ -25,21 +23,6 @@
   --gs-dot-codex: #19c37d;
   --gs-dot-gemini: #5b8def;
   --gs-dot-opencode: #e0b341;
-}
-
-.grimoire-settings[data-theme="graphite"] {
-  --grimoire-brand: #6ea8ff;
-  --grimoire-brand-rgb: 110, 168, 255;
-}
-
-.grimoire-settings[data-theme="rune"] {
-  --grimoire-brand: #d97757;
-  --grimoire-brand-rgb: 217, 119, 87;
-}
-
-.grimoire-settings[data-theme="verdant"] {
-  --grimoire-brand: #34b87a;
-  --grimoire-brand-rgb: 52, 184, 122;
 }
 
 /* ── Layout: centered single column, like the prototype window ── */
@@ -90,7 +73,7 @@
   bottom: -1px;
   height: 2px;
   border-radius: 2px;
-  background: rgb(var(--grimoire-brand-rgb));
+  background: var(--grimoire-brand);
 }
 
 .grimoire-settings-tab-status {
@@ -205,7 +188,7 @@
    the prototype's .field / .toggle / select.field / .slider.
    Selectors are scoped under .grimoire-settings and use class +
    element specificity to win over Obsidian defaults without
-   !important.
+   force flags.
    ============================================================ */
 
 /* Text + search inputs → .field */
@@ -507,102 +490,6 @@
   }
 }
 
-/* ============================================================
-   Appearance theme cards → .themes / .tcard
-   ============================================================ */
-.grimoire-appearance-section {
-  padding: 4px 0 6px;
-}
-
-.grimoire-appearance-heading {
-  padding: 22px 2px 0;
-  color: var(--text-normal);
-  font-size: 13.5px;
-  font-weight: 580;
-}
-
-.grimoire-appearance-desc {
-  padding: 3px 2px 0;
-  color: var(--text-faint);
-  font-size: 12.5px;
-  line-height: 1.45;
-}
-
-.grimoire-appearance-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  padding: 12px 0 4px;
-}
-
-.grimoire-theme-card {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
-  gap: 11px;
-  /* height:auto overrides Obsidian's fixed button height so the
-     description grows the card instead of overflowing below it. */
-  height: auto;
-  padding: 14px;
-  border: 1px solid var(--background-modifier-border-hover);
-  border-radius: var(--gs-r2);
-  background: var(--interactive-normal);
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--background-modifier-border) 70%, transparent),
-    0 1px 2px rgba(0, 0, 0, 0.22);
-  color: var(--text-normal);
-  text-align: left;
-  white-space: normal;
-  cursor: pointer;
-  transition: background 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
-}
-
-.grimoire-theme-card:hover {
-  background: var(--background-modifier-hover);
-}
-
-.grimoire-theme-card.is-active {
-  background: rgba(var(--grimoire-brand-rgb), 0.13);
-  box-shadow:
-    inset 0 0 0 1.5px rgba(var(--grimoire-brand-rgb), 0.42),
-    0 1px 2px rgba(0, 0, 0, 0.22);
-  border-color: transparent;
-}
-
-.grimoire-theme-swatch {
-  width: 14px;
-  height: 14px;
-  margin-top: 2px;
-  border-radius: var(--gs-pill);
-  flex: 0 0 auto;
-  /* background-color + box-shadow ring are set inline per theme card */
-}
-
-.grimoire-theme-card-copy {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-}
-
-.grimoire-theme-card-name {
-  min-width: 0;
-  overflow: hidden;
-  overflow-wrap: anywhere;
-  text-overflow: ellipsis;
-  color: var(--text-normal);
-  font-size: 13px;
-  font-weight: 580;
-}
-
-.grimoire-theme-card-desc {
-  display: block;
-  min-width: 0;
-  color: var(--text-faint);
-  font-size: 12px;
-  line-height: 1.4;
-  overflow-wrap: anywhere;
-}
-
 /* ── Hotkey grid → .hkgrid / .hk ── */
 .grimoire-hotkey-grid {
   display: grid;
@@ -830,7 +717,6 @@
 }
 
 @media (max-width: 720px) {
-  .grimoire-appearance-grid,
   .grimoire-hotkey-grid {
     grid-template-columns: 1fr;
   }

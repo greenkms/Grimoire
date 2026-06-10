@@ -54,14 +54,3 @@
     transform: translateY(0) scale(1);
   }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .grimoire-container *,
-  .grimoire-container *::before,
-  .grimoire-container *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-    transition-duration: 0.001ms !important;
-  }
-}

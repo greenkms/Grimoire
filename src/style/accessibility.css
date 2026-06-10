@@ -39,3 +39,28 @@
   outline-offset: -2px;
   border-radius: 4px;
 }
+
+/* Visibility utilities live at the end of the bundle so they win by order. */
+.grimoire-panel-view[hidden],
+.grimoire-hidden {
+  display: none;
+}
+
+.grimoire-visible-block {
+  display: block;
+}
+
+.grimoire-visible-flex {
+  display: flex;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grimoire-container *,
+  .grimoire-container *::before,
+  .grimoire-container *::after {
+    animation-duration: 0.001ms;
+    animation-iteration-count: 1;
+    scroll-behavior: auto;
+    transition-duration: 0.001ms;
+  }
+}

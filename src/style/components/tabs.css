@@ -116,40 +116,43 @@
   box-shadow: none;
 }
 
-.grimoire-panel-tab {
+.grimoire-panel-tabs button.grimoire-panel-tab {
   appearance: none;
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-width: 0;
   height: 26px;
   overflow: visible;
   padding: 0 11px;
-  border: 0 !important;
+  border: 0;
   border-radius: 0;
-  background: transparent !important;
+  background: transparent;
   color: var(--grimoire-workbench-faint);
   font-size: 12px;
   font-weight: 550;
   line-height: 1;
-  box-shadow: none !important;
+  box-shadow: none;
   cursor: pointer;
   text-overflow: ellipsis;
   white-space: nowrap;
   transition: color 0.14s ease;
 }
 
-.grimoire-panel-tab:hover {
-  background: transparent !important;
+.grimoire-panel-tabs button.grimoire-panel-tab:hover {
+  background: transparent;
   color: var(--grimoire-workbench-muted);
-  box-shadow: none !important;
+  box-shadow: none;
 }
 
-.grimoire-panel-tab.is-active {
+.grimoire-panel-tabs button.grimoire-panel-tab.is-active {
   color: var(--text-normal);
-  background: transparent !important;
-  box-shadow: none !important;
+  background: transparent;
+  box-shadow: none;
 }
 
-.grimoire-panel-tab.is-active::after {
+.grimoire-panel-tabs button.grimoire-panel-tab.is-active::after {
   content: "";
   position: absolute;
   right: 11px;
@@ -157,7 +160,7 @@
   left: 11px;
   height: 1.5px;
   border-radius: 2px;
-  background: var(--grimoire-brand) !important;
+  background: var(--grimoire-brand);
   opacity: 1;
 }
 

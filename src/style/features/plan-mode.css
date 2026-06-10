@@ -98,6 +98,6 @@
 /* ── Plan mode input border ──────────────────────── */
 
 .grimoire-input-wrapper.grimoire-input-plan-mode {
-  border-color: rgb(92, 148, 140) !important;
-  box-shadow: 0 0 0 1px rgb(92, 148, 140);
+  border-color: var(--color-cyan, var(--interactive-accent));
+  box-shadow: 0 0 0 1px var(--color-cyan, var(--interactive-accent));
 }

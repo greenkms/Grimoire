@@ -131,24 +131,24 @@ body.grimoire-dragging-ns {
   max-height: var(--grimoire-textarea-max-height, none);
   resize: none;
   padding: 10px 11px;
-  border: none !important;
+  border: none;
   border-radius: 8px;
-  background: transparent !important;
+  background: transparent;
   color: var(--text-normal);
   font-family: inherit;
   font-size: 14px;
   line-height: 1.4;
-  box-shadow: none !important;
+  box-shadow: none;
   overflow-y: auto;
   unicode-bidi: plaintext; /* Proper BiDi text handling for mixed RTL/LTR */
 }
 
 .grimoire-input:hover,
 .grimoire-input:focus {
-  outline: none !important;
-  border: none !important;
-  background: transparent !important;
-  box-shadow: none !important;
+  outline: none;
+  border: none;
+  background: transparent;
+  box-shadow: none;
 }
 
 .grimoire-input::placeholder {
@@ -285,7 +285,7 @@ body.grimoire-dragging-ns {
   overflow: hidden;
   text-overflow: ellipsis;
   cursor: pointer;
-  box-shadow: none !important;
+  box-shadow: none;
   flex: 0 1 auto;
 }
 
@@ -381,16 +381,16 @@ body.grimoire-dragging-ns {
   height: 14px;
 }
 
-/* Light blue border when instruction mode is active */
+/* Obsidian blue border when instruction mode is active */
 .grimoire-input-instruction-mode {
-  border-color: #60a5fa !important;
-  box-shadow: 0 0 0 1px #60a5fa;
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 1px var(--color-blue);
 }
 
-/* Pink border when bash mode is active */
+/* Obsidian pink/purple border when bash mode is active */
 .grimoire-input-bang-bash-mode {
-  border-color: #f472b6 !important;
-  box-shadow: 0 0 0 1px #f472b6;
+  border-color: var(--color-pink, var(--color-purple));
+  box-shadow: 0 0 0 1px var(--color-pink, var(--color-purple));
 }
 
 /* Monospace input while in bash mode */
