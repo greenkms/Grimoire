@@ -77,7 +77,7 @@ BRAT を使わない場合は、現在の release を手動でインストール
 3. 3 つのファイルをそのフォルダに入れます。
 4. Settings, Community plugins から Grimoire を有効化します。
 
-### Community plugins からインストール
+### Community plugins からインストール（準備中）
 
 Grimoire が Obsidian community plugin directory に掲載されたら、次の手順でインストールできます。
 
@@ -254,6 +254,8 @@ Provider-native files under `.claude/`, `.codex/`, and `.opencode/` はその場
 Grimoire は Obsidian の中で、あなたのマシン上で動作します。Backend はなく、telemetry を追加せず、prompts、answers、notes、files、tool output、API keys、usage logs を Grimoire service にアップロードしません。書き込む logs は上記の optional sanitized debug logs だけで、それも vault 内に残ります。
 
 Grimoire が隠せないものは provider 自体です。有効化した CLI は prompt、選択した context、request に必要な files、images、tool output、commands を受け取ります。その CLI は Anthropic、OpenAI、Google、設定済みの OpenCode vendors、MCP servers、またはあなたが設定した他の接続先と通信する可能性があります。Terms、retention、billing、rate limits、privacy policies は provider のものであり、Grimoire のものではありません。Grimoire の役割は、その境界を Obsidian の中で見えるようにし、あなたが制御できるようにすることです。
+
+Obsidian のポリシーに基づいたネットワーク利用、アカウント要件、外部ファイルアクセス、ログ、telemetry の概要については、[DISCLOSURES.md](../DISCLOSURES.md) を参照してください。
 
 ## Development
 

@@ -77,7 +77,7 @@ BRAT 可以从 GitHub Releases 安装 Grimoire，并通过 tagged builds 保持�
 3. 将三个文件都放入该文件夹。
 4. 在 Settings, Community plugins 中启用 Grimoire。
 
-### 使用 Community plugins
+### 使用 Community plugins（进行中）
 
 当 Grimoire 被列入 Obsidian community plugin directory 后：
 
@@ -254,6 +254,8 @@ Provider-native files under `.claude/`, `.codex/`, and `.opencode/` 会被原地
 Grimoire 运行在 Obsidian 内部、你的电脑上。它没有 backend，不添加 telemetry，也不会把 prompts、answers、notes、files、tool output、API keys 或 usage logs 上传到任何 Grimoire service。它唯一会写入的 logs 是上面提到的 optional sanitized debug logs，并且这些 logs 留在你的 vault 中。
 
 它无法隐藏的是 provider 本身。你启用的 CLI 会收到 prompt、你选择的 context，以及 request 所需的 files、images、tool output 和 commands。该 CLI 可能会访问 Anthropic、OpenAI、Google、你配置的 OpenCode vendors、MCP servers，或者任何你设置过的其他目标。Terms、retention、billing、rate limits 和 privacy policies 属于 provider，而不是 Grimoire。Grimoire 的职责是在 Obsidian 中让这条边界清晰可见，并由你控制。
+
+如需了解面向 Obsidian 政策的网络使用、账户要求、外部文件访问、日志记录和 telemetry 的摘要，请参阅 [DISCLOSURES.md](../DISCLOSURES.md)。
 
 ## Development
 

@@ -77,7 +77,7 @@ Si no usas BRAT, instala el release actual manualmente:
 3. Coloca los tres archivos en esa carpeta.
 4. Activa Grimoire desde Settings, Community plugins.
 
-### Desde Community plugins
+### Desde Community plugins (en progreso)
 
 Cuando Grimoire aparezca en el directorio de community plugins de Obsidian:
 
@@ -254,6 +254,8 @@ Provider-native files bajo `.claude/`, `.codex/` y `.opencode/` se leen y escrib
 Grimoire corre dentro de Obsidian, en tu máquina. No tiene backend, no añade telemetry y nunca sube tus prompts, answers, notes, files, tool output, API keys o usage logs a ningún Grimoire service. Los únicos logs que escribe son los optional sanitized debug logs de arriba, y se quedan en tu vault.
 
 Lo que Grimoire no puede ocultar es el provider en sí. El CLI que actives recibe el prompt, el context seleccionado y los files, images, tool output y commands que necesita una request. Ese CLI puede hablar con Anthropic, OpenAI, Google, tus OpenCode vendors configurados, MCP servers o cualquier otro destino configurado. Terms, retention, billing, rate limits y privacy policies pertenecen al provider, no a Grimoire. El trabajo de Grimoire es hacer visible ese límite y mantenerlo bajo tu control dentro de Obsidian.
+
+Para un resumen orientado a la política de Obsidian sobre el uso de red, requisitos de cuenta, acceso a archivos externos, registro y telemetry, consulta [DISCLOSURES.md](../DISCLOSURES.md).
 
 ## Development
 
