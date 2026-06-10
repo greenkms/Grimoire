@@ -37,6 +37,19 @@ export interface McpMentionProvider {
   getContextSavingServers: () => Array<{ name: string }>;
 }
 
+const FOLLOWING_TEXT_AFTER_MENTION_REGEX = /\s+\S+$/;
+
+function normalizeMentionCandidate(value: string): string {
+  return value.replace(/\\/g, '/').toLowerCase();
+}
+
+function addCandidate(candidates: Set<string>, value: string | null | undefined): void {
+  const trimmed = value?.trim();
+  if (trimmed) {
+    candidates.add(trimmed);
+  }
+}
+
 export class MentionDropdownController {
   private containerEl: HTMLElement;
   private inputEl: HTMLTextAreaElement | HTMLInputElement;
@@ -158,6 +171,11 @@ export class MentionDropdownController {
 
       const searchText = textBeforeCursor.substring(lastAtIndex + 1);
 
+      if (this.hasCompletedMentionFollowedByText(searchText)) {
+        this.hide();
+        return;
+      }
+
       if (/\s$/.test(searchText) && !this.hasVaultSearchMatch(searchText.toLowerCase())) {
         this.hide();
         return;
@@ -183,6 +201,81 @@ export class MentionDropdownController {
     }) || files.some((file) => (
       file.path.toLowerCase().includes(searchLower) || file.name.toLowerCase().includes(searchLower)
     ));
+  }
+
+  private hasCompletedMentionFollowedByText(searchText: string): boolean {
+    if (!FOLLOWING_TEXT_AFTER_MENTION_REGEX.test(searchText)) {
+      return false;
+    }
+
+    const normalizedSearch = normalizeMentionCandidate(searchText);
+    for (const candidate of this.getCompletedMentionCandidates(searchText)) {
+      const normalizedCandidate = normalizeMentionCandidate(candidate);
+      if (
+        normalizedCandidate &&
+        normalizedSearch.startsWith(normalizedCandidate) &&
+        /\s/.test(normalizedSearch[normalizedCandidate.length] ?? '')
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private getCompletedMentionCandidates(searchText: string): Set<string> {
+    const candidates = new Set<string>();
+    addCandidate(candidates, 'vault');
+
+    if (this.mcpManager) {
+      for (const server of this.mcpManager.getContextSavingServers()) {
+        addCandidate(candidates, server.name);
+      }
+    }
+
+    if (this.agentService) {
+      for (const agent of this.agentService.searchAgents('')) {
+        addCandidate(candidates, agent.id);
+        addCandidate(candidates, `${agent.id} (agent)`);
+      }
+    }
+
+    for (const folder of this.callbacks.getCachedVaultFolders()) {
+      const normalizedPath = folder.path.replace(/\\/g, '/').replace(/\/+$/, '');
+      addCandidate(candidates, normalizedPath);
+      addCandidate(candidates, `${normalizedPath}/`);
+    }
+
+    for (const file of this.callbacks.getCachedVaultFiles()) {
+      const normalizedPath = this.callbacks.normalizePathForVault(file.path);
+      addCandidate(candidates, normalizedPath ?? file.path);
+      addCandidate(candidates, file.name);
+    }
+
+    if (searchText.includes('/')) {
+      this.addExternalContextMentionCandidates(candidates);
+    }
+
+    return candidates;
+  }
+
+  private addExternalContextMentionCandidates(candidates: Set<string>): void {
+    const externalContexts = this.callbacks.getExternalContexts() || [];
+    if (externalContexts.length === 0) {
+      return;
+    }
+
+    const contextEntries = buildExternalContextDisplayEntries(externalContexts);
+    for (const entry of contextEntries) {
+      addCandidate(candidates, `${entry.displayName}/`);
+      try {
+        for (const file of externalContextScanner.scanPaths([entry.contextRoot])) {
+          addCandidate(candidates, `${entry.displayName}/${file.relativePath.replace(/\\/g, '/')}`);
+        }
+      } catch {
+        // External context scanning is best-effort for stale mention cleanup.
+      }
+    }
   }
 
   handleKeydown(e: KeyboardEvent): boolean {

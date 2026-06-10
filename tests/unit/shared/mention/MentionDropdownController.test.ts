@@ -469,6 +469,31 @@ describe('MentionDropdownController', () => {
 
       localController.destroy();
     });
+
+    it('hides dropdown when punctuation follows a completed file mention', () => {
+      const localCallbacks = createMockCallbacks({
+        getCachedVaultFiles: jest.fn().mockReturnValue([
+          {
+            name: 'Whisper for Fraud Protection.pdf',
+            path: 'Main/Telco & Traffic/Whisper for Fraud Protection.pdf',
+            stat: { mtime: 2000 },
+          } as any,
+        ]),
+      });
+      const localInput = createMockInput();
+      const localController = new MentionDropdownController(createMockEl(), localInput, localCallbacks);
+
+      localInput.value = '@Main/Telco & Traffic/Whisper for Fraud Protection.pdf ?';
+      localInput.selectionStart = localInput.value.length;
+      localController.handleInputChange();
+      jest.advanceTimersByTime(200);
+
+      const dropdownInstance = getLatestDropdownInstance();
+      expect(dropdownInstance.render).not.toHaveBeenCalled();
+      expect(dropdownInstance.hide).toHaveBeenCalledTimes(1);
+
+      localController.destroy();
+    });
   });
 
   describe('handleKeydown', () => {
