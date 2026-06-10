@@ -46741,15 +46741,6 @@ function normalizeMaxTabs(value) {
   const numeric = typeof value === "number" && Number.isFinite(value) ? Math.trunc(value) : DEFAULT_MAX_TABS;
   return Math.max(MIN_TABS, Math.min(MAX_TABS, numeric));
 }
-var GRIMOIRE_APPEARANCE_THEMES = [
-  "violet",
-  "graphite",
-  "rune",
-  "verdant"
-];
-function isGrimoireAppearanceTheme(value) {
-  return typeof value === "string" && GRIMOIRE_APPEARANCE_THEMES.includes(value);
-}
 var CHAT_VIEW_PLACEMENTS = [
   "right-sidebar",
   "left-sidebar",
@@ -47959,7 +47950,6 @@ var DEFAULT_GRIMOIRE_SETTINGS = {
   savedProviderThinkingBudget: {},
   savedProviderPermissionMode: {},
   lastCustomModel: "",
-  appearanceTheme: "violet",
   maxTabs: 5,
   tabBarPosition: "header",
   enableAutoScroll: true,
@@ -47996,7 +47986,8 @@ var LEGACY_STRIPPED_SETTING_FIELDS = [
   "blockedCommands",
   ...LEGACY_TOP_LEVEL_PROVIDER_FIELDS,
   "loadUserClaudeSettings",
-  "openInMainTab"
+  "openInMainTab",
+  "appearanceTheme"
 ];
 function stripLegacyFields(settings11) {
   const cleaned = { ...settings11 };
@@ -48016,19 +48007,6 @@ function normalizeChatViewPlacement(value, legacyOpenInMainTab) {
     return legacyOpenInMainTab ? "main-tab" : "right-sidebar";
   }
   return DEFAULT_GRIMOIRE_SETTINGS.chatViewPlacement;
-}
-function normalizeAppearanceTheme(value) {
-  const legacyThemeMap = {
-    "obsidian-violet": "violet",
-    "obsidian-light": "violet",
-    ivory: "violet",
-    "graphite-blue": "graphite",
-    "rune-ember": "rune"
-  };
-  if (typeof value === "string" && value in legacyThemeMap) {
-    return legacyThemeMap[value];
-  }
-  return isGrimoireAppearanceTheme(value) ? value : DEFAULT_GRIMOIRE_SETTINGS.appearanceTheme;
 }
 function normalizeTabBarPosition(_value) {
   return "header";
@@ -48213,7 +48191,6 @@ var GrimoireSettingsStorage = class {
       stored.chatViewPlacement,
       stored.openInMainTab
     );
-    const appearanceTheme = normalizeAppearanceTheme(stored.appearanceTheme);
     const maxTabs = normalizeMaxTabs(stored.maxTabs);
     const tabBarPosition = normalizeTabBarPosition(stored.tabBarPosition);
     const usageIndicatorsEnabled = normalizeUsageIndicatorsEnabled(stored.usageIndicatorsEnabled);
@@ -48237,7 +48214,6 @@ var GrimoireSettingsStorage = class {
       permissionMode,
       savedProviderPermissionMode,
       chatViewPlacement,
-      appearanceTheme,
       maxTabs,
       tabBarPosition,
       usageIndicatorsEnabled,
@@ -48263,7 +48239,7 @@ var GrimoireSettingsStorage = class {
       providerConfigs,
       merged.providerConfigs
     );
-    if (hasLegacyTopLevelProviderFields(stored) || "show1MModel" in stored || "slashCommands" in stored || "hiddenSlashCommands" in stored || "activeConversationId" in stored || "allowExternalAccess" in stored || "allowedExportPaths" in stored || "enableBlocklist" in stored || "blockedCommands" in stored || shouldPersistChatViewPlacementMigration(stored, chatViewPlacement) || "appearanceTheme" in stored && stored.appearanceTheme !== appearanceTheme || shouldPersistTabLayoutNormalization(stored, maxTabs, tabBarPosition) || "usageIndicatorsEnabled" in stored && stored.usageIndicatorsEnabled !== usageIndicatorsEnabled || "debugLoggingEnabled" in stored && stored.debugLoggingEnabled !== debugLoggingEnabled || "permissionMode" in stored && stored.permissionMode !== permissionMode || "savedProviderPermissionMode" in stored && JSON.stringify(savedProviderPermissionMode) !== JSON.stringify((_a7 = stored.savedProviderPermissionMode) != null ? _a7 : {}) || JSON.stringify(envSnippets) !== JSON.stringify((_b4 = stored.envSnippets) != null ? _b4 : []) || "customModelAliases" in stored && JSON.stringify(customModelAliases) !== JSON.stringify((_c3 = stored.customModelAliases) != null ? _c3 : {}) || "advancedSectionsOpen" in stored && JSON.stringify(advancedSectionsOpen) !== JSON.stringify((_d3 = stored.advancedSectionsOpen) != null ? _d3 : {}) || didNormalizeHostScopedProviderConfigs) {
+    if (hasLegacyTopLevelProviderFields(stored) || "show1MModel" in stored || "slashCommands" in stored || "hiddenSlashCommands" in stored || "activeConversationId" in stored || "allowExternalAccess" in stored || "allowedExportPaths" in stored || "enableBlocklist" in stored || "blockedCommands" in stored || shouldPersistChatViewPlacementMigration(stored, chatViewPlacement) || "appearanceTheme" in stored || shouldPersistTabLayoutNormalization(stored, maxTabs, tabBarPosition) || "usageIndicatorsEnabled" in stored && stored.usageIndicatorsEnabled !== usageIndicatorsEnabled || "debugLoggingEnabled" in stored && stored.debugLoggingEnabled !== debugLoggingEnabled || "permissionMode" in stored && stored.permissionMode !== permissionMode || "savedProviderPermissionMode" in stored && JSON.stringify(savedProviderPermissionMode) !== JSON.stringify((_a7 = stored.savedProviderPermissionMode) != null ? _a7 : {}) || JSON.stringify(envSnippets) !== JSON.stringify((_b4 = stored.envSnippets) != null ? _b4 : []) || "customModelAliases" in stored && JSON.stringify(customModelAliases) !== JSON.stringify((_c3 = stored.customModelAliases) != null ? _c3 : {}) || "advancedSectionsOpen" in stored && JSON.stringify(advancedSectionsOpen) !== JSON.stringify((_d3 = stored.advancedSectionsOpen) != null ? _d3 : {}) || didNormalizeHostScopedProviderConfigs) {
       await this.save(merged);
     }
     return merged;
@@ -49890,29 +49866,6 @@ var settings = {
     codex: "Codex"
   },
   display: "Anzeige",
-  appearance: {
-    name: "Appearance theme",
-    desc: "Choose how Grimoire blends into the current Obsidian theme. Provider badges keep their own status color.",
-    saveFailed: "Failed to save appearance theme",
-    options: {
-      violet: {
-        name: "Obsidian Violet",
-        desc: "Native dark UI, mineral purple"
-      },
-      graphite: {
-        name: "Graphite Blue",
-        desc: "Cool engineering surface"
-      },
-      rune: {
-        name: "Rune Ember",
-        desc: "Legacy warm Grimoire accent"
-      },
-      verdant: {
-        name: "Verdant",
-        desc: "Deep dark with fresh green accent"
-      }
-    }
-  },
   conversations: "Unterhaltungen",
   content: "Inhalte",
   input: "Eingabe",
@@ -50409,29 +50362,6 @@ var settings2 = {
     codex: "Codex"
   },
   display: "Display",
-  appearance: {
-    name: "Appearance theme",
-    desc: "Choose how Grimoire blends into the current Obsidian theme. Provider badges keep their own status color.",
-    saveFailed: "Failed to save appearance theme",
-    options: {
-      violet: {
-        name: "Obsidian Violet",
-        desc: "Native dark UI, mineral purple"
-      },
-      graphite: {
-        name: "Graphite Blue",
-        desc: "Cool engineering surface"
-      },
-      rune: {
-        name: "Rune Ember",
-        desc: "Legacy warm Grimoire accent"
-      },
-      verdant: {
-        name: "Verdant",
-        desc: "Deep dark with fresh green accent"
-      }
-    }
-  },
   conversations: "Conversations",
   content: "Content",
   input: "Input",
@@ -50928,29 +50858,6 @@ var settings3 = {
     codex: "Codex"
   },
   display: "Pantalla",
-  appearance: {
-    name: "Appearance theme",
-    desc: "Choose how Grimoire blends into the current Obsidian theme. Provider badges keep their own status color.",
-    saveFailed: "Failed to save appearance theme",
-    options: {
-      violet: {
-        name: "Obsidian Violet",
-        desc: "Native dark UI, mineral purple"
-      },
-      graphite: {
-        name: "Graphite Blue",
-        desc: "Cool engineering surface"
-      },
-      rune: {
-        name: "Rune Ember",
-        desc: "Legacy warm Grimoire accent"
-      },
-      verdant: {
-        name: "Verdant",
-        desc: "Deep dark with fresh green accent"
-      }
-    }
-  },
   conversations: "Conversaciones",
   content: "Contenido",
   input: "Entrada",
@@ -51447,29 +51354,6 @@ var settings4 = {
     codex: "Codex"
   },
   display: "Affichage",
-  appearance: {
-    name: "Appearance theme",
-    desc: "Choose how Grimoire blends into the current Obsidian theme. Provider badges keep their own status color.",
-    saveFailed: "Failed to save appearance theme",
-    options: {
-      violet: {
-        name: "Obsidian Violet",
-        desc: "Native dark UI, mineral purple"
-      },
-      graphite: {
-        name: "Graphite Blue",
-        desc: "Cool engineering surface"
-      },
-      rune: {
-        name: "Rune Ember",
-        desc: "Legacy warm Grimoire accent"
-      },
-      verdant: {
-        name: "Verdant",
-        desc: "Deep dark with fresh green accent"
-      }
-    }
-  },
   conversations: "Conversations",
   content: "Contenu",
   input: "Saisie",
@@ -51966,29 +51850,6 @@ var settings5 = {
     codex: "Codex"
   },
   display: "\u8868\u793A",
-  appearance: {
-    name: "Appearance theme",
-    desc: "Choose how Grimoire blends into the current Obsidian theme. Provider badges keep their own status color.",
-    saveFailed: "Failed to save appearance theme",
-    options: {
-      violet: {
-        name: "Obsidian Violet",
-        desc: "Native dark UI, mineral purple"
-      },
-      graphite: {
-        name: "Graphite Blue",
-        desc: "Cool engineering surface"
-      },
-      rune: {
-        name: "Rune Ember",
-        desc: "Legacy warm Grimoire accent"
-      },
-      verdant: {
-        name: "Verdant",
-        desc: "Deep dark with fresh green accent"
-      }
-    }
-  },
   conversations: "\u4F1A\u8A71",
   content: "\u30B3\u30F3\u30C6\u30F3\u30C4",
   input: "\u5165\u529B",
@@ -52485,29 +52346,6 @@ var settings6 = {
     codex: "Codex"
   },
   display: "\uD45C\uC2DC",
-  appearance: {
-    name: "Appearance theme",
-    desc: "Choose how Grimoire blends into the current Obsidian theme. Provider badges keep their own status color.",
-    saveFailed: "Failed to save appearance theme",
-    options: {
-      violet: {
-        name: "Obsidian Violet",
-        desc: "Native dark UI, mineral purple"
-      },
-      graphite: {
-        name: "Graphite Blue",
-        desc: "Cool engineering surface"
-      },
-      rune: {
-        name: "Rune Ember",
-        desc: "Legacy warm Grimoire accent"
-      },
-      verdant: {
-        name: "Verdant",
-        desc: "Deep dark with fresh green accent"
-      }
-    }
-  },
   conversations: "\uB300\uD654",
   content: "\uCF58\uD150\uCE20",
   input: "\uC785\uB825",
@@ -53004,29 +52842,6 @@ var settings7 = {
     codex: "Codex"
   },
   display: "Exibi\xE7\xE3o",
-  appearance: {
-    name: "Appearance theme",
-    desc: "Choose how Grimoire blends into the current Obsidian theme. Provider badges keep their own status color.",
-    saveFailed: "Failed to save appearance theme",
-    options: {
-      violet: {
-        name: "Obsidian Violet",
-        desc: "Native dark UI, mineral purple"
-      },
-      graphite: {
-        name: "Graphite Blue",
-        desc: "Cool engineering surface"
-      },
-      rune: {
-        name: "Rune Ember",
-        desc: "Legacy warm Grimoire accent"
-      },
-      verdant: {
-        name: "Verdant",
-        desc: "Deep dark with fresh green accent"
-      }
-    }
-  },
   conversations: "Conversas",
   content: "Conte\xFAdo",
   input: "Entrada",
@@ -53523,29 +53338,6 @@ var settings8 = {
     codex: "Codex"
   },
   display: "\u041E\u0442\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u0435",
-  appearance: {
-    name: "\u0422\u0435\u043C\u0430 \u043E\u0444\u043E\u0440\u043C\u043B\u0435\u043D\u0438\u044F",
-    desc: "\u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435, \u043A\u0430\u043A Grimoire \u0441\u043E\u0447\u0435\u0442\u0430\u0435\u0442\u0441\u044F \u0441 \u0442\u0435\u043A\u0443\u0449\u0435\u0439 \u0442\u0435\u043C\u043E\u0439 Obsidian. \u0411\u0435\u0439\u0434\u0436\u0438 \u043F\u0440\u043E\u0432\u0430\u0439\u0434\u0435\u0440\u043E\u0432 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u044E\u0442 \u0441\u043E\u0431\u0441\u0442\u0432\u0435\u043D\u043D\u044B\u0439 \u0446\u0432\u0435\u0442 \u0441\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u044F.",
-    saveFailed: "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0441\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u044C \u0442\u0435\u043C\u0443 \u043E\u0444\u043E\u0440\u043C\u043B\u0435\u043D\u0438\u044F",
-    options: {
-      violet: {
-        name: "Obsidian Violet",
-        desc: "Native dark UI, mineral purple"
-      },
-      graphite: {
-        name: "Graphite Blue",
-        desc: "Cool engineering surface"
-      },
-      rune: {
-        name: "Rune Ember",
-        desc: "Legacy warm Grimoire accent"
-      },
-      verdant: {
-        name: "Verdant",
-        desc: "Deep dark with fresh green accent"
-      }
-    }
-  },
   conversations: "\u0420\u0430\u0437\u0433\u043E\u0432\u043E\u0440\u044B",
   content: "\u0421\u043E\u0434\u0435\u0440\u0436\u0430\u043D\u0438\u0435",
   input: "\u0412\u0432\u043E\u0434",
@@ -54042,29 +53834,6 @@ var settings9 = {
     codex: "Codex"
   },
   display: "\u663E\u793A",
-  appearance: {
-    name: "Appearance theme",
-    desc: "Choose how Grimoire blends into the current Obsidian theme. Provider badges keep their own status color.",
-    saveFailed: "Failed to save appearance theme",
-    options: {
-      violet: {
-        name: "Obsidian Violet",
-        desc: "Native dark UI, mineral purple"
-      },
-      graphite: {
-        name: "Graphite Blue",
-        desc: "Cool engineering surface"
-      },
-      rune: {
-        name: "Rune Ember",
-        desc: "Legacy warm Grimoire accent"
-      },
-      verdant: {
-        name: "Verdant",
-        desc: "Deep dark with fresh green accent"
-      }
-    }
-  },
   conversations: "\u5BF9\u8BDD",
   content: "\u5185\u5BB9",
   input: "\u8F93\u5165",
@@ -54561,29 +54330,6 @@ var settings10 = {
     codex: "Codex"
   },
   display: "\u986F\u793A",
-  appearance: {
-    name: "Appearance theme",
-    desc: "Choose how Grimoire blends into the current Obsidian theme. Provider badges keep their own status color.",
-    saveFailed: "Failed to save appearance theme",
-    options: {
-      violet: {
-        name: "Obsidian Violet",
-        desc: "Native dark UI, mineral purple"
-      },
-      graphite: {
-        name: "Graphite Blue",
-        desc: "Cool engineering surface"
-      },
-      rune: {
-        name: "Rune Ember",
-        desc: "Legacy warm Grimoire accent"
-      },
-      verdant: {
-        name: "Verdant",
-        desc: "Deep dark with fresh green accent"
-      }
-    }
-  },
   conversations: "\u5C0D\u8A71",
   content: "\u5167\u5BB9",
   input: "\u8F38\u5165",
@@ -98939,6 +98685,16 @@ var SelectableDropdown = class {
 };
 
 // src/shared/mention/MentionDropdownController.ts
+var FOLLOWING_TEXT_AFTER_MENTION_REGEX = /\s+\S+$/;
+function normalizeMentionCandidate(value) {
+  return value.replace(/\\/g, "/").toLowerCase();
+}
+function addCandidate(candidates, value) {
+  const trimmed = value == null ? void 0 : value.trim();
+  if (trimmed) {
+    candidates.add(trimmed);
+  }
+}
 var MentionDropdownController = class {
   constructor(containerEl, inputEl, callbacks, options = {}) {
     this.mentionStartIndex = -1;
@@ -99031,6 +98787,10 @@ var MentionDropdownController = class {
         return;
       }
       const searchText = textBeforeCursor.substring(lastAtIndex + 1);
+      if (this.hasCompletedMentionFollowedByText(searchText)) {
+        this.hide();
+        return;
+      }
       if (/\s$/.test(searchText) && !this.hasVaultSearchMatch(searchText.toLowerCase())) {
         this.hide();
         return;
@@ -99050,6 +98810,65 @@ var MentionDropdownController = class {
       const nameLower = folder.name.toLowerCase();
       return pathLower.includes(searchLower) || nameLower.includes(searchLower);
     }) || files.some((file2) => file2.path.toLowerCase().includes(searchLower) || file2.name.toLowerCase().includes(searchLower));
+  }
+  hasCompletedMentionFollowedByText(searchText) {
+    var _a7;
+    if (!FOLLOWING_TEXT_AFTER_MENTION_REGEX.test(searchText)) {
+      return false;
+    }
+    const normalizedSearch = normalizeMentionCandidate(searchText);
+    for (const candidate of this.getCompletedMentionCandidates(searchText)) {
+      const normalizedCandidate = normalizeMentionCandidate(candidate);
+      if (normalizedCandidate && normalizedSearch.startsWith(normalizedCandidate) && /\s/.test((_a7 = normalizedSearch[normalizedCandidate.length]) != null ? _a7 : "")) {
+        return true;
+      }
+    }
+    return false;
+  }
+  getCompletedMentionCandidates(searchText) {
+    const candidates = /* @__PURE__ */ new Set();
+    addCandidate(candidates, "vault");
+    if (this.mcpManager) {
+      for (const server of this.mcpManager.getContextSavingServers()) {
+        addCandidate(candidates, server.name);
+      }
+    }
+    if (this.agentService) {
+      for (const agent of this.agentService.searchAgents("")) {
+        addCandidate(candidates, agent.id);
+        addCandidate(candidates, `${agent.id} (agent)`);
+      }
+    }
+    for (const folder of this.callbacks.getCachedVaultFolders()) {
+      const normalizedPath = folder.path.replace(/\\/g, "/").replace(/\/+$/, "");
+      addCandidate(candidates, normalizedPath);
+      addCandidate(candidates, `${normalizedPath}/`);
+    }
+    for (const file2 of this.callbacks.getCachedVaultFiles()) {
+      const normalizedPath = this.callbacks.normalizePathForVault(file2.path);
+      addCandidate(candidates, normalizedPath != null ? normalizedPath : file2.path);
+      addCandidate(candidates, file2.name);
+    }
+    if (searchText.includes("/")) {
+      this.addExternalContextMentionCandidates(candidates);
+    }
+    return candidates;
+  }
+  addExternalContextMentionCandidates(candidates) {
+    const externalContexts = this.callbacks.getExternalContexts() || [];
+    if (externalContexts.length === 0) {
+      return;
+    }
+    const contextEntries = buildExternalContextDisplayEntries(externalContexts);
+    for (const entry of contextEntries) {
+      addCandidate(candidates, `${entry.displayName}/`);
+      try {
+        for (const file2 of externalContextScanner.scanPaths([entry.contextRoot])) {
+          addCandidate(candidates, `${entry.displayName}/${file2.relativePath.replace(/\\/g, "/")}`);
+        }
+      } catch (e) {
+      }
+    }
   }
   handleKeydown(e) {
     if (!this.dropdown.isVisible()) return false;
@@ -106289,32 +106108,6 @@ var HISTORY_ICON_PATHS = [
   "M3 3v5h5",
   "M12 7.5V12l3 2"
 ];
-var CHAT_APPEARANCE_OPTIONS = [
-  {
-    id: "violet",
-    name: "Obsidian Violet",
-    desc: "Native dark UI, mineral purple",
-    accent: "#8b5cf6"
-  },
-  {
-    id: "graphite",
-    name: "Graphite Blue",
-    desc: "Cool engineering surface",
-    accent: "#6ea8ff"
-  },
-  {
-    id: "rune",
-    name: "Rune Ember",
-    desc: "Legacy warm Grimoire accent",
-    accent: "#d97757"
-  },
-  {
-    id: "verdant",
-    name: "Verdant",
-    desc: "Deep dark with fresh green accent",
-    accent: "#34b87a"
-  }
-];
 function appendHistoryHeaderIcon(container) {
   container.empty();
   const svg = container.ownerDocument.createElementNS(SVG_NS4, "svg");
@@ -106355,8 +106148,6 @@ var GrimoireView = class extends import_obsidian45.ItemView {
     this.headerContextUsageMeter = null;
     this.newTabButtonEl = null;
     this.historyButtonEl = null;
-    this.appearanceButtonEl = null;
-    this.appearanceSheetEl = null;
     // Header elements
     this.historyDropdown = null;
     // Event refs for cleanup
@@ -106440,13 +106231,6 @@ var GrimoireView = class extends import_obsidian45.ItemView {
       );
     }
   }
-  /** Applies the user-selected Grimoire appearance theme to the root container. */
-  syncAppearanceTheme() {
-    var _a7;
-    if (!this.viewContainerEl) return;
-    this.viewContainerEl.dataset.theme = (_a7 = this.plugin.settings.appearanceTheme) != null ? _a7 : "violet";
-    this.syncAppearanceSheet();
-  }
   async onOpen() {
     var _a7, _b4;
     if (!this.containerEl) {
@@ -106460,7 +106244,6 @@ var GrimoireView = class extends import_obsidian45.ItemView {
     this.viewContainerEl.empty();
     this.viewContainerEl.addClass("grimoire-container");
     this.viewContainerEl.addClass("grimoire-container--chat-window");
-    this.syncAppearanceTheme();
     const shellEl = this.viewContainerEl.createDiv({ cls: "grimoire-chat-window-shell" });
     const header = shellEl.createDiv({ cls: "grimoire-header grimoire-session-strip" });
     this.buildHeader(header);
@@ -106468,7 +106251,6 @@ var GrimoireView = class extends import_obsidian45.ItemView {
     this.tabContentEl = shellEl.createDiv({
       cls: "grimoire-tab-content-container grimoire-tab-content-container--chat-window"
     });
-    this.appearanceSheetEl = this.buildAppearanceSheet(shellEl);
     this.historyDropdown = this.buildHistorySheet(shellEl);
     this.orchestratorService = new OrchestratorService({
       sendToTab: (tabId, message) => {
@@ -106624,16 +106406,6 @@ var GrimoireView = class extends import_obsidian45.ItemView {
       e.stopPropagation();
       this.toggleHistoryDropdown();
     });
-    this.appearanceButtonEl = this.headerActionsContent.createDiv({
-      cls: "grimoire-header-btn grimoire-appearance-btn",
-      text: "\u25D0"
-    });
-    this.appearanceButtonEl.setAttribute("aria-label", "Appearance");
-    this.appearanceButtonEl.setAttribute("aria-expanded", "false");
-    this.appearanceButtonEl.addEventListener("click", (e) => {
-      e.stopPropagation();
-      this.toggleAppearanceSheet();
-    });
     fragment.appendChild(this.headerActionsContent);
     const wrapper = activeDocument.createElement("div");
     wrapper.className = "grimoire-input-nav-content";
@@ -106651,81 +106423,6 @@ var GrimoireView = class extends import_obsidian45.ItemView {
     });
     sheetEl.addEventListener("click", (e) => e.stopPropagation());
     return sheetEl;
-  }
-  buildAppearanceSheet(parentEl) {
-    const sheetEl = parentEl.createEl("aside", {
-      cls: "grimoire-appearance-sheet",
-      attr: {
-        "aria-hidden": "true",
-        "aria-label": "Appearance settings"
-      }
-    });
-    const headerEl = sheetEl.createDiv({ cls: "grimoire-appearance-sheet-head" });
-    headerEl.createEl("strong", { text: "Appearance" });
-    const closeEl = headerEl.createEl("button", {
-      cls: "grimoire-appearance-sheet-close",
-      text: "\xD7",
-      attr: { type: "button", "aria-label": "Close appearance settings" }
-    });
-    closeEl.addEventListener("click", () => this.closeAppearanceSheet());
-    const listEl = sheetEl.createDiv({ cls: "grimoire-appearance-sheet-list" });
-    for (const theme of CHAT_APPEARANCE_OPTIONS) {
-      const themeEl = listEl.createEl("button", {
-        cls: "grimoire-appearance-sheet-theme",
-        attr: {
-          "aria-pressed": "false",
-          "data-theme-option": theme.id,
-          type: "button"
-        }
-      });
-      const swatchEl = themeEl.createSpan({ cls: "grimoire-appearance-sheet-swatch" });
-      swatchEl.style.backgroundColor = theme.accent;
-      const copyEl = themeEl.createSpan({ cls: "grimoire-appearance-sheet-copy" });
-      copyEl.createEl("strong", { text: theme.name });
-      copyEl.createSpan({ text: theme.desc });
-      themeEl.createSpan({ cls: "grimoire-appearance-sheet-badge", text: "off" });
-      themeEl.addEventListener("click", () => {
-        void this.saveAppearanceTheme(theme.id).catch(() => {
-          new import_obsidian45.Notice("Failed to save appearance theme");
-        });
-      });
-    }
-    this.syncAppearanceSheet(sheetEl);
-    return sheetEl;
-  }
-  toggleAppearanceSheet() {
-    var _a7, _b4;
-    if (!this.appearanceSheetEl) return;
-    const nextOpen = !this.appearanceSheetEl.hasClass("is-open");
-    this.appearanceSheetEl.toggleClass("is-open", nextOpen);
-    this.appearanceSheetEl.setAttribute("aria-hidden", String(!nextOpen));
-    (_a7 = this.appearanceButtonEl) == null ? void 0 : _a7.toggleClass("active", nextOpen);
-    (_b4 = this.appearanceButtonEl) == null ? void 0 : _b4.setAttribute("aria-expanded", String(nextOpen));
-  }
-  closeAppearanceSheet() {
-    var _a7, _b4, _c3, _d3;
-    (_a7 = this.appearanceSheetEl) == null ? void 0 : _a7.removeClass("is-open");
-    (_b4 = this.appearanceSheetEl) == null ? void 0 : _b4.setAttribute("aria-hidden", "true");
-    (_c3 = this.appearanceButtonEl) == null ? void 0 : _c3.removeClass("active");
-    (_d3 = this.appearanceButtonEl) == null ? void 0 : _d3.setAttribute("aria-expanded", "false");
-  }
-  async saveAppearanceTheme(theme) {
-    this.plugin.settings.appearanceTheme = theme;
-    await this.plugin.saveSettings();
-    this.syncAppearanceTheme();
-  }
-  syncAppearanceSheet(sheetEl = this.appearanceSheetEl) {
-    var _a7;
-    if (!sheetEl) return;
-    const activeTheme = (_a7 = this.plugin.settings.appearanceTheme) != null ? _a7 : "violet";
-    for (const themeEl of sheetEl.querySelectorAll(".grimoire-appearance-sheet-theme")) {
-      const isActive = themeEl.getAttribute("data-theme-option") === activeTheme;
-      themeEl.toggleClass("is-active", isActive);
-      themeEl.setAttribute("aria-pressed", String(isActive));
-      const badgeEl = themeEl.querySelector(".grimoire-appearance-sheet-badge");
-      badgeEl == null ? void 0 : badgeEl.setText(isActive ? "on" : "off");
-      badgeEl == null ? void 0 : badgeEl.toggleClass("is-active", isActive);
-    }
   }
   /** Keeps tab badges and header actions in the top session strip. */
   updateNavRowLocation() {
@@ -106867,7 +106564,6 @@ var GrimoireView = class extends import_obsidian45.ItemView {
     if (isVisible) {
       this.closeHistoryDropdown();
     } else {
-      this.closeAppearanceSheet();
       this.updateHistoryDropdown();
       this.historyDropdown.addClass("visible");
       this.historyDropdown.setAttribute("aria-hidden", "false");
@@ -108109,12 +107805,6 @@ function addHotkeySettingRow(containerEl, app, commandId, translationPrefix) {
 function refreshSettingsTab(tab) {
   tab.display();
 }
-var APPEARANCE_THEME_OPTIONS = [
-  { id: "violet", accent: "#8b5cf6" },
-  { id: "graphite", accent: "#6ea8ff" },
-  { id: "rune", accent: "#d97757" },
-  { id: "verdant", accent: "#34b87a" }
-];
 var PROVIDER_SETTING_COPY = {
   claude: {
     desc: "Anthropic's agentic CLI. Recommended default.",
@@ -108140,11 +107830,10 @@ var GrimoireSettingTab = class extends import_obsidian48.PluginSettingTab {
     this.plugin = plugin;
   }
   display() {
-    var _a7, _b4, _c3, _d3;
+    var _a7, _b4, _c3;
     const { containerEl } = this;
     containerEl.empty();
     containerEl.addClass("grimoire-settings");
-    containerEl.dataset.theme = (_a7 = this.plugin.settings.appearanceTheme) != null ? _a7 : "violet";
     setLocale(this.plugin.settings.locale);
     const providerTabs = ProviderRegistry.getRegisteredProviderIds();
     const tabIds = ["general", ...providerTabs];
@@ -108155,7 +107844,7 @@ var GrimoireSettingTab = class extends import_obsidian48.PluginSettingTab {
     const tabButtons = /* @__PURE__ */ new Map();
     const tabContents = /* @__PURE__ */ new Map();
     for (const id2 of tabIds) {
-      const label = id2 === "general" ? t("settings.tabs.general") : (_c3 = (_b4 = PROVIDER_SETTING_COPY[id2]) == null ? void 0 : _b4.name) != null ? _c3 : ProviderRegistry.getProviderDisplayName(id2);
+      const label = id2 === "general" ? t("settings.tabs.general") : (_b4 = (_a7 = PROVIDER_SETTING_COPY[id2]) == null ? void 0 : _a7.name) != null ? _b4 : ProviderRegistry.getProviderDisplayName(id2);
       const button = tabBar.createEl("button", {
         cls: `grimoire-settings-tab${id2 === this.activeTab ? " grimoire-settings-tab--active" : ""}`,
         text: label
@@ -108187,7 +107876,7 @@ var GrimoireSettingTab = class extends import_obsidian48.PluginSettingTab {
       if (!content) {
         continue;
       }
-      (_d3 = ProviderWorkspaceRegistry.getSettingsTabRenderer(providerId)) == null ? void 0 : _d3.render(content, {
+      (_c3 = ProviderWorkspaceRegistry.getSettingsTabRenderer(providerId)) == null ? void 0 : _c3.render(content, {
         plugin: this.plugin,
         renderHiddenProviderCommandSetting: (target, targetProviderId, copy) => this.renderHiddenProviderCommandSetting(target, targetProviderId, copy),
         refreshModelSelectors: () => {
@@ -108246,7 +107935,6 @@ var GrimoireSettingTab = class extends import_obsidian48.PluginSettingTab {
     });
     this.renderProviderEnableSettings(container);
     new import_obsidian48.Setting(container).setName(t("settings.display")).setHeading();
-    this.renderAppearanceThemeSetting(container);
     new import_obsidian48.Setting(container).setName(t("settings.chatViewPlacement.name")).setDesc(t("settings.chatViewPlacement.desc")).addDropdown((dropdown) => {
       dropdown.addOption("right-sidebar", t("settings.chatViewPlacement.rightSidebar")).addOption("left-sidebar", t("settings.chatViewPlacement.leftSidebar")).addOption("main-tab", t("settings.chatViewPlacement.mainTab")).setValue(this.plugin.settings.chatViewPlacement).onChange(async (value) => {
         this.plugin.settings.chatViewPlacement = value;
@@ -108490,69 +108178,6 @@ var GrimoireSettingTab = class extends import_obsidian48.PluginSettingTab {
         await onChange(value);
       });
     });
-  }
-  renderAppearanceThemeSetting(container) {
-    var _a7;
-    const activeTheme = (_a7 = this.plugin.settings.appearanceTheme) != null ? _a7 : "violet";
-    const section = container.createDiv({ cls: "grimoire-appearance-section" });
-    section.dataset.theme = activeTheme;
-    section.createEl("div", {
-      cls: "grimoire-appearance-heading",
-      text: t("settings.appearance.name")
-    });
-    section.createEl("div", {
-      cls: "grimoire-appearance-desc",
-      text: t("settings.appearance.desc")
-    });
-    const grid = section.createDiv({ cls: "grimoire-appearance-grid" });
-    const refreshCards = (selectedTheme) => {
-      for (const card of grid.querySelectorAll(".grimoire-theme-card")) {
-        const isActive = card.getAttribute("data-theme-option") === selectedTheme;
-        card.classList.toggle("is-active", isActive);
-        card.setAttribute("aria-pressed", String(isActive));
-      }
-    };
-    const saveTheme = async (theme) => {
-      this.containerEl.dataset.theme = theme;
-      section.dataset.theme = theme;
-      if (this.plugin.settings.appearanceTheme === theme) {
-        refreshCards(theme);
-        return;
-      }
-      this.plugin.settings.appearanceTheme = theme;
-      await this.plugin.saveSettings();
-      refreshCards(theme);
-      for (const view of this.plugin.getAllViews()) {
-        view.syncAppearanceTheme();
-      }
-    };
-    for (const theme of APPEARANCE_THEME_OPTIONS) {
-      const card = grid.createEl("button", {
-        attr: {
-          "aria-pressed": String(theme.id === activeTheme),
-          "data-theme-option": theme.id,
-          type: "button"
-        },
-        cls: `grimoire-theme-card${theme.id === activeTheme ? " is-active" : ""}`
-      });
-      card.addEventListener("click", () => {
-        void saveTheme(theme.id).catch(() => {
-          new import_obsidian48.Notice(t("settings.appearance.saveFailed"));
-        });
-      });
-      const swatch = card.createSpan({ cls: "grimoire-theme-swatch" });
-      swatch.style.backgroundColor = theme.accent;
-      swatch.style.boxShadow = `0 0 0 3px color-mix(in srgb, ${theme.accent} 18%, transparent)`;
-      const copy = card.createSpan({ cls: "grimoire-theme-card-copy" });
-      copy.createSpan({
-        cls: "grimoire-theme-card-name",
-        text: t(`settings.appearance.options.${theme.id}.name`)
-      });
-      copy.createSpan({
-        cls: "grimoire-theme-card-desc",
-        text: t(`settings.appearance.options.${theme.id}.desc`)
-      });
-    }
   }
   renderMaxTabsSetting(container) {
     const maxTabsSetting = new import_obsidian48.Setting(container).setName(t("settings.maxTabs.name")).setDesc(t("settings.maxTabs.desc"));
