@@ -272,11 +272,15 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
+  box-sizing: border-box;
   gap: 8px;
   min-height: 30px;
-  padding: 0 8px;
-  border-bottom: 1px solid var(--grimoire-line);
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--grimoire-line-3);
+  border-radius: var(--grimoire-radius-2);
   background: color-mix(in srgb, var(--grimoire-panel-2) 97%, #000);
+  overflow: hidden;
 }
 
 .grimoire-model-search-icon {
@@ -293,11 +297,11 @@
   min-width: 0;
   height: 30px;
   padding: 0;
-  border: 0 !important;
-  background: transparent !important;
+  border: 0;
+  background: transparent;
   color: var(--text-normal);
-  box-shadow: none !important;
-  outline: 0 !important;
+  box-shadow: none;
+  outline: 0;
   font: inherit;
 }
 
@@ -325,7 +329,7 @@
   gap: 2px;
 }
 
-.grimoire-model-group {
+.grimoire-model-dropdown button.grimoire-model-group {
   appearance: none;
   width: 100%;
   display: grid;
@@ -334,23 +338,23 @@
   gap: 8px;
   min-height: 31px;
   padding: 5px 8px;
-  border: 0 !important;
+  border: 0;
   border-radius: 0;
-  background: transparent !important;
+  background: transparent;
   color: var(--text-normal);
   font-family: inherit;
   font-size: 13px;
   font-weight: 700;
   line-height: 1;
-  box-shadow: none !important;
+  box-shadow: none;
   text-align: left;
   cursor: pointer;
 }
 
-.grimoire-model-group:hover {
-  background: transparent !important;
+.grimoire-model-dropdown button.grimoire-model-group:hover {
+  background: transparent;
   color: var(--text-normal);
-  box-shadow: none !important;
+  box-shadow: none;
 }
 
 .grimoire-model-group-provider-icon {
