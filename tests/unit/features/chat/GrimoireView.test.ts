@@ -71,7 +71,7 @@ describe('GrimoireView tab controls', () => {
     expect(nav.querySelector('.grimoire-new-tab-btn')).not.toBeNull();
   });
 
-  it('places the history button between new tab and appearance controls', () => {
+  it('places the history button after the new-tab control without appearance controls', () => {
     const containerEl = createMockEl();
     const view = Object.create(GrimoireView.prototype) as any;
 
@@ -95,7 +95,7 @@ describe('GrimoireView tab controls', () => {
     expect(historyButton?.children.some((child: any) => child.tagName === 'svg'.toUpperCase())).toBe(true);
     expect(setIcon).not.toHaveBeenCalled();
     expect(actions?.children.indexOf(newTabButton as any)).toBeLessThan(actions?.children.indexOf(historyButton as any) ?? -1);
-    expect(actions?.children.indexOf(historyButton as any)).toBeLessThan(actions?.children.indexOf(appearanceButton as any) ?? -1);
+    expect(appearanceButton).toBeNull();
   });
 
   it('toggles the full-pane history sheet without visually selecting the button', () => {
@@ -210,7 +210,7 @@ describe('GrimoireView tab controls', () => {
     expect(view.syncHeaderContextUsage).toHaveBeenCalled();
   });
 
-  it('opens the quick appearance sheet and saves selected theme', async () => {
+  it('does not build the removed quick appearance sheet', async () => {
     const containerEl = createMockEl();
     const contentEl = createMockEl();
     const view = Object.create(GrimoireView.prototype) as any;
@@ -220,9 +220,7 @@ describe('GrimoireView tab controls', () => {
     view.containerEl = containerEl;
     view.contentEl = contentEl;
     view.plugin = {
-      settings: {
-        appearanceTheme: 'violet',
-      },
+      settings: {},
       app: {
         vault: { on: jest.fn() },
         workspace: { on: jest.fn() },
@@ -238,31 +236,10 @@ describe('GrimoireView tab controls', () => {
 
     await view.onOpen();
 
-    const sheet = contentEl.querySelector('.grimoire-appearance-sheet');
-    const appearanceButton = contentEl.querySelector('.grimoire-appearance-btn');
-    appearanceButton?.click();
-
-    expect(sheet?.hasClass('is-open')).toBe(true);
-    expect(sheet?.getAttribute('aria-hidden')).toBe('false');
-    expect(sheet
-      ?.querySelectorAll('.grimoire-appearance-sheet-theme')
-      .map((button: any) => button.getAttribute('data-theme-option'))).toEqual([
-      'violet',
-      'graphite',
-      'rune',
-      'verdant',
-    ]);
-
-    const graphiteButton = sheet
-      ?.querySelectorAll('.grimoire-appearance-sheet-theme')
-      .find((button: any) => button.getAttribute('data-theme-option') === 'graphite');
-    graphiteButton?.click();
-    await Promise.resolve();
-
-    expect(view.plugin.settings.appearanceTheme).toBe('graphite');
-    expect(saveSettings).toHaveBeenCalledTimes(1);
-    expect(contentEl.dataset.theme).toBe('graphite');
-    expect(graphiteButton?.hasClass('is-active')).toBe(true);
+    expect(contentEl.querySelector('.grimoire-appearance-sheet')).toBeNull();
+    expect(contentEl.querySelector('.grimoire-appearance-btn')).toBeNull();
+    expect(contentEl.dataset.theme).toBeUndefined();
+    expect(saveSettings).not.toHaveBeenCalled();
   });
 
   it('hides the new-tab button when the tab manager is at capacity', () => {
@@ -286,36 +263,6 @@ describe('GrimoireView tab controls', () => {
     expect(newTabButtonEl.hasClass('grimoire-hidden')).toBe(false);
     expect(newTabButtonEl.getAttribute('aria-disabled')).toBeNull();
     expect(newTabButtonEl.getAttribute('aria-hidden')).toBeNull();
-  });
-});
-
-describe('GrimoireView appearance theme', () => {
-  it('syncs the configured appearance theme onto the view container', () => {
-    const viewContainerEl = createMockEl();
-    const view = Object.create(GrimoireView.prototype) as any;
-    view.plugin = {
-      settings: {
-        appearanceTheme: 'graphite',
-      },
-    };
-    view.viewContainerEl = viewContainerEl;
-
-    view.syncAppearanceTheme();
-
-    expect(viewContainerEl.dataset.theme).toBe('graphite');
-  });
-
-  it('falls back to Obsidian Violet when no appearance theme is saved', () => {
-    const viewContainerEl = createMockEl();
-    const view = Object.create(GrimoireView.prototype) as any;
-    view.plugin = {
-      settings: {},
-    };
-    view.viewContainerEl = viewContainerEl;
-
-    view.syncAppearanceTheme();
-
-    expect(viewContainerEl.dataset.theme).toBe('violet');
   });
 });
 

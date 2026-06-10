@@ -6,7 +6,6 @@ import { ProviderRegistry } from '../../core/providers/ProviderRegistry';
 import { ProviderSettingsCoordinator } from '../../core/providers/ProviderSettingsCoordinator';
 import { DEFAULT_CHAT_PROVIDER_ID, type ProviderId } from '../../core/providers/types';
 import { VIEW_TYPE_GRIMOIRE } from '../../core/types';
-import type { GrimoireAppearanceTheme } from '../../core/types/settings';
 import type GrimoirePlugin from '../../main';
 import { GRIMOIRE_APP_ICON_ID } from '../../shared/appIcon';
 import { createProviderIconSvg } from '../../shared/icons';
@@ -40,38 +39,6 @@ const HISTORY_ICON_PATHS = [
   'M3 12a9 9 0 1 0 3-6.7L3 8',
   'M3 3v5h5',
   'M12 7.5V12l3 2',
-];
-
-const CHAT_APPEARANCE_OPTIONS: Array<{
-  accent: string;
-  desc: string;
-  id: GrimoireAppearanceTheme;
-  name: string;
-}> = [
-  {
-    id: 'violet',
-    name: 'Obsidian Violet',
-    desc: 'Native dark UI, mineral purple',
-    accent: '#8b5cf6',
-  },
-  {
-    id: 'graphite',
-    name: 'Graphite Blue',
-    desc: 'Cool engineering surface',
-    accent: '#6ea8ff',
-  },
-  {
-    id: 'rune',
-    name: 'Rune Ember',
-    desc: 'Legacy warm Grimoire accent',
-    accent: '#d97757',
-  },
-  {
-    id: 'verdant',
-    name: 'Verdant',
-    desc: 'Deep dark with fresh green accent',
-    accent: '#34b87a',
-  },
 ];
 
 function appendHistoryHeaderIcon(container: HTMLElement): void {
@@ -119,8 +86,6 @@ export class GrimoireView extends ItemView {
   private headerContextUsageMeter: ContextUsageMeter | null = null;
   private newTabButtonEl: HTMLElement | null = null;
   private historyButtonEl: HTMLElement | null = null;
-  private appearanceButtonEl: HTMLElement | null = null;
-  private appearanceSheetEl: HTMLElement | null = null;
 
   // Header elements
   private historyDropdown: HTMLElement | null = null;
@@ -225,14 +190,6 @@ export class GrimoireView extends ItemView {
     }
   }
 
-  /** Applies the user-selected Grimoire appearance theme to the root container. */
-  syncAppearanceTheme(): void {
-    if (!this.viewContainerEl) return;
-    this.viewContainerEl.dataset.theme =
-      this.plugin.settings.appearanceTheme ?? 'violet';
-    this.syncAppearanceSheet();
-  }
-
   async onOpen() {
     // Guard: Hover Editor and similar plugins may call onOpen before DOM is ready.
     // containerEl must exist before we can access contentEl or create elements.
@@ -255,7 +212,6 @@ export class GrimoireView extends ItemView {
     this.viewContainerEl.empty();
     this.viewContainerEl.addClass('grimoire-container');
     this.viewContainerEl.addClass('grimoire-container--chat-window');
-    this.syncAppearanceTheme();
 
     const shellEl = this.viewContainerEl.createDiv({ cls: 'grimoire-chat-window-shell' });
     const header = shellEl.createDiv({ cls: 'grimoire-header grimoire-session-strip' });
@@ -265,7 +221,6 @@ export class GrimoireView extends ItemView {
     this.tabContentEl = shellEl.createDiv({
       cls: 'grimoire-tab-content-container grimoire-tab-content-container--chat-window',
     });
-    this.appearanceSheetEl = this.buildAppearanceSheet(shellEl);
     this.historyDropdown = this.buildHistorySheet(shellEl);
     this.orchestratorService = new OrchestratorService({
       sendToTab: (tabId, message) => {
@@ -446,17 +401,6 @@ export class GrimoireView extends ItemView {
       this.toggleHistoryDropdown();
     });
 
-    this.appearanceButtonEl = this.headerActionsContent.createDiv({
-      cls: 'grimoire-header-btn grimoire-appearance-btn',
-      text: '◐',
-    });
-    this.appearanceButtonEl.setAttribute('aria-label', 'Appearance');
-    this.appearanceButtonEl.setAttribute('aria-expanded', 'false');
-    this.appearanceButtonEl.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.toggleAppearanceSheet();
-    });
-
     fragment.appendChild(this.headerActionsContent);
 
     // Create a wrapper div to hold the fragment (for input mode nav row)
@@ -477,84 +421,6 @@ export class GrimoireView extends ItemView {
     });
     sheetEl.addEventListener('click', (e) => e.stopPropagation());
     return sheetEl;
-  }
-
-  private buildAppearanceSheet(parentEl: HTMLElement): HTMLElement {
-    const sheetEl = parentEl.createEl('aside', {
-      cls: 'grimoire-appearance-sheet',
-      attr: {
-        'aria-hidden': 'true',
-        'aria-label': 'Appearance settings',
-      },
-    });
-    const headerEl = sheetEl.createDiv({ cls: 'grimoire-appearance-sheet-head' });
-    headerEl.createEl('strong', { text: 'Appearance' });
-    const closeEl = headerEl.createEl('button', {
-      cls: 'grimoire-appearance-sheet-close',
-      text: '×',
-      attr: { type: 'button', 'aria-label': 'Close appearance settings' },
-    });
-    closeEl.addEventListener('click', () => this.closeAppearanceSheet());
-
-    const listEl = sheetEl.createDiv({ cls: 'grimoire-appearance-sheet-list' });
-    for (const theme of CHAT_APPEARANCE_OPTIONS) {
-      const themeEl = listEl.createEl('button', {
-        cls: 'grimoire-appearance-sheet-theme',
-        attr: {
-          'aria-pressed': 'false',
-          'data-theme-option': theme.id,
-          type: 'button',
-        },
-      });
-      const swatchEl = themeEl.createSpan({ cls: 'grimoire-appearance-sheet-swatch' });
-      swatchEl.style.backgroundColor = theme.accent;
-      const copyEl = themeEl.createSpan({ cls: 'grimoire-appearance-sheet-copy' });
-      copyEl.createEl('strong', { text: theme.name });
-      copyEl.createSpan({ text: theme.desc });
-      themeEl.createSpan({ cls: 'grimoire-appearance-sheet-badge', text: 'off' });
-      themeEl.addEventListener('click', () => {
-        void this.saveAppearanceTheme(theme.id).catch(() => {
-          new Notice('Failed to save appearance theme');
-        });
-      });
-    }
-    this.syncAppearanceSheet(sheetEl);
-    return sheetEl;
-  }
-
-  private toggleAppearanceSheet(): void {
-    if (!this.appearanceSheetEl) return;
-    const nextOpen = !this.appearanceSheetEl.hasClass('is-open');
-    this.appearanceSheetEl.toggleClass('is-open', nextOpen);
-    this.appearanceSheetEl.setAttribute('aria-hidden', String(!nextOpen));
-    this.appearanceButtonEl?.toggleClass('active', nextOpen);
-    this.appearanceButtonEl?.setAttribute('aria-expanded', String(nextOpen));
-  }
-
-  private closeAppearanceSheet(): void {
-    this.appearanceSheetEl?.removeClass('is-open');
-    this.appearanceSheetEl?.setAttribute('aria-hidden', 'true');
-    this.appearanceButtonEl?.removeClass('active');
-    this.appearanceButtonEl?.setAttribute('aria-expanded', 'false');
-  }
-
-  private async saveAppearanceTheme(theme: GrimoireAppearanceTheme): Promise<void> {
-    this.plugin.settings.appearanceTheme = theme;
-    await this.plugin.saveSettings();
-    this.syncAppearanceTheme();
-  }
-
-  private syncAppearanceSheet(sheetEl = this.appearanceSheetEl): void {
-    if (!sheetEl) return;
-    const activeTheme = this.plugin.settings.appearanceTheme ?? 'violet';
-    for (const themeEl of sheetEl.querySelectorAll<HTMLElement>('.grimoire-appearance-sheet-theme')) {
-      const isActive = themeEl.getAttribute('data-theme-option') === activeTheme;
-      themeEl.toggleClass('is-active', isActive);
-      themeEl.setAttribute('aria-pressed', String(isActive));
-      const badgeEl = themeEl.querySelector('.grimoire-appearance-sheet-badge');
-      badgeEl?.setText(isActive ? 'on' : 'off');
-      badgeEl?.toggleClass('is-active', isActive);
-    }
   }
 
   /** Keeps tab badges and header actions in the top session strip. */
@@ -728,7 +594,6 @@ export class GrimoireView extends ItemView {
     if (isVisible) {
       this.closeHistoryDropdown();
     } else {
-      this.closeAppearanceSheet();
       this.updateHistoryDropdown();
       this.historyDropdown.addClass('visible');
       this.historyDropdown.setAttribute('aria-hidden', 'false');
