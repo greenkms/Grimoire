@@ -218,29 +218,6 @@
       "codex": "Codex"
     },
     "display": "Exibição",
-    "appearance": {
-      "name": "Appearance theme",
-      "desc": "Choose how Grimoire blends into the current Obsidian theme. Provider badges keep their own status color.",
-      "saveFailed": "Failed to save appearance theme",
-      "options": {
-        "violet": {
-          "name": "Obsidian Violet",
-          "desc": "Native dark UI, mineral purple"
-        },
-        "graphite": {
-          "name": "Graphite Blue",
-          "desc": "Cool engineering surface"
-        },
-        "rune": {
-          "name": "Rune Ember",
-          "desc": "Legacy warm Grimoire accent"
-        },
-        "verdant": {
-          "name": "Verdant",
-          "desc": "Deep dark with fresh green accent"
-        }
-      }
-    },
     "conversations": "Conversas",
     "content": "Conteúdo",
     "input": "Entrada",

@@ -25,74 +25,22 @@ function createSettingsPlugin(overrides: Record<string, any> = {}): any {
   };
 }
 
-describe('GrimoireSettingTab appearance settings', () => {
-  beforeEach(() => {
-    setLocale('en');
-  });
-
-  it('renders every theme card with a swatch and a bounded copy wrapper', () => {
-    const plugin: any = {
-      settings: {
-        appearanceTheme: 'violet',
-      },
-      saveSettings: jest.fn().mockResolvedValue(undefined),
-      getAllViews: jest.fn().mockReturnValue([]),
-    };
-    const tab = new GrimoireSettingTab({} as any, plugin);
-    const container = createMockEl('div') as unknown as HTMLElement;
-
-    (tab as any).renderAppearanceThemeSetting(container);
-
-    const cards = (container as any).querySelectorAll('.grimoire-theme-card');
-    expect(cards.map((card: any) => card.getAttribute('data-theme-option'))).toEqual([
-      'violet',
-      'graphite',
-      'rune',
-      'verdant',
-    ]);
-
-    for (const card of cards) {
-      expect(card.querySelector('.grimoire-theme-swatch')).not.toBeNull();
-
-      const copy = card.querySelector('.grimoire-theme-card-copy');
-      expect(copy).not.toBeNull();
-      expect(copy?.querySelector('.grimoire-theme-card-name')).not.toBeNull();
-      expect(copy?.querySelector('.grimoire-theme-card-desc')).not.toBeNull();
-    }
-  });
-
-  it('updates the settings root theme token when choosing another appearance theme', async () => {
-    const syncAppearanceTheme = jest.fn();
-    const plugin: any = {
-      settings: {
-        appearanceTheme: 'violet',
-      },
-      saveSettings: jest.fn().mockResolvedValue(undefined),
-      getAllViews: jest.fn().mockReturnValue([{ syncAppearanceTheme }]),
-    };
-    const tab = new GrimoireSettingTab({} as any, plugin);
-    const container = createMockEl('div') as any;
-    container.addClass('grimoire-settings');
-    (tab as any).containerEl = container;
-
-    (tab as any).renderAppearanceThemeSetting(container);
-
-    const graphiteCard = container
-      .querySelectorAll('.grimoire-theme-card')
-      .find((card: any) => card.getAttribute('data-theme-option') === 'graphite');
-    graphiteCard?.click();
-    await Promise.resolve();
-
-    expect(container.dataset.theme).toBe('graphite');
-    expect(plugin.settings.appearanceTheme).toBe('graphite');
-    expect(plugin.saveSettings).toHaveBeenCalled();
-    expect(syncAppearanceTheme).toHaveBeenCalled();
-  });
-});
-
 describe('GrimoireSettingTab general tab settings', () => {
   beforeEach(() => {
     setLocale('en');
+  });
+
+  it('does not render Grimoire-specific appearance theme controls', () => {
+    const plugin = createSettingsPlugin();
+    const app: any = { hotkeyManager: {} };
+    const tab = new GrimoireSettingTab(app, plugin);
+    const container = createMockEl('div') as any;
+    (tab as any).containerEl = createMockEl('div');
+
+    (tab as any).renderGeneralTab(container);
+
+    expect(collectText(container)).not.toContain('Appearance theme');
+    expect(container.querySelector('.grimoire-theme-card')).toBeNull();
   });
 
   it('renders the maximum chat tabs control in General and removes tab bar placement', () => {

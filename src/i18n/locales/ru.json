@@ -218,29 +218,6 @@
       "codex": "Codex"
     },
     "display": "Отображение",
-    "appearance": {
-      "name": "Тема оформления",
-      "desc": "Выберите, как Grimoire сочетается с текущей темой Obsidian. Бейджи провайдеров сохраняют собственный цвет состояния.",
-      "saveFailed": "Не удалось сохранить тему оформления",
-      "options": {
-        "violet": {
-          "name": "Obsidian Violet",
-          "desc": "Native dark UI, mineral purple"
-        },
-        "graphite": {
-          "name": "Graphite Blue",
-          "desc": "Cool engineering surface"
-        },
-        "rune": {
-          "name": "Rune Ember",
-          "desc": "Legacy warm Grimoire accent"
-        },
-        "verdant": {
-          "name": "Verdant",
-          "desc": "Deep dark with fresh green accent"
-        }
-      }
-    },
     "conversations": "Разговоры",
     "content": "Содержание",
     "input": "Ввод",

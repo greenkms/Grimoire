@@ -57,7 +57,6 @@ export const DEFAULT_GRIMOIRE_SETTINGS: GrimoireSettings = {
 
   lastCustomModel: '',
 
-  appearanceTheme: 'violet',
   maxTabs: 5,
   tabBarPosition: 'header',
   enableAutoScroll: true,

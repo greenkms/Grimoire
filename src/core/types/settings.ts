@@ -70,20 +70,6 @@ export function normalizeMaxTabs(value: unknown): number {
   return Math.max(MIN_TABS, Math.min(MAX_TABS, numeric));
 }
 
-export const GRIMOIRE_APPEARANCE_THEMES = [
-  'violet',
-  'graphite',
-  'rune',
-  'verdant',
-] as const;
-
-export type GrimoireAppearanceTheme = typeof GRIMOIRE_APPEARANCE_THEMES[number];
-
-export function isGrimoireAppearanceTheme(value: unknown): value is GrimoireAppearanceTheme {
-  return typeof value === 'string'
-    && (GRIMOIRE_APPEARANCE_THEMES as readonly string[]).includes(value);
-}
-
 export const CHAT_VIEW_PLACEMENTS = [
   'right-sidebar',
   'left-sidebar',
@@ -204,7 +190,6 @@ export interface GrimoireSettings {
   lastCustomModel?: string;
 
   // UI preferences
-  appearanceTheme: GrimoireAppearanceTheme;
   maxTabs: number;
   tabBarPosition: TabBarPosition;
   enableAutoScroll: boolean;

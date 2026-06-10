@@ -3,8 +3,8 @@ import {
   GrimoireSettingsStorage,
 } from '@/app/settings/GrimoireSettingsStorage';
 
-describe('GrimoireSettingsStorage appearance theme normalization', () => {
-  it('migrates legacy appearance theme ids to design handoff ids', async () => {
+describe('GrimoireSettingsStorage legacy appearance theme cleanup', () => {
+  it('drops legacy appearance theme values from loaded settings and persists the cleanup', async () => {
     const writes: Array<{ content: string; path: string }> = [];
     const adapter = {
       exists: jest.fn().mockResolvedValue(true),
@@ -20,36 +20,10 @@ describe('GrimoireSettingsStorage appearance theme normalization', () => {
 
     const settings = await storage.load();
 
-    expect(settings.appearanceTheme).toBe('graphite');
+    expect(settings).not.toHaveProperty('appearanceTheme');
     expect(adapter.write).toHaveBeenCalledTimes(1);
     expect(writes[0]?.path).toBe(GRIMOIRE_SETTINGS_PATH);
-    expect(JSON.parse(writes[0]?.content ?? '{}')).toMatchObject({
-      appearanceTheme: 'graphite',
-    });
-  });
-
-  it('migrates the removed Ivory appearance theme back to Violet', async () => {
-    const writes: Array<{ content: string; path: string }> = [];
-    const adapter = {
-      exists: jest.fn().mockResolvedValue(true),
-      read: jest.fn().mockResolvedValue(JSON.stringify({
-        appearanceTheme: 'ivory',
-      })),
-      rename: jest.fn(),
-      write: jest.fn(async (path: string, content: string) => {
-        writes.push({ path, content });
-      }),
-    };
-    const storage = new GrimoireSettingsStorage(adapter as never);
-
-    const settings = await storage.load();
-
-    expect(settings.appearanceTheme).toBe('violet');
-    expect(adapter.write).toHaveBeenCalledTimes(1);
-    expect(writes[0]?.path).toBe(GRIMOIRE_SETTINGS_PATH);
-    expect(JSON.parse(writes[0]?.content ?? '{}')).toMatchObject({
-      appearanceTheme: 'violet',
-    });
+    expect(JSON.parse(writes[0]?.content ?? '{}')).not.toHaveProperty('appearanceTheme');
   });
 
   it('normalizes invalid debug logging values back to disabled and persists the cleanup', async () => {

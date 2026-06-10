@@ -11,7 +11,6 @@ import { ProviderWorkspaceRegistry } from '../../core/providers/ProviderWorkspac
 import type { ProviderId } from '../../core/providers/types';
 import {
   type ChatViewPlacement,
-  type GrimoireAppearanceTheme,
   MAX_TABS,
   MIN_TABS,
   normalizeMaxTabs,
@@ -124,16 +123,6 @@ function refreshSettingsTab(tab: PluginSettingTab): void {
   tab.display();
 }
 
-const APPEARANCE_THEME_OPTIONS: Array<{
-  accent: string;
-  id: GrimoireAppearanceTheme;
-}> = [
-  { id: 'violet', accent: '#8b5cf6' },
-  { id: 'graphite', accent: '#6ea8ff' },
-  { id: 'rune', accent: '#d97757' },
-  { id: 'verdant', accent: '#34b87a' },
-];
-
 const PROVIDER_SETTING_COPY: Record<ProviderId, { desc: string; name: string }> = {
   claude: {
     desc: 'Anthropic\'s agentic CLI. Recommended default.',
@@ -166,9 +155,6 @@ export class GrimoireSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
     containerEl.addClass('grimoire-settings');
-    // Carry the selected appearance theme so the settings tab inherits the
-    // matching brand accent (mirrors GrimoireView.syncAppearanceTheme()).
-    containerEl.dataset.theme = this.plugin.settings.appearanceTheme ?? 'violet';
 
     setLocale(this.plugin.settings.locale as Locale);
 
@@ -299,8 +285,6 @@ export class GrimoireSettingTab extends PluginSettingTab {
     // --- Display ---
 
     new Setting(container).setName(t('settings.display')).setHeading();
-
-    this.renderAppearanceThemeSetting(container);
 
     new Setting(container)
       .setName(t('settings.chatViewPlacement.name'))
@@ -679,77 +663,6 @@ export class GrimoireSettingTab extends PluginSettingTab {
           await onChange(value);
         });
     });
-  }
-
-  private renderAppearanceThemeSetting(container: HTMLElement): void {
-    const activeTheme = this.plugin.settings.appearanceTheme ?? 'violet';
-    const section = container.createDiv({ cls: 'grimoire-appearance-section' });
-    section.dataset.theme = activeTheme;
-    section.createEl('div', {
-      cls: 'grimoire-appearance-heading',
-      text: t('settings.appearance.name'),
-    });
-    section.createEl('div', {
-      cls: 'grimoire-appearance-desc',
-      text: t('settings.appearance.desc'),
-    });
-
-    const grid = section.createDiv({ cls: 'grimoire-appearance-grid' });
-    const refreshCards = (selectedTheme: GrimoireAppearanceTheme): void => {
-      for (const card of grid.querySelectorAll<HTMLElement>('.grimoire-theme-card')) {
-        const isActive = card.getAttribute('data-theme-option') === selectedTheme;
-        card.classList.toggle('is-active', isActive);
-        card.setAttribute('aria-pressed', String(isActive));
-      }
-    };
-
-    const saveTheme = async (theme: GrimoireAppearanceTheme): Promise<void> => {
-      this.containerEl.dataset.theme = theme;
-      section.dataset.theme = theme;
-      if (this.plugin.settings.appearanceTheme === theme) {
-        refreshCards(theme);
-        return;
-      }
-
-      this.plugin.settings.appearanceTheme = theme;
-      await this.plugin.saveSettings();
-      refreshCards(theme);
-      for (const view of this.plugin.getAllViews()) {
-        view.syncAppearanceTheme();
-      }
-    };
-
-    for (const theme of APPEARANCE_THEME_OPTIONS) {
-      const card = grid.createEl('button', {
-        attr: {
-          'aria-pressed': String(theme.id === activeTheme),
-          'data-theme-option': theme.id,
-          type: 'button',
-        },
-        cls: `grimoire-theme-card${theme.id === activeTheme ? ' is-active' : ''}`,
-      });
-      card.addEventListener('click', () => {
-        void saveTheme(theme.id).catch(() => {
-          new Notice(t('settings.appearance.saveFailed'));
-        });
-      });
-
-      // Prototype .tcard: swatch in its own left column, name + desc stacked.
-      const swatch = card.createSpan({ cls: 'grimoire-theme-swatch' });
-      swatch.style.backgroundColor = theme.accent;
-      // Tint the focus ring to the swatch's own color (prototype's `--c`).
-      swatch.style.boxShadow = `0 0 0 3px color-mix(in srgb, ${theme.accent} 18%, transparent)`;
-
-      const copy = card.createSpan({ cls: 'grimoire-theme-card-copy' });
-      copy.createSpan({
-        cls: 'grimoire-theme-card-name',
-        text: t(`settings.appearance.options.${theme.id}.name`),
-      });
-      copy.createSpan({
-        cls: 'grimoire-theme-card-desc',
-        text: t(`settings.appearance.options.${theme.id}.desc`),
-      });
-    }
   }
 
   private renderMaxTabsSetting(container: HTMLElement): void {

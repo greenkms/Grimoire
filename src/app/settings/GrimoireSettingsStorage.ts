@@ -16,10 +16,8 @@ import {
   coercePermissionMode,
   type EnvironmentScope,
   type EnvSnippet,
-  type GrimoireAppearanceTheme,
   type GrimoireSettings,
   type HiddenProviderCommands,
-  isGrimoireAppearanceTheme,
   normalizeMaxTabs,
   normalizePermissionMode,
   type ProviderConfigMap,
@@ -72,6 +70,7 @@ const LEGACY_STRIPPED_SETTING_FIELDS = [
   ...LEGACY_TOP_LEVEL_PROVIDER_FIELDS,
   'loadUserClaudeSettings',
   'openInMainTab',
+  'appearanceTheme',
 ] as const;
 
 function stripLegacyFields(settings: Record<string, unknown>): Record<string, unknown> {
@@ -100,23 +99,6 @@ function normalizeChatViewPlacement(
   }
 
   return DEFAULT_GRIMOIRE_SETTINGS.chatViewPlacement;
-}
-
-function normalizeAppearanceTheme(value: unknown): GrimoireAppearanceTheme {
-  const legacyThemeMap: Record<string, GrimoireAppearanceTheme> = {
-    'obsidian-violet': 'violet',
-    'obsidian-light': 'violet',
-    ivory: 'violet',
-    'graphite-blue': 'graphite',
-    'rune-ember': 'rune',
-  };
-  if (typeof value === 'string' && value in legacyThemeMap) {
-    return legacyThemeMap[value];
-  }
-
-  return isGrimoireAppearanceTheme(value)
-    ? value
-    : DEFAULT_GRIMOIRE_SETTINGS.appearanceTheme;
 }
 
 function normalizeTabBarPosition(_value: unknown): TabBarPosition {
@@ -373,7 +355,6 @@ export class GrimoireSettingsStorage {
       stored.chatViewPlacement,
       stored.openInMainTab,
     );
-    const appearanceTheme = normalizeAppearanceTheme(stored.appearanceTheme);
     const maxTabs = normalizeMaxTabs(stored.maxTabs);
     const tabBarPosition = normalizeTabBarPosition(stored.tabBarPosition);
     const usageIndicatorsEnabled = normalizeUsageIndicatorsEnabled(stored.usageIndicatorsEnabled);
@@ -398,7 +379,6 @@ export class GrimoireSettingsStorage {
       permissionMode,
       savedProviderPermissionMode,
       chatViewPlacement,
-      appearanceTheme,
       maxTabs,
       tabBarPosition,
       usageIndicatorsEnabled,
@@ -438,10 +418,7 @@ export class GrimoireSettingsStorage {
       || 'enableBlocklist' in stored
       || 'blockedCommands' in stored
       || shouldPersistChatViewPlacementMigration(stored, chatViewPlacement)
-      || (
-        'appearanceTheme' in stored
-        && stored.appearanceTheme !== appearanceTheme
-      )
+      || 'appearanceTheme' in stored
       || shouldPersistTabLayoutNormalization(stored, maxTabs, tabBarPosition)
       || (
         'usageIndicatorsEnabled' in stored

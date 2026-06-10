@@ -1,19 +1,9 @@
 import { DEFAULT_GRIMOIRE_SETTINGS } from '@/app/settings/defaultSettings';
-import { GRIMOIRE_APPEARANCE_THEMES } from '@/core/types/settings';
 import { DEFAULT_CODEX_PRIMARY_MODEL } from '@/providers/codex/types/models';
 
 describe('DEFAULT_GRIMOIRE_SETTINGS', () => {
-  it('uses the design handoff theme ids', () => {
-    expect(GRIMOIRE_APPEARANCE_THEMES).toEqual([
-      'violet',
-      'graphite',
-      'rune',
-      'verdant',
-    ]);
-  });
-
-  it('uses Violet as the default appearance theme', () => {
-    expect(DEFAULT_GRIMOIRE_SETTINGS.appearanceTheme).toBe('violet');
+  it('does not store a Grimoire-specific appearance theme', () => {
+    expect(DEFAULT_GRIMOIRE_SETTINGS).not.toHaveProperty('appearanceTheme');
   });
 
   it('starts first-run chat on Codex with the primary Codex model', () => {
