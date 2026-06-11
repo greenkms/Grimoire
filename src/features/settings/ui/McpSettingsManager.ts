@@ -22,6 +22,7 @@ export class McpSettingsManager {
   private mcpStorage: AppMcpStorage;
   private broadcastMcpReload: () => Promise<void>;
   private servers: ManagedMcpServer[] = [];
+  private documentClickHandler: (() => void) | null = null;
 
   constructor(containerEl: HTMLElement, deps: McpSettingsManagerDeps) {
     this.app = deps.app;
@@ -80,9 +81,14 @@ export class McpSettingsManager {
       dropdown.toggleClass('is-visible', !dropdown.hasClass('is-visible'));
     });
 
-    (this.containerEl.ownerDocument ?? window.document).addEventListener('click', () => {
-      dropdown.removeClass('is-visible');
-    });
+    // Re-register the outside-click dismiss handler, removing any previous one
+    // first so repeated renders never accumulate document-level listeners.
+    const doc = this.containerEl.ownerDocument ?? window.document;
+    if (this.documentClickHandler) {
+      doc.removeEventListener('click', this.documentClickHandler);
+    }
+    this.documentClickHandler = () => dropdown.removeClass('is-visible');
+    doc.addEventListener('click', this.documentClickHandler);
 
     if (this.servers.length === 0) {
       const emptyEl = this.containerEl.createDiv({ cls: 'grimoire-mcp-empty' });
@@ -396,5 +402,13 @@ export class McpSettingsManager {
   /** Refresh the server list (call after external changes). */
   public refresh() {
     void this.loadAndRender();
+  }
+
+  /** Detach the document-level click handler. Call when the owner tears down. */
+  public dispose() {
+    if (this.documentClickHandler) {
+      (this.containerEl.ownerDocument ?? window.document).removeEventListener('click', this.documentClickHandler);
+      this.documentClickHandler = null;
+    }
   }
 }
