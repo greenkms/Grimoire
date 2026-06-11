@@ -6,4 +6,5 @@ export * from './AcpSubprocess';
 export * from './AcpToolStreamAdapter';
 export * from './buildAcpUsageInfo';
 export * from './methodNames';
+export * from './resolveWorkspacePath';
 export * from './types';

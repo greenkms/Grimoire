@@ -200,4 +200,40 @@ describe('GeminiChatRuntime', () => {
     );
     await expect(fs.stat('/tmp/grimoire-gemini-test-vault/Notes/New.md')).rejects.toThrow();
   });
+
+  describe('resolveSessionPath workspace containment', () => {
+    function createRuntimeWithPermissionMode(permissionMode: string): any {
+      const settings: Record<string, unknown> = { permissionMode };
+      updateGeminiProviderSettings(settings, { enabled: true });
+      const runtime = new GeminiChatRuntime(createMockPlugin({ settings }));
+      (runtime as any).sessionCwds.set('session-1', '/tmp/grimoire-gemini-test-vault');
+      return runtime;
+    }
+
+    it('rejects an absolute path outside the workspace in safe mode', () => {
+      const runtime = createRuntimeWithPermissionMode('normal');
+      expect(() => (runtime as any).resolveSessionPath('session-1', '/etc/hosts')).toThrow(
+        'File access is limited to the current workspace.',
+      );
+    });
+
+    it('rejects an escaping relative path in safe mode', () => {
+      const runtime = createRuntimeWithPermissionMode('normal');
+      expect(() => (runtime as any).resolveSessionPath('session-1', '../../etc/hosts')).toThrow(
+        'File access is limited to the current workspace.',
+      );
+    });
+
+    it('allows a path inside the workspace in safe mode', () => {
+      const runtime = createRuntimeWithPermissionMode('normal');
+      expect((runtime as any).resolveSessionPath('session-1', 'Notes/today.md')).toBe(
+        '/tmp/grimoire-gemini-test-vault/Notes/today.md',
+      );
+    });
+
+    it('allows a path outside the workspace in active (full_access) mode', () => {
+      const runtime = createRuntimeWithPermissionMode('full_access');
+      expect((runtime as any).resolveSessionPath('session-1', '/etc/hosts')).toBe('/etc/hosts');
+    });
+  });
 });

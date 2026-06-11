@@ -44,6 +44,7 @@ import {
   buildAcpUsageInfo,
   extractAcpSessionModelState,
   extractAcpSessionModeState,
+  resolveWorkspacePath,
 } from '../../acp';
 import { geminiPlanUsageStore } from '../app/GeminiPlanUsageStore';
 import { GEMINI_PROVIDER_CAPABILITIES } from '../capabilities';
@@ -671,14 +672,13 @@ export class GeminiChatRuntime implements ChatRuntime {
   }
 
   private resolveSessionPath(sessionId: string, rawPath: string): string {
-    if (path.isAbsolute(rawPath)) {
-      return rawPath;
-    }
-
     const cwd = this.sessionCwds.get(sessionId)
       ?? getVaultPath(this.plugin.app)
       ?? process.cwd();
-    return path.resolve(cwd, rawPath);
+    // Active (full-access) mode opts into unrestricted file access; safe and
+    // plan modes confine ACP-delegated reads/writes to the session workspace.
+    const allowOutsideWorkspace = this.plugin.settings.permissionMode === 'full_access';
+    return resolveWorkspacePath(cwd, rawPath, { allowOutsideWorkspace });
   }
 
   private getActiveModel(): string | null {

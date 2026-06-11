@@ -36,6 +36,7 @@ import type {
   StreamChunk,
   ToolCallInfo,
 } from '../../../core/types';
+import { coercePermissionMode } from '../../../core/types/settings';
 import type GrimoirePlugin from '../../../main';
 import { getEnhancedPath } from '../../../utils/env';
 import { getVaultPath } from '../../../utils/path';
@@ -58,6 +59,7 @@ import {
   extractAcpSessionModelState,
   extractAcpSessionModeState,
   extractAcpSessionThoughtLevelState,
+  resolveWorkspacePath,
 } from '../../acp';
 import { opencodePlanUsageStore } from '../app/OpencodePlanUsageStore';
 import { OPENCODE_PROVIDER_CAPABILITIES } from '../capabilities';
@@ -1333,14 +1335,14 @@ export class OpencodeChatRuntime implements ChatRuntime {
   }
 
   private resolveSessionPath(sessionId: string, rawPath: string): string {
-    if (path.isAbsolute(rawPath)) {
-      return rawPath;
-    }
-
     const cwd = this.sessionCwds.get(sessionId)
       ?? getVaultPath(this.plugin.app)
       ?? process.cwd();
-    return path.resolve(cwd, rawPath);
+    // Active (full-access) mode opts into unrestricted file access; safe and
+    // plan modes confine ACP-delegated reads/writes to the session workspace.
+    const allowOutsideWorkspace =
+      coercePermissionMode(this.getProviderSettings().permissionMode) === 'full_access';
+    return resolveWorkspacePath(cwd, rawPath, { allowOutsideWorkspace });
   }
 
   private formatRuntimeError(error: unknown): string {

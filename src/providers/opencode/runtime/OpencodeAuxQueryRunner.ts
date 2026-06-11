@@ -1,5 +1,4 @@
 import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
 
 import type { AuxQueryConfig, AuxQueryRunner } from '../../../core/auxiliary/AuxQueryRunner';
 import { getRuntimeEnvironmentText } from '../../../core/providers/providerEnvironment';
@@ -15,6 +14,7 @@ import {
   AcpSessionUpdateNormalizer,
   AcpSubprocess,
   extractAcpSessionModelState,
+  resolveWorkspacePath,
 } from '../../acp';
 import { decodeOpencodeModelId } from '../models';
 import { opencodeChatUIConfig } from '../ui/OpencodeChatUIConfig';
@@ -365,15 +365,9 @@ export class OpencodeAuxQueryRunner implements AuxQueryRunner {
     const cwd = this.sessionCwds.get(sessionId)
       ?? getVaultPath(this.plugin.app)
       ?? process.cwd();
-    const resolvedPath = path.isAbsolute(rawPath)
-      ? path.resolve(rawPath)
-      : path.resolve(cwd, rawPath);
-    const relative = path.relative(cwd, resolvedPath);
-    if (relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative))) {
-      return resolvedPath;
-    }
-
-    throw new Error('OpenCode aux read access is limited to the current workspace.');
+    return resolveWorkspacePath(cwd, rawPath, {
+      containmentMessage: 'OpenCode aux read access is limited to the current workspace.',
+    });
   }
 }
 

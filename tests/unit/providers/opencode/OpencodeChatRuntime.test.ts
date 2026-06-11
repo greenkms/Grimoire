@@ -1006,4 +1006,40 @@ describe('OpencodeChatRuntime', () => {
 
     expect(runtime.getAuxiliaryModel()).toBe('opencode:anthropic/claude-sonnet-4');
   });
+
+  describe('resolveSessionPath workspace containment', () => {
+    function createRuntimeWithPermissionMode(permissionMode: string): any {
+      const plugin = createMockPlugin({ settings: { permissionMode } });
+      const runtime = new OpencodeChatRuntime(plugin);
+      jest.spyOn(ProviderSettingsCoordinator, 'getProviderSettingsSnapshot').mockReturnValue(plugin.settings);
+      (runtime as any).sessionCwds.set('session-1', '/tmp/grimoire-test-vault');
+      return runtime;
+    }
+
+    it('rejects an absolute path outside the workspace in safe mode', () => {
+      const runtime = createRuntimeWithPermissionMode('normal');
+      expect(() => (runtime as any).resolveSessionPath('session-1', '/etc/hosts')).toThrow(
+        'File access is limited to the current workspace.',
+      );
+    });
+
+    it('rejects an escaping relative path in safe mode', () => {
+      const runtime = createRuntimeWithPermissionMode('normal');
+      expect(() => (runtime as any).resolveSessionPath('session-1', '../../etc/hosts')).toThrow(
+        'File access is limited to the current workspace.',
+      );
+    });
+
+    it('allows a path inside the workspace in safe mode', () => {
+      const runtime = createRuntimeWithPermissionMode('normal');
+      expect((runtime as any).resolveSessionPath('session-1', 'notes/today.md')).toBe(
+        '/tmp/grimoire-test-vault/notes/today.md',
+      );
+    });
+
+    it('allows a path outside the workspace in active (full_access) mode', () => {
+      const runtime = createRuntimeWithPermissionMode('full_access');
+      expect((runtime as any).resolveSessionPath('session-1', '/etc/hosts')).toBe('/etc/hosts');
+    });
+  });
 });
