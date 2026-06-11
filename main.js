@@ -18981,7 +18981,7 @@ var require_compile = __commonJS({
       const schOrFunc = root.refs[ref];
       if (schOrFunc)
         return schOrFunc;
-      let _sch = resolve9.call(this, root, ref);
+      let _sch = resolve7.call(this, root, ref);
       if (_sch === void 0) {
         const schema = (_a7 = root.localRefs) === null || _a7 === void 0 ? void 0 : _a7[ref];
         const { schemaId } = this.opts;
@@ -19008,7 +19008,7 @@ var require_compile = __commonJS({
     function sameSchemaEnv(s12, s2) {
       return s12.schema === s2.schema && s12.root === s2.root && s12.baseId === s2.baseId;
     }
-    function resolve9(root, ref) {
+    function resolve7(root, ref) {
       let sch;
       while (typeof (sch = this.refs[ref]) == "string")
         ref = sch;
@@ -19639,7 +19639,7 @@ var require_fast_uri = __commonJS({
       }
       return uri;
     }
-    function resolve9(baseURI, relativeURI, options) {
+    function resolve7(baseURI, relativeURI, options) {
       const schemelessOptions = options ? Object.assign({ scheme: "null" }, options) : { scheme: "null" };
       const resolved = resolveComponent(parse4(baseURI, schemelessOptions), parse4(relativeURI, schemelessOptions), schemelessOptions, true);
       schemelessOptions.skipEscape = true;
@@ -19897,7 +19897,7 @@ var require_fast_uri = __commonJS({
     var fastUri = {
       SCHEMES,
       normalize: normalize3,
-      resolve: resolve9,
+      resolve: resolve7,
       resolveComponent,
       equal,
       serialize,
@@ -22980,12 +22980,12 @@ var require_isexe = __commonJS({
         if (typeof Promise !== "function") {
           throw new TypeError("callback not provided");
         }
-        return new Promise(function(resolve9, reject) {
+        return new Promise(function(resolve7, reject) {
           isexe(path25, options || {}, function(er2, is) {
             if (er2) {
               reject(er2);
             } else {
-              resolve9(is);
+              resolve7(is);
             }
           });
         });
@@ -23051,27 +23051,27 @@ var require_which = __commonJS({
         opt = {};
       const { pathEnv, pathExt, pathExtExe } = getPathInfo(cmd, opt);
       const found = [];
-      const step = (i) => new Promise((resolve9, reject) => {
+      const step = (i) => new Promise((resolve7, reject) => {
         if (i === pathEnv.length)
-          return opt.all && found.length ? resolve9(found) : reject(getNotFoundError(cmd));
+          return opt.all && found.length ? resolve7(found) : reject(getNotFoundError(cmd));
         const ppRaw = pathEnv[i];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
         const pCmd = path25.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
-        resolve9(subStep(p, i, 0));
+        resolve7(subStep(p, i, 0));
       });
-      const subStep = (p, i, ii2) => new Promise((resolve9, reject) => {
+      const subStep = (p, i, ii2) => new Promise((resolve7, reject) => {
         if (ii2 === pathExt.length)
-          return resolve9(step(i + 1));
+          return resolve7(step(i + 1));
         const ext = pathExt[ii2];
         isexe(p + ext, { pathExt: pathExtExe }, (er2, is) => {
           if (!er2 && is) {
             if (opt.all)
               found.push(p + ext);
             else
-              return resolve9(p + ext);
+              return resolve7(p + ext);
           }
-          return resolve9(subStep(p, i, ii2 + 1));
+          return resolve7(subStep(p, i, ii2 + 1));
         });
       });
       return cb2 ? step(0).then((res) => cb2(null, res), cb2) : step(0);
@@ -24753,7 +24753,7 @@ var init_sse = __esm({
       _startOrAuth() {
         var _a7, _b4, _c3;
         const fetchImpl = (_c3 = (_b4 = (_a7 = this == null ? void 0 : this._eventSourceInit) == null ? void 0 : _a7.fetch) != null ? _b4 : this._fetch) != null ? _c3 : fetch;
-        return new Promise((resolve9, reject) => {
+        return new Promise((resolve7, reject) => {
           this._eventSource = new EventSource(this._url.href, {
             ...this._eventSourceInit,
             fetch: async (url2, init) => {
@@ -24775,7 +24775,7 @@ var init_sse = __esm({
           this._eventSource.onerror = (event) => {
             var _a8;
             if (event.code === 401 && this._authProvider) {
-              this._authThenStart().then(resolve9, reject);
+              this._authThenStart().then(resolve7, reject);
               return;
             }
             const error48 = new SseError(event.code, event.message, event);
@@ -24798,7 +24798,7 @@ var init_sse = __esm({
               void this.close();
               return;
             }
-            resolve9();
+            resolve7();
           });
           this._eventSource.onmessage = (event) => {
             var _a8, _b5;
@@ -54699,21 +54699,21 @@ function markButtonDestructive(button) {
   (_a7 = compat.setWarning) == null ? void 0 : _a7.call(compat);
 }
 function confirmDelete(app, message) {
-  return new Promise((resolve9) => {
-    new ConfirmModal(app, message, resolve9).open();
+  return new Promise((resolve7) => {
+    new ConfirmModal(app, message, resolve7).open();
   });
 }
 function confirm(app, message, confirmText) {
-  return new Promise((resolve9) => {
-    new ConfirmModal(app, message, resolve9, confirmText).open();
+  return new Promise((resolve7) => {
+    new ConfirmModal(app, message, resolve7, confirmText).open();
   });
 }
 var ConfirmModal = class extends import_obsidian4.Modal {
-  constructor(app, message, resolve9, confirmText) {
+  constructor(app, message, resolve7, confirmText) {
     super(app);
     this.resolved = false;
     this.message = message;
-    this.resolve = resolve9;
+    this.resolve = resolve7;
     this.confirmText = confirmText != null ? confirmText : t("common.delete");
   }
   onOpen() {
@@ -59840,7 +59840,7 @@ var Protocol = class {
           return;
         }
         const pollInterval = (_c3 = (_b4 = task2.pollInterval) != null ? _b4 : (_a7 = this._options) == null ? void 0 : _a7.defaultTaskPollInterval) != null ? _c3 : 1e3;
-        await new Promise((resolve9) => setTimeout(resolve9, pollInterval));
+        await new Promise((resolve7) => setTimeout(resolve7, pollInterval));
         (_d3 = options == null ? void 0 : options.signal) == null ? void 0 : _d3.throwIfAborted();
       }
     } catch (error48) {
@@ -59857,7 +59857,7 @@ var Protocol = class {
    */
   request(request, resultSchema, options) {
     const { relatedRequestId, resumptionToken, onresumptiontoken, task, relatedTask } = options != null ? options : {};
-    return new Promise((resolve9, reject) => {
+    return new Promise((resolve7, reject) => {
       var _a7, _b4, _c3, _d3, _e3, _f3, _g2;
       const earlyReject = (error48) => {
         reject(error48);
@@ -59938,7 +59938,7 @@ var Protocol = class {
           if (!parseResult.success) {
             reject(parseResult.error);
           } else {
-            resolve9(parseResult.data);
+            resolve7(parseResult.data);
           }
         } catch (error48) {
           reject(error48);
@@ -60204,12 +60204,12 @@ var Protocol = class {
       }
     } catch (e) {
     }
-    return new Promise((resolve9, reject) => {
+    return new Promise((resolve7, reject) => {
       if (signal.aborted) {
         reject(new McpError(ErrorCode.InvalidRequest, "Request cancelled"));
         return;
       }
-      const timeoutId = setTimeout(resolve9, interval);
+      const timeoutId = setTimeout(resolve7, interval);
       signal.addEventListener("abort", () => {
         clearTimeout(timeoutId);
         reject(new McpError(ErrorCode.InvalidRequest, "Request cancelled"));
@@ -61180,7 +61180,7 @@ var StdioClientTransport = class {
     if (this._process) {
       throw new Error("StdioClientTransport already started! If using Client class, note that connect() calls start() automatically.");
     }
-    return new Promise((resolve9, reject) => {
+    return new Promise((resolve7, reject) => {
       var _a7, _b4, _c3, _d3, _e3;
       this._process = (0, import_cross_spawn.default)(this._serverParams.command, (_a7 = this._serverParams.args) != null ? _a7 : [], {
         // merge default env with server env because mcp server needs some env vars
@@ -61199,7 +61199,7 @@ var StdioClientTransport = class {
         (_a8 = this.onerror) == null ? void 0 : _a8.call(this, error48);
       });
       this._process.on("spawn", () => {
-        resolve9();
+        resolve7();
       });
       this._process.on("close", (_code) => {
         var _a8;
@@ -61265,17 +61265,17 @@ var StdioClientTransport = class {
     if (this._process) {
       const processToClose = this._process;
       this._process = void 0;
-      const closePromise = new Promise((resolve9) => {
+      const closePromise = new Promise((resolve7) => {
         processToClose.once("close", () => {
-          resolve9();
+          resolve7();
         });
       });
       try {
         (_a7 = processToClose.stdin) == null ? void 0 : _a7.end();
       } catch (e) {
       }
-      await Promise.race([closePromise, new Promise((resolve9) => {
-        const closeTimeout = setTimeout(resolve9, 2e3);
+      await Promise.race([closePromise, new Promise((resolve7) => {
+        const closeTimeout = setTimeout(resolve7, 2e3);
         closeTimeout.unref?.();
       })]);
       if (processToClose.exitCode === null) {
@@ -61283,8 +61283,8 @@ var StdioClientTransport = class {
           processToClose.kill("SIGTERM");
         } catch (e) {
         }
-        await Promise.race([closePromise, new Promise((resolve9) => {
-        const closeTimeout = setTimeout(resolve9, 2e3);
+        await Promise.race([closePromise, new Promise((resolve7) => {
+        const closeTimeout = setTimeout(resolve7, 2e3);
         closeTimeout.unref?.();
       })]);
       }
@@ -61298,16 +61298,16 @@ var StdioClientTransport = class {
     this._readBuffer.clear();
   }
   send(message) {
-    return new Promise((resolve9) => {
+    return new Promise((resolve7) => {
       var _a7;
       if (!((_a7 = this._process) == null ? void 0 : _a7.stdin)) {
         throw new Error("Not connected");
       }
       const json2 = serializeMessage(message);
       if (this._process.stdin.write(json2)) {
-        resolve9();
+        resolve7();
       } else {
-        this._process.stdin.once("drain", resolve9);
+        this._process.stdin.once("drain", resolve7);
       }
     });
   }
@@ -61772,7 +61772,7 @@ function createNodeFetch() {
     const signal = (_b4 = init == null ? void 0 : init.signal) != null ? _b4 : input instanceof Request ? input.signal : void 0;
     const body = await getRequestBody((_c3 = init == null ? void 0 : init.body) != null ? _c3 : input instanceof Request ? input.body : void 0);
     const transport = requestUrl.protocol === "https:" ? https : http;
-    return new Promise((resolve9, reject) => {
+    return new Promise((resolve7, reject) => {
       let settled = false;
       const fail = (error48) => {
         if (settled) return;
@@ -61802,7 +61802,7 @@ function createNodeFetch() {
           if (settled) return;
           settled = true;
           signal == null ? void 0 : signal.removeEventListener("abort", onAbort);
-          resolve9(createFetchResponse(res));
+          resolve7(createFetchResponse(res));
         }
       );
       req.on("error", (error48) => fail(error48));
@@ -62508,6 +62508,7 @@ var McpTestModal = class extends import_obsidian8.Modal {
 var McpSettingsManager = class {
   constructor(containerEl, deps) {
     this.servers = [];
+    this.documentClickHandler = null;
     this.app = deps.app;
     this.containerEl = containerEl;
     this.mcpStorage = deps.mcpStorage;
@@ -62555,9 +62556,12 @@ var McpSettingsManager = class {
       e.stopPropagation();
       dropdown.toggleClass("is-visible", !dropdown.hasClass("is-visible"));
     });
-    ((_a7 = this.containerEl.ownerDocument) != null ? _a7 : window.document).addEventListener("click", () => {
-      dropdown.removeClass("is-visible");
-    });
+    const doc = (_a7 = this.containerEl.ownerDocument) != null ? _a7 : window.document;
+    if (this.documentClickHandler) {
+      doc.removeEventListener("click", this.documentClickHandler);
+    }
+    this.documentClickHandler = () => dropdown.removeClass("is-visible");
+    doc.addEventListener("click", this.documentClickHandler);
     if (this.servers.length === 0) {
       const emptyEl = this.containerEl.createDiv({ cls: "grimoire-mcp-empty" });
       emptyEl.setText('No mcp servers configured. Click "add" to add one.');
@@ -62825,6 +62829,14 @@ var McpSettingsManager = class {
   /** Refresh the server list (call after external changes). */
   refresh() {
     void this.loadAndRender();
+  }
+  /** Detach the document-level click handler. Call when the owner tears down. */
+  dispose() {
+    var _a7;
+    if (this.documentClickHandler) {
+      ((_a7 = this.containerEl.ownerDocument) != null ? _a7 : window.document).removeEventListener("click", this.documentClickHandler);
+      this.documentClickHandler = null;
+    }
   }
 };
 
@@ -68821,9 +68833,9 @@ var MessageChannel = class {
     if (!this.turnActive) {
       if (this.resolveNext) {
         this.turnActive = true;
-        const resolve9 = this.resolveNext;
+        const resolve7 = this.resolveNext;
         this.resolveNext = null;
-        resolve9({ value: message, done: false });
+        resolve7({ value: message, done: false });
       } else {
         if (this.queue.length >= MESSAGE_CHANNEL_CONFIG.MAX_QUEUED_MESSAGES) {
           this.onWarning(`[MessageChannel] Queue full (${MESSAGE_CHANNEL_CONFIG.MAX_QUEUED_MESSAGES}), dropping newest`);
@@ -68870,18 +68882,18 @@ var MessageChannel = class {
     if (this.queue.length > 0 && this.resolveNext) {
       const pending = this.queue.shift();
       this.turnActive = true;
-      const resolve9 = this.resolveNext;
+      const resolve7 = this.resolveNext;
       this.resolveNext = null;
-      resolve9({ value: this.pendingToMessage(pending), done: false });
+      resolve7({ value: this.pendingToMessage(pending), done: false });
     }
   }
   close() {
     this.closed = true;
     this.queue = [];
     if (this.resolveNext) {
-      const resolve9 = this.resolveNext;
+      const resolve7 = this.resolveNext;
       this.resolveNext = null;
-      resolve9({ value: void 0, done: true });
+      resolve7({ value: void 0, done: true });
     }
   }
   reset() {
@@ -68904,8 +68916,8 @@ var MessageChannel = class {
           this.turnActive = true;
           return Promise.resolve({ value: this.pendingToMessage(pending), done: false });
         }
-        return new Promise((resolve9) => {
-          this.resolveNext = resolve9;
+        return new Promise((resolve7) => {
+          this.resolveNext = resolve7;
         });
       }
     };
@@ -70659,8 +70671,8 @@ var ClaudeChatRuntime = class {
         if (state.chunks.length > 0) {
           yield state.chunks.shift();
         } else {
-          const chunk = await new Promise((resolve9) => {
-            state.resolveChunk = resolve9;
+          const chunk = await new Promise((resolve7) => {
+            state.resolveChunk = resolve7;
           });
           if (chunk) {
             yield chunk;
@@ -71299,10 +71311,10 @@ var CodexAppServerProcess = class {
   }
   async shutdown() {
     if (!this.proc || !this.alive) return;
-    return new Promise((resolve9) => {
+    return new Promise((resolve7) => {
       const onExit = () => {
         window.clearTimeout(killTimer);
-        resolve9();
+        resolve7();
       };
       this.proc.once("exit", onExit);
       this.proc.kill("SIGTERM");
@@ -71633,13 +71645,13 @@ var CodexRpcTransport = class {
   request(method, params, timeoutMs = DEFAULT_TIMEOUT_MS) {
     const id2 = this.nextId++;
     const msg = { jsonrpc: "2.0", id: id2, method, params };
-    return new Promise((resolve9, reject) => {
+    return new Promise((resolve7, reject) => {
       const timer = timeoutMs > 0 ? window.setTimeout(() => {
         this.pending.delete(id2);
         reject(new Error(`Request timeout: ${method} (${timeoutMs}ms)`));
       }, timeoutMs) : null;
       const resolvePending = (result) => {
-        resolve9(result);
+        resolve7(result);
       };
       this.pending.set(id2, {
         resolve: resolvePending,
@@ -74805,8 +74817,8 @@ var CodexAuxQueryRunner = class {
     let accumulatedText = "";
     let turnError = null;
     let resolveWait = null;
-    const donePromise = new Promise((resolve9) => {
-      resolveWait = resolve9;
+    const donePromise = new Promise((resolve7) => {
+      resolveWait = resolve7;
     });
     this.transport.onNotification("item/agentMessage/delta", (params) => {
       var _a8;
@@ -78413,10 +78425,10 @@ User: ${turn.prompt}`
           return;
         }
         if (this.chunkBuffer.length === 0) {
-          await new Promise((resolve9) => {
-            this.chunkResolve = resolve9;
+          await new Promise((resolve7) => {
+            this.chunkResolve = resolve7;
             if (this.chunkBuffer.length > 0 || this.canceled) {
-              resolve9();
+              resolve7();
               this.chunkResolve = null;
             }
           });
@@ -79110,7 +79122,7 @@ var codexProviderRegistration = {
 
 // src/providers/gemini/runtime/GeminiChatRuntime.ts
 var fs18 = __toESM(require("node:fs/promises"));
-var path16 = __toESM(require("node:path"));
+var path17 = __toESM(require("node:path"));
 init_path();
 
 // src/providers/acp/AcpJsonRpcTransport.ts
@@ -79227,7 +79239,7 @@ var AcpJsonRpcTransport = class {
     }
     const id2 = this.nextId++;
     const timeoutMs = (_a7 = options.timeoutMs) != null ? _a7 : this.defaultTimeoutMs;
-    return new Promise((resolve9, reject) => {
+    return new Promise((resolve7, reject) => {
       let timer;
       let onAbort;
       const cleanup = () => {
@@ -79237,7 +79249,7 @@ var AcpJsonRpcTransport = class {
         }
       };
       const resolvePending = (result) => {
-        resolve9(result);
+        resolve7(result);
       };
       const pending = {
         cleanup,
@@ -80084,11 +80096,11 @@ var AcpSubprocess = class {
     if (!this.proc || this.proc.exitCode !== null) {
       return;
     }
-    await new Promise((resolve9) => {
+    await new Promise((resolve7) => {
       const proc = this.proc;
       const onClose = () => {
         cleanup();
-        resolve9();
+        resolve7();
       };
       const killTimer = window.setTimeout(() => {
         if (isWin32() && proc.pid !== void 0) {
@@ -80241,6 +80253,22 @@ function computePercentage(used, total) {
   return Math.min(100, Math.max(0, ratio));
 }
 
+// src/providers/acp/resolveWorkspacePath.ts
+var path16 = __toESM(require("path"));
+var DEFAULT_CONTAINMENT_MESSAGE = "File access is limited to the current workspace.";
+function resolveWorkspacePath(cwd, rawPath, options = {}) {
+  var _a7;
+  const resolvedPath = path16.isAbsolute(rawPath) ? path16.resolve(rawPath) : path16.resolve(cwd, rawPath);
+  if (options.allowOutsideWorkspace) {
+    return resolvedPath;
+  }
+  const relative4 = path16.relative(cwd, resolvedPath);
+  if (relative4 === "" || !relative4.startsWith("..") && !path16.isAbsolute(relative4)) {
+    return resolvedPath;
+  }
+  throw new Error((_a7 = options.containmentMessage) != null ? _a7 : DEFAULT_CONTAINMENT_MESSAGE);
+}
+
 // src/providers/gemini/app/GeminiPlanUsageStore.ts
 var geminiPlanUsageStore = new ProviderSpendUsageStore({
   plan: "Gemini",
@@ -80309,8 +80337,8 @@ var StreamChunkQueue = class {
     if (this.closed) {
       return null;
     }
-    return new Promise((resolve9) => {
-      this.waiters.push(resolve9);
+    return new Promise((resolve7) => {
+      this.waiters.push(resolve7);
     });
   }
 };
@@ -80806,17 +80834,15 @@ var GeminiChatRuntime = class {
         throw new Error("Gemini file write was not approved");
       }
     }
-    await fs18.mkdir(path16.dirname(resolvedPath), { recursive: true });
+    await fs18.mkdir(path17.dirname(resolvedPath), { recursive: true });
     await fs18.writeFile(resolvedPath, request.content, "utf-8");
     return {};
   }
   resolveSessionPath(sessionId, rawPath) {
     var _a7, _b4;
-    if (path16.isAbsolute(rawPath)) {
-      return rawPath;
-    }
     const cwd = (_b4 = (_a7 = this.sessionCwds.get(sessionId)) != null ? _a7 : getVaultPath(this.plugin.app)) != null ? _b4 : process.cwd();
-    return path16.resolve(cwd, rawPath);
+    const allowOutsideWorkspace = this.plugin.settings.permissionMode === "full_access";
+    return resolveWorkspacePath(cwd, rawPath, { allowOutsideWorkspace });
   }
   getActiveModel() {
     var _a7;
@@ -81388,7 +81414,7 @@ var OpencodeCommandCatalog = class {
 
 // src/providers/opencode/runtime/OpencodeChatRuntime.ts
 var fs24 = __toESM(require("node:fs/promises"));
-var path19 = __toESM(require("node:path"));
+var path20 = __toESM(require("node:path"));
 init_env();
 init_path();
 
@@ -81455,7 +81481,7 @@ var fs22 = __toESM(require("node:fs"));
 // src/providers/opencode/runtime/OpencodePaths.ts
 var fs21 = __toESM(require("node:fs"));
 var os11 = __toESM(require("node:os"));
-var path17 = __toESM(require("node:path"));
+var path18 = __toESM(require("node:path"));
 var OPENCODE_APP_NAME = "opencode";
 var DEFAULT_DATABASE_NAME = "opencode.db";
 var DATABASE_NAME_PATTERN = /^opencode(?:-[a-z0-9._-]+)?\.db$/i;
@@ -81463,23 +81489,23 @@ function resolveOpencodeDataDir(env = process.env) {
   var _a7;
   const xdgDataHome = (_a7 = env.XDG_DATA_HOME) == null ? void 0 : _a7.trim();
   if (xdgDataHome) {
-    return path17.join(xdgDataHome, OPENCODE_APP_NAME);
+    return path18.join(xdgDataHome, OPENCODE_APP_NAME);
   }
   const home = env.HOME || os11.homedir();
   if (process.platform === "win32") {
-    const appData = env.APPDATA || env.LOCALAPPDATA || path17.join(home, "AppData", "Roaming");
-    return path17.join(appData, OPENCODE_APP_NAME);
+    const appData = env.APPDATA || env.LOCALAPPDATA || path18.join(home, "AppData", "Roaming");
+    return path18.join(appData, OPENCODE_APP_NAME);
   }
-  return path17.join(home, ".local", "share", OPENCODE_APP_NAME);
+  return path18.join(home, ".local", "share", OPENCODE_APP_NAME);
 }
 function resolveOpencodeDatabasePath(env = process.env) {
   var _a7, _b4;
   const override = (_a7 = env.OPENCODE_DB) == null ? void 0 : _a7.trim();
   if (override) {
-    if (override === ":memory:" || path17.isAbsolute(override)) {
+    if (override === ":memory:" || path18.isAbsolute(override)) {
       return override;
     }
-    return path17.join(resolveOpencodeDataDir(env), override);
+    return path18.join(resolveOpencodeDataDir(env), override);
   }
   const candidates = getOpencodeDatabasePathCandidates(env);
   for (const candidate of candidates) {
@@ -81511,10 +81537,10 @@ function getOpencodeDatabasePathCandidates(env) {
   const home = env.HOME || os11.homedir();
   const dataDirs = [
     resolveOpencodeDataDir(env),
-    path17.join(home, "Library", "Application Support", OPENCODE_APP_NAME)
+    path18.join(home, "Library", "Application Support", OPENCODE_APP_NAME)
   ];
   for (const dataDir of dataDirs) {
-    pushCandidate(candidates, seen, path17.join(dataDir, DEFAULT_DATABASE_NAME));
+    pushCandidate(candidates, seen, path18.join(dataDir, DEFAULT_DATABASE_NAME));
     try {
       const matches = fs21.readdirSync(dataDir).filter((entry) => DATABASE_NAME_PATTERN.test(entry)).sort((left, right) => {
         if (left === DEFAULT_DATABASE_NAME) return -1;
@@ -81522,7 +81548,7 @@ function getOpencodeDatabasePathCandidates(env) {
         return left.localeCompare(right);
       });
       for (const entry of matches) {
-        pushCandidate(candidates, seen, path17.join(dataDir, entry));
+        pushCandidate(candidates, seen, path18.join(dataDir, entry));
       }
     } catch (e) {
     }
@@ -81991,7 +82017,7 @@ function buildOpencodePromptBlocks(request, conversationHistory = [], options = 
 
 // src/providers/opencode/runtime/OpencodeLaunchArtifacts.ts
 var fs23 = __toESM(require("node:fs/promises"));
-var path18 = __toESM(require("node:path"));
+var path19 = __toESM(require("node:path"));
 init_path();
 var DEFAULT_OPENCODE_MANAGED_AGENT_CONFIGS = [
   { id: OPENCODE_BUILD_MODE_ID },
@@ -82022,13 +82048,13 @@ var DEFAULT_OPENCODE_MANAGED_AGENT_CONFIGS = [
 ];
 async function prepareOpencodeLaunchArtifacts(params) {
   var _a7, _b4, _c3, _d3, _e3, _f3;
-  const artifactsDir = path18.join(
+  const artifactsDir = path19.join(
     params.workspaceRoot,
     GRIMOIRE_STORAGE_PATH,
     (_a7 = params.artifactsSubdir) != null ? _a7 : "opencode"
   );
-  const systemPromptPath = path18.join(artifactsDir, "system.md");
-  const configPath = path18.join(artifactsDir, "config.json");
+  const systemPromptPath = path19.join(artifactsDir, "system.md");
+  const configPath = path19.join(artifactsDir, "config.json");
   const systemPrompt = normalizeSystemPrompt(
     (_b4 = params.systemPromptText) != null ? _b4 : buildSystemPrompt(requireSettings(params))
   );
@@ -82071,7 +82097,7 @@ async function ensureOpencodeDatabaseDirectory(databasePath) {
   if (!databasePath || databasePath === ":memory:") {
     return;
   }
-  await fs23.mkdir(path18.dirname(databasePath), { recursive: true });
+  await fs23.mkdir(path19.dirname(databasePath), { recursive: true });
 }
 function buildOpencodeManagedConfig(baseConfig, systemPromptPath, userName, managedAgents = DEFAULT_OPENCODE_MANAGED_AGENT_CONFIGS, defaultAgentId) {
   const config2 = {
@@ -82117,7 +82143,7 @@ async function loadOpencodeBaseConfig(configuredPath, workspaceRoot) {
     return {};
   }
   const expandedPath = expandHomePath(trimmedPath);
-  const resolvedPath = path18.isAbsolute(expandedPath) ? expandedPath : path18.resolve(workspaceRoot, expandedPath);
+  const resolvedPath = path19.isAbsolute(expandedPath) ? expandedPath : path19.resolve(workspaceRoot, expandedPath);
   try {
     const rawConfig = await fs23.readFile(resolvedPath, "utf8");
     const parsedConfig = JSON.parse(rawConfig);
@@ -82187,8 +82213,8 @@ var StreamChunkQueue2 = class {
     if (this.closed) {
       return null;
     }
-    return new Promise((resolve9) => {
-      this.waiters.push(resolve9);
+    return new Promise((resolve7) => {
+      this.waiters.push(resolve7);
     });
   }
 };
@@ -82578,7 +82604,7 @@ var OpencodeChatRuntime = class {
       OPENCODE_CONFIG: params.configPath,
       PATH: getEnhancedPath(
         params.runtimeEnv.PATH,
-        path19.isAbsolute(params.command) ? params.command : void 0
+        path20.isAbsolute(params.command) ? params.command : void 0
       )
     };
     this.process = new AcpSubprocess({
@@ -83108,17 +83134,17 @@ var OpencodeChatRuntime = class {
     if (this.supportedCommands.length > 0) {
       return Promise.resolve([...this.supportedCommands]);
     }
-    return new Promise((resolve9) => {
+    return new Promise((resolve7) => {
       const waiter = (commands) => {
         window.clearTimeout(timeoutId);
-        resolve9([...commands]);
+        resolve7([...commands]);
       };
       const timeoutId = window.setTimeout(() => {
         const index = this.supportedCommandWaiters.indexOf(waiter);
         if (index >= 0) {
           this.supportedCommandWaiters.splice(index, 1);
         }
-        resolve9([...this.supportedCommands]);
+        resolve7([...this.supportedCommands]);
       }, timeoutMs);
       this.supportedCommandWaiters.push(waiter);
     });
@@ -83139,17 +83165,15 @@ var OpencodeChatRuntime = class {
   }
   async writeTextFile(request) {
     const resolvedPath = this.resolveSessionPath(request.sessionId, request.path);
-    await fs24.mkdir(path19.dirname(resolvedPath), { recursive: true });
+    await fs24.mkdir(path20.dirname(resolvedPath), { recursive: true });
     await fs24.writeFile(resolvedPath, request.content, "utf-8");
     return {};
   }
   resolveSessionPath(sessionId, rawPath) {
     var _a7, _b4;
-    if (path19.isAbsolute(rawPath)) {
-      return rawPath;
-    }
     const cwd = (_b4 = (_a7 = this.sessionCwds.get(sessionId)) != null ? _a7 : getVaultPath(this.plugin.app)) != null ? _b4 : process.cwd();
-    return path19.resolve(cwd, rawPath);
+    const allowOutsideWorkspace = coercePermissionMode(this.getProviderSettings().permissionMode) === "full_access";
+    return resolveWorkspacePath(cwd, rawPath, { allowOutsideWorkspace });
   }
   formatRuntimeError(error48) {
     var _a7;
@@ -83435,7 +83459,7 @@ function resolveConfiguredCliPath2(cliPath) {
 }
 
 // src/providers/opencode/storage/OpencodeAgentStorage.ts
-var path20 = __toESM(require("node:path"));
+var path21 = __toESM(require("node:path"));
 
 // src/providers/opencode/types/agent.ts
 var OPENCODE_AGENT_KNOWN_KEYS = /* @__PURE__ */ new Set([
@@ -83506,7 +83530,7 @@ var OpencodeAgentStorage = class {
   async save(agent, previous) {
     const filePath = this.resolveTargetPath(agent, previous);
     const previousPath = previous ? this.resolveCurrentPath(previous) : null;
-    await this.vaultAdapter.ensureFolder(path20.posix.dirname(filePath));
+    await this.vaultAdapter.ensureFolder(path21.posix.dirname(filePath));
     const content = serializeOpencodeAgentMarkdown(agent);
     await this.vaultAdapter.write(filePath, content);
     if (previousPath && previousPath !== filePath) {
@@ -84772,7 +84796,6 @@ function maybeGetOpencodeWorkspaceServices() {
 
 // src/providers/opencode/runtime/OpencodeAuxQueryRunner.ts
 var fs27 = __toESM(require("node:fs/promises"));
-var path21 = __toESM(require("node:path"));
 init_path();
 
 // src/providers/opencode/ui/OpencodeChatUIConfig.ts
@@ -85294,12 +85317,9 @@ ${stderr}` : message,
   resolveSessionPath(sessionId, rawPath) {
     var _a7, _b4;
     const cwd = (_b4 = (_a7 = this.sessionCwds.get(sessionId)) != null ? _a7 : getVaultPath(this.plugin.app)) != null ? _b4 : process.cwd();
-    const resolvedPath = path21.isAbsolute(rawPath) ? path21.resolve(rawPath) : path21.resolve(cwd, rawPath);
-    const relative4 = path21.relative(cwd, resolvedPath);
-    if (relative4 === "" || !relative4.startsWith("..") && !path21.isAbsolute(relative4)) {
-      return resolvedPath;
-    }
-    throw new Error("OpenCode aux read access is limited to the current workspace.");
+    return resolveWorkspacePath(cwd, rawPath, {
+      containmentMessage: "OpenCode aux read access is limited to the current workspace."
+    });
   }
 };
 function buildOpencodeAuxAgentConfig(profile) {
@@ -86254,11 +86274,11 @@ function cancelScheduledAnimationFrame(frame) {
 
 // src/features/chat/rendering/InlineOrchestratorPlan.ts
 var InlineOrchestratorPlan = class {
-  constructor(containerEl, plan, resolve9) {
+  constructor(containerEl, plan, resolve7) {
     this.resolved = false;
     this.containerEl = containerEl;
     this.plan = plan;
-    this.resolveCallback = resolve9;
+    this.resolveCallback = resolve7;
   }
   render() {
     this.rootEl = this.containerEl.createDiv({ cls: "grimoire-orchestrator-plan-inline" });
@@ -89269,7 +89289,7 @@ function buildImageGenerationPrompt({
 var HINTS_TEXT = "Enter to select \xB7 Tab/Arrow keys to navigate \xB7 Esc to cancel";
 var HINTS_TEXT_IMMEDIATE = "Enter to select \xB7 Arrow keys to navigate \xB7 Esc to cancel";
 var InlineAskUserQuestion = class {
-  constructor(containerEl, input, resolve9, signal, config2) {
+  constructor(containerEl, input, resolve7, signal, config2) {
     this.resolved = false;
     this.questions = [];
     this.answers = /* @__PURE__ */ new Map();
@@ -89283,7 +89303,7 @@ var InlineAskUserQuestion = class {
     var _a7, _b4, _c3;
     this.containerEl = containerEl;
     this.input = input;
-    this.resolveCallback = resolve9;
+    this.resolveCallback = resolve7;
     this.signal = signal;
     this.config = {
       title: (_a7 = config2 == null ? void 0 : config2.title) != null ? _a7 : "Question",
@@ -89852,7 +89872,7 @@ var fs29 = __toESM(require("fs"));
 var nodePath = __toESM(require("path"));
 var HINTS_TEXT2 = "Arrow keys to navigate \xB7 Enter to select \xB7 Esc to cancel";
 var InlineExitPlanMode = class {
-  constructor(containerEl, input, resolve9, signal, renderContent, planPathPrefix) {
+  constructor(containerEl, input, resolve7, signal, renderContent, planPathPrefix) {
     this.resolved = false;
     this.planContent = null;
     this.planReadError = null;
@@ -89862,7 +89882,7 @@ var InlineExitPlanMode = class {
     this.abortHandler = null;
     this.containerEl = containerEl;
     this.input = input;
-    this.resolveCallback = resolve9;
+    this.resolveCallback = resolve7;
     this.signal = signal;
     this.renderContent = renderContent;
     this.planPathPrefix = planPathPrefix;
@@ -90551,11 +90571,21 @@ function getWebSearchLabel(input, maxLength) {
   const summary = getWebSearchSummary(input, maxLength);
   return `WebSearch: ${summary || "search"}`;
 }
+function isSafeLinkUrl(url2) {
+  try {
+    const protocol = new URL(url2).protocol;
+    return protocol === "http:" || protocol === "https:";
+  } catch (e) {
+    return false;
+  }
+}
 function appendToolLink(parent, title, url2) {
   const linkEl = parent.createEl("a", { cls: "grimoire-tool-link" });
-  linkEl.setAttribute("href", url2);
-  linkEl.setAttribute("target", "_blank");
-  linkEl.setAttribute("rel", "noopener noreferrer");
+  if (isSafeLinkUrl(url2)) {
+    linkEl.setAttribute("href", url2);
+    linkEl.setAttribute("target", "_blank");
+    linkEl.setAttribute("rel", "noopener noreferrer");
+  }
   const iconEl = linkEl.createSpan({ cls: "grimoire-tool-link-icon" });
   (0, import_obsidian25.setIcon)(iconEl, "external-link");
   linkEl.createSpan({ cls: "grimoire-tool-link-title", text: title });
@@ -91582,13 +91612,13 @@ var InlinePermissionRequest = class {
 // src/features/chat/rendering/InlinePlanApproval.ts
 var HINTS_TEXT3 = "Arrow keys to navigate \xB7 Enter to select \xB7 Esc to cancel";
 var InlinePlanApproval = class {
-  constructor(containerEl, resolve9) {
+  constructor(containerEl, resolve7) {
     this.resolved = false;
     this.focusedIndex = 0;
     this.items = [];
     this.isInputFocused = false;
     this.containerEl = containerEl;
-    this.resolveCallback = resolve9;
+    this.resolveCallback = resolve7;
     this.boundKeyDown = (event) => this.handleKeyDown(event);
   }
   render() {
@@ -92985,7 +93015,7 @@ var InputController = class {
     this.deps.streamController.hideThinkingIndicator();
     const restoreAwaitingTool = this.markToolAwaitingPermission(toolName, input);
     const restoreComposer = this.lockComposerForPermission(inputContainerEl, parentEl);
-    const result = await new Promise((resolve9, reject) => {
+    const result = await new Promise((resolve7, reject) => {
       const inline = new InlinePermissionRequest(parentEl, {
         toolName,
         input,
@@ -92998,7 +93028,7 @@ var InputController = class {
           this.pendingApprovalInline = null;
           restoreAwaitingTool();
           restoreComposer();
-          resolve9(value);
+          resolve7(value);
         }
       });
       this.pendingApprovalInline = inline;
@@ -93040,14 +93070,14 @@ var InputController = class {
   showInlineQuestion(parentEl, inputContainerEl, input, setPending, signal, config2) {
     this.deps.streamController.hideThinkingIndicator();
     this.hideInputContainer(inputContainerEl);
-    return new Promise((resolve9, reject) => {
+    return new Promise((resolve7, reject) => {
       const inline = new InlineAskUserQuestion(
         parentEl,
         input,
         (result) => {
           setPending(null);
           this.restoreInputContainer(inputContainerEl);
-          resolve9(result);
+          resolve7(result);
         },
         signal,
         config2
@@ -93074,14 +93104,14 @@ var InputController = class {
     const enrichedInput = state.planFilePath ? { ...input, planFilePath: state.planFilePath } : input;
     const renderContent = (el2, markdown) => this.deps.renderer.renderContent(el2, markdown);
     const planPathPrefix = this.getActiveCapabilities().planPathPrefix;
-    return new Promise((resolve9, reject) => {
+    return new Promise((resolve7, reject) => {
       const inline = new InlineExitPlanMode(
         parentEl,
         enrichedInput,
         (decision) => {
           this.pendingExitPlanModeInline = null;
           this.restoreInputContainer(inputContainerEl);
-          resolve9(decision);
+          resolve7(decision);
         },
         signal,
         renderContent,
@@ -93124,7 +93154,7 @@ var InputController = class {
     }
     this.hideInputContainer(inputContainerEl);
     this.pendingPlanApprovalInvalidated = false;
-    return new Promise((resolve9, reject) => {
+    return new Promise((resolve7, reject) => {
       const inline = new InlinePlanApproval(
         parentEl,
         (decision) => {
@@ -93132,7 +93162,7 @@ var InputController = class {
           this.pendingPlanApprovalInvalidated = false;
           this.pendingPlanApproval = null;
           this.restoreInputContainer(inputContainerEl);
-          resolve9({ decision, invalidated });
+          resolve7({ decision, invalidated });
         }
       );
       this.pendingPlanApproval = inline;
@@ -95183,8 +95213,8 @@ var _StreamController = class _StreamController {
   }
   scheduleCurrentTextRender() {
     if (!this.pendingTextRenderPromise) {
-      this.pendingTextRenderPromise = new Promise((resolve9) => {
-        this.resolvePendingTextRender = resolve9;
+      this.pendingTextRenderPromise = new Promise((resolve7) => {
+        this.resolvePendingTextRender = resolve7;
       });
     }
     if (this.pendingTextRenderFrame === null && !this.isTextRenderRunning) {
@@ -95232,20 +95262,20 @@ var _StreamController = class _StreamController {
       }, this.getStreamingRenderWindow());
       return;
     }
-    const resolve9 = this.resolvePendingTextRender;
+    const resolve7 = this.resolvePendingTextRender;
     this.pendingTextRenderPromise = null;
     this.resolvePendingTextRender = null;
-    resolve9 == null ? void 0 : resolve9();
+    resolve7 == null ? void 0 : resolve7();
   }
   cancelPendingTextRender() {
     if (this.pendingTextRenderFrame !== null) {
       cancelScheduledAnimationFrame(this.pendingTextRenderFrame);
       this.pendingTextRenderFrame = null;
     }
-    const resolve9 = this.resolvePendingTextRender;
+    const resolve7 = this.resolvePendingTextRender;
     this.pendingTextRenderPromise = null;
     this.resolvePendingTextRender = null;
-    resolve9 == null ? void 0 : resolve9();
+    resolve7 == null ? void 0 : resolve7();
   }
   scheduleToolOutputRender(toolId, toolCall) {
     if (this.pendingToolOutputFrames.has(toolId)) return;
@@ -95305,8 +95335,8 @@ var _StreamController = class _StreamController {
   }
   scheduleCurrentThinkingRender() {
     if (!this.pendingThinkingRenderPromise) {
-      this.pendingThinkingRenderPromise = new Promise((resolve9) => {
-        this.resolvePendingThinkingRender = resolve9;
+      this.pendingThinkingRenderPromise = new Promise((resolve7) => {
+        this.resolvePendingThinkingRender = resolve7;
       });
     }
     if (this.pendingThinkingRenderFrame === null && !this.isThinkingRenderRunning) {
@@ -95355,20 +95385,20 @@ var _StreamController = class _StreamController {
       }, this.getThinkingRenderWindow());
       return;
     }
-    const resolve9 = this.resolvePendingThinkingRender;
+    const resolve7 = this.resolvePendingThinkingRender;
     this.pendingThinkingRenderPromise = null;
     this.resolvePendingThinkingRender = null;
-    resolve9 == null ? void 0 : resolve9();
+    resolve7 == null ? void 0 : resolve7();
   }
   cancelPendingThinkingRender() {
     if (this.pendingThinkingRenderFrame !== null) {
       cancelScheduledAnimationFrame(this.pendingThinkingRenderFrame);
       this.pendingThinkingRenderFrame = null;
     }
-    const resolve9 = this.resolvePendingThinkingRender;
+    const resolve7 = this.resolvePendingThinkingRender;
     this.pendingThinkingRenderPromise = null;
     this.resolvePendingThinkingRender = null;
-    resolve9 == null ? void 0 : resolve9();
+    resolve7 == null ? void 0 : resolve7();
   }
   // ============================================
   // Subagent Tool Handling (via SubagentManager)
@@ -97090,7 +97120,7 @@ var BangBashService = class {
     this.enhancedPath = enhancedPath;
   }
   execute(command) {
-    return new Promise((resolve9) => {
+    return new Promise((resolve7) => {
       (0, import_child_process9.exec)(command, {
         cwd: this.cwd,
         env: { ...process.env, PATH: this.enhancedPath },
@@ -97100,7 +97130,7 @@ var BangBashService = class {
       }, (error48, stdout, stderr) => {
         if (error48 && "killed" in error48 && error48.killed) {
           const isMaxBuffer = "code" in error48 && error48.code === "ERR_CHILD_PROCESS_STDIO_MAXBUFFER";
-          resolve9({
+          resolve7({
             command,
             stdout: stdout != null ? stdout : "",
             stderr: stderr != null ? stderr : "",
@@ -97109,7 +97139,7 @@ var BangBashService = class {
           });
           return;
         }
-        resolve9({
+        resolve7({
           command,
           stdout: stdout != null ? stdout : "",
           stderr: stderr != null ? stderr : "",
@@ -105252,15 +105282,15 @@ var import_obsidian44 = require("obsidian");
 // src/shared/modals/ForkTargetModal.ts
 var import_obsidian43 = require("obsidian");
 function chooseForkTarget(app) {
-  return new Promise((resolve9) => {
-    new ForkTargetModal(app, resolve9).open();
+  return new Promise((resolve7) => {
+    new ForkTargetModal(app, resolve7).open();
   });
 }
 var ForkTargetModal = class extends import_obsidian43.Modal {
-  constructor(app, resolve9) {
+  constructor(app, resolve7) {
     super(app);
     this.resolved = false;
-    this.resolve = resolve9;
+    this.resolve = resolve7;
   }
   onOpen() {
     this.setTitle(t("chat.fork.chooseTarget"));
@@ -105632,10 +105662,10 @@ var TabManager = class {
       this.maybePrimeProviderRuntime(tab);
     }
   }
-  *filterTabsByProvider(providerIds, resolve9) {
+  *filterTabsByProvider(providerIds, resolve7) {
     const filter = providerIds ? new Set(Array.isArray(providerIds) ? providerIds : [providerIds]) : null;
     for (const tab of this.tabs.values()) {
-      if (filter && !filter.has(resolve9(tab))) {
+      if (filter && !filter.has(resolve7(tab))) {
         continue;
       }
       yield tab;
@@ -106994,7 +107024,7 @@ var InlineEditModal = class {
       new import_obsidian46.Notice("Inline edit unavailable: could not access the active editor. Try reopening the note.");
       return { decision: "reject" };
     }
-    return new Promise((resolve9) => {
+    return new Promise((resolve7) => {
       this.controller = new InlineEditController(
         this.app,
         this.plugin,
@@ -107003,7 +107033,7 @@ var InlineEditModal = class {
         this.editContext,
         this.notePath,
         this.getExternalContexts,
-        resolve9
+        resolve7
       );
       activeController = this.controller;
       this.controller.show();
@@ -107011,14 +107041,14 @@ var InlineEditModal = class {
   }
 };
 var InlineEditController = class {
-  constructor(app, plugin, editorView, editor, editContext, notePath, getExternalContexts, resolve9) {
+  constructor(app, plugin, editorView, editor, editContext, notePath, getExternalContexts, resolve7) {
     this.app = app;
     this.plugin = plugin;
     this.editorView = editorView;
     this.editor = editor;
     this.notePath = notePath;
     this.getExternalContexts = getExternalContexts;
-    this.resolve = resolve9;
+    this.resolve = resolve7;
     this.inputEl = null;
     this.spinnerEl = null;
     this.agentReplyEl = null;
