@@ -664,6 +664,45 @@ describe('ToolCallRenderer', () => {
       expect(links[0].getAttribute('href')).toBe('https://example.com/docs');
       expect(links[0].querySelector('.grimoire-tool-link-title')?.textContent).toBe('https://example.com/docs');
     });
+
+    it('does not set an href for a javascript: scheme URL from tool input', () => {
+      const parentEl = createMockEl();
+      const toolCall = createToolCall({
+        name: 'WebSearch',
+        status: 'completed',
+        input: {
+          actionType: 'open_page',
+          // eslint-disable-next-line no-script-url -- intentional malicious payload under test
+          url: 'javascript:alert(document.cookie)',
+        },
+        result: 'Search complete',
+      });
+
+      const toolEl = renderStoredToolCall(parentEl, toolCall);
+      const links = toolEl.querySelectorAll('.grimoire-tool-link');
+
+      expect(links).toHaveLength(1);
+      expect(links[0].getAttribute('href')).toBeFalsy();
+      // The URL still renders as visible text, just not as a navigable link.
+      expect(links[0].querySelector('.grimoire-tool-link-title')?.textContent).toBe('javascript:alert(document.cookie)');
+    });
+
+    it('does not set an href for a file: scheme URL parsed from the result body', () => {
+      const parentEl = createMockEl();
+      const toolCall = createToolCall({
+        name: 'WebSearch',
+        status: 'completed',
+        input: { actionType: 'search', query: 'docs' },
+        result: 'Links: [{"title":"local","url":"file:///etc/passwd"},{"title":"ok","url":"https://example.com"}]\nDone',
+      });
+
+      const toolEl = renderStoredToolCall(parentEl, toolCall);
+      const links = toolEl.querySelectorAll('.grimoire-tool-link');
+
+      expect(links).toHaveLength(2);
+      expect(links[0].getAttribute('href')).toBeFalsy();
+      expect(links[1].getAttribute('href')).toBe('https://example.com');
+    });
   });
 
   describe('apply_patch expanded rendering', () => {

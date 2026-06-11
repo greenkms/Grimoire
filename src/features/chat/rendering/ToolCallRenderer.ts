@@ -409,11 +409,27 @@ function getWebSearchLabel(input: Record<string, unknown>, maxLength: number): s
   return `WebSearch: ${summary || 'search'}`;
 }
 
+/**
+ * Only http(s) URLs are safe to expose as a navigable href. Tool inputs and
+ * web-search result bodies are model-controlled, so schemes such as
+ * `javascript:` or `file:` must never reach an anchor's href.
+ */
+function isSafeLinkUrl(url: string): boolean {
+  try {
+    const protocol = new URL(url).protocol;
+    return protocol === 'http:' || protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 function appendToolLink(parent: HTMLElement, title: string, url: string): void {
   const linkEl = parent.createEl('a', { cls: 'grimoire-tool-link' });
-  linkEl.setAttribute('href', url);
-  linkEl.setAttribute('target', '_blank');
-  linkEl.setAttribute('rel', 'noopener noreferrer');
+  if (isSafeLinkUrl(url)) {
+    linkEl.setAttribute('href', url);
+    linkEl.setAttribute('target', '_blank');
+    linkEl.setAttribute('rel', 'noopener noreferrer');
+  }
 
   const iconEl = linkEl.createSpan({ cls: 'grimoire-tool-link-icon' });
   setIcon(iconEl, 'external-link');
