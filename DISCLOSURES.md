@@ -30,6 +30,10 @@ Network use can happen when the user enables or configures external tools:
 - User-approved shell commands or provider tools may access the network if the command or tool does so.
 - Installation and updates happen through Obsidian, BRAT, npm, or GitHub Releases, depending on the user's installation path.
 
+### MCP server connectivity testing
+
+When a user clicks "Test" on a configured HTTP or SSE MCP server, Grimoire verifies the connection using Node's `http`/`https` modules rather than Obsidian's `requestUrl`. This is required, not a stylistic choice: the Model Context Protocol SDK's streamable-HTTP and SSE transports need a streaming `fetch` implementation, and `requestUrl` buffers the entire response and cannot stream. Node's HTTP stack also avoids the renderer's CORS restrictions, which would otherwise block requests to remote MCP servers that do not send Obsidian-origin CORS headers. The request targets only the server URL the user entered, runs solely for the explicit test action, and is unrelated to normal turn traffic (which the provider CLIs handle themselves).
+
 ## System, shell, and filesystem access
 
 Grimoire is desktop-only because it launches local CLI agents. To do that, it uses Node.js filesystem and process APIs.
