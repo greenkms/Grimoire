@@ -119282,6 +119282,13 @@ function isLoadableView(value) {
   }
   return typeof value.load === "function";
 }
+function bindPrototypeLoad(value, view) {
+  if (!isLoadableView(value)) {
+    return () => void 0;
+  }
+  const load = value.load;
+  return () => load.call(view);
+}
 var SVG_NS4 = "http://www.w3.org/2000/svg";
 var HISTORY_ICON_PATHS = [
   "M3 12a9 9 0 1 0 3-6.7L3 8",
@@ -119338,7 +119345,7 @@ var GrimoireView = class extends import_obsidian47.ItemView {
     this.pendingPersist = null;
     this.plugin = plugin;
     const prototype = Object.getPrototypeOf(this);
-    const originalLoad = isLoadableView(prototype) ? prototype.load.bind(this) : () => void 0;
+    const originalLoad = bindPrototypeLoad(prototype, this);
     Object.defineProperty(this, "load", {
       value: async () => {
         if (!this.containerEl) {

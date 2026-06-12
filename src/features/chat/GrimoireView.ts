@@ -31,7 +31,7 @@ import { recalculateUsageForModel } from './utils/usageInfo';
 
 type LoadableView = {
   containerEl?: HTMLElement;
-  load: () => Promise<void> | void;
+  load: (this: LoadableView) => Promise<void> | void;
 };
 
 function isLoadableView(value: unknown): value is LoadableView {
@@ -40,6 +40,15 @@ function isLoadableView(value: unknown): value is LoadableView {
   }
 
   return typeof (value as { load?: unknown }).load === 'function';
+}
+
+function bindPrototypeLoad(value: unknown, view: LoadableView): () => Promise<void> | void {
+  if (!isLoadableView(value)) {
+    return () => undefined;
+  }
+
+  const load = value.load;
+  return () => load.call(view);
 }
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -115,9 +124,7 @@ export class GrimoireView extends ItemView {
     // overwritten by prototype patching. Hover Editor patches GrimoireView.prototype.load
     // after our class is defined, but instance methods take precedence over prototype methods.
     const prototype: unknown = Object.getPrototypeOf(this);
-    const originalLoad: LoadableView['load'] = isLoadableView(prototype)
-      ? prototype.load.bind(this)
-      : () => undefined;
+    const originalLoad = bindPrototypeLoad(prototype, this);
     Object.defineProperty(this, 'load', {
       value: async (): Promise<void> => {
         // Ensure containerEl exists before any patched load code tries to use it
