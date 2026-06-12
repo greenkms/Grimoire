@@ -3649,11 +3649,18 @@ body.grimoire-dragging-ns {
   display: none;
 }
 
+.grimoire-send-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+  margin-inline-start: auto;
+}
+
 .grimoire-send-button {
   flex: 0 0 auto;
   justify-self: end;
   height: 31px;
-  margin-inline-start: auto;
   padding: 0 12px;
   border: 0;
   border-radius: var(--grimoire-radius-1);
@@ -3667,6 +3674,32 @@ body.grimoire-dragging-ns {
 
 .grimoire-send-button:hover {
   filter: brightness(1.05);
+}
+
+.grimoire-stop-button {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 31px;
+  height: 31px;
+  padding: 0;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--grimoire-radius-1);
+  background: var(--background-modifier-error);
+  color: var(--text-on-accent);
+  box-shadow: 0 8px 20px rgba(220, 80, 80, 0.18);
+  cursor: pointer;
+}
+
+.grimoire-stop-button svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.8;
+}
+
+.grimoire-stop-button:hover {
+  filter: brightness(1.06);
 }
 
 

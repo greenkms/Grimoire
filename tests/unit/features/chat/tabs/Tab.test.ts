@@ -1851,6 +1851,29 @@ describe('Tab - UI Initialization', () => {
       expect(tab.dom.selectionIndicatorEl!.style.display).toBe('none');
     });
 
+    it('should show the stop button only while streaming', () => {
+      const options = createMockOptions();
+      const tab = createTab(options);
+
+      initializeTabUI(tab, options.plugin);
+
+      expect(tab.dom.stopButtonEl).not.toBeNull();
+      expect(tab.dom.stopButtonEl?.hasClass('grimoire-hidden')).toBe(true);
+      expect(tab.dom.stopButtonEl?.textContent).toBe('');
+      expect(setIcon).toHaveBeenCalledWith(tab.dom.stopButtonEl, 'square');
+
+      const actionGroup = tab.dom.inputContainerEl.querySelector('.grimoire-send-actions');
+      expect(actionGroup?.hasClass('grimoire-send-actions')).toBe(true);
+      expect(actionGroup?.children[actionGroup.children.length - 2]).toBe(tab.dom.stopButtonEl);
+      expect(actionGroup?.children[actionGroup.children.length - 1]).toBe(tab.dom.sendButtonEl);
+
+      tab.state.isStreaming = true;
+      expect(tab.dom.stopButtonEl?.hasClass('grimoire-hidden')).toBe(false);
+
+      tab.state.isStreaming = false;
+      expect(tab.dom.stopButtonEl?.hasClass('grimoire-hidden')).toBe(true);
+    });
+
     it('should create SlashCommandDropdown', () => {
       const options = createMockOptions();
       const tab = createTab(options);
@@ -2211,6 +2234,7 @@ describe('Tab - Event Handler Behavior', () => {
     tab.ui.fileContextManager = mockFileContextManager as any;
     tab.controllers.inputController = mockInputController as any;
     tab.controllers.selectionController = mockSelectionController as any;
+    tab.dom.stopButtonEl = createMockEl('button') as any;
 
     wireTabInputEvents(tab, options.plugin);
 
@@ -2362,6 +2386,16 @@ describe('Tab - Event Handler Behavior', () => {
 
       expect(event.preventDefault).toHaveBeenCalled();
       expect(mockInputController.cancelStreaming).toHaveBeenCalled();
+    });
+
+    it('should cancel streaming from the stop button without sending', () => {
+      const { tab } = setupKeydownTab();
+      tab.state.isStreaming = true;
+
+      tab.dom.stopButtonEl?.click();
+
+      expect(mockInputController.cancelStreaming).toHaveBeenCalledTimes(1);
+      expect(mockInputController.sendMessage).not.toHaveBeenCalled();
     });
 
     it('should not cancel streaming on Escape when isComposing (IME)', () => {

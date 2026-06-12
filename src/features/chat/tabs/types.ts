@@ -180,6 +180,7 @@ export interface TabDOMElements {
   inputWrapper: HTMLElement;
   inputEl: HTMLTextAreaElement;
   sendButtonEl: HTMLButtonElement | null;
+  stopButtonEl: HTMLButtonElement | null;
 
   /** Nav row for tab badges and header icons (above input wrapper). */
   navRowEl: HTMLElement;

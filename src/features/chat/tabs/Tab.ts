@@ -1,5 +1,5 @@
 import type { Component } from 'obsidian';
-import { Notice, Platform, TFile } from 'obsidian';
+import { Notice, Platform, setIcon, TFile } from 'obsidian';
 
 import { formatGrimoireVersion } from '../../../app/version';
 import { ProjectWorkspaceStore } from '../../../core/context/ProjectWorkspaceStore';
@@ -740,6 +740,10 @@ function syncBoundStatus(tab: TabData, plugin: GrimoirePlugin): void {
   tab.dom.boundStatusMetaEl.setText(`${linkedCount} linked ${linkedCount === 1 ? 'note' : 'notes'} · ${safeLabel}`);
 }
 
+function syncComposerStopButton(tab: TabData): void {
+  tab.dom.stopButtonEl?.toggleClass('grimoire-hidden', !tab.state.isStreaming);
+}
+
 function appendContextSummaryRow(
   parentEl: HTMLElement,
   title: string,
@@ -1194,6 +1198,7 @@ function buildTabDOM(contentEl: HTMLElement, versionText: string): TabDOMElement
     inputWrapper,
     inputEl,
     sendButtonEl: null,
+    stopButtonEl: null,
     navRowEl,
     contextRowEl,
     selectionIndicatorEl: null,
@@ -1881,11 +1886,18 @@ function initializeInputToolbar(
 
   const actionsRowEl = inputToolbar.querySelector<HTMLElement>('.grimoire-input-toolbar-actions-row')
     ?? inputToolbar;
-  dom.sendButtonEl = actionsRowEl.createEl('button', {
+  const sendActionsEl = actionsRowEl.createDiv({ cls: 'grimoire-send-actions' });
+  dom.stopButtonEl = sendActionsEl.createEl('button', {
+    cls: 'grimoire-stop-button grimoire-hidden',
+    attr: { type: 'button', 'aria-label': 'Stop response', title: 'Stop response' },
+  });
+  setIcon(dom.stopButtonEl, 'square');
+  dom.sendButtonEl = sendActionsEl.createEl('button', {
     cls: 'grimoire-send-button',
     text: 'Send',
     attr: { type: 'button', 'aria-label': 'Send message' },
   });
+  syncComposerStopButton(tab);
 
   tab.ui.modelSelector = toolbarComponents.modelSelector;
   tab.ui.planUsageBadge = toolbarComponents.planUsageBadge;
@@ -1999,6 +2011,7 @@ export function initializeTabUI(
     ...state.callbacks,
     onStreamingStateChanged: (isStreaming) => {
       syncBoundStatus(tab, plugin);
+      syncComposerStopButton(tab);
       updateScrollResumeButton(tab, plugin);
       previousStreamingStateChanged?.(isStreaming);
     },
@@ -2582,6 +2595,14 @@ export function wireTabInputEvents(tab: TabData, plugin: GrimoirePlugin): void {
     };
     dom.sendButtonEl.addEventListener('click', sendClickHandler);
     dom.eventCleanups.push(() => dom.sendButtonEl?.removeEventListener('click', sendClickHandler));
+  }
+
+  if (dom.stopButtonEl) {
+    const stopClickHandler = () => {
+      controllers.inputController?.cancelStreaming();
+    };
+    dom.stopButtonEl.addEventListener('click', stopClickHandler);
+    dom.eventCleanups.push(() => dom.stopButtonEl?.removeEventListener('click', stopClickHandler));
   }
 
   const inputHandler = () => {

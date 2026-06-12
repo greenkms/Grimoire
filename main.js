@@ -104911,6 +104911,10 @@ function syncBoundStatus(tab, plugin) {
   tab.dom.boundStatusNoteEl.setText(currentPath ? getPathTitle(currentPath) : "Attached context");
   tab.dom.boundStatusMetaEl.setText(`${linkedCount} linked ${linkedCount === 1 ? "note" : "notes"} \xB7 ${safeLabel}`);
 }
+function syncComposerStopButton(tab) {
+  var _a7;
+  (_a7 = tab.dom.stopButtonEl) == null ? void 0 : _a7.toggleClass("grimoire-hidden", !tab.state.isStreaming);
+}
 function appendContextSummaryRow(parentEl, title, detail, badge, accent) {
   const rowEl = parentEl.createDiv({ cls: "grimoire-context-summary-row" });
   const copyEl = rowEl.createDiv({ cls: "grimoire-context-summary-copy" });
@@ -105283,6 +105287,7 @@ function buildTabDOM(contentEl, versionText) {
     inputWrapper,
     inputEl,
     sendButtonEl: null,
+    stopButtonEl: null,
     navRowEl,
     contextRowEl,
     selectionIndicatorEl: null,
@@ -105849,11 +105854,18 @@ function initializeInputToolbar(tab, plugin, getProviderCatalogConfig, onProvide
     }
   });
   const actionsRowEl = (_a7 = inputToolbar.querySelector(".grimoire-input-toolbar-actions-row")) != null ? _a7 : inputToolbar;
-  dom.sendButtonEl = actionsRowEl.createEl("button", {
+  const sendActionsEl = actionsRowEl.createDiv({ cls: "grimoire-send-actions" });
+  dom.stopButtonEl = sendActionsEl.createEl("button", {
+    cls: "grimoire-stop-button grimoire-hidden",
+    attr: { type: "button", "aria-label": "Stop response", title: "Stop response" }
+  });
+  (0, import_obsidian44.setIcon)(dom.stopButtonEl, "square");
+  dom.sendButtonEl = sendActionsEl.createEl("button", {
     cls: "grimoire-send-button",
     text: "Send",
     attr: { type: "button", "aria-label": "Send message" }
   });
+  syncComposerStopButton(tab);
   tab.ui.modelSelector = toolbarComponents.modelSelector;
   tab.ui.planUsageBadge = toolbarComponents.planUsageBadge;
   tab.ui.modeSelector = toolbarComponents.modeSelector;
@@ -105926,6 +105938,7 @@ function initializeTabUI(tab, plugin, options = {}) {
     ...state.callbacks,
     onStreamingStateChanged: (isStreaming) => {
       syncBoundStatus(tab, plugin);
+      syncComposerStopButton(tab);
       updateScrollResumeButton(tab, plugin);
       previousStreamingStateChanged == null ? void 0 : previousStreamingStateChanged(isStreaming);
     },
@@ -106394,6 +106407,17 @@ function wireTabInputEvents(tab, plugin) {
     dom.eventCleanups.push(() => {
       var _a8;
       return (_a8 = dom.sendButtonEl) == null ? void 0 : _a8.removeEventListener("click", sendClickHandler);
+    });
+  }
+  if (dom.stopButtonEl) {
+    const stopClickHandler = () => {
+      var _a8;
+      (_a8 = controllers.inputController) == null ? void 0 : _a8.cancelStreaming();
+    };
+    dom.stopButtonEl.addEventListener("click", stopClickHandler);
+    dom.eventCleanups.push(() => {
+      var _a8;
+      return (_a8 = dom.stopButtonEl) == null ? void 0 : _a8.removeEventListener("click", stopClickHandler);
     });
   }
   const inputHandler = () => {
