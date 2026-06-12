@@ -684,8 +684,8 @@ function syncContextSummary(tab: TabData, plugin: GrimoirePlugin): void {
   const permissionMode = getTabPermissionMode(tab, plugin);
   appendContextSummaryRow(
     contextSummaryEl,
-    getPermissionTitle(permissionMode),
-    getPermissionSummary(permissionMode),
+    getPermissionTitle(providerId, permissionMode),
+    getPermissionSummary(providerId, permissionMode),
     formatPermissionBadge(permissionMode),
     permissionMode !== 'full_access',
   );
@@ -734,9 +734,7 @@ function syncBoundStatus(tab: TabData, plugin: GrimoirePlugin): void {
   }
 
   const permissionMode = getTabPermissionMode(tab, plugin);
-  const safeLabel = permissionMode === 'full_access'
-    ? 'auto edits'
-    : (permissionMode === 'plan' ? 'plan mode' : 'safe mode');
+  const safeLabel = getPermissionInlineLabel(getTabProviderId(tab, plugin), permissionMode);
   const linkedCount = attachedFiles.size;
 
   tab.dom.boundStatusNoteEl.setText(currentPath ? getPathTitle(currentPath) : 'Attached context');
@@ -774,21 +772,50 @@ function getReasoningLabel(settings: TabProviderSettings): string {
   return '';
 }
 
-function getPermissionSummary(permissionMode: string): string {
+function getPermissionSummary(providerId: ProviderId, permissionMode: string): string {
+  const toggle = ProviderRegistry.getChatUIConfig(providerId).getPermissionModeToggle?.() ?? null;
+  if (toggle) {
+    if (permissionMode === toggle.activeValue && toggle.activeDescription) {
+      return toggle.activeDescription;
+    }
+    if (permissionMode === toggle.inactiveValue && toggle.inactiveDescription) {
+      return toggle.inactiveDescription;
+    }
+    if (permissionMode === toggle.planValue && toggle.planDescription) {
+      return toggle.planDescription;
+    }
+  }
   if (permissionMode === 'plan') {
     return 'plan before tool execution';
   }
   return 'ask before file edits and MCP writes';
 }
 
-function getPermissionTitle(permissionMode: string): string {
-  if (permissionMode === 'full_access') {
-    return 'Auto-approve';
+function getPermissionTitle(providerId: ProviderId, permissionMode: string): string {
+  const toggle = ProviderRegistry.getChatUIConfig(providerId).getPermissionModeToggle?.() ?? null;
+  if (toggle) {
+    if (permissionMode === toggle.activeValue) {
+      return toggle.activeLabel;
+    }
+    if (permissionMode === toggle.inactiveValue) {
+      return toggle.inactiveLabel;
+    }
+    if (permissionMode === toggle.planValue) {
+      return toggle.planLabel ?? 'Plan mode';
+    }
   }
   if (permissionMode === 'plan') {
     return 'Plan mode';
   }
+  if (permissionMode === 'full_access') {
+    return 'Auto-approve';
+  }
   return 'Safe mode';
+}
+
+function getPermissionInlineLabel(providerId: ProviderId, permissionMode: string): string {
+  const title = getPermissionTitle(providerId, permissionMode);
+  return title.toLowerCase();
 }
 
 function formatPermissionBadge(permissionMode: string): string {

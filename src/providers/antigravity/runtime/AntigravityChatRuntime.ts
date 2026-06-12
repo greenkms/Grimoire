@@ -24,7 +24,15 @@ import type {
   ToolCallInfo,
 } from '../../../core/types';
 import type GrimoirePlugin from '../../../main';
-import { appendProjectWorkspaceContext, appendVaultSearchContext } from '../../../utils/context';
+import { appendBrowserContext } from '../../../utils/browser';
+import { appendCanvasContext } from '../../../utils/canvas';
+import {
+  appendCurrentNote,
+  appendProjectWorkspaceContext,
+  appendVaultSearchContext,
+  formatCurrentNote,
+} from '../../../utils/context';
+import { appendEditorContext } from '../../../utils/editor';
 import { getVaultPath } from '../../../utils/path';
 import { ANTIGRAVITY_PROVIDER_CAPABILITIES } from '../capabilities';
 import { decodeAntigravityModelId } from '../models';
@@ -70,7 +78,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
     return {
       isCompact: false,
       mcpMentions: request.enabledMcpServers ?? new Set(),
-      persistedContent: request.text,
+      persistedContent: prompt,
       prompt,
       request,
     };
@@ -111,7 +119,17 @@ export class AntigravityChatRuntime implements ChatRuntime {
 
     const cwd = getVaultPath(this.plugin.app) ?? process.cwd();
     const command = this.plugin.getResolvedProviderCliPath('antigravity') ?? 'agy';
-    const prompt = buildAntigravityPrintPrompt(turn.request, conversationHistory);
+    const permissionMode = this.getPermissionMode();
+    if (permissionMode !== 'full_access') {
+      yield {
+        type: 'error',
+        content: 'Antigravity safe mode is unavailable because agy --print does not expose Grimoire file-edit approvals. Switch Antigravity to Auto-approve only if you want AGY to edit files without prompts.',
+      };
+      yield { type: 'done' };
+      return;
+    }
+
+    const prompt = buildAntigravityPrintPrompt(turn.prompt, conversationHistory);
 
     try {
       yield { content: 'Starting Antigravity...', type: 'status' };
@@ -119,9 +137,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
         command,
         cwd,
         model: this.getSelectedRawModel(),
-        permissionMode: typeof this.plugin.settings.permissionMode === 'string'
-          ? this.plugin.settings.permissionMode
-          : 'normal',
+        permissionMode,
         prompt,
         runtimeEnv: buildAntigravityRuntimeEnv(this.plugin.settings, command),
       });
@@ -440,6 +456,12 @@ export class AntigravityChatRuntime implements ChatRuntime {
     return providerSettings.visibleModels[0] ?? null;
   }
 
+  private getPermissionMode(): string {
+    return typeof this.plugin.settings.permissionMode === 'string'
+      ? this.plugin.settings.permissionMode
+      : 'normal';
+  }
+
   private setReady(ready: boolean): void {
     if (this.ready === ready) {
       return;
@@ -469,6 +491,10 @@ export function buildAntigravityPrintArgs(spec: AntigravityPrintArgsSpec): strin
 function buildAntigravityPromptText(request: ChatTurnRequest): string {
   let prompt = request.text;
 
+  if (request.currentNotePath) {
+    prompt = appendCurrentNote(prompt, request.currentNotePath);
+  }
+
   if (request.vaultSearchContext) {
     prompt = appendVaultSearchContext(prompt, request.vaultSearchContext);
   }
@@ -477,21 +503,48 @@ function buildAntigravityPromptText(request: ChatTurnRequest): string {
     prompt = appendProjectWorkspaceContext(prompt, request.projectWorkspaceContext);
   }
 
+  if (request.editorSelection) {
+    prompt = appendEditorContext(prompt, request.editorSelection);
+  }
+
+  if (request.browserSelection) {
+    prompt = appendBrowserContext(prompt, request.browserSelection);
+  }
+
+  if (request.canvasSelection) {
+    prompt = appendCanvasContext(prompt, request.canvasSelection);
+  }
+
   return prompt;
 }
 
 function buildAntigravityPrintPrompt(
-  request: ChatTurnRequest,
+  currentPrompt: string,
   conversationHistory?: ChatMessage[],
 ): string {
-  const currentPrompt = buildAntigravityPromptText(request);
   const history = (conversationHistory ?? [])
-    .filter((message) => !message.isRebuiltContext && message.content.trim())
+    .filter((message) => !message.isRebuiltContext && (message.content.trim() || message.currentNote))
     .slice(-12)
-    .map((message) => `${message.role === 'assistant' ? 'Assistant' : 'User'}: ${message.content.trim()}`)
+    .map(formatAntigravityHistoryMessage)
     .join('\n\n');
 
   return history ? `${history}\n\nUser: ${currentPrompt}` : currentPrompt;
+}
+
+function formatAntigravityHistoryMessage(message: ChatMessage): string {
+  const role = message.role === 'assistant' ? 'Assistant' : 'User';
+  let content = message.content.trim();
+
+  if (
+    message.role === 'user'
+    && message.currentNote
+    && !content.includes('<current_note>')
+  ) {
+    const currentNoteContext = formatCurrentNote(message.currentNote);
+    content = content ? `${currentNoteContext}\n\n${content}` : currentNoteContext;
+  }
+
+  return `${role}: ${content}`;
 }
 
 function appendLimited(current: string, chunk: Buffer | string): string {

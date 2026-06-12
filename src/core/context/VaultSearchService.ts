@@ -12,6 +12,8 @@ import type {
 import type { VaultIndexedDocument, VaultTextIndex } from './VaultTextIndex';
 
 const VAULT_MENTION_PATTERN = /(^|[^\p{L}\p{N}_@])@vault(?![\p{L}\p{N}_-])/u;
+const FILE_MENTION_WITH_EXTENSION_PATTERN =
+  /(^|\s)@(?=\S)[^\r\n@]*?\.[\p{L}\p{N}]{1,12}(?:[),.!?:;]+)?(?=$|\s)/gu;
 const FILE_MENTION_PATTERN = /(^|\s)@[\p{L}\p{N}_/-]+/gu;
 const BODY_SCORE_CAP = 8;
 
@@ -190,5 +192,8 @@ function tokenizeField(text: string): string[] {
 }
 
 function stripFileMentions(input: string): string {
-  return input.replace(FILE_MENTION_PATTERN, ' ').replace(/\s+/gu, ' ');
+  return input
+    .replace(FILE_MENTION_WITH_EXTENSION_PATTERN, '$1 ')
+    .replace(FILE_MENTION_PATTERN, '$1 ')
+    .replace(/\s+/gu, ' ');
 }

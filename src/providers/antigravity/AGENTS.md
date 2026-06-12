@@ -6,6 +6,7 @@
 
 - Antigravity is opt-in and disabled by default.
 - `AntigravityChatRuntime` supports single-turn print-mode requests, cancellation, and model selection through `agy --model`.
+- `agy --print` does not expose Grimoire file-edit approval hooks. Keep shared `normal` permission mode fail-closed for Antigravity; only launch AGY in explicit auto-approve/full-access mode unless a real approval-capable runtime is confirmed.
 - Model discovery comes from `agy models` and is stored in provider settings for the UI.
 - Antigravity CLI 1.0.7 does not expose Gemini CLI's `--acp` flag; do not route it through `src/providers/acp/` unless a real ACP-compatible runtime is confirmed.
 - Auxiliary workflows such as title generation, instruction refinement, and inline edit are unsupported until an Antigravity auxiliary runner exists.

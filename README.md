@@ -154,7 +154,9 @@ Install the official Antigravity CLI from Google, authenticate it locally, then 
 - [Antigravity CLI](https://antigravity.google/product/antigravity-cli)
 - [Gemini CLI migration guide](https://goo.gle/gemini-cli-migration)
 
-Inside Grimoire, Antigravity is the recommended Google provider. It runs through `agy --print` with optional model selection from `agy models`. Persistent sessions, native history, images, plan mode, and auxiliary workflows stay disabled until Antigravity exposes a compatible runtime surface for them.
+Inside Grimoire, Antigravity is the recommended Google provider. It runs through `agy --print` with optional model selection from `agy models`, and Grimoire folds the active note plus editor, browser, canvas, vault-search, and project-workspace context into that print prompt. Persistent sessions, native history, images, plan mode, streaming, and auxiliary workflows stay disabled until Antigravity exposes a compatible runtime surface for them.
+
+`agy --print` does not expose Grimoire file-edit approval hooks. For safety, Antigravity's shared Safe/normal mode is blocked in Grimoire; switch the Antigravity toolbar toggle to Auto-approve only when you are comfortable with AGY editing files without Grimoire prompts.
 
 ### Gemini CLI (Legacy)
 

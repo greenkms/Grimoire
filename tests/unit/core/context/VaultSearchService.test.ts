@@ -91,6 +91,13 @@ describe('VaultSearchService', () => {
     expect(service.extractVaultQuery('ask @vault @file roadmap')).toBe('roadmap');
   });
 
+  it('removes full file mentions with spaces before extracting the search query', () => {
+    const service = new VaultSearchService(new VaultTextIndex({} as App));
+
+    expect(service.extractVaultQuery('@vault @Artic Ocean.md')).toBe('');
+    expect(service.extractVaultQuery('@vault @Artic Ocean.md climate notes')).toBe('climate notes');
+  });
+
   it('escapes XML attributes and text in formatted prompts', () => {
     const service = new VaultSearchService(new VaultTextIndex({} as App));
 

@@ -156,7 +156,9 @@ agy
 - [Antigravity CLI](https://antigravity.google/product/antigravity-cli)
 - [Gemini CLI migration guide](https://goo.gle/gemini-cli-migration)
 
-Внутри Grimoire Antigravity — рекомендуемый Google provider. Он работает через `agy --print`, с optional model selection из `agy models`. Persistent sessions, native history, images, plan mode и auxiliary workflows остаются выключенными, пока Antigravity не предоставит совместимый runtime surface.
+Внутри Grimoire Antigravity — рекомендуемый Google provider. Он работает через `agy --print`, с optional model selection из `agy models`; Grimoire добавляет в print prompt активную заметку, editor/browser/canvas context, vault search и project workspace context. Persistent sessions, native history, images, plan mode, streaming и auxiliary workflows остаются выключенными, пока Antigravity не предоставит совместимый runtime surface.
+
+`agy --print` не предоставляет Grimoire hooks для подтверждения file edits. Поэтому ради безопасности Antigravity в общем Safe/normal mode заблокирован в Grimoire; переключайте Antigravity toolbar в Auto-approve только если готовы, что AGY может редактировать файлы без Grimoire prompts.
 
 ### Gemini CLI (Legacy)
 

@@ -30,9 +30,11 @@ const ANTIGRAVITY_REASONING_OPTIONS: ProviderReasoningOption[] = [
 const DEFAULT_CONTEXT_WINDOW = 1_000_000;
 const ANTIGRAVITY_PERMISSION_MODE_TOGGLE: ProviderPermissionModeToggleConfig = {
   inactiveValue: 'normal',
-  inactiveLabel: 'Safe',
+  inactiveLabel: 'Blocked',
+  inactiveDescription: 'Safe approvals are unavailable for agy --print',
   activeValue: 'full_access',
   activeLabel: 'Auto-approve',
+  activeDescription: 'Antigravity may edit files without Grimoire prompts',
 };
 
 function getAntigravityModelOptions(settings: Record<string, unknown>): ProviderUIOption[] {

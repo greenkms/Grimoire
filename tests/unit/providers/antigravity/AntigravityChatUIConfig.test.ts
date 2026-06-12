@@ -52,14 +52,16 @@ describe('antigravityChatUIConfig', () => {
     ]);
   });
 
-  it('exposes Safe/Auto-approve and multiple thinking options for the shared toolbar', () => {
+  it('exposes blocked/auto-approve and multiple thinking options for the shared toolbar', () => {
     const settings: Record<string, unknown> = {};
 
     expect(antigravityChatUIConfig.getPermissionModeToggle?.()).toEqual({
       inactiveValue: 'normal',
-      inactiveLabel: 'Safe',
+      inactiveLabel: 'Blocked',
+      inactiveDescription: 'Safe approvals are unavailable for agy --print',
       activeValue: 'full_access',
       activeLabel: 'Auto-approve',
+      activeDescription: 'Antigravity may edit files without Grimoire prompts',
     });
     expect(antigravityChatUIConfig.getReasoningOptions('antigravity', settings)).toEqual([
       { value: 'default', label: 'Default' },

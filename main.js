@@ -32032,6 +32032,55 @@ var AntigravityConversationHistoryService = class {
 // src/providers/antigravity/runtime/AntigravityChatRuntime.ts
 var import_node_child_process2 = require("node:child_process");
 
+// src/utils/browser.ts
+function escapeXmlAttribute(value) {
+  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function buildAttributeList(context) {
+  var _a7, _b4;
+  const attrs = [];
+  const source = context.source.trim() || "unknown";
+  attrs.push(`source="${escapeXmlAttribute(source)}"`);
+  if ((_a7 = context.title) == null ? void 0 : _a7.trim()) {
+    attrs.push(`title="${escapeXmlAttribute(context.title.trim())}"`);
+  }
+  if ((_b4 = context.url) == null ? void 0 : _b4.trim()) {
+    attrs.push(`url="${escapeXmlAttribute(context.url.trim())}"`);
+  }
+  return attrs.join(" ");
+}
+function escapeXmlBody(text) {
+  return text.replace(/<\/browser_selection>/gi, "&lt;/browser_selection&gt;");
+}
+function formatBrowserContext(context) {
+  const selectedText = context.selectedText.trim();
+  if (!selectedText) return "";
+  const attrs = buildAttributeList(context);
+  return `<browser_selection ${attrs}>
+${escapeXmlBody(selectedText)}
+</browser_selection>`;
+}
+function appendBrowserContext(prompt, context) {
+  const formatted = formatBrowserContext(context);
+  return formatted ? `${prompt}
+
+${formatted}` : prompt;
+}
+
+// src/utils/canvas.ts
+function formatCanvasContext(context) {
+  if (context.nodeIds.length === 0) return "";
+  return `<canvas_selection path="${context.canvasPath}">
+${context.nodeIds.join(", ")}
+</canvas_selection>`;
+}
+function appendCanvasContext(prompt, context) {
+  const formatted = formatCanvasContext(context);
+  return formatted ? `${prompt}
+
+${formatted}` : prompt;
+}
+
 // src/core/context/text.ts
 var TOKEN_PATTERN = /[\p{L}\p{N}\p{M}]+/gu;
 function normalizeSearchTerm(term) {
@@ -32055,7 +32104,7 @@ function tokenizeSearchText(text) {
 function escapeXmlText(text) {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
-function escapeXmlAttribute(text) {
+function escapeXmlAttribute2(text) {
   return escapeXmlText(text).replace(/"/g, "&quot;").replace(/'/g, "&apos;");
 }
 function extractBestSnippet(text, terms, maxChars) {
@@ -32206,13 +32255,13 @@ ${formatContextFilesLine(files)}`;
 }
 function appendVaultSearchContext(prompt, context) {
   const lines = [
-    `<vault_search query="${escapeXmlAttribute(context.query)}">`
+    `<vault_search query="${escapeXmlAttribute2(context.query)}">`
   ];
   for (const snippet of context.snippets) {
     lines.push(
-      `  <source id="${escapeXmlAttribute(snippet.source.id)}" path="${escapeXmlAttribute(
+      `  <source id="${escapeXmlAttribute2(snippet.source.id)}" path="${escapeXmlAttribute2(
         snippet.source.path
-      )}" title="${escapeXmlAttribute(snippet.source.title)}" score="${escapeXmlAttribute(
+      )}" title="${escapeXmlAttribute2(snippet.source.title)}" score="${escapeXmlAttribute2(
         snippet.score.toFixed(2)
       )}">`,
       `    ${escapeXmlText(snippet.text)}`,
@@ -32227,7 +32276,7 @@ ${lines.join("\n")}`;
 function appendProjectWorkspaceContext(prompt, context) {
   const { workspace } = context;
   const lines = [
-    `<project_workspace id="${escapeXmlAttribute(workspace.id)}" name="${escapeXmlAttribute(workspace.name)}">`
+    `<project_workspace id="${escapeXmlAttribute2(workspace.id)}" name="${escapeXmlAttribute2(workspace.name)}">`
   ];
   if (workspace.systemPrompt) {
     lines.push("  <system_prompt>", `    ${escapeXmlText(workspace.systemPrompt)}`, "  </system_prompt>");
@@ -32259,6 +32308,67 @@ function appendProjectWorkspaceContext(prompt, context) {
 ${lines.join("\n")}`;
 }
 
+// src/utils/editor.ts
+function getEditorView(editor) {
+  return editor.cm;
+}
+function findNearestNonEmptyLine(getLine, lineCount, startLine, direction) {
+  const step = direction === "before" ? -1 : 1;
+  for (let i3 = startLine + step; i3 >= 0 && i3 < lineCount; i3 += step) {
+    const content = getLine(i3);
+    if (content.trim().length > 0) {
+      return content;
+    }
+  }
+  return "";
+}
+function buildCursorContext(getLine, lineCount, line, column) {
+  const lineContent = getLine(line);
+  const beforeCursor = lineContent.substring(0, column);
+  const afterCursor = lineContent.substring(column);
+  const lineIsEmpty = lineContent.trim().length === 0;
+  const nothingBefore = beforeCursor.trim().length === 0;
+  const nothingAfter = afterCursor.trim().length === 0;
+  const isInbetween = lineIsEmpty || nothingBefore && nothingAfter;
+  let contextBefore = beforeCursor;
+  let contextAfter = afterCursor;
+  if (isInbetween) {
+    contextBefore = findNearestNonEmptyLine(getLine, lineCount, line, "before");
+    contextAfter = findNearestNonEmptyLine(getLine, lineCount, line, "after");
+  }
+  return { beforeCursor: contextBefore, afterCursor: contextAfter, isInbetween, line, column };
+}
+function formatEditorContext(context) {
+  if (context.mode === "selection" && context.selectedText) {
+    const lineAttr = context.startLine && context.lineCount ? ` lines="${context.startLine}-${context.startLine + context.lineCount - 1}"` : "";
+    return `<editor_selection path="${context.notePath}"${lineAttr}>
+${context.selectedText}
+</editor_selection>`;
+  } else if (context.mode === "cursor" && context.cursorContext) {
+    const ctx = context.cursorContext;
+    let content;
+    if (ctx.isInbetween) {
+      const parts = [];
+      if (ctx.beforeCursor) parts.push(ctx.beforeCursor);
+      parts.push("| #inbetween");
+      if (ctx.afterCursor) parts.push(ctx.afterCursor);
+      content = parts.join("\n");
+    } else {
+      content = `${ctx.beforeCursor}|${ctx.afterCursor} #inline`;
+    }
+    return `<editor_cursor path="${context.notePath}">
+${content}
+</editor_cursor>`;
+  }
+  return "";
+}
+function appendEditorContext(prompt, context) {
+  const formatted = formatEditorContext(context);
+  return formatted ? `${prompt}
+
+${formatted}` : prompt;
+}
+
 // src/providers/antigravity/runtime/AntigravityChatRuntime.ts
 init_path();
 var OUTPUT_BUFFER_LIMIT = 64e3;
@@ -32281,7 +32391,7 @@ var AntigravityChatRuntime = class {
     return {
       isCompact: false,
       mcpMentions: (_a7 = request.enabledMcpServers) != null ? _a7 : /* @__PURE__ */ new Set(),
-      persistedContent: request.text,
+      persistedContent: prompt,
       prompt,
       request
     };
@@ -32315,14 +32425,23 @@ var AntigravityChatRuntime = class {
     }
     const cwd = (_a7 = getVaultPath(this.plugin.app)) != null ? _a7 : process.cwd();
     const command = (_b4 = this.plugin.getResolvedProviderCliPath("antigravity")) != null ? _b4 : "agy";
-    const prompt = buildAntigravityPrintPrompt(turn.request, conversationHistory);
+    const permissionMode = this.getPermissionMode();
+    if (permissionMode !== "full_access") {
+      yield {
+        type: "error",
+        content: "Antigravity safe mode is unavailable because agy --print does not expose Grimoire file-edit approvals. Switch Antigravity to Auto-approve only if you want AGY to edit files without prompts."
+      };
+      yield { type: "done" };
+      return;
+    }
+    const prompt = buildAntigravityPrintPrompt(turn.prompt, conversationHistory);
     try {
       yield { content: "Starting Antigravity...", type: "status" };
       const output = await this.runPrint({
         command,
         cwd,
         model: this.getSelectedRawModel(),
-        permissionMode: typeof this.plugin.settings.permissionMode === "string" ? this.plugin.settings.permissionMode : "normal",
+        permissionMode,
         prompt,
         runtimeEnv: buildAntigravityRuntimeEnv(this.plugin.settings, command)
       });
@@ -32622,6 +32741,9 @@ var AntigravityChatRuntime = class {
     const providerSettings = getAntigravityProviderSettings(this.plugin.settings);
     return (_a7 = providerSettings.visibleModels[0]) != null ? _a7 : null;
   }
+  getPermissionMode() {
+    return typeof this.plugin.settings.permissionMode === "string" ? this.plugin.settings.permissionMode : "normal";
+  }
   setReady(ready) {
     if (this.ready === ready) {
       return;
@@ -32647,20 +32769,42 @@ function buildAntigravityPrintArgs(spec) {
 }
 function buildAntigravityPromptText(request) {
   let prompt = request.text;
+  if (request.currentNotePath) {
+    prompt = appendCurrentNote(prompt, request.currentNotePath);
+  }
   if (request.vaultSearchContext) {
     prompt = appendVaultSearchContext(prompt, request.vaultSearchContext);
   }
   if (request.projectWorkspaceContext) {
     prompt = appendProjectWorkspaceContext(prompt, request.projectWorkspaceContext);
   }
+  if (request.editorSelection) {
+    prompt = appendEditorContext(prompt, request.editorSelection);
+  }
+  if (request.browserSelection) {
+    prompt = appendBrowserContext(prompt, request.browserSelection);
+  }
+  if (request.canvasSelection) {
+    prompt = appendCanvasContext(prompt, request.canvasSelection);
+  }
   return prompt;
 }
-function buildAntigravityPrintPrompt(request, conversationHistory) {
-  const currentPrompt = buildAntigravityPromptText(request);
-  const history = (conversationHistory != null ? conversationHistory : []).filter((message) => !message.isRebuiltContext && message.content.trim()).slice(-12).map((message) => `${message.role === "assistant" ? "Assistant" : "User"}: ${message.content.trim()}`).join("\n\n");
+function buildAntigravityPrintPrompt(currentPrompt, conversationHistory) {
+  const history = (conversationHistory != null ? conversationHistory : []).filter((message) => !message.isRebuiltContext && (message.content.trim() || message.currentNote)).slice(-12).map(formatAntigravityHistoryMessage).join("\n\n");
   return history ? `${history}
 
 User: ${currentPrompt}` : currentPrompt;
+}
+function formatAntigravityHistoryMessage(message) {
+  const role = message.role === "assistant" ? "Assistant" : "User";
+  let content = message.content.trim();
+  if (message.role === "user" && message.currentNote && !content.includes("<current_note>")) {
+    const currentNoteContext = formatCurrentNote(message.currentNote);
+    content = content ? `${currentNoteContext}
+
+${content}` : currentNoteContext;
+  }
+  return `${role}: ${content}`;
 }
 function appendLimited2(current, chunk) {
   const text = typeof chunk === "string" ? chunk : chunk.toString("utf-8");
@@ -32847,9 +32991,11 @@ var ANTIGRAVITY_REASONING_OPTIONS = [
 var DEFAULT_CONTEXT_WINDOW = 1e6;
 var ANTIGRAVITY_PERMISSION_MODE_TOGGLE = {
   inactiveValue: "normal",
-  inactiveLabel: "Safe",
+  inactiveLabel: "Blocked",
+  inactiveDescription: "Safe approvals are unavailable for agy --print",
   activeValue: "full_access",
-  activeLabel: "Auto-approve"
+  activeLabel: "Auto-approve",
+  activeDescription: "Antigravity may edit files without Grimoire prompts"
 };
 function getAntigravityModelOptions(settings11) {
   var _a7, _b4, _c3;
@@ -69208,116 +69354,6 @@ function createStopSubagentHook(getState) {
   };
 }
 
-// src/utils/browser.ts
-function escapeXmlAttribute2(value) {
-  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-function buildAttributeList(context) {
-  var _a7, _b4;
-  const attrs = [];
-  const source = context.source.trim() || "unknown";
-  attrs.push(`source="${escapeXmlAttribute2(source)}"`);
-  if ((_a7 = context.title) == null ? void 0 : _a7.trim()) {
-    attrs.push(`title="${escapeXmlAttribute2(context.title.trim())}"`);
-  }
-  if ((_b4 = context.url) == null ? void 0 : _b4.trim()) {
-    attrs.push(`url="${escapeXmlAttribute2(context.url.trim())}"`);
-  }
-  return attrs.join(" ");
-}
-function escapeXmlBody(text) {
-  return text.replace(/<\/browser_selection>/gi, "&lt;/browser_selection&gt;");
-}
-function formatBrowserContext(context) {
-  const selectedText = context.selectedText.trim();
-  if (!selectedText) return "";
-  const attrs = buildAttributeList(context);
-  return `<browser_selection ${attrs}>
-${escapeXmlBody(selectedText)}
-</browser_selection>`;
-}
-function appendBrowserContext(prompt, context) {
-  const formatted = formatBrowserContext(context);
-  return formatted ? `${prompt}
-
-${formatted}` : prompt;
-}
-
-// src/utils/canvas.ts
-function formatCanvasContext(context) {
-  if (context.nodeIds.length === 0) return "";
-  return `<canvas_selection path="${context.canvasPath}">
-${context.nodeIds.join(", ")}
-</canvas_selection>`;
-}
-function appendCanvasContext(prompt, context) {
-  const formatted = formatCanvasContext(context);
-  return formatted ? `${prompt}
-
-${formatted}` : prompt;
-}
-
-// src/utils/editor.ts
-function getEditorView(editor) {
-  return editor.cm;
-}
-function findNearestNonEmptyLine(getLine, lineCount, startLine, direction) {
-  const step = direction === "before" ? -1 : 1;
-  for (let i3 = startLine + step; i3 >= 0 && i3 < lineCount; i3 += step) {
-    const content = getLine(i3);
-    if (content.trim().length > 0) {
-      return content;
-    }
-  }
-  return "";
-}
-function buildCursorContext(getLine, lineCount, line, column) {
-  const lineContent = getLine(line);
-  const beforeCursor = lineContent.substring(0, column);
-  const afterCursor = lineContent.substring(column);
-  const lineIsEmpty = lineContent.trim().length === 0;
-  const nothingBefore = beforeCursor.trim().length === 0;
-  const nothingAfter = afterCursor.trim().length === 0;
-  const isInbetween = lineIsEmpty || nothingBefore && nothingAfter;
-  let contextBefore = beforeCursor;
-  let contextAfter = afterCursor;
-  if (isInbetween) {
-    contextBefore = findNearestNonEmptyLine(getLine, lineCount, line, "before");
-    contextAfter = findNearestNonEmptyLine(getLine, lineCount, line, "after");
-  }
-  return { beforeCursor: contextBefore, afterCursor: contextAfter, isInbetween, line, column };
-}
-function formatEditorContext(context) {
-  if (context.mode === "selection" && context.selectedText) {
-    const lineAttr = context.startLine && context.lineCount ? ` lines="${context.startLine}-${context.startLine + context.lineCount - 1}"` : "";
-    return `<editor_selection path="${context.notePath}"${lineAttr}>
-${context.selectedText}
-</editor_selection>`;
-  } else if (context.mode === "cursor" && context.cursorContext) {
-    const ctx = context.cursorContext;
-    let content;
-    if (ctx.isInbetween) {
-      const parts = [];
-      if (ctx.beforeCursor) parts.push(ctx.beforeCursor);
-      parts.push("| #inbetween");
-      if (ctx.afterCursor) parts.push(ctx.afterCursor);
-      content = parts.join("\n");
-    } else {
-      content = `${ctx.beforeCursor}|${ctx.afterCursor} #inline`;
-    }
-    return `<editor_cursor path="${context.notePath}">
-${content}
-</editor_cursor>`;
-  }
-  return "";
-}
-function appendEditorContext(prompt, context) {
-  const formatted = formatEditorContext(context);
-  return formatted ? `${prompt}
-
-${formatted}` : prompt;
-}
-
 // src/providers/claude/prompt/ClaudeTurnEncoder.ts
 function isCompactCommand(text) {
   return /^\/compact(\s|$)/i.test(text);
@@ -88273,6 +88309,7 @@ function compareRelevantNotes(left, right) {
 
 // src/core/context/VaultSearchService.ts
 var VAULT_MENTION_PATTERN = /(^|[^\p{L}\p{N}_@])@vault(?![\p{L}\p{N}_-])/u;
+var FILE_MENTION_WITH_EXTENSION_PATTERN = /(^|\s)@(?=\S)[^\r\n@]*?\.[\p{L}\p{N}]{1,12}(?:[),.!?:;]+)?(?=$|\s)/gu;
 var FILE_MENTION_PATTERN = /(^|\s)@[\p{L}\p{N}_/-]+/gu;
 var BODY_SCORE_CAP = 8;
 var VaultSearchService = class {
@@ -88316,13 +88353,13 @@ var VaultSearchService = class {
   }
   formatForPrompt(result) {
     const lines = [
-      `<vault_search query="${escapeXmlAttribute(result.query.raw)}">`
+      `<vault_search query="${escapeXmlAttribute2(result.query.raw)}">`
     ];
     for (const snippet of result.snippets) {
       lines.push(
-        `  <source id="${escapeXmlAttribute(snippet.source.id)}" path="${escapeXmlAttribute(
+        `  <source id="${escapeXmlAttribute2(snippet.source.id)}" path="${escapeXmlAttribute2(
           snippet.source.path
-        )}" title="${escapeXmlAttribute(snippet.source.title)}" score="${snippet.score.toFixed(
+        )}" title="${escapeXmlAttribute2(snippet.source.title)}" score="${snippet.score.toFixed(
           2
         )}">${escapeXmlText(snippet.text)}</source>`
       );
@@ -88406,7 +88443,7 @@ function tokenizeField(text) {
   );
 }
 function stripFileMentions(input) {
-  return input.replace(FILE_MENTION_PATTERN, " ").replace(/\s+/gu, " ");
+  return input.replace(FILE_MENTION_WITH_EXTENSION_PATTERN, "$1 ").replace(FILE_MENTION_PATTERN, "$1 ").replace(/\s+/gu, " ");
 }
 
 // src/core/context/VaultTextIndex.ts
@@ -116403,8 +116440,8 @@ function syncContextSummary(tab, plugin) {
   const permissionMode = getTabPermissionMode(tab, plugin);
   appendContextSummaryRow(
     contextSummaryEl,
-    getPermissionTitle(permissionMode),
-    getPermissionSummary(permissionMode),
+    getPermissionTitle(providerId, permissionMode),
+    getPermissionSummary(providerId, permissionMode),
     formatPermissionBadge(permissionMode),
     permissionMode !== "full_access"
   );
@@ -116441,7 +116478,7 @@ function syncBoundStatus(tab, plugin) {
     return;
   }
   const permissionMode = getTabPermissionMode(tab, plugin);
-  const safeLabel = permissionMode === "full_access" ? "auto edits" : permissionMode === "plan" ? "plan mode" : "safe mode";
+  const safeLabel = getPermissionInlineLabel(getTabProviderId(tab, plugin), permissionMode);
   const linkedCount = attachedFiles.size;
   tab.dom.boundStatusNoteEl.setText(currentPath ? getPathTitle(currentPath) : "Attached context");
   tab.dom.boundStatusMetaEl.setText(`${linkedCount} linked ${linkedCount === 1 ? "note" : "notes"} \xB7 ${safeLabel}`);
@@ -116469,20 +116506,50 @@ function getReasoningLabel(settings11) {
   }
   return "";
 }
-function getPermissionSummary(permissionMode) {
+function getPermissionSummary(providerId, permissionMode) {
+  var _a7, _b4, _c3;
+  const toggle = (_c3 = (_b4 = (_a7 = ProviderRegistry.getChatUIConfig(providerId)).getPermissionModeToggle) == null ? void 0 : _b4.call(_a7)) != null ? _c3 : null;
+  if (toggle) {
+    if (permissionMode === toggle.activeValue && toggle.activeDescription) {
+      return toggle.activeDescription;
+    }
+    if (permissionMode === toggle.inactiveValue && toggle.inactiveDescription) {
+      return toggle.inactiveDescription;
+    }
+    if (permissionMode === toggle.planValue && toggle.planDescription) {
+      return toggle.planDescription;
+    }
+  }
   if (permissionMode === "plan") {
     return "plan before tool execution";
   }
   return "ask before file edits and MCP writes";
 }
-function getPermissionTitle(permissionMode) {
-  if (permissionMode === "full_access") {
-    return "Auto-approve";
+function getPermissionTitle(providerId, permissionMode) {
+  var _a7, _b4, _c3, _d3;
+  const toggle = (_c3 = (_b4 = (_a7 = ProviderRegistry.getChatUIConfig(providerId)).getPermissionModeToggle) == null ? void 0 : _b4.call(_a7)) != null ? _c3 : null;
+  if (toggle) {
+    if (permissionMode === toggle.activeValue) {
+      return toggle.activeLabel;
+    }
+    if (permissionMode === toggle.inactiveValue) {
+      return toggle.inactiveLabel;
+    }
+    if (permissionMode === toggle.planValue) {
+      return (_d3 = toggle.planLabel) != null ? _d3 : "Plan mode";
+    }
   }
   if (permissionMode === "plan") {
     return "Plan mode";
   }
+  if (permissionMode === "full_access") {
+    return "Auto-approve";
+  }
   return "Safe mode";
+}
+function getPermissionInlineLabel(providerId, permissionMode) {
+  const title = getPermissionTitle(providerId, permissionMode);
+  return title.toLowerCase();
 }
 function formatPermissionBadge(permissionMode) {
   if (permissionMode === "full_access") {
