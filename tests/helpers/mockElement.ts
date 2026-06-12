@@ -1,3 +1,29 @@
+const nodeTimers = require('node:timers') as typeof import('node:timers');
+
+function getSetTimeout(): typeof setTimeout {
+  return typeof globalThis.setTimeout === 'function'
+    ? globalThis.setTimeout.bind(globalThis)
+    : nodeTimers.setTimeout;
+}
+
+function getClearTimeout(): typeof clearTimeout {
+  return typeof globalThis.clearTimeout === 'function'
+    ? globalThis.clearTimeout.bind(globalThis)
+    : nodeTimers.clearTimeout;
+}
+
+function getSetInterval(): typeof setInterval {
+  return typeof globalThis.setInterval === 'function'
+    ? globalThis.setInterval.bind(globalThis)
+    : nodeTimers.setInterval;
+}
+
+function getClearInterval(): typeof clearInterval {
+  return typeof globalThis.clearInterval === 'function'
+    ? globalThis.clearInterval.bind(globalThis)
+    : nodeTimers.clearInterval;
+}
+
 export interface MockElement {
   tagName: string;
   children: MockElement[];
@@ -144,7 +170,7 @@ export function createMockEl(tag = 'div'): any {
       if (typeof requestFrame === 'function') {
         return requestFrame(callback);
       }
-      return globalThis.setTimeout(() => callback(performance.now()), 16) as unknown as number;
+      return getSetTimeout()(() => callback(performance.now()), 16) as unknown as number;
     },
     cancelAnimationFrame: (handle: number): void => {
       const cancelFrame =
@@ -154,17 +180,17 @@ export function createMockEl(tag = 'div'): any {
         cancelFrame(handle);
         return;
       }
-      globalThis.clearTimeout(handle as unknown as ReturnType<typeof setTimeout>);
+      getClearTimeout()(handle as unknown as ReturnType<typeof setTimeout>);
     },
     setTimeout: (callback: () => void, timeout: number): number =>
-      globalThis.setTimeout(callback, timeout) as unknown as number,
+      getSetTimeout()(callback, timeout) as unknown as number,
     clearTimeout: (handle: number): void => {
-      globalThis.clearTimeout(handle as unknown as ReturnType<typeof setTimeout>);
+      getClearTimeout()(handle as unknown as ReturnType<typeof setTimeout>);
     },
     setInterval: (callback: () => void, timeout: number): number =>
-      globalThis.setInterval(callback, timeout) as unknown as number,
+      getSetInterval()(callback, timeout) as unknown as number,
     clearInterval: (handle: number): void => {
-      globalThis.clearInterval(handle as unknown as ReturnType<typeof setInterval>);
+      getClearInterval()(handle as unknown as ReturnType<typeof setInterval>);
     },
   };
 

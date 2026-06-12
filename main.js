@@ -1,4 +1,4 @@
-/* Grimoire 1.0.11 */
+/* Grimoire 1.0.12 */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -119294,12 +119294,21 @@ function isLoadableView(value) {
   }
   return typeof value.load === "function";
 }
+function isPromiseLike(value) {
+  return typeof value === "object" && value !== null && typeof value.then === "function";
+}
 function bindPrototypeLoad(value, view) {
   if (!isLoadableView(value)) {
     return () => void 0;
   }
   const load = value.load;
-  return () => load.call(view);
+  return () => {
+    const result = load.call(view);
+    if (isPromiseLike(result)) {
+      return Promise.resolve(result).then(() => void 0);
+    }
+    return void 0;
+  };
 }
 var SVG_NS4 = "http://www.w3.org/2000/svg";
 var HISTORY_ICON_PATHS = [

@@ -42,13 +42,27 @@ function isLoadableView(value: unknown): value is LoadableView {
   return typeof (value as { load?: unknown }).load === 'function';
 }
 
+function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
+  return (
+    typeof value === 'object'
+    && value !== null
+    && typeof (value as { then?: unknown }).then === 'function'
+  );
+}
+
 function bindPrototypeLoad(value: unknown, view: LoadableView): () => Promise<void> | void {
   if (!isLoadableView(value)) {
     return () => undefined;
   }
 
   const load = value.load;
-  return () => load.call(view);
+  return () => {
+    const result: unknown = load.call(view);
+    if (isPromiseLike(result)) {
+      return Promise.resolve(result).then(() => undefined);
+    }
+    return undefined;
+  };
 }
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
