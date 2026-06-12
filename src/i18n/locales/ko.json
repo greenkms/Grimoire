@@ -258,6 +258,10 @@
       "name": "Command/Ctrl+Enter로 보내기 필수",
       "desc": "활성화하면 Enter는 줄바꿈을 삽입합니다. macOS에서는 Command+Enter, Windows와 Linux에서는 Ctrl+Enter로 보냅니다."
     },
+    "theme": {
+      "name": "테마",
+      "followsObsidian": "Obsidian을 따름"
+    },
     "usageIndicators": {
       "name": "Usage indicators",
       "desc": "Show plan usage and API spend indicators beside the model selector and inside the model menu."

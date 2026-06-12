@@ -258,6 +258,10 @@
       "name": "Exigir Command/Ctrl+Enter para enviar",
       "desc": "Quando ativado, Enter insere uma quebra de linha. Command+Enter envia no macOS; Ctrl+Enter envia no Windows e Linux."
     },
+    "theme": {
+      "name": "Tema",
+      "followsObsidian": "Segue o Obsidian"
+    },
     "usageIndicators": {
       "name": "Usage indicators",
       "desc": "Show plan usage and API spend indicators beside the model selector and inside the model menu."

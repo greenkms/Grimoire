@@ -49906,6 +49906,10 @@ var settings = {
     name: "Command/Ctrl+Enter zum Senden erfordern",
     desc: "Wenn aktiviert, f\xFCgt Enter einen Zeilenumbruch ein. Command+Enter sendet unter macOS; Ctrl+Enter sendet unter Windows und Linux."
   },
+  theme: {
+    name: "Theme",
+    followsObsidian: "Folgt Obsidian"
+  },
   usageIndicators: {
     name: "Usage indicators",
     desc: "Show plan usage and API spend indicators beside the model selector and inside the model menu."
@@ -50401,6 +50405,10 @@ var settings2 = {
   requireCommandOrControlEnterToSend: {
     name: "Require Command/Ctrl+Enter to send",
     desc: "When enabled, Enter inserts a newline. Command+Enter sends on macOS; Ctrl+Enter sends on Windows and Linux."
+  },
+  theme: {
+    name: "Theme",
+    followsObsidian: "Follows Obsidian"
   },
   usageIndicators: {
     name: "Usage indicators",
@@ -50898,6 +50906,10 @@ var settings3 = {
     name: "Requerir Command/Ctrl+Enter para enviar",
     desc: "Cuando est\xE1 activado, Enter inserta un salto de l\xEDnea. Command+Enter env\xEDa en macOS; Ctrl+Enter env\xEDa en Windows y Linux."
   },
+  theme: {
+    name: "Tema",
+    followsObsidian: "Sigue Obsidian"
+  },
   usageIndicators: {
     name: "Usage indicators",
     desc: "Show plan usage and API spend indicators beside the model selector and inside the model menu."
@@ -51393,6 +51405,10 @@ var settings4 = {
   requireCommandOrControlEnterToSend: {
     name: "Exiger Command/Ctrl+Entr\xE9e pour envoyer",
     desc: "Lorsque cette option est activ\xE9e, Entr\xE9e ins\xE8re une nouvelle ligne. Command+Entr\xE9e envoie sur macOS ; Ctrl+Entr\xE9e envoie sur Windows et Linux."
+  },
+  theme: {
+    name: "Th\xE8me",
+    followsObsidian: "Suit Obsidian"
   },
   usageIndicators: {
     name: "Usage indicators",
@@ -51890,6 +51906,10 @@ var settings5 = {
     name: "\u9001\u4FE1\u306B Command/Ctrl+Enter \u3092\u5FC5\u9808\u306B\u3059\u308B",
     desc: "\u6709\u52B9\u306B\u3059\u308B\u3068\u3001Enter \u306F\u6539\u884C\u3092\u633F\u5165\u3057\u307E\u3059\u3002macOS \u3067\u306F Command+Enter\u3001Windows \u3068 Linux \u3067\u306F Ctrl+Enter \u3067\u9001\u4FE1\u3057\u307E\u3059\u3002"
   },
+  theme: {
+    name: "\u30C6\u30FC\u30DE",
+    followsObsidian: "Obsidian \u306B\u5F93\u3046"
+  },
   usageIndicators: {
     name: "Usage indicators",
     desc: "Show plan usage and API spend indicators beside the model selector and inside the model menu."
@@ -52385,6 +52405,10 @@ var settings6 = {
   requireCommandOrControlEnterToSend: {
     name: "Command/Ctrl+Enter\uB85C \uBCF4\uB0B4\uAE30 \uD544\uC218",
     desc: "\uD65C\uC131\uD654\uD558\uBA74 Enter\uB294 \uC904\uBC14\uAFC8\uC744 \uC0BD\uC785\uD569\uB2C8\uB2E4. macOS\uC5D0\uC11C\uB294 Command+Enter, Windows\uC640 Linux\uC5D0\uC11C\uB294 Ctrl+Enter\uB85C \uBCF4\uB0C5\uB2C8\uB2E4."
+  },
+  theme: {
+    name: "\uD14C\uB9C8",
+    followsObsidian: "Obsidian\uC744 \uB530\uB984"
   },
   usageIndicators: {
     name: "Usage indicators",
@@ -52882,6 +52906,10 @@ var settings7 = {
     name: "Exigir Command/Ctrl+Enter para enviar",
     desc: "Quando ativado, Enter insere uma quebra de linha. Command+Enter envia no macOS; Ctrl+Enter envia no Windows e Linux."
   },
+  theme: {
+    name: "Tema",
+    followsObsidian: "Segue o Obsidian"
+  },
   usageIndicators: {
     name: "Usage indicators",
     desc: "Show plan usage and API spend indicators beside the model selector and inside the model menu."
@@ -53377,6 +53405,10 @@ var settings8 = {
   requireCommandOrControlEnterToSend: {
     name: "\u0422\u0440\u0435\u0431\u043E\u0432\u0430\u0442\u044C Command/Ctrl+Enter \u0434\u043B\u044F \u043E\u0442\u043F\u0440\u0430\u0432\u043A\u0438",
     desc: "\u0415\u0441\u043B\u0438 \u0432\u043A\u043B\u044E\u0447\u0435\u043D\u043E, Enter \u0432\u0441\u0442\u0430\u0432\u043B\u044F\u0435\u0442 \u043D\u043E\u0432\u0443\u044E \u0441\u0442\u0440\u043E\u043A\u0443. Command+Enter \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u044F\u0435\u0442 \u043D\u0430 macOS; Ctrl+Enter \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u044F\u0435\u0442 \u043D\u0430 Windows \u0438 Linux."
+  },
+  theme: {
+    name: "\u0422\u0435\u043C\u0430",
+    followsObsidian: "\u0421\u043B\u0435\u0434\u0443\u0435\u0442 \u0442\u0435\u043C\u0435 Obsidian"
   },
   usageIndicators: {
     name: "Usage indicators",
@@ -53874,6 +53906,10 @@ var settings9 = {
     name: "\u9700\u8981 Command/Ctrl+Enter \u53D1\u9001",
     desc: "\u542F\u7528\u540E\uFF0CEnter \u4F1A\u63D2\u5165\u6362\u884C\u3002macOS \u4F7F\u7528 Command+Enter \u53D1\u9001\uFF1BWindows \u548C Linux \u4F7F\u7528 Ctrl+Enter \u53D1\u9001\u3002"
   },
+  theme: {
+    name: "\u4E3B\u9898",
+    followsObsidian: "\u8DDF\u968F Obsidian"
+  },
   usageIndicators: {
     name: "Usage indicators",
     desc: "Show plan usage and API spend indicators beside the model selector and inside the model menu."
@@ -54369,6 +54405,10 @@ var settings10 = {
   requireCommandOrControlEnterToSend: {
     name: "\u9700\u8981 Command/Ctrl+Enter \u624D\u80FD\u50B3\u9001",
     desc: "\u555F\u7528\u5F8C\uFF0CEnter \u6703\u63D2\u5165\u63DB\u884C\u3002macOS \u4F7F\u7528 Command+Enter \u50B3\u9001\uFF1BWindows \u548C Linux \u4F7F\u7528 Ctrl+Enter \u50B3\u9001\u3002"
+  },
+  theme: {
+    name: "\u4E3B\u984C",
+    followsObsidian: "\u8DDF\u96A8 Obsidian"
   },
   usageIndicators: {
     name: "Usage indicators",
@@ -85991,7 +86031,7 @@ function registerBuiltInProviders() {
 registerBuiltInProviders();
 
 // src/main.ts
-var import_obsidian49 = require("obsidian");
+var import_obsidian50 = require("obsidian");
 
 // src/app/storage/SharedStorageService.ts
 var import_obsidian20 = require("obsidian");
@@ -86230,7 +86270,7 @@ var DebugLogService = class {
 };
 
 // src/features/chat/GrimoireView.ts
-var import_obsidian45 = require("obsidian");
+var import_obsidian46 = require("obsidian");
 
 // src/shared/appIcon.ts
 var GRIMOIRE_APP_ICON_ID = "grimoire";
@@ -86399,7 +86439,7 @@ var OrchestratorService = class {
 };
 
 // src/features/chat/tabs/Tab.ts
-var import_obsidian42 = require("obsidian");
+var import_obsidian43 = require("obsidian");
 
 // src/core/context/ProjectWorkspaceStore.ts
 function createWorkspaceId() {
@@ -88685,7 +88725,7 @@ var ConversationController = class {
 };
 
 // src/features/chat/controllers/InputController.ts
-var import_obsidian27 = require("obsidian");
+var import_obsidian28 = require("obsidian");
 
 // src/core/runtime/QueuedTurn.ts
 function cloneChatTurnRequest(request) {
@@ -89286,20 +89326,24 @@ function buildImageGenerationPrompt({
 }
 
 // src/features/chat/rendering/InlineAskUserQuestion.ts
-var HINTS_TEXT = "Enter to select \xB7 Tab/Arrow keys to navigate \xB7 Esc to cancel";
-var HINTS_TEXT_IMMEDIATE = "Enter to select \xB7 Arrow keys to navigate \xB7 Esc to cancel";
+var import_obsidian24 = require("obsidian");
+var KIND_LABELS = {
+  single: "single",
+  multi: "multiple",
+  freeform: "opt."
+};
 var InlineAskUserQuestion = class {
   constructor(containerEl, input, resolve7, signal, config2) {
     this.resolved = false;
     this.questions = [];
-    this.answers = /* @__PURE__ */ new Map();
-    this.customInputs = /* @__PURE__ */ new Map();
-    this.activeTabIndex = 0;
-    this.focusedItemIndex = 0;
-    this.isInputFocused = false;
-    this.tabElements = [];
-    this.currentItems = [];
+    this.questionStates = [];
+    this.focusedBlockIdx = 0;
+    this.focusedOptIdx = 0;
+    this.isFreeformFocused = false;
     this.abortHandler = null;
+    this.blockEls = [];
+    this.optRows = [];
+    this.freeformEls = [];
     var _a7, _b4, _c3;
     this.containerEl = containerEl;
     this.input = input;
@@ -89314,12 +89358,8 @@ var InlineAskUserQuestion = class {
     this.boundKeyDown = (event) => this.handleKeyDown(event);
   }
   render() {
-    this.rootEl = this.containerEl.createDiv({ cls: "grimoire-ask-question-inline" });
-    const titleEl = this.rootEl.createDiv({ cls: "grimoire-ask-inline-title" });
-    titleEl.setText(this.config.title);
-    if (this.config.headerEl) {
-      this.rootEl.appendChild(this.config.headerEl);
-    }
+    this.rootEl = this.containerEl.createDiv({ cls: "grimoire-ask-anchor" });
+    this.formEl = this.rootEl.createDiv({ cls: "grimoire-ask-form" });
     this.questions = this.parseQuestions();
     if (this.questions.length === 0) {
       this.handleResolve(null);
@@ -89329,15 +89369,11 @@ var InlineAskUserQuestion = class {
       this.config.immediateSelect = false;
     }
     for (let i = 0; i < this.questions.length; i++) {
-      this.answers.set(i, /* @__PURE__ */ new Set());
-      this.customInputs.set(i, "");
+      this.questionStates.push({ selectedValues: /* @__PURE__ */ new Set(), freeformText: "" });
     }
-    if (!this.config.immediateSelect) {
-      this.tabBar = this.rootEl.createDiv({ cls: "grimoire-ask-tab-bar" });
-      this.renderTabBar();
-    }
-    this.contentArea = this.rootEl.createDiv({ cls: "grimoire-ask-content" });
-    this.renderTabContent();
+    this.renderHeader();
+    this.renderBody();
+    this.renderActions();
     this.rootEl.setAttribute("tabindex", "0");
     this.rootEl.addEventListener("keydown", this.boundKeyDown);
     window.requestAnimationFrame(() => {
@@ -89351,6 +89387,291 @@ var InlineAskUserQuestion = class {
   }
   destroy() {
     this.handleResolve(null);
+  }
+  renderHeader() {
+    const head = this.formEl.createDiv({ cls: "grimoire-ask-head" });
+    const glyph = head.createDiv({ cls: "grimoire-ask-glyph" });
+    (0, import_obsidian24.setIcon)(glyph, "message-circle-question");
+    const titleBlock = head.createDiv({ cls: "grimoire-ask-title-block" });
+    titleBlock.createDiv({ text: "Needs a detail", cls: "grimoire-ask-title" });
+    const questionCount = this.questions.length;
+    titleBlock.createDiv({
+      text: `Grimoire asks ${questionCount} question${questionCount !== 1 ? "s" : ""} before proceeding`,
+      cls: "grimoire-ask-subtitle"
+    });
+    const pill = head.createDiv({ cls: "grimoire-ask-tool-pill" });
+    (0, import_obsidian24.setIcon)(pill.createSpan(), "message-circle");
+    pill.createSpan({ text: "ask_user" });
+  }
+  renderBody() {
+    var _a7;
+    this.bodyEl = this.formEl.createDiv({ cls: "grimoire-ask-body" });
+    this.blockEls = [];
+    this.optRows = [];
+    this.freeformEls = [];
+    for (let blockIdx = 0; blockIdx < this.questions.length; blockIdx++) {
+      const q = this.questions[blockIdx];
+      const block = this.bodyEl.createDiv({ cls: "grimoire-ask-qblock" });
+      this.blockEls.push(block);
+      const topRow = block.createDiv({ cls: "grimoire-ask-q-top" });
+      topRow.createSpan({
+        text: String(blockIdx + 1).padStart(2, "0"),
+        cls: "grimoire-ask-q-num"
+      });
+      topRow.createSpan({ text: q.question, cls: "grimoire-ask-q-title" });
+      const kind = this.getQuestionKind(q, blockIdx);
+      topRow.createSpan({ text: (_a7 = KIND_LABELS[kind]) != null ? _a7 : kind, cls: "grimoire-ask-q-kind" });
+      if (q.options.length > 0) {
+        const optsEl = block.createDiv({ cls: "grimoire-ask-opts" });
+        const rows = [];
+        for (let optIdx = 0; optIdx < q.options.length; optIdx++) {
+          const option = q.options[optIdx];
+          const row = optsEl.createDiv({ cls: "grimoire-ask-opt" });
+          const mark = row.createDiv({ cls: "grimoire-ask-opt-mark" });
+          if (q.multiSelect) {
+            const box = mark.createDiv({ cls: "grimoire-ask-opt-box" });
+            (0, import_obsidian24.setIcon)(box, "check");
+            row.setAttribute("role", "checkbox");
+            row.setAttribute("aria-checked", "false");
+          } else {
+            mark.createDiv({ cls: "grimoire-ask-opt-ring" });
+            row.setAttribute("role", "radio");
+            row.setAttribute("aria-checked", "false");
+          }
+          row.createSpan({ text: option.label, cls: "grimoire-ask-opt-text" });
+          const capturedBlockIdx = blockIdx;
+          const capturedOptIdx = optIdx;
+          row.addEventListener("click", () => {
+            this.focusedBlockIdx = capturedBlockIdx;
+            this.focusedOptIdx = capturedOptIdx;
+            this.selectOption(capturedBlockIdx, capturedOptIdx);
+          });
+          rows.push(row);
+        }
+        this.optRows.push(rows);
+      } else {
+        this.optRows.push([]);
+      }
+      if (this.isFreeformQuestion(q, blockIdx)) {
+        const ta2 = block.createEl("textarea", { cls: "grimoire-ask-freeform" });
+        ta2.setAttribute("rows", "1");
+        ta2.setAttribute("placeholder", "Type your answer...");
+        ta2.addEventListener("input", () => {
+          this.questionStates[blockIdx].freeformText = ta2.value;
+          ta2.setCssProps({ height: Math.min(80, ta2.scrollHeight) + "px" });
+          this.refreshValidity();
+        });
+        ta2.addEventListener("focus", () => {
+          this.focusedBlockIdx = blockIdx;
+          this.isFreeformFocused = true;
+        });
+        ta2.addEventListener("blur", () => {
+          this.isFreeformFocused = false;
+        });
+        this.freeformEls.push(ta2);
+      } else {
+        this.freeformEls.push(null);
+      }
+    }
+  }
+  renderActions() {
+    const actions = this.formEl.createDiv({ cls: "grimoire-ask-actions" });
+    actions.createDiv({ cls: "grimoire-ask-grow" });
+    const skipBtn = actions.createEl("button", {
+      cls: "grimoire-ask-btn grimoire-ask-btn--skip",
+      text: "Decide for me"
+    });
+    skipBtn.addEventListener("click", () => this.handleSkip());
+    this.submitBtn = actions.createEl("button", {
+      cls: "grimoire-ask-btn grimoire-ask-btn--submit"
+    });
+    (0, import_obsidian24.setIcon)(this.submitBtn.createSpan(), "arrow-right");
+    this.submitBtn.createSpan({ text: "Send answers" });
+    this.submitBtn.addEventListener("click", () => this.handleSubmit());
+    this.refreshValidity();
+  }
+  getQuestionKind(q, _idx) {
+    if (q.options.length === 0) return "freeform";
+    return q.multiSelect ? "multi" : "single";
+  }
+  isFreeformQuestion(q, _idx) {
+    return q.options.length === 0 || q.isOther === true || this.config.showCustomInput;
+  }
+  isRequired(blockIdx) {
+    const q = this.questions[blockIdx];
+    if (q.options.length === 0) return false;
+    return true;
+  }
+  isBlockAnswered(blockIdx) {
+    const state = this.questionStates[blockIdx];
+    return state.selectedValues.size > 0 || state.freeformText.trim().length > 0;
+  }
+  isValid() {
+    for (let i = 0; i < this.questions.length; i++) {
+      if (this.isRequired(i) && !this.isBlockAnswered(i)) return false;
+    }
+    return true;
+  }
+  refreshValidity() {
+    if (this.submitBtn) {
+      this.submitBtn.disabled = !this.isValid();
+    }
+  }
+  selectOption(blockIdx, optIdx) {
+    var _a7;
+    const q = this.questions[blockIdx];
+    const option = q.options[optIdx];
+    const state = this.questionStates[blockIdx];
+    const optionValue = this.getOptionValue(option);
+    if (this.config.immediateSelect) {
+      const key = (_a7 = q.id) != null ? _a7 : q.question;
+      const result = {};
+      result[key] = optionValue;
+      this.handleResolve(result);
+      return;
+    }
+    if (q.multiSelect) {
+      if (state.selectedValues.has(optionValue)) {
+        state.selectedValues.delete(optionValue);
+      } else {
+        state.selectedValues.add(optionValue);
+      }
+    } else {
+      state.selectedValues.clear();
+      state.selectedValues.add(optionValue);
+      state.freeformText = "";
+      const ta2 = this.freeformEls[blockIdx];
+      if (ta2) ta2.value = "";
+    }
+    this.updateOptionVisuals(blockIdx);
+    this.refreshValidity();
+  }
+  updateOptionVisuals(blockIdx) {
+    const q = this.questions[blockIdx];
+    const state = this.questionStates[blockIdx];
+    const rows = this.optRows[blockIdx];
+    for (let i = 0; i < rows.length; i++) {
+      const optionValue = this.getOptionValue(q.options[i]);
+      const isSelected = state.selectedValues.has(optionValue);
+      rows[i].toggleClass("is-selected", isSelected);
+      rows[i].setAttribute("aria-checked", String(isSelected));
+    }
+  }
+  updateFocusVisuals() {
+    for (let b3 = 0; b3 < this.optRows.length; b3++) {
+      for (let o = 0; o < this.optRows[b3].length; o++) {
+        this.optRows[b3][o].toggleClass(
+          "is-focused",
+          b3 === this.focusedBlockIdx && o === this.focusedOptIdx && !this.isFreeformFocused
+        );
+      }
+    }
+  }
+  handleSubmit() {
+    var _a7;
+    if (!this.isValid()) return;
+    const result = {};
+    for (let i = 0; i < this.questions.length; i++) {
+      const q = this.questions[i];
+      const key = (_a7 = q.id) != null ? _a7 : q.question;
+      const state = this.questionStates[i];
+      const selectedValues = [...state.selectedValues];
+      const freeform = state.freeformText.trim();
+      if (q.multiSelect) {
+        const answers = [...selectedValues];
+        if (freeform) answers.push(freeform);
+        result[key] = answers;
+        continue;
+      }
+      result[key] = freeform || selectedValues[0] || "";
+    }
+    this.handleResolve(result);
+  }
+  handleSkip() {
+    this.handleResolve({});
+  }
+  handleKeyDown(e) {
+    var _a7;
+    if (this.isFreeformFocused) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        this.isFreeformFocused = false;
+        (_a7 = this.rootEl.ownerDocument.activeElement) == null ? void 0 : _a7.blur();
+        this.rootEl.focus();
+        return;
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+        this.isFreeformFocused = false;
+        if (this.isValid()) this.handleSubmit();
+        return;
+      }
+      return;
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+      e.preventDefault();
+      e.stopPropagation();
+      if (this.isValid()) this.handleSubmit();
+      return;
+    }
+    const maxBlockIdx = this.questions.length - 1;
+    switch (e.key) {
+      case "ArrowDown": {
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.focusedOptIdx < this.optRows[this.focusedBlockIdx].length - 1) {
+          this.focusedOptIdx++;
+        } else if (this.focusedBlockIdx < maxBlockIdx) {
+          this.focusedBlockIdx++;
+          this.focusedOptIdx = 0;
+        }
+        this.updateFocusVisuals();
+        this.scrollFocusedIntoView();
+        break;
+      }
+      case "ArrowUp": {
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.focusedOptIdx > 0) {
+          this.focusedOptIdx--;
+        } else if (this.focusedBlockIdx > 0) {
+          this.focusedBlockIdx--;
+          this.focusedOptIdx = Math.max(0, this.optRows[this.focusedBlockIdx].length - 1);
+        }
+        this.updateFocusVisuals();
+        this.scrollFocusedIntoView();
+        break;
+      }
+      case "Enter": {
+        e.preventDefault();
+        e.stopPropagation();
+        const rows = this.optRows[this.focusedBlockIdx];
+        if (this.focusedOptIdx < rows.length) {
+          this.selectOption(this.focusedBlockIdx, this.focusedOptIdx);
+        } else {
+          const ta2 = this.freeformEls[this.focusedBlockIdx];
+          if (ta2) {
+            this.isFreeformFocused = true;
+            ta2.focus();
+          }
+        }
+        break;
+      }
+      case "Escape": {
+        e.preventDefault();
+        e.stopPropagation();
+        this.handleResolve(null);
+        break;
+      }
+    }
+  }
+  scrollFocusedIntoView() {
+    const rows = this.optRows[this.focusedBlockIdx];
+    if (rows[this.focusedOptIdx]) {
+      rows[this.focusedOptIdx].scrollIntoView({ block: "nearest" });
+    }
   }
   parseQuestions() {
     const raw = this.input.questions;
@@ -89413,444 +89734,9 @@ var InlineAskUserQuestion = class {
     if (typeof obj.id === "string") return obj.id;
     return fallback;
   }
-  renderTabBar() {
-    this.tabBar.empty();
-    this.tabElements = [];
-    for (let idx = 0; idx < this.questions.length; idx++) {
-      const answered = this.isQuestionAnswered(idx);
-      const tab = this.tabBar.createSpan({ cls: "grimoire-ask-tab" });
-      tab.createSpan({ text: this.questions[idx].header, cls: "grimoire-ask-tab-label" });
-      tab.createSpan({ text: answered ? " \u2713" : "", cls: "grimoire-ask-tab-tick" });
-      tab.setAttribute("title", this.questions[idx].question);
-      if (idx === this.activeTabIndex) tab.addClass("is-active");
-      if (answered) tab.addClass("is-answered");
-      tab.addEventListener("click", () => this.switchTab(idx));
-      this.tabElements.push(tab);
-    }
-    const allAnswered = this.questions.every((_3, i) => this.isQuestionAnswered(i));
-    const submitTab = this.tabBar.createSpan({ cls: "grimoire-ask-tab" });
-    submitTab.createSpan({ text: allAnswered ? "\u2713 " : "", cls: "grimoire-ask-tab-submit-check" });
-    submitTab.createSpan({ text: "Submit", cls: "grimoire-ask-tab-label" });
-    if (this.activeTabIndex === this.questions.length) submitTab.addClass("is-active");
-    submitTab.addEventListener("click", () => this.switchTab(this.questions.length));
-    this.tabElements.push(submitTab);
-  }
-  isQuestionAnswered(idx) {
-    return this.answers.get(idx).size > 0 || this.customInputs.get(idx).trim().length > 0;
-  }
-  switchTab(index) {
-    const clamped = Math.max(0, Math.min(index, this.questions.length));
-    if (clamped === this.activeTabIndex) return;
-    this.activeTabIndex = clamped;
-    this.focusedItemIndex = 0;
-    this.isInputFocused = false;
-    if (!this.config.immediateSelect) {
-      this.renderTabBar();
-    }
-    this.renderTabContent();
-    this.rootEl.focus();
-  }
-  renderTabContent() {
-    this.contentArea.empty();
-    this.currentItems = [];
-    if (this.activeTabIndex < this.questions.length) {
-      this.renderQuestionTab(this.activeTabIndex);
-    } else {
-      this.renderSubmitTab();
-    }
-  }
-  renderQuestionTab(idx) {
-    var _a7;
-    const q = this.questions[idx];
-    const isMulti = q.multiSelect;
-    const selected = this.answers.get(idx);
-    this.contentArea.createDiv({
-      text: q.question,
-      cls: "grimoire-ask-question-text"
-    });
-    const listEl = this.contentArea.createDiv({ cls: "grimoire-ask-list" });
-    for (let optIdx = 0; optIdx < q.options.length; optIdx++) {
-      const option = q.options[optIdx];
-      const isFocused = optIdx === this.focusedItemIndex;
-      const optionValue = this.getOptionValue(option);
-      const isSelected = selected.has(optionValue);
-      const row = listEl.createDiv({ cls: "grimoire-ask-item" });
-      if (isFocused) row.addClass("is-focused");
-      if (isSelected) row.addClass("is-selected");
-      row.createSpan({ text: isFocused ? "\u203A" : "\xA0", cls: "grimoire-ask-cursor" });
-      row.createSpan({ text: `${optIdx + 1}. `, cls: "grimoire-ask-item-num" });
-      if (isMulti) {
-        this.renderMultiSelectCheckbox(row, isSelected);
-      }
-      const labelBlock = row.createDiv({ cls: "grimoire-ask-item-content" });
-      const labelRow = labelBlock.createDiv({ cls: "grimoire-ask-label-row" });
-      labelRow.createSpan({ text: option.label, cls: "grimoire-ask-item-label" });
-      if (!isMulti && isSelected) {
-        labelRow.createSpan({ text: " \u2713", cls: "grimoire-ask-check-mark" });
-      }
-      if (option.description) {
-        labelBlock.createDiv({ text: option.description, cls: "grimoire-ask-item-desc" });
-      }
-      row.addEventListener("click", () => {
-        this.focusedItemIndex = optIdx;
-        this.updateFocusIndicator();
-        this.selectOption(idx, option);
-      });
-      this.currentItems.push(row);
-    }
-    if (this.canShowCustomInputForQuestion(q)) {
-      const customIdx = q.options.length;
-      const customFocused = customIdx === this.focusedItemIndex;
-      const customText = (_a7 = this.customInputs.get(idx)) != null ? _a7 : "";
-      const hasCustomText = customText.trim().length > 0;
-      const customRow = listEl.createDiv({ cls: "grimoire-ask-item grimoire-ask-custom-item" });
-      if (customFocused) customRow.addClass("is-focused");
-      customRow.createSpan({ text: customFocused ? "\u203A" : "\xA0", cls: "grimoire-ask-cursor" });
-      customRow.createSpan({ text: `${customIdx + 1}. `, cls: "grimoire-ask-item-num" });
-      if (isMulti) {
-        this.renderMultiSelectCheckbox(customRow, hasCustomText);
-      }
-      const inputEl = customRow.createEl("input", {
-        cls: "grimoire-ask-custom-text",
-        value: customText
-      });
-      inputEl.setAttribute("type", q.isSecret ? "password" : "text");
-      inputEl.setAttribute("placeholder", q.isSecret ? "Enter secret." : "Type something.");
-      inputEl.addEventListener("input", () => {
-        this.customInputs.set(idx, inputEl.value);
-        if (!isMulti && inputEl.value.trim()) {
-          selected.clear();
-          this.updateOptionVisuals(idx);
-        }
-        this.updateTabIndicators();
-      });
-      inputEl.addEventListener("focus", () => {
-        this.isInputFocused = true;
-      });
-      inputEl.addEventListener("blur", () => {
-        this.isInputFocused = false;
-      });
-      customRow.addEventListener("click", () => {
-        this.focusedItemIndex = customIdx;
-        this.updateFocusIndicator();
-        inputEl.focus();
-      });
-      this.currentItems.push(customRow);
-    }
-    this.contentArea.createDiv({
-      text: this.config.immediateSelect ? HINTS_TEXT_IMMEDIATE : HINTS_TEXT,
-      cls: "grimoire-ask-hints"
-    });
-  }
-  renderSubmitTab() {
-    this.contentArea.createDiv({
-      text: "Review your answers",
-      cls: "grimoire-ask-review-title"
-    });
-    const reviewEl = this.contentArea.createDiv({ cls: "grimoire-ask-review" });
-    for (let idx = 0; idx < this.questions.length; idx++) {
-      const q = this.questions[idx];
-      const answerText = this.getAnswerText(idx);
-      const pairEl = reviewEl.createDiv({ cls: "grimoire-ask-review-pair" });
-      pairEl.createDiv({ text: `${idx + 1}.`, cls: "grimoire-ask-review-num" });
-      const bodyEl = pairEl.createDiv({ cls: "grimoire-ask-review-body" });
-      bodyEl.createDiv({ text: q.question, cls: "grimoire-ask-review-q-text" });
-      bodyEl.createDiv({
-        text: answerText || "Not answered",
-        cls: answerText ? "grimoire-ask-review-a-text" : "grimoire-ask-review-empty"
-      });
-      pairEl.addEventListener("click", () => this.switchTab(idx));
-    }
-    this.contentArea.createDiv({
-      text: "Ready to submit your answers?",
-      cls: "grimoire-ask-review-prompt"
-    });
-    const actionsEl = this.contentArea.createDiv({ cls: "grimoire-ask-list" });
-    const allAnswered = this.questions.every((_3, i) => this.isQuestionAnswered(i));
-    const submitRow = actionsEl.createDiv({ cls: "grimoire-ask-item" });
-    if (this.focusedItemIndex === 0) submitRow.addClass("is-focused");
-    if (!allAnswered) submitRow.addClass("is-disabled");
-    submitRow.createSpan({ text: this.focusedItemIndex === 0 ? "\u203A" : "\xA0", cls: "grimoire-ask-cursor" });
-    submitRow.createSpan({ text: "1. ", cls: "grimoire-ask-item-num" });
-    submitRow.createSpan({ text: "Submit answers", cls: "grimoire-ask-item-label" });
-    submitRow.addEventListener("click", () => {
-      this.focusedItemIndex = 0;
-      this.updateFocusIndicator();
-      this.handleSubmit();
-    });
-    this.currentItems.push(submitRow);
-    const cancelRow = actionsEl.createDiv({ cls: "grimoire-ask-item" });
-    if (this.focusedItemIndex === 1) cancelRow.addClass("is-focused");
-    cancelRow.createSpan({ text: this.focusedItemIndex === 1 ? "\u203A" : "\xA0", cls: "grimoire-ask-cursor" });
-    cancelRow.createSpan({ text: "2. ", cls: "grimoire-ask-item-num" });
-    cancelRow.createSpan({ text: "Cancel", cls: "grimoire-ask-item-label" });
-    cancelRow.addEventListener("click", () => {
-      this.focusedItemIndex = 1;
-      this.handleResolve(null);
-    });
-    this.currentItems.push(cancelRow);
-    this.contentArea.createDiv({
-      text: HINTS_TEXT,
-      cls: "grimoire-ask-hints"
-    });
-  }
-  getAnswerText(idx) {
-    const selected = this.getSelectedLabels(idx);
-    const custom2 = this.customInputs.get(idx);
-    const parts = [];
-    if (selected.length > 0) parts.push(selected.join(", "));
-    if (custom2.trim()) parts.push(custom2.trim());
-    return parts.join(", ");
-  }
-  selectOption(qIdx, option) {
-    var _a7;
-    const q = this.questions[qIdx];
-    const selected = this.answers.get(qIdx);
-    const isMulti = q.multiSelect;
-    const optionValue = this.getOptionValue(option);
-    if (isMulti) {
-      if (selected.has(optionValue)) {
-        selected.delete(optionValue);
-      } else {
-        selected.add(optionValue);
-      }
-    } else {
-      selected.clear();
-      selected.add(optionValue);
-      this.customInputs.set(qIdx, "");
-    }
-    this.updateOptionVisuals(qIdx);
-    if (this.config.immediateSelect) {
-      const key = (_a7 = q.id) != null ? _a7 : q.question;
-      const result = {};
-      result[key] = optionValue;
-      this.handleResolve(result);
-      return;
-    }
-    this.updateTabIndicators();
-    if (!isMulti) {
-      this.switchTab(this.activeTabIndex + 1);
-    }
-  }
-  renderMultiSelectCheckbox(parent, checked) {
-    parent.createSpan({
-      text: checked ? "[\u2713] " : "[ ] ",
-      cls: `grimoire-ask-check${checked ? " is-checked" : ""}`
-    });
-  }
-  updateOptionVisuals(qIdx) {
-    const q = this.questions[qIdx];
-    const selected = this.answers.get(qIdx);
-    const isMulti = q.multiSelect;
-    for (let i = 0; i < q.options.length; i++) {
-      const item = this.currentItems[i];
-      const isSelected = selected.has(this.getOptionValue(q.options[i]));
-      item.toggleClass("is-selected", isSelected);
-      if (isMulti) {
-        const checkSpan = item.querySelector(".grimoire-ask-check");
-        if (checkSpan) {
-          checkSpan.textContent = isSelected ? "[\u2713] " : "[ ] ";
-          checkSpan.toggleClass("is-checked", isSelected);
-        }
-      } else {
-        const labelRow = item.querySelector(".grimoire-ask-label-row");
-        const existingMark = item.querySelector(".grimoire-ask-check-mark");
-        if (isSelected && !existingMark && labelRow) {
-          labelRow.createSpan({ text: " \u2713", cls: "grimoire-ask-check-mark" });
-        } else if (!isSelected && existingMark) {
-          existingMark.remove();
-        }
-      }
-    }
-  }
-  updateFocusIndicator() {
-    for (let i = 0; i < this.currentItems.length; i++) {
-      const item = this.currentItems[i];
-      const cursor = item.querySelector(".grimoire-ask-cursor");
-      if (i === this.focusedItemIndex) {
-        item.addClass("is-focused");
-        if (cursor) cursor.textContent = "\u203A";
-        item.scrollIntoView({ block: "nearest" });
-      } else {
-        item.removeClass("is-focused");
-        if (cursor) cursor.textContent = "\xA0";
-      }
-    }
-  }
-  updateTabIndicators() {
-    for (let idx = 0; idx < this.questions.length; idx++) {
-      const tab = this.tabElements[idx];
-      const tick = tab.querySelector(".grimoire-ask-tab-tick");
-      const answered = this.isQuestionAnswered(idx);
-      tab.toggleClass("is-answered", answered);
-      if (tick) tick.textContent = answered ? " \u2713" : "";
-    }
-    const submitTab = this.tabElements[this.questions.length];
-    if (submitTab) {
-      const submitCheck = submitTab.querySelector(".grimoire-ask-tab-submit-check");
-      const allAnswered = this.questions.every((_3, i) => this.isQuestionAnswered(i));
-      if (submitCheck) submitCheck.textContent = allAnswered ? "\u2713 " : "";
-    }
-  }
-  handleNavigationKey(e, maxFocusIndex) {
-    switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault();
-        e.stopPropagation();
-        this.focusedItemIndex = Math.min(this.focusedItemIndex + 1, maxFocusIndex);
-        this.updateFocusIndicator();
-        return true;
-      case "ArrowUp":
-        e.preventDefault();
-        e.stopPropagation();
-        this.focusedItemIndex = Math.max(this.focusedItemIndex - 1, 0);
-        this.updateFocusIndicator();
-        return true;
-      case "ArrowLeft":
-        if (this.config.immediateSelect) return false;
-        e.preventDefault();
-        e.stopPropagation();
-        this.switchTab(this.activeTabIndex - 1);
-        return true;
-      case "Tab":
-        if (this.config.immediateSelect) return false;
-        e.preventDefault();
-        e.stopPropagation();
-        if (e.shiftKey) {
-          this.switchTab(this.activeTabIndex - 1);
-        } else {
-          this.switchTab(this.activeTabIndex + 1);
-        }
-        return true;
-      case "Escape":
-        e.preventDefault();
-        e.stopPropagation();
-        this.handleResolve(null);
-        return true;
-      default:
-        return false;
-    }
-  }
-  handleKeyDown(e) {
-    var _a7, _b4, _c3;
-    if (this.isInputFocused) {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        e.stopPropagation();
-        this.isInputFocused = false;
-        (_a7 = this.rootEl.ownerDocument.activeElement) == null ? void 0 : _a7.blur();
-        this.rootEl.focus();
-        return;
-      }
-      if (e.key === "Tab" || e.key === "Enter") {
-        e.preventDefault();
-        e.stopPropagation();
-        this.isInputFocused = false;
-        (_b4 = this.rootEl.ownerDocument.activeElement) == null ? void 0 : _b4.blur();
-        if (e.key === "Tab" && e.shiftKey) {
-          this.switchTab(this.activeTabIndex - 1);
-        } else {
-          this.switchTab(this.activeTabIndex + 1);
-        }
-        return;
-      }
-      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-        e.preventDefault();
-        e.stopPropagation();
-        (_c3 = this.rootEl.ownerDocument.activeElement) == null ? void 0 : _c3.blur();
-        this.isInputFocused = false;
-        const q3 = this.questions[this.activeTabIndex];
-        const maxIdx = this.canShowCustomInputForQuestion(q3) ? q3.options.length : q3.options.length - 1;
-        if (e.key === "ArrowUp") {
-          this.focusedItemIndex = Math.max(this.focusedItemIndex - 1, 0);
-        } else {
-          this.focusedItemIndex = Math.min(this.focusedItemIndex + 1, maxIdx);
-        }
-        this.updateFocusIndicator();
-        this.rootEl.focus();
-        return;
-      }
-      return;
-    }
-    if (this.config.immediateSelect) {
-      const q3 = this.questions[this.activeTabIndex];
-      const maxIdx = q3.options.length - 1;
-      if (this.handleNavigationKey(e, maxIdx)) return;
-      if (e.key === "Enter") {
-        e.preventDefault();
-        e.stopPropagation();
-        if (this.focusedItemIndex <= maxIdx) {
-          this.selectOption(this.activeTabIndex, q3.options[this.focusedItemIndex]);
-        }
-      }
-      return;
-    }
-    const isSubmitTab = this.activeTabIndex === this.questions.length;
-    const q = this.questions[this.activeTabIndex];
-    const maxFocusIndex = isSubmitTab ? 1 : this.canShowCustomInputForQuestion(q) ? q.options.length : q.options.length - 1;
-    if (this.handleNavigationKey(e, maxFocusIndex)) return;
-    if (isSubmitTab) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        e.stopPropagation();
-        if (this.focusedItemIndex === 0) this.handleSubmit();
-        else this.handleResolve(null);
-      }
-      return;
-    }
-    switch (e.key) {
-      case "ArrowRight":
-        e.preventDefault();
-        e.stopPropagation();
-        this.switchTab(this.activeTabIndex + 1);
-        break;
-      case "Enter":
-        e.preventDefault();
-        e.stopPropagation();
-        if (this.focusedItemIndex < q.options.length) {
-          this.selectOption(this.activeTabIndex, q.options[this.focusedItemIndex]);
-        } else if (this.canShowCustomInputForQuestion(q)) {
-          this.isInputFocused = true;
-          const customRow = this.currentItems[this.focusedItemIndex];
-          const input = customRow == null ? void 0 : customRow.querySelector(".grimoire-ask-custom-text");
-          input == null ? void 0 : input.focus();
-        }
-        break;
-    }
-  }
-  handleSubmit() {
-    var _a7;
-    const allAnswered = this.questions.every((_3, i) => this.isQuestionAnswered(i));
-    if (!allAnswered) return;
-    const result = {};
-    for (let i = 0; i < this.questions.length; i++) {
-      const question = this.questions[i];
-      const key = (_a7 = question.id) != null ? _a7 : question.question;
-      const selectedValues = [...this.answers.get(i)];
-      const customInput = this.customInputs.get(i).trim();
-      if (question.multiSelect) {
-        const answers = [...selectedValues];
-        if (customInput) {
-          answers.push(customInput);
-        }
-        result[key] = answers;
-        continue;
-      }
-      result[key] = customInput || selectedValues[0] || "";
-    }
-    this.handleResolve(result);
-  }
-  canShowCustomInputForQuestion(_question) {
-    return this.config.showCustomInput;
-  }
   getOptionValue(option) {
     var _a7;
     return (_a7 = option.value) != null ? _a7 : option.label;
-  }
-  getSelectedLabels(idx) {
-    const selected = this.answers.get(idx);
-    const question = this.questions[idx];
-    return question.options.filter((option) => selected.has(this.getOptionValue(option))).map((option) => option.label);
   }
   handleResolve(result) {
     var _a7, _b4;
@@ -89870,7 +89756,7 @@ var InlineAskUserQuestion = class {
 // src/features/chat/rendering/InlineExitPlanMode.ts
 var fs29 = __toESM(require("fs"));
 var nodePath = __toESM(require("path"));
-var HINTS_TEXT2 = "Arrow keys to navigate \xB7 Enter to select \xB7 Esc to cancel";
+var HINTS_TEXT = "Arrow keys to navigate \xB7 Enter to select \xB7 Esc to cancel";
 var InlineExitPlanMode = class {
   constructor(containerEl, input, resolve7, signal, renderContent, planPathPrefix) {
     this.resolved = false;
@@ -89959,7 +89845,7 @@ var InlineExitPlanMode = class {
       this.updateFocus();
     });
     this.items.push(feedbackRow);
-    this.rootEl.createDiv({ text: HINTS_TEXT2, cls: "grimoire-ask-hints" });
+    this.rootEl.createDiv({ text: HINTS_TEXT, cls: "grimoire-ask-hints" });
     this.rootEl.setAttribute("tabindex", "0");
     this.rootEl.addEventListener("keydown", this.boundKeyDown);
     window.requestAnimationFrame(() => {
@@ -90094,10 +89980,10 @@ ${this.planContent}`;
 };
 
 // src/features/chat/rendering/InlinePermissionRequest.ts
-var import_obsidian26 = require("obsidian");
+var import_obsidian27 = require("obsidian");
 
 // src/features/chat/rendering/ToolCallRenderer.ts
-var import_obsidian25 = require("obsidian");
+var import_obsidian26 = require("obsidian");
 
 // src/core/tools/toolIcons.ts
 var TOOL_ICONS = {
@@ -90232,7 +90118,7 @@ function renderDiffContent(containerEl, diffLines, contextLines = 3) {
 }
 
 // src/features/chat/rendering/todoUtils.ts
-var import_obsidian24 = require("obsidian");
+var import_obsidian25 = require("obsidian");
 function getTodoStatusIcon(status) {
   return status === "completed" ? "check" : "dot";
 }
@@ -90245,7 +90131,7 @@ function renderTodoItems(container, todos) {
     const item = container.createDiv({ cls: `grimoire-todo-item grimoire-todo-${todo.status}` });
     const icon = item.createSpan({ cls: "grimoire-todo-status-icon" });
     icon.setAttribute("aria-hidden", "true");
-    (0, import_obsidian24.setIcon)(icon, getTodoStatusIcon(todo.status));
+    (0, import_obsidian25.setIcon)(icon, getTodoStatusIcon(todo.status));
     const text = item.createSpan({ cls: "grimoire-todo-text" });
     text.setText(getTodoDisplayText(todo));
   }
@@ -90257,7 +90143,7 @@ function setToolIcon(el2, name) {
   if (icon === MCP_ICON_MARKER) {
     appendMcpIcon(el2);
   } else {
-    (0, import_obsidian25.setIcon)(el2, icon);
+    (0, import_obsidian26.setIcon)(el2, icon);
   }
 }
 function stringifyToolValue(value) {
@@ -90587,7 +90473,7 @@ function appendToolLink(parent, title, url2) {
     linkEl.setAttribute("rel", "noopener noreferrer");
   }
   const iconEl = linkEl.createSpan({ cls: "grimoire-tool-link-icon" });
-  (0, import_obsidian25.setIcon)(iconEl, "external-link");
+  (0, import_obsidian26.setIcon)(iconEl, "external-link");
   linkEl.createSpan({ cls: "grimoire-tool-link-title", text: title });
 }
 function isPlaceholderWebSearchResult(result) {
@@ -90979,7 +90865,7 @@ function setTodoWriteStatus(statusEl, input) {
   const status = isComplete ? "completed" : "running";
   const ariaLabel = isComplete ? "Status: completed" : "Status: in progress";
   resetStatusElement(statusEl, `status-${status}`, ariaLabel);
-  if (isComplete) (0, import_obsidian25.setIcon)(statusEl, "check");
+  if (isComplete) (0, import_obsidian26.setIcon)(statusEl, "check");
 }
 function setToolStatus(statusEl, status) {
   resetStatusElement(statusEl, `status-${status}`, `Status: ${status}`);
@@ -90988,7 +90874,7 @@ function setToolStatus(statusEl, status) {
     return;
   }
   const icon = STATUS_ICONS[status];
-  if (icon) (0, import_obsidian25.setIcon)(statusEl, icon);
+  if (icon) (0, import_obsidian26.setIcon)(statusEl, icon);
 }
 function setApplyPatchHeaderRight(statusEl, toolCall) {
   const isError = toolCall.status === "error" || toolCall.status === "blocked";
@@ -91100,11 +90986,6 @@ function createToolElementStructure(parentEl, toolCall) {
   const content = toolEl.createDiv({ cls: "grimoire-tool-content" });
   return { toolEl, header, iconEl, nameEl, summaryEl, resultEl, statusEl, content, currentTaskEl };
 }
-function formatAnswer(raw) {
-  if (Array.isArray(raw)) return raw.join(", ");
-  if (typeof raw === "string") return raw;
-  return "";
-}
 function resolveAskUserAnswers(toolCall) {
   if (toolCall.resolvedAnswers) return toolCall.resolvedAnswers;
   const parsed = extractResolvedAnswersFromResultText(toolCall.result);
@@ -91120,24 +91001,26 @@ function renderAskUserQuestionResult(container, toolCall) {
   const questions = toolCall.input.questions;
   const answers = resolveAskUserAnswers(toolCall);
   if (!questions || !Array.isArray(questions) || !answers) return false;
-  const reviewEl = container.createDiv({ cls: "grimoire-ask-review" });
+  const qaEl = container.createDiv({ cls: "grimoire-tool-io-qa" });
   for (let i = 0; i < questions.length; i++) {
     const q = questions[i];
-    const answer = formatAnswer(
-      (_a7 = q.id ? answers[q.id] : void 0) != null ? _a7 : answers[q.question]
-    );
-    const pairEl = reviewEl.createDiv({ cls: "grimoire-ask-review-pair" });
-    pairEl.createDiv({ text: `${i + 1}.`, cls: "grimoire-ask-review-num" });
-    const bodyEl = pairEl.createDiv({ cls: "grimoire-ask-review-body" });
-    bodyEl.createDiv({ text: q.question, cls: "grimoire-ask-review-q-text" });
-    bodyEl.createDiv({
-      text: answer || "Not answered",
-      cls: answer ? "grimoire-ask-review-a-text" : "grimoire-ask-review-empty"
-    });
+    const rawAnswer = (_a7 = q.id ? answers[q.id] : void 0) != null ? _a7 : answers[q.question];
+    const answerParts = Array.isArray(rawAnswer) ? rawAnswer : rawAnswer != null ? [rawAnswer] : [];
+    if (answerParts.length === 0) continue;
+    const pair = qaEl.createDiv();
+    pair.createDiv({ text: q.question, cls: "grimoire-tool-io-qa-q" });
+    const answerRow = pair.createDiv({ cls: "grimoire-tool-io-qa-a" });
+    for (const part of answerParts) {
+      const formatted = typeof part === "string" ? part : String(part);
+      if (formatted) {
+        answerRow.createSpan({ text: formatted, cls: "grimoire-tool-io-qa-tag" });
+      }
+    }
   }
   return true;
 }
 function renderAskUserQuestionFallback(container, toolCall, initialText) {
+  var _a7;
   container.empty();
   const questions = Array.isArray(toolCall.input.questions) ? toolCall.input.questions : [];
   if (questions.length === 0) {
@@ -91146,39 +91029,25 @@ function renderAskUserQuestionFallback(container, toolCall, initialText) {
   }
   if (initialText || toolCall.result) {
     container.createDiv({
-      cls: "grimoire-ask-review-prompt",
-      text: initialText || toolCall.result || "Waiting for answer..."
+      text: initialText || toolCall.result || "Waiting for answer...",
+      cls: "grimoire-tool-result-text"
     });
   }
-  for (let questionIndex = 0; questionIndex < questions.length; questionIndex++) {
-    const question = questions[questionIndex];
-    const reviewEl = container.createDiv({ cls: "grimoire-ask-review" });
-    const pairEl = reviewEl.createDiv({ cls: "grimoire-ask-review-pair" });
-    pairEl.createDiv({ text: `${questionIndex + 1}.`, cls: "grimoire-ask-review-num" });
-    const bodyEl = pairEl.createDiv({ cls: "grimoire-ask-review-body" });
-    bodyEl.createDiv({ text: question.question, cls: "grimoire-ask-review-q-text" });
-    if (!Array.isArray(question.options) || question.options.length === 0) {
-      bodyEl.createDiv({ cls: "grimoire-ask-review-empty", text: "No options recorded" });
-      continue;
+  const qaEl = container.createDiv({ cls: "grimoire-tool-io-qa" });
+  for (let i = 0; i < questions.length; i++) {
+    const q = questions[i];
+    const pair = qaEl.createDiv();
+    pair.createDiv({ text: q.question, cls: "grimoire-tool-io-qa-q" });
+    if (Array.isArray(q.options) && q.options.length > 0) {
+      const answerRow = pair.createDiv({ cls: "grimoire-tool-io-qa-a" });
+      for (const opt of q.options) {
+        answerRow.createSpan({
+          text: opt.label,
+          cls: "grimoire-tool-io-qa-tag"
+        });
+        (_a7 = answerRow.lastElementChild) == null ? void 0 : _a7.toggleClass("is-disabled", true);
+      }
     }
-    const listEl = bodyEl.createDiv({ cls: "grimoire-ask-list" });
-    question.options.forEach((option, optionIndex) => {
-      renderAskUserQuestionOption(listEl, option, optionIndex, question.multiSelect === true);
-    });
-  }
-}
-function renderAskUserQuestionOption(parentEl, option, optionIndex, isMultiSelect) {
-  const itemEl = parentEl.createDiv({ cls: "grimoire-ask-item is-disabled" });
-  if (isMultiSelect) {
-    itemEl.createDiv({ cls: "grimoire-ask-check", text: "[ ] " });
-  } else {
-    itemEl.createDiv({ cls: "grimoire-ask-item-num", text: `${optionIndex + 1}. ` });
-  }
-  const contentEl = itemEl.createDiv({ cls: "grimoire-ask-item-content" });
-  const labelRowEl = contentEl.createDiv({ cls: "grimoire-ask-label-row" });
-  labelRowEl.createDiv({ cls: "grimoire-ask-item-label", text: option.label });
-  if (option.description) {
-    contentEl.createDiv({ cls: "grimoire-ask-item-desc", text: option.description });
   }
 }
 function contentFallback(container, text) {
@@ -91302,7 +91171,7 @@ function renderToolGroup(parentEl, toolCalls, toolCallElements) {
   header.setAttribute("role", "button");
   const iconEl = header.createSpan({ cls: "grimoire-tool-icon grimoire-tool-icon-tile" });
   iconEl.setAttribute("aria-hidden", "true");
-  (0, import_obsidian25.setIcon)(iconEl, getToolGroupIcon(toolCalls));
+  (0, import_obsidian26.setIcon)(iconEl, getToolGroupIcon(toolCalls));
   header.createSpan({ cls: "grimoire-tool-name grimoire-tool-group-name", text: getToolGroupName(toolCalls) });
   header.createSpan({ cls: "grimoire-tool-summary grimoire-tool-group-summary", text: getToolGroupSummary(toolCalls) });
   header.createSpan({ cls: "grimoire-tool-count-chip", text: getToolGroupCountLabel(toolCalls) });
@@ -91422,7 +91291,6 @@ var InlinePermissionRequest = class {
     this.renderHeader(cardEl);
     this.renderBody(cardEl);
     this.renderActions(cardEl);
-    this.renderFooter(cardEl);
     const ownerDocument = (_a7 = this.rootEl.ownerDocument) != null ? _a7 : window.document;
     ownerDocument.addEventListener("keydown", this.boundKeyDown);
     window.requestAnimationFrame(() => {
@@ -91435,7 +91303,7 @@ var InlinePermissionRequest = class {
   renderHeader(cardEl) {
     const headEl = cardEl.createDiv({ cls: "grimoire-permission-head" });
     const shieldEl = headEl.createSpan({ cls: "grimoire-permission-shield" });
-    (0, import_obsidian26.setIcon)(shieldEl, "shield-check");
+    (0, import_obsidian27.setIcon)(shieldEl, "shield-check");
     const titleEl = headEl.createDiv({ cls: "grimoire-permission-title-block" });
     titleEl.createEl("strong", {
       cls: "grimoire-permission-title",
@@ -91497,9 +91365,9 @@ var InlinePermissionRequest = class {
         attr: { type: "button" }
       });
       if (action === "allow") {
-        (0, import_obsidian26.setIcon)(buttonEl.createSpan({ cls: "grimoire-permission-button-icon" }), "check");
+        (0, import_obsidian27.setIcon)(buttonEl.createSpan({ cls: "grimoire-permission-button-icon" }), "check");
       } else if (action === "reject") {
-        (0, import_obsidian26.setIcon)(buttonEl.createSpan({ cls: "grimoire-permission-button-icon" }), "x");
+        (0, import_obsidian27.setIcon)(buttonEl.createSpan({ cls: "grimoire-permission-button-icon" }), "x");
       }
       buttonEl.createSpan({
         cls: "grimoire-permission-button-label",
@@ -91517,19 +91385,6 @@ var InlinePermissionRequest = class {
       }
       buttonEl.addEventListener("click", () => this.handleResolve(option.value));
     }
-  }
-  renderFooter(cardEl) {
-    const footEl = cardEl.createDiv({ cls: "grimoire-permission-foot" });
-    footEl.createEl("kbd", { text: "\u21B5" });
-    footEl.appendText(" allow ");
-    footEl.createSpan({ cls: "grimoire-permission-separator", text: "\xB7" });
-    footEl.appendText(" ");
-    footEl.createEl("kbd", { text: "A" });
-    footEl.appendText(" always ");
-    footEl.createSpan({ cls: "grimoire-permission-separator", text: "\xB7" });
-    footEl.appendText(" ");
-    footEl.createEl("kbd", { cls: "grimoire-permission-key-escape", text: "Esc" });
-    footEl.appendText(" reject");
   }
   handleKeyDown(event) {
     var _a7;
@@ -91610,7 +91465,7 @@ var InlinePermissionRequest = class {
 };
 
 // src/features/chat/rendering/InlinePlanApproval.ts
-var HINTS_TEXT3 = "Arrow keys to navigate \xB7 Enter to select \xB7 Esc to cancel";
+var HINTS_TEXT2 = "Arrow keys to navigate \xB7 Enter to select \xB7 Esc to cancel";
 var InlinePlanApproval = class {
   constructor(containerEl, resolve7) {
     this.resolved = false;
@@ -91665,7 +91520,7 @@ var InlinePlanApproval = class {
       this.handleResolve({ type: "cancel" });
     });
     this.items.push(cancelRow);
-    this.rootEl.createDiv({ text: HINTS_TEXT3, cls: "grimoire-ask-hints" });
+    this.rootEl.createDiv({ text: HINTS_TEXT2, cls: "grimoire-ask-hints" });
     this.rootEl.setAttribute("tabindex", "0");
     this.rootEl.addEventListener("keydown", this.boundKeyDown);
     window.requestAnimationFrame(() => {
@@ -92058,7 +91913,7 @@ var InputController = class {
         imageContextManager == null ? void 0 : imageContextManager.setImages(imagesForMessage != null ? imagesForMessage : []);
       }
       if (error48 instanceof ProjectWorkspaceRoutingError) {
-        new import_obsidian27.Notice(error48.message);
+        new import_obsidian28.Notice(error48.message);
         return;
       }
       throw error48;
@@ -92102,7 +91957,7 @@ var InputController = class {
     if (this.deps.ensureServiceInitialized) {
       const ready = await this.deps.ensureServiceInitialized();
       if (!ready) {
-        new import_obsidian27.Notice("Failed to initialize agent service. Please try again.");
+        new import_obsidian28.Notice("Failed to initialize agent service. Please try again.");
         streamController.hideThinkingIndicator();
         state.isStreaming = false;
         this.activeStreamingAssistantMessage = null;
@@ -92112,7 +91967,7 @@ var InputController = class {
     }
     const agentService = this.getAgentService();
     if (!agentService) {
-      new import_obsidian27.Notice("Agent service not available. Please reload the plugin.");
+      new import_obsidian28.Notice("Agent service not available. Please reload the plugin.");
       this.activeStreamingAssistantMessage = null;
       this.resetProviderMessageBoundaryState();
       return;
@@ -92472,7 +92327,7 @@ var InputController = class {
       excludedTags: settings11.excludedTags
     }).then((result) => result.snippets.length > 0 ? { query: trimmedQueryText, snippets: result.snippets } : void 0).catch((error48) => {
       const message = error48 instanceof Error ? error48.message : String(error48);
-      new import_obsidian27.Notice(t("chat.vaultSearch.failed", { message }));
+      new import_obsidian28.Notice(t("chat.vaultSearch.failed", { message }));
       throw error48;
     });
   }
@@ -92553,7 +92408,7 @@ var InputController = class {
         type: "button"
       }
     });
-    (0, import_obsidian27.setIcon)(button, icon);
+    (0, import_obsidian28.setIcon)(button, icon);
     return button;
   }
   canSteerQueuedMessage() {
@@ -92670,7 +92525,7 @@ var InputController = class {
       });
     } catch (e) {
       this.restoreQueuedMessageAfterSteerFailure(queuedMessage);
-      new import_obsidian27.Notice("Failed to steer the queued Codex message. It is still available.");
+      new import_obsidian28.Notice("Failed to steer the queued Codex message. It is still available.");
     }
   }
   restoreQueuedMessageAfterSteerFailure(message) {
@@ -92916,7 +92771,7 @@ var InputController = class {
               const currentPrompt = plugin.settings.systemPrompt;
               plugin.settings.systemPrompt = appendMarkdownSnippet(currentPrompt, finalInstruction);
               await plugin.saveSettings();
-              new import_obsidian27.Notice("Instruction added to custom system prompt");
+              new import_obsidian28.Notice("Instruction added to custom system prompt");
               instructionModeManager == null ? void 0 : instructionModeManager.clear();
             })();
           },
@@ -92935,7 +92790,7 @@ var InputController = class {
               if (result2.error === "Cancelled") {
                 return;
               }
-              new import_obsidian27.Notice(result2.error || "Failed to process response");
+              new import_obsidian28.Notice(result2.error || "Failed to process response");
               modal == null ? void 0 : modal.showError(result2.error || "Failed to process response");
               return;
             }
@@ -92962,7 +92817,7 @@ var InputController = class {
           instructionModeManager == null ? void 0 : instructionModeManager.clear();
           return;
         }
-        new import_obsidian27.Notice(result.error || "Failed to refine instruction");
+        new import_obsidian28.Notice(result.error || "Failed to refine instruction");
         modal.showError(result.error || "Failed to refine instruction");
         instructionModeManager == null ? void 0 : instructionModeManager.clear();
         return;
@@ -92972,13 +92827,13 @@ var InputController = class {
       } else if (result.refinedInstruction) {
         modal.showConfirmation(result.refinedInstruction);
       } else {
-        new import_obsidian27.Notice("No instruction received");
+        new import_obsidian28.Notice("No instruction received");
         modal.showError("No instruction received");
         instructionModeManager == null ? void 0 : instructionModeManager.clear();
       }
     } catch (error48) {
       const errorMsg = error48 instanceof Error ? error48.message : "Unknown error";
-      new import_obsidian27.Notice(`Error: ${errorMsg}`);
+      new import_obsidian28.Notice(`Error: ${errorMsg}`);
       modal == null ? void 0 : modal.showError(errorMsg);
       instructionModeManager == null ? void 0 : instructionModeManager.clear();
     }
@@ -93053,41 +92908,29 @@ var InputController = class {
   }
   async handleAskUserQuestion(input, signal) {
     const inputContainerEl = this.deps.getInputContainerEl();
-    const parentEl = inputContainerEl.parentElement;
-    if (!parentEl) {
+    const composerSurfaceEl = inputContainerEl.parentElement;
+    if (!composerSurfaceEl) {
       throw new Error("Input container is detached from DOM");
     }
-    return this.showInlineQuestion(
-      parentEl,
-      inputContainerEl,
-      input,
-      (inline) => {
-        this.pendingAskInline = inline;
-      },
-      signal
-    );
-  }
-  showInlineQuestion(parentEl, inputContainerEl, input, setPending, signal, config2) {
     this.deps.streamController.hideThinkingIndicator();
-    this.hideInputContainer(inputContainerEl);
+    composerSurfaceEl.addClass("grimoire-asking");
     return new Promise((resolve7, reject) => {
       const inline = new InlineAskUserQuestion(
-        parentEl,
+        composerSurfaceEl,
         input,
         (result) => {
-          setPending(null);
-          this.restoreInputContainer(inputContainerEl);
+          this.pendingAskInline = null;
+          composerSurfaceEl.removeClass("grimoire-asking");
           resolve7(result);
         },
-        signal,
-        config2
+        signal
       );
-      setPending(inline);
+      this.pendingAskInline = inline;
       try {
         inline.render();
       } catch (err) {
-        setPending(null);
-        this.restoreInputContainer(inputContainerEl);
+        this.pendingAskInline = null;
+        composerSurfaceEl.removeClass("grimoire-asking");
         reject(toError(err));
       }
     });
@@ -93145,6 +92988,7 @@ var InputController = class {
     }
     this.dismissPendingPlanApproval(true);
     this.resetInputContainerVisibility();
+    this.clearAskingState();
   }
   showPlanApproval() {
     const inputContainerEl = this.deps.getInputContainerEl();
@@ -93247,6 +93091,11 @@ var InputController = class {
       this.deps.getInputContainerEl().removeClass("grimoire-hidden");
     }
   }
+  clearAskingState() {
+    var _a7;
+    const inputContainerEl = this.deps.getInputContainerEl();
+    (_a7 = inputContainerEl.parentElement) == null ? void 0 : _a7.removeClass("grimoire-asking");
+  }
   // ============================================
   // Built-in Commands
   // ============================================
@@ -93254,7 +93103,7 @@ var InputController = class {
     const { conversationController } = this.deps;
     const capabilities = this.getActiveCapabilities();
     if (!isBuiltInCommandSupported(command, capabilities)) {
-      new import_obsidian27.Notice(`/${command.name} is not supported by this provider.`);
+      new import_obsidian28.Notice(`/${command.name} is not supported by this provider.`);
       return;
     }
     switch (command.action) {
@@ -93264,14 +93113,14 @@ var InputController = class {
       case "add-dir": {
         const externalContextSelector = this.deps.getExternalContextSelector();
         if (!externalContextSelector) {
-          new import_obsidian27.Notice("External context selector not available.");
+          new import_obsidian28.Notice("External context selector not available.");
           return;
         }
         const result = externalContextSelector.addExternalContext(args);
         if (result.success) {
-          new import_obsidian27.Notice(`Added external context: ${result.normalizedPath}`);
+          new import_obsidian28.Notice(`Added external context: ${result.normalizedPath}`);
         } else {
-          new import_obsidian27.Notice(result.error);
+          new import_obsidian28.Notice(result.error);
         }
         break;
       }
@@ -93280,11 +93129,11 @@ var InputController = class {
         break;
       case "fork": {
         if (!this.getActiveCapabilities().supportsFork) {
-          new import_obsidian27.Notice("Fork is not supported by this provider.");
+          new import_obsidian28.Notice("Fork is not supported by this provider.");
           return;
         }
         if (!this.deps.onForkAll) {
-          new import_obsidian27.Notice("Fork not available.");
+          new import_obsidian28.Notice("Fork not available.");
           return;
         }
         await this.deps.onForkAll();
@@ -93293,7 +93142,7 @@ var InputController = class {
       case "image": {
         const prompt = args.trim();
         if (!prompt) {
-          new import_obsidian27.Notice("Usage: /image <prompt>");
+          new import_obsidian28.Notice("Usage: /image <prompt>");
           return;
         }
         await this.sendMessage({
@@ -93308,7 +93157,7 @@ var InputController = class {
       }
       default: {
         const unknownAction = typeof command.action === "string" ? command.action : "unknown";
-        new import_obsidian27.Notice(`Unknown command: ${unknownAction}`);
+        new import_obsidian28.Notice(`Unknown command: ${unknownAction}`);
         break;
       }
     }
@@ -93337,7 +93186,7 @@ var InputController = class {
     this.destroyResumeDropdown();
     const conversations = plugin.getConversationList();
     if (conversations.length === 0) {
-      new import_obsidian27.Notice("No conversations to resume");
+      new import_obsidian28.Notice("No conversations to resume");
       return;
     }
     const openConversation = (_a7 = this.deps.openConversation) != null ? _a7 : ((id2) => conversationController.switchTo(id2));
@@ -93351,7 +93200,7 @@ var InputController = class {
           this.destroyResumeDropdown();
           openConversation(id2).catch((err) => {
             const msg = err instanceof Error ? err.message : String(err);
-            new import_obsidian27.Notice(`Failed to open conversation: ${msg}`);
+            new import_obsidian28.Notice(`Failed to open conversation: ${msg}`);
           });
         },
         onDismiss: () => {
@@ -93497,7 +93346,7 @@ var NavigationController = class {
 };
 
 // src/features/chat/controllers/SelectionController.ts
-var import_obsidian28 = require("obsidian");
+var import_obsidian29 = require("obsidian");
 
 // src/shared/components/SelectionHighlight.ts
 var import_state = require("@codemirror/state");
@@ -93603,7 +93452,7 @@ var SelectionController = class {
   // ============================================
   poll() {
     var _a7;
-    const view = this.app.workspace.getActiveViewOfType(import_obsidian28.MarkdownView);
+    const view = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
     if (!view) {
       this.clearWhenMarkdownContextIsUnavailable();
       return;
@@ -93859,7 +93708,7 @@ var SelectionController = class {
 };
 
 // src/features/chat/controllers/StreamController.ts
-var import_obsidian31 = require("obsidian");
+var import_obsidian32 = require("obsidian");
 
 // src/core/tools/todo.ts
 function isValidTodoItem(item) {
@@ -94051,7 +93900,7 @@ function adapterOwnsTool(adapter, toolName) {
 }
 
 // src/features/chat/rendering/SubagentRenderer.ts
-var import_obsidian29 = require("obsidian");
+var import_obsidian30 = require("obsidian");
 var SUBAGENT_TOOL_STATUS_ICONS = {
   completed: "check",
   error: "x",
@@ -94110,7 +93959,7 @@ function setSubagentToolStatus(view, status) {
   view.statusEl.setAttribute("aria-label", `Status: ${status}`);
   const statusIcon = SUBAGENT_TOOL_STATUS_ICONS[status];
   if (statusIcon) {
-    (0, import_obsidian29.setIcon)(view.statusEl, statusIcon);
+    (0, import_obsidian30.setIcon)(view.statusEl, statusIcon);
   }
 }
 function updateSubagentToolView(view, toolCall) {
@@ -94215,7 +94064,7 @@ function createSubagentBlock(parentEl, taskToolId, taskInput) {
   headerEl.setAttribute("role", "button");
   const iconEl = headerEl.createDiv({ cls: "grimoire-subagent-icon" });
   iconEl.setAttribute("aria-hidden", "true");
-  (0, import_obsidian29.setIcon)(iconEl, getToolIcon(TOOL_TASK));
+  (0, import_obsidian30.setIcon)(iconEl, getToolIcon(TOOL_TASK));
   const labelEl = headerEl.createDiv({ cls: "grimoire-subagent-label" });
   labelEl.setText(truncateDescription(description));
   const statusEl = headerEl.createDiv({ cls: "grimoire-subagent-status status-running" });
@@ -94290,11 +94139,11 @@ function finalizeSubagentBlock(state, result, isError) {
   state.statusEl.addClass(`status-${state.info.status}`);
   state.statusEl.empty();
   if (state.info.status === "completed") {
-    (0, import_obsidian29.setIcon)(state.statusEl, "check");
+    (0, import_obsidian30.setIcon)(state.statusEl, "check");
     state.wrapperEl.removeClass("error");
     state.wrapperEl.addClass("done");
   } else {
-    (0, import_obsidian29.setIcon)(state.statusEl, "x");
+    (0, import_obsidian30.setIcon)(state.statusEl, "x");
     state.wrapperEl.removeClass("done");
     state.wrapperEl.addClass("error");
   }
@@ -94416,7 +94265,7 @@ function createAsyncSubagentBlock(parentEl, taskToolId, taskInput) {
   headerEl.setAttribute("aria-label", `Background task: ${description} - Initializing - click to expand`);
   const iconEl = headerEl.createDiv({ cls: "grimoire-subagent-icon" });
   iconEl.setAttribute("aria-hidden", "true");
-  (0, import_obsidian29.setIcon)(iconEl, getToolIcon(TOOL_TASK));
+  (0, import_obsidian30.setIcon)(iconEl, getToolIcon(TOOL_TASK));
   const labelEl = headerEl.createDiv({ cls: "grimoire-subagent-label" });
   labelEl.setText(truncateDescription(description));
   const statusTextEl = headerEl.createDiv({ cls: "grimoire-subagent-status-text" });
@@ -94455,9 +94304,9 @@ function finalizeAsyncSubagent(state, result, isError) {
   state.statusEl.addClass(`status-${isError ? "error" : "completed"}`);
   state.statusEl.empty();
   if (isError) {
-    (0, import_obsidian29.setIcon)(state.statusEl, "x");
+    (0, import_obsidian30.setIcon)(state.statusEl, "x");
   } else {
-    (0, import_obsidian29.setIcon)(state.statusEl, "check");
+    (0, import_obsidian30.setIcon)(state.statusEl, "check");
   }
   if (isError) {
     state.wrapperEl.addClass("error");
@@ -94475,7 +94324,7 @@ function markAsyncSubagentOrphaned(state) {
   state.statusTextEl.setText("Orphaned");
   state.statusEl.className = "grimoire-subagent-status status-error";
   state.statusEl.empty();
-  (0, import_obsidian29.setIcon)(state.statusEl, "alert-circle");
+  (0, import_obsidian30.setIcon)(state.statusEl, "alert-circle");
   state.wrapperEl.addClass("error");
   state.wrapperEl.addClass("orphaned");
   renderAsyncContentLikeSync(state.contentEl, state.info, "orphaned");
@@ -94502,7 +94351,7 @@ function renderStoredAsyncSubagent(parentEl, subagent) {
   );
   const iconEl = headerEl.createDiv({ cls: "grimoire-subagent-icon" });
   iconEl.setAttribute("aria-hidden", "true");
-  (0, import_obsidian29.setIcon)(iconEl, getToolIcon(TOOL_TASK));
+  (0, import_obsidian30.setIcon)(iconEl, getToolIcon(TOOL_TASK));
   const labelEl = headerEl.createDiv({ cls: "grimoire-subagent-label" });
   labelEl.setText(truncateDescription(subagent.description));
   const statusTextEl = headerEl.createDiv({ cls: "grimoire-subagent-status-text" });
@@ -94523,13 +94372,13 @@ function renderStoredAsyncSubagent(parentEl, subagent) {
   statusEl.setAttribute("aria-label", `Status: ${statusAriaLabel}`);
   switch (displayStatus) {
     case "completed":
-      (0, import_obsidian29.setIcon)(statusEl, "check");
+      (0, import_obsidian30.setIcon)(statusEl, "check");
       break;
     case "error":
-      (0, import_obsidian29.setIcon)(statusEl, "x");
+      (0, import_obsidian30.setIcon)(statusEl, "x");
       break;
     case "orphaned":
-      (0, import_obsidian29.setIcon)(statusEl, "alert-circle");
+      (0, import_obsidian30.setIcon)(statusEl, "alert-circle");
       break;
   }
   const contentEl = wrapperEl.createDiv({ cls: "grimoire-subagent-content" });
@@ -94540,7 +94389,7 @@ function renderStoredAsyncSubagent(parentEl, subagent) {
 }
 
 // src/features/chat/rendering/WriteEditRenderer.ts
-var import_obsidian30 = require("obsidian");
+var import_obsidian31 = require("obsidian");
 function shortenPath2(filePath, maxLength = 40) {
   if (!filePath) return "file";
   const normalized = filePath.replace(/\\/g, "/");
@@ -94568,7 +94417,7 @@ function createWriteEditBlock(parentEl, toolCall) {
   headerEl.setAttribute("aria-label", `${toolName}: ${shortenPath2(filePath)} - click to expand`);
   const iconEl = headerEl.createDiv({ cls: "grimoire-write-edit-icon" });
   iconEl.setAttribute("aria-hidden", "true");
-  (0, import_obsidian30.setIcon)(iconEl, getToolIcon(toolName));
+  (0, import_obsidian31.setIcon)(iconEl, getToolIcon(toolName));
   const nameEl = headerEl.createDiv({ cls: "grimoire-write-edit-name" });
   nameEl.setText(toolName);
   const summaryEl = headerEl.createDiv({ cls: "grimoire-write-edit-summary" });
@@ -94609,7 +94458,7 @@ function finalizeWriteEditBlock(state, isError) {
   state.statusEl.empty();
   if (isError) {
     state.statusEl.addClass("status-error");
-    (0, import_obsidian30.setIcon)(state.statusEl, "x");
+    (0, import_obsidian31.setIcon)(state.statusEl, "x");
     state.statusEl.setAttribute("aria-label", "Status: error");
     if (!state.diffLines) {
       state.contentEl.empty();
@@ -94645,7 +94494,7 @@ function renderStoredWriteEdit(parentEl, toolCall) {
   headerEl.setAttribute("role", "button");
   const iconEl = headerEl.createDiv({ cls: "grimoire-write-edit-icon" });
   iconEl.setAttribute("aria-hidden", "true");
-  (0, import_obsidian30.setIcon)(iconEl, getToolIcon(toolName));
+  (0, import_obsidian31.setIcon)(iconEl, getToolIcon(toolName));
   const nameEl = headerEl.createDiv({ cls: "grimoire-write-edit-name" });
   nameEl.setText(toolName);
   const summaryEl = headerEl.createDiv({ cls: "grimoire-write-edit-summary" });
@@ -94657,7 +94506,7 @@ function renderStoredWriteEdit(parentEl, toolCall) {
   const statusEl = headerEl.createDiv({ cls: "grimoire-write-edit-status" });
   if (isError) {
     statusEl.addClass("status-error");
-    (0, import_obsidian30.setIcon)(statusEl, "x");
+    (0, import_obsidian31.setIcon)(statusEl, "x");
   }
   const contentEl = wrapperEl.createDiv({ cls: "grimoire-write-edit-content" });
   const row = contentEl.createDiv({ cls: "grimoire-write-edit-diff-row" });
@@ -95797,7 +95646,7 @@ var _StreamController = class _StreamController {
     window.setTimeout(() => {
       const { vault } = this.deps.plugin.app;
       const file2 = vault.getAbstractFileByPath(relativePath);
-      if (file2 instanceof import_obsidian31.TFile) {
+      if (file2 instanceof import_obsidian32.TFile) {
         vault.trigger("modify", file2);
       } else {
         const parentDir = relativePath.includes("/") ? relativePath.substring(0, relativePath.lastIndexOf("/")) : "";
@@ -95896,7 +95745,7 @@ _StreamController.THINKING_INDICATOR_DELAY = 400;
 var StreamController = _StreamController;
 
 // src/features/chat/rendering/MessageRenderer.ts
-var import_obsidian32 = require("obsidian");
+var import_obsidian33 = require("obsidian");
 
 // src/utils/obsidianCompat.ts
 function getVaultFileByPath(app, filePath) {
@@ -96534,15 +96383,15 @@ var MessageRenderer = class {
   }
   openVaultSearchSource(path25) {
     const file2 = this.app.vault.getAbstractFileByPath(path25);
-    if (!(file2 instanceof import_obsidian32.TFile)) {
-      new import_obsidian32.Notice(`Could not open file: ${path25}`);
+    if (!(file2 instanceof import_obsidian33.TFile)) {
+      new import_obsidian33.Notice(`Could not open file: ${path25}`);
       return;
     }
     runRendererAction(async () => {
       try {
         await this.app.workspace.getLeaf().openFile(file2);
       } catch (error48) {
-        new import_obsidian32.Notice(`Failed to open file: ${error48 instanceof Error ? error48.message : String(error48)}`);
+        new import_obsidian33.Notice(`Failed to open file: ${error48 instanceof Error ? error48.message : String(error48)}`);
       }
     });
   }
@@ -96878,7 +96727,7 @@ var MessageRenderer = class {
         this.app,
         this.plugin.settings.mediaFolder
       );
-      await import_obsidian32.MarkdownRenderer.render(
+      await import_obsidian33.MarkdownRenderer.render(
         this.app,
         processedMarkdown,
         el2,
@@ -96942,7 +96791,7 @@ var MessageRenderer = class {
    */
   addTextCopyButton(textEl, markdown) {
     const copyBtn = textEl.createSpan({ cls: "grimoire-text-copy-btn" });
-    (0, import_obsidian32.setIcon)(copyBtn, "copy");
+    (0, import_obsidian33.setIcon)(copyBtn, "copy");
     let feedbackTimeout = null;
     copyBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -96960,7 +96809,7 @@ var MessageRenderer = class {
         copyBtn.classList.add("copied");
         feedbackTimeout = window.setTimeout(() => {
           copyBtn.empty();
-          (0, import_obsidian32.setIcon)(copyBtn, "copy");
+          (0, import_obsidian33.setIcon)(copyBtn, "copy");
           copyBtn.classList.remove("copied");
           feedbackTimeout = null;
         }, 1500);
@@ -96995,7 +96844,7 @@ var MessageRenderer = class {
   addUserCopyButton(msgEl, content) {
     const toolbar = this.getOrCreateActionsToolbar(msgEl);
     const copyBtn = toolbar.createSpan({ cls: "grimoire-user-msg-copy-btn" });
-    (0, import_obsidian32.setIcon)(copyBtn, "copy");
+    (0, import_obsidian33.setIcon)(copyBtn, "copy");
     copyBtn.setAttribute("aria-label", "Copy message");
     let feedbackTimeout = null;
     copyBtn.addEventListener("click", (e) => {
@@ -97012,7 +96861,7 @@ var MessageRenderer = class {
         copyBtn.classList.add("copied");
         feedbackTimeout = window.setTimeout(() => {
           copyBtn.empty();
-          (0, import_obsidian32.setIcon)(copyBtn, "copy");
+          (0, import_obsidian33.setIcon)(copyBtn, "copy");
           copyBtn.classList.remove("copied");
           feedbackTimeout = null;
         }, 1500);
@@ -97024,7 +96873,7 @@ var MessageRenderer = class {
     const toolbar = this.getOrCreateActionsToolbar(msgEl);
     const btn = toolbar.createSpan({ cls: "grimoire-message-rewind-btn" });
     if (toolbar.firstChild !== btn) toolbar.insertBefore(btn, toolbar.firstChild);
-    (0, import_obsidian32.setIcon)(btn, "rotate-ccw");
+    (0, import_obsidian33.setIcon)(btn, "rotate-ccw");
     btn.setAttribute("aria-label", t("chat.rewind.ariaLabel"));
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -97032,7 +96881,7 @@ var MessageRenderer = class {
     });
   }
   showRewindMenu(event, messageId) {
-    const menu = new import_obsidian32.Menu();
+    const menu = new import_obsidian33.Menu();
     this.addRewindMenuItem(menu, messageId, "conversation");
     this.addRewindMenuItem(menu, messageId, "code-and-conversation");
     menu.showAtMouseEvent(event);
@@ -97047,7 +96896,7 @@ var MessageRenderer = class {
           try {
             await ((_a7 = this.rewindCallback) == null ? void 0 : _a7.call(this, messageId, mode));
           } catch (err) {
-            new import_obsidian32.Notice(t("chat.rewind.failed", { error: err instanceof Error ? err.message : "Unknown error" }));
+            new import_obsidian33.Notice(t("chat.rewind.failed", { error: err instanceof Error ? err.message : "Unknown error" }));
           }
         });
       });
@@ -97058,7 +96907,7 @@ var MessageRenderer = class {
     const toolbar = this.getOrCreateActionsToolbar(msgEl);
     const btn = toolbar.createSpan({ cls: "grimoire-message-fork-btn" });
     if (toolbar.firstChild !== btn) toolbar.insertBefore(btn, toolbar.firstChild);
-    (0, import_obsidian32.setIcon)(btn, "git-fork");
+    (0, import_obsidian33.setIcon)(btn, "git-fork");
     btn.setAttribute("aria-label", t("chat.fork.ariaLabel"));
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -97067,7 +96916,7 @@ var MessageRenderer = class {
         try {
           await ((_a7 = this.forkCallback) == null ? void 0 : _a7.call(this, messageId));
         } catch (err) {
-          new import_obsidian32.Notice(t("chat.fork.failed", { error: err instanceof Error ? err.message : "Unknown error" }));
+          new import_obsidian33.Notice(t("chat.fork.failed", { error: err instanceof Error ? err.message : "Unknown error" }));
         }
       });
     });
@@ -98343,7 +98192,7 @@ var ChatState = class {
 };
 
 // src/features/chat/ui/BangBashModeManager.ts
-var import_obsidian33 = require("obsidian");
+var import_obsidian34 = require("obsidian");
 var BangBashModeManager = class {
   constructor(inputEl, callbacks) {
     this.state = { active: false, rawCommand: "" };
@@ -98413,7 +98262,7 @@ var BangBashModeManager = class {
       this.clear();
       await this.callbacks.onSubmit(rawCommand);
     } catch (e) {
-      new import_obsidian33.Notice(`Command failed: ${e instanceof Error ? e.message : String(e)}`);
+      new import_obsidian34.Notice(`Command failed: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       this.isSubmitting = false;
     }
@@ -98430,10 +98279,10 @@ var BangBashModeManager = class {
 };
 
 // src/features/chat/ui/FileContext.ts
-var import_obsidian37 = require("obsidian");
+var import_obsidian38 = require("obsidian");
 
 // src/shared/mention/MentionDropdownController.ts
-var import_obsidian34 = require("obsidian");
+var import_obsidian35 = require("obsidian");
 
 // src/utils/externalContext.ts
 var fs30 = __toESM(require("fs"));
@@ -99147,24 +98996,24 @@ var MentionDropdownController = class {
         const iconEl = itemEl.createSpan({ cls: "grimoire-mention-icon" });
         switch (item.type) {
           case "tool":
-            (0, import_obsidian34.setIcon)(iconEl, "search");
+            (0, import_obsidian35.setIcon)(iconEl, "search");
             break;
           case "mcp-server":
             appendMcpIcon(iconEl);
             break;
           case "agent":
           case "agent-folder":
-            (0, import_obsidian34.setIcon)(iconEl, "bot");
+            (0, import_obsidian35.setIcon)(iconEl, "bot");
             break;
           case "context-file":
-            (0, import_obsidian34.setIcon)(iconEl, "folder-open");
+            (0, import_obsidian35.setIcon)(iconEl, "folder-open");
             break;
           case "folder":
           case "context-folder":
-            (0, import_obsidian34.setIcon)(iconEl, "folder");
+            (0, import_obsidian35.setIcon)(iconEl, "folder");
             break;
           default:
-            (0, import_obsidian34.setIcon)(iconEl, "file-text");
+            (0, import_obsidian35.setIcon)(iconEl, "file-text");
         }
         const textEl = itemEl.createSpan({ cls: "grimoire-mention-text" });
         switch (item.type) {
@@ -99319,7 +99168,7 @@ var MentionDropdownController = class {
 };
 
 // src/shared/mention/VaultMentionCache.ts
-var import_obsidian35 = require("obsidian");
+var import_obsidian36 = require("obsidian");
 var VaultFileCache = class {
   constructor(app, options = {}) {
     this.app = app;
@@ -99398,7 +99247,7 @@ var VaultFolderCache = class {
     }
   }
   loadFolders() {
-    return this.app.vault.getAllLoadedFiles().filter((file2) => file2 instanceof import_obsidian35.TFolder && isVisibleFolder(file2));
+    return this.app.vault.getAllLoadedFiles().filter((file2) => file2 instanceof import_obsidian36.TFolder && isVisibleFolder(file2));
   }
 };
 
@@ -99611,7 +99460,7 @@ var FileContextState = class {
 };
 
 // src/features/chat/ui/file-context/view/FileChipsView.ts
-var import_obsidian36 = require("obsidian");
+var import_obsidian37 = require("obsidian");
 var FileChipsView = class {
   constructor(containerEl, callbacks) {
     this.containerEl = containerEl;
@@ -99641,7 +99490,7 @@ var FileChipsView = class {
   renderFileChip(filePath, onRemove) {
     const chipEl = this.fileIndicatorEl.createDiv({ cls: "grimoire-file-chip" });
     const iconEl = chipEl.createSpan({ cls: "grimoire-file-chip-icon" });
-    (0, import_obsidian36.setIcon)(iconEl, "file-text");
+    (0, import_obsidian37.setIcon)(iconEl, "file-text");
     const normalizedPath = filePath.replace(/\\/g, "/");
     const filename = normalizedPath.split("/").pop() || filePath;
     const nameEl = chipEl.createSpan({ cls: "grimoire-file-chip-name" });
@@ -99690,14 +99539,14 @@ var FileContextManager = class {
       onOpenFile: (filePath) => {
         void (async () => {
           const file2 = this.app.vault.getAbstractFileByPath(filePath);
-          if (!(file2 instanceof import_obsidian37.TFile)) {
-            new import_obsidian37.Notice(`Could not open file: ${filePath}`);
+          if (!(file2 instanceof import_obsidian38.TFile)) {
+            new import_obsidian38.Notice(`Could not open file: ${filePath}`);
             return;
           }
           try {
             await this.app.workspace.getLeaf().openFile(file2);
           } catch (error48) {
-            new import_obsidian37.Notice(`Failed to open file: ${error48 instanceof Error ? error48.message : String(error48)}`);
+            new import_obsidian38.Notice(`Failed to open file: ${error48 instanceof Error ? error48.message : String(error48)}`);
           }
         })();
       }
@@ -99737,10 +99586,10 @@ var FileContextManager = class {
       }
     );
     this.deleteEventRef = this.app.vault.on("delete", (file2) => {
-      if (file2 instanceof import_obsidian37.TFile) this.handleFileDeleted(file2.path);
+      if (file2 instanceof import_obsidian38.TFile) this.handleFileDeleted(file2.path);
     });
     this.renameEventRef = this.app.vault.on("rename", (file2, oldPath) => {
-      if (file2 instanceof import_obsidian37.TFile) this.handleFileRenamed(oldPath, file2.path);
+      if (file2 instanceof import_obsidian38.TFile) this.handleFileRenamed(oldPath, file2.path);
     });
     this.renderContextMemory();
   }
@@ -99912,14 +99761,14 @@ var FileContextManager = class {
     card.addEventListener("click", () => {
       void (async () => {
         const file2 = this.app.vault.getAbstractFileByPath(filePath);
-        if (!(file2 instanceof import_obsidian37.TFile)) {
-          new import_obsidian37.Notice(`Could not open file: ${filePath}`);
+        if (!(file2 instanceof import_obsidian38.TFile)) {
+          new import_obsidian38.Notice(`Could not open file: ${filePath}`);
           return;
         }
         try {
           await this.app.workspace.getLeaf().openFile(file2);
         } catch (error48) {
-          new import_obsidian37.Notice(`Failed to open file: ${error48 instanceof Error ? error48.message : String(error48)}`);
+          new import_obsidian38.Notice(`Failed to open file: ${error48 instanceof Error ? error48.message : String(error48)}`);
         }
       })();
     });
@@ -100024,7 +99873,7 @@ var FileContextManager = class {
 };
 
 // src/features/chat/ui/ImageContext.ts
-var import_obsidian38 = require("obsidian");
+var import_obsidian39 = require("obsidian");
 var path23 = __toESM(require("path"));
 var MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 var IMAGE_EXTENSIONS2 = {
@@ -100186,7 +100035,7 @@ var ImageContextManager = class {
   }
   async addImageFromFile(file2, source) {
     if (!this.enabled) {
-      new import_obsidian38.Notice("Image attachments are not supported by this provider.");
+      new import_obsidian39.Notice("Image attachments are not supported by this provider.");
       return false;
     }
     if (file2.size > MAX_IMAGE_SIZE) {
@@ -100318,7 +100167,7 @@ var ImageContextManager = class {
         userMessage = `${message} (Permission denied)`;
       }
     }
-    new import_obsidian38.Notice(userMessage);
+    new import_obsidian39.Notice(userMessage);
   }
 };
 
@@ -100380,13 +100229,13 @@ function createInputResizeHandle({
 }
 
 // src/features/chat/ui/InputToolbar.ts
-var import_obsidian39 = require("obsidian");
+var import_obsidian40 = require("obsidian");
 var os12 = __toESM(require("os"));
 var path24 = __toESM(require("path"));
 init_path();
 function runToolbarAction(action, failureMessage) {
   void action().catch(() => {
-    new import_obsidian39.Notice(failureMessage);
+    new import_obsidian40.Notice(failureMessage);
   });
 }
 function formatModelFallbackLabel2(model) {
@@ -100600,7 +100449,7 @@ var ModelSelector = class {
     const labelEl = this.buttonEl.createSpan({ cls: "grimoire-model-label" });
     labelEl.setText(modelInfo ? formatModelButtonLabel(modelInfo.label) : formatModelFallbackLabel2(currentModel));
     const chevronEl = this.buttonEl.createSpan({ cls: "grimoire-model-chevron" });
-    (0, import_obsidian39.setIcon)(chevronEl, "chevron-up");
+    (0, import_obsidian40.setIcon)(chevronEl, "chevron-up");
   }
   renderOptions() {
     var _a7, _b4, _c3, _d3, _e3, _f3, _g2, _h2;
@@ -100810,7 +100659,7 @@ var ModelSelector = class {
     if (!this.dropdownEl) return;
     const searchEl = this.dropdownEl.createDiv({ cls: "grimoire-model-search" });
     const iconEl = searchEl.createSpan({ cls: "grimoire-model-search-icon" });
-    (0, import_obsidian39.setIcon)(iconEl, "search");
+    (0, import_obsidian40.setIcon)(iconEl, "search");
     this.searchInputEl = searchEl.createEl("input", {
       cls: "grimoire-model-search-input",
       attr: {
@@ -100820,8 +100669,6 @@ var ModelSelector = class {
       }
     });
     this.searchInputEl.value = this.searchQuery;
-    const kbdEl = searchEl.createSpan({ cls: "grimoire-model-search-kbd", text: "\u2318K" });
-    kbdEl.setAttribute("aria-hidden", "true");
     this.searchInputEl.addEventListener("input", () => {
       var _a7, _b4, _c3;
       this.searchQuery = (_b4 = (_a7 = this.searchInputEl) == null ? void 0 : _a7.value) != null ? _b4 : "";
@@ -100901,7 +100748,7 @@ ${model.description}`);
           this.pendingModel = null;
         } catch (e3) {
           this.pendingModel = previousPendingModel;
-          new import_obsidian39.Notice("Failed to change model");
+          new import_obsidian40.Notice("Failed to change model");
         }
         this.updateDisplay();
         this.renderOptions();
@@ -101317,7 +101164,7 @@ var ServiceTierToggle = class {
     this.container.empty();
     this.buttonEl = this.container.createDiv({ cls: "grimoire-service-tier-button" });
     this.iconEl = this.buttonEl.createSpan({ cls: "grimoire-service-tier-icon" });
-    (0, import_obsidian39.setIcon)(this.iconEl, "zap");
+    (0, import_obsidian40.setIcon)(this.iconEl, "zap");
     this.updateDisplay();
     this.buttonEl.addEventListener("click", () => {
       runToolbarAction(() => this.toggle(), "Failed to change service tier");
@@ -101396,7 +101243,7 @@ var ExternalContextSelector = class {
     this.renderDropdown();
     if (invalidPaths.length > 0) {
       const pathNames = invalidPaths.map((p) => this.shortenPath(p)).join(", ");
-      new import_obsidian39.Notice(`Removed ${invalidPaths.length} invalid external context path(s): ${pathNames}`, 5e3);
+      new import_obsidian40.Notice(`Removed ${invalidPaths.length} invalid external context path(s): ${pathNames}`, 5e3);
       (_a7 = this.onPersistenceChangeCallback) == null ? void 0 : _a7.call(this, [...this.persistentPaths]);
     }
   }
@@ -101406,7 +101253,7 @@ var ExternalContextSelector = class {
       this.persistentPaths.delete(path25);
     } else {
       if (!isValidDirectoryPath(path25)) {
-        new import_obsidian39.Notice(`Cannot persist "${this.shortenPath(path25)}" - directory no longer exists`, 4e3);
+        new import_obsidian40.Notice(`Cannot persist "${this.shortenPath(path25)}" - directory no longer exists`, 4e3);
         return;
       }
       this.persistentPaths.add(path25);
@@ -101502,7 +101349,7 @@ var ExternalContextSelector = class {
     this.container.empty();
     const iconWrapper = this.container.createDiv({ cls: "grimoire-external-context-icon-wrapper" });
     this.iconEl = iconWrapper.createDiv({ cls: "grimoire-external-context-icon" });
-    (0, import_obsidian39.setIcon)(this.iconEl, "folder");
+    (0, import_obsidian40.setIcon)(this.iconEl, "folder");
     this.badgeEl = iconWrapper.createDiv({ cls: "grimoire-external-context-badge" });
     this.updateDisplay();
     iconWrapper.addEventListener("click", (e) => {
@@ -101559,12 +101406,12 @@ var ExternalContextSelector = class {
       if (!result.canceled && result.filePaths.length > 0) {
         const selectedPath = result.filePaths[0];
         if (isDuplicatePath(selectedPath, this.externalContextPaths)) {
-          new import_obsidian39.Notice("This folder is already added as an external context.", 3e3);
+          new import_obsidian40.Notice("This folder is already added as an external context.", 3e3);
           return;
         }
         const conflict = findConflictingPath(selectedPath, this.externalContextPaths);
         if (conflict) {
-          new import_obsidian39.Notice(this.formatConflictMessage(selectedPath, conflict), 5e3);
+          new import_obsidian40.Notice(this.formatConflictMessage(selectedPath, conflict), 5e3);
           return;
         }
         this.externalContextPaths = [...this.externalContextPaths, selectedPath];
@@ -101573,7 +101420,7 @@ var ExternalContextSelector = class {
         this.renderDropdown();
       }
     } catch (e) {
-      new import_obsidian39.Notice("Unable to open folder picker.", 5e3);
+      new import_obsidian40.Notice("Unable to open folder picker.", 5e3);
     }
   }
   /** Formats a conflict error message for display. */
@@ -101603,14 +101450,14 @@ var ExternalContextSelector = class {
         if (isPersistent) {
           lockBtn.addClass("locked");
         }
-        (0, import_obsidian39.setIcon)(lockBtn, isPersistent ? "lock" : "unlock");
+        (0, import_obsidian40.setIcon)(lockBtn, isPersistent ? "lock" : "unlock");
         lockBtn.setAttribute("title", isPersistent ? "Persistent (click to make session-only)" : "Session-only (click to persist)");
         lockBtn.addEventListener("click", (e) => {
           e.stopPropagation();
           this.togglePersistence(pathStr);
         });
         const removeBtn = itemEl.createSpan({ cls: "grimoire-external-context-remove" });
-        (0, import_obsidian39.setIcon)(removeBtn, "x");
+        (0, import_obsidian40.setIcon)(removeBtn, "x");
         removeBtn.setAttribute("title", "Remove path");
         removeBtn.addEventListener("click", (e) => {
           e.stopPropagation();
@@ -101937,7 +101784,7 @@ var OrchestratorToggle = class {
     this.container.empty();
     this.buttonEl = this.container.createDiv({ cls: "grimoire-orchestrator-button" });
     this.iconEl = this.buttonEl.createSpan({ cls: "grimoire-orchestrator-icon" });
-    (0, import_obsidian39.setIcon)(this.iconEl, "git-fork");
+    (0, import_obsidian40.setIcon)(this.iconEl, "git-fork");
     this.updateDisplay();
     this.buttonEl.addEventListener("click", () => {
       runToolbarAction(() => this.toggle(), t("chat.orchestrator.toggleFailed"));
@@ -102157,7 +102004,7 @@ var InstructionModeManager = class {
 };
 
 // src/features/chat/ui/NavigationSidebar.ts
-var import_obsidian40 = require("obsidian");
+var import_obsidian41 = require("obsidian");
 var NavigationSidebar = class {
   constructor(parentEl, messagesEl) {
     this.parentEl = parentEl;
@@ -102176,7 +102023,7 @@ var NavigationSidebar = class {
   }
   createButton(cls, icon, label) {
     const btn = this.container.createDiv({ cls: `grimoire-nav-btn ${cls}` });
-    (0, import_obsidian40.setIcon)(btn, icon);
+    (0, import_obsidian41.setIcon)(btn, icon);
     btn.setAttribute("aria-label", label);
     return btn;
   }
@@ -102390,7 +102237,7 @@ var RelevantNotesView = class {
 };
 
 // src/features/chat/ui/StatusPanel.ts
-var import_obsidian41 = require("obsidian");
+var import_obsidian42 = require("obsidian");
 var MAX_BASH_OUTPUTS = 50;
 var StatusPanel = class {
   constructor() {
@@ -102557,7 +102404,7 @@ var StatusPanel = class {
     const ownerDocument = (_a7 = this.todoHeaderEl.ownerDocument) != null ? _a7 : window.document;
     const icon = ownerDocument.createElement("span");
     icon.className = "grimoire-status-panel-icon";
-    (0, import_obsidian41.setIcon)(icon, getToolIcon(TOOL_TODO_WRITE));
+    (0, import_obsidian42.setIcon)(icon, getToolIcon(TOOL_TODO_WRITE));
     this.todoHeaderEl.appendChild(icon);
     const label = ownerDocument.createElement("span");
     label.className = "grimoire-status-panel-label";
@@ -102567,7 +102414,7 @@ var StatusPanel = class {
       if (completedCount === totalCount && totalCount > 0) {
         const status = ownerDocument.createElement("span");
         status.className = "grimoire-status-panel-status status-completed";
-        (0, import_obsidian41.setIcon)(status, "check");
+        (0, import_obsidian42.setIcon)(status, "check");
         this.todoHeaderEl.appendChild(status);
       }
       if (currentTask) {
@@ -102672,7 +102519,7 @@ var StatusPanel = class {
     const headerIconEl = ownerDocument.createElement("span");
     headerIconEl.className = "grimoire-tool-icon";
     headerIconEl.setAttribute("aria-hidden", "true");
-    (0, import_obsidian41.setIcon)(headerIconEl, "terminal");
+    (0, import_obsidian42.setIcon)(headerIconEl, "terminal");
     this.bashHeaderEl.appendChild(headerIconEl);
     const latest = Array.from(this.currentBashOutputs.values()).at(-1);
     const headerLabelEl = ownerDocument.createElement("span");
@@ -102692,8 +102539,8 @@ var StatusPanel = class {
     if (!this.isBashExpanded && latest) {
       summaryStatusEl.classList.add(`status-${latest.status}`);
       summaryStatusEl.setAttribute("aria-label", t("chat.bangBash.statusLabel", { status: latest.status }));
-      if (latest.status === "completed") (0, import_obsidian41.setIcon)(summaryStatusEl, "check");
-      if (latest.status === "error") (0, import_obsidian41.setIcon)(summaryStatusEl, "x");
+      if (latest.status === "completed") (0, import_obsidian42.setIcon)(summaryStatusEl, "check");
+      if (latest.status === "error") (0, import_obsidian42.setIcon)(summaryStatusEl, "x");
     } else {
       summaryStatusEl.classList.add("grimoire-hidden");
     }
@@ -102731,7 +102578,7 @@ var StatusPanel = class {
     const entryIconEl = ownerDocument.createElement("span");
     entryIconEl.className = "grimoire-tool-icon";
     entryIconEl.setAttribute("aria-hidden", "true");
-    (0, import_obsidian41.setIcon)(entryIconEl, "dollar-sign");
+    (0, import_obsidian42.setIcon)(entryIconEl, "dollar-sign");
     entryHeaderEl.appendChild(entryIconEl);
     const entryLabelEl = ownerDocument.createElement("span");
     entryLabelEl.className = "grimoire-tool-label";
@@ -102741,8 +102588,8 @@ var StatusPanel = class {
     entryStatusEl.className = "grimoire-tool-status";
     entryStatusEl.classList.add(`status-${info.status}`);
     entryStatusEl.setAttribute("aria-label", t("chat.bangBash.statusLabel", { status: info.status }));
-    if (info.status === "completed") (0, import_obsidian41.setIcon)(entryStatusEl, "check");
-    if (info.status === "error") (0, import_obsidian41.setIcon)(entryStatusEl, "x");
+    if (info.status === "completed") (0, import_obsidian42.setIcon)(entryStatusEl, "check");
+    if (info.status === "error") (0, import_obsidian42.setIcon)(entryStatusEl, "x");
     entryHeaderEl.appendChild(entryStatusEl);
     entryEl.appendChild(entryHeaderEl);
     const contentEl = ownerDocument.createElement("div");
@@ -102794,7 +102641,7 @@ ${output}` : `$ ${latest.command}`;
     try {
       await navigator.clipboard.writeText(text);
     } catch (e) {
-      new import_obsidian41.Notice(t("chat.bangBash.copyFailed"));
+      new import_obsidian42.Notice(t("chat.bangBash.copyFailed"));
     }
   }
   appendActionButton(parent, name, ariaLabel, icon, action) {
@@ -102804,7 +102651,7 @@ ${output}` : `$ ${latest.command}`;
     el2.setAttribute("role", "button");
     el2.setAttribute("tabindex", "0");
     el2.setAttribute("aria-label", ariaLabel);
-    (0, import_obsidian41.setIcon)(el2, icon);
+    (0, import_obsidian42.setIcon)(el2, icon);
     el2.addEventListener("click", (e) => {
       e.stopPropagation();
       action();
@@ -103099,7 +102946,7 @@ function shouldSendMessageFromEnterKey(e, settings11) {
   if (settings11.requireCommandOrControlEnterToSend !== true) {
     return true;
   }
-  if (import_obsidian42.Platform.isMacOS) {
+  if (import_obsidian43.Platform.isMacOS) {
     return e.metaKey === true && !e.ctrlKey && !e.altKey;
   }
   return e.ctrlKey === true && !e.metaKey && !e.altKey;
@@ -103914,13 +103761,13 @@ function initializeContextManagers(tab, plugin) {
   tab.ui.fileContextManager.setMcpManager(getProviderMcpManager(getTabProviderId(tab, plugin)));
   const markVaultSearchDirty = (file2) => {
     var _a7;
-    if (file2 instanceof import_obsidian42.TFile) {
+    if (file2 instanceof import_obsidian43.TFile) {
       (_a7 = tab.services.vaultTextIndex) == null ? void 0 : _a7.markDirty(file2.path);
     }
   };
   const markVaultSearchRenameDirty = (file2, oldPath) => {
     var _a7, _b4;
-    if (file2 instanceof import_obsidian42.TFile) {
+    if (file2 instanceof import_obsidian43.TFile) {
       (_a7 = tab.services.vaultTextIndex) == null ? void 0 : _a7.markDirty(oldPath);
       (_b4 = tab.services.vaultTextIndex) == null ? void 0 : _b4.markDirty(file2.path);
     }
@@ -103978,7 +103825,7 @@ async function updateRelevantNotes(tab, plugin) {
     view.render(notes, currentSources);
   } catch (error48) {
     view.render([], currentSources);
-    new import_obsidian42.Notice(`Relevant notes failed: ${error48 instanceof Error ? error48.message : String(error48)}`);
+    new import_obsidian43.Notice(`Relevant notes failed: ${error48 instanceof Error ? error48.message : String(error48)}`);
   }
 }
 function getCurrentSourceRows(tab) {
@@ -104015,15 +103862,15 @@ function getPathTitle(path25) {
 }
 function openRelevantVaultPath(plugin, path25) {
   const file2 = plugin.app.vault.getAbstractFileByPath(path25);
-  if (!(file2 instanceof import_obsidian42.TFile)) {
-    new import_obsidian42.Notice(`Could not open file: ${path25}`);
+  if (!(file2 instanceof import_obsidian43.TFile)) {
+    new import_obsidian43.Notice(`Could not open file: ${path25}`);
     return;
   }
   void (async () => {
     try {
       await plugin.app.workspace.getLeaf().openFile(file2);
     } catch (error48) {
-      new import_obsidian42.Notice(`Failed to open file: ${error48 instanceof Error ? error48.message : String(error48)}`);
+      new import_obsidian43.Notice(`Failed to open file: ${error48 instanceof Error ? error48.message : String(error48)}`);
     }
   })();
 }
@@ -104189,7 +104036,7 @@ function initializeInputToolbar(tab, plugin, getProviderCatalogConfig, onProvide
       const boundProvider = tab.providerId;
       const modelProvider = getProviderForModel(model, plugin.settings);
       if (modelProvider !== boundProvider) {
-        new import_obsidian42.Notice("Cannot switch provider on a bound session. Start a new tab instead.");
+        new import_obsidian43.Notice("Cannot switch provider on a bound session. Start a new tab instead.");
         (_i3 = tab.ui.modelSelector) == null ? void 0 : _i3.updateDisplay();
         (_j2 = tab.ui.planUsageBadge) == null ? void 0 : _j2.updateDisplay();
         return;
@@ -104452,7 +104299,7 @@ function resolveForkSource(tab, plugin) {
   const conversation = tab.conversationId ? plugin.getConversationSync(tab.conversationId) : null;
   const sourceSessionId = tab.service ? tab.service.resolveSessionIdForFork(conversation != null ? conversation : null) : ProviderRegistry.getConversationHistoryService((_a7 = conversation == null ? void 0 : conversation.providerId) != null ? _a7 : tab.providerId).resolveSessionIdForConversation(conversation);
   if (!sourceSessionId) {
-    new import_obsidian42.Notice(t("chat.fork.failed", { error: t("chat.fork.errorNoSession") }));
+    new import_obsidian43.Notice(t("chat.fork.failed", { error: t("chat.fork.errorNoSession") }));
     return null;
   }
   return {
@@ -104466,26 +104313,26 @@ function resolveForkSource(tab, plugin) {
 async function handleForkRequest(tab, plugin, userMessageId, forkRequestCallback) {
   const { state } = tab;
   if (!getTabCapabilities(tab, plugin).supportsFork) {
-    new import_obsidian42.Notice("Fork is not supported by this provider.");
+    new import_obsidian43.Notice("Fork is not supported by this provider.");
     return;
   }
   if (state.isStreaming) {
-    new import_obsidian42.Notice(t("chat.fork.unavailableStreaming"));
+    new import_obsidian43.Notice(t("chat.fork.unavailableStreaming"));
     return;
   }
   const msgs = state.messages;
   const userIdx = msgs.findIndex((m) => m.id === userMessageId);
   if (userIdx === -1) {
-    new import_obsidian42.Notice(t("chat.fork.failed", { error: t("chat.fork.errorMessageNotFound") }));
+    new import_obsidian43.Notice(t("chat.fork.failed", { error: t("chat.fork.errorMessageNotFound") }));
     return;
   }
   if (!msgs[userIdx].userMessageId) {
-    new import_obsidian42.Notice(t("chat.fork.unavailableNoUuid"));
+    new import_obsidian43.Notice(t("chat.fork.unavailableNoUuid"));
     return;
   }
   const rewindCtx = findRewindContext(msgs, userIdx);
   if (!rewindCtx.hasResponse || !rewindCtx.prevAssistantUuid) {
-    new import_obsidian42.Notice(t("chat.fork.unavailableNoResponse"));
+    new import_obsidian43.Notice(t("chat.fork.unavailableNoResponse"));
     return;
   }
   const source = resolveForkSource(tab, plugin);
@@ -104504,16 +104351,16 @@ async function handleForkRequest(tab, plugin, userMessageId, forkRequestCallback
 async function handleForkAll(tab, plugin, forkRequestCallback) {
   const { state } = tab;
   if (!getTabCapabilities(tab, plugin).supportsFork) {
-    new import_obsidian42.Notice("Fork is not supported by this provider.");
+    new import_obsidian43.Notice("Fork is not supported by this provider.");
     return;
   }
   if (state.isStreaming) {
-    new import_obsidian42.Notice(t("chat.fork.unavailableStreaming"));
+    new import_obsidian43.Notice(t("chat.fork.unavailableStreaming"));
     return;
   }
   const msgs = state.messages;
   if (msgs.length === 0) {
-    new import_obsidian42.Notice(t("chat.fork.commandNoMessages"));
+    new import_obsidian43.Notice(t("chat.fork.commandNoMessages"));
     return;
   }
   let lastAssistantUuid;
@@ -104524,7 +104371,7 @@ async function handleForkAll(tab, plugin, forkRequestCallback) {
     }
   }
   if (!lastAssistantUuid) {
-    new import_obsidian42.Notice(t("chat.fork.commandNoAssistantUuid"));
+    new import_obsidian43.Notice(t("chat.fork.commandNoAssistantUuid"));
     return;
   }
   const source = resolveForkSource(tab, plugin);
@@ -104786,7 +104633,7 @@ function initializeTabControllers(tab, plugin, component, arg4, arg5, arg6, arg7
         applyProviderUIGating(tab, plugin);
         return true;
       } catch (error48) {
-        new import_obsidian42.Notice(error48 instanceof Error ? error48.message : "Failed to initialize chat service");
+        new import_obsidian43.Notice(error48 instanceof Error ? error48.message : "Failed to initialize chat service");
         return false;
       }
     },
@@ -105277,16 +105124,16 @@ var TabBar = class {
 };
 
 // src/features/chat/tabs/TabManager.ts
-var import_obsidian44 = require("obsidian");
+var import_obsidian45 = require("obsidian");
 
 // src/shared/modals/ForkTargetModal.ts
-var import_obsidian43 = require("obsidian");
+var import_obsidian44 = require("obsidian");
 function chooseForkTarget(app) {
   return new Promise((resolve7) => {
     new ForkTargetModal(app, resolve7).open();
   });
 }
-var ForkTargetModal = class extends import_obsidian43.Modal {
+var ForkTargetModal = class extends import_obsidian44.Modal {
   constructor(app, resolve7) {
     super(app);
     this.resolved = false;
@@ -105681,17 +105528,17 @@ var TabManager = class {
       const tab = await this.forkToNewTab(context);
       if (!tab) {
         const maxTabs = this.getMaxTabs();
-        new import_obsidian44.Notice(t("chat.fork.maxTabsReached", { count: String(maxTabs) }));
+        new import_obsidian45.Notice(t("chat.fork.maxTabsReached", { count: String(maxTabs) }));
         return;
       }
-      new import_obsidian44.Notice(t("chat.fork.notice"));
+      new import_obsidian45.Notice(t("chat.fork.notice"));
     } else {
       const success2 = await this.forkInCurrentTab(context);
       if (!success2) {
-        new import_obsidian44.Notice(t("chat.fork.failed", { error: t("chat.fork.errorNoActiveTab") }));
+        new import_obsidian45.Notice(t("chat.fork.failed", { error: t("chat.fork.errorNoActiveTab") }));
         return;
       }
-      new import_obsidian44.Notice(t("chat.fork.noticeCurrentTab"));
+      new import_obsidian45.Notice(t("chat.fork.noticeCurrentTab"));
     }
   }
   async forkToNewTab(context) {
@@ -106157,7 +106004,7 @@ function appendHistoryHeaderIcon(container) {
   }
   container.appendChild(svg);
 }
-var GrimoireView = class extends import_obsidian45.ItemView {
+var GrimoireView = class extends import_obsidian46.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     // Tab management
@@ -106404,7 +106251,7 @@ var GrimoireView = class extends import_obsidian45.ItemView {
         void this.handleTabClose(tabId);
       },
       onNewTab: () => {
-        void this.createNewTab().catch(() => new import_obsidian45.Notice("Failed to create tab"));
+        void this.createNewTab().catch(() => new import_obsidian46.Notice("Failed to create tab"));
       }
     });
     fragment.appendChild(this.tabBarContainerEl);
@@ -106417,7 +106264,7 @@ var GrimoireView = class extends import_obsidian45.ItemView {
     this.newTabButtonEl.setText("+");
     this.newTabButtonEl.setAttribute("aria-label", "New tab");
     this.newTabButtonEl.addEventListener("click", () => {
-      void this.createNewTab().catch(() => new import_obsidian45.Notice("Failed to create tab"));
+      void this.createNewTab().catch(() => new import_obsidian46.Notice("Failed to create tab"));
     });
     this.historyButtonEl = this.headerActionsContent.createDiv({ cls: "grimoire-header-btn grimoire-history-btn" });
     this.historyButtonEl.setAttribute("role", "button");
@@ -106486,7 +106333,7 @@ var GrimoireView = class extends import_obsidian45.ItemView {
     var _a7;
     const switched = (_a7 = this.tabManager) == null ? void 0 : _a7.switchToTab(tabId);
     if (switched) {
-      void switched.catch(() => new import_obsidian45.Notice("Failed to switch tab"));
+      void switched.catch(() => new import_obsidian46.Notice("Failed to switch tab"));
     }
   }
   async handleTabClose(tabId) {
@@ -106497,7 +106344,7 @@ var GrimoireView = class extends import_obsidian45.ItemView {
       await ((_c3 = this.tabManager) == null ? void 0 : _c3.closeTab(tabId, force));
       this.updateTabBarVisibility();
     } catch (e) {
-      new import_obsidian45.Notice("Failed to close tab");
+      new import_obsidian46.Notice("Failed to close tab");
     }
   }
   async createNewTab() {
@@ -106505,7 +106352,7 @@ var GrimoireView = class extends import_obsidian45.ItemView {
     const tab = await ((_a7 = this.tabManager) == null ? void 0 : _a7.createTab());
     if (!tab) {
       const maxTabs = normalizeMaxTabs(this.plugin.settings.maxTabs);
-      new import_obsidian45.Notice(`Maximum ${maxTabs} tabs allowed`);
+      new import_obsidian46.Notice(`Maximum ${maxTabs} tabs allowed`);
       this.updateTabBarVisibility();
       return;
     }
@@ -106739,7 +106586,7 @@ var GrimoireView = class extends import_obsidian45.ItemView {
         }
       }
     });
-    this.scope = new import_obsidian45.Scope(this.app.scope);
+    this.scope = new import_obsidian46.Scope(this.app.scope);
     this.scope.register([], "Escape", (e) => {
       var _a7, _b4;
       if (e.isComposing) return;
@@ -106834,7 +106681,7 @@ var GrimoireView = class extends import_obsidian45.ItemView {
 // src/features/inline-edit/ui/InlineEditModal.ts
 var import_state2 = require("@codemirror/state");
 var import_view2 = require("@codemirror/view");
-var import_obsidian46 = require("obsidian");
+var import_obsidian47 = require("obsidian");
 init_path();
 var showInlineEdit = import_state2.StateEffect.define();
 var showDiff = import_state2.StateEffect.define();
@@ -107021,7 +106868,7 @@ var InlineEditModal = class {
       editorView = getEditorView(editor);
     }
     if (!editorView) {
-      new import_obsidian46.Notice("Inline edit unavailable: could not access the active editor. Try reopening the note.");
+      new import_obsidian47.Notice("Inline edit unavailable: could not access the active editor. Try reopening the note.");
       return { decision: "reject" };
     }
     return new Promise((resolve7) => {
@@ -107075,7 +106922,7 @@ var InlineEditController = class {
     this.resolvedProviderId = providerId;
     this.mentionDataProvider = new VaultMentionDataProvider(this.app, {
       onFileLoadError: () => {
-        new import_obsidian46.Notice("Failed to load vault files. Vault @-mentions may be unavailable.");
+        new import_obsidian47.Notice("Failed to load vault files. Vault @-mentions may be unavailable.");
       }
     });
     this.mentionDataProvider.initializeInBackground();
@@ -107429,7 +107276,7 @@ var InlineEditController = class {
       const vaultPath = getVaultPath(this.app);
       return normalizePathForVault(rawPath, vaultPath);
     } catch (e) {
-      new import_obsidian46.Notice("Failed to attach file: invalid path");
+      new import_obsidian47.Notice("Failed to attach file: invalid path");
       return null;
     }
   }
@@ -107480,7 +107327,7 @@ var InlineEditController = class {
 };
 
 // src/features/settings/GrimoireSettings.ts
-var import_obsidian48 = require("obsidian");
+var import_obsidian49 = require("obsidian");
 init_env();
 
 // src/features/settings/keyboardNavigation.ts
@@ -107739,7 +107586,7 @@ function renderProjectWorkspaceSettings(container, context) {
 }
 
 // src/features/settings/ui/AdvancedSection.ts
-var import_obsidian47 = require("obsidian");
+var import_obsidian48 = require("obsidian");
 function setOpenState(toggle, wrap, open) {
   toggle.toggleClass("is-open", open);
   wrap.toggleClass("is-open", open);
@@ -107758,7 +107605,7 @@ function renderAdvancedSection(container, opts) {
     cls: `grimoire-adv-toggle${open ? " is-open" : ""}`
   });
   const chevron = toggle.createSpan({ cls: "grimoire-adv-chevron" });
-  (0, import_obsidian47.setIcon)(chevron, "chevron-right");
+  (0, import_obsidian48.setIcon)(chevron, "chevron-right");
   const copy = toggle.createSpan({ cls: "grimoire-adv-copy" });
   copy.createSpan({ cls: "grimoire-adv-title", text: "Advanced settings" });
   copy.createSpan({ cls: "grimoire-adv-summary", text: opts.summary });
@@ -107783,7 +107630,7 @@ function renderAdvancedSection(container, opts) {
 
 // src/features/settings/GrimoireSettings.ts
 function formatHotkey(hotkey) {
-  const isMac = import_obsidian48.Platform.isMacOS;
+  const isMac = import_obsidian49.Platform.isMacOS;
   const modMap = isMac ? { Mod: "\u2318", Ctrl: "\u2303", Alt: "\u2325", Shift: "\u21E7", Meta: "\u2318" } : { Mod: "Ctrl", Ctrl: "Ctrl", Alt: "Alt", Shift: "Shift", Meta: "Win" };
   const mods = hotkey.modifiers.map((modifier) => modMap[modifier] || modifier);
   const key = hotkey.key.length === 1 ? hotkey.key.toUpperCase() : hotkey.key;
@@ -107853,7 +107700,7 @@ var PROVIDER_SETTING_COPY = {
     name: "OpenCode"
   }
 };
-var GrimoireSettingTab = class extends import_obsidian48.PluginSettingTab {
+var GrimoireSettingTab = class extends import_obsidian49.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     this.activeTab = "general";
@@ -107947,7 +107794,7 @@ var GrimoireSettingTab = class extends import_obsidian48.PluginSettingTab {
     });
   }
   renderGeneralTab(container) {
-    new import_obsidian48.Setting(container).setName(t("settings.language.name")).setDesc(t("settings.language.desc")).addDropdown((dropdown) => {
+    new import_obsidian49.Setting(container).setName(t("settings.language.name")).setDesc(t("settings.language.desc")).addDropdown((dropdown) => {
       const locales = getAvailableLocales();
       for (const locale of locales) {
         dropdown.addOption(locale, getLocaleDisplayName(locale));
@@ -107964,15 +107811,16 @@ var GrimoireSettingTab = class extends import_obsidian48.PluginSettingTab {
       });
     });
     this.renderProviderEnableSettings(container);
-    new import_obsidian48.Setting(container).setName(t("settings.display")).setHeading();
-    new import_obsidian48.Setting(container).setName(t("settings.chatViewPlacement.name")).setDesc(t("settings.chatViewPlacement.desc")).addDropdown((dropdown) => {
+    new import_obsidian49.Setting(container).setName(t("settings.display")).setHeading();
+    new import_obsidian49.Setting(container).setName(t("settings.theme.name")).setDesc(t("settings.theme.followsObsidian"));
+    new import_obsidian49.Setting(container).setName(t("settings.chatViewPlacement.name")).setDesc(t("settings.chatViewPlacement.desc")).addDropdown((dropdown) => {
       dropdown.addOption("right-sidebar", t("settings.chatViewPlacement.rightSidebar")).addOption("left-sidebar", t("settings.chatViewPlacement.leftSidebar")).addOption("main-tab", t("settings.chatViewPlacement.mainTab")).setValue(this.plugin.settings.chatViewPlacement).onChange(async (value) => {
         this.plugin.settings.chatViewPlacement = value;
         await this.plugin.saveSettings();
       });
     });
     this.renderMaxTabsSetting(container);
-    new import_obsidian48.Setting(container).setName(t("settings.enableAutoScroll.name")).setDesc(t("settings.enableAutoScroll.desc")).addToggle(
+    new import_obsidian49.Setting(container).setName(t("settings.enableAutoScroll.name")).setDesc(t("settings.enableAutoScroll.desc")).addToggle(
       (toggle) => {
         var _a7;
         return toggle.setValue((_a7 = this.plugin.settings.enableAutoScroll) != null ? _a7 : true).onChange(async (value) => {
@@ -107981,16 +107829,16 @@ var GrimoireSettingTab = class extends import_obsidian48.PluginSettingTab {
         });
       }
     );
-    new import_obsidian48.Setting(container).setName(t("settings.conversations")).setHeading();
-    new import_obsidian48.Setting(container).setName(t("settings.autoTitle.name")).setDesc(t("settings.autoTitle.desc")).addToggle(
+    new import_obsidian49.Setting(container).setName(t("settings.conversations")).setHeading();
+    new import_obsidian49.Setting(container).setName(t("settings.autoTitle.name")).setDesc(t("settings.autoTitle.desc")).addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.enableAutoTitleGeneration).onChange(async (value) => {
         this.plugin.settings.enableAutoTitleGeneration = value;
         await this.plugin.saveSettings();
         refreshSettingsTab(this);
       })
     );
-    new import_obsidian48.Setting(container).setName(t("settings.content")).setHeading();
-    new import_obsidian48.Setting(container).setName(t("settings.userName.name")).setDesc(t("settings.userName.desc")).addText((text) => {
+    new import_obsidian49.Setting(container).setName(t("settings.content")).setHeading();
+    new import_obsidian49.Setting(container).setName(t("settings.userName.name")).setDesc(t("settings.userName.desc")).addText((text) => {
       text.setPlaceholder(t("settings.userName.name")).setValue(this.plugin.settings.userName).onChange(async (value) => {
         this.plugin.settings.userName = value;
         await this.plugin.saveSettings();
@@ -108003,8 +107851,8 @@ var GrimoireSettingTab = class extends import_obsidian48.PluginSettingTab {
       count: 11,
       summary: "Prompts, hotkeys, diagnostics, environment variables, and more"
     });
-    new import_obsidian48.Setting(advancedContainer).setName(t("settings.display")).setHeading();
-    new import_obsidian48.Setting(advancedContainer).setName(t("settings.deferMathRenderingDuringStreaming.name")).setDesc(t("settings.deferMathRenderingDuringStreaming.desc")).addToggle(
+    new import_obsidian49.Setting(advancedContainer).setName(t("settings.display")).setHeading();
+    new import_obsidian49.Setting(advancedContainer).setName(t("settings.deferMathRenderingDuringStreaming.name")).setDesc(t("settings.deferMathRenderingDuringStreaming.desc")).addToggle(
       (toggle) => {
         var _a7;
         return toggle.setValue((_a7 = this.plugin.settings.deferMathRenderingDuringStreaming) != null ? _a7 : true).onChange(async (value) => {
@@ -108013,9 +107861,9 @@ var GrimoireSettingTab = class extends import_obsidian48.PluginSettingTab {
         });
       }
     );
-    new import_obsidian48.Setting(advancedContainer).setName(t("settings.conversations")).setHeading();
+    new import_obsidian49.Setting(advancedContainer).setName(t("settings.conversations")).setHeading();
     if (this.plugin.settings.enableAutoTitleGeneration) {
-      new import_obsidian48.Setting(advancedContainer).setName(t("settings.titleModel.name")).setDesc(t("settings.titleModel.desc")).addDropdown((dropdown) => {
+      new import_obsidian49.Setting(advancedContainer).setName(t("settings.titleModel.name")).setDesc(t("settings.titleModel.desc")).addDropdown((dropdown) => {
         dropdown.addOption("", t("settings.titleModel.auto"));
         const settingsBag = this.plugin.settings;
         const seenValues = /* @__PURE__ */ new Set();
@@ -108034,8 +107882,8 @@ var GrimoireSettingTab = class extends import_obsidian48.PluginSettingTab {
         });
       });
     }
-    new import_obsidian48.Setting(advancedContainer).setName(t("settings.content")).setHeading();
-    new import_obsidian48.Setting(advancedContainer).setName(t("settings.systemPrompt.name")).setDesc(t("settings.systemPrompt.desc")).addTextArea((text) => {
+    new import_obsidian49.Setting(advancedContainer).setName(t("settings.content")).setHeading();
+    new import_obsidian49.Setting(advancedContainer).setName(t("settings.systemPrompt.name")).setDesc(t("settings.systemPrompt.desc")).addTextArea((text) => {
       text.setPlaceholder(t("settings.systemPrompt.name")).setValue(this.plugin.settings.systemPrompt).onChange(async (value) => {
         this.plugin.settings.systemPrompt = value;
         await this.plugin.saveSettings();
@@ -108046,7 +107894,7 @@ var GrimoireSettingTab = class extends import_obsidian48.PluginSettingTab {
         void this.restartServiceForPromptChange();
       });
     });
-    new import_obsidian48.Setting(advancedContainer).setName(t("settings.excludedTags.name")).setDesc(t("settings.excludedTags.desc")).addTextArea((text) => {
+    new import_obsidian49.Setting(advancedContainer).setName(t("settings.excludedTags.name")).setDesc(t("settings.excludedTags.desc")).addTextArea((text) => {
       text.setPlaceholder("System\nprivate\ndraft").setValue(this.plugin.settings.excludedTags.join("\n")).onChange(async (value) => {
         this.plugin.settings.excludedTags = value.split(/\r?\n/).map((entry) => entry.trim().replace(/^#/, "")).filter((entry) => entry.length > 0);
         await this.plugin.saveSettings();
@@ -108054,7 +107902,7 @@ var GrimoireSettingTab = class extends import_obsidian48.PluginSettingTab {
       text.inputEl.rows = 4;
       text.inputEl.cols = 30;
     });
-    new import_obsidian48.Setting(advancedContainer).setName(t("settings.mediaFolder.name")).setDesc(t("settings.mediaFolder.desc")).addText((text) => {
+    new import_obsidian49.Setting(advancedContainer).setName(t("settings.mediaFolder.name")).setDesc(t("settings.mediaFolder.desc")).addText((text) => {
       text.setPlaceholder("Attachments").setValue(this.plugin.settings.mediaFolder).onChange(async (value) => {
         this.plugin.settings.mediaFolder = value.trim();
         await this.plugin.saveSettings();
@@ -108065,15 +107913,15 @@ var GrimoireSettingTab = class extends import_obsidian48.PluginSettingTab {
       });
     });
     renderProjectWorkspaceSettings(advancedContainer, { plugin: this.plugin });
-    new import_obsidian48.Setting(advancedContainer).setName(t("settings.input")).setHeading();
-    new import_obsidian48.Setting(advancedContainer).setName(t("settings.requireCommandOrControlEnterToSend.name")).setDesc(t("settings.requireCommandOrControlEnterToSend.desc")).addToggle((toggle) => {
+    new import_obsidian49.Setting(advancedContainer).setName(t("settings.input")).setHeading();
+    new import_obsidian49.Setting(advancedContainer).setName(t("settings.requireCommandOrControlEnterToSend.name")).setDesc(t("settings.requireCommandOrControlEnterToSend.desc")).addToggle((toggle) => {
       var _a7;
       toggle.setValue((_a7 = this.plugin.settings.requireCommandOrControlEnterToSend) != null ? _a7 : false).onChange(async (value) => {
         this.plugin.settings.requireCommandOrControlEnterToSend = value;
         await this.plugin.saveSettings();
       });
     });
-    new import_obsidian48.Setting(advancedContainer).setName(t("settings.navMappings.name")).setDesc(t("settings.navMappings.desc")).addTextArea((text) => {
+    new import_obsidian49.Setting(advancedContainer).setName(t("settings.navMappings.name")).setDesc(t("settings.navMappings.desc")).addTextArea((text) => {
       let pendingValue = buildNavMappingText(this.plugin.settings.keyboardNavigation);
       let saveTimeout = null;
       const commitValue = async (showError) => {
@@ -108084,7 +107932,7 @@ var GrimoireSettingTab = class extends import_obsidian48.PluginSettingTab {
         const result = parseNavMappings(pendingValue);
         if (!result.settings) {
           if (showError) {
-            new import_obsidian48.Notice(`${t("common.error")}: ${result.error}`);
+            new import_obsidian49.Notice(`${t("common.error")}: ${result.error}`);
             pendingValue = buildNavMappingText(this.plugin.settings.keyboardNavigation);
             text.setValue(pendingValue);
           }
@@ -108114,15 +107962,15 @@ var GrimoireSettingTab = class extends import_obsidian48.PluginSettingTab {
         void commitValue(true);
       });
     });
-    new import_obsidian48.Setting(advancedContainer).setName(t("settings.hotkeys")).setHeading();
+    new import_obsidian49.Setting(advancedContainer).setName(t("settings.hotkeys")).setHeading();
     const hotkeyGrid = advancedContainer.createDiv({ cls: "grimoire-hotkey-grid" });
     addHotkeySettingRow(hotkeyGrid, this.app, "grimoire:inline-edit", "settings.inlineEditHotkey");
     addHotkeySettingRow(hotkeyGrid, this.app, "grimoire:open-view", "settings.openChatHotkey");
     addHotkeySettingRow(hotkeyGrid, this.app, "grimoire:new-session", "settings.newSessionHotkey");
     addHotkeySettingRow(hotkeyGrid, this.app, "grimoire:new-tab", "settings.newTabHotkey");
     addHotkeySettingRow(hotkeyGrid, this.app, "grimoire:close-current-tab", "settings.closeTabHotkey");
-    new import_obsidian48.Setting(advancedContainer).setName(t("settings.diagnostics")).setHeading();
-    new import_obsidian48.Setting(advancedContainer).setName(t("settings.usageIndicators.name")).setDesc(t("settings.usageIndicators.desc")).addToggle((toggle) => {
+    new import_obsidian49.Setting(advancedContainer).setName(t("settings.diagnostics")).setHeading();
+    new import_obsidian49.Setting(advancedContainer).setName(t("settings.usageIndicators.name")).setDesc(t("settings.usageIndicators.desc")).addToggle((toggle) => {
       toggle.setValue(this.plugin.settings.usageIndicatorsEnabled !== false).onChange(async (value) => {
         var _a7, _b4, _c3, _d3;
         this.plugin.settings.usageIndicatorsEnabled = value;
@@ -108132,7 +107980,7 @@ var GrimoireSettingTab = class extends import_obsidian48.PluginSettingTab {
         }
       });
     });
-    new import_obsidian48.Setting(advancedContainer).setName(t("settings.debugLogging.name")).setDesc(t("settings.debugLogging.desc")).addToggle((toggle) => {
+    new import_obsidian49.Setting(advancedContainer).setName(t("settings.debugLogging.name")).setDesc(t("settings.debugLogging.desc")).addToggle((toggle) => {
       var _a7;
       toggle.setValue((_a7 = this.plugin.settings.debugLoggingEnabled) != null ? _a7 : false).onChange(async (value) => {
         this.plugin.settings.debugLoggingEnabled = value;
@@ -108156,7 +108004,7 @@ var GrimoireSettingTab = class extends import_obsidian48.PluginSettingTab {
     }
   }
   renderProviderEnableSettings(container) {
-    new import_obsidian48.Setting(container).setName("Providers").setHeading();
+    new import_obsidian49.Setting(container).setName("Providers").setHeading();
     const desc = container.createDiv({ cls: "grimoire-provider-settings-desc" });
     desc.createEl("p", {
       cls: "setting-item-description",
@@ -108199,7 +108047,7 @@ var GrimoireSettingTab = class extends import_obsidian48.PluginSettingTab {
       desc: `${ProviderRegistry.getProviderDisplayName(providerId)} provider.`,
       name: ProviderRegistry.getProviderDisplayName(providerId)
     };
-    const setting = new import_obsidian48.Setting(container).setName(copy.name).setDesc(copy.desc);
+    const setting = new import_obsidian49.Setting(container).setName(copy.name).setDesc(copy.desc);
     setting.settingEl.addClass("grimoire-provider-row");
     setting.settingEl.addClass(`grimoire-provider-row--${providerId}`);
     setting.settingEl.toggleClass("is-enabled", enabled);
@@ -108210,7 +108058,7 @@ var GrimoireSettingTab = class extends import_obsidian48.PluginSettingTab {
     });
   }
   renderMaxTabsSetting(container) {
-    const maxTabsSetting = new import_obsidian48.Setting(container).setName(t("settings.maxTabs.name")).setDesc(t("settings.maxTabs.desc"));
+    const maxTabsSetting = new import_obsidian49.Setting(container).setName(t("settings.maxTabs.name")).setDesc(t("settings.maxTabs.desc"));
     maxTabsSetting.addSlider((slider) => {
       const initialValue = normalizeMaxTabs(this.plugin.settings.maxTabs);
       const valueEl = maxTabsSetting.controlEl.createSpan({
@@ -108231,7 +108079,7 @@ var GrimoireSettingTab = class extends import_obsidian48.PluginSettingTab {
     });
   }
   renderHiddenProviderCommandSetting(container, providerId, copy) {
-    new import_obsidian48.Setting(container).setName(copy.name).setDesc(copy.desc).addTextArea((text) => {
+    new import_obsidian49.Setting(container).setName(copy.name).setDesc(copy.desc).addTextArea((text) => {
       text.setPlaceholder(copy.placeholder).setValue(getHiddenProviderCommands(this.plugin.settings, providerId).join("\n")).onChange(async (value) => {
         var _a7;
         this.plugin.settings.hiddenProviderCommands = {
@@ -108386,7 +108234,7 @@ function formatHistoryModelFallbackLabel(model) {
   }
   return trimmed.replace(/[-_]+/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
-var GrimoirePlugin = class extends import_obsidian49.Plugin {
+var GrimoirePlugin = class extends import_obsidian50.Plugin {
   constructor() {
     super(...arguments);
     this.conversations = [];
@@ -108404,7 +108252,7 @@ var GrimoirePlugin = class extends import_obsidian49.Plugin {
       level: "info",
       scope: "plugin"
     });
-    (0, import_obsidian49.addIcon)(GRIMOIRE_APP_ICON_ID, GRIMOIRE_APP_ICON_SVG);
+    (0, import_obsidian50.addIcon)(GRIMOIRE_APP_ICON_ID, GRIMOIRE_APP_ICON_SVG);
     this.registerView(
       VIEW_TYPE_GRIMOIRE,
       (leaf) => new GrimoireView(leaf, this)
@@ -108424,9 +108272,9 @@ var GrimoirePlugin = class extends import_obsidian49.Plugin {
       name: "Inline edit",
       editorCallback: async (editor, ctx) => {
         var _a7;
-        const view = ctx instanceof import_obsidian49.MarkdownView ? ctx : this.app.workspace.getActiveViewOfType(import_obsidian49.MarkdownView);
+        const view = ctx instanceof import_obsidian50.MarkdownView ? ctx : this.app.workspace.getActiveViewOfType(import_obsidian50.MarkdownView);
         if (!view) {
-          new import_obsidian49.Notice("Inline edit unavailable: could not access the active Markdown view.");
+          new import_obsidian50.Notice("Inline edit unavailable: could not access the active Markdown view.");
           return;
         }
         const selectedText = editor.getSelection();
@@ -108458,7 +108306,7 @@ var GrimoirePlugin = class extends import_obsidian49.Plugin {
         );
         const result = await modal.openAndWait();
         if (result.decision === "accept" && result.editedText !== void 0) {
-          new import_obsidian49.Notice(editContext.mode === "cursor" ? "Inserted" : "Edit applied");
+          new import_obsidian50.Notice(editContext.mode === "cursor" ? "Inserted" : "Edit applied");
         }
       }
     });
@@ -108823,7 +108671,7 @@ var GrimoirePlugin = class extends import_obsidian49.Plugin {
         }
       }
       if (failedTabs > 0) {
-        new import_obsidian49.Notice(`Environment changes applied, but ${failedTabs} affected tab(s) failed to restart.`);
+        new import_obsidian50.Notice(`Environment changes applied, but ${failedTabs} affected tab(s) failed to restart.`);
       }
     }
     for (const openView of this.getAllViews()) {
@@ -108831,7 +108679,7 @@ var GrimoirePlugin = class extends import_obsidian49.Plugin {
       openView.refreshModelSelector();
     }
     const noticeText = changed ? "Environment variables applied. Sessions will be rebuilt on next message." : "Environment variables applied.";
-    new import_obsidian49.Notice(noticeText);
+    new import_obsidian50.Notice(noticeText);
   }
   /** Returns the runtime environment variables (fixed at plugin load). */
   getActiveEnvironmentVariables(providerId = ProviderRegistry.resolveSettingsProviderId(

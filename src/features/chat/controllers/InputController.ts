@@ -42,7 +42,7 @@ import type { EditorSelectionContext } from '../../../utils/editor';
 import { appendMarkdownSnippet } from '../../../utils/markdown';
 import { COMPLETION_FLAVOR_WORDS } from '../constants';
 import { buildImageGenerationPrompt } from '../imageGeneration';
-import { type InlineAskQuestionConfig, InlineAskUserQuestion } from '../rendering/InlineAskUserQuestion';
+import { InlineAskUserQuestion } from '../rendering/InlineAskUserQuestion';
 import { InlineExitPlanMode } from '../rendering/InlineExitPlanMode';
 import { InlinePermissionRequest } from '../rendering/InlinePermissionRequest';
 import { InlinePlanApproval,type PlanApprovalDecision } from '../rendering/InlinePlanApproval';
@@ -1666,49 +1666,31 @@ export class InputController {
     signal?: AbortSignal,
   ): Promise<Record<string, string | string[]> | null> {
     const inputContainerEl = this.deps.getInputContainerEl();
-    const parentEl = inputContainerEl.parentElement;
-    if (!parentEl) {
+    const composerSurfaceEl = inputContainerEl.parentElement;
+    if (!composerSurfaceEl) {
       throw new Error('Input container is detached from DOM');
     }
 
-    return this.showInlineQuestion(
-      parentEl,
-      inputContainerEl,
-      input,
-      (inline) => { this.pendingAskInline = inline; },
-      signal,
-    );
-  }
-
-  private showInlineQuestion(
-    parentEl: HTMLElement,
-    inputContainerEl: HTMLElement,
-    input: Record<string, unknown>,
-    setPending: (inline: InlineAskUserQuestion | null) => void,
-    signal?: AbortSignal,
-    config?: InlineAskQuestionConfig,
-  ): Promise<Record<string, string | string[]> | null> {
     this.deps.streamController.hideThinkingIndicator();
-    this.hideInputContainer(inputContainerEl);
+    composerSurfaceEl.addClass('grimoire-asking');
 
     return new Promise<Record<string, string | string[]> | null>((resolve, reject) => {
       const inline = new InlineAskUserQuestion(
-        parentEl,
+        composerSurfaceEl,
         input,
         (result: Record<string, string | string[]> | null) => {
-          setPending(null);
-          this.restoreInputContainer(inputContainerEl);
+          this.pendingAskInline = null;
+          composerSurfaceEl.removeClass('grimoire-asking');
           resolve(result);
         },
         signal,
-        config,
       );
-      setPending(inline);
+      this.pendingAskInline = inline;
       try {
         inline.render();
       } catch (err) {
-        setPending(null);
-        this.restoreInputContainer(inputContainerEl);
+        this.pendingAskInline = null;
+        composerSurfaceEl.removeClass('grimoire-asking');
         reject(toError(err));
       }
     });
@@ -1780,6 +1762,7 @@ export class InputController {
     }
     this.dismissPendingPlanApproval(true);
     this.resetInputContainerVisibility();
+    this.clearAskingState();
   }
 
   private showPlanApproval(): Promise<{ decision: PlanApprovalDecision | null; invalidated: boolean }> {
@@ -1904,6 +1887,11 @@ export class InputController {
       this.inputContainerHideDepth = 0;
       this.deps.getInputContainerEl().removeClass('grimoire-hidden');
     }
+  }
+
+  private clearAskingState(): void {
+    const inputContainerEl = this.deps.getInputContainerEl();
+    inputContainerEl.parentElement?.removeClass('grimoire-asking');
   }
 
   // ============================================

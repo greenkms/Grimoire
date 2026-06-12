@@ -39,7 +39,6 @@ export class InlinePermissionRequest {
     this.renderHeader(cardEl);
     this.renderBody(cardEl);
     this.renderActions(cardEl);
-    this.renderFooter(cardEl);
 
     const ownerDocument = this.rootEl.ownerDocument ?? window.document;
     ownerDocument.addEventListener('keydown', this.boundKeyDown);
@@ -151,20 +150,6 @@ export class InlinePermissionRequest {
       }
       buttonEl.addEventListener('click', () => this.handleResolve(option.value));
     }
-  }
-
-  private renderFooter(cardEl: HTMLElement): void {
-    const footEl = cardEl.createDiv({ cls: 'grimoire-permission-foot' });
-    footEl.createEl('kbd', { text: '\u21B5' });
-    footEl.appendText(' allow ');
-    footEl.createSpan({ cls: 'grimoire-permission-separator', text: '\u00B7' });
-    footEl.appendText(' ');
-    footEl.createEl('kbd', { text: 'A' });
-    footEl.appendText(' always ');
-    footEl.createSpan({ cls: 'grimoire-permission-separator', text: '\u00B7' });
-    footEl.appendText(' ');
-    footEl.createEl('kbd', { cls: 'grimoire-permission-key-escape', text: 'Esc' });
-    footEl.appendText(' reject');
   }
 
   private handleKeyDown(event: KeyboardEvent): void {

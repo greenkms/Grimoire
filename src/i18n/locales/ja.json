@@ -258,6 +258,10 @@
       "name": "送信に Command/Ctrl+Enter を必須にする",
       "desc": "有効にすると、Enter は改行を挿入します。macOS では Command+Enter、Windows と Linux では Ctrl+Enter で送信します。"
     },
+    "theme": {
+      "name": "テーマ",
+      "followsObsidian": "Obsidian に従う"
+    },
     "usageIndicators": {
       "name": "Usage indicators",
       "desc": "Show plan usage and API spend indicators beside the model selector and inside the model menu."

@@ -3048,13 +3048,13 @@ describe('InputController - Message Queue', () => {
         ],
       });
 
-      expect(inputContainerEl.style.display).toBe('none');
+      expect(parentEl.hasClass('grimoire-asking')).toBe(true);
 
       controller.dismissPendingApproval();
 
       await expect(approvalPromise).resolves.toBe('cancel');
       await expect(askPromise).resolves.toBeNull();
-      expect(inputContainerEl.style.display).toBe('');
+      expect(parentEl.hasClass('grimoire-asking')).toBe(false);
     });
 
     it('should keep input hidden until overlapping exit-plan prompt is dismissed', async () => {

@@ -109,6 +109,8 @@ export type TranslationKey =
   | 'settings.navMappings.desc'
   | 'settings.requireCommandOrControlEnterToSend.name'
   | 'settings.requireCommandOrControlEnterToSend.desc'
+  | 'settings.theme.name'
+  | 'settings.theme.followsObsidian'
   | 'settings.usageIndicators.name'
   | 'settings.usageIndicators.desc'
   | 'settings.debugLogging.name'

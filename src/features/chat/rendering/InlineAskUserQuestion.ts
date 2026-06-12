@@ -1,13 +1,23 @@
+import { setIcon } from 'obsidian';
+
 import type { AskUserQuestionItem, AskUserQuestionOption } from '../../../core/types/tools';
 
-const HINTS_TEXT = 'Enter to select \u00B7 Tab/Arrow keys to navigate \u00B7 Esc to cancel';
-const HINTS_TEXT_IMMEDIATE = 'Enter to select \u00B7 Arrow keys to navigate \u00B7 Esc to cancel';
+const KIND_LABELS: Record<string, string> = {
+  single: 'single',
+  multi: 'multiple',
+  freeform: 'opt.',
+};
 
 export interface InlineAskQuestionConfig {
   title?: string;
   headerEl?: HTMLElement;
   showCustomInput?: boolean;
   immediateSelect?: boolean;
+}
+
+interface QuestionState {
+  selectedValues: Set<string>;
+  freeformText: string;
 }
 
 export class InlineAskUserQuestion {
@@ -19,20 +29,23 @@ export class InlineAskUserQuestion {
   private config: Required<Omit<InlineAskQuestionConfig, 'headerEl'>> & { headerEl?: HTMLElement };
 
   private questions: AskUserQuestionItem[] = [];
-  private answers = new Map<number, Set<string>>();
-  private customInputs = new Map<number, string>();
-
-  private activeTabIndex = 0;
-  private focusedItemIndex = 0;
-  private isInputFocused = false;
+  private questionStates: QuestionState[] = [];
 
   private rootEl!: HTMLElement;
-  private tabBar!: HTMLElement;
-  private contentArea!: HTMLElement;
-  private tabElements: HTMLElement[] = [];
-  private currentItems: HTMLElement[] = [];
+  private formEl!: HTMLElement;
+  private bodyEl!: HTMLElement;
+  private submitBtn!: HTMLButtonElement;
+
+  private focusedBlockIdx = 0;
+  private focusedOptIdx = 0;
+  private isFreeformFocused = false;
+
   private boundKeyDown: (e: KeyboardEvent) => void;
   private abortHandler: (() => void) | null = null;
+
+  private blockEls: HTMLElement[] = [];
+  private optRows: HTMLElement[][] = [];
+  private freeformEls: (HTMLTextAreaElement | null)[] = [];
 
   constructor(
     containerEl: HTMLElement,
@@ -55,17 +68,10 @@ export class InlineAskUserQuestion {
   }
 
   render(): void {
-    this.rootEl = this.containerEl.createDiv({ cls: 'grimoire-ask-question-inline' });
-
-    const titleEl = this.rootEl.createDiv({ cls: 'grimoire-ask-inline-title' });
-    titleEl.setText(this.config.title);
-
-    if (this.config.headerEl) {
-      this.rootEl.appendChild(this.config.headerEl);
-    }
+    this.rootEl = this.containerEl.createDiv({ cls: 'grimoire-ask-anchor' });
+    this.formEl = this.rootEl.createDiv({ cls: 'grimoire-ask-form' });
 
     this.questions = this.parseQuestions();
-
     if (this.questions.length === 0) {
       this.handleResolve(null);
       return;
@@ -76,21 +82,16 @@ export class InlineAskUserQuestion {
     }
 
     for (let i = 0; i < this.questions.length; i++) {
-      this.answers.set(i, new Set());
-      this.customInputs.set(i, '');
+      this.questionStates.push({ selectedValues: new Set(), freeformText: '' });
     }
 
-    if (!this.config.immediateSelect) {
-      this.tabBar = this.rootEl.createDiv({ cls: 'grimoire-ask-tab-bar' });
-      this.renderTabBar();
-    }
-    this.contentArea = this.rootEl.createDiv({ cls: 'grimoire-ask-content' });
-    this.renderTabContent();
+    this.renderHeader();
+    this.renderBody();
+    this.renderActions();
 
     this.rootEl.setAttribute('tabindex', '0');
     this.rootEl.addEventListener('keydown', this.boundKeyDown);
 
-    // Defer focus to after the element is in the DOM and laid out
     window.requestAnimationFrame(() => {
       this.rootEl.focus();
       this.rootEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -104,6 +105,332 @@ export class InlineAskUserQuestion {
 
   destroy(): void {
     this.handleResolve(null);
+  }
+
+  private renderHeader(): void {
+    const head = this.formEl.createDiv({ cls: 'grimoire-ask-head' });
+
+    const glyph = head.createDiv({ cls: 'grimoire-ask-glyph' });
+    setIcon(glyph, 'message-circle-question');
+
+    const titleBlock = head.createDiv({ cls: 'grimoire-ask-title-block' });
+    titleBlock.createDiv({ text: 'Needs a detail', cls: 'grimoire-ask-title' });
+    const questionCount = this.questions.length;
+    titleBlock.createDiv({
+      text: `Grimoire asks ${questionCount} question${questionCount !== 1 ? 's' : ''} before proceeding`,
+      cls: 'grimoire-ask-subtitle',
+    });
+
+    const pill = head.createDiv({ cls: 'grimoire-ask-tool-pill' });
+    setIcon(pill.createSpan(), 'message-circle');
+    pill.createSpan({ text: 'ask_user' });
+  }
+
+  private renderBody(): void {
+    this.bodyEl = this.formEl.createDiv({ cls: 'grimoire-ask-body' });
+    this.blockEls = [];
+    this.optRows = [];
+    this.freeformEls = [];
+
+    for (let blockIdx = 0; blockIdx < this.questions.length; blockIdx++) {
+      const q = this.questions[blockIdx];
+      const block = this.bodyEl.createDiv({ cls: 'grimoire-ask-qblock' });
+      this.blockEls.push(block);
+
+      const topRow = block.createDiv({ cls: 'grimoire-ask-q-top' });
+      topRow.createSpan({
+        text: String(blockIdx + 1).padStart(2, '0'),
+        cls: 'grimoire-ask-q-num',
+      });
+      topRow.createSpan({ text: q.question, cls: 'grimoire-ask-q-title' });
+
+      const kind = this.getQuestionKind(q, blockIdx);
+      topRow.createSpan({ text: KIND_LABELS[kind] ?? kind, cls: 'grimoire-ask-q-kind' });
+
+      if (q.options.length > 0) {
+        const optsEl = block.createDiv({ cls: 'grimoire-ask-opts' });
+        const rows: HTMLElement[] = [];
+
+        for (let optIdx = 0; optIdx < q.options.length; optIdx++) {
+          const option = q.options[optIdx];
+          const row = optsEl.createDiv({ cls: 'grimoire-ask-opt' });
+
+          const mark = row.createDiv({ cls: 'grimoire-ask-opt-mark' });
+          if (q.multiSelect) {
+            const box = mark.createDiv({ cls: 'grimoire-ask-opt-box' });
+            setIcon(box, 'check');
+            row.setAttribute('role', 'checkbox');
+            row.setAttribute('aria-checked', 'false');
+          } else {
+            mark.createDiv({ cls: 'grimoire-ask-opt-ring' });
+            row.setAttribute('role', 'radio');
+            row.setAttribute('aria-checked', 'false');
+          }
+
+          row.createSpan({ text: option.label, cls: 'grimoire-ask-opt-text' });
+
+          const capturedBlockIdx = blockIdx;
+          const capturedOptIdx = optIdx;
+          row.addEventListener('click', () => {
+            this.focusedBlockIdx = capturedBlockIdx;
+            this.focusedOptIdx = capturedOptIdx;
+            this.selectOption(capturedBlockIdx, capturedOptIdx);
+          });
+
+          rows.push(row);
+        }
+        this.optRows.push(rows);
+      } else {
+        this.optRows.push([]);
+      }
+
+      if (this.isFreeformQuestion(q, blockIdx)) {
+        const ta = block.createEl('textarea', { cls: 'grimoire-ask-freeform' });
+        ta.setAttribute('rows', '1');
+        ta.setAttribute('placeholder', 'Type your answer...');
+        ta.addEventListener('input', () => {
+          this.questionStates[blockIdx].freeformText = ta.value;
+          ta.setCssProps({ height: Math.min(80, ta.scrollHeight) + 'px' });
+          this.refreshValidity();
+        });
+        ta.addEventListener('focus', () => {
+          this.focusedBlockIdx = blockIdx;
+          this.isFreeformFocused = true;
+        });
+        ta.addEventListener('blur', () => {
+          this.isFreeformFocused = false;
+        });
+        this.freeformEls.push(ta);
+      } else {
+        this.freeformEls.push(null);
+      }
+    }
+  }
+
+  private renderActions(): void {
+    const actions = this.formEl.createDiv({ cls: 'grimoire-ask-actions' });
+
+    actions.createDiv({ cls: 'grimoire-ask-grow' });
+
+    const skipBtn = actions.createEl('button', {
+      cls: 'grimoire-ask-btn grimoire-ask-btn--skip',
+      text: 'Decide for me',
+    });
+    skipBtn.addEventListener('click', () => this.handleSkip());
+
+    this.submitBtn = actions.createEl('button', {
+      cls: 'grimoire-ask-btn grimoire-ask-btn--submit',
+    });
+    setIcon(this.submitBtn.createSpan(), 'arrow-right');
+    this.submitBtn.createSpan({ text: 'Send answers' });
+    this.submitBtn.addEventListener('click', () => this.handleSubmit());
+
+    this.refreshValidity();
+  }
+
+  private getQuestionKind(q: AskUserQuestionItem, _idx: number): string {
+    if (q.options.length === 0) return 'freeform';
+    return q.multiSelect ? 'multi' : 'single';
+  }
+
+  private isFreeformQuestion(q: AskUserQuestionItem, _idx: number): boolean {
+    return q.options.length === 0 || q.isOther === true || this.config.showCustomInput;
+  }
+
+  private isRequired(blockIdx: number): boolean {
+    const q = this.questions[blockIdx];
+    if (q.options.length === 0) return false;
+    return true;
+  }
+
+  private isBlockAnswered(blockIdx: number): boolean {
+    const state = this.questionStates[blockIdx];
+    return state.selectedValues.size > 0 || state.freeformText.trim().length > 0;
+  }
+
+  private isValid(): boolean {
+    for (let i = 0; i < this.questions.length; i++) {
+      if (this.isRequired(i) && !this.isBlockAnswered(i)) return false;
+    }
+    return true;
+  }
+
+  private refreshValidity(): void {
+    if (this.submitBtn) {
+      this.submitBtn.disabled = !this.isValid();
+    }
+  }
+
+  private selectOption(blockIdx: number, optIdx: number): void {
+    const q = this.questions[blockIdx];
+    const option = q.options[optIdx];
+    const state = this.questionStates[blockIdx];
+    const optionValue = this.getOptionValue(option);
+
+    if (this.config.immediateSelect) {
+      const key = q.id ?? q.question;
+      const result: Record<string, string> = {};
+      result[key] = optionValue;
+      this.handleResolve(result);
+      return;
+    }
+
+    if (q.multiSelect) {
+      if (state.selectedValues.has(optionValue)) {
+        state.selectedValues.delete(optionValue);
+      } else {
+        state.selectedValues.add(optionValue);
+      }
+    } else {
+      state.selectedValues.clear();
+      state.selectedValues.add(optionValue);
+      state.freeformText = '';
+      const ta = this.freeformEls[blockIdx];
+      if (ta) ta.value = '';
+    }
+
+    this.updateOptionVisuals(blockIdx);
+    this.refreshValidity();
+  }
+
+  private updateOptionVisuals(blockIdx: number): void {
+    const q = this.questions[blockIdx];
+    const state = this.questionStates[blockIdx];
+    const rows = this.optRows[blockIdx];
+
+    for (let i = 0; i < rows.length; i++) {
+      const optionValue = this.getOptionValue(q.options[i]);
+      const isSelected = state.selectedValues.has(optionValue);
+
+      rows[i].toggleClass('is-selected', isSelected);
+      rows[i].setAttribute('aria-checked', String(isSelected));
+    }
+  }
+
+  private updateFocusVisuals(): void {
+    for (let b = 0; b < this.optRows.length; b++) {
+      for (let o = 0; o < this.optRows[b].length; o++) {
+        this.optRows[b][o].toggleClass(
+          'is-focused',
+          b === this.focusedBlockIdx && o === this.focusedOptIdx && !this.isFreeformFocused,
+        );
+      }
+    }
+  }
+
+  private handleSubmit(): void {
+    if (!this.isValid()) return;
+
+    const result: Record<string, string | string[]> = {};
+    for (let i = 0; i < this.questions.length; i++) {
+      const q = this.questions[i];
+      const key = q.id ?? q.question;
+      const state = this.questionStates[i];
+      const selectedValues = [...state.selectedValues];
+      const freeform = state.freeformText.trim();
+
+      if (q.multiSelect) {
+        const answers = [...selectedValues];
+        if (freeform) answers.push(freeform);
+        result[key] = answers;
+        continue;
+      }
+
+      result[key] = freeform || selectedValues[0] || '';
+    }
+
+    this.handleResolve(result);
+  }
+
+  private handleSkip(): void {
+    this.handleResolve({});
+  }
+
+  private handleKeyDown(e: KeyboardEvent): void {
+    if (this.isFreeformFocused) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        this.isFreeformFocused = false;
+        (this.rootEl.ownerDocument.activeElement as HTMLElement | null)?.blur();
+        this.rootEl.focus();
+        return;
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        this.isFreeformFocused = false;
+        if (this.isValid()) this.handleSubmit();
+        return;
+      }
+      return;
+    }
+
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      if (this.isValid()) this.handleSubmit();
+      return;
+    }
+
+    const maxBlockIdx = this.questions.length - 1;
+
+    switch (e.key) {
+      case 'ArrowDown': {
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.focusedOptIdx < this.optRows[this.focusedBlockIdx].length - 1) {
+          this.focusedOptIdx++;
+        } else if (this.focusedBlockIdx < maxBlockIdx) {
+          this.focusedBlockIdx++;
+          this.focusedOptIdx = 0;
+        }
+        this.updateFocusVisuals();
+        this.scrollFocusedIntoView();
+        break;
+      }
+      case 'ArrowUp': {
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.focusedOptIdx > 0) {
+          this.focusedOptIdx--;
+        } else if (this.focusedBlockIdx > 0) {
+          this.focusedBlockIdx--;
+          this.focusedOptIdx = Math.max(0, this.optRows[this.focusedBlockIdx].length - 1);
+        }
+        this.updateFocusVisuals();
+        this.scrollFocusedIntoView();
+        break;
+      }
+      case 'Enter': {
+        e.preventDefault();
+        e.stopPropagation();
+        const rows = this.optRows[this.focusedBlockIdx];
+        if (this.focusedOptIdx < rows.length) {
+          this.selectOption(this.focusedBlockIdx, this.focusedOptIdx);
+        } else {
+          const ta = this.freeformEls[this.focusedBlockIdx];
+          if (ta) {
+            this.isFreeformFocused = true;
+            ta.focus();
+          }
+        }
+        break;
+      }
+      case 'Escape': {
+        e.preventDefault();
+        e.stopPropagation();
+        this.handleResolve(null);
+        break;
+      }
+    }
+  }
+
+  private scrollFocusedIntoView(): void {
+    const rows = this.optRows[this.focusedBlockIdx];
+    if (rows[this.focusedOptIdx]) {
+      rows[this.focusedOptIdx].scrollIntoView({ block: 'nearest' });
+    }
   }
 
   private parseQuestions(): AskUserQuestionItem[] {
@@ -184,509 +511,8 @@ export class InlineAskUserQuestion {
     return fallback;
   }
 
-  private renderTabBar(): void {
-    this.tabBar.empty();
-    this.tabElements = [];
-
-    for (let idx = 0; idx < this.questions.length; idx++) {
-      const answered = this.isQuestionAnswered(idx);
-      const tab = this.tabBar.createSpan({ cls: 'grimoire-ask-tab' });
-      tab.createSpan({ text: this.questions[idx].header, cls: 'grimoire-ask-tab-label' });
-      tab.createSpan({ text: answered ? ' \u2713' : '', cls: 'grimoire-ask-tab-tick' });
-      tab.setAttribute('title', this.questions[idx].question);
-
-      if (idx === this.activeTabIndex) tab.addClass('is-active');
-      if (answered) tab.addClass('is-answered');
-      tab.addEventListener('click', () => this.switchTab(idx));
-      this.tabElements.push(tab);
-    }
-
-    const allAnswered = this.questions.every((_, i) => this.isQuestionAnswered(i));
-    const submitTab = this.tabBar.createSpan({ cls: 'grimoire-ask-tab' });
-    submitTab.createSpan({ text: allAnswered ? '\u2713 ' : '', cls: 'grimoire-ask-tab-submit-check' });
-    submitTab.createSpan({ text: 'Submit', cls: 'grimoire-ask-tab-label' });
-    if (this.activeTabIndex === this.questions.length) submitTab.addClass('is-active');
-    submitTab.addEventListener('click', () => this.switchTab(this.questions.length));
-    this.tabElements.push(submitTab);
-  }
-
-  private isQuestionAnswered(idx: number): boolean {
-    return this.answers.get(idx)!.size > 0 || this.customInputs.get(idx)!.trim().length > 0;
-  }
-
-  private switchTab(index: number): void {
-    const clamped = Math.max(0, Math.min(index, this.questions.length));
-    if (clamped === this.activeTabIndex) return;
-    this.activeTabIndex = clamped;
-    this.focusedItemIndex = 0;
-    this.isInputFocused = false;
-    if (!this.config.immediateSelect) {
-      this.renderTabBar();
-    }
-    this.renderTabContent();
-    this.rootEl.focus();
-  }
-
-  private renderTabContent(): void {
-    this.contentArea.empty();
-    this.currentItems = [];
-
-    if (this.activeTabIndex < this.questions.length) {
-      this.renderQuestionTab(this.activeTabIndex);
-    } else {
-      this.renderSubmitTab();
-    }
-  }
-
-  private renderQuestionTab(idx: number): void {
-    const q = this.questions[idx];
-    const isMulti = q.multiSelect;
-    const selected = this.answers.get(idx)!;
-
-    this.contentArea.createDiv({
-      text: q.question,
-      cls: 'grimoire-ask-question-text',
-    });
-
-    const listEl = this.contentArea.createDiv({ cls: 'grimoire-ask-list' });
-
-    for (let optIdx = 0; optIdx < q.options.length; optIdx++) {
-      const option = q.options[optIdx];
-      const isFocused = optIdx === this.focusedItemIndex;
-      const optionValue = this.getOptionValue(option);
-      const isSelected = selected.has(optionValue);
-
-      const row = listEl.createDiv({ cls: 'grimoire-ask-item' });
-      if (isFocused) row.addClass('is-focused');
-      if (isSelected) row.addClass('is-selected');
-
-      row.createSpan({ text: isFocused ? '\u203A' : '\u00A0', cls: 'grimoire-ask-cursor' });
-      row.createSpan({ text: `${optIdx + 1}. `, cls: 'grimoire-ask-item-num' });
-
-      if (isMulti) {
-        this.renderMultiSelectCheckbox(row, isSelected);
-      }
-
-      const labelBlock = row.createDiv({ cls: 'grimoire-ask-item-content' });
-      const labelRow = labelBlock.createDiv({ cls: 'grimoire-ask-label-row' });
-      labelRow.createSpan({ text: option.label, cls: 'grimoire-ask-item-label' });
-
-      if (!isMulti && isSelected) {
-        labelRow.createSpan({ text: ' \u2713', cls: 'grimoire-ask-check-mark' });
-      }
-
-      if (option.description) {
-        labelBlock.createDiv({ text: option.description, cls: 'grimoire-ask-item-desc' });
-      }
-
-      row.addEventListener('click', () => {
-        this.focusedItemIndex = optIdx;
-        this.updateFocusIndicator();
-        this.selectOption(idx, option);
-      });
-
-      this.currentItems.push(row);
-    }
-
-    if (this.canShowCustomInputForQuestion(q)) {
-      const customIdx = q.options.length;
-      const customFocused = customIdx === this.focusedItemIndex;
-      const customText = this.customInputs.get(idx) ?? '';
-      const hasCustomText = customText.trim().length > 0;
-
-      const customRow = listEl.createDiv({ cls: 'grimoire-ask-item grimoire-ask-custom-item' });
-      if (customFocused) customRow.addClass('is-focused');
-
-      customRow.createSpan({ text: customFocused ? '\u203A' : '\u00A0', cls: 'grimoire-ask-cursor' });
-      customRow.createSpan({ text: `${customIdx + 1}. `, cls: 'grimoire-ask-item-num' });
-
-      if (isMulti) {
-        this.renderMultiSelectCheckbox(customRow, hasCustomText);
-      }
-
-      const inputEl = customRow.createEl('input', {
-        cls: 'grimoire-ask-custom-text',
-        value: customText,
-      });
-      inputEl.setAttribute('type', q.isSecret ? 'password' : 'text');
-      inputEl.setAttribute('placeholder', q.isSecret ? 'Enter secret.' : 'Type something.');
-
-      inputEl.addEventListener('input', () => {
-        this.customInputs.set(idx, inputEl.value);
-        if (!isMulti && inputEl.value.trim()) {
-          selected.clear();
-          this.updateOptionVisuals(idx);
-        }
-        this.updateTabIndicators();
-      });
-      inputEl.addEventListener('focus', () => {
-        this.isInputFocused = true;
-      });
-      inputEl.addEventListener('blur', () => {
-        this.isInputFocused = false;
-      });
-
-      customRow.addEventListener('click', () => {
-        this.focusedItemIndex = customIdx;
-        this.updateFocusIndicator();
-        inputEl.focus();
-      });
-
-      this.currentItems.push(customRow);
-    }
-
-    this.contentArea.createDiv({
-      text: this.config.immediateSelect ? HINTS_TEXT_IMMEDIATE : HINTS_TEXT,
-      cls: 'grimoire-ask-hints',
-    });
-  }
-
-  private renderSubmitTab(): void {
-    this.contentArea.createDiv({
-      text: 'Review your answers',
-      cls: 'grimoire-ask-review-title',
-    });
-
-    const reviewEl = this.contentArea.createDiv({ cls: 'grimoire-ask-review' });
-
-    for (let idx = 0; idx < this.questions.length; idx++) {
-      const q = this.questions[idx];
-      const answerText = this.getAnswerText(idx);
-
-      const pairEl = reviewEl.createDiv({ cls: 'grimoire-ask-review-pair' });
-      pairEl.createDiv({ text: `${idx + 1}.`, cls: 'grimoire-ask-review-num' });
-      const bodyEl = pairEl.createDiv({ cls: 'grimoire-ask-review-body' });
-      bodyEl.createDiv({ text: q.question, cls: 'grimoire-ask-review-q-text' });
-      bodyEl.createDiv({
-        text: answerText || 'Not answered',
-        cls: answerText ? 'grimoire-ask-review-a-text' : 'grimoire-ask-review-empty',
-      });
-      pairEl.addEventListener('click', () => this.switchTab(idx));
-    }
-
-    this.contentArea.createDiv({
-      text: 'Ready to submit your answers?',
-      cls: 'grimoire-ask-review-prompt',
-    });
-
-    const actionsEl = this.contentArea.createDiv({ cls: 'grimoire-ask-list' });
-    const allAnswered = this.questions.every((_, i) => this.isQuestionAnswered(i));
-
-    const submitRow = actionsEl.createDiv({ cls: 'grimoire-ask-item' });
-    if (this.focusedItemIndex === 0) submitRow.addClass('is-focused');
-    if (!allAnswered) submitRow.addClass('is-disabled');
-    submitRow.createSpan({ text: this.focusedItemIndex === 0 ? '\u203A' : '\u00A0', cls: 'grimoire-ask-cursor' });
-    submitRow.createSpan({ text: '1. ', cls: 'grimoire-ask-item-num' });
-    submitRow.createSpan({ text: 'Submit answers', cls: 'grimoire-ask-item-label' });
-    submitRow.addEventListener('click', () => {
-      this.focusedItemIndex = 0;
-      this.updateFocusIndicator();
-      this.handleSubmit();
-    });
-    this.currentItems.push(submitRow);
-
-    const cancelRow = actionsEl.createDiv({ cls: 'grimoire-ask-item' });
-    if (this.focusedItemIndex === 1) cancelRow.addClass('is-focused');
-    cancelRow.createSpan({ text: this.focusedItemIndex === 1 ? '\u203A' : '\u00A0', cls: 'grimoire-ask-cursor' });
-    cancelRow.createSpan({ text: '2. ', cls: 'grimoire-ask-item-num' });
-    cancelRow.createSpan({ text: 'Cancel', cls: 'grimoire-ask-item-label' });
-    cancelRow.addEventListener('click', () => {
-      this.focusedItemIndex = 1;
-      this.handleResolve(null);
-    });
-    this.currentItems.push(cancelRow);
-
-    this.contentArea.createDiv({
-      text: HINTS_TEXT,
-      cls: 'grimoire-ask-hints',
-    });
-  }
-
-  private getAnswerText(idx: number): string {
-    const selected = this.getSelectedLabels(idx);
-    const custom = this.customInputs.get(idx)!;
-    const parts: string[] = [];
-    if (selected.length > 0) parts.push(selected.join(', '));
-    if (custom.trim()) parts.push(custom.trim());
-    return parts.join(', ');
-  }
-
-  private selectOption(qIdx: number, option: AskUserQuestionOption): void {
-    const q = this.questions[qIdx];
-    const selected = this.answers.get(qIdx)!;
-    const isMulti = q.multiSelect;
-    const optionValue = this.getOptionValue(option);
-
-    if (isMulti) {
-      if (selected.has(optionValue)) {
-        selected.delete(optionValue);
-      } else {
-        selected.add(optionValue);
-      }
-    } else {
-      selected.clear();
-      selected.add(optionValue);
-      this.customInputs.set(qIdx, '');
-    }
-
-    this.updateOptionVisuals(qIdx);
-
-    if (this.config.immediateSelect) {
-      const key = q.id ?? q.question;
-      const result: Record<string, string> = {};
-      result[key] = optionValue;
-      this.handleResolve(result);
-      return;
-    }
-
-    this.updateTabIndicators();
-
-    if (!isMulti) {
-      this.switchTab(this.activeTabIndex + 1);
-    }
-  }
-
-  private renderMultiSelectCheckbox(parent: HTMLElement, checked: boolean): void {
-    parent.createSpan({
-      text: checked ? '[\u2713] ' : '[ ] ',
-      cls: `grimoire-ask-check${checked ? ' is-checked' : ''}`,
-    });
-  }
-
-  private updateOptionVisuals(qIdx: number): void {
-    const q = this.questions[qIdx];
-    const selected = this.answers.get(qIdx)!;
-    const isMulti = q.multiSelect;
-
-    for (let i = 0; i < q.options.length; i++) {
-      const item = this.currentItems[i];
-      const isSelected = selected.has(this.getOptionValue(q.options[i]));
-
-      item.toggleClass('is-selected', isSelected);
-
-      if (isMulti) {
-        const checkSpan = item.querySelector('.grimoire-ask-check');
-        if (checkSpan) {
-          checkSpan.textContent = isSelected ? '[\u2713] ' : '[ ] ';
-          checkSpan.toggleClass('is-checked', isSelected);
-        }
-      } else {
-        const labelRow = item.querySelector('.grimoire-ask-label-row');
-        const existingMark = item.querySelector('.grimoire-ask-check-mark');
-        if (isSelected && !existingMark && labelRow) {
-          labelRow.createSpan({ text: ' \u2713', cls: 'grimoire-ask-check-mark' });
-        } else if (!isSelected && existingMark) {
-          existingMark.remove();
-        }
-      }
-    }
-  }
-
-  private updateFocusIndicator(): void {
-    for (let i = 0; i < this.currentItems.length; i++) {
-      const item = this.currentItems[i];
-      const cursor = item.querySelector('.grimoire-ask-cursor');
-      if (i === this.focusedItemIndex) {
-        item.addClass('is-focused');
-        if (cursor) cursor.textContent = '\u203A';
-        item.scrollIntoView({ block: 'nearest' });
-      } else {
-        item.removeClass('is-focused');
-        if (cursor) cursor.textContent = '\u00A0';
-      }
-    }
-  }
-
-  private updateTabIndicators(): void {
-    for (let idx = 0; idx < this.questions.length; idx++) {
-      const tab = this.tabElements[idx];
-      const tick = tab.querySelector('.grimoire-ask-tab-tick');
-      const answered = this.isQuestionAnswered(idx);
-      tab.toggleClass('is-answered', answered);
-      if (tick) tick.textContent = answered ? ' \u2713' : '';
-    }
-    const submitTab = this.tabElements[this.questions.length];
-    if (submitTab) {
-      const submitCheck = submitTab.querySelector('.grimoire-ask-tab-submit-check');
-      const allAnswered = this.questions.every((_, i) => this.isQuestionAnswered(i));
-      if (submitCheck) submitCheck.textContent = allAnswered ? '\u2713 ' : '';
-    }
-  }
-
-  private handleNavigationKey(e: KeyboardEvent, maxFocusIndex: number): boolean {
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        e.stopPropagation();
-        this.focusedItemIndex = Math.min(this.focusedItemIndex + 1, maxFocusIndex);
-        this.updateFocusIndicator();
-        return true;
-      case 'ArrowUp':
-        e.preventDefault();
-        e.stopPropagation();
-        this.focusedItemIndex = Math.max(this.focusedItemIndex - 1, 0);
-        this.updateFocusIndicator();
-        return true;
-      case 'ArrowLeft':
-        if (this.config.immediateSelect) return false;
-        e.preventDefault();
-        e.stopPropagation();
-        this.switchTab(this.activeTabIndex - 1);
-        return true;
-      case 'Tab':
-        if (this.config.immediateSelect) return false;
-        e.preventDefault();
-        e.stopPropagation();
-        if (e.shiftKey) {
-          this.switchTab(this.activeTabIndex - 1);
-        } else {
-          this.switchTab(this.activeTabIndex + 1);
-        }
-        return true;
-      case 'Escape':
-        e.preventDefault();
-        e.stopPropagation();
-        this.handleResolve(null);
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  private handleKeyDown(e: KeyboardEvent): void {
-    if (this.isInputFocused) {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        e.stopPropagation();
-        this.isInputFocused = false;
-        (this.rootEl.ownerDocument.activeElement as HTMLElement | null)?.blur();
-        this.rootEl.focus();
-        return;
-      }
-      if (e.key === 'Tab' || e.key === 'Enter') {
-        e.preventDefault();
-        e.stopPropagation();
-        this.isInputFocused = false;
-        (this.rootEl.ownerDocument.activeElement as HTMLElement | null)?.blur();
-        if (e.key === 'Tab' && e.shiftKey) {
-          this.switchTab(this.activeTabIndex - 1);
-        } else {
-          this.switchTab(this.activeTabIndex + 1);
-        }
-        return;
-      }
-      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-        e.preventDefault();
-        e.stopPropagation();
-        (this.rootEl.ownerDocument.activeElement as HTMLElement | null)?.blur();
-        this.isInputFocused = false;
-        const q = this.questions[this.activeTabIndex];
-        const maxIdx = this.canShowCustomInputForQuestion(q) ? q.options.length : q.options.length - 1;
-        if (e.key === 'ArrowUp') {
-          this.focusedItemIndex = Math.max(this.focusedItemIndex - 1, 0);
-        } else {
-          this.focusedItemIndex = Math.min(this.focusedItemIndex + 1, maxIdx);
-        }
-        this.updateFocusIndicator();
-        this.rootEl.focus();
-        return;
-      }
-      return;
-    }
-
-    if (this.config.immediateSelect) {
-      const q = this.questions[this.activeTabIndex];
-      const maxIdx = q.options.length - 1;
-      if (this.handleNavigationKey(e, maxIdx)) return;
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        e.stopPropagation();
-        if (this.focusedItemIndex <= maxIdx) {
-          this.selectOption(this.activeTabIndex, q.options[this.focusedItemIndex]);
-        }
-      }
-      return;
-    }
-
-    const isSubmitTab = this.activeTabIndex === this.questions.length;
-    const q = this.questions[this.activeTabIndex];
-    const maxFocusIndex = isSubmitTab
-      ? 1
-      : (this.canShowCustomInputForQuestion(q) ? q.options.length : q.options.length - 1);
-
-    if (this.handleNavigationKey(e, maxFocusIndex)) return;
-
-    if (isSubmitTab) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        e.stopPropagation();
-        if (this.focusedItemIndex === 0) this.handleSubmit();
-        else this.handleResolve(null);
-      }
-      return;
-    }
-
-    // Question tab: ArrowRight and Enter
-    switch (e.key) {
-      case 'ArrowRight':
-        e.preventDefault();
-        e.stopPropagation();
-        this.switchTab(this.activeTabIndex + 1);
-        break;
-      case 'Enter':
-        e.preventDefault();
-        e.stopPropagation();
-        if (this.focusedItemIndex < q.options.length) {
-          this.selectOption(this.activeTabIndex, q.options[this.focusedItemIndex]);
-        } else if (this.canShowCustomInputForQuestion(q)) {
-          this.isInputFocused = true;
-          const customRow = this.currentItems[this.focusedItemIndex];
-          const input = customRow?.querySelector('.grimoire-ask-custom-text') as HTMLInputElement;
-          input?.focus();
-        }
-        break;
-    }
-  }
-
-  private handleSubmit(): void {
-    const allAnswered = this.questions.every((_, i) => this.isQuestionAnswered(i));
-    if (!allAnswered) return;
-
-    const result: Record<string, string | string[]> = {};
-    for (let i = 0; i < this.questions.length; i++) {
-      const question = this.questions[i];
-      const key = question.id ?? question.question;
-      const selectedValues = [...this.answers.get(i)!];
-      const customInput = this.customInputs.get(i)!.trim();
-
-      if (question.multiSelect) {
-        const answers = [...selectedValues];
-        if (customInput) {
-          answers.push(customInput);
-        }
-        result[key] = answers;
-        continue;
-      }
-
-      result[key] = customInput || selectedValues[0] || '';
-    }
-    this.handleResolve(result);
-  }
-
-  private canShowCustomInputForQuestion(_question: AskUserQuestionItem): boolean {
-    return this.config.showCustomInput;
-  }
-
   private getOptionValue(option: AskUserQuestionOption): string {
     return option.value ?? option.label;
-  }
-
-  private getSelectedLabels(idx: number): string[] {
-    const selected = this.answers.get(idx)!;
-    const question = this.questions[idx];
-    return question.options
-      .filter(option => selected.has(this.getOptionValue(option)))
-      .map(option => option.label);
   }
 
   private handleResolve(result: Record<string, string | string[]> | null): void {

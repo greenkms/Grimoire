@@ -24,7 +24,7 @@ import {
   TOOL_WRITE_STDIN,
 } from '../../../core/tools/toolNames';
 import { extractToolResultContent } from '../../../core/tools/toolResultContent';
-import type { AskUserQuestionItem, AskUserQuestionOption, ToolCallInfo } from '../../../core/types';
+import type { AskUserQuestionItem, ToolCallInfo } from '../../../core/types';
 import type { DiffStats } from '../../../core/types/diff';
 import { appendMcpIcon } from '../../../shared/icons';
 import { parseApplyPatchDiffs, parseFileUpdateChangeDiffs } from '../../../utils/diff';
@@ -1087,12 +1087,6 @@ function createToolElementStructure(
   return { toolEl, header, iconEl, nameEl, summaryEl, resultEl, statusEl, content, currentTaskEl };
 }
 
-function formatAnswer(raw: unknown): string {
-  if (Array.isArray(raw)) return raw.join(', ');
-  if (typeof raw === 'string') return raw;
-  return '';
-}
-
 function resolveAskUserAnswers(toolCall: ToolCallInfo): Record<string, unknown> | undefined {
   if (toolCall.resolvedAnswers) return toolCall.resolvedAnswers;
 
@@ -1111,20 +1105,22 @@ function renderAskUserQuestionResult(container: HTMLElement, toolCall: ToolCallI
   const answers = resolveAskUserAnswers(toolCall);
   if (!questions || !Array.isArray(questions) || !answers) return false;
 
-  const reviewEl = container.createDiv({ cls: 'grimoire-ask-review' });
+  const qaEl = container.createDiv({ cls: 'grimoire-tool-io-qa' });
   for (let i = 0; i < questions.length; i++) {
     const q = questions[i];
-    const answer = formatAnswer(
-      (q.id ? answers[q.id] : undefined) ?? answers[q.question]
-    );
-    const pairEl = reviewEl.createDiv({ cls: 'grimoire-ask-review-pair' });
-    pairEl.createDiv({ text: `${i + 1}.`, cls: 'grimoire-ask-review-num' });
-    const bodyEl = pairEl.createDiv({ cls: 'grimoire-ask-review-body' });
-    bodyEl.createDiv({ text: q.question, cls: 'grimoire-ask-review-q-text' });
-    bodyEl.createDiv({
-      text: answer || 'Not answered',
-      cls: answer ? 'grimoire-ask-review-a-text' : 'grimoire-ask-review-empty',
-    });
+    const rawAnswer = (q.id ? answers[q.id] : undefined) ?? answers[q.question];
+    const answerParts = Array.isArray(rawAnswer) ? rawAnswer : rawAnswer != null ? [rawAnswer] : [];
+    if (answerParts.length === 0) continue;
+
+    const pair = qaEl.createDiv();
+    pair.createDiv({ text: q.question, cls: 'grimoire-tool-io-qa-q' });
+    const answerRow = pair.createDiv({ cls: 'grimoire-tool-io-qa-a' });
+    for (const part of answerParts) {
+      const formatted = typeof part === 'string' ? part : String(part);
+      if (formatted) {
+        answerRow.createSpan({ text: formatted, cls: 'grimoire-tool-io-qa-tag' });
+      }
+    }
   }
 
   return true;
@@ -1144,51 +1140,26 @@ function renderAskUserQuestionFallback(container: HTMLElement, toolCall: ToolCal
 
   if (initialText || toolCall.result) {
     container.createDiv({
-      cls: 'grimoire-ask-review-prompt',
       text: initialText || toolCall.result || 'Waiting for answer...',
+      cls: 'grimoire-tool-result-text',
     });
   }
 
-  for (let questionIndex = 0; questionIndex < questions.length; questionIndex++) {
-    const question = questions[questionIndex];
-    const reviewEl = container.createDiv({ cls: 'grimoire-ask-review' });
-    const pairEl = reviewEl.createDiv({ cls: 'grimoire-ask-review-pair' });
-    pairEl.createDiv({ text: `${questionIndex + 1}.`, cls: 'grimoire-ask-review-num' });
-    const bodyEl = pairEl.createDiv({ cls: 'grimoire-ask-review-body' });
-    bodyEl.createDiv({ text: question.question, cls: 'grimoire-ask-review-q-text' });
-
-    if (!Array.isArray(question.options) || question.options.length === 0) {
-      bodyEl.createDiv({ cls: 'grimoire-ask-review-empty', text: 'No options recorded' });
-      continue;
+  const qaEl = container.createDiv({ cls: 'grimoire-tool-io-qa' });
+  for (let i = 0; i < questions.length; i++) {
+    const q = questions[i];
+    const pair = qaEl.createDiv();
+    pair.createDiv({ text: q.question, cls: 'grimoire-tool-io-qa-q' });
+    if (Array.isArray(q.options) && q.options.length > 0) {
+      const answerRow = pair.createDiv({ cls: 'grimoire-tool-io-qa-a' });
+      for (const opt of q.options) {
+        answerRow.createSpan({
+          text: opt.label,
+          cls: 'grimoire-tool-io-qa-tag',
+        });
+        answerRow.lastElementChild?.toggleClass('is-disabled', true);
+      }
     }
-
-    const listEl = bodyEl.createDiv({ cls: 'grimoire-ask-list' });
-    question.options.forEach((option, optionIndex) => {
-      renderAskUserQuestionOption(listEl, option, optionIndex, question.multiSelect === true);
-    });
-  }
-}
-
-function renderAskUserQuestionOption(
-  parentEl: HTMLElement,
-  option: AskUserQuestionOption,
-  optionIndex: number,
-  isMultiSelect: boolean,
-): void {
-  const itemEl = parentEl.createDiv({ cls: 'grimoire-ask-item is-disabled' });
-
-  if (isMultiSelect) {
-    itemEl.createDiv({ cls: 'grimoire-ask-check', text: '[ ] ' });
-  } else {
-    itemEl.createDiv({ cls: 'grimoire-ask-item-num', text: `${optionIndex + 1}. ` });
-  }
-
-  const contentEl = itemEl.createDiv({ cls: 'grimoire-ask-item-content' });
-  const labelRowEl = contentEl.createDiv({ cls: 'grimoire-ask-label-row' });
-  labelRowEl.createDiv({ cls: 'grimoire-ask-item-label', text: option.label });
-
-  if (option.description) {
-    contentEl.createDiv({ cls: 'grimoire-ask-item-desc', text: option.description });
   }
 }
 

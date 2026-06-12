@@ -191,7 +191,7 @@ A focused side panel with multiple tabs. Each tab keeps its own draft, provider,
 
 ### Model selector
 
-One picker, grouped by provider and sorted by label: Claude Code, Codex, Gemini, OpenCode. Search runs across labels, descriptions, groups, and model IDs. Catalogs load lazily and remember which groups you collapsed. Add custom aliases and context-window overrides in settings. Claude's 1M variants are extra options, not replacements for the base models.
+One picker, grouped by provider and sorted by label: Claude Code, Codex, Gemini, OpenCode. Search runs across labels, descriptions, groups, and model IDs without resizing the menu while you filter. Catalogs load lazily and remember which groups you collapsed. Add custom aliases and context-window overrides in settings. Claude's 1M variants are extra options, not replacements for the base models.
 
 <p align="center">
   <img src="assets/readme/model-selector-usage.png" alt="Grimoire model selector showing provider groups, model search, and plan usage" width="100%">
@@ -216,6 +216,10 @@ Mention vault notes and folders straight from the composer, pull in the current 
 
 Run "Grimoire: Inline edit" on a selection. A prompt opens next to the text, the edit comes back as a diff you accept or reject, and it routes through the provider-backed inline edit service. It handles both replacing a selection and inserting new text.
 
+### Clarifying questions
+
+When a provider asks for structured user input, Grimoire pauses the turn and renders the question over the composer. Single-select, multi-select, and freeform answers resolve back into the provider run, so the agent can continue without a separate chat message.
+
 ### Commands
 
 Built-in commands cover Grimoire workflows like image generation and resume. Providers that expose their own commands, such as Claude Code slash commands and OpenCode runtime commands, surface them through provider-owned catalogs. Hide the ones you don't use from the dropdown in settings.
@@ -234,7 +238,7 @@ Off by default. Turn it on and Grimoire writes sanitized JSONL to `.grimoire/log
 
 ### Settings
 
-General settings cover auto-scroll, title generation, usage indicators, debug logging, locale, tabs, and which provider owns the settings view. Per-provider tabs handle CLI paths, model behavior, commands, agents, skills, and provider-owned config where it exists. You can also set project workspace environment variables, scoped per provider when needed.
+General settings cover Obsidian-following theme behavior, auto-scroll, title generation, usage indicators, debug logging, locale, tabs, and which provider owns the settings view. Per-provider tabs handle CLI paths, model behavior, commands, agents, skills, and provider-owned config where it exists. You can also set project workspace environment variables, scoped per provider when needed.
 
 ## Where Grimoire keeps your data
 

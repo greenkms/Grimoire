@@ -258,6 +258,10 @@
       "name": "Requerir Command/Ctrl+Enter para enviar",
       "desc": "Cuando está activado, Enter inserta un salto de línea. Command+Enter envía en macOS; Ctrl+Enter envía en Windows y Linux."
     },
+    "theme": {
+      "name": "Tema",
+      "followsObsidian": "Sigue Obsidian"
+    },
     "usageIndicators": {
       "name": "Usage indicators",
       "desc": "Show plan usage and API spend indicators beside the model selector and inside the model menu."

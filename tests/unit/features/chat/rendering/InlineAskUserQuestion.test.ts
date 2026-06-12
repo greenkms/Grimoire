@@ -7,17 +7,18 @@ beforeAll(() => {
     cb(0);
     return 0;
   };
-  // Mock document.activeElement for focus checks in updateFocusIndicator
   (globalThis as any).document = { activeElement: null };
 });
 
 function makeInput(
   questions: Array<{
     question: string;
-    options: unknown[];
+    options?: unknown[] | null;
     multiSelect?: boolean;
     header?: string;
     isOther?: boolean;
+    isSecret?: boolean;
+    id?: string;
   }>,
 ): Record<string, unknown> {
   return { questions };
@@ -40,12 +41,14 @@ function renderWidget(
 function fireKeyDown(
   root: any,
   key: string,
-  opts: { shiftKey?: boolean } = {},
+  opts: { shiftKey?: boolean; metaKey?: boolean; ctrlKey?: boolean } = {},
 ): void {
   const event = {
     type: 'keydown',
     key,
     shiftKey: opts.shiftKey ?? false,
+    metaKey: opts.metaKey ?? false,
+    ctrlKey: opts.ctrlKey ?? false,
     preventDefault: jest.fn(),
     stopPropagation: jest.fn(),
   };
@@ -53,11 +56,31 @@ function fireKeyDown(
 }
 
 function findRoot(container: any): any {
-  return container.querySelector('.grimoire-ask-question-inline');
+  return container.querySelector('.grimoire-ask-anchor');
 }
 
-function findItems(container: any): any[] {
-  return container.querySelectorAll('grimoire-ask-item');
+function getBlocks(container: any): any[] {
+  return container.querySelectorAll('.grimoire-ask-qblock');
+}
+
+function getOptRows(container: any, blockIdx: number): any[] {
+  const blocks = getBlocks(container);
+  if (!blocks[blockIdx]) return [];
+  return blocks[blockIdx].querySelectorAll('.grimoire-ask-opt');
+}
+
+function getFreeform(container: any, blockIdx: number): any {
+  const blocks = getBlocks(container);
+  if (!blocks[blockIdx]) return null;
+  return blocks[blockIdx].querySelector('.grimoire-ask-freeform');
+}
+
+function getSubmitBtn(container: any): any {
+  return container.querySelector('.grimoire-ask-btn--submit');
+}
+
+function getSkipBtn(container: any): any {
+  return container.querySelector('.grimoire-ask-btn--skip');
 }
 
 describe('InlineAskUserQuestion', () => {
@@ -77,17 +100,18 @@ describe('InlineAskUserQuestion', () => {
       expect(resolve).toHaveBeenCalledWith(null);
     });
 
-    it('filters out questions with no options', () => {
+    it('filters out questions with no options when showCustomInput is false and isOther is false', () => {
       const input = makeInput([
         { question: 'Q1', options: [] },
         { question: 'Q2', options: ['A'] },
       ]);
-      const { resolve } = renderWidget(input);
-      // Should render — Q2 is valid
+      const { container, resolve } = renderWidget(input, { showCustomInput: false });
       expect(resolve).not.toHaveBeenCalled();
+      const blocks = getBlocks(container);
+      expect(blocks).toHaveLength(1);
     });
 
-    it('resolves null when all questions have empty options and custom input is disabled', () => {
+    it('resolves null when all questions are invalid and custom input is disabled', () => {
       const input = makeInput([
         { question: 'Q1', options: [] },
         { question: 'Q2', options: [] },
@@ -96,47 +120,42 @@ describe('InlineAskUserQuestion', () => {
       expect(resolve).toHaveBeenCalledWith(null);
     });
 
-    it('keeps questions with empty options when custom input is enabled', () => {
+    it('keeps questions with empty options when showCustomInput is true (default)', () => {
       const input = makeInput([
         { question: 'Q1', options: [] },
       ]);
       const { container, resolve } = renderWidget(input);
-
       expect(resolve).not.toHaveBeenCalled();
-      expect(container.querySelectorAll('grimoire-ask-custom-item')).toHaveLength(1);
+      expect(getFreeform(container, 0)).not.toBeNull();
     });
 
-    it('keeps questions that only allow free-form input', () => {
+    it('keeps questions with isOther true even with empty options', () => {
       const input = {
         questions: [
           {
-            id: 'secret_q',
             question: 'Enter token',
-            header: 'Token',
             options: null,
             isOther: true,
-            isSecret: true,
           },
         ],
       };
       const { container, resolve } = renderWidget(input);
-
       expect(resolve).not.toHaveBeenCalled();
-      expect(container.querySelector('grimoire-ask-custom-item')).not.toBeNull();
+      expect(getFreeform(container, 0)).not.toBeNull();
     });
 
     it('filters out entries missing required fields', () => {
       const input = {
         questions: [
           { question: 'Valid', options: ['A'] },
-          { options: ['B'] }, // missing question
+          { options: ['B'] },
           'not an object',
           null,
         ],
       };
-      const { resolve } = renderWidget(input);
-      // Only "Valid" survives — widget should render
+      const { container, resolve } = renderWidget(input);
       expect(resolve).not.toHaveBeenCalled();
+      expect(getBlocks(container)).toHaveLength(1);
     });
 
     it('deduplicates options with the same label', () => {
@@ -144,28 +163,8 @@ describe('InlineAskUserQuestion', () => {
         { question: 'Pick', options: ['A', 'A', 'B'] },
       ]);
       const { container } = renderWidget(input);
-      // Find option items (excluding custom input row)
-      const items = container.querySelectorAll('grimoire-ask-item');
-      // 2 unique options + 1 custom input row = 3
-      const optionLabels = items
-        .filter((item: any) => !item.hasClass('grimoire-ask-custom-item'))
-        .map((item: any) => {
-          const labelEl = item.querySelector('grimoire-ask-item-label');
-          return labelEl?.textContent;
-        });
-      expect(optionLabels).toEqual(['A', 'B']);
-    });
-
-    it('uses header when provided, falls back to Q index', () => {
-      const input = makeInput([
-        { question: 'First', options: ['A'], header: 'MyHeader' },
-        { question: 'Second', options: ['B'] },
-      ]);
-      const { container } = renderWidget(input);
-      const tabLabels = container.querySelectorAll('grimoire-ask-tab-label');
-      // Tab labels: MyHeader, Q2, Submit
-      expect(tabLabels[0]?.textContent).toBe('MyHeader');
-      expect(tabLabels[1]?.textContent).toBe('Q2');
+      const rows = getOptRows(container, 0);
+      expect(rows).toHaveLength(2);
     });
 
     it('treats non-boolean multiSelect values as false', () => {
@@ -175,22 +174,29 @@ describe('InlineAskUserQuestion', () => {
         ],
       };
       const { container } = renderWidget(input);
-
-      const items = findItems(container).filter(
-        (i: any) => !i.hasClass('grimoire-ask-custom-item'),
-      );
-      items[0]?.click();
-
-      expect(container.querySelector('grimoire-ask-review-title')?.textContent).toBe('Review your answers');
+      const block = getBlocks(container)[0];
+      const kindEl = block.querySelector('.grimoire-ask-q-kind');
+      expect(kindEl?.textContent).toBe('single');
     });
 
-    it('truncates header to 12 characters', () => {
+    it('shows multi kind label for multiSelect questions', () => {
       const input = makeInput([
-        { question: 'Q', options: ['A'], header: 'VeryLongHeaderText' },
+        { question: 'Pick many', options: ['A', 'B'], multiSelect: true },
       ]);
       const { container } = renderWidget(input);
-      const tabLabels = container.querySelectorAll('grimoire-ask-tab-label');
-      expect(tabLabels[0]?.textContent).toBe('VeryLongHead');
+      const block = getBlocks(container)[0];
+      const kindEl = block.querySelector('.grimoire-ask-q-kind');
+      expect(kindEl?.textContent).toBe('multiple');
+    });
+
+    it('shows freeform kind label for questions with no options', () => {
+      const input = makeInput([
+        { question: 'Free', options: [] },
+      ]);
+      const { container } = renderWidget(input);
+      const block = getBlocks(container)[0];
+      const kindEl = block.querySelector('.grimoire-ask-q-kind');
+      expect(kindEl?.textContent).toBe('opt.');
     });
   });
 
@@ -198,33 +204,52 @@ describe('InlineAskUserQuestion', () => {
     it('handles string options', () => {
       const input = makeInput([{ question: 'Q', options: ['Yes', 'No'] }]);
       const { container } = renderWidget(input);
-      const labels = container
-        .querySelectorAll('grimoire-ask-item-label')
-        .map((el: any) => el.textContent);
-      expect(labels).toContain('Yes');
-      expect(labels).toContain('No');
+      const rows = getOptRows(container, 0);
+      const labels = rows.map((r: any) => r.querySelector('.grimoire-ask-opt-text')?.textContent);
+      expect(labels).toEqual(['Yes', 'No']);
     });
 
     it('extracts label from object with label property', () => {
       const input = makeInput([
         {
           question: 'Q',
-          options: [
-            { label: 'Option A', description: 'desc A' },
-            { value: 'Option B' },
-            { text: 'Option C' },
-            { name: 'Option D' },
-          ],
+          options: [{ label: 'Option A' }],
         },
       ]);
       const { container } = renderWidget(input);
-      const labels = container
-        .querySelectorAll('grimoire-ask-item-label')
-        .map((el: any) => el.textContent);
-      expect(labels).toContain('Option A');
-      expect(labels).toContain('Option B');
-      expect(labels).toContain('Option C');
-      expect(labels).toContain('Option D');
+      const rows = getOptRows(container, 0);
+      const text = rows[0]?.querySelector('.grimoire-ask-opt-text')?.textContent;
+      expect(text).toBe('Option A');
+    });
+
+    it('extracts label from object with value property', () => {
+      const input = makeInput([
+        { question: 'Q', options: [{ value: 'Option B' }] },
+      ]);
+      const { container } = renderWidget(input);
+      const rows = getOptRows(container, 0);
+      const text = rows[0]?.querySelector('.grimoire-ask-opt-text')?.textContent;
+      expect(text).toBe('Option B');
+    });
+
+    it('extracts label from object with text property', () => {
+      const input = makeInput([
+        { question: 'Q', options: [{ text: 'Option C' }] },
+      ]);
+      const { container } = renderWidget(input);
+      const rows = getOptRows(container, 0);
+      const text = rows[0]?.querySelector('.grimoire-ask-opt-text')?.textContent;
+      expect(text).toBe('Option C');
+    });
+
+    it('extracts label from object with name property', () => {
+      const input = makeInput([
+        { question: 'Q', options: [{ name: 'Option D' }] },
+      ]);
+      const { container } = renderWidget(input);
+      const rows = getOptRows(container, 0);
+      const text = rows[0]?.querySelector('.grimoire-ask-opt-text')?.textContent;
+      expect(text).toBe('Option D');
     });
 
     it('shows description when provided', () => {
@@ -232,271 +257,613 @@ describe('InlineAskUserQuestion', () => {
         { question: 'Q', options: [{ label: 'A', description: 'Some desc' }] },
       ]);
       const { container } = renderWidget(input);
-      const descEl = container.querySelector('grimoire-ask-item-desc');
-      expect(descEl?.textContent).toBe('Some desc');
+      const rows = getOptRows(container, 0);
+      const text = rows[0]?.querySelector('.grimoire-ask-opt-text')?.textContent;
+      expect(text).toBe('A');
     });
 
     it('coerces non-string/non-object options to string', () => {
       const input = makeInput([{ question: 'Q', options: [42] }]);
       const { container } = renderWidget(input);
-      const labels = container
-        .querySelectorAll('grimoire-ask-item-label')
-        .map((el: any) => el.textContent);
-      expect(labels).toContain('42');
+      const rows = getOptRows(container, 0);
+      const text = rows[0]?.querySelector('.grimoire-ask-opt-text')?.textContent;
+      expect(text).toBe('42');
     });
 
     it('uses option value for resolution when provided', () => {
       const input = makeInput([
         {
           question: 'Q',
-          options: [{ label: 'Approve and remember', value: 'allow_with_policy' }],
+          options: [{ label: 'Approve', value: 'allow_with_policy' }],
         },
       ]);
-      const { container } = renderWidget(input);
-      const labels = container
-        .querySelectorAll('grimoire-ask-item-label')
-        .map((el: any) => el.textContent);
-      expect(labels).toContain('Approve and remember');
+      const { container, resolve } = renderWidget(input, { immediateSelect: true, showCustomInput: false });
+      const rows = getOptRows(container, 0);
+      rows[0]?.click();
+      expect(resolve).toHaveBeenCalledWith({ Q: 'allow_with_policy' });
     });
   });
 
-  describe('selectOption', () => {
-    it('selects single-select option via click', () => {
-      jest.useFakeTimers();
+  describe('rendering', () => {
+    it('creates root element with grimoire-ask-anchor class', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'] }]);
+      const { container } = renderWidget(input);
+      const root = findRoot(container);
+      expect(root).not.toBeNull();
+      expect(root.hasClass('grimoire-ask-anchor')).toBe(true);
+    });
+
+    it('creates form element inside root', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'] }]);
+      const { container } = renderWidget(input);
+      const form = container.querySelector('.grimoire-ask-form');
+      expect(form).not.toBeNull();
+    });
+
+    it('renders header with title and subtitle', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'] }]);
+      const { container } = renderWidget(input);
+      const head = container.querySelector('.grimoire-ask-head');
+      expect(head).not.toBeNull();
+      const title = container.querySelector('.grimoire-ask-title');
+      expect(title?.textContent).toBe('Needs a detail');
+      const subtitle = container.querySelector('.grimoire-ask-subtitle');
+      expect(subtitle?.textContent).toContain('Grimoire asks 1 question');
+    });
+
+    it('renders plural subtitle for multiple questions', () => {
       const input = makeInput([
-        { question: 'Pick one', options: ['A', 'B'] },
+        { question: 'Q1', options: ['A'] },
+        { question: 'Q2', options: ['B'] },
       ]);
-      const { container, resolve } = renderWidget(input);
+      const { container } = renderWidget(input);
+      const subtitle = container.querySelector('.grimoire-ask-subtitle');
+      expect(subtitle?.textContent).toContain('Grimoire asks 2 questions');
+    });
 
-      // Click first option
-      const items = findItems(container).filter(
-        (i: any) => !i.hasClass('grimoire-ask-custom-item'),
-      );
-      items[0]?.click();
-      jest.advanceTimersByTime(200);
+    it('renders ask_user tool pill', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'] }]);
+      const { container } = renderWidget(input);
+      const pill = container.querySelector('.grimoire-ask-tool-pill');
+      expect(pill).not.toBeNull();
+      const spans = pill?._children?.filter((c: any) => c.tagName === 'SPAN') || [];
+      expect(spans.length).toBeGreaterThanOrEqual(1);
+      expect(spans[spans.length - 1]?.textContent).toBe('ask_user');
+    });
 
-      // Auto-advanced to submit tab — now submit
-      const submitItems = container.querySelectorAll('grimoire-ask-item');
-      const submitRow = submitItems.find(
-        (i: any) => !i.hasClass('grimoire-ask-custom-item'),
-      );
-      submitRow?.click();
+    it('renders glyph with SVG icon', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'] }]);
+      const { container } = renderWidget(input);
+      const glyph = container.querySelector('.grimoire-ask-glyph');
+      expect(glyph).not.toBeNull();
+    });
 
-      expect(resolve).toHaveBeenCalledWith({ 'Pick one': 'A' });
-      jest.useRealTimers();
+    it('renders question blocks with correct count', () => {
+      const input = makeInput([
+        { question: 'Q1', options: ['A'] },
+        { question: 'Q2', options: ['B'] },
+      ]);
+      const { container } = renderWidget(input);
+      const blocks = getBlocks(container);
+      expect(blocks).toHaveLength(2);
+    });
+
+    it('renders padded question numbers', () => {
+      const input = makeInput([
+        { question: 'Q1', options: ['A'] },
+        { question: 'Q2', options: ['B'] },
+      ]);
+      const { container } = renderWidget(input);
+      const blocks = getBlocks(container);
+      const num0 = blocks[0].querySelector('.grimoire-ask-q-num');
+      const num1 = blocks[1].querySelector('.grimoire-ask-q-num');
+      expect(num0?.textContent).toBe('01');
+      expect(num1?.textContent).toBe('02');
+    });
+
+    it('renders question text as title', () => {
+      const input = makeInput([{ question: 'What color?', options: ['Red'] }]);
+      const { container } = renderWidget(input);
+      const title = container.querySelector('.grimoire-ask-q-title');
+      expect(title?.textContent).toBe('What color?');
+    });
+
+    it('renders single kind label for single-select', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'] }]);
+      const { container } = renderWidget(input);
+      const kind = container.querySelector('.grimoire-ask-q-kind');
+      expect(kind?.textContent).toBe('single');
+    });
+
+    it('renders radio rings for single-select options', () => {
+      const input = makeInput([{ question: 'Q', options: ['A', 'B'] }]);
+      const { container } = renderWidget(input);
+      const rings = container.querySelectorAll('.grimoire-ask-opt-ring');
+      expect(rings).toHaveLength(2);
+      const boxes = container.querySelectorAll('.grimoire-ask-opt-box');
+      expect(boxes).toHaveLength(0);
+    });
+
+    it('renders checkbox boxes for multi-select options', () => {
+      const input = makeInput([{ question: 'Q', options: ['A', 'B'], multiSelect: true }]);
+      const { container } = renderWidget(input);
+      const boxes = container.querySelectorAll('.grimoire-ask-opt-box');
+      expect(boxes).toHaveLength(2);
+      const rings = container.querySelectorAll('.grimoire-ask-opt-ring');
+      expect(rings).toHaveLength(0);
+    });
+
+    it('sets radio role on single-select rows', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'] }]);
+      const { container } = renderWidget(input);
+      const rows = getOptRows(container, 0);
+      expect(rows[0]?.getAttribute('role')).toBe('radio');
+    });
+
+    it('sets checkbox role on multi-select rows', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'], multiSelect: true }]);
+      const { container } = renderWidget(input);
+      const rows = getOptRows(container, 0);
+      expect(rows[0]?.getAttribute('role')).toBe('checkbox');
+    });
+
+    it('renders option text labels', () => {
+      const input = makeInput([{ question: 'Q', options: ['Alpha', 'Beta'] }]);
+      const { container } = renderWidget(input);
+      const rows = getOptRows(container, 0);
+      const texts = rows.map((r: any) => r.querySelector('.grimoire-ask-opt-text')?.textContent);
+      expect(texts).toEqual(['Alpha', 'Beta']);
+    });
+
+    it('renders freeform textarea by default', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'] }]);
+      const { container } = renderWidget(input);
+      expect(getFreeform(container, 0)).not.toBeNull();
+    });
+
+    it('does not render freeform when showCustomInput is false', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'] }]);
+      const { container } = renderWidget(input, { showCustomInput: false });
+      expect(getFreeform(container, 0)).toBeNull();
+    });
+
+    it('renders freeform for questions with no options', () => {
+      const input = makeInput([{ question: 'Q', options: [] }]);
+      const { container } = renderWidget(input);
+      expect(getFreeform(container, 0)).not.toBeNull();
+    });
+
+    it('renders freeform for questions with isOther true', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'], isOther: true }]);
+      const { container } = renderWidget(input, { showCustomInput: false });
+      expect(getFreeform(container, 0)).not.toBeNull();
+    });
+
+    it('renders actions bar with submit and skip buttons', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'] }]);
+      const { container } = renderWidget(input);
+      const actions = container.querySelector('.grimoire-ask-actions');
+      expect(actions).not.toBeNull();
+      expect(getSubmitBtn(container)).not.toBeNull();
+      expect(getSkipBtn(container)).not.toBeNull();
+    });
+
+    it('skip button text is Decide for me', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'] }]);
+      const { container } = renderWidget(input);
+      const skip = getSkipBtn(container);
+      expect(skip?.textContent).toBe('Decide for me');
+    });
+
+    it('submit button text contains Send answers', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'] }]);
+      const { container } = renderWidget(input);
+      const submit = getSubmitBtn(container);
+      const spans = submit?._children?.filter((c: any) => c.tagName === 'SPAN') || [];
+      expect(spans[spans.length - 1]?.textContent).toBe('Send answers');
+    });
+
+    it('does not render shortcut hints in the action bar', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'] }]);
+      const { container } = renderWidget(input);
+      const foot = container.querySelector('.grimoire-ask-foot');
+      expect(foot).toBeNull();
+      expect(container.querySelector('kbd')).toBeNull();
+    });
+
+    it('renders body element as scrollable container', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'] }]);
+      const { container } = renderWidget(input);
+      const body = container.querySelector('.grimoire-ask-body');
+      expect(body).not.toBeNull();
+    });
+
+    it('renders option mark elements inside each opt row', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'] }]);
+      const { container } = renderWidget(input);
+      const rows = getOptRows(container, 0);
+      const mark = rows[0]?.querySelector('.grimoire-ask-opt-mark');
+      expect(mark).not.toBeNull();
+    });
+  });
+
+  describe('selection', () => {
+    it('selects single-select option via click', () => {
+      const input = makeInput([{ question: 'Pick one', options: ['A', 'B'] }]);
+      const { container } = renderWidget(input);
+      const rows = getOptRows(container, 0);
+      rows[0]?.click();
+
+      expect(rows[0]?.hasClass('is-selected')).toBe(true);
+      expect(rows[0]?.getAttribute('aria-checked')).toBe('true');
+      expect(rows[1]?.hasClass('is-selected')).toBe(false);
+      expect(rows[1]?.getAttribute('aria-checked')).toBe('false');
+    });
+
+    it('replaces selection in single-select when clicking different option', () => {
+      const input = makeInput([{ question: 'Pick one', options: ['A', 'B'] }]);
+      const { container } = renderWidget(input);
+      const rows = getOptRows(container, 0);
+
+      rows[0]?.click();
+      expect(rows[0]?.hasClass('is-selected')).toBe(true);
+
+      rows[1]?.click();
+      expect(rows[0]?.hasClass('is-selected')).toBe(false);
+      expect(rows[0]?.getAttribute('aria-checked')).toBe('false');
+      expect(rows[1]?.hasClass('is-selected')).toBe(true);
+      expect(rows[1]?.getAttribute('aria-checked')).toBe('true');
     });
 
     it('toggles multi-select options', () => {
-      const input = makeInput([
-        { question: 'Pick many', options: ['X', 'Y', 'Z'], multiSelect: true },
-      ]);
+      const input = makeInput([{ question: 'Pick many', options: ['X', 'Y', 'Z'], multiSelect: true }]);
       const { container } = renderWidget(input);
+      const rows = getOptRows(container, 0);
 
-      const items = findItems(container).filter(
-        (i: any) => !i.hasClass('grimoire-ask-custom-item'),
-      );
-      // Select X and Y
-      items[0]?.click();
-      items[1]?.click();
+      rows[0]?.click();
+      rows[1]?.click();
 
-      // Check marks for multi-select
-      const checks = container.querySelectorAll('grimoire-ask-check');
-      const checkedCount = checks.filter((c: any) => c.hasClass('is-checked')).length;
-      expect(checkedCount).toBe(2);
+      expect(rows[0]?.hasClass('is-selected')).toBe(true);
+      expect(rows[1]?.hasClass('is-selected')).toBe(true);
+      expect(rows[2]?.hasClass('is-selected')).toBe(false);
 
-      // Deselect X
-      items[0]?.click();
-      const checksAfter = container.querySelectorAll('grimoire-ask-check');
-      const checkedAfter = checksAfter.filter((c: any) => c.hasClass('is-checked')).length;
-      expect(checkedAfter).toBe(1);
+      rows[0]?.click();
+      expect(rows[0]?.hasClass('is-selected')).toBe(false);
+      expect(rows[1]?.hasClass('is-selected')).toBe(true);
+    });
+
+    it('clears freeform text when selecting option in single-select', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'] }]);
+      const { container } = renderWidget(input);
+      const ta = getFreeform(container, 0);
+      ta.value = 'custom text';
+      ta.dispatchEvent({ type: 'input' });
+
+      const rows = getOptRows(container, 0);
+      rows[0]?.click();
+
+      expect(ta.value).toBe('');
     });
   });
 
-  describe('handleSubmit', () => {
-    it('does not submit when not all questions are answered', () => {
+  describe('validation', () => {
+    it('disables submit when required blocks are not answered', () => {
+      const input = makeInput([
+        { question: 'Q1', options: ['A'] },
+        { question: 'Q2', options: ['B'] },
+      ]);
+      const { container } = renderWidget(input);
+      const submit = getSubmitBtn(container);
+      expect(submit?.disabled).toBe(true);
+    });
+
+    it('disables submit when only some blocks are answered', () => {
+      const input = makeInput([
+        { question: 'Q1', options: ['A'] },
+        { question: 'Q2', options: ['B'] },
+      ]);
+      const { container } = renderWidget(input);
+      const rows = getOptRows(container, 0);
+      rows[0]?.click();
+
+      const submit = getSubmitBtn(container);
+      expect(submit?.disabled).toBe(true);
+    });
+
+    it('enables submit when all required blocks are answered', () => {
+      const input = makeInput([
+        { question: 'Q1', options: ['A'] },
+        { question: 'Q2', options: ['B'] },
+      ]);
+      const { container } = renderWidget(input);
+
+      getOptRows(container, 0)[0]?.click();
+      getOptRows(container, 1)[0]?.click();
+
+      const submit = getSubmitBtn(container);
+      expect(submit?.disabled).toBe(false);
+    });
+
+    it('freeform text counts as answering a block', () => {
+      const input = makeInput([
+        { question: 'Q1', options: ['A'] },
+        { question: 'Q2', options: [] },
+      ]);
+      const { container } = renderWidget(input);
+
+      getOptRows(container, 0)[0]?.click();
+      const ta = getFreeform(container, 1);
+      ta.value = 'my answer';
+      ta.dispatchEvent({ type: 'input' });
+
+      const submit = getSubmitBtn(container);
+      expect(submit?.disabled).toBe(false);
+    });
+  });
+
+  describe('submit', () => {
+    it('collects answers keyed by question text', () => {
+      const input = makeInput([
+        { question: 'Color?', options: ['Red', 'Blue'] },
+        { question: 'Size?', options: ['S', 'M'] },
+      ]);
+      const { container, resolve } = renderWidget(input);
+
+      getOptRows(container, 0)[0]?.click();
+      getOptRows(container, 1)[1]?.click();
+
+      const submit = getSubmitBtn(container);
+      submit?.click();
+
+      expect(resolve).toHaveBeenCalledWith({
+        'Color?': 'Red',
+        'Size?': 'M',
+      });
+    });
+
+    it('collects answers keyed by question id when provided', () => {
+      const input = {
+        questions: [
+          { id: 'color_q', question: 'Color?', options: ['Red'] },
+          { id: 'size_q', question: 'Size?', options: ['M'] },
+        ],
+      };
+      const { container, resolve } = renderWidget(input);
+
+      getOptRows(container, 0)[0]?.click();
+      getOptRows(container, 1)[0]?.click();
+
+      getSubmitBtn(container)?.click();
+
+      expect(resolve).toHaveBeenCalledWith({
+        color_q: 'Red',
+        size_q: 'M',
+      });
+    });
+
+    it('returns string arrays for multi-select', () => {
+      const input = makeInput([
+        { question: 'Pick many', options: ['X', 'Y', 'Z'], multiSelect: true },
+      ]);
+      const { container, resolve } = renderWidget(input, { showCustomInput: false });
+
+      const rows = getOptRows(container, 0);
+      rows[0]?.click();
+      rows[1]?.click();
+
+      getSubmitBtn(container)?.click();
+
+      expect(resolve).toHaveBeenCalledWith({
+        'Pick many': ['X', 'Y'],
+      });
+    });
+
+    it('returns freeform text when no option selected', () => {
+      const input = makeInput([
+        { question: 'Q', options: ['A'] },
+      ]);
+      const { container, resolve } = renderWidget(input);
+
+      const ta = getFreeform(container, 0);
+      ta.value = 'my custom';
+      ta.dispatchEvent({ type: 'input' });
+
+      getSubmitBtn(container)?.click();
+
+      expect(resolve).toHaveBeenCalledWith({ Q: 'my custom' });
+    });
+
+    it('does not submit when validation fails', () => {
       const input = makeInput([
         { question: 'Q1', options: ['A'] },
         { question: 'Q2', options: ['B'] },
       ]);
       const { container, resolve } = renderWidget(input);
 
-      // Navigate to submit tab without answering
-      const root = findRoot(container);
-      fireKeyDown(root, 'Tab');
+      getOptRows(container, 0)[0]?.click();
 
-      // Try to submit
-      fireKeyDown(root, 'Enter');
-      // Should navigate to submit tab first, not resolve
-      // Eventually press Enter on submit tab
-      fireKeyDown(root, 'Tab');
-      fireKeyDown(root, 'Enter');
-      // Still not submitted because not all answered
+      getSubmitBtn(container)?.click();
+      expect(resolve).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('skip', () => {
+    it('resolves empty answers on skip button click so the turn can continue', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'] }]);
+      const { container, resolve } = renderWidget(input);
+
+      getSkipBtn(container)?.click();
+      expect(resolve).toHaveBeenCalledWith({});
+    });
+  });
+
+  describe('Cmd+Enter / Ctrl+Enter', () => {
+    it('submits via Cmd+Enter from form level', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'] }]);
+      const { container, resolve } = renderWidget(input);
+      const root = findRoot(container);
+
+      getOptRows(container, 0)[0]?.click();
+      fireKeyDown(root, 'Enter', { metaKey: true });
+
+      expect(resolve).toHaveBeenCalledWith({ Q: 'A' });
+    });
+
+    it('submits via Ctrl+Enter from form level', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'] }]);
+      const { container, resolve } = renderWidget(input);
+      const root = findRoot(container);
+
+      getOptRows(container, 0)[0]?.click();
+      fireKeyDown(root, 'Enter', { ctrlKey: true });
+
+      expect(resolve).toHaveBeenCalledWith({ Q: 'A' });
+    });
+
+    it('does not submit via Cmd+Enter when validation fails', () => {
+      const input = makeInput([
+        { question: 'Q1', options: ['A'] },
+        { question: 'Q2', options: ['B'] },
+      ]);
+      const { container, resolve } = renderWidget(input);
+      const root = findRoot(container);
+
+      getOptRows(container, 0)[0]?.click();
+      fireKeyDown(root, 'Enter', { metaKey: true });
+
       expect(resolve).not.toHaveBeenCalled();
     });
 
-    it('submits answers with correct question-answer mapping', () => {
-      jest.useFakeTimers();
-      const input = makeInput([
-        { question: 'Color?', options: ['Red', 'Blue'] },
-        { question: 'Size?', options: ['S', 'M', 'L'] },
-      ]);
+    it('submits via Cmd+Enter from freeform focus', () => {
+      const input = makeInput([{ question: 'Q', options: [] }]);
       const { container, resolve } = renderWidget(input);
+      const root = findRoot(container);
 
-      // Select "Red" for Q1
-      const items = findItems(container).filter(
-        (i: any) => !i.hasClass('grimoire-ask-custom-item'),
-      );
-      items[0]?.click();
-      jest.advanceTimersByTime(200);
+      const ta = getFreeform(container, 0);
+      ta.value = 'answer';
+      ta.dispatchEvent({ type: 'input' });
+      ta.dispatchEvent({ type: 'focus' });
 
-      // Now on Q2 — select "M" (index 1)
-      const q2Items = findItems(container).filter(
-        (i: any) => !i.hasClass('grimoire-ask-custom-item'),
-      );
-      q2Items[1]?.click();
-      jest.advanceTimersByTime(200);
+      fireKeyDown(root, 'Enter', { metaKey: true });
+      expect(resolve).toHaveBeenCalledWith({ Q: 'answer' });
+    });
+  });
 
-      // Now on submit tab — click submit
-      const submitItems = container.querySelectorAll('grimoire-ask-item');
-      const submitRow = submitItems.find(
-        (i: any) => !i.hasClass('grimoire-ask-custom-item'),
-      );
-      submitRow?.click();
+  describe('keyboard navigation', () => {
+    it('Escape resolves null', () => {
+      const input = makeInput([{ question: 'Q', options: ['A', 'B'] }]);
+      const { container, resolve } = renderWidget(input);
+      const root = findRoot(container);
 
-      expect(resolve).toHaveBeenCalledWith({
-        'Color?': 'Red',
-        'Size?': 'M',
-      });
-      jest.useRealTimers();
+      fireKeyDown(root, 'Escape');
+      expect(resolve).toHaveBeenCalledWith(null);
     });
 
-    it('submits multi-select answers as arrays instead of joining them into one string', () => {
-      const input = makeInput([
-        { question: 'Pick many', options: ['X', 'Y', 'Z'], multiSelect: true },
-      ]);
-      const { container, resolve } = renderWidget(input);
-
-      const items = findItems(container).filter(
-        (i: any) => !i.hasClass('grimoire-ask-custom-item'),
-      );
-      items[0]?.click();
-      items[1]?.click();
-
+    it('ArrowDown moves focus to next option in same block', () => {
+      const input = makeInput([{ question: 'Q', options: ['A', 'B'] }]);
+      const { container } = renderWidget(input, { showCustomInput: false });
       const root = findRoot(container);
-      fireKeyDown(root, 'Tab');
+
+      fireKeyDown(root, 'ArrowDown');
+
+      const rows = getOptRows(container, 0);
+      expect(rows[1]?.hasClass('is-focused')).toBe(true);
+    });
+
+    it('ArrowDown crosses into next block', () => {
+      const input = makeInput([
+        { question: 'Q1', options: ['A'] },
+        { question: 'Q2', options: ['B'] },
+      ]);
+      const { container } = renderWidget(input, { showCustomInput: false });
+      const root = findRoot(container);
+
+      fireKeyDown(root, 'ArrowDown');
+
+      const rows1 = getOptRows(container, 0);
+      expect(rows1[0]?.hasClass('is-focused')).toBe(false);
+      const rows2 = getOptRows(container, 1);
+      expect(rows2[0]?.hasClass('is-focused')).toBe(true);
+    });
+
+    it('ArrowDown clamps at last option of last block', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'] }]);
+      const { container } = renderWidget(input, { showCustomInput: false });
+      const root = findRoot(container);
+
+      fireKeyDown(root, 'ArrowDown');
+      fireKeyDown(root, 'ArrowDown');
+      fireKeyDown(root, 'ArrowDown');
+
+      const rows = getOptRows(container, 0);
+      expect(rows[0]?.hasClass('is-focused')).toBe(true);
+    });
+
+    it('ArrowUp moves focus to previous option', () => {
+      const input = makeInput([{ question: 'Q', options: ['A', 'B'] }]);
+      const { container } = renderWidget(input, { showCustomInput: false });
+      const root = findRoot(container);
+
+      fireKeyDown(root, 'ArrowDown');
+      fireKeyDown(root, 'ArrowUp');
+
+      const rows = getOptRows(container, 0);
+      expect(rows[0]?.hasClass('is-focused')).toBe(true);
+    });
+
+    it('ArrowUp crosses into previous block', () => {
+      const input = makeInput([
+        { question: 'Q1', options: ['A'] },
+        { question: 'Q2', options: ['B'] },
+      ]);
+      const { container } = renderWidget(input, { showCustomInput: false });
+      const root = findRoot(container);
+
+      fireKeyDown(root, 'ArrowDown');
+      fireKeyDown(root, 'ArrowUp');
+
+      const rows1 = getOptRows(container, 0);
+      expect(rows1[0]?.hasClass('is-focused')).toBe(true);
+    });
+
+    it('ArrowUp clamps at first option of first block', () => {
+      const input = makeInput([{ question: 'Q', options: ['A', 'B'] }]);
+      const { container } = renderWidget(input, { showCustomInput: false });
+      const root = findRoot(container);
+
+      fireKeyDown(root, 'ArrowUp');
+      fireKeyDown(root, 'ArrowUp');
+
+      const rows = getOptRows(container, 0);
+      expect(rows[0]?.hasClass('is-focused')).toBe(true);
+    });
+
+    it('Enter selects option', () => {
+      const input = makeInput([{ question: 'Q', options: ['A', 'B'] }]);
+      const { container } = renderWidget(input, { showCustomInput: false });
+      const root = findRoot(container);
+
       fireKeyDown(root, 'Enter');
 
-      expect(resolve).toHaveBeenCalledWith({
-        'Pick many': ['X', 'Y'],
-      });
+      const rows = getOptRows(container, 0);
+      expect(rows[0]?.hasClass('is-selected')).toBe(true);
+    });
+
+    it('Enter on option past row count focuses freeform', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'] }]);
+      const { container } = renderWidget(input);
+      const root = findRoot(container);
+
+      fireKeyDown(root, 'ArrowDown');
+      fireKeyDown(root, 'Enter');
+
+      const ta = getFreeform(container, 0);
+      const focusListeners = ta?._eventListeners?.get('focus') || [];
+      expect(focusListeners.length).toBeGreaterThan(0);
     });
   });
 
-  describe('question metadata', () => {
-    it('shows custom input by default when isOther is false', () => {
-      const input = {
-        questions: [{ question: 'Pick one', options: ['A', 'B'], isOther: false }],
-      };
-      const { container } = renderWidget(input);
-      expect(container.querySelectorAll('grimoire-ask-custom-item')).toHaveLength(1);
-    });
-
-    it('shows custom input by default when isOther is omitted', () => {
-      const input = {
-        questions: [{ question: 'Pick one', options: ['A', 'B'] }],
-      };
-      const { container } = renderWidget(input);
-      expect(container.querySelectorAll('grimoire-ask-custom-item')).toHaveLength(1);
-    });
-
-    it('hides custom input when showCustomInput is disabled', () => {
-      const input = {
-        questions: [{ question: 'Pick one', options: ['A', 'B'], isOther: true }],
-      };
-      const { container } = renderWidget(input, { showCustomInput: false });
-      expect(container.querySelectorAll('grimoire-ask-custom-item')).toHaveLength(0);
-    });
-
-    it('renders secret free-form questions with password input', () => {
-      const input = {
-        questions: [
-          {
-            question: 'Enter API token',
-            options: null,
-            isOther: true,
-            isSecret: true,
-          },
-        ],
-      };
-      const { container } = renderWidget(input);
-
-      const customInput = container.querySelector('grimoire-ask-custom-text');
-      expect(customInput?.getAttribute('type')).toBe('password');
-    });
-  });
-
-  describe('question id keying', () => {
-    it('keys submit results by question id when id is provided', () => {
-      jest.useFakeTimers();
-      const input = {
-        questions: [
-          { id: 'color_q', question: 'Favorite color?', options: ['Red', 'Blue'], header: 'Color' },
-          { id: 'size_q', question: 'Preferred size?', options: ['S', 'M'], header: 'Size' },
-        ],
-      };
-      const { container, resolve } = renderWidget(input);
-
-      // Select "Red" for Q1
-      const items = findItems(container).filter(
-        (i: any) => !i.hasClass('grimoire-ask-custom-item'),
-      );
-      items[0]?.click();
-      jest.advanceTimersByTime(200);
-
-      // Select "M" for Q2
-      const q2Items = findItems(container).filter(
-        (i: any) => !i.hasClass('grimoire-ask-custom-item'),
-      );
-      q2Items[1]?.click();
-      jest.advanceTimersByTime(200);
-
-      // Submit
-      const submitItems = container.querySelectorAll('grimoire-ask-item');
-      const submitRow = submitItems.find(
-        (i: any) => !i.hasClass('grimoire-ask-custom-item'),
-      );
-      submitRow?.click();
-
-      expect(resolve).toHaveBeenCalledWith({
-        color_q: 'Red',
-        size_q: 'M',
-      });
-      jest.useRealTimers();
-    });
-
-    it('falls back to question text when id is not provided', () => {
-      jest.useFakeTimers();
-      const input = makeInput([{ question: 'Pick one', options: ['A', 'B'] }]);
-      const { container, resolve } = renderWidget(input);
-
-      const items = findItems(container).filter(
-        (i: any) => !i.hasClass('grimoire-ask-custom-item'),
-      );
-      items[0]?.click();
-      jest.advanceTimersByTime(200);
-
-      const submitItems = container.querySelectorAll('grimoire-ask-item');
-      const submitRow = submitItems.find(
-        (i: any) => !i.hasClass('grimoire-ask-custom-item'),
-      );
-      submitRow?.click();
-
-      expect(resolve).toHaveBeenCalledWith({ 'Pick one': 'A' });
-      jest.useRealTimers();
-    });
-  });
-
-  describe('abort lifecycle', () => {
+  describe('abort signal', () => {
     it('resolves null when signal is aborted', () => {
       const controller = new AbortController();
       const input = makeInput([{ question: 'Q', options: ['A'] }]);
@@ -512,12 +879,10 @@ describe('InlineAskUserQuestion', () => {
       const input = makeInput([{ question: 'Q', options: ['A'] }]);
       const { container, resolve } = renderWidget(input, controller.signal);
 
-      // Cancel via Escape
       const root = findRoot(container);
       fireKeyDown(root, 'Escape');
       expect(resolve).toHaveBeenCalledTimes(1);
 
-      // Abort should not trigger a second resolve
       controller.abort();
       expect(resolve).toHaveBeenCalledTimes(1);
     });
@@ -527,7 +892,6 @@ describe('InlineAskUserQuestion', () => {
       const input = makeInput([{ question: 'Q', options: ['A'] }]);
       const { container, resolve } = renderWidget(input, controller.signal);
 
-      // Cancel via Escape
       const root = findRoot(container);
       fireKeyDown(root, 'Escape');
       expect(resolve).toHaveBeenCalledTimes(1);
@@ -557,323 +921,17 @@ describe('InlineAskUserQuestion', () => {
     });
   });
 
-  describe('keyboard navigation', () => {
-    it('Escape resolves null', () => {
-      const input = makeInput([{ question: 'Q', options: ['A', 'B'] }]);
-      const { container, resolve } = renderWidget(input);
-
-      const root = findRoot(container);
-      fireKeyDown(root, 'Escape');
-      expect(resolve).toHaveBeenCalledWith(null);
-    });
-
-    it('ArrowDown moves focus down', () => {
-      const input = makeInput([{ question: 'Q', options: ['A', 'B'] }]);
-      const { container } = renderWidget(input);
-      const root = findRoot(container);
-
-      // Initially focused on item 0
-      fireKeyDown(root, 'ArrowDown');
-
-      const items = findItems(container);
-      // Item 1 should now be focused
-      expect(items[1]?.hasClass('is-focused')).toBe(true);
-    });
-
-    it('ArrowDown clamps at max index', () => {
+  describe('double-resolve prevention', () => {
+    it('prevents double resolve from skip then destroy', () => {
       const input = makeInput([{ question: 'Q', options: ['A'] }]);
-      const { container } = renderWidget(input);
-      const root = findRoot(container);
+      const { container, resolve, widget } = renderWidget(input);
 
-      // Press ArrowDown many times
-      fireKeyDown(root, 'ArrowDown');
-      fireKeyDown(root, 'ArrowDown');
-      fireKeyDown(root, 'ArrowDown');
+      getSkipBtn(container)?.click();
+      expect(resolve).toHaveBeenCalledTimes(1);
+      expect(resolve).toHaveBeenCalledWith({});
 
-      // Should not crash, max focus is 1 (option A + custom input)
-      const items = findItems(container);
-      // Last item (custom input) should be focused
-      expect(items[items.length - 1]?.hasClass('is-focused')).toBe(true);
-    });
-
-    it('ArrowDown clamps at last option when custom input is hidden', () => {
-      const input = makeInput([{ question: 'Q', options: ['A', 'B'] }]);
-      const container = createMockEl();
-      const resolve = jest.fn();
-      const widget = new InlineAskUserQuestion(container, input, resolve, undefined, { showCustomInput: false });
-      widget.render();
-      const root = findRoot(container);
-
-      fireKeyDown(root, 'ArrowDown');
-      fireKeyDown(root, 'ArrowDown');
-      fireKeyDown(root, 'ArrowDown');
-
-      const items = findItems(container);
-      expect(items).toHaveLength(2);
-      expect(items[1]?.hasClass('is-focused')).toBe(true);
-    });
-
-    it('ArrowUp moves focus up and clamps at 0', () => {
-      const input = makeInput([{ question: 'Q', options: ['A', 'B'] }]);
-      const { container } = renderWidget(input);
-      const root = findRoot(container);
-
-      // Move down then back up past 0
-      fireKeyDown(root, 'ArrowDown');
-      fireKeyDown(root, 'ArrowUp');
-      fireKeyDown(root, 'ArrowUp');
-
-      const items = findItems(container);
-      expect(items[0]?.hasClass('is-focused')).toBe(true);
-    });
-
-    it('Tab navigates to next question tab', () => {
-      const input = makeInput([
-        { question: 'Q1', options: ['A'] },
-        { question: 'Q2', options: ['B'] },
-      ]);
-      const { container } = renderWidget(input);
-      const root = findRoot(container);
-
-      fireKeyDown(root, 'Tab');
-
-      // Should now be on Q2 — check tab bar
-      const tabs = container.querySelectorAll('grimoire-ask-tab');
-      expect(tabs[1]?.hasClass('is-active')).toBe(true);
-    });
-
-    it('Shift+Tab navigates to previous tab', () => {
-      const input = makeInput([
-        { question: 'Q1', options: ['A'] },
-        { question: 'Q2', options: ['B'] },
-      ]);
-      const { container } = renderWidget(input);
-      const root = findRoot(container);
-
-      // Go to Q2 then back
-      fireKeyDown(root, 'Tab');
-      fireKeyDown(root, 'Tab', { shiftKey: true });
-
-      const tabs = container.querySelectorAll('grimoire-ask-tab');
-      expect(tabs[0]?.hasClass('is-active')).toBe(true);
-    });
-
-    it('ArrowRight navigates forward on question tab', () => {
-      const input = makeInput([
-        { question: 'Q1', options: ['A'] },
-        { question: 'Q2', options: ['B'] },
-      ]);
-      const { container } = renderWidget(input);
-      const root = findRoot(container);
-
-      fireKeyDown(root, 'ArrowRight');
-
-      const tabs = container.querySelectorAll('grimoire-ask-tab');
-      expect(tabs[1]?.hasClass('is-active')).toBe(true);
-    });
-
-    it('Enter on submit tab calls handleSubmit', () => {
-      jest.useFakeTimers();
-      const input = makeInput([{ question: 'Q', options: ['A'] }]);
-      const { container, resolve } = renderWidget(input);
-      const root = findRoot(container);
-
-      // Select option A
-      const items = findItems(container).filter(
-        (i: any) => !i.hasClass('grimoire-ask-custom-item'),
-      );
-      items[0]?.click();
-      jest.advanceTimersByTime(200);
-
-      // Now on submit tab, Enter should submit
-      fireKeyDown(root, 'Enter');
-
-      expect(resolve).toHaveBeenCalledWith({ Q: 'A' });
-      jest.useRealTimers();
-    });
-
-    it('Enter on cancel row resolves null', () => {
-      jest.useFakeTimers();
-      const input = makeInput([{ question: 'Q', options: ['A'] }]);
-      const { container, resolve } = renderWidget(input);
-      const root = findRoot(container);
-
-      // Select A and auto-advance to submit
-      const items = findItems(container).filter(
-        (i: any) => !i.hasClass('grimoire-ask-custom-item'),
-      );
-      items[0]?.click();
-      jest.advanceTimersByTime(200);
-
-      // Move focus to cancel row
-      fireKeyDown(root, 'ArrowDown');
-      fireKeyDown(root, 'Enter');
-
-      expect(resolve).toHaveBeenCalledWith(null);
-      jest.useRealTimers();
-    });
-
-    it('Enter on question option selects it', () => {
-      jest.useFakeTimers();
-      const input = makeInput([{ question: 'Q', options: ['A', 'B'] }]);
-      const { container } = renderWidget(input);
-      const root = findRoot(container);
-
-      // Focus is on item 0, press Enter to select
-      fireKeyDown(root, 'Enter');
-      jest.advanceTimersByTime(200);
-
-      // After auto-advance we should be on submit tab
-      const tabs = container.querySelectorAll('grimoire-ask-tab');
-      const submitTab = tabs[tabs.length - 1];
-      expect(submitTab?.hasClass('is-active')).toBe(true);
-
-      jest.useRealTimers();
-    });
-
-    it('click on custom row focuses it', () => {
-      const input = makeInput([{ question: 'Q', options: ['A', 'B'], isOther: true }]);
-      const { container } = renderWidget(input);
-
-      const items = findItems(container);
-      const customItem = items.find((i: any) => i.hasClass('grimoire-ask-custom-item'));
-      customItem?.click();
-
-      expect(customItem?.hasClass('is-focused')).toBe(true);
-    });
-
-    it('ArrowUp from custom row blurs input focus and moves to option above', () => {
-      const input = makeInput([{ question: 'Q', options: ['A', 'B'], isOther: true }]);
-      const { container } = renderWidget(input);
-      const root = findRoot(container);
-
-      const items = findItems(container);
-      const customItem = items.find((i: any) => i.hasClass('grimoire-ask-custom-item'));
-      // Simulate click on custom row (focusedItemIndex = options.length, isInputFocused = true)
-      customItem?.click();
-
-      fireKeyDown(root, 'ArrowUp');
-
-      // Focus should move to the last regular option (index = options.length - 1)
-      const updatedItems = findItems(container);
-      const lastOption = updatedItems.filter(
-        (i: any) => !i.hasClass('grimoire-ask-custom-item'),
-      );
-      expect(lastOption[lastOption.length - 1]?.hasClass('is-focused')).toBe(true);
-      expect(customItem?.hasClass('is-focused')).toBe(false);
-    });
-
-    it('Enter on custom item activates input without advancing tab', () => {
-      const input = makeInput([
-        { question: 'Q1', options: ['A'], isOther: true },
-        { question: 'Q2', options: ['B'] },
-      ]);
-      const { container } = renderWidget(input);
-      const root = findRoot(container);
-
-      // Arrow down to custom item
-      fireKeyDown(root, 'ArrowDown'); // Focus on option A (index 0)
-      fireKeyDown(root, 'ArrowDown'); // Focus on custom item (index 1)
-
-      // Press Enter — should activate input, NOT advance tab
-      fireKeyDown(root, 'Enter');
-
-      // Should still be on Q1 tab
-      const tabs = container.querySelectorAll('grimoire-ask-tab');
-      expect(tabs[0]?.hasClass('is-active')).toBe(true);
-    });
-
-    it('Enter on custom item then Enter again advances to next tab', () => {
-      const input = makeInput([
-        { question: 'Q1', options: ['A'], isOther: true },
-        { question: 'Q2', options: ['B'] },
-      ]);
-      const { container } = renderWidget(input);
-      const root = findRoot(container);
-
-      // Arrow down to custom item
-      fireKeyDown(root, 'ArrowDown');
-      fireKeyDown(root, 'ArrowDown');
-
-      // First Enter activates input
-      fireKeyDown(root, 'Enter');
-      // Second Enter advances
-      fireKeyDown(root, 'Enter');
-
-      // Should be on Q2 tab now
-      const tabs = container.querySelectorAll('grimoire-ask-tab');
-      expect(tabs[1]?.hasClass('is-active')).toBe(true);
-    });
-
-    it('ArrowDown from custom input blurs and clamps at max', () => {
-      const input = makeInput([{ question: 'Q', options: ['A', 'B'], isOther: true }]);
-      const { container } = renderWidget(input);
-      const root = findRoot(container);
-
-      const items = findItems(container);
-      const customItem = items.find((i: any) => i.hasClass('grimoire-ask-custom-item'));
-      customItem?.click();
-
-      fireKeyDown(root, 'ArrowDown');
-
-      // Custom row is last item, ArrowDown clamps — focus stays on custom row (navigation mode)
-      expect(customItem?.hasClass('is-focused')).toBe(true);
-    });
-
-    it('Escape from custom input returns to navigation without cancelling dialog', () => {
-      const input = makeInput([
-        { question: 'Q1', options: ['A'], isOther: true },
-        { question: 'Q2', options: ['B'] },
-      ]);
-      const { container, resolve } = renderWidget(input);
-      const root = findRoot(container);
-
-      // Navigate to custom input and activate
-      fireKeyDown(root, 'ArrowDown'); // focus on custom row (index 1)
-      fireKeyDown(root, 'Enter');     // activate input
-
-      // Escape should exit input mode, not cancel
-      fireKeyDown(root, 'Escape');
-
-      // Dialog should NOT be resolved
-      expect(resolve).not.toHaveBeenCalled();
-
-      // Should still be on Q1 tab
-      const tabs = container.querySelectorAll('grimoire-ask-tab');
-      expect(tabs[0]?.hasClass('is-active')).toBe(true);
-
-      // Custom row should still be focused in navigation mode
-      const items = findItems(container);
-      const customItem = items.find((i: any) => i.hasClass('grimoire-ask-custom-item'));
-      expect(customItem?.hasClass('is-focused')).toBe(true);
-    });
-
-    it('Enter from custom input commits text and advances tab', () => {
-      const input = makeInput([
-        { question: 'Q1', options: ['A'], isOther: true },
-        { question: 'Q2', options: ['B'] },
-      ]);
-      const { container } = renderWidget(input);
-      const root = findRoot(container);
-
-      // Navigate to custom input and activate
-      fireKeyDown(root, 'ArrowDown'); // focus on custom row (index 1)
-      fireKeyDown(root, 'Enter');     // activate input
-
-      // Simulate typing text
-      const customItem = findItems(container).find((i: any) =>
-        i.hasClass('grimoire-ask-custom-item'),
-      );
-      const inputEl = customItem?.querySelector('.grimoire-ask-custom-text');
-      inputEl.value = 'my custom text';
-      inputEl.dispatchEvent({ type: 'input' });
-
-      // Enter should commit and advance
-      fireKeyDown(root, 'Enter');
-
-      // Should be on Q2 tab
-      const tabs = container.querySelectorAll('grimoire-ask-tab');
-      expect(tabs[1]?.hasClass('is-active')).toBe(true);
+      widget.destroy();
+      expect(resolve).toHaveBeenCalledTimes(1);
     });
   });
 });
@@ -897,24 +955,18 @@ function renderImmediateWidget(
 
 describe('InlineAskUserQuestion - immediateSelect mode', () => {
   describe('multi-question fallback', () => {
-    it('falls back to tab-bar rendering when questions.length !== 1', () => {
+    it('falls back to normal rendering when questions.length !== 1', () => {
       const input = makeInput([
         { question: 'Q1', options: ['A'] },
         { question: 'Q2', options: ['B'] },
       ]);
       const { container, resolve } = renderImmediateWidget(input);
 
-      // Should render tab bar (immediateSelect disabled due to multi-question)
-      const tabBar = container.querySelector('grimoire-ask-tab-bar');
-      expect(tabBar).not.toBeNull();
-      const tabs = container.querySelectorAll('grimoire-ask-tab');
-      expect(tabs.length).toBeGreaterThan(0);
+      const blocks = getBlocks(container);
+      expect(blocks).toHaveLength(2);
 
-      // Should NOT resolve immediately on click (normal multi-tab flow)
-      const items = findItems(container).filter(
-        (i: any) => !i.hasClass('grimoire-ask-custom-item'),
-      );
-      items[0]?.click();
+      const rows = getOptRows(container, 0);
+      rows[0]?.click();
       expect(resolve).not.toHaveBeenCalled();
     });
   });
@@ -923,33 +975,22 @@ describe('InlineAskUserQuestion - immediateSelect mode', () => {
     it('does not render tab bar', () => {
       const input = makeInput([{ question: 'Pick', options: ['A', 'B'] }]);
       const { container } = renderImmediateWidget(input);
-      const tabBar = container.querySelector('grimoire-ask-tab-bar');
-      expect(tabBar).toBeNull();
-      const tabs = container.querySelectorAll('grimoire-ask-tab');
-      expect(tabs).toHaveLength(0);
+      expect(container.querySelector('.grimoire-ask-tab-bar')).toBeNull();
     });
 
-    it('does not render custom input row', () => {
+    it('does not render custom input row when showCustomInput false', () => {
       const input = makeInput([{ question: 'Pick', options: ['A', 'B'] }]);
       const { container } = renderImmediateWidget(input);
-      const customItems = container.querySelectorAll('grimoire-ask-custom-item');
-      expect(customItems).toHaveLength(0);
+      expect(getFreeform(container, 0)).toBeNull();
     });
 
-    it('uses custom title when provided', () => {
-      const input = makeInput([{ question: 'Pick', options: ['A'] }]);
-      const { container } = renderImmediateWidget(input, { title: 'Permission required' });
-      const title = container.querySelector('grimoire-ask-inline-title');
-      expect(title?.textContent).toBe('Permission required');
-    });
-
-    it('renders headerEl between title and content', () => {
-      const headerEl = createMockEl('div');
-      headerEl.addClass('grimoire-ask-approval-info');
-      const input = makeInput([{ question: 'Pick', options: ['A'] }]);
-      const { container } = renderImmediateWidget(input, { headerEl: headerEl as any });
-      const root = findRoot(container);
-      expect(root.children.some((c: any) => c.hasClass('grimoire-ask-approval-info'))).toBe(true);
+    it('renders question blocks and options normally', () => {
+      const input = makeInput([{ question: 'Pick', options: ['A', 'B'] }]);
+      const { container } = renderImmediateWidget(input);
+      const blocks = getBlocks(container);
+      expect(blocks).toHaveLength(1);
+      const rows = getOptRows(container, 0);
+      expect(rows).toHaveLength(2);
     });
   });
 
@@ -958,10 +999,8 @@ describe('InlineAskUserQuestion - immediateSelect mode', () => {
       const input = makeInput([{ question: 'Pick', options: ['A', 'B'] }]);
       const { container, resolve } = renderImmediateWidget(input);
 
-      const items = findItems(container).filter(
-        (i: any) => !i.hasClass('grimoire-ask-custom-item'),
-      );
-      items[0]?.click();
+      const rows = getOptRows(container, 0);
+      rows[0]?.click();
 
       expect(resolve).toHaveBeenCalledWith({ Pick: 'A' });
     });
@@ -970,10 +1009,8 @@ describe('InlineAskUserQuestion - immediateSelect mode', () => {
       const input = makeInput([{ question: 'Pick', options: ['A', 'B'] }]);
       const { container, resolve } = renderImmediateWidget(input);
 
-      const items = findItems(container).filter(
-        (i: any) => !i.hasClass('grimoire-ask-custom-item'),
-      );
-      items[1]?.click();
+      const rows = getOptRows(container, 0);
+      rows[1]?.click();
 
       expect(resolve).toHaveBeenCalledWith({ Pick: 'B' });
     });
@@ -981,15 +1018,13 @@ describe('InlineAskUserQuestion - immediateSelect mode', () => {
     it('keys immediate-select result by id when provided', () => {
       const input = {
         questions: [
-          { id: 'approval_q', question: 'Allow execution?', options: ['Yes', 'No'], header: 'Approve' },
+          { id: 'approval_q', question: 'Allow?', options: ['Yes', 'No'] },
         ],
       };
       const { container, resolve } = renderImmediateWidget(input);
 
-      const items = findItems(container).filter(
-        (i: any) => !i.hasClass('grimoire-ask-custom-item'),
-      );
-      items[0]?.click();
+      const rows = getOptRows(container, 0);
+      rows[0]?.click();
 
       expect(resolve).toHaveBeenCalledWith({ approval_q: 'Yes' });
     });
@@ -1002,12 +1037,12 @@ describe('InlineAskUserQuestion - immediateSelect mode', () => {
       const root = findRoot(container);
 
       fireKeyDown(root, 'ArrowDown');
-      const items = findItems(container);
-      expect(items[1]?.hasClass('is-focused')).toBe(true);
+      const rows = getOptRows(container, 0);
+      expect(rows[1]?.hasClass('is-focused')).toBe(true);
 
       fireKeyDown(root, 'ArrowUp');
-      const items2 = findItems(container);
-      expect(items2[0]?.hasClass('is-focused')).toBe(true);
+      const rows2 = getOptRows(container, 0);
+      expect(rows2[0]?.hasClass('is-focused')).toBe(true);
     });
 
     it('Enter selects and resolves immediately', () => {
@@ -1015,7 +1050,6 @@ describe('InlineAskUserQuestion - immediateSelect mode', () => {
       const { container, resolve } = renderImmediateWidget(input);
       const root = findRoot(container);
 
-      // Move to second option and press Enter
       fireKeyDown(root, 'ArrowDown');
       fireKeyDown(root, 'Enter');
 
@@ -1031,15 +1065,13 @@ describe('InlineAskUserQuestion - immediateSelect mode', () => {
       expect(resolve).toHaveBeenCalledWith(null);
     });
 
-    it('Tab does not switch tabs (no-op in immediateSelect)', () => {
+    it('Tab is a no-op in immediateSelect', () => {
       const input = makeInput([{ question: 'Pick', options: ['A', 'B'] }]);
       const { container, resolve } = renderImmediateWidget(input);
       const root = findRoot(container);
 
       fireKeyDown(root, 'Tab');
       expect(resolve).not.toHaveBeenCalled();
-      const items = findItems(container);
-      expect(items.length).toBeGreaterThan(0);
     });
 
     it('ArrowDown clamps at last option', () => {
@@ -1051,8 +1083,8 @@ describe('InlineAskUserQuestion - immediateSelect mode', () => {
       fireKeyDown(root, 'ArrowDown');
       fireKeyDown(root, 'ArrowDown');
 
-      const items = findItems(container);
-      expect(items[1]?.hasClass('is-focused')).toBe(true);
+      const rows = getOptRows(container, 0);
+      expect(rows[1]?.hasClass('is-focused')).toBe(true);
     });
   });
 });

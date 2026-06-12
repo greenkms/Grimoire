@@ -25,10 +25,13 @@ describe('model-selector.css', () => {
     expect(hoverRule).toContain('box-shadow: none');
   });
 
-  it('adds spacing inside the model search container', () => {
+  it('keeps the model search container height stable while filtering', () => {
     const css = readModelSelectorCss();
     const searchRule = getRule(css, '.grimoire-model-search');
-    expect(searchRule).toContain('padding: 10px 12px');
+    expect(searchRule).toContain('height: 48px');
+    expect(searchRule).toContain('min-height: 48px');
+    expect(searchRule).toContain('max-height: 48px');
+    expect(searchRule).toContain('padding: 0 12px');
   });
 
   it('frames the model search container so it does not bleed past the dropdown edges', () => {
@@ -38,5 +41,14 @@ describe('model-selector.css', () => {
     expect(searchRule).toContain('border-radius: var(--grimoire-radius-2)');
     expect(searchRule).toContain('box-sizing: border-box');
     expect(searchRule).toMatch(/margin:\s*0/);
+  });
+
+  it('prevents the native search input from changing the selector height', () => {
+    const css = readModelSelectorCss();
+    const inputRule = getRule(css, '.grimoire-model-search input.grimoire-model-search-input[type="search"]');
+    expect(inputRule).toContain('height: 24px !important');
+    expect(inputRule).toContain('min-height: 24px !important');
+    expect(inputRule).toContain('max-height: 24px !important');
+    expect(inputRule).toContain('box-shadow: none !important');
   });
 });

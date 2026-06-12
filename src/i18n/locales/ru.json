@@ -258,6 +258,10 @@
       "name": "Требовать Command/Ctrl+Enter для отправки",
       "desc": "Если включено, Enter вставляет новую строку. Command+Enter отправляет на macOS; Ctrl+Enter отправляет на Windows и Linux."
     },
+    "theme": {
+      "name": "Тема",
+      "followsObsidian": "Следует теме Obsidian"
+    },
     "usageIndicators": {
       "name": "Usage indicators",
       "desc": "Показывать индикаторы plan usage и API spend рядом с выбором модели и внутри меню моделей."

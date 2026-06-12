@@ -258,6 +258,10 @@
       "name": "需要 Command/Ctrl+Enter 才能傳送",
       "desc": "啟用後，Enter 會插入換行。macOS 使用 Command+Enter 傳送；Windows 和 Linux 使用 Ctrl+Enter 傳送。"
     },
+    "theme": {
+      "name": "主題",
+      "followsObsidian": "跟隨 Obsidian"
+    },
     "usageIndicators": {
       "name": "Usage indicators",
       "desc": "Show plan usage and API spend indicators beside the model selector and inside the model menu."

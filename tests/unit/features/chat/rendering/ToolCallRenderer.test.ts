@@ -181,7 +181,7 @@ describe('ToolCallRenderer', () => {
       });
 
       const toolEl = renderStoredToolCall(parentEl, toolCall);
-      const answerEls = toolEl.querySelectorAll('.grimoire-ask-review-a-text');
+      const answerEls = toolEl.querySelectorAll('.grimoire-tool-io-qa-tag');
 
       expect(answerEls).toHaveLength(1);
       expect(answerEls[0].textContent).toBe('Blue');
@@ -197,7 +197,7 @@ describe('ToolCallRenderer', () => {
       });
 
       const toolEl = renderStoredToolCall(parentEl, toolCall);
-      const answerEls = toolEl.querySelectorAll('.grimoire-ask-review-a-text');
+      const answerEls = toolEl.querySelectorAll('.grimoire-tool-io-qa-tag');
 
       expect(answerEls).toHaveLength(1);
       expect(answerEls[0].textContent).toBe('Blue');
@@ -221,13 +221,9 @@ describe('ToolCallRenderer', () => {
       });
 
       const toolEl = renderStoredToolCall(parentEl, toolCall);
-      const labelEls = toolEl.querySelectorAll('.grimoire-ask-item-label');
-      const descEls = toolEl.querySelectorAll('.grimoire-ask-item-desc');
-      const checkEls = toolEl.querySelectorAll('.grimoire-ask-check');
+      const tagEls = toolEl.querySelectorAll('.grimoire-tool-io-qa-tag');
 
-      expect(Array.from(labelEls, el => el.textContent)).toEqual(['Non-blocking', 'Blocking']);
-      expect(Array.from(descEls, el => el.textContent)).toEqual(['Generate title later.', 'Wait for title first.']);
-      expect(checkEls).toHaveLength(2);
+      expect(Array.from(tagEls, el => el.textContent)).toEqual(['Non-blocking', 'Blocking']);
     });
   });
 
@@ -302,7 +298,7 @@ describe('ToolCallRenderer', () => {
 
       updateToolCallResult('ask-1', toolCall, toolCallElements);
 
-      const promptEl = toolEl.querySelector('.grimoire-ask-review-prompt');
+      const promptEl = toolEl.querySelector('.grimoire-tool-result-text');
       expect(promptEl?.textContent).toBe('Answer submitted successfully.');
     });
   });

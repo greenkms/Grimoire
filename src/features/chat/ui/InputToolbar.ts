@@ -570,8 +570,6 @@ export class ModelSelector {
       },
     });
     this.searchInputEl.value = this.searchQuery;
-    const kbdEl = searchEl.createSpan({ cls: 'grimoire-model-search-kbd', text: '\u2318K' });
-    kbdEl.setAttribute('aria-hidden', 'true');
     this.searchInputEl.addEventListener('input', () => {
       this.searchQuery = this.searchInputEl?.value ?? '';
       this.renderOptions();

@@ -287,6 +287,10 @@ export class GrimoireSettingTab extends PluginSettingTab {
     new Setting(container).setName(t('settings.display')).setHeading();
 
     new Setting(container)
+      .setName(t('settings.theme.name'))
+      .setDesc(t('settings.theme.followsObsidian'));
+
+    new Setting(container)
       .setName(t('settings.chatViewPlacement.name'))
       .setDesc(t('settings.chatViewPlacement.desc'))
       .addDropdown((dropdown) => {

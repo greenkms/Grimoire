@@ -258,6 +258,10 @@
       "name": "Require Command/Ctrl+Enter to send",
       "desc": "When enabled, Enter inserts a newline. Command+Enter sends on macOS; Ctrl+Enter sends on Windows and Linux."
     },
+    "theme": {
+      "name": "Theme",
+      "followsObsidian": "Follows Obsidian"
+    },
     "usageIndicators": {
       "name": "Usage indicators",
       "desc": "Show plan usage and API spend indicators beside the model selector and inside the model menu."
