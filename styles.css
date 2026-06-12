@@ -1620,7 +1620,7 @@ body.theme-dark .grimoire-provider-icon-variant--dark {
 }
 
 .grimoire-container--chat-window .grimoire-message-content p {
-  color: var(--grimoire-workbench-muted);
+  color: var(--text-normal);
 }
 
 .grimoire-message-content p:last-child {
