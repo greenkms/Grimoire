@@ -25,4 +25,8 @@ execFileSync(process.execPath, ['scripts/verify-release-load.cjs', join(result.o
   cwd: ROOT,
   stdio: 'inherit',
 });
+execFileSync(process.execPath, ['scripts/verify-release-smoke.cjs', join(result.outputDir, 'main.js')], {
+  cwd: ROOT,
+  stdio: 'inherit',
+});
 console.log(`Built release bundle: ${result.outputDir}`);
