@@ -684,7 +684,6 @@ export class GrimoireSettingTab extends PluginSettingTab {
       slider
         .setLimits(MIN_TABS, MAX_TABS, 1)
         .setValue(initialValue)
-        .setDynamicTooltip()
         .onChange(async (value) => {
           const normalizedValue = normalizeMaxTabs(value);
           valueEl.setText(String(normalizedValue));
