@@ -31,7 +31,7 @@ Grimoire lleva asistentes CLI agentic a Obsidian. Claude Code, Codex, Antigravit
 
 Está diseñado para quienes ya trabajan en Obsidian y quieren ayuda de IA que se sienta como parte del vault: contexto local, archivos locales, un provider elegido a propósito y usage/cost visibles dentro de la interfaz.
 
-> El [README](../../README.md) en inglés es el canonical document del proyecto. Esta versión en español está sincronizada con la documentación de `1.0.10`.
+> El [README](../../README.md) en inglés es el canonical document del proyecto. Esta versión en español está sincronizada con la documentación de `1.0.11`.
 
 ## Por qué Grimoire
 

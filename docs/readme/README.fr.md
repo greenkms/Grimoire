@@ -31,7 +31,7 @@ Grimoire amène les assistants CLI agentiques dans Obsidian. Claude Code, Codex,
 
 Grimoire est conçu pour les personnes qui travaillent déjà dans Obsidian et veulent une aide IA qui ressemble à une partie du vault : contexte local, fichiers locaux, provider choisi volontairement, et usage/cost visibles dans l'interface.
 
-> Le [README](../../README.md) anglais reste le document canonical du projet. Cette version française est synchronisée avec la documentation de `1.0.10`.
+> Le [README](../../README.md) anglais reste le document canonical du projet. Cette version française est synchronisée avec la documentation de `1.0.11`.
 
 ## Pourquoi Grimoire
 

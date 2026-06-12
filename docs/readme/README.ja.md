@@ -31,7 +31,7 @@ Grimoire は agentic CLI アシスタントを Obsidian に組み込みます。
 
 Grimoire は、すでに Obsidian で作業している人のために作られています。ローカル context、ローカル files、意図して選ぶ provider、そして UI 上で確認できる usage と cost を重視しています。
 
-> 英語版 [README](../../README.md) がプロジェクトの canonical document です。この日本語版は `1.0.10` のドキュメントに同期しています。
+> 英語版 [README](../../README.md) がプロジェクトの canonical document です。この日本語版は `1.0.11` のドキュメントに同期しています。
 
 ## Grimoire を使う理由
 

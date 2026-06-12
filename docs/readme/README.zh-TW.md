@@ -31,7 +31,7 @@ Grimoire 將 agentic CLI 助手帶入 Obsidian。Claude Code、Codex、Antigravi
 
 它面向已經在 Obsidian 中工作的人：你可以使用本地 context、本地檔案、明確選擇的 provider，並在介面中直接看到 usage 和 cost。
 
-> 英文 [README](../../README.md) 是專案的 canonical 文件。此繁體中文版本與 `1.0.10` 文件保持同步。
+> 英文 [README](../../README.md) 是專案的 canonical 文件。此繁體中文版本與 `1.0.11` 文件保持同步。
 
 ## 為什麼選擇 Grimoire
 
