@@ -166,7 +166,7 @@ Gemini CLI remains available as a legacy compatibility provider for Gemini Code 
 gemini
 ```
 
-Enable Gemini CLI only if your account tier is still supported. Grimoire runs it through `gemini --acp`, keeps its model and mode discovery provider-owned, and labels it as legacy so it does not look like the recommended Google path.
+Enable Gemini CLI only if your account tier is still supported. Grimoire runs it through `gemini --acp`, folds the active note plus editor, browser, canvas, vault-search, and project-workspace context into the ACP prompt, keeps its model and mode discovery provider-owned, and labels it as legacy so it does not look like the recommended Google path.
 
 ### OpenCode
 

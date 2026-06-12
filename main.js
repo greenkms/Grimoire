@@ -82013,7 +82013,7 @@ var GeminiChatRuntime = class {
     return {
       isCompact: false,
       mcpMentions: (_a7 = request.enabledMcpServers) != null ? _a7 : /* @__PURE__ */ new Set(),
-      persistedContent: request.text,
+      persistedContent: prompt,
       prompt,
       request
     };
@@ -82525,11 +82525,23 @@ function buildGeminiPromptBlocks(request, queryOptions) {
 }
 function buildGeminiPromptText(request) {
   let prompt = request.text;
+  if (request.currentNotePath) {
+    prompt = appendCurrentNote(prompt, request.currentNotePath);
+  }
   if (request.vaultSearchContext) {
     prompt = appendVaultSearchContext(prompt, request.vaultSearchContext);
   }
   if (request.projectWorkspaceContext) {
     prompt = appendProjectWorkspaceContext(prompt, request.projectWorkspaceContext);
+  }
+  if (request.editorSelection) {
+    prompt = appendEditorContext(prompt, request.editorSelection);
+  }
+  if (request.browserSelection) {
+    prompt = appendBrowserContext(prompt, request.browserSelection);
+  }
+  if (request.canvasSelection) {
+    prompt = appendCanvasContext(prompt, request.canvasSelection);
   }
   return prompt;
 }

@@ -166,7 +166,7 @@ Gemini CLI は、Google が Gemini CLI requests を継続提供する Gemini Cod
 gemini
 ```
 
-Gemini CLI は、account tier がまだサポートされている場合だけ有効化してください。Grimoire は `gemini --acp` で起動し、推奨 Google provider と混同しないよう legacy と表示します。
+Gemini CLI は、account tier がまだサポートされている場合だけ有効化してください。Grimoire は `gemini --acp` で起動し、active note、editor/browser/canvas selection、vault search、project workspace context を ACP prompt に追加し、推奨 Google provider と混同しないよう legacy と表示します。
 
 ### OpenCode
 

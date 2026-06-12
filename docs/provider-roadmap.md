@@ -52,7 +52,7 @@ Open questions:
 
 ## Other Candidates
 
-- Google consumer provider work should extend `src/providers/antigravity/`; Antigravity CLI is Grimoire's recommended Google provider. Keep `src/providers/gemini/` available only for legacy Gemini CLI compatibility with Standard, Enterprise, Google Cloud, and paid API-key users. Until AGY exposes an approval-capable runtime, keep Antigravity Safe/normal mode fail-closed and launch `agy --print` only from explicit Auto-approve/full-access mode.
+- Google consumer provider work should extend `src/providers/antigravity/`; Antigravity CLI is Grimoire's recommended Google provider. Keep `src/providers/gemini/` available only for legacy Gemini CLI compatibility with Standard, Enterprise, Google Cloud, and paid API-key users. Both Google providers should receive the same Grimoire per-turn context shape (active note, editor/browser/canvas selections, vault search, and project workspace), even though Antigravity currently carries it through `agy --print` and Gemini carries it through ACP prompt blocks. Until AGY exposes an approval-capable runtime, keep Antigravity Safe/normal mode fail-closed and launch `agy --print` only from explicit Auto-approve/full-access mode.
 - GitHub Copilot CLI: validate whether it exposes a stable agentic CLI/runtime surface suitable for non-interactive Obsidian embedding.
 - Additional ACP providers: prefer shared ACP helpers only after confirming event compatibility with OpenCode and any confirmed ACP provider.
 - Local model CLIs: treat as a separate milestone because tool execution, files, and usage indicators usually differ from hosted provider CLIs.

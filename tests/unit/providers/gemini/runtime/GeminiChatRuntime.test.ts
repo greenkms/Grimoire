@@ -2,6 +2,7 @@ import * as fs from 'node:fs/promises';
 
 import type { PreparedChatTurn } from '@/core/runtime/types';
 import type { StreamChunk } from '@/core/types';
+import type { AcpContentBlock } from '@/providers/acp';
 import { GeminiChatRuntime } from '@/providers/gemini/runtime/GeminiChatRuntime';
 import { getGeminiProviderSettings, updateGeminiProviderSettings } from '@/providers/gemini/settings';
 
@@ -133,7 +134,69 @@ describe('GeminiChatRuntime', () => {
 
     expect(turn.prompt).toContain('<vault_search query="roadmap">');
     expect(turn.prompt).toContain('Launch plan');
-    expect(turn.persistedContent).toBe('Hello');
+    expect(turn.persistedContent).toContain('<vault_search query="roadmap">');
+    expect(turn.persistedContent).toContain('Launch plan');
+  });
+
+  it('includes Grimoire note and selection context in the persisted and ACP prompts', async () => {
+    const runtime = new GeminiChatRuntime(createMockPlugin());
+    const prompt = jest.fn<Promise<object>, [{ prompt: AcpContentBlock[]; sessionId: string }]>(
+      async () => ({})
+    );
+
+    const turn = runtime.prepareTurn({
+      browserSelection: {
+        selectedText: 'Browser quote',
+        source: 'browser:https://example.com',
+        title: 'Example',
+        url: 'https://example.com',
+      },
+      canvasSelection: {
+        canvasPath: 'boards/Artic Ocean.canvas',
+        nodeIds: ['node-1', 'node-2'],
+      },
+      currentNotePath: 'notes/Artic Ocean.md',
+      editorSelection: {
+        mode: 'selection',
+        notePath: 'notes/Artic Ocean.md',
+        selectedText: 'Selected text',
+        startLine: 4,
+        lineCount: 2,
+      },
+      text: 'Summarize this',
+    }) as PreparedChatTurn;
+
+    expect(turn.persistedContent).toContain('<current_note>');
+    expect(turn.persistedContent).toContain('notes/Artic Ocean.md');
+    expect(turn.persistedContent).toContain('<editor_selection path="notes/Artic Ocean.md" lines="4-5">');
+    expect(turn.persistedContent).toContain('Selected text');
+    expect(turn.persistedContent).toContain('<browser_selection source="browser:https://example.com" title="Example" url="https://example.com">');
+    expect(turn.persistedContent).toContain('<canvas_selection path="boards/Artic Ocean.canvas">');
+
+    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+    (runtime as any).sessionId = 'session-1';
+    (runtime as any).loadedSessionId = 'session-1';
+    (runtime as any).connection = { prompt };
+
+    await collect(runtime.query(turn));
+
+    expect(prompt).toHaveBeenCalledWith(expect.objectContaining({
+      prompt: expect.arrayContaining([
+        expect.objectContaining({
+          text: expect.stringContaining('<current_note>'),
+          type: 'text',
+        }),
+      ]),
+    }));
+    const firstPromptCall = prompt.mock.calls[0]?.[0];
+    expect(firstPromptCall).toBeDefined();
+    const firstPromptBlock = firstPromptCall?.prompt[0];
+    expect(firstPromptBlock).toMatchObject({ type: 'text' });
+    const promptText = firstPromptBlock?.type === 'text' ? firstPromptBlock.text : '';
+    expect(promptText).toContain('notes/Artic Ocean.md');
+    expect(promptText).toContain('<editor_selection path="notes/Artic Ocean.md" lines="4-5">');
+    expect(promptText).toContain('<browser_selection source="browser:https://example.com" title="Example" url="https://example.com">');
+    expect(promptText).toContain('<canvas_selection path="boards/Artic Ocean.canvas">');
   });
 
   it('sends orchestrator instructions in the per-turn ACP prompt when active', async () => {

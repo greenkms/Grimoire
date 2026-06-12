@@ -166,7 +166,7 @@ Gemini CLI 作为 legacy provider 保留给 Gemini Code Assist Standard、Enterp
 gemini
 ```
 
-只有当你的 account tier 仍受支持时才启用 Gemini CLI。Grimoire 通过 `gemini --acp` 运行它，并标记为 legacy，避免和推荐的 Google provider 混淆。
+只有当你的 account tier 仍受支持时才启用 Gemini CLI。Grimoire 通过 `gemini --acp` 运行它，将 active note、editor/browser/canvas selection、vault search 和 project workspace context 加入 ACP prompt，并标记为 legacy，避免和推荐的 Google provider 混淆。
 
 ### OpenCode
 

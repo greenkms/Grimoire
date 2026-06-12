@@ -6,6 +6,7 @@
 
 - Gemini is opt-in and disabled by default.
 - `GeminiChatRuntime` supports ACP startup, initialize, new session, load session, prompt streaming, cancel, and proxied file read/write requests.
+- Per-turn prompts include Grimoire context from the active note, editor selection, browser selection, canvas selection, vault search, and project workspace.
 - Model and mode discovery come from ACP session config options and are stored in provider settings for the UI.
 - Auxiliary workflows such as title generation, instruction refinement, and inline edit are unsupported until a Gemini auxiliary runner exists.
 - Plan indicators are spend-only today. `GeminiPlanUsageStore` records ACP cost when Gemini CLI reports it; daily quota remains unavailable until a reliable CLI/API source is wired.

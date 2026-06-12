@@ -168,7 +168,7 @@ Gemini CLI остается legacy provider для Gemini Code Assist Standard, 
 gemini
 ```
 
-Включайте Gemini CLI только если ваш account tier еще поддерживается. Grimoire запускает его через `gemini --acp` и помечает как legacy, чтобы не путать с рекомендуемым Google provider.
+Включайте Gemini CLI только если ваш account tier еще поддерживается. Grimoire запускает его через `gemini --acp`, добавляет в ACP prompt активную заметку, editor/browser/canvas selection, vault search и project workspace context, и помечает как legacy, чтобы не путать с рекомендуемым Google provider.
 
 ### OpenCode
 

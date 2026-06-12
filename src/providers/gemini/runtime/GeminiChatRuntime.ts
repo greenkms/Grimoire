@@ -28,7 +28,10 @@ import type {
   ToolCallInfo,
 } from '../../../core/types';
 import type GrimoirePlugin from '../../../main';
-import { appendProjectWorkspaceContext, appendVaultSearchContext } from '../../../utils/context';
+import { appendBrowserContext } from '../../../utils/browser';
+import { appendCanvasContext } from '../../../utils/canvas';
+import { appendCurrentNote, appendProjectWorkspaceContext, appendVaultSearchContext } from '../../../utils/context';
+import { appendEditorContext } from '../../../utils/editor';
 import { getVaultPath } from '../../../utils/path';
 import {
   AcpClientConnection,
@@ -141,7 +144,7 @@ export class GeminiChatRuntime implements ChatRuntime {
     return {
       isCompact: false,
       mcpMentions: request.enabledMcpServers ?? new Set(),
-      persistedContent: request.text,
+      persistedContent: prompt,
       prompt,
       request,
     };
@@ -735,12 +738,28 @@ function buildGeminiPromptBlocks(
 function buildGeminiPromptText(request: ChatTurnRequest): string {
   let prompt = request.text;
 
+  if (request.currentNotePath) {
+    prompt = appendCurrentNote(prompt, request.currentNotePath);
+  }
+
   if (request.vaultSearchContext) {
     prompt = appendVaultSearchContext(prompt, request.vaultSearchContext);
   }
 
   if (request.projectWorkspaceContext) {
     prompt = appendProjectWorkspaceContext(prompt, request.projectWorkspaceContext);
+  }
+
+  if (request.editorSelection) {
+    prompt = appendEditorContext(prompt, request.editorSelection);
+  }
+
+  if (request.browserSelection) {
+    prompt = appendBrowserContext(prompt, request.browserSelection);
+  }
+
+  if (request.canvasSelection) {
+    prompt = appendCanvasContext(prompt, request.canvasSelection);
   }
 
   return prompt;
