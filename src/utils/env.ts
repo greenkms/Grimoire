@@ -397,6 +397,10 @@ export function getLegacyHostnameKey(): string {
   return '';
 }
 
+function hasRecordKey<T extends string>(entries: Record<string, T>, key: string): boolean {
+  return Object.keys(entries).includes(key);
+}
+
 export function migrateLegacyHostnameKeyedMap<T extends string>(
   entries: Record<string, T>,
   currentKey: string,
@@ -406,8 +410,8 @@ export function migrateLegacyHostnameKeyedMap<T extends string>(
     return entries;
   }
 
-  const hasCurrentEntry = Object.prototype.hasOwnProperty.call(entries, currentKey);
-  const hasLegacyEntry = Object.prototype.hasOwnProperty.call(entries, legacyHostnameKey);
+  const hasCurrentEntry = hasRecordKey(entries, currentKey);
+  const hasLegacyEntry = hasRecordKey(entries, legacyHostnameKey);
   if (!hasLegacyEntry) {
     return entries;
   }

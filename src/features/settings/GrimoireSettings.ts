@@ -118,11 +118,21 @@ function addHotkeySettingRow(
   item.addEventListener('click', () => openHotkeySettings(app));
 }
 
-function refreshSettingsTab(tab: PluginSettingTab): void {
-  // Obsidian 1.13 prefers declarative settings, but this tab still owns a
-  // custom provider-aware layout that needs an imperative re-render.
-  // eslint-disable-next-line @typescript-eslint/no-deprecated
-  tab.display();
+function isTextAreaElement(element: Element): element is HTMLTextAreaElement {
+  if (typeof element.instanceOf === 'function') {
+    return element.instanceOf(HTMLTextAreaElement);
+  }
+  return element.tagName === 'TEXTAREA';
+}
+
+function isHtmlElement(element: Element | null): element is HTMLElement {
+  if (!element) {
+    return false;
+  }
+  if (typeof element.instanceOf === 'function') {
+    return element.instanceOf(HTMLElement);
+  }
+  return 'classList' in element;
 }
 
 const PROVIDER_SETTING_COPY: Record<ProviderId, { desc: string; name: string }> = {
@@ -158,6 +168,10 @@ export class GrimoireSettingTab extends PluginSettingTab {
   }
 
   display(): void {
+    this.renderSettings();
+  }
+
+  private renderSettings(): void {
     const { containerEl } = this;
     containerEl.empty();
     containerEl.addClass('grimoire-settings');
@@ -237,8 +251,19 @@ export class GrimoireSettingTab extends PluginSettingTab {
   }
 
   private markTextareaRows(containerEl: HTMLElement): void {
-    for (const textarea of containerEl.querySelectorAll('textarea')) {
-      textarea.closest<HTMLElement>('.setting-item')?.addClass('grimoire-settings-textarea-row');
+    for (const element of containerEl.querySelectorAll('textarea')) {
+      if (!isTextAreaElement(element)) {
+        continue;
+      }
+
+      const settingItem = element.closest('.setting-item');
+      if (isHtmlElement(settingItem)) {
+        if (typeof settingItem.addClass === 'function') {
+          settingItem.addClass('grimoire-settings-textarea-row');
+        } else {
+          settingItem.classList.add('grimoire-settings-textarea-row');
+        }
+      }
     }
   }
 
@@ -286,7 +311,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
             }
             this.plugin.settings.locale = locale;
             await this.plugin.saveSettings();
-            refreshSettingsTab(this);
+            this.renderSettings();
           });
       });
 
@@ -342,7 +367,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             this.plugin.settings.enableAutoTitleGeneration = value;
             await this.plugin.saveSettings();
-            refreshSettingsTab(this);
+            this.renderSettings();
           })
       );
 
@@ -657,7 +682,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
     }
     await this.plugin.saveSettings();
     this.refreshModelSelectors();
-    refreshSettingsTab(this);
+    this.renderSettings();
   }
 
   private async refreshProviderModelCatalog(providerId: ProviderId): Promise<void> {

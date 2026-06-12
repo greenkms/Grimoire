@@ -35,28 +35,32 @@ const ANTIGRAVITY_PERMISSION_MODE_TOGGLE: ProviderPermissionModeToggleConfig = {
   activeLabel: 'Auto-approve',
 };
 
+function getAntigravityModelOptions(settings: Record<string, unknown>): ProviderUIOption[] {
+  const antigravitySettings = getAntigravityProviderSettings(settings);
+  const discoveredModels = new Map(antigravitySettings.discoveredModels.map((model) => [
+    model.rawId,
+    model,
+  ]));
+  const visibleModels = antigravitySettings.visibleModels.length > 0
+    ? antigravitySettings.visibleModels
+    : antigravitySettings.discoveredModels.map((model) => model.rawId);
+
+  const options: ProviderUIOption[] = [];
+  for (const rawId of visibleModels) {
+    const discovered = discoveredModels.get(rawId);
+    options.push({
+      description: discovered?.description ?? 'Antigravity CLI model',
+      label: antigravitySettings.modelAliases[rawId] ?? discovered?.label ?? rawId,
+      value: encodeAntigravityModelId(rawId),
+    });
+  }
+
+  return options.length > 0 ? options : [...ANTIGRAVITY_MODELS];
+}
+
 export const antigravityChatUIConfig: ProviderChatUIConfig = {
   getModelOptions(settings: Record<string, unknown>): ProviderUIOption[] {
-    const antigravitySettings = getAntigravityProviderSettings(settings);
-    const discoveredModels = new Map(antigravitySettings.discoveredModels.map((model) => [
-      model.rawId,
-      model,
-    ]));
-    const visibleModels = antigravitySettings.visibleModels.length > 0
-      ? antigravitySettings.visibleModels
-      : antigravitySettings.discoveredModels.map((model) => model.rawId);
-
-    const options: ProviderUIOption[] = [];
-    for (const rawId of visibleModels) {
-      const discovered = discoveredModels.get(rawId);
-      options.push({
-        description: discovered?.description ?? 'Antigravity CLI model',
-        label: antigravitySettings.modelAliases[rawId] ?? discovered?.label ?? rawId,
-        value: encodeAntigravityModelId(rawId),
-      });
-    }
-
-    return options.length > 0 ? options : [...ANTIGRAVITY_MODELS];
+    return getAntigravityModelOptions(settings);
   },
 
   ownsModel(model: string): boolean {
@@ -102,7 +106,7 @@ export const antigravityChatUIConfig: ProviderChatUIConfig = {
   },
 
   normalizeModelVariant(model: string, settings: Record<string, unknown>): string {
-    if (this.getModelOptions(settings).some((option) => option.value === model)) {
+    if (getAntigravityModelOptions(settings).some((option) => option.value === model)) {
       return model;
     }
     return ANTIGRAVITY_SYNTHETIC_MODEL_ID;

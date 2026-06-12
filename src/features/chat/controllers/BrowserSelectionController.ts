@@ -9,6 +9,13 @@ type BrowserLikeWebview = HTMLElement & {
   executeJavaScript?: (code: string, userGesture?: boolean) => Promise<unknown>;
 };
 
+function isTextSelectionInput(element: Element): element is HTMLInputElement | HTMLTextAreaElement {
+  if (typeof element.instanceOf === 'function') {
+    return element.instanceOf(HTMLTextAreaElement) || element.instanceOf(HTMLInputElement);
+  }
+  return element.tagName === 'TEXTAREA' || element.tagName === 'INPUT';
+}
+
 export class BrowserSelectionController {
   private app: App;
   private indicatorEl: HTMLElement;
@@ -129,7 +136,7 @@ export class BrowserSelectionController {
     const activeEl = doc.activeElement;
     if (!activeEl || !scopeEl.contains(activeEl)) return null;
 
-    if (activeEl.instanceOf(HTMLTextAreaElement) || activeEl.instanceOf(HTMLInputElement)) {
+    if (isTextSelectionInput(activeEl)) {
       const { value, selectionStart, selectionEnd } = activeEl;
       if (typeof selectionStart !== 'number' || typeof selectionEnd !== 'number' || selectionStart === selectionEnd) return null;
       return value.slice(selectionStart, selectionEnd).trim() || null;

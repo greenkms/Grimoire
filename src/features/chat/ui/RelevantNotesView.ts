@@ -17,6 +17,13 @@ export interface RelevantNotesViewControls {
   shownCountEl?: HTMLElement;
 }
 
+function isButtonElement(element: Element): element is HTMLButtonElement {
+  if (typeof element.instanceOf === 'function') {
+    return element.instanceOf(HTMLButtonElement);
+  }
+  return element.tagName === 'BUTTON';
+}
+
 export class RelevantNotesView {
   private filter: RelevantNotesSourceFilter = 'all';
   private linkedNotes: RelevantNote[] = [];
@@ -100,8 +107,7 @@ export class RelevantNotesView {
       return;
     }
 
-    const buttons = Array.from(filtersEl.querySelectorAll<HTMLButtonElement>('[data-source-filter]'));
-    for (const button of buttons) {
+    for (const button of this.getFilterButtons(filtersEl)) {
       const filter = this.parseFilter(button.dataset.sourceFilter);
       if (!filter) {
         continue;
@@ -115,6 +121,11 @@ export class RelevantNotesView {
       this.eventCleanups.push(() => button.removeEventListener('click', onClick));
     }
     this.syncFilterButtons();
+  }
+
+  private getFilterButtons(filtersEl: HTMLElement): HTMLButtonElement[] {
+    return Array.from(filtersEl.querySelectorAll('[data-source-filter]'))
+      .filter(isButtonElement);
   }
 
   private getVisibleSources(): Array<{
@@ -156,7 +167,7 @@ export class RelevantNotesView {
     if (!filtersEl) {
       return;
     }
-    for (const button of filtersEl.querySelectorAll<HTMLButtonElement>('[data-source-filter]')) {
+    for (const button of this.getFilterButtons(filtersEl)) {
       const isActive = button.dataset.sourceFilter === this.filter;
       button.classList.toggle('is-active', isActive);
       button.setAttribute('aria-pressed', String(isActive));

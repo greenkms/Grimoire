@@ -333,10 +333,14 @@ export class StatusPanel {
   addBashOutput(info: PanelBashOutput): void {
     this.currentBashOutputs.set(info.id, info);
     while (this.currentBashOutputs.size > MAX_BASH_OUTPUTS) {
-      const oldest = this.currentBashOutputs.keys().next().value;
-      if (!oldest) break;
-      this.currentBashOutputs.delete(oldest);
-      this.bashEntryExpanded.delete(oldest);
+      let removedOldest = false;
+      for (const oldest of this.currentBashOutputs.keys()) {
+        this.currentBashOutputs.delete(oldest);
+        this.bashEntryExpanded.delete(oldest);
+        removedOldest = true;
+        break;
+      }
+      if (!removedOldest) break;
     }
     this.renderBashOutputs();
   }

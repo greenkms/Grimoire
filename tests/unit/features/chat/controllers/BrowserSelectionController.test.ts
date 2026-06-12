@@ -153,6 +153,29 @@ describe('BrowserSelectionController', () => {
     expect(controller.hasSelection()).toBe(true);
   });
 
+  it('reads selected active input text without requiring Obsidian instanceOf helpers', async () => {
+    selectionText = '';
+    const browserInput = document.createElement('textarea');
+    browserInput.value = 'alpha beta gamma';
+    browserInput.setSelectionRange(6, 10);
+    containerEl.appendChild(browserInput);
+    document.body.appendChild(containerEl);
+    browserInput.focus();
+
+    controller.start();
+    jest.advanceTimersByTime(250);
+    await flushMicrotasks();
+
+    expect(controller.getContext()).toEqual({
+      source: 'browser:https://example.com',
+      selectedText: 'beta',
+      title: 'Surfing',
+      url: 'https://example.com',
+    });
+
+    containerEl.remove();
+  });
+
   it('clears selection when clear is called', async () => {
     controller.start();
     jest.advanceTimersByTime(250);

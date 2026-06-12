@@ -34,25 +34,29 @@ const GEMINI_PERMISSION_MODE_TOGGLE: ProviderPermissionModeToggleConfig = {
   planLabel: 'Plan',
 };
 
+function getGeminiModelOptions(settings: Record<string, unknown>): ProviderUIOption[] {
+  const geminiSettings = getGeminiProviderSettings(settings);
+  const discoveredModels = new Map(geminiSettings.discoveredModels.map((model) => [
+    model.rawId,
+    model,
+  ]));
+
+  const options: ProviderUIOption[] = [];
+  for (const rawId of geminiSettings.visibleModels) {
+    const discovered = discoveredModels.get(rawId);
+    options.push({
+      description: discovered?.description ?? 'Gemini CLI ACP model',
+      label: geminiSettings.modelAliases[rawId] ?? discovered?.label ?? rawId,
+      value: encodeGeminiModelId(rawId),
+    });
+  }
+
+  return options.length > 0 ? options : [...GEMINI_MODELS];
+}
+
 export const geminiChatUIConfig: ProviderChatUIConfig = {
   getModelOptions(settings: Record<string, unknown>): ProviderUIOption[] {
-    const geminiSettings = getGeminiProviderSettings(settings);
-    const discoveredModels = new Map(geminiSettings.discoveredModels.map((model) => [
-      model.rawId,
-      model,
-    ]));
-
-    const options: ProviderUIOption[] = [];
-    for (const rawId of geminiSettings.visibleModels) {
-      const discovered = discoveredModels.get(rawId);
-      options.push({
-        description: discovered?.description ?? 'Gemini CLI ACP model',
-        label: geminiSettings.modelAliases[rawId] ?? discovered?.label ?? rawId,
-        value: encodeGeminiModelId(rawId),
-      });
-    }
-
-    return options.length > 0 ? options : [...GEMINI_MODELS];
+    return getGeminiModelOptions(settings);
   },
 
   ownsModel(model: string): boolean {
@@ -98,7 +102,7 @@ export const geminiChatUIConfig: ProviderChatUIConfig = {
   },
 
   normalizeModelVariant(model: string, settings: Record<string, unknown>): string {
-    if (this.getModelOptions(settings).some((option) => option.value === model)) {
+    if (getGeminiModelOptions(settings).some((option) => option.value === model)) {
       return model;
     }
     return GEMINI_SYNTHETIC_MODEL_ID;

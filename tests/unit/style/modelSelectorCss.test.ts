@@ -46,9 +46,10 @@ describe('model-selector.css', () => {
   it('prevents the native search input from changing the selector height', () => {
     const css = readModelSelectorCss();
     const inputRule = getRule(css, '.grimoire-model-search input.grimoire-model-search-input[type="search"]');
-    expect(inputRule).toContain('height: 24px !important');
-    expect(inputRule).toContain('min-height: 24px !important');
-    expect(inputRule).toContain('max-height: 24px !important');
-    expect(inputRule).toContain('box-shadow: none !important');
+    expect(inputRule).not.toContain('!important');
+    expect(inputRule).toContain('height: 24px');
+    expect(inputRule).toContain('min-height: 24px');
+    expect(inputRule).toContain('max-height: 24px');
+    expect(inputRule).toContain('box-shadow: none');
   });
 });

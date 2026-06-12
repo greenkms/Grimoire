@@ -888,6 +888,33 @@ describe('getHostnameKey', () => {
       'other-host': '/other/cli',
     });
   });
+
+  it('migrates legacy hostname entries without requiring Object.hasOwn support', () => {
+    const originalHasOwn = Object.hasOwn;
+    Object.defineProperty(Object, 'hasOwn', {
+      configurable: true,
+      value: undefined,
+    });
+
+    try {
+      const migrated = migrateLegacyHostnameKeyedMap(
+        {
+          'legacy-host': '/legacy/cli',
+        },
+        'device:new',
+        'legacy-host',
+      );
+
+      expect(migrated).toEqual({
+        'device:new': '/legacy/cli',
+      });
+    } finally {
+      Object.defineProperty(Object, 'hasOwn', {
+        configurable: true,
+        value: originalHasOwn,
+      });
+    }
+  });
 });
 
 describe('parseContextLimit', () => {
