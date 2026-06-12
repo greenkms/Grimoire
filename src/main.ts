@@ -81,140 +81,113 @@ export default class GrimoirePlugin extends Plugin {
   private lastKnownTabManagerState: AppTabManagerState | null = null;
 
   async onload() {
-    await this.loadSettings();
-    await ProviderWorkspaceRegistry.initializeAll(this);
-    this.recordDebugLog({
-      data: {
-        providerCount: ProviderRegistry.getRegisteredProviderIds().length,
-      },
-      event: 'loaded',
-      level: 'info',
-      scope: 'plugin',
-    });
-    addIcon(GRIMOIRE_APP_ICON_ID, GRIMOIRE_APP_ICON_SVG);
+    try {
+      await this.loadSettings();
+      await ProviderWorkspaceRegistry.initializeAll(this);
+      await this.writeDebugLog({
+        data: {
+          providerCount: ProviderRegistry.getRegisteredProviderIds().length,
+        },
+        event: 'loaded',
+        level: 'info',
+        scope: 'plugin',
+      });
+      addIcon(GRIMOIRE_APP_ICON_ID, GRIMOIRE_APP_ICON_SVG);
+      await this.writeDebugLog({
+        event: 'icon.registered',
+        level: 'info',
+        scope: 'plugin.onload',
+      });
 
-    this.registerView(
-      VIEW_TYPE_GRIMOIRE,
-      (leaf) => new GrimoireView(leaf, this)
-    );
+      this.registerView(
+        VIEW_TYPE_GRIMOIRE,
+        (leaf) => new GrimoireView(leaf, this)
+      );
+      await this.writeDebugLog({
+        event: 'view.registered',
+        level: 'info',
+        scope: 'plugin.onload',
+      });
 
-    this.addRibbonIcon(GRIMOIRE_APP_ICON_ID, 'Open Grimoire', () => {
-      void this.activateView();
-    });
-
-    this.addCommand({
-      id: 'open-view',
-      name: 'Open chat view',
-      callback: () => {
+      this.addRibbonIcon(GRIMOIRE_APP_ICON_ID, 'Open Grimoire', () => {
         void this.activateView();
-      },
-    });
+      });
+      await this.writeDebugLog({
+        event: 'ribbon.registered',
+        level: 'info',
+        scope: 'plugin.onload',
+      });
 
-    this.addCommand({
-      id: 'inline-edit',
-      name: 'Inline edit',
-      editorCallback: async (editor: Editor, ctx) => {
-        const view = ctx instanceof MarkdownView
-          ? ctx
-          : this.app.workspace.getActiveViewOfType(MarkdownView);
-        if (!view) {
-          new Notice('Inline edit unavailable: could not access the active Markdown view.');
-          return;
-        }
-
-        const selectedText = editor.getSelection();
-        const notePath = view.file?.path || 'unknown';
-
-        let editContext: InlineEditContext;
-        if (selectedText.trim()) {
-          editContext = { mode: 'selection', selectedText };
-        } else {
-          const cursor = editor.getCursor();
-          const cursorContext = buildCursorContext(
-            (line) => editor.getLine(line),
-            editor.lineCount(),
-            cursor.line,
-            cursor.ch
-          );
-          editContext = { mode: 'cursor', cursorContext };
-        }
-
-        const modal = new InlineEditModal(
-          this.app,
-          this,
-          editor,
-          view,
-          editContext,
-          notePath,
-          () => this.getView()?.getActiveTab()?.ui.externalContextSelector?.getExternalContexts() ?? []
-        );
-        const result = await modal.openAndWait();
-
-        if (result.decision === 'accept' && result.editedText !== undefined) {
-          new Notice(editContext.mode === 'cursor' ? 'Inserted' : 'Edit applied');
-        }
-      },
-    });
-
-    this.addCommand({
-      id: 'new-tab',
-      name: 'New tab',
-      checkCallback: (checking: boolean) => {
-        if (!this.canCreateNewTab()) return false;
-
-        if (!checking) {
-          void this.openNewTab();
-        }
-        return true;
-      },
-    });
-
-    this.addCommand({
-      id: 'new-session',
-      name: 'New session (in current tab)',
-      checkCallback: (checking: boolean) => {
-        const view = this.getView();
-        if (!view) return false;
-
-        const tabManager = view.getTabManager();
-        if (!tabManager) return false;
-
-        const activeTab = tabManager.getActiveTab();
-        if (!activeTab) return false;
-
-        if (activeTab.state.isStreaming) return false;
-
-        if (!checking) {
-          void tabManager.createNewConversation();
-        }
-        return true;
-      },
-    });
-
-    this.addCommand({
-      id: 'close-current-tab',
-      name: 'Close current tab',
-      checkCallback: (checking: boolean) => {
-        const view = this.getView();
-        if (!view) return false;
-
-        const tabManager = view.getTabManager();
-        if (!tabManager) return false;
-
-        if (!checking) {
-          const activeTabId = tabManager.getActiveTabId();
-          if (activeTabId) {
-            void tabManager.closeTab(activeTabId);
-          }
-        }
-        return true;
-      },
-    });
-
-    for (let index = 1; index <= 9; index++) {
       this.addCommand({
-        id: `switch-to-tab-${index}`,
-        name: `Switch to tab ${index}`,
+        id: 'open-view',
+        name: 'Open chat view',
+        callback: () => {
+          void this.activateView();
+        },
+      });
+
+      this.addCommand({
+        id: 'inline-edit',
+        name: 'Inline edit',
+        editorCallback: async (editor: Editor, ctx) => {
+          const view = ctx instanceof MarkdownView
+            ? ctx
+            : this.app.workspace.getActiveViewOfType(MarkdownView);
+          if (!view) {
+            new Notice('Inline edit unavailable: could not access the active Markdown view.');
+            return;
+          }
+
+          const selectedText = editor.getSelection();
+          const notePath = view.file?.path || 'unknown';
+
+          let editContext: InlineEditContext;
+          if (selectedText.trim()) {
+            editContext = { mode: 'selection', selectedText };
+          } else {
+            const cursor = editor.getCursor();
+            const cursorContext = buildCursorContext(
+              (line) => editor.getLine(line),
+              editor.lineCount(),
+              cursor.line,
+              cursor.ch
+            );
+            editContext = { mode: 'cursor', cursorContext };
+          }
+
+          const modal = new InlineEditModal(
+            this.app,
+            this,
+            editor,
+            view,
+            editContext,
+            notePath,
+            () => this.getView()?.getActiveTab()?.ui.externalContextSelector?.getExternalContexts() ?? []
+          );
+          const result = await modal.openAndWait();
+
+          if (result.decision === 'accept' && result.editedText !== undefined) {
+            new Notice(editContext.mode === 'cursor' ? 'Inserted' : 'Edit applied');
+          }
+        },
+      });
+
+      this.addCommand({
+        id: 'new-tab',
+        name: 'New tab',
+        checkCallback: (checking: boolean) => {
+          if (!this.canCreateNewTab()) return false;
+
+          if (!checking) {
+            void this.openNewTab();
+          }
+          return true;
+        },
+      });
+
+      this.addCommand({
+        id: 'new-session',
+        name: 'New session (in current tab)',
         checkCallback: (checking: boolean) => {
           const view = this.getView();
           if (!view) return false;
@@ -222,18 +195,80 @@ export default class GrimoirePlugin extends Plugin {
           const tabManager = view.getTabManager();
           if (!tabManager) return false;
 
-          const tabs = tabManager.getAllTabs();
-          if (tabs.length < index) return false;
+          const activeTab = tabManager.getActiveTab();
+          if (!activeTab) return false;
+
+          if (activeTab.state.isStreaming) return false;
 
           if (!checking) {
-            void tabManager.switchToTab(tabs[index - 1].id);
+            void tabManager.createNewConversation();
           }
           return true;
         },
       });
-    }
 
-    this.addSettingTab(new GrimoireSettingTab(this.app, this));
+      this.addCommand({
+        id: 'close-current-tab',
+        name: 'Close current tab',
+        checkCallback: (checking: boolean) => {
+          const view = this.getView();
+          if (!view) return false;
+
+          const tabManager = view.getTabManager();
+          if (!tabManager) return false;
+
+          if (!checking) {
+            const activeTabId = tabManager.getActiveTabId();
+            if (activeTabId) {
+              void tabManager.closeTab(activeTabId);
+            }
+          }
+          return true;
+        },
+      });
+
+      for (let index = 1; index <= 9; index++) {
+        this.addCommand({
+          id: `switch-to-tab-${index}`,
+          name: `Switch to tab ${index}`,
+          checkCallback: (checking: boolean) => {
+            const view = this.getView();
+            if (!view) return false;
+
+            const tabManager = view.getTabManager();
+            if (!tabManager) return false;
+
+            const tabs = tabManager.getAllTabs();
+            if (tabs.length < index) return false;
+
+            if (!checking) {
+              void tabManager.switchToTab(tabs[index - 1].id);
+            }
+            return true;
+          },
+        });
+      }
+      await this.writeDebugLog({
+        event: 'commands.registered',
+        level: 'info',
+        scope: 'plugin.onload',
+      });
+
+      this.addSettingTab(new GrimoireSettingTab(this.app, this));
+      await this.writeDebugLog({
+        event: 'settings-tab.registered',
+        level: 'info',
+        scope: 'plugin.onload',
+      });
+    } catch (error) {
+      await this.writeDebugLog({
+        event: 'onload.failed',
+        level: 'error',
+        scope: 'plugin.onload',
+        error,
+      });
+      throw error;
+    }
   }
 
   onunload(): void {
@@ -245,8 +280,12 @@ export default class GrimoirePlugin extends Plugin {
     void this.persistOpenTabStates();
   }
 
+  async writeDebugLog(event: DebugLogEvent): Promise<void> {
+    await this.debugLogService?.write(event);
+  }
+
   recordDebugLog(event: DebugLogEvent): void {
-    void this.debugLogService?.write(event);
+    void this.writeDebugLog(event);
   }
 
   private async persistOpenTabStates(): Promise<void> {

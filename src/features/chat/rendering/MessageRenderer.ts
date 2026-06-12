@@ -13,6 +13,7 @@ import { extractToolResultContent } from '../../../core/tools/toolResultContent'
 import type { ChatMessage, ImageAttachment, SubagentInfo, ToolCallInfo } from '../../../core/types';
 import { t } from '../../../i18n/i18n';
 import type GrimoirePlugin from '../../../main';
+import { scheduleAnimationFrame } from '../../../utils/animationFrame';
 import { formatDurationMmSs } from '../../../utils/date';
 import { hasProcessableWikilink, processFileLinks, registerFileLinkHandler } from '../../../utils/fileLink';
 import { replaceImageEmbedsWithHtml } from '../../../utils/imageEmbed';
@@ -1156,10 +1157,10 @@ export class MessageRenderer {
     const { scrollTop, scrollHeight, clientHeight } = scrollEl;
     const isNearBottom = scrollHeight - scrollTop - clientHeight < threshold;
     if (isNearBottom) {
-      window.requestAnimationFrame(() => {
+      scheduleAnimationFrame(() => {
         const nextScrollEl = this.getScrollEl();
         nextScrollEl.scrollTop = nextScrollEl.scrollHeight;
-      });
+      }, scrollEl.ownerDocument.defaultView);
     }
   }
 

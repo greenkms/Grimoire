@@ -34,6 +34,14 @@ type LoadableView = {
   load: () => Promise<void> | void;
 };
 
+function isLoadableView(value: unknown): value is LoadableView {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  return typeof (value as { load?: unknown }).load === 'function';
+}
+
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const HISTORY_ICON_PATHS = [
   'M3 12a9 9 0 1 0 3-6.7L3 8',
@@ -106,17 +114,19 @@ export class GrimoireView extends ItemView {
     // Hover Editor compatibility: Define load as an instance method that can't be
     // overwritten by prototype patching. Hover Editor patches GrimoireView.prototype.load
     // after our class is defined, but instance methods take precedence over prototype methods.
-    const prototype = Object.getPrototypeOf(this) as LoadableView;
-    const originalLoad = prototype.load.bind(this);
+    const prototype: unknown = Object.getPrototypeOf(this);
+    const originalLoad: LoadableView['load'] = isLoadableView(prototype)
+      ? prototype.load.bind(this)
+      : () => undefined;
     Object.defineProperty(this, 'load', {
-      value: async () => {
+      value: async (): Promise<void> => {
         // Ensure containerEl exists before any patched load code tries to use it
         if (!this.containerEl) {
           (this as LoadableView).containerEl = createDiv({ cls: 'view-content' });
         }
         // Wrap in try-catch to prevent Hover Editor errors from breaking our view
         try {
-          return await originalLoad();
+          await originalLoad();
         } catch {
           // Hover Editor may throw if its DOM setup fails - continue anyway
         }
@@ -190,115 +200,154 @@ export class GrimoireView extends ItemView {
     }
   }
 
-  async onOpen() {
-    // Guard: Hover Editor and similar plugins may call onOpen before DOM is ready.
-    // containerEl must exist before we can access contentEl or create elements.
-    if (!this.containerEl) {
+  private async recordOpenEvent(
+    event: string,
+    data: Record<string, unknown> = {},
+    level: 'debug' | 'info' | 'warn' | 'error' = 'debug',
+    error?: unknown,
+  ): Promise<void> {
+    if (typeof this.plugin.writeDebugLog !== 'function') {
       return;
     }
 
-    // Use contentEl (standard Obsidian API) as primary target.
-    // Hover Editor and other plugins may modify the DOM structure,
-    // so we need fallbacks to handle non-standard scenarios.
-    let container: HTMLElement | null =
-      this.contentEl ?? (this.containerEl.children[1] as HTMLElement | null);
+    await this.plugin.writeDebugLog({
+      data,
+      event,
+      level,
+      scope: 'view.open',
+      ...(error ? { error } : {}),
+    });
+  }
 
-    if (!container) {
-      // Last resort: create our own container inside containerEl
-      container = this.containerEl.createDiv();
+  async onOpen() {
+    await this.recordOpenEvent('onOpen.started', {
+      hasContainer: !!this.containerEl,
+      hasContent: !!this.contentEl,
+    }, 'info');
+
+    // Guard: Hover Editor and similar plugins may call onOpen before DOM is ready.
+    // containerEl must exist before we can access contentEl or create elements.
+    if (!this.containerEl) {
+      await this.recordOpenEvent('onOpen.skipped', { reason: 'missing_container' }, 'warn');
+      return;
     }
 
-    this.viewContainerEl = container;
-    this.viewContainerEl.empty();
-    this.viewContainerEl.addClass('grimoire-container');
-    this.viewContainerEl.addClass('grimoire-container--chat-window');
+    try {
+      // Use contentEl (standard Obsidian API) as primary target.
+      // Hover Editor and other plugins may modify the DOM structure,
+      // so we need fallbacks to handle non-standard scenarios.
+      let container: HTMLElement | null =
+        this.contentEl ?? (this.containerEl.children[1] as HTMLElement | null);
 
-    const shellEl = this.viewContainerEl.createDiv({ cls: 'grimoire-chat-window-shell' });
-    const header = shellEl.createDiv({ cls: 'grimoire-header grimoire-session-strip' });
-    this.buildHeader(header);
-
-    this.navRowContent = this.buildNavRowContent();
-    this.tabContentEl = shellEl.createDiv({
-      cls: 'grimoire-tab-content-container grimoire-tab-content-container--chat-window',
-    });
-    this.historyDropdown = this.buildHistorySheet(shellEl);
-    this.orchestratorService = new OrchestratorService({
-      sendToTab: (tabId, message) => {
-        const tab = this.tabManager?.getTab(tabId);
-        if (!tab) return;
-        void tab.controllers.inputController?.sendMessage({ content: message });
-      },
-    });
-
-    this.tabManager = new TabManager(
-      this.plugin,
-      this.tabContentEl,
-      this,
-      {
-        onTabCreated: (tab) => {
-          this.wireOrchestratorCallbacks(tab);
-          this.updateTabBar();
-          this.updateNavRowLocation();
-          this.persistTabState();
-          this.syncProviderBrandColor();
-          this.syncHeaderContextUsage();
-        },
-        onTabSwitched: () => {
-          this.updateTabBar();
-          this.updateHistoryDropdown();
-          this.updateNavRowLocation();
-          this.persistTabState();
-          this.syncProviderBrandColor();
-          this.syncHeaderContextUsage();
-        },
-        onTabClosed: (tabId) => {
-          this.orchestratorService?.handleTabClosed(tabId);
-          this.updateTabBar();
-          this.persistTabState();
-          this.syncHeaderContextUsage();
-        },
-        onTabStreamingChanged: () => {
-          this.updateTabBar();
-          this.syncHeaderContextUsage();
-        },
-        onTabTitleChanged: () => this.updateTabBar(),
-        onTabAttentionChanged: () => this.updateTabBar(),
-        onTabConversationChanged: () => {
-          this.updateTabBar();
-          this.persistTabState();
-          this.syncProviderBrandColor();
-          this.syncHeaderContextUsage();
-        },
-        onTabProviderChanged: () => {
-          this.updateTabBar();
-          this.syncProviderBrandColor();
-          this.syncHeaderContextUsage();
-        },
-        onTabDraftSettingsChanged: () => {
-          this.updateTabBar();
-          this.persistTabState();
-          this.syncProviderBrandColor();
-          this.syncHeaderContextUsage();
-        },
-        onTabOrchestratorModeChanged: () => {
-          this.updateTabBar();
-          this.persistTabState();
-          this.syncProviderBrandColor();
-          this.syncHeaderContextUsage();
-        },
-        onTabUsageChanged: (tabId) => {
-          if (this.tabManager?.getActiveTabId() === tabId) {
-            this.syncHeaderContextUsage();
-          }
-        },
+      if (!container) {
+        // Last resort: create our own container inside containerEl
+        container = this.containerEl.createDiv();
       }
-    );
 
-    this.wireEventHandlers();
-    await this.restoreOrCreateTabs();
-    this.syncProviderBrandColor();
-    this.updateLayoutForPosition();
-    this.tabManager?.primeProviderRuntime();
+      this.viewContainerEl = container;
+      this.viewContainerEl.empty();
+      this.viewContainerEl.addClass('grimoire-container');
+      this.viewContainerEl.addClass('grimoire-container--chat-window');
+      await this.recordOpenEvent('dom.ready', {
+        usedContentEl: container === this.contentEl,
+      }, 'info');
+
+      const shellEl = this.viewContainerEl.createDiv({ cls: 'grimoire-chat-window-shell' });
+      const header = shellEl.createDiv({ cls: 'grimoire-header grimoire-session-strip' });
+      this.buildHeader(header);
+
+      this.navRowContent = this.buildNavRowContent();
+      this.tabContentEl = shellEl.createDiv({
+        cls: 'grimoire-tab-content-container grimoire-tab-content-container--chat-window',
+      });
+      this.historyDropdown = this.buildHistorySheet(shellEl);
+      this.orchestratorService = new OrchestratorService({
+        sendToTab: (tabId, message) => {
+          const tab = this.tabManager?.getTab(tabId);
+          if (!tab) return;
+          void tab.controllers.inputController?.sendMessage({ content: message });
+        },
+      });
+      await this.recordOpenEvent('shell.ready');
+
+      this.tabManager = new TabManager(
+        this.plugin,
+        this.tabContentEl,
+        this,
+        {
+          onTabCreated: (tab) => {
+            this.wireOrchestratorCallbacks(tab);
+            this.updateTabBar();
+            this.updateNavRowLocation();
+            this.persistTabState();
+            this.syncProviderBrandColor();
+            this.syncHeaderContextUsage();
+          },
+          onTabSwitched: () => {
+            this.updateTabBar();
+            this.updateHistoryDropdown();
+            this.updateNavRowLocation();
+            this.persistTabState();
+            this.syncProviderBrandColor();
+            this.syncHeaderContextUsage();
+          },
+          onTabClosed: (tabId) => {
+            this.orchestratorService?.handleTabClosed(tabId);
+            this.updateTabBar();
+            this.persistTabState();
+            this.syncHeaderContextUsage();
+          },
+          onTabStreamingChanged: () => {
+            this.updateTabBar();
+            this.syncHeaderContextUsage();
+          },
+          onTabTitleChanged: () => this.updateTabBar(),
+          onTabAttentionChanged: () => this.updateTabBar(),
+          onTabConversationChanged: () => {
+            this.updateTabBar();
+            this.persistTabState();
+            this.syncProviderBrandColor();
+            this.syncHeaderContextUsage();
+          },
+          onTabProviderChanged: () => {
+            this.updateTabBar();
+            this.syncProviderBrandColor();
+            this.syncHeaderContextUsage();
+          },
+          onTabDraftSettingsChanged: () => {
+            this.updateTabBar();
+            this.persistTabState();
+            this.syncProviderBrandColor();
+            this.syncHeaderContextUsage();
+          },
+          onTabOrchestratorModeChanged: () => {
+            this.updateTabBar();
+            this.persistTabState();
+            this.syncProviderBrandColor();
+            this.syncHeaderContextUsage();
+          },
+          onTabUsageChanged: (tabId) => {
+            if (this.tabManager?.getActiveTabId() === tabId) {
+              this.syncHeaderContextUsage();
+            }
+          },
+        }
+      );
+
+      this.wireEventHandlers();
+      await this.recordOpenEvent('restore.started', undefined, 'info');
+      await this.restoreOrCreateTabs();
+      await this.recordOpenEvent('restore.finished', {
+        tabCount: this.tabManager.getTabCount(),
+      }, 'info');
+      this.syncProviderBrandColor();
+      this.updateLayoutForPosition();
+      this.tabManager?.primeProviderRuntime();
+      await this.recordOpenEvent('onOpen.finished', undefined, 'info');
+    } catch (error) {
+      await this.recordOpenEvent('onOpen.failed', undefined, 'error', error);
+      throw error;
+    }
   }
 
   async onClose() {

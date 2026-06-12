@@ -126,6 +126,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 
+function getRecordEntry(record: Record<string, unknown>, key: string): Record<string, unknown> | null {
+  const value = record[key];
+  return isRecord(value) ? value : null;
+}
+
 function cloneSerializableValue(value: unknown, depth = 0): unknown {
   if (depth > 6) {
     return undefined;
@@ -208,21 +213,19 @@ function mergeDraftSettingsSnapshot(
   const draftProviderConfigs = isRecord(draftSettings.providerConfigs)
     ? draftSettings.providerConfigs
     : {};
-  const baseProviderConfig = isRecord(baseProviderConfigs[providerId])
-    ? baseProviderConfigs[providerId]
-    : {};
-  const draftProviderConfig = isRecord(draftProviderConfigs[providerId])
-    ? draftProviderConfigs[providerId]
-    : null;
+  const baseProviderConfig = getRecordEntry(baseProviderConfigs, providerId) ?? {};
+  const draftProviderConfig = getRecordEntry(draftProviderConfigs, providerId);
 
   if (draftProviderConfig) {
-    merged.providerConfigs = {
-      ...baseProviderConfigs,
-      [providerId]: {
-        ...baseProviderConfig,
-        ...draftProviderConfig,
-      },
+    const providerConfig: Record<string, unknown> = {
+      ...baseProviderConfig,
+      ...draftProviderConfig,
     };
+    const providerConfigs: Record<string, unknown> = {
+      ...baseProviderConfigs,
+      [providerId]: providerConfig,
+    };
+    merged.providerConfigs = providerConfigs;
   } else {
     merged.providerConfigs = baseProviderConfigs;
   }
@@ -2023,12 +2026,15 @@ export function initializeTabUI(
     onAutoScrollChanged: () => tab.ui.navigationSidebar?.updateVisibility(),
   };
 
-  // ResizeObserver to detect overflow changes (e.g., content growth)
-  const resizeObserver = new ResizeObserver(() => {
-    tab.ui.navigationSidebar?.updateVisibility();
-  });
-  resizeObserver.observe(dom.messagesEl);
-  dom.eventCleanups.push(() => resizeObserver.disconnect());
+  // ResizeObserver detects overflow changes from streamed/content growth when available.
+  const ResizeObserverCtor = dom.messagesEl.ownerDocument.defaultView?.ResizeObserver;
+  if (typeof ResizeObserverCtor === 'function') {
+    const resizeObserver = new ResizeObserverCtor(() => {
+      tab.ui.navigationSidebar?.updateVisibility();
+    });
+    resizeObserver.observe(dom.messagesEl);
+    dom.eventCleanups.push(() => resizeObserver.disconnect());
+  }
 }
 
 export interface ForkContext {

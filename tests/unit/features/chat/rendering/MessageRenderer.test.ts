@@ -1371,6 +1371,35 @@ describe('MessageRenderer', () => {
     }
   });
 
+  it('scrollToBottomIfNeeded does not require requestAnimationFrame on the renderer window', () => {
+    const messagesEl = createMockEl();
+    messagesEl.scrollHeight = 1000;
+    messagesEl.scrollTop = 950;
+    Object.defineProperty(messagesEl, 'clientHeight', { value: 0, configurable: true });
+    const { renderer } = createRenderer(messagesEl);
+    const ownerWindow = messagesEl.ownerDocument.defaultView as Window & {
+      requestAnimationFrame?: typeof requestAnimationFrame;
+    };
+    const originalOwnerRaf = ownerWindow.requestAnimationFrame;
+    const originalWindowRaf = window.requestAnimationFrame;
+
+    Reflect.deleteProperty(ownerWindow, 'requestAnimationFrame');
+    Object.defineProperty(window, 'requestAnimationFrame', {
+      configurable: true,
+      value: undefined,
+    });
+
+    try {
+      expect(() => renderer.scrollToBottomIfNeeded()).not.toThrow();
+    } finally {
+      ownerWindow.requestAnimationFrame = originalOwnerRaf;
+      Object.defineProperty(window, 'requestAnimationFrame', {
+        configurable: true,
+        value: originalWindowRaf,
+      });
+    }
+  });
+
   it('scrollToBottomIfNeeded does not scroll when far from bottom', () => {
     const messagesEl = createMockEl();
     messagesEl.scrollHeight = 1000;

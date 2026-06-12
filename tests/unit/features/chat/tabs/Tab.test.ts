@@ -1841,6 +1841,21 @@ describe('Tab - UI Initialization', () => {
       expect(tab.ui.imageContextManager).toBeDefined();
     });
 
+    it('does not require ResizeObserver to open a tab', () => {
+      const options = createMockOptions();
+      const tab = createTab(options);
+      const originalResizeObserver = global.ResizeObserver;
+
+      // Older or constrained Obsidian renderer contexts may not expose ResizeObserver.
+      Reflect.deleteProperty(global, 'ResizeObserver');
+
+      try {
+        expect(() => initializeTabUI(tab, options.plugin)).not.toThrow();
+      } finally {
+        global.ResizeObserver = originalResizeObserver;
+      }
+    });
+
     it('should create selection indicator element', () => {
       const options = createMockOptions();
       const tab = createTab(options);
