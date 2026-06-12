@@ -117,5 +117,6 @@ The `_grimoire` MCP metadata key and `grimoire-*` internal OpenCode IDs are impl
 - Comments should explain non-obvious intent, not restate code.
 - Do not revert unrelated user or generated changes in a dirty worktree.
 - Commit only tracked deliverables unless the user explicitly asks to include temporary `.context/` or `design_handoff_*` files.
+- Local test Obsidian vault: `/Users/sandsaber/HomeBrew/GrimorieTestObsidian`. When copying a local build for manual testing, install Grimoire into `/Users/sandsaber/HomeBrew/GrimorieTestObsidian/.obsidian/plugins/grimoire`. The ignored `.env.local` may set `OBSIDIAN_VAULT=/Users/sandsaber/HomeBrew/GrimorieTestObsidian` so `npm run build` / `npm run build:release` copy artifacts there automatically.
 - For provider integrations, inspect real runtime output before normalizing event shapes. Real transcripts and wire traces beat guessed schemas.
 - For future provider work and implementation sequencing, use `docs/provider-roadmap.md` before adding new provider directories.
