@@ -82509,6 +82509,7 @@ var OpencodeChatRuntime = class {
     (_b4 = this.activeTurn) == null ? void 0 : _b4.queue.close();
     this.activeTurn = {
       queue: new StreamChunkQueue2(),
+      sawOutput: false,
       sessionId
     };
     this.currentTurnMetadata = {};
@@ -82532,15 +82533,16 @@ var OpencodeChatRuntime = class {
       this.activeTurn = null;
       return;
     }
-    const promptPromise = this.connection.prompt({
-      prompt: buildOpencodePromptBlocks(
-        turn.request,
-        shouldBootstrapHistory ? previousMessages : [],
-        { orchestratorMode: queryOptions == null ? void 0 : queryOptions.orchestratorMode }
-      ),
-      sessionId
-    }).then(async (response) => {
+    const runPrompt = async (promptSessionId) => {
       var _a8;
+      const response = await this.connection.prompt({
+        prompt: buildOpencodePromptBlocks(
+          turn.request,
+          shouldBootstrapHistory ? previousMessages : [],
+          { orchestratorMode: queryOptions == null ? void 0 : queryOptions.orchestratorMode }
+        ),
+        sessionId: promptSessionId
+      });
       if (response.userMessageId) {
         this.currentTurnMetadata.userMessageId = response.userMessageId;
       }
@@ -82551,15 +82553,38 @@ var OpencodeChatRuntime = class {
         promptUsage: this.promptUsage
       });
       if (usage) {
-        activeTurn.queue.push({ sessionId, type: "usage", usage });
+        activeTurn.queue.push({ sessionId: promptSessionId, type: "usage", usage });
       }
-      await this.refreshFallbackPlanUsageFromSessionCost(sessionId);
+      await this.refreshFallbackPlanUsageFromSessionCost(promptSessionId);
       activeTurn.queue.push({ type: "done" });
       activeTurn.queue.close();
-    }).catch((error48) => {
+    };
+    const promptPromise = runPrompt(sessionId).catch(async (error48) => {
+      let reportedError = error48;
+      try {
+        if (await this.prepareClosedTransportRetry(error48, activeTurn, cwd)) {
+          const retrySessionId = this.sessionId;
+          if (this.connection && retrySessionId) {
+            activeTurn.sessionId = retrySessionId;
+            this.currentTurnMetadata = {};
+            this.currentTurnSawAcpCost = false;
+            this.contextUsage = null;
+            this.promptUsage = null;
+            this.sessionUpdateNormalizer.reset();
+            this.toolStreamAdapter.reset();
+            await this.applySelectedMode(retrySessionId);
+            await this.applySelectedModel(retrySessionId, queryOptions);
+            await this.applySelectedEffort(retrySessionId);
+            await runPrompt(retrySessionId);
+            return;
+          }
+        }
+      } catch (retryError) {
+        reportedError = retryError;
+      }
       activeTurn.queue.push({
         type: "error",
-        content: this.formatRuntimeError(error48)
+        content: this.formatRuntimeError(reportedError)
       });
       activeTurn.queue.push({ type: "done" });
       activeTurn.queue.close();
@@ -82729,11 +82754,13 @@ var OpencodeChatRuntime = class {
     await this.connection.initialize();
     this.setReady(true);
   }
-  async shutdownProcess() {
+  async shutdownProcess(options) {
     var _a7, _b4, _c3, _d3;
     this.setReady(false);
-    (_a7 = this.activeTurn) == null ? void 0 : _a7.queue.close();
-    this.activeTurn = null;
+    if (!(options == null ? void 0 : options.preserveActiveTurn)) {
+      (_a7 = this.activeTurn) == null ? void 0 : _a7.queue.close();
+      this.activeTurn = null;
+    }
     this.currentSessionModelId = null;
     this.currentSessionModeId = null;
     this.setSupportedCommands([]);
@@ -83060,6 +83087,7 @@ var OpencodeChatRuntime = class {
         cwd,
         mcpServers: []
       });
+      this.sessionInvalidated = false;
       this.loadedSessionId = response.sessionId;
       this.sessionId = response.sessionId;
       this.sessionCwds.set(response.sessionId, cwd);
@@ -83141,6 +83169,9 @@ var OpencodeChatRuntime = class {
         if (normalized.role === "user" && normalized.messageId) {
           this.currentTurnMetadata.userMessageId = normalized.messageId;
         }
+        if (normalized.streamChunks.length > 0) {
+          this.activeTurn.sawOutput = true;
+        }
         for (const chunk of normalized.streamChunks) {
           this.activeTurn.queue.push(chunk);
         }
@@ -83149,6 +83180,9 @@ var OpencodeChatRuntime = class {
       case "tool_call":
       case "tool_call_update": {
         const streamChunks = normalized.type === "tool_call" ? this.toolStreamAdapter.normalizeToolCall(normalized.toolCall, normalized.streamChunks) : this.toolStreamAdapter.normalizeToolCallUpdate(normalized.toolCallUpdate, normalized.streamChunks);
+        if (streamChunks.length > 0) {
+          this.activeTurn.sawOutput = true;
+        }
         for (const chunk of streamChunks) {
           this.activeTurn.queue.push(chunk);
         }
@@ -83267,6 +83301,23 @@ var OpencodeChatRuntime = class {
     return stderr ? `${baseMessage}
 
 ${stderr}` : baseMessage;
+  }
+  async prepareClosedTransportRetry(error48, activeTurn, cwd) {
+    if (!this.isRetryableTransportClose(error48) || activeTurn.sawOutput) {
+      return false;
+    }
+    await this.shutdownProcess({ preserveActiveTurn: true });
+    const ready = await this.ensureReady({ force: true, allowSessionCreation: false });
+    if (!ready || !this.connection) {
+      return false;
+    }
+    if (!this.sessionId) {
+      return Boolean(await this.createSession(cwd));
+    }
+    return true;
+  }
+  isRetryableTransportClose(error48) {
+    return error48 instanceof JsonRpcTransportClosedError || error48 instanceof Error && error48.name === "JsonRpcTransportClosedError";
   }
   clearActiveSession() {
     this.currentDatabasePath = null;

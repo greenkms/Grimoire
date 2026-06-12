@@ -1,5 +1,6 @@
 import { ProviderRegistry } from '@/core/providers/ProviderRegistry';
 import { ProviderSettingsCoordinator } from '@/core/providers/ProviderSettingsCoordinator';
+import { JsonRpcTransportClosedError } from '@/providers/acp';
 import { opencodePlanUsageStore } from '@/providers/opencode/app/OpencodePlanUsageStore';
 import {
   OPENCODE_BUILD_MODE_ID,
@@ -71,6 +72,28 @@ describe('OpencodeChatRuntime', () => {
         }),
       ]),
     }));
+  });
+
+  it('retries the prompt once when the OpenCode ACP transport closes before output', async () => {
+    const runtime = new OpencodeChatRuntime(createMockPlugin());
+    const prompt = jest.fn()
+      .mockRejectedValueOnce(new JsonRpcTransportClosedError('JSON-RPC input closed'))
+      .mockResolvedValueOnce({});
+
+    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+    jest.spyOn(runtime as any, 'prepareClosedTransportRetry').mockResolvedValue(true);
+    (runtime as any).sessionId = 'session-1';
+    (runtime as any).loadedSessionId = 'session-1';
+    (runtime as any).connection = { prompt };
+    (runtime as any).applySelectedMode = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedModel = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedEffort = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).getActiveDisplayModel = jest.fn().mockReturnValue('opencode:test-model');
+
+    const chunks = await collectRuntimeChunks(runtime);
+
+    expect(prompt).toHaveBeenCalledTimes(2);
+    expect(chunks).toEqual([{ type: 'done' }]);
   });
 
   it('captures available ACP commands even when no turn is active', async () => {

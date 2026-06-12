@@ -59,6 +59,7 @@ import {
   extractAcpSessionModelState,
   extractAcpSessionModeState,
   extractAcpSessionThoughtLevelState,
+  JsonRpcTransportClosedError,
   resolveWorkspacePath,
 } from '../../acp';
 import { opencodePlanUsageStore } from '../app/OpencodePlanUsageStore';
@@ -100,6 +101,7 @@ import { buildOpencodeRuntimeEnv } from './OpencodeRuntimeEnvironment';
 
 interface ActiveTurn {
   queue: StreamChunkQueue;
+  sawOutput: boolean;
   sessionId: string;
 }
 
@@ -384,6 +386,7 @@ export class OpencodeChatRuntime implements ChatRuntime {
     this.activeTurn?.queue.close();
     this.activeTurn = {
       queue: new StreamChunkQueue(),
+      sawOutput: false,
       sessionId,
     };
     this.currentTurnMetadata = {};
@@ -409,14 +412,15 @@ export class OpencodeChatRuntime implements ChatRuntime {
       return;
     }
 
-    const promptPromise = this.connection.prompt({
-      prompt: buildOpencodePromptBlocks(
-        turn.request,
-        shouldBootstrapHistory ? previousMessages : [],
-        { orchestratorMode: queryOptions?.orchestratorMode },
-      ),
-      sessionId,
-    }).then(async (response) => {
+    const runPrompt = async (promptSessionId: string): Promise<void> => {
+      const response = await this.connection!.prompt({
+        prompt: buildOpencodePromptBlocks(
+          turn.request,
+          shouldBootstrapHistory ? previousMessages : [],
+          { orchestratorMode: queryOptions?.orchestratorMode },
+        ),
+        sessionId: promptSessionId,
+      });
       if (response.userMessageId) {
         this.currentTurnMetadata.userMessageId = response.userMessageId;
       }
@@ -428,16 +432,41 @@ export class OpencodeChatRuntime implements ChatRuntime {
         promptUsage: this.promptUsage,
       });
       if (usage) {
-        activeTurn.queue.push({ sessionId, type: 'usage', usage });
+        activeTurn.queue.push({ sessionId: promptSessionId, type: 'usage', usage });
       }
 
-      await this.refreshFallbackPlanUsageFromSessionCost(sessionId);
+      await this.refreshFallbackPlanUsageFromSessionCost(promptSessionId);
       activeTurn.queue.push({ type: 'done' });
       activeTurn.queue.close();
-    }).catch((error) => {
+    };
+
+    const promptPromise = runPrompt(sessionId).catch(async (error) => {
+      let reportedError: unknown = error;
+      try {
+        if (await this.prepareClosedTransportRetry(error, activeTurn, cwd)) {
+          const retrySessionId = this.sessionId;
+          if (this.connection && retrySessionId) {
+            activeTurn.sessionId = retrySessionId;
+            this.currentTurnMetadata = {};
+            this.currentTurnSawAcpCost = false;
+            this.contextUsage = null;
+            this.promptUsage = null;
+            this.sessionUpdateNormalizer.reset();
+            this.toolStreamAdapter.reset();
+            await this.applySelectedMode(retrySessionId);
+            await this.applySelectedModel(retrySessionId, queryOptions);
+            await this.applySelectedEffort(retrySessionId);
+            await runPrompt(retrySessionId);
+            return;
+          }
+        }
+      } catch (retryError) {
+        reportedError = retryError;
+      }
+
       activeTurn.queue.push({
         type: 'error',
-        content: this.formatRuntimeError(error),
+        content: this.formatRuntimeError(reportedError),
       });
       activeTurn.queue.push({ type: 'done' });
       activeTurn.queue.close();
@@ -650,10 +679,12 @@ export class OpencodeChatRuntime implements ChatRuntime {
     this.setReady(true);
   }
 
-  private async shutdownProcess(): Promise<void> {
+  private async shutdownProcess(options?: { preserveActiveTurn?: boolean }): Promise<void> {
     this.setReady(false);
-    this.activeTurn?.queue.close();
-    this.activeTurn = null;
+    if (!options?.preserveActiveTurn) {
+      this.activeTurn?.queue.close();
+      this.activeTurn = null;
+    }
     this.currentSessionModelId = null;
     this.currentSessionModeId = null;
     this.setSupportedCommands([]);
@@ -1107,6 +1138,7 @@ export class OpencodeChatRuntime implements ChatRuntime {
         cwd,
         mcpServers: [],
       });
+      this.sessionInvalidated = false;
       this.loadedSessionId = response.sessionId;
       this.sessionId = response.sessionId;
       this.sessionCwds.set(response.sessionId, cwd);
@@ -1196,6 +1228,9 @@ export class OpencodeChatRuntime implements ChatRuntime {
         if (normalized.role === 'user' && normalized.messageId) {
           this.currentTurnMetadata.userMessageId = normalized.messageId;
         }
+        if (normalized.streamChunks.length > 0) {
+          this.activeTurn.sawOutput = true;
+        }
         for (const chunk of normalized.streamChunks) {
           this.activeTurn.queue.push(chunk);
         }
@@ -1207,6 +1242,9 @@ export class OpencodeChatRuntime implements ChatRuntime {
           ? this.toolStreamAdapter.normalizeToolCall(normalized.toolCall, normalized.streamChunks)
           : this.toolStreamAdapter.normalizeToolCallUpdate(normalized.toolCallUpdate, normalized.streamChunks);
 
+        if (streamChunks.length > 0) {
+          this.activeTurn.sawOutput = true;
+        }
         for (const chunk of streamChunks) {
           this.activeTurn.queue.push(chunk);
         }
@@ -1349,6 +1387,33 @@ export class OpencodeChatRuntime implements ChatRuntime {
     const baseMessage = error instanceof Error ? error.message : 'OpenCode request failed';
     const stderr = this.process?.getStderrSnapshot();
     return stderr ? `${baseMessage}\n\n${stderr}` : baseMessage;
+  }
+
+  private async prepareClosedTransportRetry(
+    error: unknown,
+    activeTurn: ActiveTurn,
+    cwd: string,
+  ): Promise<boolean> {
+    if (!this.isRetryableTransportClose(error) || activeTurn.sawOutput) {
+      return false;
+    }
+
+    await this.shutdownProcess({ preserveActiveTurn: true });
+    const ready = await this.ensureReady({ force: true, allowSessionCreation: false });
+    if (!ready || !this.connection) {
+      return false;
+    }
+
+    if (!this.sessionId) {
+      return Boolean(await this.createSession(cwd));
+    }
+
+    return true;
+  }
+
+  private isRetryableTransportClose(error: unknown): boolean {
+    return error instanceof JsonRpcTransportClosedError
+      || (error instanceof Error && error.name === 'JsonRpcTransportClosedError');
   }
 
   private clearActiveSession(): void {
