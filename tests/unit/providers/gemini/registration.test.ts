@@ -12,7 +12,7 @@ describe('Gemini provider registration', () => {
 
   it('registers Gemini as an opt-in provider', () => {
     expect(ProviderRegistry.getRegisteredProviderIds()).toContain('gemini');
-    expect(ProviderRegistry.getProviderDisplayName('gemini')).toBe('Gemini');
+    expect(ProviderRegistry.getProviderDisplayName('gemini')).toBe('Gemini CLI (Legacy)');
     expect(ProviderRegistry.isEnabled('gemini', {})).toBe(false);
 
     const settings: Record<string, unknown> = {};

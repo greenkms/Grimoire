@@ -11,6 +11,7 @@ describe('DEFAULT_GRIMOIRE_SETTINGS', () => {
     expect(DEFAULT_GRIMOIRE_SETTINGS.model).toBe(DEFAULT_CODEX_PRIMARY_MODEL);
     expect(DEFAULT_GRIMOIRE_SETTINGS.providerConfigs.claude?.enabled).toBe(false);
     expect(DEFAULT_GRIMOIRE_SETTINGS.providerConfigs.codex?.enabled).toBe(true);
+    expect(DEFAULT_GRIMOIRE_SETTINGS.providerConfigs.antigravity?.enabled).toBe(false);
     expect(DEFAULT_GRIMOIRE_SETTINGS.providerConfigs.gemini?.enabled).toBe(false);
     expect(DEFAULT_GRIMOIRE_SETTINGS.providerConfigs.opencode?.enabled).toBe(false);
   });

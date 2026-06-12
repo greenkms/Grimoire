@@ -387,8 +387,13 @@
   color: var(--grimoire-provider-codex, #19c37d);
 }
 
-.grimoire-model-group-section--gemini .grimoire-model-group-provider-icon {
-  color: var(--grimoire-provider-gemini, #5b8def);
+.grimoire-model-group-section--antigravity .grimoire-model-group-provider-icon {
+  color: var(--grimoire-provider-antigravity, #5b8def);
+}
+
+.grimoire-model-group-section--gemini .grimoire-model-group-provider-icon,
+.grimoire-model-group-section--gemini-cli-legacy .grimoire-model-group-provider-icon {
+  color: var(--grimoire-provider-gemini, #669df6);
 }
 
 .grimoire-model-group-section--opencode .grimoire-model-group-provider-icon,

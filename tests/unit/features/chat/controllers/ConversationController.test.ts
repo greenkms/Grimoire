@@ -708,7 +708,7 @@ describe('ConversationController', () => {
         (deps.plugin.getConversationList as jest.Mock).mockReturnValue([
           { id: 'conv-old', providerId: 'claude', title: 'Old', createdAt: 1000, lastResponseAt: 1000, messageCount: 1, preview: 'Old preview' },
           { id: 'conv-new', providerId: 'codex', title: 'New', createdAt: 2000, lastResponseAt: 5000, messageCount: 1, preview: 'New preview' },
-          { id: 'conv-mid', providerId: 'gemini', title: 'Mid', createdAt: 3000, lastResponseAt: 3000, messageCount: 1, preview: 'Mid preview' },
+          { id: 'conv-mid', providerId: 'antigravity', title: 'Mid', createdAt: 3000, lastResponseAt: 3000, messageCount: 1, preview: 'Mid preview' },
         ]);
 
         controller.updateHistoryDropdown();

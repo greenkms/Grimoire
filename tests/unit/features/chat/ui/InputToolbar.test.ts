@@ -534,9 +534,10 @@ describe('ModelSelector', () => {
 
   it('sorts provider model groups alphabetically by label', () => {
     const groupedModels = [
-      { value: 'gemini', label: 'Gemini', group: 'Gemini' },
+      { value: 'antigravity', label: 'Antigravity', group: 'Antigravity' },
       { value: 'opencode:openai/gpt-5', label: 'GPT-5', group: 'OpenCode' },
       { value: DEFAULT_CODEX_PRIMARY_MODEL, label: DEFAULT_CODEX_PRIMARY_MODEL_LABEL, group: 'Codex' },
+      { value: 'gemini:gemini', label: 'Gemini CLI (Legacy)', group: 'Gemini CLI (Legacy)' },
       { value: 'sonnet', label: 'Sonnet 4.6', group: 'Claude Code' },
     ];
     const uiConfig = createMockUIConfig();
@@ -554,7 +555,7 @@ describe('ModelSelector', () => {
 
     const labels = (Array.from(parentEl.querySelectorAll('.grimoire-model-group-label')) as any[])
       .map(el => el.textContent);
-    expect(labels).toEqual(['Claude Code', 'Codex', 'Gemini', 'OpenCode']);
+    expect(labels).toEqual(['Antigravity', 'Claude Code', 'Codex', 'Gemini CLI (Legacy)', 'OpenCode']);
   });
 
   it('filters models from the menu search field', () => {

@@ -474,6 +474,7 @@ function createMockPlugin(overrides: Record<string, any> = {}): any {
     getConversationSync: jest.fn().mockReturnValue(null),
     saveSettings: jest.fn().mockResolvedValue(undefined),
     getActiveEnvironmentVariables: jest.fn().mockReturnValue(''),
+    manifest: { version: '9.8.7-test' },
     ...overrides,
   };
 }
@@ -634,6 +635,8 @@ describe('Tab - Creation', () => {
       expect(tab.dom.contextMemoryEl.hasClass('grimoire-context-memory-panel')).toBe(true);
       expect(tab.dom.sourceCardsEl.hasClass('grimoire-source-card-stack')).toBe(true);
       expect(tab.dom.composerSurfaceEl.contains(tab.dom.inputContainerEl)).toBe(true);
+      expect(tab.dom.composerSurfaceEl.contains(tab.dom.composerVersionEl)).toBe(true);
+      expect(tab.dom.composerVersionEl.textContent).toBe('Grimoire v9.8.7-test');
       expect(tab.dom.chatStageEl.contains(tab.dom.messagesEl)).toBe(true);
       expect(tab.dom.sourceRailEl.contains(tab.dom.statusPanelContainerEl)).toBe(true);
     });
@@ -4481,18 +4484,18 @@ describe('Tab - Blank Tab Draft Model Change', () => {
     expect(createTitleGenerationServiceSpy.mock.calls.length).toBe(initialTitleCalls);
   });
 
-  it('keeps blank-tab model options mixed after selecting Gemini', async () => {
-    const geminiModels = [{ value: 'gemini', label: 'Gemini' }];
+  it('keeps blank-tab model options mixed after selecting Antigravity', async () => {
+    const antigravityModels = [{ value: 'antigravity', label: 'Antigravity' }];
     const claudeModels = [{ value: 'haiku', label: 'Haiku' }];
-    jest.spyOn(ProviderRegistry, 'getEnabledProviderIds').mockReturnValue(['gemini', 'claude']);
+    jest.spyOn(ProviderRegistry, 'getEnabledProviderIds').mockReturnValue(['antigravity', 'claude']);
     jest.spyOn(ProviderRegistry, 'getProviderDisplayName').mockImplementation((providerId) => (
-      providerId === 'gemini' ? 'Gemini' : 'Claude'
+      providerId === 'antigravity' ? 'Antigravity' : 'Claude'
     ));
     jest.spyOn(ProviderRegistry, 'getChatUIConfig').mockImplementation((providerId?: string) => ({
-      getModelOptions: jest.fn().mockReturnValue(providerId === 'gemini' ? geminiModels : claudeModels),
+      getModelOptions: jest.fn().mockReturnValue(providerId === 'antigravity' ? antigravityModels : claudeModels),
       ownsModel: jest.fn((model: string) => (
-        providerId === 'gemini'
-          ? model === 'gemini'
+        providerId === 'antigravity'
+          ? model === 'antigravity'
           : model === 'haiku'
       )),
       isAdaptiveReasoningModel: jest.fn().mockReturnValue(true),
@@ -4509,7 +4512,7 @@ describe('Tab - Blank Tab Draft Model Change', () => {
         ...createMockPlugin().settings,
         providerConfigs: {
           codex: { enabled: true },
-          gemini: { enabled: true },
+          antigravity: { enabled: true },
         },
       },
     });
@@ -4521,14 +4524,14 @@ describe('Tab - Blank Tab Draft Model Change', () => {
     };
     const toolbarCallbacks = toolbarModule.createInputToolbar.mock.calls.at(-1)?.[1];
 
-    await toolbarCallbacks.onModelChange('gemini');
+    await toolbarCallbacks.onModelChange('antigravity');
 
     const modelValues = toolbarCallbacks
       .getUIConfig()
       .getModelOptions(plugin.settings)
       .map((option: { value: string }) => option.value);
 
-    expect(modelValues).toContain('gemini');
+    expect(modelValues).toContain('antigravity');
     expect(modelValues).toContain('haiku');
     expect(tab.lifecycleState).toBe('blank');
   });

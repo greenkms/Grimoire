@@ -20,7 +20,7 @@ export const geminiProviderRegistration: ProviderRegistration = {
   createInstructionRefineService: () => new GeminiInstructionRefineService(),
   createRuntime: ({ plugin }) => new GeminiChatRuntime(plugin),
   createTitleGenerationService: () => new GeminiTitleGenerationService(),
-  displayName: 'Gemini',
+  displayName: 'Gemini CLI (Legacy)',
   environmentKeyPatterns: [/^GEMINI_/i, /^GOOGLE_/i, /^VERTEX_/i],
   historyService: new GeminiConversationHistoryService(),
   isEnabled: (settings) => getGeminiProviderSettings(settings).enabled,

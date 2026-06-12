@@ -5,11 +5,13 @@ describe('getBuiltInProviderDefaultConfigs', () => {
     const first = getBuiltInProviderDefaultConfigs();
     const second = getBuiltInProviderDefaultConfigs();
 
+    expect(first).toHaveProperty('antigravity');
     expect(first).toHaveProperty('claude');
     expect(first).toHaveProperty('codex');
     expect(first).toHaveProperty('gemini');
     expect(first).toHaveProperty('opencode');
     expect(first).not.toBe(second);
+    expect(first.antigravity).not.toBe(second.antigravity);
     expect(first.claude).not.toBe(second.claude);
     expect(first.codex).not.toBe(second.codex);
     expect(first.gemini).not.toBe(second.gemini);

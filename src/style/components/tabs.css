@@ -65,8 +65,12 @@
   --grimoire-ok: var(--grimoire-provider-codex, #19c37d);
 }
 
+.grimoire-tab-badge-streaming[data-provider="antigravity"] {
+  --grimoire-ok: var(--grimoire-provider-antigravity, #5b8def);
+}
+
 .grimoire-tab-badge-streaming[data-provider="gemini"] {
-  --grimoire-ok: var(--grimoire-provider-gemini, #5b8def);
+  --grimoire-ok: var(--grimoire-provider-gemini, #669df6);
 }
 
 .grimoire-tab-badge-streaming[data-provider="opencode"] {

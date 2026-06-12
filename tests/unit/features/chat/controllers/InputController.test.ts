@@ -1545,7 +1545,7 @@ describe('InputController - Message Queue', () => {
         supportsMcpTools: true,
         reasoningControl: 'effort',
       });
-      deps.plugin.settings.model = 'gemini';
+      deps.plugin.settings.model = 'antigravity';
       deps.plugin.settings.effortLevel = 'medium';
       (deps as any).getActiveProviderSettings = jest.fn().mockReturnValue({
         ...deps.plugin.settings,

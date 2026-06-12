@@ -33,13 +33,46 @@ const opencodeTabWarmupPolicy: ProviderTabWarmupPolicy = {
   },
 };
 
+const MODEL_CATALOG_CACHE_TTL_MS = 10 * 60 * 1000;
+
 function createOpencodeModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
+  const initialSettings = getOpencodeProviderSettings(plugin.settings ?? {});
+  let lastRefreshAt = initialSettings.discoveredModels.length > 0 ? Date.now() : 0;
+  let lastRefreshCacheKey = buildOpencodeModelCatalogCacheKey(initialSettings);
+
   return {
     isAvailable(settings) {
       return getOpencodeProviderSettings(settings).enabled;
     },
     async refreshModels({ settings }) {
-      const before = JSON.stringify(getOpencodeProviderSettings(settings).discoveredModels);
+      const currentSettings = getOpencodeProviderSettings(settings);
+      const cacheKey = buildOpencodeModelCatalogCacheKey(currentSettings);
+      if (currentSettings.discoveredModels.length > 0 && lastRefreshAt === 0) {
+        lastRefreshAt = Date.now();
+        lastRefreshCacheKey = cacheKey;
+      }
+      const cacheAgeMs = lastRefreshAt > 0 ? Date.now() - lastRefreshAt : Number.POSITIVE_INFINITY;
+      if (
+        currentSettings.discoveredModels.length > 0
+        && cacheKey === lastRefreshCacheKey
+        && cacheAgeMs < MODEL_CATALOG_CACHE_TTL_MS
+      ) {
+        plugin.recordDebugLog?.({
+          data: {
+            ageMs: cacheAgeMs,
+            modelCount: currentSettings.discoveredModels.length,
+            providerId: 'opencode',
+            reason: 'cache_fresh',
+            ttlMs: MODEL_CATALOG_CACHE_TTL_MS,
+          },
+          event: 'modelCatalog.refresh.skipped',
+          level: 'debug',
+          scope: 'provider.opencode',
+        });
+        return false;
+      }
+
+      const before = JSON.stringify(currentSettings.discoveredModels);
       const runtime = new OpencodeChatRuntime(plugin);
       try {
         runtime.syncConversationState({
@@ -47,6 +80,9 @@ function createOpencodeModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalo
           sessionId: null,
         });
         const loaded = await runtime.ensureReady({ allowSessionCreation: true });
+        const updatedSettings = getOpencodeProviderSettings(settings);
+        lastRefreshAt = Date.now();
+        lastRefreshCacheKey = buildOpencodeModelCatalogCacheKey(updatedSettings);
         const after = JSON.stringify(getOpencodeProviderSettings(settings).discoveredModels);
         return loaded && before !== after;
       } finally {
@@ -54,6 +90,15 @@ function createOpencodeModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalo
       }
     },
   };
+}
+
+function buildOpencodeModelCatalogCacheKey(settings: ReturnType<typeof getOpencodeProviderSettings>): string {
+  return JSON.stringify({
+    cliPath: settings.cliPath,
+    cliPathsByHost: settings.cliPathsByHost,
+    environmentHash: settings.environmentHash,
+    environmentVariables: settings.environmentVariables,
+  });
 }
 
 export async function createOpencodeWorkspaceServices(

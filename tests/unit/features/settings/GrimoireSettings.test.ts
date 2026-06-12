@@ -13,6 +13,7 @@ function collectText(el: any): string {
 
 function createSettingsPlugin(overrides: Record<string, any> = {}): any {
   return {
+    manifest: { version: '9.8.7-test' },
     settings: {
       ...DEFAULT_GRIMOIRE_SETTINGS,
       ...overrides,
@@ -41,6 +42,18 @@ describe('GrimoireSettingTab general tab settings', () => {
 
     expect(collectText(container)).not.toContain('Appearance theme');
     expect(container.querySelector('.grimoire-theme-card')).toBeNull();
+  });
+
+  it('renders the plugin version in settings', () => {
+    const plugin = createSettingsPlugin();
+    const app: any = { hotkeyManager: {} };
+    const tab = new GrimoireSettingTab(app, plugin);
+    (tab as any).containerEl = createMockEl('div');
+
+    tab.display();
+
+    const versionEl = (tab as any).containerEl.querySelector('.grimoire-settings-version');
+    expect(versionEl?.textContent).toBe('Grimoire v9.8.7-test');
   });
 
   it('renders the maximum chat tabs control in General and removes tab bar placement', () => {

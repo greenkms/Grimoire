@@ -27,34 +27,34 @@
   <sub>在笔记所在的同一个 Obsidian workspace 中，与本地 CLI 代理对话。</sub>
 </p>
 
-Grimoire 将 agentic CLI 助手带入 Obsidian。Claude Code、Codex、Gemini CLI 和 OpenCode 都在同一个侧边栏中运行：读取笔记、编辑文件、执行命令、调用工具，并把会话历史保存在真实的 vault 上下文中。Grimoire 不经过自家服务器：没有 telemetry、没有 hosted backend，也没有夹在你和 provider 之间的 proxy。
+Grimoire 将 agentic CLI 助手带入 Obsidian。Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy) 和 OpenCode 都在同一个侧边栏中运行：读取笔记、编辑文件、执行命令、调用工具，并把会话历史保存在真实的 vault 上下文中。Grimoire 不经过自家服务器：没有 telemetry、没有 hosted backend，也没有夹在你和 provider 之间的 proxy。
 
 它面向已经在 Obsidian 中工作的人：你可以使用本地上下文、本地文件、明确选择的 provider，并在界面里直接看到 usage 和 cost。
 
-> 英文 [README](../../README.md) 是项目的 canonical 文档。此简体中文版本与 `1.0.0` 首个 release 之后的文档保持同步。
+> 英文 [README](../../README.md) 是项目的 canonical 文档。此简体中文版本与 `1.0.10` 文档保持同步。
 
 ## 为什么选择 Grimoire
 
 - 在笔记里直接使用你已经信任的 CLI 代理。
-- 从 composer 切换 provider。Claude Code、Codex、Gemini CLI 和 OpenCode 共用一个 model picker。
+- 从 composer 切换 provider。Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy) 和 OpenCode 共用一个 model picker。
 - 让每一次 turn 都基于 vault 上下文。可以 mention 笔记、文件夹和 MCP tools，不需要手动复制路径。
 - 在选择模型的位置直接看到 cost 和 limits。
 - 保持 local-first。Grimoire 不收集 telemetry，不 proxy prompts，也不运行 backend。
 
 ## 各 provider 能做什么
 
-| 能力 | Claude Code | Codex | Gemini CLI | OpenCode |
-| --- | --- | --- | --- | --- |
-| 本地 persistent runtime | 是 | 是 | 是 | 是 |
-| 原生 history hydration | 是 | 是 | 是 | 是 |
-| Plan mode | 是 | 是 | 是 | 是 |
-| Image attachments | 是 | 是 | 是 | 是 |
-| Instruction mode | 是 | 是 | 是 | 是 |
-| Reasoning effort controls | 是 | 是 | 是 | 是 |
-| Rewind | 是 | 否 | 否 | 否 |
-| Fork | 是 | 是 | 否 | 否 |
-| Provider slash commands | 是 | 否 | 否 | 是 |
-| Grimoire-managed MCP UI | 是 | 否 | 否 | 否 |
+| 能力 | Claude Code | Codex | Antigravity CLI | Gemini CLI (Legacy) | OpenCode |
+| --- | --- | --- | --- | --- | --- |
+| 本地 persistent runtime | 是 | 是 | 否 | 是 | 是 |
+| 原生 history hydration | 是 | 是 | 否 | 是 | 是 |
+| Plan mode | 是 | 是 | 否 | 是 | 是 |
+| Image attachments | 是 | 是 | 否 | 是 | 是 |
+| Instruction mode | 是 | 是 | 否 | 是 | 是 |
+| Reasoning effort controls | 是 | 是 | 是 | 是 | 是 |
+| Rewind | 是 | 否 | 否 | 否 | 否 |
+| Fork | 是 | 是 | 否 | 否 | 否 |
+| Provider slash commands | 是 | 否 | 否 | 否 | 是 |
+| Grimoire-managed MCP UI | 是 | 否 | 否 | 否 | 否 |
 
 ## 安装
 
@@ -143,22 +143,30 @@ codex
 
 在 Grimoire 中，Codex 通过 app-server protocol 运行，支持 native history、fork、plan mode、image input 和 reasoning effort controls。当 Codex 报告 rate-limit metadata 时，plan usage 会显示出来。
 
-### Gemini CLI
+### Antigravity CLI
 
-选择 Gemini CLI 可以通过 ACP runtime 使用 Google Gemini models。
+Antigravity CLI 是 Google 推荐用于 consumer Gemini CLI 场景的替代工具。选择它即可使用 Google 的 multi-model agent CLI，包括 Gemini、Claude、GPT-OSS，以及你的 Antigravity account 可访问的其他模型系列。
 
 ```bash
-npm install -g @google/gemini-cli
+agy
+```
+
+从 Google 安装官方 Antigravity CLI，在本机完成认证，然后在 Grimoire 中启用 Antigravity。Grimoire 会从 PATH 自动检测 `agy`，你也可以在 provider settings 中设置 custom CLI path。
+
+- [Antigravity CLI](https://antigravity.google/product/antigravity-cli)
+- [Gemini CLI migration guide](https://goo.gle/gemini-cli-migration)
+
+在 Grimoire 中，Antigravity 是推荐的 Google provider。它通过 `agy --print` 运行，并可从 `agy models` 选择模型。在 Antigravity 暴露兼容的 runtime surface 之前，persistent sessions、native history、images、plan mode 和 auxiliary workflows 都保持关闭。
+
+### Gemini CLI (Legacy)
+
+Gemini CLI 作为 legacy provider 保留给 Gemini Code Assist Standard、Enterprise、Google Cloud 和 paid API-key users，前提是 Google 仍继续服务 Gemini CLI requests。Consumer Google AI Pro、Ultra 和 free-tier accounts 在 June 18, 2026 之后应使用 Antigravity。
+
+```bash
 gemini
 ```
 
-Gemini CLI 支持 Google login、Gemini API keys 和 Vertex AI，具体取决于你的设置。先完成认证，然后在 Grimoire 中启用它。
-
-- [Gemini CLI documentation](https://google-gemini.github.io/gemini-cli/docs/)
-- [Gemini CLI deployment](https://google-gemini.github.io/gemini-cli/docs/get-started/deployment.html)
-- [Gemini CLI authentication](https://google-gemini.github.io/gemini-cli/docs/get-started/authentication.html)
-
-在 Grimoire 中，Gemini 通过 ACP over stdio 运行，支持 persistent runtime、native history、plan mode、images 和 reasoning controls。Auxiliary workflows 目前保持最小。Daily quota 尚未接入，因此 Grimoire 只会在 Gemini 报告 cost 时显示它。
+只有当你的 account tier 仍受支持时才启用 Gemini CLI。Grimoire 通过 `gemini --acp` 运行它，并标记为 legacy，避免和推荐的 Google provider 混淆。
 
 ### OpenCode
 
@@ -193,7 +201,7 @@ Homebrew 和 Go installs 也可以。先在 OpenCode 中配置 provider credenti
 
 ### Model selector
 
-一个 picker，按 provider 分组，并按 label 排序：Claude Code、Codex、Gemini、OpenCode。Search 会匹配 labels、descriptions、groups 和 model IDs。Catalogs 会 lazy load，并记住你折叠过的 groups。你可以在 settings 中添加 custom aliases 和 context-window overrides。Claude 的 1M variants 是额外 options，不会替代 base models。
+一个 picker，按 provider 分组，并按 label 排序：Antigravity、Claude Code、Codex、Gemini CLI (Legacy)、OpenCode。Search 会匹配 labels、descriptions、groups 和 model IDs。Catalogs 会 lazy load，并记住你折叠过的 groups。你可以在 settings 中添加 custom aliases 和 context-window overrides。Claude 的 1M variants 是额外 options，不会替代 base models。
 
 <p align="center">
   <img src="../../assets/readme/model-selector-usage.png" alt="Grimoire model selector 显示 provider groups、model search 和 plan usage" width="100%">
@@ -207,7 +215,8 @@ Model selector 旁边的 badge 会持续显示当前 provider 的 usage；model 
 | --- | --- |
 | Claude Code | SDK rate-limit events、可选的 `.grimoire/claude/statusline-usage.json` 和 SDK result cost metadata |
 | Codex | Account rate-limit notifications，以及可用时的 `account/rateLimits/read` |
-| Gemini CLI | Gemini 报告时的 ACP cost metadata；daily quota 尚未接入 |
+| Antigravity CLI | `agy --print` 目前还不提供 |
+| Gemini CLI (Legacy) | Gemini CLI 返回时的 ACP cost metadata |
 | OpenCode | 从 ACP 和 session cost metadata 聚合的 monthly spend |
 
 ### Context 和 mentions
@@ -290,7 +299,7 @@ Obsidian 和 BRAT 会直接消费这些 release assets。使用 `main` 做 relea
 
 ## Roadmap
 
-目前 Grimoire 随 Claude Code、Codex、Gemini CLI 和 OpenCode 一起发布。
+目前 Grimoire 随 Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy) 和 OpenCode 一起发布。
 
 下一步计划：Qwen Code、GitHub Copilot CLI、其他 ACP-compatible providers，以及当 runtime 足够稳定可嵌入 Obsidian 时的 local model CLIs。Implementation notes 位于 [docs/provider-roadmap.md](../provider-roadmap.md)。
 

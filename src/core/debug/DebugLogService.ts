@@ -26,7 +26,7 @@ const SENSITIVE_KEY_PATTERN =
   /(authorization|bearer|body|clipboard|content|cookie|env|file|header|input|key|message|note|output|password|path|prompt|request|response|secret|selection|text|token|transcript)/i;
 
 const SAFE_STRING_KEY_PATTERN =
-  /^(account|code|errorCode|errorName|errorSummary|event|label|level|messageType|method|mode|model|phase|plan|provider|providerId|rateLimitInfoFields|rateLimitType|reason|reset|runtime|scope|source|state|status|usageKind|window|windowLabel)$/i;
+  /^(account|argsSummary|code|command|commandSource|cwdLabel|errorCode|errorName|errorSummary|event|homePresent|killSignal|label|launchMode|level|messageType|method|mode|model|pathEntryCount|pathHasLocalBin|phase|plan|promptLength|provider|providerId|rateLimitInfoFields|rateLimitType|reason|reset|runtime|scope|shellPresent|signal|source|state|status|stderrPreview|stdinMode|stdioMode|usageKind|window|windowLabel)$/i;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object' && !Array.isArray(value);

@@ -7,9 +7,10 @@ type MetadataOptions = {
 };
 
 const CHAT_PROVIDER_LABELS: Record<string, string> = {
+  antigravity: 'Antigravity',
   claude: 'Claude Code',
   codex: 'Codex',
-  gemini: 'Gemini',
+  gemini: 'Gemini CLI (Legacy)',
   opencode: 'OpenCode',
 };
 

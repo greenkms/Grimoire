@@ -1,6 +1,7 @@
 import type { App } from 'obsidian';
 import { Notice, Platform, PluginSettingTab, Setting } from 'obsidian';
 
+import { formatGrimoireVersion } from '../../app/version';
 import {
   getHiddenProviderCommands,
   normalizeHiddenCommandList,
@@ -18,6 +19,7 @@ import {
 import { getAvailableLocales, getLocaleDisplayName, setLocale, t } from '../../i18n/i18n';
 import type { Locale, TranslationKey } from '../../i18n/types';
 import type GrimoirePlugin from '../../main';
+import { getAntigravityProviderSettings, updateAntigravityProviderSettings } from '../../providers/antigravity/settings';
 import { getClaudeProviderSettings, updateClaudeProviderSettings } from '../../providers/claude/settings';
 import { getCodexProviderSettings, updateCodexProviderSettings } from '../../providers/codex/settings';
 import { getGeminiProviderSettings, updateGeminiProviderSettings } from '../../providers/gemini/settings';
@@ -132,9 +134,13 @@ const PROVIDER_SETTING_COPY: Record<ProviderId, { desc: string; name: string }> 
     desc: 'OpenAI\'s coding agent.',
     name: 'Codex',
   },
+  antigravity: {
+    desc: 'Google\'s new multi-model agent CLI. Recommended Google provider.',
+    name: 'Antigravity',
+  },
   gemini: {
-    desc: 'Google\'s CLI agent.',
-    name: 'Gemini',
+    desc: 'Legacy Gemini CLI for Standard, Enterprise, and paid API-key users.',
+    name: 'Gemini CLI (Legacy)',
   },
   opencode: {
     desc: 'Open-source, multi-vendor. Exposes the widest model catalog.',
@@ -165,6 +171,10 @@ export class GrimoireSettingTab extends PluginSettingTab {
     }
 
     const tabBar = containerEl.createDiv({ cls: 'grimoire-settings-tabs' });
+    containerEl.createDiv({
+      cls: 'grimoire-settings-version',
+      text: formatGrimoireVersion(this.plugin.manifest),
+    });
     const tabButtons = new Map<SettingsTabId, HTMLButtonElement>();
     const tabContents = new Map<SettingsTabId, HTMLDivElement>();
 
@@ -614,6 +624,9 @@ export class GrimoireSettingTab extends PluginSettingTab {
     this.renderProviderEnableRow(container, 'codex', getCodexProviderSettings(this.plugin.settings).enabled, async (enabled) => {
       await this.updateProviderEnabled('codex', enabled);
     });
+    this.renderProviderEnableRow(container, 'antigravity', getAntigravityProviderSettings(this.plugin.settings).enabled, async (enabled) => {
+      await this.updateProviderEnabled('antigravity', enabled);
+    });
     this.renderProviderEnableRow(container, 'gemini', getGeminiProviderSettings(this.plugin.settings).enabled, async (enabled) => {
       await this.updateProviderEnabled('gemini', enabled);
     });
@@ -628,6 +641,8 @@ export class GrimoireSettingTab extends PluginSettingTab {
       updateClaudeProviderSettings(this.plugin.settings, { enabled });
     } else if (providerId === 'codex') {
       updateCodexProviderSettings(this.plugin.settings, { enabled });
+    } else if (providerId === 'antigravity') {
+      updateAntigravityProviderSettings(this.plugin.settings, { enabled });
     } else if (providerId === 'gemini') {
       updateGeminiProviderSettings(this.plugin.settings, { enabled });
     } else if (providerId === 'opencode') {
@@ -637,9 +652,28 @@ export class GrimoireSettingTab extends PluginSettingTab {
     if (ProviderSettingsCoordinator.normalizeProviderSelection(this.plugin.settings)) {
       ProviderSettingsCoordinator.projectActiveProviderState(this.plugin.settings);
     }
+    if (enabled) {
+      await this.refreshProviderModelCatalog(providerId);
+    }
     await this.plugin.saveSettings();
     this.refreshModelSelectors();
     refreshSettingsTab(this);
+  }
+
+  private async refreshProviderModelCatalog(providerId: ProviderId): Promise<void> {
+    const catalog = ProviderWorkspaceRegistry.getModelCatalog(providerId);
+    if (!catalog || catalog.isAvailable?.(this.plugin.settings) === false) {
+      return;
+    }
+
+    try {
+      await catalog.refreshModels({
+        plugin: this.plugin,
+        settings: this.plugin.settings,
+      });
+    } catch (error) {
+      new Notice(error instanceof Error ? error.message : 'Could not load provider models.');
+    }
   }
 
   private renderProviderEnableRow(

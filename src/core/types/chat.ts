@@ -185,6 +185,7 @@ export type StreamChunk =
   | { type: 'assistant_message_start'; itemId?: string }
   | { type: 'text'; content: string }
   | { type: 'thinking'; content: string }
+  | { type: 'status'; content: string }
   | { type: 'tool_use'; id: string; name: string; input: Record<string, unknown> }
   | { type: 'tool_result'; id: string; content: string; isError?: boolean; toolUseResult?: SDKToolUseResult }
   | { type: 'tool_output'; id: string; content: string }

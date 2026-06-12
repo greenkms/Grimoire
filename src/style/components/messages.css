@@ -261,6 +261,10 @@
   background: var(--grimoire-provider-codex);
 }
 
+.grimoire-assistant-response-meta[data-provider="antigravity"] .grimoire-assistant-response-dot {
+  background: var(--grimoire-provider-antigravity);
+}
+
 .grimoire-assistant-response-meta[data-provider="gemini"] .grimoire-assistant-response-dot {
   background: var(--grimoire-provider-gemini);
 }

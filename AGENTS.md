@@ -1,6 +1,6 @@
 # Agent Instructions
 
-Grimoire is a private, pre-release Obsidian plugin that embeds agentic CLI assistants in a vault-native workspace. It is not a standalone CLI. The plugin shell must stay provider-neutral while provider adapters wrap external tools such as Claude Code, Codex, OpenCode, and Gemini CLI.
+Grimoire is a private, pre-release Obsidian plugin that embeds agentic CLI assistants in a vault-native workspace. It is not a standalone CLI. The plugin shell must stay provider-neutral while provider adapters wrap external tools such as Claude Code, Codex, OpenCode, and Antigravity CLI.
 
 Repository documentation and user-facing product copy should be in English unless the task explicitly targets localized UI text.
 
@@ -15,8 +15,8 @@ Repository documentation and user-facing product copy should be in English unles
 
 - `src/providers/claude/` - Claude Code SDK adapter and Claude-compatible vault files.
 - `src/providers/codex/` - Codex app-server adapter and Codex-owned workspace services.
+- `src/providers/antigravity/` - Antigravity CLI print-mode adapter and Google's official Gemini CLI replacement.
 - `src/providers/opencode/` - OpenCode ACP adapter and launch/workspace artifacts.
-- `src/providers/gemini/` - Gemini CLI ACP adapter.
 - `src/providers/acp/` - Shared ACP transport and normalization helpers.
 
 Read the nested `AGENTS.md` in a provider directory before changing provider-specific runtime, storage, history, settings, or UI behavior.

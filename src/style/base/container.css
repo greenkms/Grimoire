@@ -469,6 +469,14 @@
   padding: 0;
 }
 
+.grimoire-composer-version {
+  margin: 4px 2px 0;
+  color: var(--text-faint);
+  font-size: 10px;
+  line-height: 1.2;
+  text-align: right;
+}
+
 .grimoire-operational-panel {
   flex: 0 0 auto;
   min-height: 0;

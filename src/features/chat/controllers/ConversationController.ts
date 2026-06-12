@@ -873,8 +873,10 @@ export class ConversationController {
     switch (providerId) {
       case 'codex':
         return '#19c37d';
-      case 'gemini':
+      case 'antigravity':
         return '#5b8def';
+      case 'gemini':
+        return '#669df6';
       case 'opencode':
         return '#e0b341';
       case 'claude':

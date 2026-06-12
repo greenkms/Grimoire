@@ -175,6 +175,7 @@ export interface TabDOMElements {
   statusPanelContainerEl: HTMLElement;
 
   inputContainerEl: HTMLElement;
+  composerVersionEl: HTMLElement;
   queueIndicatorEl: HTMLElement;
   inputWrapper: HTMLElement;
   inputEl: HTMLTextAreaElement;

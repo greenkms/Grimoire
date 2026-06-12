@@ -27,32 +27,32 @@
   <sub>Chat with local CLI agents from the same Obsidian workspace where your notes live.</sub>
 </p>
 
-Grimoire brings agentic CLI assistants into Obsidian. Claude Code, Codex, Gemini CLI, and OpenCode all live in one side panel, where they read your notes, edit files, run commands, call tools, and keep session history against your real vault. Nothing routes through a Grimoire server. There's no telemetry, no hosted backend, and no proxy sitting in the middle.
+Grimoire brings agentic CLI assistants into Obsidian. Claude Code, Codex, Antigravity CLI, Gemini CLI (Legacy), and OpenCode all live in one side panel, where they read your notes, edit files, run commands, call tools, and keep session history against your real vault. Nothing routes through a Grimoire server. There's no telemetry, no hosted backend, and no proxy sitting in the middle.
 
 It's built for people who already work in Obsidian and want AI help that behaves like part of the vault: local context, local files, a provider you pick on purpose, and usage you can actually see.
 
 ## Why Grimoire
 
 - Use the CLI agents you already trust, right inside your notes.
-- Switch providers from the composer. Claude Code, Codex, Gemini CLI, and OpenCode share one model picker.
+- Switch providers from the composer. Claude Code, Codex, Antigravity CLI, legacy Gemini CLI, and OpenCode share one model picker.
 - Ground every turn in your vault. Mention notes, folders, and MCP tools instead of pasting paths by hand.
 - See cost and limits next to the model selector, where you're making the decision anyway.
 - Stay local-first. Grimoire doesn't collect telemetry, proxy prompts, or run a backend.
 
 ## What each provider can do
 
-| Capability | Claude Code | Codex | Gemini CLI | OpenCode |
-| --- | --- | --- | --- | --- |
-| Local persistent runtime | Yes | Yes | Yes | Yes |
-| Native history hydration | Yes | Yes | Yes | Yes |
-| Plan mode | Yes | Yes | Yes | Yes |
-| Image attachments | Yes | Yes | Yes | Yes |
-| Instruction mode | Yes | Yes | Yes | Yes |
-| Reasoning effort controls | Yes | Yes | Yes | Yes |
-| Rewind | Yes | No | No | No |
-| Fork | Yes | Yes | No | No |
-| Provider slash commands | Yes | No | No | Yes |
-| Grimoire-managed MCP UI | Yes | No | No | No |
+| Capability | Claude Code | Codex | Antigravity CLI | Gemini CLI (Legacy) | OpenCode |
+| --- | --- | --- | --- | --- | --- |
+| Local persistent runtime | Yes | Yes | No | Yes | Yes |
+| Native history hydration | Yes | Yes | No | Yes | Yes |
+| Plan mode | Yes | Yes | No | Yes | Yes |
+| Image attachments | Yes | Yes | No | Yes | Yes |
+| Instruction mode | Yes | Yes | No | Yes | Yes |
+| Reasoning effort controls | Yes | Yes | Yes | Yes | Yes |
+| Rewind | Yes | No | No | No | No |
+| Fork | Yes | Yes | No | No | No |
+| Provider slash commands | Yes | No | No | No | Yes |
+| Grimoire-managed MCP UI | Yes | No | No | No | No |
 
 ## Installation
 
@@ -141,22 +141,30 @@ You can also install it through the official Codex installer or Homebrew. Run it
 
 Inside Grimoire, Codex runs on its app-server protocol with native history, fork, plan mode, image input, and reasoning effort controls. Plan usage shows up when Codex reports rate-limit metadata.
 
-### Gemini CLI
+### Antigravity CLI
 
-Pick Gemini CLI for Google's Gemini models over its ACP runtime.
+Antigravity CLI is Google's recommended replacement for consumer Gemini CLI use. Pick it for Google's multi-model agent CLI, including Gemini, Claude, GPT-OSS, and other model families that your Antigravity account can access.
 
 ```bash
-npm install -g @google/gemini-cli
+agy
+```
+
+Install the official Antigravity CLI from Google, authenticate it locally, then enable Antigravity in Grimoire. Grimoire auto-detects `agy` from PATH, or you can set a custom CLI path in provider settings.
+
+- [Antigravity CLI](https://antigravity.google/product/antigravity-cli)
+- [Gemini CLI migration guide](https://goo.gle/gemini-cli-migration)
+
+Inside Grimoire, Antigravity is the recommended Google provider. It runs through `agy --print` with optional model selection from `agy models`. Persistent sessions, native history, images, plan mode, and auxiliary workflows stay disabled until Antigravity exposes a compatible runtime surface for them.
+
+### Gemini CLI (Legacy)
+
+Gemini CLI remains available as a legacy compatibility provider for Gemini Code Assist Standard, Enterprise, Google Cloud, and paid API-key users where Google continues serving Gemini CLI requests. Consumer Google AI Pro, Ultra, and free-tier accounts should use Antigravity instead after Google's June 18, 2026 transition.
+
+```bash
 gemini
 ```
 
-Gemini CLI supports Google login, Gemini API keys, and Vertex AI depending on your setup. Authenticate first, then enable it in Grimoire.
-
-- [Gemini CLI documentation](https://google-gemini.github.io/gemini-cli/docs/)
-- [Gemini CLI deployment](https://google-gemini.github.io/gemini-cli/docs/get-started/deployment.html)
-- [Gemini CLI authentication](https://google-gemini.github.io/gemini-cli/docs/get-started/authentication.html)
-
-Inside Grimoire, Gemini runs over ACP on stdio with a persistent runtime, native history, plan mode, images, and reasoning controls. Auxiliary workflows stay minimal for now. Daily quota isn't wired up yet, so Grimoire shows cost only when Gemini reports it.
+Enable Gemini CLI only if your account tier is still supported. Grimoire runs it through `gemini --acp`, keeps its model and mode discovery provider-owned, and labels it as legacy so it does not look like the recommended Google path.
 
 ### OpenCode
 
@@ -191,7 +199,7 @@ A focused side panel with multiple tabs. Each tab keeps its own draft, provider,
 
 ### Model selector
 
-One picker, grouped by provider and sorted by label: Claude Code, Codex, Gemini, OpenCode. Search runs across labels, descriptions, groups, and model IDs without resizing the menu while you filter. Catalogs load lazily and remember which groups you collapsed. Add custom aliases and context-window overrides in settings. Claude's 1M variants are extra options, not replacements for the base models.
+One picker, grouped by provider and sorted by label: Antigravity, Claude Code, Codex, Gemini CLI (Legacy), OpenCode. Search runs across labels, descriptions, groups, and model IDs without resizing the menu while you filter. Catalogs load lazily and remember which groups you collapsed. Add custom aliases and context-window overrides in settings. Claude's 1M variants are extra options, not replacements for the base models.
 
 <p align="center">
   <img src="assets/readme/model-selector-usage.png" alt="Grimoire model selector showing provider groups, model search, and plan usage" width="100%">
@@ -205,7 +213,8 @@ A badge next to the model selector keeps the active provider's usage in view, wi
 | --- | --- |
 | Claude Code | SDK rate-limit events, optional `.grimoire/claude/statusline-usage.json`, and SDK result cost metadata |
 | Codex | Account rate-limit notifications and `account/rateLimits/read` when available |
-| Gemini CLI | ACP cost metadata when Gemini reports it; daily quota isn't wired up yet |
+| Antigravity CLI | Not available from `agy --print` yet |
+| Gemini CLI (Legacy) | ACP cost metadata when Gemini CLI reports it |
 | OpenCode | Monthly spend aggregated from ACP and session cost metadata |
 
 ### Context and mentions
@@ -292,7 +301,7 @@ Obsidian and BRAT consume those release assets directly. Use `main` for releasab
 
 ## Roadmap
 
-Today Grimoire ships with Claude Code, Codex, Gemini CLI, and OpenCode.
+Today Grimoire ships with Claude Code, Codex, Antigravity CLI, Gemini CLI (Legacy), and OpenCode.
 
 Next on the list: Qwen Code, GitHub Copilot CLI, other ACP-compatible providers, and local model CLIs once their runtime is stable enough to embed in Obsidian. Implementation notes live in [docs/provider-roadmap.md](docs/provider-roadmap.md).
 
