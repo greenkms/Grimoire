@@ -38,12 +38,15 @@
   --grimoire-brand-claude-rgb: 217, 119, 87;
   --grimoire-brand-codex: #19c37d;
   --grimoire-brand-codex-rgb: 25, 195, 125;
-  --grimoire-brand-gemini: #5b8def;
-  --grimoire-brand-gemini-rgb: 91, 141, 239;
+  --grimoire-brand-antigravity: #5b8def;
+  --grimoire-brand-antigravity-rgb: 91, 141, 239;
+  --grimoire-brand-gemini: #669df6;
+  --grimoire-brand-gemini-rgb: 102, 157, 246;
   --grimoire-brand-opencode: #e0b341;
   --grimoire-brand-opencode-rgb: 224, 179, 65;
   --grimoire-provider-claude: var(--grimoire-brand-claude);
   --grimoire-provider-codex: var(--grimoire-brand-codex);
+  --grimoire-provider-antigravity: var(--grimoire-brand-antigravity);
   --grimoire-provider-gemini: var(--grimoire-brand-gemini);
   --grimoire-provider-opencode: var(--grimoire-brand-opencode);
   --grimoire-error: var(--color-red);
@@ -526,6 +529,14 @@
   padding: 0;
 }
 
+.grimoire-composer-version {
+  margin: 4px 2px 0;
+  color: var(--text-faint);
+  font-size: 10px;
+  line-height: 1.2;
+  text-align: right;
+}
+
 .grimoire-operational-panel {
   flex: 0 0 auto;
   min-height: 0;
@@ -789,8 +800,12 @@ body.theme-dark .grimoire-provider-icon-variant--dark {
   --grimoire-ok: var(--grimoire-provider-codex, #19c37d);
 }
 
+.grimoire-tab-badge-streaming[data-provider="antigravity"] {
+  --grimoire-ok: var(--grimoire-provider-antigravity, #5b8def);
+}
+
 .grimoire-tab-badge-streaming[data-provider="gemini"] {
-  --grimoire-ok: var(--grimoire-provider-gemini, #5b8def);
+  --grimoire-ok: var(--grimoire-provider-gemini, #669df6);
 }
 
 .grimoire-tab-badge-streaming[data-provider="opencode"] {
@@ -1510,6 +1525,10 @@ body.theme-dark .grimoire-provider-icon-variant--dark {
 
 .grimoire-assistant-response-meta[data-provider="codex"] .grimoire-assistant-response-dot {
   background: var(--grimoire-provider-codex);
+}
+
+.grimoire-assistant-response-meta[data-provider="antigravity"] .grimoire-assistant-response-dot {
+  background: var(--grimoire-provider-antigravity);
 }
 
 .grimoire-assistant-response-meta[data-provider="gemini"] .grimoire-assistant-response-dot {
@@ -4148,8 +4167,13 @@ body.grimoire-dragging-ns {
   color: var(--grimoire-provider-codex, #19c37d);
 }
 
-.grimoire-model-group-section--gemini .grimoire-model-group-provider-icon {
-  color: var(--grimoire-provider-gemini, #5b8def);
+.grimoire-model-group-section--antigravity .grimoire-model-group-provider-icon {
+  color: var(--grimoire-provider-antigravity, #5b8def);
+}
+
+.grimoire-model-group-section--gemini .grimoire-model-group-provider-icon,
+.grimoire-model-group-section--gemini-cli-legacy .grimoire-model-group-provider-icon {
+  color: var(--grimoire-provider-gemini, #669df6);
 }
 
 .grimoire-model-group-section--opencode .grimoire-model-group-provider-icon,
@@ -7805,7 +7829,8 @@ code .grimoire-file-link:hover {
   /* Provider identity hues */
   --gs-dot-claude: #d97757;
   --gs-dot-codex: #19c37d;
-  --gs-dot-gemini: #5b8def;
+  --gs-dot-antigravity: #5b8def;
+  --gs-dot-gemini: #669df6;
   --gs-dot-opencode: #e0b341;
 }
 
@@ -7821,9 +7846,17 @@ code .grimoire-file-link:hover {
 .grimoire-settings-tabs {
   display: flex;
   gap: 4px;
-  margin-bottom: 8px;
+  margin-bottom: 2px;
   padding: 0 2px;
   border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.grimoire-settings-version {
+  margin: 0 2px 10px;
+  color: var(--text-faint);
+  font-size: 11px;
+  line-height: 1.3;
+  text-align: right;
 }
 
 .grimoire-settings-tab {
@@ -8105,6 +8138,10 @@ code .grimoire-file-link:hover {
 
 .grimoire-provider-row--codex {
   --gs-provider-dot: var(--gs-dot-codex);
+}
+
+.grimoire-provider-row--antigravity {
+  --gs-provider-dot: var(--gs-dot-antigravity);
 }
 
 .grimoire-provider-row--gemini {
