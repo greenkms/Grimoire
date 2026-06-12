@@ -4,7 +4,6 @@
   "description": "Local-first AI agents for Obsidian: Claude Code, Codex, Gemini CLI, and OpenCode in a vault-native side panel.",
   "main": "main.js",
   "scripts": {
-    "postinstall": "node scripts/postinstall.mjs",
     "prebuild": "npm run lint",
     "build:css": "node scripts/build-css.mjs",
     "dev": "npm run build:css && node esbuild.config.mjs",

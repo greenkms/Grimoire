@@ -80,6 +80,8 @@ npm audit --omit=dev
 
 Fix production dependency advisories when an upstream-compatible update is available. If a warning remains because it comes from an embedded provider SDK or required runtime behavior, document the reason in `DISCLOSURES.md` rather than leaving it unexplained.
 
+Dependency changes use npm as the canonical package manager. Keep `package-lock.json` current with `package.json`; do not add secondary package-manager lockfiles unless the repository intentionally changes its install, CI, and release workflow.
+
 ## Testing Rules
 
 - Tests mirror `src/` under `tests/unit/` and `tests/integration/`.

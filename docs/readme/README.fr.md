@@ -280,6 +280,8 @@ npm run build:release
 
 `npm run build:release` rafraîchit le generated `main.js`, le root `styles.css` et `dist/grimoire`.
 
+npm est le canonical package manager pour development, CI et releases. Gardez `package-lock.json` à jour lorsque les dependencies changent ; les secondary package-manager lockfiles ne sont volontairement pas commit.
+
 ## Releases
 
 Les releases Grimoire sont publiées depuis des semver tags comme `1.0.0`. Le release workflow lance le local gate, build l'Obsidian bundle, vérifie que le tag correspond à `package.json` et `manifest.json`, puis attache `main.js`, `manifest.json` et `styles.css` à la GitHub Release.

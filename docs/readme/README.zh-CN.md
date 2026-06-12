@@ -280,6 +280,8 @@ npm run build:release
 
 `npm run build:release` 会刷新 generated `main.js`、root `styles.css` 和 `dist/grimoire`。
 
+npm 是 development、CI 和 releases 的 canonical package manager。dependencies 变化时，请保持 `package-lock.json` 最新；secondary package-manager lockfiles 有意不提交。
+
 ## Releases
 
 Grimoire releases 通过 semver tags 发布，例如 `1.0.0`。Release workflow 会运行 local gate，构建 Obsidian bundle，验证 tag 与 `package.json` 和 `manifest.json` 匹配，然后将 `main.js`、`manifest.json` 和 `styles.css` 附加到 GitHub Release。
