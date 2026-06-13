@@ -58,30 +58,30 @@ It's built for people who already work in Obsidian and want AI help that behaves
 
 Grimoire is a desktop plugin. It drives your provider CLIs locally, so there's no mobile build.
 
-### With BRAT
+### From Community plugins (recommended)
 
-BRAT can install Grimoire from GitHub Releases and keep it updated from tagged builds:
+Install Grimoire from the Obsidian community plugin directory:
 
-1. Install the "Obsidian42 - BRAT" plugin.
-2. In BRAT, add a beta plugin from `sandsaber/Grimoire`.
-3. Enable Grimoire.
+1. Open Settings, go to Community plugins, and turn off Restricted mode if it's on.
+2. Click Browse, search for Grimoire, and install it.
+3. Enable Grimoire, then open its panel from the ribbon or the command palette.
 
 ### From GitHub Releases
 
-Install the current release manually if you don't use BRAT:
+Install the current release manually if you can't use Community plugins:
 
 1. Download `main.js`, `manifest.json`, and `styles.css` from the latest [Grimoire release](https://github.com/sandsaber/Grimoire/releases/latest).
 2. Create `/path/to/your/vault/.obsidian/plugins/grimoire`.
 3. Put all three files in that folder.
 4. Enable Grimoire from Settings, Community plugins.
 
-### From Community plugins (in progress)
+### With BRAT
 
-Once Grimoire is listed in the Obsidian community plugin directory:
+BRAT can install Grimoire from GitHub Releases if you want to track tagged builds outside the community directory:
 
-1. Open Settings, go to Community plugins, and turn off Restricted mode if it's on.
-2. Click Browse, search for Grimoire, and install it.
-3. Enable Grimoire, then open its panel from the ribbon or the command palette.
+1. Install the "Obsidian42 - BRAT" plugin.
+2. In BRAT, add a beta plugin from `sandsaber/Grimoire`.
+3. Enable Grimoire.
 
 ### From source (developers)
 
@@ -299,7 +299,7 @@ npm is the canonical package manager for development, CI, and releases. Keep `pa
 
 Grimoire releases are published from semver tags such as `1.0.0`. The release workflow runs the local gate, builds the Obsidian bundle, verifies that the tag matches `package.json` and `manifest.json`, then attaches `main.js`, `manifest.json`, and `styles.css` to the GitHub Release.
 
-Obsidian and BRAT consume those release assets directly. Use `main` for releasable development, then publish by tagging the version that matches the manifest.
+Obsidian Community plugins are the recommended user install path. GitHub Releases still carry the bundle assets for manual installs and BRAT. Use `main` for releasable development, then publish by tagging the version that matches the manifest.
 
 ## Roadmap
 

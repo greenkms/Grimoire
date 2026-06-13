@@ -60,30 +60,30 @@ Grimoire は、すでに Obsidian で作業している人のために作られ�
 
 Grimoire は desktop plugin です。Provider CLIs をローカルで実行するため、mobile build はありません。
 
-### BRAT でインストール
+### Community plugins からインストール（推奨）
 
-BRAT は GitHub Releases から Grimoire をインストールし、tagged builds に追従できます。
+Obsidian community plugin directory から Grimoire をインストールしてください。
 
-1. "Obsidian42 - BRAT" plugin をインストールします。
-2. BRAT で `sandsaber/Grimoire` から beta plugin を追加します。
-3. Grimoire を有効化します。
+1. Settings を開き、Community plugins に移動し、必要なら Restricted mode をオフにします。
+2. Browse をクリックし、Grimoire を検索してインストールします。
+3. Grimoire を有効化し、ribbon または command palette からパネルを開きます。
 
 ### GitHub Releases からインストール
 
-BRAT を使わない場合は、現在の release を手動でインストールできます。
+Community plugins を使えない場合は、現在の release を手動でインストールできます。
 
 1. 最新の [Grimoire release](https://github.com/sandsaber/Grimoire/releases/latest) から `main.js`、`manifest.json`、`styles.css` をダウンロードします。
 2. `/path/to/your/vault/.obsidian/plugins/grimoire` を作成します。
 3. 3 つのファイルをそのフォルダに入れます。
 4. Settings, Community plugins から Grimoire を有効化します。
 
-### Community plugins からインストール（準備中）
+### BRAT でインストール
 
-Grimoire が Obsidian community plugin directory に掲載されたら、次の手順でインストールできます。
+Community directory の外で tagged builds を追跡したい場合、BRAT は GitHub Releases から Grimoire をインストールできます。
 
-1. Settings を開き、Community plugins に移動し、必要なら Restricted mode をオフにします。
-2. Browse をクリックし、Grimoire を検索してインストールします。
-3. Grimoire を有効化し、ribbon または command palette からパネルを開きます。
+1. "Obsidian42 - BRAT" plugin をインストールします。
+2. BRAT で `sandsaber/Grimoire` から beta plugin を追加します。
+3. Grimoire を有効化します。
 
 ### ソースからインストール
 
@@ -295,7 +295,7 @@ npm は development、CI、releases の canonical package manager です。depen
 
 Grimoire releases は `1.0.0` のような semver tags から publish されます。Release workflow は local gate を実行し、Obsidian bundle を build し、tag が `package.json` と `manifest.json` に一致することを検証し、`main.js`、`manifest.json`、`styles.css` を GitHub Release に attach します。
 
-Obsidian と BRAT はそれらの release assets を直接 consume します。`main` を releasable development に使い、manifest version と一致する tag で publish します。
+Obsidian Community plugins が推奨されるユーザー向けインストール方法です。GitHub Releases には、manual install と BRAT 向けの bundle assets を引き続き添付します。`main` を releasable development に使い、manifest version と一致する tag で publish します。
 
 ## Roadmap
 

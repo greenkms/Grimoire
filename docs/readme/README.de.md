@@ -60,30 +60,30 @@ Grimoire ist für Menschen gebaut, die bereits in Obsidian arbeiten und AI-Hilfe
 
 Grimoire ist ein Desktop-Plugin. Es steuert deine provider CLIs lokal, daher gibt es keinen mobile build.
 
-### Mit BRAT
+### Über Community plugins (empfohlen)
 
-BRAT kann Grimoire aus GitHub Releases installieren und über tagged builds aktuell halten:
+Installiere Grimoire aus dem Obsidian community plugin directory:
 
-1. Installiere das Plugin "Obsidian42 - BRAT".
-2. Füge in BRAT ein beta plugin aus `sandsaber/Grimoire` hinzu.
-3. Aktiviere Grimoire.
+1. Öffne Settings, gehe zu Community plugins und deaktiviere Restricted mode, falls er aktiv ist.
+2. Klicke Browse, suche Grimoire und installiere es.
+3. Aktiviere Grimoire und öffne das Panel über ribbon oder command palette.
 
 ### Aus GitHub Releases
 
-Wenn du BRAT nicht nutzt, kannst du das aktuelle Release manuell installieren:
+Wenn du Community plugins nicht nutzen kannst, kannst du das aktuelle Release manuell installieren:
 
 1. Lade `main.js`, `manifest.json` und `styles.css` aus dem neuesten [Grimoire release](https://github.com/sandsaber/Grimoire/releases/latest) herunter.
 2. Erstelle `/path/to/your/vault/.obsidian/plugins/grimoire`.
 3. Lege alle drei Dateien in diesen Ordner.
 4. Aktiviere Grimoire in Settings, Community plugins.
 
-### Über Community plugins (in Arbeit)
+### Mit BRAT
 
-Sobald Grimoire im Obsidian community plugin directory gelistet ist:
+BRAT kann Grimoire aus GitHub Releases installieren, wenn du tagged builds außerhalb des community directory verfolgen möchtest:
 
-1. Öffne Settings, gehe zu Community plugins und deaktiviere Restricted mode, falls er aktiv ist.
-2. Klicke Browse, suche Grimoire und installiere es.
-3. Aktiviere Grimoire und öffne das Panel über ribbon oder command palette.
+1. Installiere das Plugin "Obsidian42 - BRAT".
+2. Füge in BRAT ein beta plugin aus `sandsaber/Grimoire` hinzu.
+3. Aktiviere Grimoire.
 
 ### Aus dem Source
 
@@ -295,7 +295,7 @@ npm ist der canonical package manager für development, CI und releases. Halte `
 
 Grimoire releases werden aus semver tags wie `1.0.0` veröffentlicht. Der release workflow führt das local gate aus, baut das Obsidian bundle, prüft, dass der tag zu `package.json` und `manifest.json` passt, und hängt `main.js`, `manifest.json` und `styles.css` an das GitHub Release.
 
-Obsidian und BRAT nutzen diese release assets direkt. Verwende `main` für releasable development und veröffentliche dann per tag, der zur manifest version passt.
+Obsidian Community plugins sind der empfohlene Installationsweg für Nutzer. GitHub Releases enthalten weiterhin die bundle assets für manuelle Installationen und BRAT. Verwende `main` für releasable development und veröffentliche dann per tag, der zur manifest version passt.
 
 ## Roadmap
 

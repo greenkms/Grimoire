@@ -60,30 +60,30 @@ Grimoire сделан для тех, кто уже работает в Obsidian 
 
 Grimoire — desktop plugin. Он запускает provider CLIs локально, поэтому mobile build нет.
 
-### Через BRAT
+### Через Community plugins (рекомендуется)
 
-BRAT может установить Grimoire из GitHub Releases и обновлять его по tagged builds:
+Установите Grimoire из каталога community plugins Obsidian:
 
-1. Установите плагин "Obsidian42 - BRAT".
-2. В BRAT добавьте beta plugin из `sandsaber/Grimoire`.
-3. Включите Grimoire.
+1. Откройте Settings, перейдите в Community plugins и выключите Restricted mode, если он включён.
+2. Нажмите Browse, найдите Grimoire и установите его.
+3. Включите Grimoire, затем откройте панель через ribbon или command palette.
 
 ### Через GitHub Releases
 
-Если вы не используете BRAT, установите текущий релиз вручную:
+Если Community plugins недоступны, установите текущий релиз вручную:
 
 1. Скачайте `main.js`, `manifest.json` и `styles.css` из последнего [релиза Grimoire](https://github.com/sandsaber/Grimoire/releases/latest).
 2. Создайте папку `/path/to/your/vault/.obsidian/plugins/grimoire`.
 3. Положите все три файла в эту папку.
 4. Включите Grimoire в Settings, Community plugins.
 
-### Через Community plugins (в процессе)
+### Через BRAT
 
-Когда Grimoire появится в каталоге community plugins Obsidian:
+BRAT может установить Grimoire из GitHub Releases, если вы хотите отслеживать tagged builds вне каталога community plugins:
 
-1. Откройте Settings, перейдите в Community plugins и выключите Restricted mode, если он включён.
-2. Нажмите Browse, найдите Grimoire и установите его.
-3. Включите Grimoire, затем откройте панель через ribbon или command palette.
+1. Установите плагин "Obsidian42 - BRAT".
+2. В BRAT добавьте beta plugin из `sandsaber/Grimoire`.
+3. Включите Grimoire.
 
 ### Из исходников
 
@@ -297,7 +297,7 @@ npm — canonical package manager для development, CI и releases. При и�
 
 Релизы Grimoire публикуются из semver tags вроде `1.0.0`. Release workflow запускает local gate, собирает Obsidian bundle, проверяет, что tag совпадает с `package.json` и `manifest.json`, затем прикрепляет `main.js`, `manifest.json` и `styles.css` к GitHub Release.
 
-Obsidian и BRAT используют эти release assets напрямую. Используйте `main` для releasable development, затем публикуйте релиз тегом, совпадающим с версией manifest.
+Obsidian Community plugins — рекомендуемый способ установки для пользователей. GitHub Releases по-прежнему содержат bundle assets для ручной установки и BRAT. Используйте `main` для releasable development, затем публикуйте релиз тегом, совпадающим с версией manifest.
 
 ## Roadmap
 

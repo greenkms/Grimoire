@@ -60,30 +60,30 @@ Grimoire 将 agentic CLI 助手带入 Obsidian。Claude Code、Codex、Antigravi
 
 Grimoire 是桌面端插件。它会在本地驱动你的 provider CLIs，因此没有 mobile build。
 
-### 使用 BRAT
+### 使用 Community plugins（推荐）
 
-BRAT 可以从 GitHub Releases 安装 Grimoire，并通过 tagged builds 保持更新：
+请从 Obsidian community plugin directory 安装 Grimoire：
 
-1. 安装 "Obsidian42 - BRAT" 插件。
-2. 在 BRAT 中添加来自 `sandsaber/Grimoire` 的 beta plugin。
-3. 启用 Grimoire。
+1. 打开 Settings，进入 Community plugins，如有需要先关闭 Restricted mode。
+2. 点击 Browse，搜索 Grimoire 并安装。
+3. 启用 Grimoire，然后通过 ribbon 或 command palette 打开面板。
 
 ### 使用 GitHub Releases
 
-如果不使用 BRAT，可以手动安装当前 release：
+如果无法使用 Community plugins，可以手动安装当前 release：
 
 1. 从最新的 [Grimoire release](https://github.com/sandsaber/Grimoire/releases/latest) 下载 `main.js`、`manifest.json` 和 `styles.css`。
 2. 创建 `/path/to/your/vault/.obsidian/plugins/grimoire`。
 3. 将三个文件都放入该文件夹。
 4. 在 Settings, Community plugins 中启用 Grimoire。
 
-### 使用 Community plugins（进行中）
+### 使用 BRAT
 
-当 Grimoire 被列入 Obsidian community plugin directory 后：
+如果你想在 community directory 之外跟踪 tagged builds，BRAT 可以从 GitHub Releases 安装 Grimoire：
 
-1. 打开 Settings，进入 Community plugins，如有需要先关闭 Restricted mode。
-2. 点击 Browse，搜索 Grimoire 并安装。
-3. 启用 Grimoire，然后通过 ribbon 或 command palette 打开面板。
+1. 安装 "Obsidian42 - BRAT" 插件。
+2. 在 BRAT 中添加来自 `sandsaber/Grimoire` 的 beta plugin。
+3. 启用 Grimoire。
 
 ### 从源代码安装
 
@@ -295,7 +295,7 @@ npm 是 development、CI 和 releases 的 canonical package manager。dependenci
 
 Grimoire releases 通过 semver tags 发布，例如 `1.0.0`。Release workflow 会运行 local gate，构建 Obsidian bundle，验证 tag 与 `package.json` 和 `manifest.json` 匹配，然后将 `main.js`、`manifest.json` 和 `styles.css` 附加到 GitHub Release。
 
-Obsidian 和 BRAT 会直接消费这些 release assets。使用 `main` 做 releasable development，然后通过与 manifest version 匹配的 tag 发布。
+Obsidian Community plugins 是推荐的用户安装方式。GitHub Releases 仍然提供用于手动安装和 BRAT 的 bundle assets。使用 `main` 做 releasable development，然后通过与 manifest version 匹配的 tag 发布。
 
 ## Roadmap
 
