@@ -110,6 +110,12 @@ cp dist/grimoire/main.js dist/grimoire/manifest.json dist/grimoire/styles.css \
   <img src="../../assets/readme/settings-providers.png" alt="Настройки Grimoire с provider toggles, tabs и appearance themes" width="100%">
 </p>
 
+### Рекомендуемые провайдеры
+
+Для лучшего опыта в Grimoire начните с Claude Code, Codex или OpenCode. Сейчас эти провайдеры дают самый сильный runtime surface для vault-native работы: persistent sessions, history hydration, plan-oriented workflows, tool activity и богатые model controls.
+
+Antigravity CLI и Gemini CLI (Legacy) остаются доступными, особенно для Google accounts и compatibility-сценариев, но сегодня внутри Grimoire они более ограничены: их текущие CLI surfaces отдают меньше session, tool, approval и streaming metadata.
+
 ### Claude Code
 
 Выбирайте Claude Code, если вам нужны native project memory, slash commands, MCP configuration, plans, rewind/fork и работа через Claude subscription или API key.

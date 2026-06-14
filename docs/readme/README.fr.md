@@ -110,6 +110,12 @@ Activez les providers voulus dans Settings, Grimoire, Providers, et ils apparaî
   <img src="../../assets/readme/settings-providers.png" alt="Settings Grimoire avec provider toggles, tabs et appearance themes" width="100%">
 </p>
 
+### Providers recommandés
+
+Pour la meilleure expérience Grimoire, commencez avec Claude Code, Codex ou OpenCode. Ces providers exposent aujourd'hui les runtime surfaces les plus solides pour le travail vault-native : persistent sessions, history hydration, plan-oriented workflows, tool activity et model controls riches.
+
+Antigravity CLI et Gemini CLI (Legacy) restent disponibles, surtout pour les Google accounts et les cas de compatibility, mais ils sont plus limités dans Grimoire aujourd'hui parce que leurs CLI surfaces actuelles exposent moins de session, tool, approval et streaming metadata.
+
 ### Claude Code
 
 Choisissez Claude Code si vous voulez sa native project memory, ses slash commands, sa MCP configuration, ses plans, rewind/fork, avec votre Claude subscription ou API key.

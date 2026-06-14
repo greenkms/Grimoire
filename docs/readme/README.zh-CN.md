@@ -110,6 +110,12 @@ cp dist/grimoire/main.js dist/grimoire/manifest.json dist/grimoire/styles.css \
   <img src="../../assets/readme/settings-providers.png" alt="Grimoire 设置中的 provider toggles、provider tabs 和 appearance themes" width="100%">
 </p>
 
+### 推荐 providers
+
+为了获得最好的 Grimoire 体验，建议先从 Claude Code、Codex 或 OpenCode 开始。这些 providers 目前为 vault-native 工作提供最强的 runtime surface：persistent sessions、history hydration、plan-oriented workflows、tool activity，以及更丰富的 model controls。
+
+Antigravity CLI 和 Gemini CLI (Legacy) 仍然可用，尤其适合 Google accounts 和 compatibility 场景，但它们现在在 Grimoire 中更受限制，因为当前 CLI surfaces 暴露的 session、tool、approval 和 streaming metadata 更少。
+
 ### Claude Code
 
 如果你需要 Claude 的 native project memory、slash commands、MCP configuration、plans、rewind/fork，并希望通过 Claude subscription 或 API key 工作，可以选择 Claude Code。
