@@ -82,6 +82,8 @@ export interface StreamControllerDeps {
   onOrchestratorPlanDetected?: (containerEl: HTMLElement, plan: OrchestratorPlan) => void;
   /** Notify orchestration state that this worker tab finished. */
   onWorkerDone?: (result: string, isError: boolean) => void;
+  /** Observe provider tool calls that may load files into runtime context. */
+  recordRuntimeToolCall?: (toolCall: ToolCallInfo) => void;
 }
 
 export class StreamController {
@@ -350,6 +352,7 @@ export class StreamController {
           }
         }
         // If still pending, the updated input is already in the toolCall object
+        this.deps.recordRuntimeToolCall?.(existingToolCall);
       }
       return;
     }
@@ -364,6 +367,7 @@ export class StreamController {
     };
     msg.toolCalls = msg.toolCalls || [];
     msg.toolCalls.push(toolCall);
+    this.deps.recordRuntimeToolCall?.(toolCall);
 
     // Add to contentBlocks for ordering
     msg.contentBlocks = msg.contentBlocks || [];
@@ -723,6 +727,7 @@ export class StreamController {
         existingToolCall.status = 'completed';
       }
       existingToolCall.result = normalizedContent;
+      this.deps.recordRuntimeToolCall?.(existingToolCall);
 
       if (existingToolCall.name === TOOL_ASK_USER_QUESTION) {
         const answers =

@@ -55,6 +55,7 @@ import { BangBashService } from '../services/BangBashService';
 import { SubagentManager } from '../services/SubagentManager';
 import { ChatState } from '../state/ChatState';
 import { BangBashModeManager as BangBashModeManagerClass } from '../ui/BangBashModeManager';
+import { RuntimeContextActivityView } from '../ui/context/RuntimeContextActivity';
 import { FileContextManager } from '../ui/FileContext';
 import { ImageContextManager } from '../ui/ImageContext';
 import { createInputResizeHandle } from '../ui/inputResizeHandle';
@@ -1040,6 +1041,7 @@ export function createTab(options: TabCreateOptions): TabData {
       instructionModeManager: null,
       bangBashModeManager: null,
       contextUsageMeter: null,
+      runtimeContextActivity: null,
       statusPanel: null,
       navigationSidebar: null,
       relevantNotesView: null,
@@ -1138,6 +1140,7 @@ function buildTabDOM(contentEl: HTMLElement, versionText: string): TabDOMElement
   contextHeaderEl.createSpan({ text: 'Context memory · tab' });
   const contextSummaryEl = contextRailEl.createDiv({ cls: 'grimoire-context-summary' });
   const contextMemoryEl = contextRailEl.createDiv({ cls: 'grimoire-context-memory-panel grimoire-hidden' });
+  const contextRuntimeEl = contextRailEl.createDiv({ cls: 'grimoire-context-runtime-panel grimoire-hidden' });
 
   const composerSurfaceEl = workbenchGridEl.createDiv({ cls: 'grimoire-composer-surface grimoire-composer' });
   const scrollResumeButtonEl = composerSurfaceEl.createEl('button', {
@@ -1198,6 +1201,7 @@ function buildTabDOM(contentEl: HTMLElement, versionText: string): TabDOMElement
     workbenchGridEl,
     contextRailEl,
     contextMemoryEl,
+    contextRuntimeEl,
     contextSummaryEl,
     chatStageEl,
     chatScrollEl,
@@ -1948,6 +1952,7 @@ function initializeInputToolbar(
       shownCountEl: dom.sourceShownCountEl,
     },
   );
+  tab.ui.runtimeContextActivity = new RuntimeContextActivityView(dom.contextRuntimeEl);
 
   tab.ui.mcpServerSelector.setMcpManager(getProviderMcpManager(getTabProviderId(tab, plugin)));
 
@@ -2326,6 +2331,9 @@ export function initializeTabControllers(
     getFileContextManager: () => ui.fileContextManager,
     updateQueueIndicator: () => tab.controllers.inputController?.updateQueueIndicator(),
     getAgentService: () => tab.service,
+    recordRuntimeToolCall: (toolCall) => {
+      tab.ui.runtimeContextActivity?.recordToolCall(getTabProviderId(tab, plugin), toolCall);
+    },
   });
 
   // Wire subagent callback now that StreamController exists
@@ -2365,6 +2373,7 @@ export function initializeTabControllers(
       getAgentService: () => tab.service, // Use tab's service instead of plugin's
       getOrchestratorMode: () => tab.orchestratorMode,
       dismissPendingInlinePrompts: () => tab.controllers.inputController?.dismissPendingApproval(),
+      clearRuntimeContextActivity: () => tab.ui.runtimeContextActivity?.clear(),
       ensureServiceForConversation: async (conversation) => {
         const nextProviderId = getTabProviderId(tab, plugin, conversation);
         const providerChanged = tab.providerId !== nextProviderId;

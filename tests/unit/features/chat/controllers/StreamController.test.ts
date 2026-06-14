@@ -549,6 +549,7 @@ describe('StreamController - Text Content', () => {
     it('should record tool_use and add to content blocks', async () => {
       const msg = createTestMessage();
       deps.state.currentContentEl = createMockEl();
+      deps.recordRuntimeToolCall = jest.fn();
 
       await controller.handleStreamChunk(
         { type: 'tool_use', id: 'tool-1', name: 'Read', input: { file_path: 'notes/test.md' } },
@@ -560,10 +561,12 @@ describe('StreamController - Text Content', () => {
       expect(msg.toolCalls![0].status).toBe('running');
       expect(msg.contentBlocks).toHaveLength(1);
       expect(msg.contentBlocks![0]).toEqual({ type: 'tool_use', toolId: 'tool-1' });
+      expect(deps.recordRuntimeToolCall).toHaveBeenCalledWith(msg.toolCalls![0]);
     });
 
     it('should update tool_result status', async () => {
       const msg = createTestMessage();
+      deps.recordRuntimeToolCall = jest.fn();
       msg.toolCalls = [
         {
           id: 'tool-1',

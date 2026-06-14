@@ -18,6 +18,7 @@ import type { MessageRenderer } from '../rendering/MessageRenderer';
 import type { SubagentManager } from '../services/SubagentManager';
 import type { ChatState } from '../state/ChatState';
 import type { BangBashModeManager } from '../ui/BangBashModeManager';
+import type { RuntimeContextActivityView } from '../ui/context/RuntimeContextActivity';
 import type { FileContextManager } from '../ui/FileContext';
 import type { ImageContextManager } from '../ui/ImageContext';
 import type {
@@ -126,6 +127,7 @@ export interface TabUIComponents {
   instructionModeManager: InstructionModeManager | null;
   bangBashModeManager: BangBashModeManager | null;
   contextUsageMeter: ContextUsageMeter | null;
+  runtimeContextActivity: RuntimeContextActivityView | null;
   statusPanel: StatusPanel | null;
   navigationSidebar: NavigationSidebar | null;
   relevantNotesView: RelevantNotesView | null;
@@ -141,6 +143,7 @@ export interface TabDOMElements {
   workbenchGridEl: HTMLElement;
   contextRailEl: HTMLElement;
   contextMemoryEl: HTMLElement;
+  contextRuntimeEl: HTMLElement;
   contextSummaryEl: HTMLElement;
   chatStageEl: HTMLElement;
   chatScrollEl: HTMLElement;

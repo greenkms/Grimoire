@@ -89796,7 +89796,7 @@ var ConversationController = class {
    * first message is sent. This prevents empty conversations cluttering history.
    */
   async createNew(options = {}) {
-    var _a7, _b4, _c3, _d3, _e3, _f3, _g2, _h2, _i3, _j2, _k2;
+    var _a7, _b4, _c3, _d3, _e3, _f3, _g2, _h2, _i3, _j2, _k2, _l3, _m2;
     const { plugin, state, subagentManager } = this.deps;
     const force = !!options.force;
     if (state.isStreaming && !force) return;
@@ -89843,16 +89843,17 @@ var ConversationController = class {
       this.deps.setWelcomeEl(welcomeEl);
       (_f3 = this.deps.getStatusPanel()) == null ? void 0 : _f3.remount();
       this.deps.getInputEl().value = "";
+      (_h2 = (_g2 = this.deps).clearRuntimeContextActivity) == null ? void 0 : _h2.call(_g2);
       const fileCtx = this.deps.getFileContextManager();
       fileCtx == null ? void 0 : fileCtx.resetForNewConversation();
       fileCtx == null ? void 0 : fileCtx.autoAttachActiveFile();
-      (_g2 = this.deps.getImageContextManager()) == null ? void 0 : _g2.clearImages();
-      (_h2 = this.deps.getMcpServerSelector()) == null ? void 0 : _h2.clearEnabled();
-      (_i3 = this.deps.getExternalContextSelector()) == null ? void 0 : _i3.clearExternalContexts(
+      (_i3 = this.deps.getImageContextManager()) == null ? void 0 : _i3.clearImages();
+      (_j2 = this.deps.getMcpServerSelector()) == null ? void 0 : _j2.clearEnabled();
+      (_k2 = this.deps.getExternalContextSelector()) == null ? void 0 : _k2.clearExternalContexts(
         plugin.settings.persistentExternalContextPaths || []
       );
       this.deps.clearQueuedMessage();
-      (_k2 = (_j2 = this.callbacks).onNewConversation) == null ? void 0 : _k2.call(_j2);
+      (_m2 = (_l3 = this.callbacks).onNewConversation) == null ? void 0 : _m2.call(_l3);
     } finally {
       state.isCreatingConversation = false;
     }
@@ -89864,7 +89865,7 @@ var ConversationController = class {
    * creating a conversation. Conversation is created lazily on first message.
    */
   async loadActive() {
-    var _a7, _b4, _c3, _d3, _e3, _f3, _g2, _h2, _i3, _j2;
+    var _a7, _b4, _c3, _d3, _e3, _f3, _g2, _h2, _i3, _j2, _k2, _l3;
     const { plugin, state, renderer } = this.deps;
     const conversationId = state.currentConversationId;
     const conversation = conversationId ? await plugin.getConversationById(conversationId) : null;
@@ -89885,23 +89886,24 @@ var ConversationController = class {
       const fileCtx = this.deps.getFileContextManager();
       fileCtx == null ? void 0 : fileCtx.resetForNewConversation();
       fileCtx == null ? void 0 : fileCtx.autoAttachActiveFile();
-      (_c3 = this.deps.getExternalContextSelector()) == null ? void 0 : _c3.clearExternalContexts(
+      (_d3 = (_c3 = this.deps).clearRuntimeContextActivity) == null ? void 0 : _d3.call(_c3);
+      (_e3 = this.deps.getExternalContextSelector()) == null ? void 0 : _e3.clearExternalContexts(
         plugin.settings.persistentExternalContextPaths || []
       );
-      (_d3 = this.deps.getMcpServerSelector()) == null ? void 0 : _d3.clearEnabled();
+      (_f3 = this.deps.getMcpServerSelector()) == null ? void 0 : _f3.clearEnabled();
       const welcomeEl = renderer.renderMessages(
         [],
         () => this.getGreeting()
       );
       this.deps.setWelcomeEl(welcomeEl);
       this.updateWelcomeVisibility();
-      (_f3 = (_e3 = this.callbacks).onConversationLoaded) == null ? void 0 : _f3.call(_e3);
+      (_h2 = (_g2 = this.callbacks).onConversationLoaded) == null ? void 0 : _h2.call(_g2);
       return;
     }
-    await ((_h2 = (_g2 = this.deps).ensureServiceForConversation) == null ? void 0 : _h2.call(_g2, conversation));
+    await ((_j2 = (_i3 = this.deps).ensureServiceForConversation) == null ? void 0 : _j2.call(_i3, conversation));
     this.restoreConversation(conversation, { autoAttachFile: true });
     this.updateWelcomeVisibility();
-    (_j2 = (_i3 = this.callbacks).onConversationLoaded) == null ? void 0 : _j2.call(_i3);
+    (_l3 = (_k2 = this.callbacks).onConversationLoaded) == null ? void 0 : _l3.call(_k2);
   }
   /** Switches to a different conversation. */
   async switchTo(id2) {
@@ -90104,7 +90106,7 @@ var ConversationController = class {
    * Used by both loadActive() and switchTo() to avoid duplication.
    */
   restoreConversation(conversation, options) {
-    var _a7, _b4, _c3;
+    var _a7, _b4, _c3, _d3, _e3;
     const { plugin, state, renderer } = this.deps;
     state.currentConversationId = conversation.id;
     state.messages = [...conversation.messages];
@@ -90112,9 +90114,10 @@ var ConversationController = class {
     state.autoScrollEnabled = (_b4 = plugin.settings.enableAutoScroll) != null ? _b4 : true;
     state.hasPendingConversationSave = false;
     state.currentTodos = null;
+    (_d3 = (_c3 = this.deps).clearRuntimeContextActivity) == null ? void 0 : _d3.call(_c3);
     const hasMessages = state.messages.length > 0;
     const externalContextPaths = hasMessages ? conversation.externalContextPaths || [] : plugin.settings.persistentExternalContextPaths || [];
-    (_c3 = this.getAgentService()) == null ? void 0 : _c3.syncConversationState(conversation, externalContextPaths);
+    (_e3 = this.getAgentService()) == null ? void 0 : _e3.syncConversationState(conversation, externalContextPaths);
     const fileCtx = this.deps.getFileContextManager();
     fileCtx == null ? void 0 : fileCtx.resetForLoadedConversation(hasMessages);
     if (conversation.currentNote) {
@@ -108134,7 +108137,7 @@ var _StreamController = class _StreamController {
    * Tools are rendered when flushPendingTools is called (on next content type or tool_result).
    */
   handleRegularToolUse(chunk, msg) {
-    var _a7, _b4, _c3;
+    var _a7, _b4, _c3, _d3, _e3, _f3, _g2;
     const { state } = this.deps;
     const existingToolCall = (_a7 = msg.toolCalls) == null ? void 0 : _a7.find((tc2) => tc2.id === chunk.id);
     if (existingToolCall) {
@@ -108161,6 +108164,7 @@ var _StreamController = class _StreamController {
             summaryEl.setText(getToolSummary(existingToolCall.name, existingToolCall.input));
           }
         }
+        (_e3 = (_d3 = this.deps).recordRuntimeToolCall) == null ? void 0 : _e3.call(_d3, existingToolCall);
       }
       return;
     }
@@ -108173,6 +108177,7 @@ var _StreamController = class _StreamController {
     };
     msg.toolCalls = msg.toolCalls || [];
     msg.toolCalls.push(toolCall);
+    (_g2 = (_f3 = this.deps).recordRuntimeToolCall) == null ? void 0 : _g2.call(_f3, toolCall);
     msg.contentBlocks = msg.contentBlocks || [];
     msg.contentBlocks.push({ type: "tool_use", toolId: chunk.id });
     if (chunk.name === TOOL_TODO_WRITE) {
@@ -108400,7 +108405,7 @@ var _StreamController = class _StreamController {
     return false;
   }
   async handleToolResult(chunk, msg) {
-    var _a7, _b4;
+    var _a7, _b4, _c3, _d3;
     const { state, subagentManager } = this.deps;
     const normalizedContent = this.normalizeToolResultContent(chunk.content);
     if (subagentManager.hasPendingTask(chunk.id)) {
@@ -108437,8 +108442,9 @@ var _StreamController = class _StreamController {
         existingToolCall.status = "completed";
       }
       existingToolCall.result = normalizedContent;
+      (_c3 = (_b4 = this.deps).recordRuntimeToolCall) == null ? void 0 : _c3.call(_b4, existingToolCall);
       if (existingToolCall.name === TOOL_ASK_USER_QUESTION) {
-        const answers = (_b4 = extractResolvedAnswers(chunk.toolUseResult)) != null ? _b4 : extractResolvedAnswersFromResultText(normalizedContent);
+        const answers = (_d3 = extractResolvedAnswers(chunk.toolUseResult)) != null ? _d3 : extractResolvedAnswersFromResultText(normalizedContent);
         if (answers) existingToolCall.resolvedAnswers = answers;
       }
       const writeEditState = state.writeEditStates.get(chunk.id);
@@ -111712,6 +111718,165 @@ var BangBashModeManager = class {
   }
 };
 
+// src/features/chat/ui/context/RuntimeContextActivity.ts
+function normalizeStatus(status) {
+  if (status === "completed") return "loaded";
+  if (status === "error" || status === "blocked") return "failed";
+  return "loading";
+}
+function getStringInput(input, ...keys) {
+  for (const key of keys) {
+    const value = input[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+  return "";
+}
+function normalizeDisplayPath(path26) {
+  return path26.trim().replace(/\\/g, "/");
+}
+function stripShellQuotes(value) {
+  const trimmed = value.trim();
+  if (trimmed.startsWith('"') && trimmed.endsWith('"') || trimmed.startsWith("'") && trimmed.endsWith("'")) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+}
+function extractMarkdownPathFromShell(command) {
+  var _a7, _b4;
+  const readSegment = command.split(/\s*(?:&&|;)\s*/u).map((segment) => segment.trim()).find((segment) => /^(?:cat|sed|nl)\b/.test(segment));
+  if (!readSegment) return null;
+  const markdownPathMatch = readSegment.match(/(["'])([^"']+\.md)\1|([^\s"'`;&|]+\.md)/u);
+  const rawPath = (_b4 = (_a7 = markdownPathMatch == null ? void 0 : markdownPathMatch[2]) != null ? _a7 : markdownPathMatch == null ? void 0 : markdownPathMatch[3]) != null ? _b4 : "";
+  const path26 = stripShellQuotes(rawPath);
+  return path26 ? normalizeDisplayPath(path26) : null;
+}
+function extractRuntimeContextLoadEvent(options) {
+  const { providerId, toolCall } = options;
+  if (toolCall.name === TOOL_READ) {
+    const path26 = getStringInput(toolCall.input, "file_path", "filepath", "path");
+    if (!path26) {
+      return null;
+    }
+    return {
+      id: toolCall.id,
+      path: normalizeDisplayPath(path26),
+      providerId,
+      method: "read note",
+      status: normalizeStatus(toolCall.status)
+    };
+  }
+  if (toolCall.name === TOOL_BASH) {
+    const command = getStringInput(toolCall.input, "command");
+    const path26 = command ? extractMarkdownPathFromShell(command) : null;
+    if (!path26) {
+      return null;
+    }
+    return {
+      id: toolCall.id,
+      path: path26,
+      providerId,
+      method: "shell",
+      status: normalizeStatus(toolCall.status)
+    };
+  }
+  return null;
+}
+var RuntimeContextActivityState = class {
+  constructor() {
+    this.entriesByPath = /* @__PURE__ */ new Map();
+  }
+  record(event) {
+    const key = normalizeDisplayPath(event.path).toLowerCase();
+    this.entriesByPath.set(key, {
+      ...event,
+      path: normalizeDisplayPath(event.path)
+    });
+  }
+  getEntries() {
+    return [...this.entriesByPath.values()];
+  }
+  clear() {
+    this.entriesByPath.clear();
+  }
+};
+function getFileName(path26) {
+  return normalizeDisplayPath(path26).split("/").pop() || path26;
+}
+function getProviderLabel(providerId) {
+  switch (providerId) {
+    case "claude":
+      return "Claude";
+    case "codex":
+      return "Codex";
+    case "opencode":
+      return "OpenCode";
+    case "antigravity":
+      return "Antigravity";
+    case "gemini":
+      return "Gemini";
+    default:
+      return providerId;
+  }
+}
+var RuntimeContextActivityView = class {
+  constructor(containerEl) {
+    this.containerEl = containerEl;
+    this.state = new RuntimeContextActivityState();
+    this.render();
+  }
+  recordToolCall(providerId, toolCall) {
+    const event = extractRuntimeContextLoadEvent({ providerId, toolCall });
+    if (!event) {
+      return;
+    }
+    this.state.record(event);
+    this.render();
+  }
+  clear() {
+    this.state.clear();
+    this.render();
+  }
+  getEntries() {
+    return this.state.getEntries();
+  }
+  render() {
+    this.containerEl.empty();
+    const entries = this.state.getEntries();
+    this.containerEl.classList.toggle("grimoire-hidden", entries.length === 0);
+    if (entries.length === 0) {
+      return;
+    }
+    const section = this.containerEl.createDiv({
+      cls: "grimoire-context-section grimoire-context-loaded-files"
+    });
+    section.createDiv({
+      cls: "grimoire-context-section-title",
+      text: "Loaded this session"
+    });
+    for (const entry of entries) {
+      const row = section.createDiv({ cls: "grimoire-context-file-row grimoire-context-loaded-row" });
+      const body = row.createDiv({ cls: "grimoire-context-file-body" });
+      body.createDiv({ cls: "grimoire-context-file-title", text: getFileName(entry.path) });
+      body.createDiv({ cls: "grimoire-context-file-path", text: entry.path });
+      const meta3 = row.createDiv({ cls: "grimoire-context-file-meta" });
+      meta3.createSpan({
+        cls: "grimoire-context-file-badge",
+        text: getProviderLabel(entry.providerId)
+      });
+      meta3.createSpan({
+        cls: `grimoire-context-file-status grimoire-context-file-status-${entry.status}`,
+        text: entry.status
+      });
+      meta3.createSpan({
+        cls: "grimoire-context-file-method",
+        text: entry.method
+      });
+    }
+  }
+};
+
 // src/features/chat/ui/FileContext.ts
 var import_obsidian39 = require("obsidian");
 
@@ -113166,7 +113331,7 @@ var FileContextManager = class {
     if (!this.contextMemoryEl) {
       return;
     }
-    this.contextMemoryEl.replaceChildren();
+    this.contextMemoryEl.empty();
     this.contextMemoryEl.classList.add("grimoire-hidden");
     const attachedFiles = Array.from(this.state.getAttachedFiles()).filter((filePath) => filePath !== this.currentNotePath);
     if (attachedFiles.length === 0) {
@@ -113181,7 +113346,7 @@ var FileContextManager = class {
     attachedSection.appendChild(this.createMemoryText(
       "div",
       "grimoire-context-section-title",
-      "Attached files"
+      "Pinned context"
     ));
     for (const filePath of attachedFiles) {
       attachedSection.appendChild(this.createNoteMemoryCard(filePath, "Attached"));
@@ -113189,10 +113354,11 @@ var FileContextManager = class {
     this.contextMemoryEl.appendChild(attachedSection);
   }
   createNoteMemoryCard(filePath, badge) {
-    const card = this.createMemoryText("button", "grimoire-note-memory-card", "");
-    card.type = "button";
+    const card = this.createMemoryText("div", "grimoire-context-file-row grimoire-note-memory-card", "");
     card.title = filePath;
-    card.addEventListener("click", () => {
+    card.setAttribute("role", "button");
+    card.setAttribute("tabindex", "0");
+    const openFile = () => {
       void (async () => {
         const file2 = this.app.vault.getAbstractFileByPath(filePath);
         if (!(file2 instanceof import_obsidian39.TFile)) {
@@ -113205,12 +113371,20 @@ var FileContextManager = class {
           new import_obsidian39.Notice(`Failed to open file: ${error48 instanceof Error ? error48.message : String(error48)}`);
         }
       })();
+    };
+    card.addEventListener("click", openFile);
+    card.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      openFile();
     });
     const normalizedPath = filePath.replace(/\\/g, "/");
     const filename = normalizedPath.split("/").pop() || filePath;
-    card.appendChild(this.createMemoryText("strong", "grimoire-note-memory-title", filename));
-    card.appendChild(this.createMemoryText("span", "grimoire-note-memory-path", filePath));
-    card.appendChild(this.createMemoryText("span", "grimoire-note-memory-badge", badge));
+    const body = this.createMemoryText("span", "grimoire-context-file-body", "");
+    body.appendChild(this.createMemoryText("strong", "grimoire-context-file-title grimoire-note-memory-title", filename));
+    body.appendChild(this.createMemoryText("span", "grimoire-context-file-path grimoire-note-memory-path", filePath));
+    card.appendChild(body);
+    card.appendChild(this.createMemoryText("span", "grimoire-context-file-badge grimoire-note-memory-badge", badge.toLowerCase()));
     return card;
   }
   createMemoryText(tagName, className, text) {
@@ -116934,6 +117108,7 @@ function createTab(options) {
       instructionModeManager: null,
       bangBashModeManager: null,
       contextUsageMeter: null,
+      runtimeContextActivity: null,
       statusPanel: null,
       navigationSidebar: null,
       relevantNotesView: null
@@ -117020,6 +117195,7 @@ function buildTabDOM(contentEl, versionText) {
   contextHeaderEl.createSpan({ text: "Context memory \xB7 tab" });
   const contextSummaryEl = contextRailEl.createDiv({ cls: "grimoire-context-summary" });
   const contextMemoryEl = contextRailEl.createDiv({ cls: "grimoire-context-memory-panel grimoire-hidden" });
+  const contextRuntimeEl = contextRailEl.createDiv({ cls: "grimoire-context-runtime-panel grimoire-hidden" });
   const composerSurfaceEl = workbenchGridEl.createDiv({ cls: "grimoire-composer-surface grimoire-composer" });
   const scrollResumeButtonEl = composerSurfaceEl.createEl("button", {
     cls: "grimoire-scroll-resume-btn grimoire-hidden",
@@ -117077,6 +117253,7 @@ function buildTabDOM(contentEl, versionText) {
     workbenchGridEl,
     contextRailEl,
     contextMemoryEl,
+    contextRuntimeEl,
     contextSummaryEl,
     chatStageEl,
     chatScrollEl,
@@ -117705,6 +117882,7 @@ function initializeInputToolbar(tab, plugin, getProviderCatalogConfig, onProvide
       shownCountEl: dom.sourceShownCountEl
     }
   );
+  tab.ui.runtimeContextActivity = new RuntimeContextActivityView(dom.contextRuntimeEl);
   tab.ui.mcpServerSelector.setMcpManager(getProviderMcpManager(getTabProviderId(tab, plugin)));
   (_b4 = tab.ui.fileContextManager) == null ? void 0 : _b4.setOnMcpMentionChange((servers) => {
     var _a8;
@@ -117945,7 +118123,11 @@ function initializeTabControllers(tab, plugin, component, arg4, arg5, arg6, arg7
       var _a7;
       return (_a7 = tab.controllers.inputController) == null ? void 0 : _a7.updateQueueIndicator();
     },
-    getAgentService: () => tab.service
+    getAgentService: () => tab.service,
+    recordRuntimeToolCall: (toolCall) => {
+      var _a7;
+      (_a7 = tab.ui.runtimeContextActivity) == null ? void 0 : _a7.recordToolCall(getTabProviderId(tab, plugin), toolCall);
+    }
   });
   services.subagentManager.setCallback(
     (subagent) => {
@@ -117987,6 +118169,10 @@ function initializeTabControllers(tab, plugin, component, arg4, arg5, arg6, arg7
       dismissPendingInlinePrompts: () => {
         var _a7;
         return (_a7 = tab.controllers.inputController) == null ? void 0 : _a7.dismissPendingApproval();
+      },
+      clearRuntimeContextActivity: () => {
+        var _a7;
+        return (_a7 = tab.ui.runtimeContextActivity) == null ? void 0 : _a7.clear();
       },
       ensureServiceForConversation: async (conversation) => {
         var _a7;

@@ -290,7 +290,7 @@ export class FileContextManager {
       return;
     }
 
-    this.contextMemoryEl.replaceChildren();
+    this.contextMemoryEl.empty();
     this.contextMemoryEl.classList.add('grimoire-hidden');
 
     const attachedFiles = Array.from(this.state.getAttachedFiles())
@@ -309,7 +309,7 @@ export class FileContextManager {
     attachedSection.appendChild(this.createMemoryText(
       'div',
       'grimoire-context-section-title',
-      'Attached files',
+      'Pinned context',
     ));
 
     for (const filePath of attachedFiles) {
@@ -319,10 +319,12 @@ export class FileContextManager {
   }
 
   private createNoteMemoryCard(filePath: string, badge: string): HTMLElement {
-    const card = this.createMemoryText('button', 'grimoire-note-memory-card', '');
-    card.type = 'button';
+    const card = this.createMemoryText('div', 'grimoire-context-file-row grimoire-note-memory-card', '');
     card.title = filePath;
-    card.addEventListener('click', () => {
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+
+    const openFile = () => {
       void (async (): Promise<void> => {
         const file = this.app.vault.getAbstractFileByPath(filePath);
         if (!(file instanceof TFile)) {
@@ -335,13 +337,22 @@ export class FileContextManager {
           new Notice(`Failed to open file: ${error instanceof Error ? error.message : String(error)}`);
         }
       })();
+    };
+
+    card.addEventListener('click', openFile);
+    card.addEventListener('keydown', (event: KeyboardEvent) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      openFile();
     });
 
     const normalizedPath = filePath.replace(/\\/g, '/');
     const filename = normalizedPath.split('/').pop() || filePath;
-    card.appendChild(this.createMemoryText('strong', 'grimoire-note-memory-title', filename));
-    card.appendChild(this.createMemoryText('span', 'grimoire-note-memory-path', filePath));
-    card.appendChild(this.createMemoryText('span', 'grimoire-note-memory-badge', badge));
+    const body = this.createMemoryText('span', 'grimoire-context-file-body', '');
+    body.appendChild(this.createMemoryText('strong', 'grimoire-context-file-title grimoire-note-memory-title', filename));
+    body.appendChild(this.createMemoryText('span', 'grimoire-context-file-path grimoire-note-memory-path', filePath));
+    card.appendChild(body);
+    card.appendChild(this.createMemoryText('span', 'grimoire-context-file-badge grimoire-note-memory-badge', badge.toLowerCase()));
     return card;
   }
 

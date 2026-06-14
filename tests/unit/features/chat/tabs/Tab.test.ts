@@ -633,6 +633,7 @@ describe('Tab - Creation', () => {
       expect(tab.dom.chatStageEl.hasClass('grimoire-chat-panel')).toBe(true);
       expect(tab.dom.sourceRailEl.hasClass('grimoire-sources-panel')).toBe(true);
       expect(tab.dom.contextMemoryEl.hasClass('grimoire-context-memory-panel')).toBe(true);
+      expect(tab.dom.contextRuntimeEl.hasClass('grimoire-context-runtime-panel')).toBe(true);
       expect(tab.dom.sourceCardsEl.hasClass('grimoire-source-card-stack')).toBe(true);
       expect(tab.dom.composerSurfaceEl.contains(tab.dom.inputContainerEl)).toBe(true);
       expect(tab.dom.composerSurfaceEl.contains(tab.dom.composerVersionEl)).toBe(true);
@@ -1945,6 +1946,7 @@ describe('Tab - UI Initialization', () => {
       expect(tab.ui.thinkingBudgetSelector).toBeDefined();
       expect(tab.ui.contextUsageMeter).toBeDefined();
       expect(tab.ui.externalContextSelector).toBeDefined();
+      expect(tab.ui.runtimeContextActivity).toBeDefined();
       expect(tab.ui.mcpServerSelector).toBeDefined();
       expect(tab.ui.permissionToggle).toBeDefined();
     });

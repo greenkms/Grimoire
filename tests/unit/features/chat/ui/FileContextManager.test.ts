@@ -275,6 +275,41 @@ describe('FileContextManager', () => {
     manager.destroy();
   });
 
+  it('renders attached files as wrapped context rows with separate title and path', () => {
+    const contextMemoryEl = createMockEl();
+    const app = createMockApp({
+      files: ['Книги/Book/Черновик/Арка 1/Глава 3 — Вариант A.md'],
+    });
+    const manager = new FileContextManager(
+      app,
+      containerEl as any,
+      inputEl,
+      createMockCallbacks(),
+      undefined,
+      contextMemoryEl as any,
+    );
+
+    inputEl.value = '@Вариант';
+    inputEl.selectionStart = 8;
+    inputEl.selectionEnd = 8;
+    manager.handleInputChange();
+    jest.advanceTimersByTime(200);
+    manager.handleMentionKeydown({ key: 'Enter', preventDefault: jest.fn() } as any);
+
+    const row = findByClass(contextMemoryEl, 'grimoire-context-file-row');
+    const title = findByClass(contextMemoryEl, 'grimoire-context-file-title');
+    const path = findByClass(contextMemoryEl, 'grimoire-context-file-path');
+
+    expect(row).toBeDefined();
+    expect(row?.tagName).toBe('DIV');
+    expect(row?.getAttribute('role')).toBe('button');
+    expect(row?.getAttribute('tabindex')).toBe('0');
+    expect(title?.textContent).toBe('Глава 3 — Вариант A.md');
+    expect(path?.textContent).toBe('Книги/Book/Черновик/Арка 1/Глава 3 — Вариант A.md');
+
+    manager.destroy();
+  });
+
   it('wires getCachedVaultFolders through VaultFolderCache.getFolders', () => {
     const folder = { name: 'src', path: 'src' } as any;
     const getFoldersSpy = jest

@@ -202,3 +202,119 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.grimoire-context-memory-panel,
+.grimoire-context-runtime-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.grimoire-context-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.grimoire-context-section-title {
+  color: var(--text-normal);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.grimoire-context-file-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+  min-width: 0;
+  padding: 8px 0;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--background-modifier-border);
+  color: var(--text-normal);
+  text-align: left;
+  font: inherit;
+}
+
+.grimoire-note-memory-card {
+  cursor: pointer;
+}
+
+.grimoire-note-memory-card:hover {
+  color: var(--text-normal);
+  background: transparent;
+}
+
+.grimoire-note-memory-card:hover .grimoire-context-file-title {
+  color: var(--text-accent);
+}
+
+.grimoire-note-memory-card:focus-visible {
+  outline: 1px solid var(--interactive-accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.grimoire-context-file-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.grimoire-container--chat-window .grimoire-context-file-title,
+.grimoire-container--chat-window .grimoire-context-file-path {
+  min-width: 0;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.grimoire-context-file-title {
+  color: var(--text-normal);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.grimoire-context-file-path {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.grimoire-context-file-badge,
+.grimoire-context-file-status,
+.grimoire-context-file-method {
+  flex-shrink: 0;
+  border-radius: 4px;
+  padding: 2px 6px;
+  background: var(--background-modifier-hover);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.grimoire-context-file-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+  max-width: 45%;
+}
+
+.grimoire-context-file-status-loaded {
+  color: var(--color-green);
+}
+
+.grimoire-context-file-status-failed {
+  color: var(--text-error);
+}

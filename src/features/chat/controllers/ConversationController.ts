@@ -51,6 +51,7 @@ export interface ConversationControllerDeps {
   getOrchestratorMode?: () => boolean;
   ensureServiceForConversation?: (conversation: Conversation | null) => Promise<void>;
   dismissPendingInlinePrompts?: () => void;
+  clearRuntimeContextActivity?: () => void;
 }
 
 type SaveOptions = {
@@ -157,6 +158,7 @@ export class ConversationController {
       this.deps.getStatusPanel()?.remount();
 
       this.deps.getInputEl().value = '';
+      this.deps.clearRuntimeContextActivity?.();
 
       const fileCtx = this.deps.getFileContextManager();
       fileCtx?.resetForNewConversation();
@@ -209,6 +211,7 @@ export class ConversationController {
       const fileCtx = this.deps.getFileContextManager();
       fileCtx?.resetForNewConversation();
       fileCtx?.autoAttachActiveFile();
+      this.deps.clearRuntimeContextActivity?.();
 
       // Initialize external contexts with persistent paths from settings
       this.deps.getExternalContextSelector()?.clearExternalContexts(
@@ -499,6 +502,7 @@ export class ConversationController {
 
     // Clear status panels (auto-hide: panels reappear when agent creates new todos)
     state.currentTodos = null;
+    this.deps.clearRuntimeContextActivity?.();
 
     const hasMessages = state.messages.length > 0;
 
