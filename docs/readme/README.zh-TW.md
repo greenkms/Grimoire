@@ -115,14 +115,13 @@ cp dist/grimoire/main.js dist/grimoire/manifest.json dist/grimoire/styles.css \
 如果你需要 Claude 的 native project memory、slash commands、MCP configuration、plans、rewind/fork，並希望透過 Claude subscription 或 API key 工作，可以選擇 Claude Code。
 
 ```bash
-npm install -g @anthropic-ai/claude-code
+curl -fsSL https://claude.ai/install.sh | bash
 claude
 ```
 
-先透過 Claude Code 完成認證，然後在 Grimoire 中啟用它。
+先透過 Claude Code 完成認證，然後在 Grimoire 中啟用它。舊的 npm package 已 deprecated；請使用上面的 native installer、Homebrew (`brew install --cask claude-code`)、WinGet，或 official quickstart 中的其他選項。
 
-- [Claude Code getting started](https://code.claude.com/docs/en/getting-started)
-- [Claude Code CLI reference](https://code.claude.com/docs/en/cli-usage)
+- [Claude Code quickstart](https://code.claude.com/docs/en/quickstart)
 
 在 Grimoire 中，Claude Code 會讀取並保留你的 `.claude/` 檔案，執行在 Claude Code SDK 上，並支援 slash commands、MCP settings、agents、skills、plans、rewind 和 fork。當 Claude 同時回報 quota 和 cost 時，你會並排看到 quota windows 和 API spend。
 
@@ -143,14 +142,13 @@ claude
 Codex 是首次啟動時的預設 provider。選擇它可以在本地 CLI 中使用 OpenAI Codex，並透過 ChatGPT plan 或 API key 登入。
 
 ```bash
-npm install -g @openai/codex
+curl -fsSL https://chatgpt.com/codex/install.sh | sh
 codex
 ```
 
-你也可以透過官方 Codex installer 或 Homebrew 安裝。先執行一次並登入，然後在 Grimoire 中啟用。
+先執行一次 Codex 並登入，然後在 Grimoire 中啟用。Standalone installer 現在是 primary install path；Windows、Homebrew 和 fallback package-manager options 請參考官方 Codex CLI 文件。
 
-- [Codex CLI README](https://github.com/openai/codex/blob/main/README.md)
-- [Codex getting started](https://github.com/openai/codex/blob/main/docs/getting-started.md)
+- [Codex CLI setup](https://developers.openai.com/codex/cli)
 - [OpenAI code generation guide](https://developers.openai.com/api/docs/guides/code-generation)
 
 在 Grimoire 中，Codex 透過 app-server protocol 執行，支援 native history、fork、plan mode、image input 和 reasoning effort controls。當 Codex 回報 rate-limit metadata 時，plan usage 會顯示出來。
@@ -185,13 +183,13 @@ gemini
 如果你想使用自帶 provider configuration 的 model-agnostic agent，可以選擇 OpenCode。
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/opencode-ai/opencode/refs/heads/main/install | bash
+curl -fsSL https://opencode.ai/install | bash
 opencode
 ```
 
-Homebrew 和 Go installs 也可以。先在 OpenCode 中設定 provider credentials，然後在 Grimoire 中啟用。
+Homebrew、npm、bun 和 package-manager installs 也可以。先在 OpenCode 中設定 provider credentials，然後在 Grimoire 中啟用。
 
-- [OpenCode GitHub repository](https://github.com/opencode-ai/opencode)
+- [OpenCode download](https://opencode.ai/download)
 - [OpenCode provider docs](https://opencode.ai/docs/providers)
 - [OpenCode config docs](https://opencode.ai/docs/config)
 

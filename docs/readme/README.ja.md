@@ -115,14 +115,13 @@ Settings, Grimoire, Providers で使いたい providers を有効化すると、
 Native project memory、slash commands、MCP configuration、plans、rewind/fork を使いたい場合や、Claude subscription または API key で作業したい場合は Claude Code を選びます。
 
 ```bash
-npm install -g @anthropic-ai/claude-code
+curl -fsSL https://claude.ai/install.sh | bash
 claude
 ```
 
-Claude Code で認証してから、Grimoire で有効化します。
+Claude Code で認証してから、Grimoire で有効化します。古い npm package は deprecated です。上記の native installer、Homebrew (`brew install --cask claude-code`)、WinGet、または official quickstart の他の options を使ってください。
 
-- [Claude Code getting started](https://code.claude.com/docs/en/getting-started)
-- [Claude Code CLI reference](https://code.claude.com/docs/en/cli-usage)
+- [Claude Code quickstart](https://code.claude.com/docs/en/quickstart)
 
 Grimoire 内では、Claude Code は `.claude/` files を読み取り、保持し、Claude Code SDK 上で動作します。Slash commands、MCP settings、agents、skills、plans、rewind、fork をサポートします。Claude が quota と cost の両方を報告する場合、quota windows と API spend が並んで表示されます。
 
@@ -143,14 +142,13 @@ Grimoire 内では、Claude Code は `.claude/` files を読み取り、保持�
 Codex は初回起動時の default provider です。ChatGPT plan または API key で認証した local CLI 上の OpenAI Codex を使う場合に選びます。
 
 ```bash
-npm install -g @openai/codex
+curl -fsSL https://chatgpt.com/codex/install.sh | sh
 codex
 ```
 
-公式 Codex installer や Homebrew でもインストールできます。一度実行して sign in し、その後 Grimoire で有効化します。
+Codex を一度実行して sign in し、その後 Grimoire で有効化します。Standalone installer が現在の primary install path です。Windows、Homebrew、fallback package-manager options は公式 Codex CLI docs を参照してください。
 
-- [Codex CLI README](https://github.com/openai/codex/blob/main/README.md)
-- [Codex getting started](https://github.com/openai/codex/blob/main/docs/getting-started.md)
+- [Codex CLI setup](https://developers.openai.com/codex/cli)
 - [OpenAI code generation guide](https://developers.openai.com/api/docs/guides/code-generation)
 
 Grimoire 内では、Codex は app-server protocol で動作し、native history、fork、plan mode、image input、reasoning effort controls をサポートします。Codex が rate-limit metadata を報告すると、plan usage が表示されます。
@@ -185,13 +183,13 @@ Gemini CLI は、account tier がまだサポートされている場合だけ�
 独自の provider configuration を持つ model-agnostic agent を使いたい場合は OpenCode を選びます。
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/opencode-ai/opencode/refs/heads/main/install | bash
+curl -fsSL https://opencode.ai/install | bash
 opencode
 ```
 
-Homebrew や Go installs も使えます。OpenCode 側で provider credentials を設定し、その後 Grimoire で有効化します。
+Homebrew、npm、bun、package-manager installs も使えます。OpenCode 側で provider credentials を設定し、その後 Grimoire で有効化します。
 
-- [OpenCode GitHub repository](https://github.com/opencode-ai/opencode)
+- [OpenCode download](https://opencode.ai/download)
 - [OpenCode provider docs](https://opencode.ai/docs/providers)
 - [OpenCode config docs](https://opencode.ai/docs/config)
 

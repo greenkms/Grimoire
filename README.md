@@ -113,14 +113,13 @@ Enable the providers you want under Settings, Grimoire, Providers, and they'll a
 Pick Claude Code when you want its native project memory, slash commands, MCP configuration, plans, and rewind/fork, backed by your Claude subscription or API key.
 
 ```bash
-npm install -g @anthropic-ai/claude-code
+curl -fsSL https://claude.ai/install.sh | bash
 claude
 ```
 
-Authenticate through Claude Code, then enable it in Grimoire.
+Authenticate through Claude Code, then enable it in Grimoire. The old npm package is deprecated; use the native installer above, Homebrew (`brew install --cask claude-code`), WinGet, or the other options in the official quickstart.
 
-- [Claude Code getting started](https://code.claude.com/docs/en/getting-started)
-- [Claude Code CLI reference](https://code.claude.com/docs/en/cli-usage)
+- [Claude Code quickstart](https://code.claude.com/docs/en/quickstart)
 
 Inside Grimoire, Claude Code reads and preserves your `.claude/` files, runs on the Claude Code SDK, and supports slash commands, MCP settings, agents, skills, plans, rewind, and fork. When Claude reports both, you'll see quota windows and API spend side by side.
 
@@ -141,14 +140,13 @@ Inside Grimoire, Claude Code reads and preserves your `.claude/` files, runs on 
 Codex is the default provider on first launch. Pick it for OpenAI Codex in a local CLI, signed in with your ChatGPT plan or an API key.
 
 ```bash
-npm install -g @openai/codex
+curl -fsSL https://chatgpt.com/codex/install.sh | sh
 codex
 ```
 
-You can also install it through the official Codex installer or Homebrew. Run it once, sign in, then enable it in Grimoire.
+Run it once, sign in, then enable it in Grimoire. The standalone installer is the primary install path now; use the official Codex CLI docs for Windows, Homebrew, and fallback package-manager options.
 
-- [Codex CLI README](https://github.com/openai/codex/blob/main/README.md)
-- [Codex getting started](https://github.com/openai/codex/blob/main/docs/getting-started.md)
+- [Codex CLI setup](https://developers.openai.com/codex/cli)
 - [OpenAI code generation guide](https://developers.openai.com/api/docs/guides/code-generation)
 
 Inside Grimoire, Codex runs on its app-server protocol with native history, fork, plan mode, image input, and reasoning effort controls. Plan usage shows up when Codex reports rate-limit metadata.
@@ -185,13 +183,13 @@ Enable Gemini CLI only if your account tier is still supported. Grimoire runs it
 Pick OpenCode for a model-agnostic agent that brings its own provider configuration.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/opencode-ai/opencode/refs/heads/main/install | bash
+curl -fsSL https://opencode.ai/install | bash
 opencode
 ```
 
-Homebrew and Go installs work too. Configure your provider credentials in OpenCode, then enable it in Grimoire.
+Homebrew, npm, bun, and package-manager installs work too. Configure your provider credentials in OpenCode, then enable it in Grimoire.
 
-- [OpenCode GitHub repository](https://github.com/opencode-ai/opencode)
+- [OpenCode download](https://opencode.ai/download)
 - [OpenCode provider docs](https://opencode.ai/docs/providers)
 - [OpenCode config docs](https://opencode.ai/docs/config)
 
