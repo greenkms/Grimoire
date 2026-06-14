@@ -1,8 +1,10 @@
-import { getRuntimeEnvironmentVariables } from '../../core/providers/providerEnvironment';
 import type { ProviderUIOption } from '../../core/providers/types';
-import { getModelsFromEnvironment } from './env/claudeModelEnv';
+import { getCurrentModelFromEnvironment, getModelsFromEnvironment } from './env/claudeModelEnv';
 import { formatCustomModelLabel } from './modelLabels';
-import { getClaudeProviderSettings } from './settings';
+import {
+  getClaudeEffectiveEnvironmentVariables,
+  getClaudeProviderSettings,
+} from './settings';
 import { DEFAULT_CLAUDE_MODELS, filterVisibleModelOptions } from './types/models';
 
 function parseConfiguredCustomModelIds(value: string): string[] {
@@ -45,7 +47,7 @@ function normalizeCustomModelAliases(value: unknown): Record<string, string> {
 export function getClaudeModelOptions(settings: Record<string, unknown>): ProviderUIOption[] {
   const customModelAliases = normalizeCustomModelAliases(settings.customModelAliases);
   const customModels = getModelsFromEnvironment(
-    getRuntimeEnvironmentVariables(settings, 'claude'),
+    getClaudeEffectiveEnvironmentVariables(settings),
     customModelAliases,
   );
   if (customModels.length > 0) {
@@ -73,6 +75,18 @@ export function getClaudeModelOptions(settings: Record<string, unknown>): Provid
     });
   }
 
+  const projectSettingsModel = claudeSettings.respectProjectSettings
+    ? claudeSettings.projectSettingsSnapshot.model
+    : '';
+  if (projectSettingsModel && !seenValues.has(projectSettingsModel)) {
+    seenValues.add(projectSettingsModel);
+    models.push({
+      value: projectSettingsModel,
+      label: customModelAliases[projectSettingsModel] ?? formatCustomModelLabel(projectSettingsModel),
+      description: 'Claude Code settings model',
+    });
+  }
+
   return models;
 }
 
@@ -85,7 +99,17 @@ export function resolveClaudeModelSelection(
     return currentModel;
   }
 
-  const lastModel = getClaudeProviderSettings(settings).lastModel;
+  const claudeSettings = getClaudeProviderSettings(settings);
+  const projectSettingsModel = claudeSettings.respectProjectSettings
+    ? claudeSettings.projectSettingsSnapshot.model
+    || getCurrentModelFromEnvironment(getClaudeEffectiveEnvironmentVariables(settings))
+    || ''
+    : '';
+  if (projectSettingsModel && modelOptions.some(option => option.value === projectSettingsModel)) {
+    return projectSettingsModel;
+  }
+
+  const lastModel = claudeSettings.lastModel;
   if (lastModel && modelOptions.some(option => option.value === lastModel)) {
     return lastModel;
   }

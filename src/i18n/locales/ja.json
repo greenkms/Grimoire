@@ -406,6 +406,10 @@
       "desc": "Append additional Claude model IDs to the picker, one per line. Environment model overrides still replace the picker.",
       "placeholder": "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
     },
+    "respectProjectSettings": {
+      "name": "Respect Claude Code settings",
+      "desc": "Use model and env from Claude Code user and project settings. This enables custom models from providers such as MiniMax, Z.ai, and other Anthropic-compatible gateways. Grimoire settings still override explicit choices."
+    },
     "enableChrome": {
       "name": "Chrome拡張機能を有効化",
       "desc": "claude-in-chrome拡張機能を通じてClaudeがChromeと連携できるようにします。拡張機能のインストールが必要です。セッションの再起動が必要です。"

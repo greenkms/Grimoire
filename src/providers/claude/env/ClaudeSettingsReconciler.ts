@@ -3,7 +3,11 @@ import type { ProviderSettingsReconciler } from '../../../core/providers/types';
 import type { Conversation } from '../../../core/types';
 import { parseEnvironmentVariables } from '../../../utils/env';
 import { resolveClaudeModelSelection } from '../modelOptions';
-import { getClaudeProviderSettings, updateClaudeProviderSettings } from '../settings';
+import {
+  getClaudeProviderSettings,
+  getClaudeRuntimeEnvironmentText,
+  updateClaudeProviderSettings,
+} from '../settings';
 import { normalizeVisibleModelVariant } from '../types/models';
 
 const ENV_HASH_MODEL_KEYS = [
@@ -29,9 +33,18 @@ export const claudeSettingsReconciler: ProviderSettingsReconciler = {
     settings: Record<string, unknown>,
     conversations: Conversation[],
   ): { changed: boolean; invalidatedConversations: Conversation[] } {
-    const envText = getRuntimeEnvironmentText(settings, 'claude');
-    const currentHash = computeEnvHash(envText);
-    const savedHash = getClaudeProviderSettings(settings).environmentHash;
+    const claudeSettings = getClaudeProviderSettings(settings);
+    const envText = claudeSettings.respectProjectSettings
+      ? getClaudeRuntimeEnvironmentText(settings)
+      : getRuntimeEnvironmentText(settings, 'claude');
+    const envHash = computeEnvHash(envText);
+    const projectSettingsHash = claudeSettings.respectProjectSettings
+      ? claudeSettings.projectSettingsSnapshot.hash
+      : '';
+    const currentHash = [envHash, projectSettingsHash ? `project=${projectSettingsHash}` : '']
+      .filter(Boolean)
+      .join('|');
+    const savedHash = claudeSettings.environmentHash;
 
     if (currentHash === savedHash) {
       return { changed: false, invalidatedConversations: [] };

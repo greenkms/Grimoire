@@ -126,6 +126,18 @@ claude
 
 在 Grimoire 中，Claude Code 会读取并保留你的 `.claude/` 文件，运行在 Claude Code SDK 上，并支持 slash commands、MCP settings、agents、skills、plans、rewind 和 fork。当 Claude 同时报告 quota 和 cost 时，你会并排看到 quota windows 和 API spend。
 
+**Respect Claude Code settings** is enabled by default. Grimoire reads Claude Code user settings (`~/.claude/settings.json`) and vault settings (`.claude/settings.json`) for `model` and `env`, then uses those values in the Claude model selector and runtime environment. This lets Claude Code custom models work in Grimoire too, including Anthropic-compatible gateways such as MiniMax, Z.ai, and others. Project settings override user settings, and explicit Grimoire environment settings override both.
+
+```json
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://api.z.ai/api/anthropic",
+    "ANTHROPIC_MODEL": "glm-5.2[1m]",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "glm-4.7-flash"
+  }
+}
+```
+
 ### Codex
 
 Codex 是首次启动时的默认 provider。选择它可以在本地 CLI 中使用 OpenAI Codex，并通过 ChatGPT plan 或 API key 登录。

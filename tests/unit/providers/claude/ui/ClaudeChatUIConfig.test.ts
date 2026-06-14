@@ -1,7 +1,93 @@
+import { resolveClaudeModelSelection } from '@/providers/claude/modelOptions';
 import { claudeChatUIConfig } from '@/providers/claude/ui/ClaudeChatUIConfig';
 
 describe('claudeChatUIConfig', () => {
   describe('getModelOptions', () => {
+    it('includes the Claude Code project settings model when enabled', () => {
+      const options = claudeChatUIConfig.getModelOptions({
+        providerConfigs: {
+          claude: {
+            respectProjectSettings: true,
+            projectSettingsSnapshot: {
+              model: 'gateway/claude-sonnet-custom',
+              env: {},
+            },
+          },
+        },
+      });
+
+      expect(options.at(-1)).toEqual({
+        value: 'gateway/claude-sonnet-custom',
+        label: 'claude-sonnet-custom',
+        description: 'Claude Code settings model',
+      });
+    });
+
+    it('ignores the Claude Code project settings model when disabled', () => {
+      const options = claudeChatUIConfig.getModelOptions({
+        providerConfigs: {
+          claude: {
+            respectProjectSettings: false,
+            projectSettingsSnapshot: {
+              model: 'gateway/claude-sonnet-custom',
+              env: {},
+            },
+          },
+        },
+      });
+
+      expect(options.map(option => option.value)).not.toContain('gateway/claude-sonnet-custom');
+    });
+
+    it('uses Claude Code project settings env for environment-defined models when enabled', () => {
+      const options = claudeChatUIConfig.getModelOptions({
+        providerConfigs: {
+          claude: {
+            respectProjectSettings: true,
+            projectSettingsSnapshot: {
+              model: '',
+              env: {
+                ANTHROPIC_MODEL: 'settings-json-model',
+              },
+            },
+          },
+        },
+      });
+
+      expect(options).toEqual([
+        {
+          value: 'settings-json-model',
+          label: 'Settings Json Model',
+          description: 'Custom model (model)',
+        },
+      ]);
+    });
+
+    it('lets Grimoire Claude env override the same Claude Code project settings env key', () => {
+      const options = claudeChatUIConfig.getModelOptions({
+        providerConfigs: {
+          claude: {
+            environmentVariables: 'ANTHROPIC_MODEL=grimoire-model',
+            respectProjectSettings: true,
+            projectSettingsSnapshot: {
+              model: '',
+              env: {
+                ANTHROPIC_MODEL: 'settings-json-model',
+              },
+            },
+          },
+        },
+      });
+
+      expect(options).toEqual([
+        {
+          value: 'grimoire-model',
+          label: 'Grimoire Model',
+          description: 'Custom model (model)',
+        },
+      ]);
+    });
+
     it('appends settings-defined custom models after the built-in options', () => {
       const options = claudeChatUIConfig.getModelOptions({
         providerConfigs: {
@@ -145,6 +231,25 @@ describe('claudeChatUIConfig', () => {
 
       expect(options.map(option => option.value)).toEqual(['low', 'medium', 'high', 'max']);
       expect(options.some(option => option.tokens !== undefined)).toBe(false);
+    });
+  });
+
+  describe('resolveClaudeModelSelection', () => {
+    it('falls back to the Claude Code project settings model before saved built-ins', () => {
+      const settings = {
+        providerConfigs: {
+          claude: {
+            lastModel: 'sonnet',
+            respectProjectSettings: true,
+            projectSettingsSnapshot: {
+              model: 'settings-json-model',
+              env: {},
+            },
+          },
+        },
+      };
+
+      expect(resolveClaudeModelSelection(settings, 'removed-custom-model')).toBe('settings-json-model');
     });
   });
 

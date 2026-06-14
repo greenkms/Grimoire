@@ -26570,6 +26570,10 @@ var settings = {
     desc: "Append additional Claude model IDs to the picker, one per line. Environment model overrides still replace the picker.",
     placeholder: "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
   },
+  respectProjectSettings: {
+    name: "Respect Claude Code settings",
+    desc: "Use model and env from Claude Code user and project settings. This enables custom models from providers such as MiniMax, Z.ai, and other Anthropic-compatible gateways. Grimoire settings still override explicit choices."
+  },
   enableChrome: {
     name: "Chrome-Erweiterung aktivieren",
     desc: "Erlaubt Claude die Interaktion mit Chrome \xFCber die claude-in-chrome-Erweiterung. Die Erweiterung muss installiert sein. Erfordert Neustart der Sitzung."
@@ -27069,6 +27073,10 @@ var settings2 = {
     name: "Custom models",
     desc: "Append additional Claude model IDs to the picker, one per line. Environment model overrides still replace the picker.",
     placeholder: "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
+  },
+  respectProjectSettings: {
+    name: "Respect Claude Code settings",
+    desc: "Use model and env from Claude Code user and project settings. This enables custom models from providers such as MiniMax, Z.ai, and other Anthropic-compatible gateways. Grimoire settings still override explicit choices."
   },
   enableChrome: {
     name: "Enable Chrome extension",
@@ -27570,6 +27578,10 @@ var settings3 = {
     desc: "Append additional Claude model IDs to the picker, one per line. Environment model overrides still replace the picker.",
     placeholder: "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
   },
+  respectProjectSettings: {
+    name: "Respect Claude Code settings",
+    desc: "Use model and env from Claude Code user and project settings. This enables custom models from providers such as MiniMax, Z.ai, and other Anthropic-compatible gateways. Grimoire settings still override explicit choices."
+  },
   enableChrome: {
     name: "Habilitar extensi\xF3n de Chrome",
     desc: "Permitir que Claude interact\xFAe con Chrome a trav\xE9s de la extensi\xF3n claude-in-chrome. Requiere que la extensi\xF3n est\xE9 instalada. Requiere reinicio de sesi\xF3n."
@@ -28069,6 +28081,10 @@ var settings4 = {
     name: "Custom models",
     desc: "Append additional Claude model IDs to the picker, one per line. Environment model overrides still replace the picker.",
     placeholder: "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
+  },
+  respectProjectSettings: {
+    name: "Respect Claude Code settings",
+    desc: "Use model and env from Claude Code user and project settings. This enables custom models from providers such as MiniMax, Z.ai, and other Anthropic-compatible gateways. Grimoire settings still override explicit choices."
   },
   enableChrome: {
     name: "Activer l'extension Chrome",
@@ -28570,6 +28586,10 @@ var settings5 = {
     desc: "Append additional Claude model IDs to the picker, one per line. Environment model overrides still replace the picker.",
     placeholder: "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
   },
+  respectProjectSettings: {
+    name: "Respect Claude Code settings",
+    desc: "Use model and env from Claude Code user and project settings. This enables custom models from providers such as MiniMax, Z.ai, and other Anthropic-compatible gateways. Grimoire settings still override explicit choices."
+  },
   enableChrome: {
     name: "Chrome\u62E1\u5F35\u6A5F\u80FD\u3092\u6709\u52B9\u5316",
     desc: "claude-in-chrome\u62E1\u5F35\u6A5F\u80FD\u3092\u901A\u3058\u3066Claude\u304CChrome\u3068\u9023\u643A\u3067\u304D\u308B\u3088\u3046\u306B\u3057\u307E\u3059\u3002\u62E1\u5F35\u6A5F\u80FD\u306E\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u304C\u5FC5\u8981\u3067\u3059\u3002\u30BB\u30C3\u30B7\u30E7\u30F3\u306E\u518D\u8D77\u52D5\u304C\u5FC5\u8981\u3067\u3059\u3002"
@@ -29069,6 +29089,10 @@ var settings6 = {
     name: "Custom models",
     desc: "Append additional Claude model IDs to the picker, one per line. Environment model overrides still replace the picker.",
     placeholder: "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
+  },
+  respectProjectSettings: {
+    name: "Respect Claude Code settings",
+    desc: "Use model and env from Claude Code user and project settings. This enables custom models from providers such as MiniMax, Z.ai, and other Anthropic-compatible gateways. Grimoire settings still override explicit choices."
   },
   enableChrome: {
     name: "Chrome \uD655\uC7A5 \uD504\uB85C\uADF8\uB7A8 \uD65C\uC131\uD654",
@@ -29570,6 +29594,10 @@ var settings7 = {
     desc: "Append additional Claude model IDs to the picker, one per line. Environment model overrides still replace the picker.",
     placeholder: "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
   },
+  respectProjectSettings: {
+    name: "Respect Claude Code settings",
+    desc: "Use model and env from Claude Code user and project settings. This enables custom models from providers such as MiniMax, Z.ai, and other Anthropic-compatible gateways. Grimoire settings still override explicit choices."
+  },
   enableChrome: {
     name: "Habilitar extens\xE3o do Chrome",
     desc: "Permitir que o Claude interaja com o Chrome atrav\xE9s da extens\xE3o claude-in-chrome. Requer que a extens\xE3o esteja instalada. Requer rein\xEDcio de sess\xE3o."
@@ -30069,6 +30097,10 @@ var settings8 = {
     name: "Custom models",
     desc: "Append additional Claude model IDs to the picker, one per line. Environment model overrides still replace the picker.",
     placeholder: "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
+  },
+  respectProjectSettings: {
+    name: "Respect Claude Code settings",
+    desc: "Use model and env from Claude Code user and project settings. This enables custom models from providers such as MiniMax, Z.ai, and other Anthropic-compatible gateways. Grimoire settings still override explicit choices."
   },
   enableChrome: {
     name: "\u0412\u043A\u043B\u044E\u0447\u0438\u0442\u044C \u0440\u0430\u0441\u0448\u0438\u0440\u0435\u043D\u0438\u0435 Chrome",
@@ -30570,6 +30602,10 @@ var settings9 = {
     desc: "Append additional Claude model IDs to the picker, one per line. Environment model overrides still replace the picker.",
     placeholder: "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
   },
+  respectProjectSettings: {
+    name: "Respect Claude Code settings",
+    desc: "Use model and env from Claude Code user and project settings. This enables custom models from providers such as MiniMax, Z.ai, and other Anthropic-compatible gateways. Grimoire settings still override explicit choices."
+  },
   enableChrome: {
     name: "\u542F\u7528 Chrome \u6269\u5C55",
     desc: "\u5141\u8BB8 Claude \u901A\u8FC7 claude-in-chrome \u6269\u5C55\u4E0E Chrome \u4EA4\u4E92\u3002\u9700\u8981\u5B89\u88C5\u8BE5\u6269\u5C55\u3002\u9700\u8981\u91CD\u542F\u4F1A\u8BDD\u3002"
@@ -31069,6 +31105,10 @@ var settings10 = {
     name: "Custom models",
     desc: "Append additional Claude model IDs to the picker, one per line. Environment model overrides still replace the picker.",
     placeholder: "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
+  },
+  respectProjectSettings: {
+    name: "Respect Claude Code settings",
+    desc: "Use model and env from Claude Code user and project settings. This enables custom models from providers such as MiniMax, Z.ai, and other Anthropic-compatible gateways. Grimoire settings still override explicit choices."
   },
   enableChrome: {
     name: "\u555F\u7528 Chrome \u64F4\u5145\u529F\u80FD",
@@ -53784,6 +53824,11 @@ function createCustomSpawnFunction(enhancedPath) {
 
 // src/providers/claude/settings.ts
 init_env();
+var DEFAULT_CLAUDE_CODE_PROJECT_SETTINGS_SNAPSHOT = Object.freeze({
+  model: "",
+  env: {},
+  hash: ""
+});
 var DEFAULT_CLAUDE_PROVIDER_SETTINGS = Object.freeze({
   enabled: false,
   cliPath: "",
@@ -53796,7 +53841,9 @@ var DEFAULT_CLAUDE_PROVIDER_SETTINGS = Object.freeze({
   customModels: "",
   lastModel: "haiku",
   environmentVariables: "",
-  environmentHash: ""
+  environmentHash: "",
+  respectProjectSettings: true,
+  projectSettingsSnapshot: DEFAULT_CLAUDE_CODE_PROJECT_SETTINGS_SNAPSHOT
 });
 function normalizeHostnameCliPaths2(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -53810,8 +53857,65 @@ function normalizeHostnameCliPaths2(value) {
   }
   return result;
 }
+function normalizeStringMap(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+  const result = {};
+  for (const [rawKey, rawValue] of Object.entries(value)) {
+    if (typeof rawValue !== "string") {
+      continue;
+    }
+    const key = rawKey.trim();
+    const value2 = rawValue.trim();
+    if (key && value2) {
+      result[key] = value2;
+    }
+  }
+  return result;
+}
+function computeClaudeCodeProjectSettingsHash(model, env) {
+  return [
+    model ? `model=${model}` : "",
+    ...Object.entries(env).sort(([a], [b3]) => a.localeCompare(b3)).map(([key, value]) => `${key}=${value}`)
+  ].filter(Boolean).join("|");
+}
+function normalizeClaudeCodeProjectSettingsSnapshot(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return { ...DEFAULT_CLAUDE_CODE_PROJECT_SETTINGS_SNAPSHOT, env: {} };
+  }
+  const record2 = value;
+  const model = typeof record2.model === "string" ? record2.model.trim() : "";
+  const env = normalizeStringMap(record2.env);
+  return {
+    model,
+    env,
+    hash: computeClaudeCodeProjectSettingsHash(model, env)
+  };
+}
+function snapshotClaudeCodeProjectSettings(settings11) {
+  return normalizeClaudeCodeProjectSettingsSnapshot({
+    model: settings11.model,
+    env: settings11.env
+  });
+}
+function snapshotClaudeCodeSettings({
+  includeUserSettings,
+  user,
+  project
+}) {
+  const userSnapshot = includeUserSettings ? snapshotClaudeCodeProjectSettings(user != null ? user : {}) : snapshotClaudeCodeProjectSettings({});
+  const projectSnapshot = snapshotClaudeCodeProjectSettings(project != null ? project : {});
+  return normalizeClaudeCodeProjectSettingsSnapshot({
+    model: projectSnapshot.model || userSnapshot.model,
+    env: {
+      ...userSnapshot.env,
+      ...projectSnapshot.env
+    }
+  });
+}
 function getClaudeProviderSettings(settings11) {
-  var _a7, _b4, _c3, _d3, _e3, _f3, _g2, _h2, _i3, _j2, _k2, _l3, _m2, _n5, _o2, _p3, _q, _r2, _s2;
+  var _a7, _b4, _c3, _d3, _e3, _f3, _g2, _h2, _i3, _j2, _k2, _l3, _m2, _n5, _o2, _p3, _q, _r2, _s2, _t2;
   const config2 = getProviderConfig(settings11, "claude");
   const normalizedCliPathsByHost = normalizeHostnameCliPaths2(
     (_a7 = config2.cliPathsByHost) != null ? _a7 : settings11.claudeCliPathsByHost
@@ -53833,8 +53937,30 @@ function getClaudeProviderSettings(settings11) {
     customModels: (_m2 = config2.customModels) != null ? _m2 : DEFAULT_CLAUDE_PROVIDER_SETTINGS.customModels,
     lastModel: (_o2 = (_n5 = config2.lastModel) != null ? _n5 : settings11.lastClaudeModel) != null ? _o2 : DEFAULT_CLAUDE_PROVIDER_SETTINGS.lastModel,
     environmentVariables: (_q = (_p3 = config2.environmentVariables) != null ? _p3 : getProviderEnvironmentVariables(settings11, "claude")) != null ? _q : DEFAULT_CLAUDE_PROVIDER_SETTINGS.environmentVariables,
-    environmentHash: (_s2 = (_r2 = config2.environmentHash) != null ? _r2 : settings11.lastEnvHash) != null ? _s2 : DEFAULT_CLAUDE_PROVIDER_SETTINGS.environmentHash
+    environmentHash: (_s2 = (_r2 = config2.environmentHash) != null ? _r2 : settings11.lastEnvHash) != null ? _s2 : DEFAULT_CLAUDE_PROVIDER_SETTINGS.environmentHash,
+    respectProjectSettings: (_t2 = config2.respectProjectSettings) != null ? _t2 : DEFAULT_CLAUDE_PROVIDER_SETTINGS.respectProjectSettings,
+    projectSettingsSnapshot: normalizeClaudeCodeProjectSettingsSnapshot(
+      config2.projectSettingsSnapshot
+    )
   };
+}
+function getClaudeEffectiveEnvironmentVariables(settings11) {
+  const runtimeEnv = getRuntimeEnvironmentVariables(settings11, "claude");
+  const claudeSettings = getClaudeProviderSettings(settings11);
+  if (!claudeSettings.respectProjectSettings) {
+    return runtimeEnv;
+  }
+  return {
+    ...claudeSettings.projectSettingsSnapshot.env,
+    ...runtimeEnv
+  };
+}
+function getClaudeRuntimeEnvironmentText(settings11) {
+  const claudeSettings = getClaudeProviderSettings(settings11);
+  if (!claudeSettings.respectProjectSettings) {
+    return getRuntimeEnvironmentText(settings11, "claude");
+  }
+  return Object.entries(getClaudeEffectiveEnvironmentVariables(settings11)).map(([key, value]) => `${key}=${value}`).join("\n");
 }
 function resolveClaudeSettingSources(loadUserSettings, permissionMode = "full_access") {
   if (permissionMode !== "full_access") {
@@ -55624,12 +55750,35 @@ var LEGACY_STRIPPED_SETTING_FIELDS = [
   "openInMainTab",
   "appearanceTheme"
 ];
+var TRANSIENT_PROVIDER_CONFIG_FIELDS = {
+  claude: ["projectSettingsSnapshot"]
+};
 function stripLegacyFields(settings11) {
   const cleaned = { ...settings11 };
   for (const key of LEGACY_STRIPPED_SETTING_FIELDS) {
     delete cleaned[key];
   }
   return cleaned;
+}
+function stripTransientProviderConfigFields(settings11) {
+  var _a7;
+  const providerConfigs = normalizeProviderConfigs(settings11.providerConfigs);
+  if (Object.keys(providerConfigs).length === 0) {
+    return settings11;
+  }
+  let changed = false;
+  const cleanedProviderConfigs = {};
+  for (const [providerId, config2] of Object.entries(providerConfigs)) {
+    const nextConfig = { ...config2 };
+    for (const field of (_a7 = TRANSIENT_PROVIDER_CONFIG_FIELDS[providerId]) != null ? _a7 : []) {
+      if (field in nextConfig) {
+        delete nextConfig[field];
+        changed = true;
+      }
+    }
+    cleanedProviderConfigs[providerId] = nextConfig;
+  }
+  return changed ? { ...settings11, providerConfigs: cleanedProviderConfigs } : settings11;
 }
 function isChatViewPlacement(value) {
   return typeof value === "string" && CHAT_VIEW_PLACEMENTS.includes(value);
@@ -55895,7 +56044,7 @@ var GrimoireSettingsStorage = class {
   }
   async save(settings11) {
     const content = JSON.stringify(
-      stripLegacyFields(settings11),
+      stripTransientProviderConfigFields(stripLegacyFields(settings11)),
       null,
       2
     );
@@ -65066,6 +65215,21 @@ function getModelsFromEnvironment(envVars, modelAliases = {}) {
   }
   return models;
 }
+function getCurrentModelFromEnvironment(envVars) {
+  if (envVars.ANTHROPIC_MODEL) {
+    return envVars.ANTHROPIC_MODEL;
+  }
+  if (envVars.ANTHROPIC_DEFAULT_HAIKU_MODEL) {
+    return envVars.ANTHROPIC_DEFAULT_HAIKU_MODEL;
+  }
+  if (envVars.ANTHROPIC_DEFAULT_SONNET_MODEL) {
+    return envVars.ANTHROPIC_DEFAULT_SONNET_MODEL;
+  }
+  if (envVars.ANTHROPIC_DEFAULT_OPUS_MODEL) {
+    return envVars.ANTHROPIC_DEFAULT_OPUS_MODEL;
+  }
+  return null;
+}
 function getCustomModelIds(envVars) {
   const modelIds = /* @__PURE__ */ new Set();
   for (const envKey of CUSTOM_MODEL_ENV_KEYS) {
@@ -65222,10 +65386,10 @@ function normalizeCustomModelAliases(value) {
   return aliases;
 }
 function getClaudeModelOptions(settings11) {
-  var _a7;
+  var _a7, _b4;
   const customModelAliases = normalizeCustomModelAliases(settings11.customModelAliases);
   const customModels = getModelsFromEnvironment(
-    getRuntimeEnvironmentVariables(settings11, "claude"),
+    getClaudeEffectiveEnvironmentVariables(settings11),
     customModelAliases
   );
   if (customModels.length > 0) {
@@ -65249,6 +65413,15 @@ function getClaudeModelOptions(settings11) {
       description: "Custom model"
     });
   }
+  const projectSettingsModel = claudeSettings.respectProjectSettings ? claudeSettings.projectSettingsSnapshot.model : "";
+  if (projectSettingsModel && !seenValues.has(projectSettingsModel)) {
+    seenValues.add(projectSettingsModel);
+    models.push({
+      value: projectSettingsModel,
+      label: (_b4 = customModelAliases[projectSettingsModel]) != null ? _b4 : formatCustomModelLabel(projectSettingsModel),
+      description: "Claude Code settings model"
+    });
+  }
   return models;
 }
 function resolveClaudeModelSelection(settings11, currentModel) {
@@ -65257,7 +65430,12 @@ function resolveClaudeModelSelection(settings11, currentModel) {
   if (currentModel && modelOptions.some((option) => option.value === currentModel)) {
     return currentModel;
   }
-  const lastModel = getClaudeProviderSettings(settings11).lastModel;
+  const claudeSettings = getClaudeProviderSettings(settings11);
+  const projectSettingsModel = claudeSettings.respectProjectSettings ? claudeSettings.projectSettingsSnapshot.model || getCurrentModelFromEnvironment(getClaudeEffectiveEnvironmentVariables(settings11)) || "" : "";
+  if (projectSettingsModel && modelOptions.some((option) => option.value === projectSettingsModel)) {
+    return projectSettingsModel;
+  }
+  const lastModel = claudeSettings.lastModel;
   if (lastModel && modelOptions.some((option) => option.value === lastModel)) {
     return lastModel;
   }
@@ -66032,6 +66210,22 @@ var claudeSettingsTabRenderer = {
       settingsBag.model = nextModel;
       claudeChatUIConfig.applyModelDefaults(nextModel, settingsBag);
     };
+    const applyProjectSettingsModelSelection = () => {
+      const nextClaudeSettings = getClaudeProviderSettings(settingsBag);
+      if (!nextClaudeSettings.respectProjectSettings) {
+        return;
+      }
+      const preferredModel = nextClaudeSettings.projectSettingsSnapshot.model || getCurrentModelFromEnvironment(getClaudeEffectiveEnvironmentVariables(settingsBag)) || "";
+      if (!preferredModel) {
+        return;
+      }
+      const isAvailable = claudeChatUIConfig.getModelOptions(settingsBag).some((option) => option.value === preferredModel);
+      if (!isAvailable) {
+        return;
+      }
+      settingsBag.model = preferredModel;
+      claudeChatUIConfig.applyModelDefaults(preferredModel, settingsBag);
+    };
     new import_obsidian13.Setting(container).setName(t("settings.setup")).setHeading();
     const hostnameKey = getHostnameKey();
     const platformDesc = process.platform === "win32" ? t("settings.cliPath.descWindows") : t("settings.cliPath.descUnix");
@@ -66205,6 +66399,15 @@ var claudeSettingsTabRenderer = {
         }
       }
     });
+    new import_obsidian13.Setting(advancedContainer).setName(t("settings.respectProjectSettings.name")).setDesc(t("settings.respectProjectSettings.desc")).addToggle(
+      (toggle) => toggle.setValue(claudeSettings.respectProjectSettings).onChange(async (value) => {
+        updateClaudeProviderSettings(settingsBag, { respectProjectSettings: value });
+        applyProjectSettingsModelSelection();
+        ProviderSettingsCoordinator.reconcileTitleGenerationModelSelection(settingsBag);
+        await context.plugin.saveSettings();
+        context.refreshModelSelectors();
+      })
+    );
     renderEnvironmentSettingsSection({
       container: advancedContainer,
       plugin: context.plugin,
@@ -67419,9 +67622,12 @@ function computeEnvHash(envText) {
 }
 var claudeSettingsReconciler = {
   reconcileModelWithEnvironment(settings11, conversations) {
-    const envText = getRuntimeEnvironmentText(settings11, "claude");
-    const currentHash = computeEnvHash(envText);
-    const savedHash = getClaudeProviderSettings(settings11).environmentHash;
+    const claudeSettings = getClaudeProviderSettings(settings11);
+    const envText = claudeSettings.respectProjectSettings ? getClaudeRuntimeEnvironmentText(settings11) : getRuntimeEnvironmentText(settings11, "claude");
+    const envHash = computeEnvHash(envText);
+    const projectSettingsHash = claudeSettings.respectProjectSettings ? claudeSettings.projectSettingsSnapshot.hash : "";
+    const currentHash = [envHash, projectSettingsHash ? `project=${projectSettingsHash}` : ""].filter(Boolean).join("|");
+    const savedHash = claudeSettings.environmentHash;
     if (currentHash === savedHash) {
       return { changed: false, invalidatedConversations: [] };
     }
@@ -121922,6 +122128,7 @@ var GrimoirePlugin = class extends import_obsidian51.Plugin {
       ...DEFAULT_GRIMOIRE_SETTINGS,
       ...grimoire
     };
+    await this.hydrateClaudeCodeProjectSettingsSnapshot();
     this.debugLogService = new DebugLogService(
       this.storage.getAdapter(),
       () => {
@@ -121998,6 +122205,28 @@ var GrimoirePlugin = class extends import_obsidian51.Plugin {
     for (const conv of conversationsToSave) {
       await this.storage.sessions.saveMetadata(
         this.storage.sessions.toSessionMetadata(conv)
+      );
+    }
+  }
+  async hydrateClaudeCodeProjectSettingsSnapshot() {
+    try {
+      const claudeSettings = getClaudeProviderSettings(this.settings);
+      const projectSettings = await new CCSettingsStorage(this.storage.getAdapter()).load();
+      const userSettings = claudeSettings.loadUserSettings ? await new CCSettingsStorage(new HomeFileAdapter()).load() : {};
+      updateClaudeProviderSettings(
+        this.settings,
+        {
+          projectSettingsSnapshot: snapshotClaudeCodeSettings({
+            includeUserSettings: claudeSettings.loadUserSettings,
+            user: userSettings,
+            project: projectSettings
+          })
+        }
+      );
+    } catch (e) {
+      updateClaudeProviderSettings(
+        this.settings,
+        { projectSettingsSnapshot: snapshotClaudeCodeSettings({ includeUserSettings: false }) }
       );
     }
   }
@@ -122138,6 +122367,11 @@ var GrimoirePlugin = class extends import_obsidian51.Plugin {
   getActiveEnvironmentVariables(providerId = ProviderRegistry.resolveSettingsProviderId(
     this.settings
   )) {
+    if (providerId === "claude") {
+      return getClaudeRuntimeEnvironmentText(
+        this.settings
+      );
+    }
     return getRuntimeEnvironmentText(
       this.settings,
       providerId

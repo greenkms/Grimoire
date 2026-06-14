@@ -250,6 +250,8 @@ export type TranslationKey =
   | 'settings.customModels.name'
   | 'settings.customModels.desc'
   | 'settings.customModels.placeholder'
+  | 'settings.respectProjectSettings.name'
+  | 'settings.respectProjectSettings.desc'
   | 'settings.enableChrome.name'
   | 'settings.enableChrome.desc'
   | 'settings.enableBangBash.name'

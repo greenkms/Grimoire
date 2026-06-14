@@ -9,8 +9,10 @@ import { t } from '../../../i18n/i18n';
 import { getHostnameKey } from '../../../utils/env';
 import { expandHomePath } from '../../../utils/path';
 import { getClaudeWorkspaceServices } from '../app/ClaudeWorkspaceServices';
+import { getCurrentModelFromEnvironment } from '../env/claudeModelEnv';
 import { resolveClaudeModelSelection } from '../modelOptions';
 import {
+  getClaudeEffectiveEnvironmentVariables,
   getClaudeProviderSettings,
   updateClaudeProviderSettings,
 } from '../settings';
@@ -38,6 +40,30 @@ export const claudeSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
       settingsBag.model = nextModel;
       claudeChatUIConfig.applyModelDefaults(nextModel, settingsBag);
+    };
+
+    const applyProjectSettingsModelSelection = (): void => {
+      const nextClaudeSettings = getClaudeProviderSettings(settingsBag);
+      if (!nextClaudeSettings.respectProjectSettings) {
+        return;
+      }
+
+      const preferredModel = nextClaudeSettings.projectSettingsSnapshot.model
+        || getCurrentModelFromEnvironment(getClaudeEffectiveEnvironmentVariables(settingsBag))
+        || '';
+      if (!preferredModel) {
+        return;
+      }
+
+      const isAvailable = claudeChatUIConfig
+        .getModelOptions(settingsBag)
+        .some(option => option.value === preferredModel);
+      if (!isAvailable) {
+        return;
+      }
+
+      settingsBag.model = preferredModel;
+      claudeChatUIConfig.applyModelDefaults(preferredModel, settingsBag);
     };
 
     // --- Setup ---
@@ -290,6 +316,21 @@ export const claudeSettingsTabRenderer: ProviderSettingsTabRenderer = {
     });
 
     // --- Environment ---
+
+    new Setting(advancedContainer)
+      .setName(t('settings.respectProjectSettings.name'))
+      .setDesc(t('settings.respectProjectSettings.desc'))
+      .addToggle((toggle) =>
+        toggle
+          .setValue(claudeSettings.respectProjectSettings)
+          .onChange(async (value) => {
+            updateClaudeProviderSettings(settingsBag, { respectProjectSettings: value });
+            applyProjectSettingsModelSelection();
+            ProviderSettingsCoordinator.reconcileTitleGenerationModelSelection(settingsBag);
+            await context.plugin.saveSettings();
+            context.refreshModelSelectors();
+          })
+      );
 
     renderEnvironmentSettingsSection({
       container: advancedContainer,

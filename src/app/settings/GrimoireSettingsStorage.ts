@@ -73,12 +73,40 @@ const LEGACY_STRIPPED_SETTING_FIELDS = [
   'appearanceTheme',
 ] as const;
 
+const TRANSIENT_PROVIDER_CONFIG_FIELDS: Record<string, string[]> = {
+  claude: ['projectSettingsSnapshot'],
+};
+
 function stripLegacyFields(settings: Record<string, unknown>): Record<string, unknown> {
   const cleaned = { ...settings };
   for (const key of LEGACY_STRIPPED_SETTING_FIELDS) {
     delete cleaned[key];
   }
   return cleaned;
+}
+
+function stripTransientProviderConfigFields(settings: Record<string, unknown>): Record<string, unknown> {
+  const providerConfigs = normalizeProviderConfigs(settings.providerConfigs);
+  if (Object.keys(providerConfigs).length === 0) {
+    return settings;
+  }
+
+  let changed = false;
+  const cleanedProviderConfigs: ProviderConfigMap = {};
+  for (const [providerId, config] of Object.entries(providerConfigs)) {
+    const nextConfig = { ...config };
+    for (const field of TRANSIENT_PROVIDER_CONFIG_FIELDS[providerId] ?? []) {
+      if (field in nextConfig) {
+        delete nextConfig[field];
+        changed = true;
+      }
+    }
+    cleanedProviderConfigs[providerId] = nextConfig;
+  }
+
+  return changed
+    ? { ...settings, providerConfigs: cleanedProviderConfigs }
+    : settings;
 }
 
 function isChatViewPlacement(value: unknown): value is ChatViewPlacement {
@@ -468,7 +496,7 @@ export class GrimoireSettingsStorage {
 
   async save(settings: StoredGrimoireSettings): Promise<void> {
     const content = JSON.stringify(
-      stripLegacyFields(settings),
+      stripTransientProviderConfigFields(stripLegacyFields(settings)),
       null,
       2,
     );

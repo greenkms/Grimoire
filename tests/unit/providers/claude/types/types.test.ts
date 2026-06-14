@@ -63,6 +63,10 @@ describe('types.ts', () => {
       expect(getClaudeProviderSettings(DEFAULT_SETTINGS).customModels).toBe('');
     });
 
+    it('should respect Claude Code settings by default', () => {
+      expect(getClaudeProviderSettings(DEFAULT_SETTINGS).respectProjectSettings).toBe(true);
+    });
+
     it('should have lastCustomModel as empty string by default', () => {
       expect(DEFAULT_SETTINGS.lastCustomModel).toBe('');
     });

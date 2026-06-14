@@ -28,6 +28,7 @@ import { ProviderWorkspaceRegistry } from './core/providers/ProviderWorkspaceReg
 import type { ProviderId } from './core/providers/types';
 import type { AppTabManagerState } from './core/providers/types';
 import { DEFAULT_CHAT_PROVIDER_ID } from './core/providers/types';
+import { HomeFileAdapter } from './core/storage/HomeFileAdapter';
 import type {
   Conversation,
   ConversationMeta,
@@ -46,6 +47,13 @@ import { type InlineEditContext, InlineEditModal } from './features/inline-edit/
 import { GrimoireSettingTab } from './features/settings/GrimoireSettings';
 import { setLocale } from './i18n/i18n';
 import type { Locale } from './i18n/types';
+import {
+  getClaudeProviderSettings,
+  getClaudeRuntimeEnvironmentText,
+  snapshotClaudeCodeSettings,
+  updateClaudeProviderSettings,
+} from './providers/claude/settings';
+import { CCSettingsStorage } from './providers/claude/storage/CCSettingsStorage';
 import { OPENCODE_PLAN_MODE_ID, OPENCODE_SAFE_MODE_ID } from './providers/opencode/modes';
 import { GRIMOIRE_APP_ICON_ID, GRIMOIRE_APP_ICON_SVG } from './shared/appIcon';
 import { buildCursorContext } from './utils/editor';
@@ -388,6 +396,7 @@ export default class GrimoirePlugin extends Plugin {
       ...DEFAULT_GRIMOIRE_SETTINGS,
       ...grimoire,
     };
+    await this.hydrateClaudeCodeProjectSettingsSnapshot();
     this.debugLogService = new DebugLogService(
       this.storage.getAdapter(),
       () => this.settings?.debugLoggingEnabled === true,
@@ -477,6 +486,31 @@ export default class GrimoirePlugin extends Plugin {
     for (const conv of conversationsToSave) {
       await this.storage.sessions.saveMetadata(
         this.storage.sessions.toSessionMetadata(conv)
+      );
+    }
+  }
+
+  private async hydrateClaudeCodeProjectSettingsSnapshot(): Promise<void> {
+    try {
+      const claudeSettings = getClaudeProviderSettings(this.settings);
+      const projectSettings = await new CCSettingsStorage(this.storage.getAdapter()).load();
+      const userSettings = claudeSettings.loadUserSettings
+        ? await new CCSettingsStorage(new HomeFileAdapter()).load()
+        : {};
+      updateClaudeProviderSettings(
+        this.settings,
+        {
+          projectSettingsSnapshot: snapshotClaudeCodeSettings({
+            includeUserSettings: claudeSettings.loadUserSettings,
+            user: userSettings,
+            project: projectSettings,
+          }),
+        },
+      );
+    } catch {
+      updateClaudeProviderSettings(
+        this.settings,
+        { projectSettingsSnapshot: snapshotClaudeCodeSettings({ includeUserSettings: false }) },
       );
     }
   }
@@ -645,6 +679,12 @@ export default class GrimoirePlugin extends Plugin {
       this.settings,
     ),
   ): string {
+    if (providerId === 'claude') {
+      return getClaudeRuntimeEnvironmentText(
+        this.settings,
+      );
+    }
+
     return getRuntimeEnvironmentText(
       this.settings,
       providerId,

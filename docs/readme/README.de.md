@@ -126,6 +126,18 @@ Authentifiziere dich über Claude Code und aktiviere es danach in Grimoire.
 
 In Grimoire liest und bewahrt Claude Code deine `.claude/` files, läuft auf dem Claude Code SDK und unterstützt slash commands, MCP settings, agents, skills, plans, rewind und fork. Wenn Claude beides meldet, siehst du quota windows und API spend nebeneinander.
 
+**Respect Claude Code settings** is enabled by default. Grimoire reads Claude Code user settings (`~/.claude/settings.json`) and vault settings (`.claude/settings.json`) for `model` and `env`, then uses those values in the Claude model selector and runtime environment. This lets Claude Code custom models work in Grimoire too, including Anthropic-compatible gateways such as MiniMax, Z.ai, and others. Project settings override user settings, and explicit Grimoire environment settings override both.
+
+```json
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://api.z.ai/api/anthropic",
+    "ANTHROPIC_MODEL": "glm-5.2[1m]",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "glm-4.7-flash"
+  }
+}
+```
+
 ### Codex
 
 Codex ist beim ersten Start der default provider. Wähle ihn für OpenAI Codex in einem lokalen CLI, angemeldet über deinen ChatGPT plan oder einen API key.

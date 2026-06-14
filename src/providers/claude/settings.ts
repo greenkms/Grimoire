@@ -1,11 +1,16 @@
 import { getProviderConfig, setProviderConfig } from '../../core/providers/providerConfig';
-import { getProviderEnvironmentVariables } from '../../core/providers/providerEnvironment';
+import {
+  getProviderEnvironmentVariables,
+  getRuntimeEnvironmentText,
+  getRuntimeEnvironmentVariables,
+} from '../../core/providers/providerEnvironment';
 import type { HostnameCliPaths, PermissionMode } from '../../core/types/settings';
 import {
   getHostnameKey,
   getLegacyHostnameKey,
   migrateLegacyHostnameKeyedMap,
 } from '../../utils/env';
+import type { CCSettings } from './types/settings';
 
 export type ClaudeSettingSource = 'user' | 'project' | 'local';
 
@@ -22,7 +27,21 @@ export interface ClaudeProviderSettings {
   lastModel: string;
   environmentVariables: string;
   environmentHash: string;
+  respectProjectSettings: boolean;
+  projectSettingsSnapshot: ClaudeCodeProjectSettingsSnapshot;
 }
+
+export interface ClaudeCodeProjectSettingsSnapshot {
+  model: string;
+  env: Record<string, string>;
+  hash: string;
+}
+
+export const DEFAULT_CLAUDE_CODE_PROJECT_SETTINGS_SNAPSHOT: Readonly<ClaudeCodeProjectSettingsSnapshot> = Object.freeze({
+  model: '',
+  env: {},
+  hash: '',
+});
 
 export const DEFAULT_CLAUDE_PROVIDER_SETTINGS: Readonly<ClaudeProviderSettings> = Object.freeze({
   enabled: false,
@@ -37,6 +56,8 @@ export const DEFAULT_CLAUDE_PROVIDER_SETTINGS: Readonly<ClaudeProviderSettings> 
   lastModel: 'haiku',
   environmentVariables: '',
   environmentHash: '',
+  respectProjectSettings: true,
+  projectSettingsSnapshot: DEFAULT_CLAUDE_CODE_PROJECT_SETTINGS_SNAPSHOT,
 });
 
 function normalizeHostnameCliPaths(value: unknown): HostnameCliPaths {
@@ -51,6 +72,86 @@ function normalizeHostnameCliPaths(value: unknown): HostnameCliPaths {
     }
   }
   return result;
+}
+
+function normalizeStringMap(value: unknown): Record<string, string> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {};
+  }
+
+  const result: Record<string, string> = {};
+  for (const [rawKey, rawValue] of Object.entries(value)) {
+    if (typeof rawValue !== 'string') {
+      continue;
+    }
+
+    const key = rawKey.trim();
+    const value = rawValue.trim();
+    if (key && value) {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
+function computeClaudeCodeProjectSettingsHash(
+  model: string,
+  env: Record<string, string>,
+): string {
+  return [
+    model ? `model=${model}` : '',
+    ...Object.entries(env)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, value]) => `${key}=${value}`),
+  ].filter(Boolean).join('|');
+}
+
+export function normalizeClaudeCodeProjectSettingsSnapshot(
+  value: unknown,
+): ClaudeCodeProjectSettingsSnapshot {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return { ...DEFAULT_CLAUDE_CODE_PROJECT_SETTINGS_SNAPSHOT, env: {} };
+  }
+
+  const record = value as Record<string, unknown>;
+  const model = typeof record.model === 'string' ? record.model.trim() : '';
+  const env = normalizeStringMap(record.env);
+  return {
+    model,
+    env,
+    hash: computeClaudeCodeProjectSettingsHash(model, env),
+  };
+}
+
+export function snapshotClaudeCodeProjectSettings(
+  settings: CCSettings,
+): ClaudeCodeProjectSettingsSnapshot {
+  return normalizeClaudeCodeProjectSettingsSnapshot({
+    model: settings.model,
+    env: settings.env,
+  });
+}
+
+export function snapshotClaudeCodeSettings({
+  includeUserSettings,
+  user,
+  project,
+}: {
+  includeUserSettings: boolean;
+  user?: CCSettings;
+  project?: CCSettings;
+}): ClaudeCodeProjectSettingsSnapshot {
+  const userSnapshot = includeUserSettings
+    ? snapshotClaudeCodeProjectSettings(user ?? {})
+    : snapshotClaudeCodeProjectSettings({});
+  const projectSnapshot = snapshotClaudeCodeProjectSettings(project ?? {});
+  return normalizeClaudeCodeProjectSettingsSnapshot({
+    model: projectSnapshot.model || userSnapshot.model,
+    env: {
+      ...userSnapshot.env,
+      ...projectSnapshot.env,
+    },
+  });
 }
 
 export function getClaudeProviderSettings(
@@ -101,7 +202,40 @@ export function getClaudeProviderSettings(
     environmentHash: (config.environmentHash as string | undefined)
       ?? (settings.lastEnvHash as string | undefined)
       ?? DEFAULT_CLAUDE_PROVIDER_SETTINGS.environmentHash,
+    respectProjectSettings: (config.respectProjectSettings as boolean | undefined)
+      ?? DEFAULT_CLAUDE_PROVIDER_SETTINGS.respectProjectSettings,
+    projectSettingsSnapshot: normalizeClaudeCodeProjectSettingsSnapshot(
+      config.projectSettingsSnapshot,
+    ),
   };
+}
+
+export function getClaudeEffectiveEnvironmentVariables(
+  settings: Record<string, unknown>,
+): Record<string, string> {
+  const runtimeEnv = getRuntimeEnvironmentVariables(settings, 'claude');
+  const claudeSettings = getClaudeProviderSettings(settings);
+  if (!claudeSettings.respectProjectSettings) {
+    return runtimeEnv;
+  }
+
+  return {
+    ...claudeSettings.projectSettingsSnapshot.env,
+    ...runtimeEnv,
+  };
+}
+
+export function getClaudeRuntimeEnvironmentText(
+  settings: Record<string, unknown>,
+): string {
+  const claudeSettings = getClaudeProviderSettings(settings);
+  if (!claudeSettings.respectProjectSettings) {
+    return getRuntimeEnvironmentText(settings, 'claude');
+  }
+
+  return Object.entries(getClaudeEffectiveEnvironmentVariables(settings))
+    .map(([key, value]) => `${key}=${value}`)
+    .join('\n');
 }
 
 export function resolveClaudeSettingSources(

@@ -442,6 +442,36 @@ describe('ClaudeSettingsTab', () => {
     expect(findOptionalSetting('settings.plugins.name')).toBeUndefined();
   });
 
+  it('renders a toggle for respecting Claude Code settings', async () => {
+    const plugin = createPlugin({
+      providerConfigs: {
+        claude: {
+          ...DEFAULT_CLAUDE_PROVIDER_SETTINGS,
+          respectProjectSettings: false,
+          projectSettingsSnapshot: {
+            model: 'settings-json-model',
+            env: {},
+          },
+        },
+      },
+    });
+    const context = createContext(plugin);
+
+    claudeSettingsTabRenderer.render(createContainer(), context);
+
+    const projectSettingsToggle = findSetting('settings.respectProjectSettings.name')
+      .toggleComponents[0];
+
+    expect(projectSettingsToggle.value).toBe(false);
+
+    await projectSettingsToggle.onChangeCallback?.(true);
+
+    expect(plugin.settings.providerConfigs.claude.respectProjectSettings).toBe(true);
+    expect(plugin.settings.model).toBe('settings-json-model');
+    expect(mockSaveSettings).toHaveBeenCalledTimes(1);
+    expect(context.refreshModelSelectors).toHaveBeenCalledTimes(1);
+  });
+
   it('reconciles removed custom models on blur and clears stale title model selections', async () => {
     const plugin = createPlugin({
       titleGenerationModel: 'claude-opus-4-6',

@@ -4,6 +4,36 @@ import {
 } from '@/app/settings/GrimoireSettingsStorage';
 
 describe('GrimoireSettingsStorage legacy appearance theme cleanup', () => {
+  it('does not persist the Claude Code project settings snapshot', async () => {
+    const writes: Array<{ content: string; path: string }> = [];
+    const adapter = {
+      exists: jest.fn().mockResolvedValue(false),
+      read: jest.fn(),
+      rename: jest.fn(),
+      write: jest.fn(async (path: string, content: string) => {
+        writes.push({ path, content });
+      }),
+    };
+    const storage = new GrimoireSettingsStorage(adapter as never);
+
+    await storage.save({
+      providerConfigs: {
+        claude: {
+          respectProjectSettings: true,
+          projectSettingsSnapshot: {
+            model: 'settings-json-model',
+            env: { ANTHROPIC_MODEL: 'settings-json-model' },
+          },
+        },
+      },
+    } as never);
+
+    expect(writes[0]?.path).toBe(GRIMOIRE_SETTINGS_PATH);
+    const persisted = JSON.parse(writes[0]?.content ?? '{}') as Record<string, unknown>;
+    expect((persisted.providerConfigs as any).claude.respectProjectSettings).toBe(true);
+    expect((persisted.providerConfigs as any).claude.projectSettingsSnapshot).toBeUndefined();
+  });
+
   it('drops legacy appearance theme values from loaded settings and persists the cleanup', async () => {
     const writes: Array<{ content: string; path: string }> = [];
     const adapter = {

@@ -10,6 +10,8 @@ export const CC_SETTINGS_PATH = '.claude/settings.json';
 
 const CC_SETTINGS_SCHEMA = 'https://json.schemastore.org/claude-code-settings.json';
 
+type CCSettingsAdapter = Pick<VaultFileAdapter, 'exists' | 'read' | 'write'>;
+
 function normalizeRuleList(value: unknown): PermissionRule[] {
   if (!Array.isArray(value)) return [];
   return value.filter((r): r is string => typeof r === 'string') as PermissionRule[];
@@ -33,7 +35,7 @@ function normalizePermissions(permissions: unknown): CCPermissions {
 }
 
 export class CCSettingsStorage {
-  constructor(private adapter: VaultFileAdapter) { }
+  constructor(private adapter: CCSettingsAdapter) { }
 
   async load(): Promise<CCSettings> {
     if (!(await this.adapter.exists(CC_SETTINGS_PATH))) {
