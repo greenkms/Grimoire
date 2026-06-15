@@ -6,6 +6,7 @@ import { isWriteEditTool, TOOL_ASK_USER_QUESTION } from '../../../core/tools/too
 import type { ChatMessage, ContentBlock, ToolCallInfo } from '../../../core/types';
 import { extractUserQuery } from '../../../utils/context';
 import { extractDiffData } from '../../../utils/diff';
+import { loadNodeSqliteModule, type NodeSqliteModule } from '../../acp/history/sqliteModule';
 import {
   normalizeKimicodeToolInput,
   normalizeKimicodeToolName,
@@ -19,15 +20,6 @@ type StoredRow = Record<string, unknown>;
 interface StoredMessage {
   info: StoredRow;
   parts: StoredRow[];
-}
-
-interface SqliteModule {
-  DatabaseSync: new (location: string, options?: Record<string, unknown>) => {
-    close(): void;
-    prepare(sql: string): {
-      all(...params: unknown[]): StoredRow[];
-    };
-  };
 }
 
 export async function loadKimicodeSessionMessages(
@@ -390,14 +382,6 @@ function getNestedNumber(
   return getNumber(current);
 }
 
-async function loadSqliteModule(): Promise<SqliteModule | null> {
-  try {
-    return await import('node:sqlite');
-  } catch {
-    return null;
-  }
-}
-
 interface StoredSessionRows {
   messageRows: StoredRow[];
   partRows: StoredRow[];
@@ -419,12 +403,12 @@ async function loadSessionRowsWithNodeSqlite(
   databasePath: string,
   sessionId: string,
 ): Promise<StoredSessionRows | null> {
-  const sqlite = await loadSqliteModule();
+  const sqlite = loadNodeSqliteModule<StoredRow>();
   if (!sqlite) {
     return null;
   }
 
-  let db: InstanceType<SqliteModule['DatabaseSync']> | null = null;
+  let db: InstanceType<NodeSqliteModule<StoredRow>['DatabaseSync']> | null = null;
   try {
     db = new sqlite.DatabaseSync(databasePath, { readonly: true });
     const messageRows = db.prepare(

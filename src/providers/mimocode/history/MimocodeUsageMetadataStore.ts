@@ -2,19 +2,11 @@ import { spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
 
 import type { ProviderCostValue } from '../../../core/providers/ProviderSpendUsageStore';
+import { loadNodeSqliteModule, type NodeSqliteModule } from '../../acp/history/sqliteModule';
 import { resolveExistingMimocodeDatabasePath } from '../runtime/MimocodePaths';
 import type { MimocodeProviderState } from '../types';
 
 type StoredCostRow = Record<string, unknown>;
-
-interface SqliteModule {
-  DatabaseSync: new (location: string, options?: Record<string, unknown>) => {
-    close(): void;
-    prepare(sql: string): {
-      all(...params: unknown[]): StoredCostRow[];
-    };
-  };
-}
 
 export async function loadMimocodeSessionCost(
   sessionId: string,
@@ -57,25 +49,17 @@ async function loadMimocodeCostRows(
   return loadCostRowsWithSqliteCli(databasePath, sessionId, source);
 }
 
-async function loadSqliteModule(): Promise<SqliteModule | null> {
-  try {
-    return await import('node:sqlite');
-  } catch {
-    return null;
-  }
-}
-
 async function loadCostRowsWithNodeSqlite(
   databasePath: string,
   sessionId: string,
   source: 'message' | 'step',
 ): Promise<StoredCostRow[] | null> {
-  const sqlite = await loadSqliteModule();
+  const sqlite = loadNodeSqliteModule<StoredCostRow>();
   if (!sqlite) {
     return null;
   }
 
-  let db: InstanceType<SqliteModule['DatabaseSync']> | null = null;
+  let db: InstanceType<NodeSqliteModule<StoredCostRow>['DatabaseSync']> | null = null;
   try {
     db = new sqlite.DatabaseSync(databasePath, { readonly: true });
     return db.prepare(buildCostQuery(source, '?')).all(sessionId);

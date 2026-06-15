@@ -84895,6 +84895,21 @@ var KIMICODE_PROVIDER_CAPABILITIES = Object.freeze({
 var import_node_child_process4 = require("node:child_process");
 var fs24 = __toESM(require("node:fs"));
 
+// src/providers/acp/history/sqliteModule.ts
+function getCommonJsRequire() {
+  return typeof require === "function" ? require : void 0;
+}
+function loadNodeSqliteModule(moduleRequire = getCommonJsRequire()) {
+  if (!moduleRequire) {
+    return null;
+  }
+  try {
+    return moduleRequire("node:sqlite");
+  } catch (e) {
+    return null;
+  }
+}
+
 // src/providers/kimicode/runtime/KimicodePaths.ts
 var fs23 = __toESM(require("node:fs"));
 var os11 = __toESM(require("node:os"));
@@ -85003,15 +85018,8 @@ async function loadKimicodeCostRows(databasePath, sessionId, source) {
   }
   return loadCostRowsWithSqliteCli(databasePath, sessionId, source);
 }
-async function loadSqliteModule() {
-  try {
-    return await import("node:sqlite");
-  } catch (e) {
-    return null;
-  }
-}
 async function loadCostRowsWithNodeSqlite(databasePath, sessionId, source) {
-  const sqlite = await loadSqliteModule();
+  const sqlite = loadNodeSqliteModule();
   if (!sqlite) {
     return null;
   }
@@ -89347,13 +89355,6 @@ function getNestedNumber(value, keys) {
   }
   return getNumber(current);
 }
-async function loadSqliteModule2() {
-  try {
-    return await import("node:sqlite");
-  } catch (e) {
-    return null;
-  }
-}
 async function loadKimicodeSessionRows(databasePath, sessionId) {
   const viaNodeSqlite = await loadSessionRowsWithNodeSqlite(databasePath, sessionId);
   if (viaNodeSqlite) {
@@ -89362,7 +89363,7 @@ async function loadKimicodeSessionRows(databasePath, sessionId) {
   return loadSessionRowsWithSqliteCli(databasePath, sessionId);
 }
 async function loadSessionRowsWithNodeSqlite(databasePath, sessionId) {
-  const sqlite = await loadSqliteModule2();
+  const sqlite = loadNodeSqliteModule();
   if (!sqlite) {
     return null;
   }
@@ -89760,15 +89761,8 @@ async function loadMimocodeCostRows(databasePath, sessionId, source) {
   }
   return loadCostRowsWithSqliteCli2(databasePath, sessionId, source);
 }
-async function loadSqliteModule3() {
-  try {
-    return await import("node:sqlite");
-  } catch (e) {
-    return null;
-  }
-}
 async function loadCostRowsWithNodeSqlite2(databasePath, sessionId, source) {
-  const sqlite = await loadSqliteModule3();
+  const sqlite = loadNodeSqliteModule();
   if (!sqlite) {
     return null;
   }
@@ -94104,13 +94098,6 @@ function getNestedNumber2(value, keys) {
   }
   return getNumber2(current);
 }
-async function loadSqliteModule4() {
-  try {
-    return await import("node:sqlite");
-  } catch (e) {
-    return null;
-  }
-}
 async function loadMimocodeSessionRows(databasePath, sessionId) {
   const viaNodeSqlite = await loadSessionRowsWithNodeSqlite2(databasePath, sessionId);
   if (viaNodeSqlite) {
@@ -94119,7 +94106,7 @@ async function loadMimocodeSessionRows(databasePath, sessionId) {
   return loadSessionRowsWithSqliteCli2(databasePath, sessionId);
 }
 async function loadSessionRowsWithNodeSqlite2(databasePath, sessionId) {
-  const sqlite = await loadSqliteModule4();
+  const sqlite = loadNodeSqliteModule();
   if (!sqlite) {
     return null;
   }
@@ -94517,15 +94504,8 @@ async function loadOpencodeCostRows(databasePath, sessionId, source) {
   }
   return loadCostRowsWithSqliteCli3(databasePath, sessionId, source);
 }
-async function loadSqliteModule5() {
-  try {
-    return await import("node:sqlite");
-  } catch (e) {
-    return null;
-  }
-}
 async function loadCostRowsWithNodeSqlite3(databasePath, sessionId, source) {
-  const sqlite = await loadSqliteModule5();
+  const sqlite = loadNodeSqliteModule();
   if (!sqlite) {
     return null;
   }
@@ -98858,13 +98838,6 @@ function getNestedNumber3(value, keys) {
   }
   return getNumber3(current);
 }
-async function loadSqliteModule6() {
-  try {
-    return await import("node:sqlite");
-  } catch (e) {
-    return null;
-  }
-}
 async function loadOpencodeSessionRows(databasePath, sessionId) {
   const viaNodeSqlite = await loadSessionRowsWithNodeSqlite3(databasePath, sessionId);
   if (viaNodeSqlite) {
@@ -98873,7 +98846,7 @@ async function loadOpencodeSessionRows(databasePath, sessionId) {
   return loadSessionRowsWithSqliteCli3(databasePath, sessionId);
 }
 async function loadSessionRowsWithNodeSqlite3(databasePath, sessionId) {
-  const sqlite = await loadSqliteModule6();
+  const sqlite = loadNodeSqliteModule();
   if (!sqlite) {
     return null;
   }
