@@ -6,6 +6,7 @@ import {
   encodeGrokWorkspaceKey,
   resolveGrokChatHistoryPath,
   resolveGrokDataDir,
+  resolveGrokNativeAuthPath,
   resolveGrokNativeDataDir,
   resolveGrokSessionDirectory,
 } from '../../../../src/providers/grok/runtime/GrokPaths';
@@ -23,6 +24,12 @@ describe('GrokPaths', () => {
       GROK_HOME: '/tmp/grok-home',
       HOME: '/home/tester',
     } as NodeJS.ProcessEnv)).toBe('/home/tester/.grok');
+  });
+
+  it('resolves native auth.json under ~/.grok', () => {
+    expect(resolveGrokNativeAuthPath({
+      HOME: '/home/tester',
+    } as NodeJS.ProcessEnv)).toBe('/home/tester/.grok/auth.json');
   });
 
   it('falls back to ~/.grok when GROK_HOME is unset', () => {

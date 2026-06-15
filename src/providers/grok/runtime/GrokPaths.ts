@@ -5,6 +5,8 @@ import * as path from 'node:path';
 const GROK_SESSIONS_DIR = 'sessions';
 const GROK_CHAT_HISTORY_FILE = 'chat_history.jsonl';
 
+const GROK_AUTH_FILE = 'auth.json';
+
 export function resolveGrokNativeDataDir(
   env: NodeJS.ProcessEnv = process.env,
 ): string {
@@ -26,6 +28,12 @@ export function resolveGrokDataDir(
   }
 
   return resolveGrokNativeDataDir(env);
+}
+
+export function resolveGrokNativeAuthPath(
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  return path.join(resolveGrokNativeDataDir(env), GROK_AUTH_FILE);
 }
 
 export function encodeGrokWorkspaceKey(workspacePath: string): string {

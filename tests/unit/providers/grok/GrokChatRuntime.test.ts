@@ -396,7 +396,24 @@ describe('GrokChatRuntime', () => {
     const env = (runtime as any).buildRuntimeEnv('/usr/local/bin/grok', '/tmp/grimoire-grok-home');
 
     expect(env.GROK_HOME).toBe('/tmp/grimoire-grok-home');
+    expect(env.GROK_AUTH_PATH).toEqual(expect.stringMatching(/\/\.grok\/auth\.json$/));
     expect(env.XAI_API_KEY).toBe('test-key');
+  });
+
+  it('does not override an explicit GROK_AUTH_PATH from provider env vars', () => {
+    const runtime = new GrokChatRuntime(createMockPlugin({
+      settings: {
+        providerConfigs: {
+          grok: {
+            environmentVariables: 'GROK_AUTH_PATH=/custom/auth.json',
+          },
+        },
+      },
+    }));
+
+    const env = (runtime as any).buildRuntimeEnv('/usr/local/bin/grok', '/tmp/grimoire-grok-home');
+
+    expect(env.GROK_AUTH_PATH).toBe('/custom/auth.json');
   });
 
   it('returns the nested ACP approval envelope for allow-always selections', async () => {
