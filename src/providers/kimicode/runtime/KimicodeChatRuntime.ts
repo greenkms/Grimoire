@@ -1136,7 +1136,7 @@ export class KimicodeChatRuntime implements ChatRuntime {
       this.setSupportedCommands([]);
       const response = await this.connection.newSession({
         cwd,
-        mcpServers: [],
+        mcpServers: {} as never,
       });
       this.sessionInvalidated = false;
       this.loadedSessionId = response.sessionId;
@@ -1165,7 +1165,7 @@ export class KimicodeChatRuntime implements ChatRuntime {
       this.setSupportedCommands([]);
       const response = await this.connection.loadSession({
         cwd,
-        mcpServers: [],
+        mcpServers: {} as never,
         sessionId,
       });
       this.sessionInvalidated = false;
