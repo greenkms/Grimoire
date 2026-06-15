@@ -645,17 +645,11 @@ export class GrimoireSettingTab extends PluginSettingTab {
       text: 'Which CLI back-ends Grimoire can talk to. Each runs as a local agent; only enabled providers appear in the model selector.',
     });
 
-    this.renderProviderEnableRow(container, 'claude', getClaudeProviderSettings(this.plugin.settings).enabled, async (enabled) => {
-      await this.updateProviderEnabled('claude', enabled);
-    });
     this.renderProviderEnableRow(container, 'codex', getCodexProviderSettings(this.plugin.settings).enabled, async (enabled) => {
       await this.updateProviderEnabled('codex', enabled);
     });
-    this.renderProviderEnableRow(container, 'antigravity', getAntigravityProviderSettings(this.plugin.settings).enabled, async (enabled) => {
-      await this.updateProviderEnabled('antigravity', enabled);
-    });
-    this.renderProviderEnableRow(container, 'gemini', getGeminiProviderSettings(this.plugin.settings).enabled, async (enabled) => {
-      await this.updateProviderEnabled('gemini', enabled);
+    this.renderProviderEnableRow(container, 'claude', getClaudeProviderSettings(this.plugin.settings).enabled, async (enabled) => {
+      await this.updateProviderEnabled('claude', enabled);
     });
     this.renderProviderEnableRow(container, 'opencode', getOpencodeProviderSettings(this.plugin.settings).enabled, async (enabled) => {
       await this.updateProviderEnabled('opencode', enabled);
@@ -665,6 +659,12 @@ export class GrimoireSettingTab extends PluginSettingTab {
     });
     this.renderProviderEnableRow(container, 'kimicode', getKimicodeProviderSettings(this.plugin.settings).enabled, async (enabled) => {
       await this.updateProviderEnabled('kimicode', enabled);
+    });
+    this.renderProviderEnableRow(container, 'antigravity', getAntigravityProviderSettings(this.plugin.settings).enabled, async (enabled) => {
+      await this.updateProviderEnabled('antigravity', enabled);
+    });
+    this.renderProviderEnableRow(container, 'gemini', getGeminiProviderSettings(this.plugin.settings).enabled, async (enabled) => {
+      await this.updateProviderEnabled('gemini', enabled);
     });
   }
 
