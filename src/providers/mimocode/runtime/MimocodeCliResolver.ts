@@ -1,9 +1,13 @@
 import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 
 import { getRuntimeEnvironmentText } from '../../../core/providers/providerEnvironment';
 import { getHostnameKey } from '../../../utils/env';
 import { expandHomePath } from '../../../utils/path';
 import { getMimocodeProviderSettings } from '../settings';
+
+const MIMOCODE_DEFAULT_BIN = path.join(os.homedir(), '.mimocode', 'bin', 'mimo');
 
 export class MimocodeCliResolver {
   private readonly cachedHostname = getHostnameKey();
@@ -44,7 +48,9 @@ export class MimocodeCliResolver {
     _envText: string,
   ): string | null {
     const hostnamePath = (hostnamePaths?.[this.cachedHostname] ?? '').trim();
-    return resolveConfiguredCliPath(hostnamePath) ?? resolveConfiguredCliPath(legacyPath.trim());
+    return resolveConfiguredCliPath(hostnamePath)
+      ?? resolveConfiguredCliPath(legacyPath.trim())
+      ?? resolveConfiguredCliPath(MIMOCODE_DEFAULT_BIN);
   }
 
   reset(): void {
