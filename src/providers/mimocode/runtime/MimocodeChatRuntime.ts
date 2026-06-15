@@ -284,7 +284,7 @@ export class MimocodeChatRuntime implements ChatRuntime {
 
     const cwd = getVaultPath(this.plugin.app) ?? process.cwd();
     const targetSessionId = this.sessionId;
-    const resolvedCliPath = this.plugin.getResolvedProviderCliPath('mimocode') ?? 'mimocode';
+    const resolvedCliPath = this.plugin.getResolvedProviderCliPath('mimocode') ?? 'mimo';
     const runtimeEnv = this.buildRuntimeEnv(
       resolvedCliPath,
       this.currentDatabasePath,
