@@ -639,7 +639,7 @@ export class KimicodeChatRuntime implements ChatRuntime {
     };
 
     this.process = new AcpSubprocess({
-      args: ['acp', `--cwd=${params.cwd}`],
+      args: ['acp'],
       command: params.command,
       cwd: params.cwd,
       env: processEnv,
