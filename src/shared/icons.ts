@@ -103,6 +103,11 @@ export const OPENCODE_PROVIDER_ICON: ProviderIconSvg = {
   ],
 };
 
+export const MIMOCODE_PROVIDER_ICON: ProviderIconSvg = {
+  viewBox: '0 0 24 24',
+  path: 'M3 3h4v18H3V3zm7 0h4v18h-4V3zm7 0h4v18h-4V3zM1 10h6v4H1v-4zm10 0h6v4h-6v-4zm10 0h2v4h-2v-4z',
+};
+
 export interface CreateProviderIconSvgOptions {
   className?: string;
   dataProvider?: string;

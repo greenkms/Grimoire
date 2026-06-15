@@ -17,6 +17,7 @@ Repository documentation and user-facing product copy should be in English unles
 - `src/providers/codex/` - Codex app-server adapter and Codex-owned workspace services.
 - `src/providers/antigravity/` - Antigravity CLI print-mode adapter and Google's official Gemini CLI replacement.
 - `src/providers/opencode/` - OpenCode ACP adapter and launch/workspace artifacts.
+- `src/providers/mimocode/` - MiMoCode ACP adapter and launch/workspace artifacts.
 - `src/providers/acp/` - Shared ACP transport and normalization helpers.
 
 Read the nested `AGENTS.md` in a provider directory before changing provider-specific runtime, storage, history, settings, or UI behavior.

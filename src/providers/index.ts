@@ -8,6 +8,8 @@ import { codexWorkspaceRegistration } from './codex/app/CodexWorkspaceServices';
 import { codexProviderRegistration } from './codex/registration';
 import { geminiWorkspaceRegistration } from './gemini/app/GeminiWorkspaceServices';
 import { geminiProviderRegistration } from './gemini/registration';
+import { mimocodeWorkspaceRegistration } from './mimocode/app/MimocodeWorkspaceServices';
+import { mimocodeProviderRegistration } from './mimocode/registration';
 import { opencodeWorkspaceRegistration } from './opencode/app/OpencodeWorkspaceServices';
 import { opencodeProviderRegistration } from './opencode/registration';
 
@@ -23,11 +25,13 @@ export function registerBuiltInProviders(): void {
   ProviderRegistry.register('antigravity', antigravityProviderRegistration);
   ProviderRegistry.register('gemini', geminiProviderRegistration);
   ProviderRegistry.register('opencode', opencodeProviderRegistration);
+  ProviderRegistry.register('mimocode', mimocodeProviderRegistration);
   ProviderWorkspaceRegistry.register('claude', claudeWorkspaceRegistration);
   ProviderWorkspaceRegistry.register('codex', codexWorkspaceRegistration);
   ProviderWorkspaceRegistry.register('antigravity', antigravityWorkspaceRegistration);
   ProviderWorkspaceRegistry.register('gemini', geminiWorkspaceRegistration);
   ProviderWorkspaceRegistry.register('opencode', opencodeWorkspaceRegistration);
+  ProviderWorkspaceRegistry.register('mimocode', mimocodeWorkspaceRegistration);
   builtInProvidersRegistered = true;
 }
 
