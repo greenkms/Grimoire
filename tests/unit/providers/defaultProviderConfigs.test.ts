@@ -10,6 +10,7 @@ describe('getBuiltInProviderDefaultConfigs', () => {
     expect(first).toHaveProperty('codex');
     expect(first).toHaveProperty('gemini');
     expect(first).toHaveProperty('opencode');
+    expect(first).toHaveProperty('grok');
     expect(first).not.toBe(second);
     expect(first.antigravity).not.toBe(second.antigravity);
     expect(first.claude).not.toBe(second.claude);

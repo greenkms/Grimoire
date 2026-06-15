@@ -8,6 +8,8 @@ import { codexWorkspaceRegistration } from './codex/app/CodexWorkspaceServices';
 import { codexProviderRegistration } from './codex/registration';
 import { geminiWorkspaceRegistration } from './gemini/app/GeminiWorkspaceServices';
 import { geminiProviderRegistration } from './gemini/registration';
+import { grokWorkspaceRegistration } from './grok/app/GrokWorkspaceServices';
+import { grokProviderRegistration } from './grok/registration';
 import { kimicodeWorkspaceRegistration } from './kimicode/app/KimicodeWorkspaceServices';
 import { kimicodeProviderRegistration } from './kimicode/registration';
 import { mimocodeWorkspaceRegistration } from './mimocode/app/MimocodeWorkspaceServices';
@@ -29,6 +31,7 @@ export function registerBuiltInProviders(): void {
   ProviderRegistry.register('opencode', opencodeProviderRegistration);
   ProviderRegistry.register('mimocode', mimocodeProviderRegistration);
   ProviderRegistry.register('kimicode', kimicodeProviderRegistration);
+  ProviderRegistry.register('grok', grokProviderRegistration);
   ProviderWorkspaceRegistry.register('claude', claudeWorkspaceRegistration);
   ProviderWorkspaceRegistry.register('codex', codexWorkspaceRegistration);
   ProviderWorkspaceRegistry.register('antigravity', antigravityWorkspaceRegistration);
@@ -36,6 +39,7 @@ export function registerBuiltInProviders(): void {
   ProviderWorkspaceRegistry.register('opencode', opencodeWorkspaceRegistration);
   ProviderWorkspaceRegistry.register('mimocode', mimocodeWorkspaceRegistration);
   ProviderWorkspaceRegistry.register('kimicode', kimicodeWorkspaceRegistration);
+  ProviderWorkspaceRegistry.register('grok', grokWorkspaceRegistration);
   builtInProvidersRegistered = true;
 }
 

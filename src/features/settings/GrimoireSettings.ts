@@ -23,6 +23,7 @@ import { getAntigravityProviderSettings, updateAntigravityProviderSettings } fro
 import { getClaudeProviderSettings, updateClaudeProviderSettings } from '../../providers/claude/settings';
 import { getCodexProviderSettings, updateCodexProviderSettings } from '../../providers/codex/settings';
 import { getGeminiProviderSettings, updateGeminiProviderSettings } from '../../providers/gemini/settings';
+import { getGrokProviderSettings, updateGrokProviderSettings } from '../../providers/grok/settings';
 import { getKimicodeProviderSettings, updateKimicodeProviderSettings } from '../../providers/kimicode/settings';
 import { getMimocodeProviderSettings, updateMimocodeProviderSettings } from '../../providers/mimocode/settings';
 import { getOpencodeProviderSettings, updateOpencodeProviderSettings } from '../../providers/opencode/settings';
@@ -165,6 +166,10 @@ const PROVIDER_SETTING_COPY: Record<ProviderId, { desc: string; name: string }> 
   kimicode: {
     desc: 'MoonshotAI\'s multi-provider agent CLI. Supports Kimi, OpenAI, Anthropic, Gemini.',
     name: 'Kimi Code',
+  },
+  grok: {
+    desc: 'xAI\'s agentic coding CLI with plan mode, subagents, skills, and MCP.',
+    name: 'Grok Build',
   },
 };
 
@@ -668,6 +673,9 @@ export class GrimoireSettingTab extends PluginSettingTab {
     this.renderProviderEnableRow(container, 'kimicode', getKimicodeProviderSettings(this.plugin.settings).enabled, async (enabled) => {
       await this.updateProviderEnabled('kimicode', enabled);
     });
+    this.renderProviderEnableRow(container, 'grok', getGrokProviderSettings(this.plugin.settings).enabled, async (enabled) => {
+      await this.updateProviderEnabled('grok', enabled);
+    });
     this.renderProviderEnableRow(container, 'antigravity', getAntigravityProviderSettings(this.plugin.settings).enabled, async (enabled) => {
       await this.updateProviderEnabled('antigravity', enabled);
     });
@@ -692,6 +700,8 @@ export class GrimoireSettingTab extends PluginSettingTab {
       updateMimocodeProviderSettings(this.plugin.settings, { enabled });
     } else if (providerId === 'kimicode') {
       updateKimicodeProviderSettings(this.plugin.settings, { enabled });
+    } else if (providerId === 'grok') {
+      updateGrokProviderSettings(this.plugin.settings, { enabled });
     }
 
     if (ProviderSettingsCoordinator.normalizeProviderSelection(this.plugin.settings)) {
