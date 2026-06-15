@@ -860,8 +860,20 @@ export class GrimoireView extends ItemView {
       mgr.markFileCacheDirty();
       if (includesFolders) mgr.markFolderCacheDirty();
     };
+    const registerCreateCacheInvalidation = (): void => {
+      if (!this.tabManager) return;
+      this.eventRefs.push(
+        this.plugin.app.vault.on('create', () => markCacheDirty(true))
+      );
+    };
+    if (this.plugin.app.workspace.layoutReady) {
+      registerCreateCacheInvalidation();
+    } else if (typeof this.plugin.app.workspace.onLayoutReady === 'function') {
+      this.plugin.app.workspace.onLayoutReady(registerCreateCacheInvalidation);
+    } else {
+      registerCreateCacheInvalidation();
+    }
     this.eventRefs.push(
-      this.plugin.app.vault.on('create', () => markCacheDirty(true)),
       this.plugin.app.vault.on('delete', () => markCacheDirty(true)),
       this.plugin.app.vault.on('rename', () => markCacheDirty(true)),
       this.plugin.app.vault.on('modify', () => markCacheDirty(false))

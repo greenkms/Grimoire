@@ -7,6 +7,7 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs';
 import { join, dirname, resolve, relative } from 'path';
 import { fileURLToPath } from 'url';
+import { transformSync } from 'esbuild';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -14,6 +15,7 @@ const STYLE_DIR = join(ROOT, 'src', 'style');
 const OUTPUT = join(ROOT, 'styles.css');
 const INDEX_FILE = join(STYLE_DIR, 'index.css');
 const packageJson = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf-8'));
+const prod = process.argv.includes('production');
 
 const IMPORT_PATTERN = /^\s*@import\s+(?:url\()?['"]([^'"]+)['"]\)?\s*;/gm;
 
@@ -114,7 +116,15 @@ function build() {
     process.exit(1);
   }
 
-  const output = parts.join('\n');
+  let output = parts.join('\n');
+  if (prod) {
+    output = transformSync(output, {
+      loader: 'css',
+      minify: true,
+      legalComments: 'eof',
+    }).code;
+  }
+
   writeFileSync(OUTPUT, output);
   console.log(`Built styles.css (${(output.length / 1024).toFixed(1)} KB)`);
 }

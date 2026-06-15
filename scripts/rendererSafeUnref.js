@@ -57,6 +57,80 @@ const UNSAFE_TIMER_UNREF_PATTERNS = [
       '\n    }',
   },
   {
+    name: 'claude-sdk-process-transport-close-win32-minified',
+    pattern: /if\(([A-Za-z_$][A-Za-z0-9_$]*)&&!\1\.killed&&\1\.exitCode===null\)setTimeout\(\(([A-Za-z_$][A-Za-z0-9_$]*),([A-Za-z_$][A-Za-z0-9_$]*)\)=>\{if\(\2\.exitCode!==null\)\{\3\(\);return\}if\(process\.platform==="win32"\)\{setTimeout\(\(([A-Za-z_$][A-Za-z0-9_$]*),([A-Za-z_$][A-Za-z0-9_$]*)\)=>\{\4\.exitCode===null&&\4\.kill\("SIGKILL"\),\5\(\)\},5e3,\2,\3\)\.unref\(\);return\}\2\.kill\("SIGTERM"\),setTimeout\(([A-Za-z_$][A-Za-z0-9_$]*)=>\{\6\.exitCode===null&&\6\.kill\("SIGKILL"\)\},5e3,\2\)\.unref\(\),\3\(\)\},([A-Za-z_$][A-Za-z0-9_$]*),\1,([A-Za-z_$][A-Za-z0-9_$]*)\)\.unref\(\),\1\.once\("exit",(\(\)=>[^;]+)\);/g,
+    replacement: (
+      _match,
+      processVariable,
+      _processParam,
+      _completeParam,
+      _winProcessParam,
+      _winCompleteParam,
+      _forceKillParam,
+      timeoutVariable,
+      completeCallback,
+      exitHandler,
+    ) =>
+      `if(${processVariable}&&!${processVariable}.killed&&${processVariable}.exitCode===null){` +
+      `const processKillTimer=setTimeout((childProcess,onClose)=>{` +
+      `if(childProcess.exitCode!==null){onClose();return}` +
+      `if(process.platform==="win32"){` +
+      `const windowsForceKillTimer=setTimeout((windowsProcess,windowsOnClose)=>{` +
+      `windowsProcess.exitCode===null&&windowsProcess.kill("SIGKILL");` +
+      `windowsOnClose();` +
+      `},5e3,childProcess,onClose);` +
+      `windowsForceKillTimer.unref?.();` +
+      `return` +
+      `}` +
+      `childProcess.kill("SIGTERM");` +
+      `const forceKillTimer=setTimeout((forceKillProcess)=>{` +
+      `forceKillProcess.exitCode===null&&forceKillProcess.kill("SIGKILL");` +
+      `},5e3,childProcess);` +
+      `forceKillTimer.unref?.();` +
+      `onClose();` +
+      `},${timeoutVariable},${processVariable},${completeCallback});` +
+      `processKillTimer.unref?.();` +
+      `${processVariable}.once("exit",${exitHandler});` +
+      `}`,
+  },
+  {
+    name: 'claude-sdk-process-transport-close-win32-minified-expression',
+    pattern: /setTimeout\(\(([A-Za-z_$][A-Za-z0-9_$]*),([A-Za-z_$][A-Za-z0-9_$]*)\)=>\{if\(\1\.exitCode!==null\)\{\2\(\);return\}if\(process\.platform==="win32"\)\{setTimeout\(\(([A-Za-z_$][A-Za-z0-9_$]*),([A-Za-z_$][A-Za-z0-9_$]*)\)=>\{\3\.exitCode===null&&\3\.kill\("SIGKILL"\),\4\(\)\},5e3,\1,\2\)\.unref\(\);return\}\1\.kill\("SIGTERM"\),setTimeout\(([A-Za-z_$][A-Za-z0-9_$]*)=>\{\5\.exitCode===null&&\5\.kill\("SIGKILL"\)\},5e3,\1\)\.unref\(\),\2\(\)\},([A-Za-z_$][A-Za-z0-9_$]*),([A-Za-z_$][A-Za-z0-9_$]*),([A-Za-z_$][A-Za-z0-9_$]*)\)\.unref\(\),\7\.once\("exit",(\(\)=>[A-Za-z_$][A-Za-z0-9_$]*\.delete\(\7\))\)/g,
+    replacement: (
+      _match,
+      _processParam,
+      _completeParam,
+      _winProcessParam,
+      _winCompleteParam,
+      _forceKillParam,
+      timeoutVariable,
+      processVariable,
+      completeCallback,
+      exitHandler,
+    ) =>
+      `(()=>{` +
+      `const processKillTimer=setTimeout((childProcess,onClose)=>{` +
+      `if(childProcess.exitCode!==null){onClose();return}` +
+      `if(process.platform==="win32"){` +
+      `const windowsForceKillTimer=setTimeout((windowsProcess,windowsOnClose)=>{` +
+      `windowsProcess.exitCode===null&&windowsProcess.kill("SIGKILL");` +
+      `windowsOnClose();` +
+      `},5e3,childProcess,onClose);` +
+      `windowsForceKillTimer.unref?.();` +
+      `return` +
+      `}` +
+      `childProcess.kill("SIGTERM");` +
+      `const forceKillTimer=setTimeout((forceKillProcess)=>{` +
+      `forceKillProcess.exitCode===null&&forceKillProcess.kill("SIGKILL");` +
+      `},5e3,childProcess);` +
+      `forceKillTimer.unref?.();` +
+      `onClose();` +
+      `},${timeoutVariable},${processVariable},${completeCallback});` +
+      `processKillTimer.unref?.();` +
+      `${processVariable}.once("exit",${exitHandler});` +
+      `})()`,
+  },
+  {
     name: 'mcp-sdk-stdio-close-wait',
     pattern: /new Promise\(\((resolve\d+)\) => setTimeout\(\1, 2e3\)\.unref\(\)\)/g,
     replacement:
@@ -64,6 +138,15 @@ const UNSAFE_TIMER_UNREF_PATTERNS = [
       '\n        const closeTimeout = setTimeout($1, 2e3);' +
       '\n        closeTimeout.unref?.();' +
       '\n      })',
+  },
+  {
+    name: 'mcp-sdk-stdio-close-wait-minified',
+    pattern: /new Promise\(([A-Za-z_$][A-Za-z0-9_$]*)=>setTimeout\(\1,2e3\)\.unref\(\)\)/g,
+    replacement:
+      'new Promise(($1)=>{' +
+      'const closeTimeout=setTimeout($1,2e3);' +
+      'closeTimeout.unref?.();' +
+      '})',
   },
 ];
 

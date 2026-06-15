@@ -106,6 +106,59 @@ describe('rendererSafeUnref helpers', () => {
     expect(findUnsafeTimerUnrefSites(result.contents)).toEqual([]);
   });
 
+  it('patches the minified claude-sdk win32-aware process close timeout shape', () => {
+    const input = [
+      'if(n&&!n.killed&&n.exitCode===null)setTimeout((i,o)=>{if(i.exitCode!==null){o();return}',
+      'if(process.platform==="win32"){setTimeout((s,a)=>{s.exitCode===null&&s.kill("SIGKILL"),a()},5e3,i,o).unref();return}',
+      'i.kill("SIGTERM"),setTimeout(s=>{s.exitCode===null&&s.kill("SIGKILL")},5e3,i).unref(),o()},$xe,n,e).unref(),n.once("exit",()=>bd.delete(n));',
+    ].join('');
+
+    const result = patchRendererUnsafeUnrefSites(input);
+
+    expect(result.appliedPatches).toEqual([
+      { name: 'claude-sdk-process-transport-close-win32-minified', count: 1 },
+    ]);
+    expect(result.contents).toContain('processKillTimer.unref?.();');
+    expect(result.contents).toContain('windowsForceKillTimer.unref?.();');
+    expect(result.contents).toContain('forceKillTimer.unref?.();');
+    expect(result.contents).toContain('n.once("exit",()=>bd.delete(n));');
+    expect(findUnsafeTimerUnrefSites(result.contents)).toEqual([]);
+  });
+
+  it('patches the minified claude-sdk win32-aware process close timeout expression shape', () => {
+    const input = [
+      'n&&!n.killed&&n.exitCode===null?(setTimeout((i,o)=>{if(i.exitCode!==null){o();return}',
+      'if(process.platform==="win32"){setTimeout((s,a)=>{s.exitCode===null&&s.kill("SIGKILL"),a()},5e3,i,o).unref();return}',
+      'i.kill("SIGTERM"),setTimeout(s=>{s.exitCode===null&&s.kill("SIGKILL")},5e3,i).unref(),o()},$xe,n,e).unref(),n.once("exit",()=>L_.delete(n))):n&&(L_.delete(n),e())',
+    ].join('');
+
+    const result = patchRendererUnsafeUnrefSites(input);
+
+    expect(result.appliedPatches).toEqual([
+      { name: 'claude-sdk-process-transport-close-win32-minified-expression', count: 1 },
+    ]);
+    expect(result.contents).toContain('processKillTimer.unref?.();');
+    expect(result.contents).toContain('windowsForceKillTimer.unref?.();');
+    expect(result.contents).toContain('forceKillTimer.unref?.();');
+    expect(result.contents).toContain('n.once("exit",()=>L_.delete(n));');
+    expect(findUnsafeTimerUnrefSites(result.contents)).toEqual([]);
+  });
+
+  it('patches minified MCP stdio close waits', () => {
+    const input = [
+      'await Promise.race([r,new Promise(i=>setTimeout(i,2e3).unref())]);',
+      'await Promise.race([r,new Promise(i=>setTimeout(i,2e3).unref())]);',
+    ].join('');
+
+    const result = patchRendererUnsafeUnrefSites(input);
+
+    expect(result.appliedPatches).toEqual([
+      { name: 'mcp-sdk-stdio-close-wait-minified', count: 2 },
+    ]);
+    expect(result.contents).toContain('closeTimeout.unref?.();');
+    expect(findUnsafeTimerUnrefSites(result.contents)).toEqual([]);
+  });
+
   it('reports remaining direct timer .unref() calls but ignores guarded usage', () => {
     const input = [
       'const timer = setTimeout(run, 1000);',
