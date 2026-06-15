@@ -3,6 +3,7 @@ import { DEFAULT_ANTIGRAVITY_PROVIDER_SETTINGS } from './antigravity/settings';
 import { DEFAULT_CLAUDE_PROVIDER_SETTINGS } from './claude/settings';
 import { DEFAULT_CODEX_PROVIDER_SETTINGS } from './codex/settings';
 import { DEFAULT_GEMINI_PROVIDER_SETTINGS } from './gemini/settings';
+import { DEFAULT_KIMICODE_PROVIDER_SETTINGS } from './kimicode/settings';
 import { DEFAULT_MIMOCODE_PROVIDER_SETTINGS } from './mimocode/settings';
 import { DEFAULT_OPENCODE_PROVIDER_SETTINGS } from './opencode/settings';
 
@@ -12,6 +13,7 @@ export function getBuiltInProviderDefaultConfigs(): ProviderConfigMap {
     claude: { ...DEFAULT_CLAUDE_PROVIDER_SETTINGS },
     codex: { ...DEFAULT_CODEX_PROVIDER_SETTINGS },
     gemini: { ...DEFAULT_GEMINI_PROVIDER_SETTINGS },
+    kimicode: { ...DEFAULT_KIMICODE_PROVIDER_SETTINGS },
     mimocode: { ...DEFAULT_MIMOCODE_PROVIDER_SETTINGS },
     opencode: { ...DEFAULT_OPENCODE_PROVIDER_SETTINGS },
   };

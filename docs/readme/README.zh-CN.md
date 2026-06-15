@@ -1,4 +1,4 @@
-# Grimoire
+# Grimoire · 魔导书
 
 <p align="center">
   <img src="../../assets/readme/grimoire-logo.png" alt="Grimoire 标志" width="240">

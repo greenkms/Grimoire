@@ -108,6 +108,11 @@ export const MIMOCODE_PROVIDER_ICON: ProviderIconSvg = {
   path: 'M3 3h4v18H3V3zm7 0h4v18h-4V3zm7 0h4v18h-4V3zM1 10h6v4H1v-4zm10 0h6v4h-6v-4zm10 0h2v4h-2v-4z',
 };
 
+export const KIMICODE_PROVIDER_ICON: ProviderIconSvg = {
+  viewBox: '0 0 24 24',
+  path: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6zm4 4h-2v-2h2v2zm0-4h-2V7h2v6z',
+};
+
 export interface CreateProviderIconSvgOptions {
   className?: string;
   dataProvider?: string;

@@ -1,4 +1,4 @@
-# Grimoire
+# Grimoire · Гримуар
 
 <p align="center">
   <img src="../../assets/readme/grimoire-logo.png" alt="Логотип Grimoire" width="240">

@@ -1,0 +1,75 @@
+import { KimicodeCommandCatalog } from '@/providers/kimicode/commands/KimicodeCommandCatalog';
+
+describe('KimicodeCommandCatalog', () => {
+  it('maps runtime commands into slash dropdown entries', async () => {
+    const catalog = new KimicodeCommandCatalog();
+    catalog.setRuntimeCommands([
+      {
+        id: 'acp:/review',
+        name: '/review',
+        description: 'Review the current changes',
+        argumentHint: '$1',
+        content: '',
+        source: 'sdk',
+      },
+      {
+        id: 'acp:review-duplicate',
+        name: 'review',
+        description: 'Duplicate entry',
+        content: '',
+        source: 'sdk',
+      },
+      {
+        id: 'acp:fix',
+        name: 'fix',
+        description: 'Apply a fix',
+        content: '',
+        source: 'sdk',
+      },
+    ]);
+
+    await expect(catalog.listDropdownEntries({ includeBuiltIns: false })).resolves.toEqual([
+      {
+        id: 'acp:/review',
+        providerId: 'kimicode',
+        kind: 'command',
+        name: 'review',
+        description: 'Review the current changes',
+        content: '',
+        argumentHint: '$1',
+        scope: 'runtime',
+        source: 'sdk',
+        isEditable: false,
+        isDeletable: false,
+        displayPrefix: '/',
+        insertPrefix: '/',
+      },
+      {
+        id: 'acp:fix',
+        providerId: 'kimicode',
+        kind: 'command',
+        name: 'fix',
+        description: 'Apply a fix',
+        content: '',
+        scope: 'runtime',
+        source: 'sdk',
+        isEditable: false,
+        isDeletable: false,
+        displayPrefix: '/',
+        insertPrefix: '/',
+      },
+    ]);
+  });
+
+  it('uses slash triggers for the shared dropdown', () => {
+    const catalog = new KimicodeCommandCatalog();
+
+    expect(catalog.getDropdownConfig()).toEqual({
+      providerId: 'kimicode',
+      triggerChars: ['/'],
+      builtInPrefix: '/',
+      skillPrefix: '/',
+      commandPrefix: '/',
+    });
+  });
+});
