@@ -284,7 +284,7 @@ export class KimicodeChatRuntime implements ChatRuntime {
 
     const cwd = getVaultPath(this.plugin.app) ?? process.cwd();
     const targetSessionId = this.sessionId;
-    const resolvedCliPath = this.plugin.getResolvedProviderCliPath('kimicode') ?? 'kimicode';
+    const resolvedCliPath = this.plugin.getResolvedProviderCliPath('kimicode') ?? 'kimi';
     const runtimeEnv = this.buildRuntimeEnv(
       resolvedCliPath,
       this.currentDatabasePath,
