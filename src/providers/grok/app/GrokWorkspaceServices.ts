@@ -71,6 +71,15 @@ function createGrokModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
       }
 
       const before = JSON.stringify(currentSettings.discoveredModels);
+      plugin.recordDebugLog?.({
+        data: {
+          discoveredModelCount: currentSettings.discoveredModels.length,
+          providerId: 'grok',
+        },
+        event: 'modelCatalog.refresh.started',
+        level: 'debug',
+        scope: 'provider.grok',
+      });
       const runtime = new GrokChatRuntime(plugin);
       try {
         runtime.syncConversationState({
@@ -82,7 +91,19 @@ function createGrokModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
         lastRefreshAt = Date.now();
         lastRefreshCacheKey = buildGrokModelCatalogCacheKey(updatedSettings);
         const after = JSON.stringify(getGrokProviderSettings(settings).discoveredModels);
-        return loaded && before !== after;
+        const changed = loaded && before !== after;
+        plugin.recordDebugLog?.({
+          data: {
+            changed,
+            discoveredModelCount: getGrokProviderSettings(settings).discoveredModels.length,
+            loaded,
+            providerId: 'grok',
+          },
+          event: changed ? 'modelCatalog.refresh.succeeded' : 'modelCatalog.refresh.empty',
+          level: changed ? 'info' : 'debug',
+          scope: 'provider.grok',
+        });
+        return changed;
       } finally {
         runtime.cleanup();
       }

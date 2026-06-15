@@ -97,6 +97,11 @@ import { createGrokToolStreamAdapter } from '../normalization/grokToolNormalizat
 import { getGrokProviderSettings, updateGrokProviderSettings } from '../settings';
 import { getGrokState, type GrokProviderState } from '../types';
 import { buildGrokPromptBlocks, buildGrokPromptText } from './buildGrokPrompt';
+import {
+  grokAuthPathExists,
+  logGrokDebug,
+  summarizeGrokCliText,
+} from './grokDebugLog';
 import { prepareGrokLaunchArtifacts } from './GrokLaunchArtifacts';
 import { resolveGrokSessionDirectory } from './GrokPaths';
 import { buildGrokRuntimeEnv } from './GrokRuntimeEnvironment';
@@ -289,6 +294,9 @@ export class GrokChatRuntime implements ChatRuntime {
   async ensureReady(options?: ChatRuntimeEnsureReadyOptions): Promise<boolean> {
     const settings = getGrokProviderSettings(this.plugin.settings);
     if (!settings.enabled) {
+      logGrokDebug(this.plugin, 'ensureReady.skipped', {
+        reason: 'disabled',
+      });
       this.setReady(false);
       return false;
     }
@@ -309,6 +317,9 @@ export class GrokChatRuntime implements ChatRuntime {
       resolvedCliPath,
       artifacts.grokHomePath,
     );
+    const grokAuthPath = typeof runtimeEnv.GROK_AUTH_PATH === 'string'
+      ? runtimeEnv.GROK_AUTH_PATH
+      : undefined;
 
     const nextLaunchKey = JSON.stringify({
       artifactKey: artifacts.launchKey,
@@ -319,29 +330,73 @@ export class GrokChatRuntime implements ChatRuntime {
       promptKey: computeSystemPromptKey(promptSettings),
     });
 
-    const shouldRestart = !this.process
-      || !this.transport
-      || !this.connection
-      || !this.process.isAlive()
-      || this.transport.isClosed
-      || options?.force === true
-      || this.currentLaunchKey !== nextLaunchKey;
+    const restartReasons = resolveGrokRestartReasons({
+      connection: this.connection,
+      currentLaunchKey: this.currentLaunchKey,
+      force: options?.force === true,
+      nextLaunchKey,
+      process: this.process,
+      transport: this.transport,
+    });
+    const shouldRestart = restartReasons.length > 0;
+
+    logGrokDebug(this.plugin, 'ensureReady.started', {
+      allowSessionCreation: options?.allowSessionCreation !== false,
+      cliPath: resolvedCliPath,
+      grokAuthPath,
+      grokHomePath: artifacts.grokHomePath,
+      hasExplicitApiKey: Boolean(
+        runtimeEnv.XAI_API_KEY?.trim()
+        || runtimeEnv.GROK_CODE_XAI_API_KEY?.trim(),
+      ),
+      nativeAuthExists: grokAuthPathExists(grokAuthPath),
+      permissionMode,
+      restartReasons,
+      sessionInvalidated: this.sessionInvalidated,
+      shouldRestart,
+      targetSessionId,
+    });
 
     if (shouldRestart) {
-      await this.shutdownProcess();
-      await this.startProcess({
-        command: resolvedCliPath,
-        cwd,
-        runtimeEnv,
+      logGrokDebug(this.plugin, 'runtime.restart', {
+        restartReasons,
       });
-      this.currentLaunchKey = nextLaunchKey;
-      this.loadedSessionId = null;
+      try {
+        await this.shutdownProcess();
+        await this.startProcess({
+          command: resolvedCliPath,
+          cwd,
+          runtimeEnv,
+        });
+        logGrokDebug(this.plugin, 'runtime.ready', {
+          processAlive: this.process?.isAlive() ?? false,
+        }, { level: 'info' });
+        this.currentLaunchKey = nextLaunchKey;
+        this.loadedSessionId = null;
+      } catch (error) {
+        logGrokDebug(this.plugin, 'runtime.start.failed', {
+          cliPath: resolvedCliPath,
+          grokAuthPath,
+          grokHomePath: artifacts.grokHomePath,
+          nativeAuthExists: grokAuthPathExists(grokAuthPath),
+          stderrPreview: summarizeGrokCliText(this.process?.getStderrSnapshot() ?? ''),
+        }, {
+          error,
+          level: 'error',
+        });
+        this.setReady(false);
+        return false;
+      }
     }
 
     if (targetSessionId) {
       if (this.loadedSessionId !== targetSessionId) {
         const loaded = await this.loadSession(targetSessionId, cwd);
         if (!loaded) {
+          logGrokDebug(this.plugin, 'session.load.failed', {
+            sessionId: targetSessionId,
+            stderrPreview: summarizeGrokCliText(this.process?.getStderrSnapshot() ?? ''),
+          }, { level: 'warn' });
           this.sessionInvalidated = true;
           this.clearActiveSession();
         }
@@ -351,9 +406,22 @@ export class GrokChatRuntime implements ChatRuntime {
 
     if (!this.sessionId && !this.sessionInvalidated) {
       if (options?.allowSessionCreation === false) {
+        logGrokDebug(this.plugin, 'ensureReady.deferred', {
+          reason: 'session_creation_disabled',
+        });
         return true;
       }
-      return Boolean(await this.createSession(cwd));
+      const sessionId = await this.createSession(cwd);
+      if (!sessionId) {
+        logGrokDebug(this.plugin, 'ensureReady.failed', {
+          reason: 'create_session_failed',
+          grokAuthPath,
+          nativeAuthExists: grokAuthPathExists(grokAuthPath),
+          stderrPreview: summarizeGrokCliText(this.process?.getStderrSnapshot() ?? ''),
+        }, { level: 'error' });
+        return false;
+      }
+      return true;
     }
 
     return true;
@@ -370,6 +438,10 @@ export class GrokChatRuntime implements ChatRuntime {
       && (!expectedSessionId || this.sessionInvalidated);
 
     if (!(await this.ensureReady())) {
+      logGrokDebug(this.plugin, 'query.ensureReady.failed', {
+        reason: 'not_ready',
+        stderrPreview: summarizeGrokCliText(this.process?.getStderrSnapshot() ?? ''),
+      }, { level: 'warn' });
       yield { type: 'error', content: 'Failed to start Grok. Check the CLI path and login state.' };
       yield { type: 'done' };
       return;
@@ -1006,6 +1078,16 @@ export class GrokChatRuntime implements ChatRuntime {
     );
     const discoveryChanged = shouldUpdateDiscoveredModels
       && updateGrokDiscoveryState(settingsBag, { discoveredModels });
+    if (discoveredModels.length > 0 || discoveryChanged) {
+      logGrokDebug(this.plugin, 'models.discovered', {
+        currentModelId: currentRawModelId,
+        discoveryChanged,
+        modelCount: discoveredModels.length,
+        modelIds: discoveredModels.map((model) => model.rawId).slice(0, 12),
+      }, {
+        level: discoveryChanged ? 'info' : 'debug',
+      });
+    }
     let changed = shouldSeedVisibleModels || shouldSeedPreferredThinking;
 
     if (currentBaseRawModelId && options.seedActiveSelection !== false) {
@@ -1156,8 +1238,21 @@ export class GrokChatRuntime implements ChatRuntime {
         configOptions: response.configOptions ?? null,
         modes: response.modes ?? null,
       });
+      const normalizedModels = normalizeGrokAcpSessionModels(response.models ?? null);
+      logGrokDebug(this.plugin, 'session.create.succeeded', {
+        currentModelId: normalizedModels?.currentModelId ?? null,
+        modelCount: normalizedModels?.availableModels.length ?? 0,
+        modelIds: (normalizedModels?.availableModels ?? []).map((model) => model.id).slice(0, 12),
+        sessionId: response.sessionId,
+      }, { level: 'info' });
       return response.sessionId;
-    } catch {
+    } catch (error) {
+      logGrokDebug(this.plugin, 'session.create.failed', {
+        stderrPreview: summarizeGrokCliText(this.process?.getStderrSnapshot() ?? ''),
+      }, {
+        error,
+        level: 'error',
+      });
       return null;
     }
   }
@@ -1187,8 +1282,21 @@ export class GrokChatRuntime implements ChatRuntime {
         configOptions: response.configOptions ?? null,
         modes: response.modes ?? null,
       });
+      const normalizedModels = normalizeGrokAcpSessionModels(response.models ?? null);
+      logGrokDebug(this.plugin, 'session.load.succeeded', {
+        currentModelId: normalizedModels?.currentModelId ?? null,
+        modelCount: normalizedModels?.availableModels.length ?? 0,
+        sessionId: response.sessionId,
+      }, { level: 'info' });
       return true;
-    } catch {
+    } catch (error) {
+      logGrokDebug(this.plugin, 'session.load.failed', {
+        sessionId,
+        stderrPreview: summarizeGrokCliText(this.process?.getStderrSnapshot() ?? ''),
+      }, {
+        error,
+        level: 'warn',
+      });
       return false;
     }
   }
@@ -1443,6 +1551,37 @@ export class GrokChatRuntime implements ChatRuntime {
     this.currentSessionModeId = null;
     this.setSupportedCommands([]);
   }
+}
+
+function resolveGrokRestartReasons(params: {
+  connection: AcpClientConnection | null;
+  currentLaunchKey: string | null;
+  force: boolean;
+  nextLaunchKey: string;
+  process: AcpSubprocess | null;
+  transport: AcpJsonRpcTransport | null;
+}): string[] {
+  const reasons: string[] = [];
+  if (!params.process) {
+    reasons.push('missing_process');
+  } else if (!params.process.isAlive()) {
+    reasons.push('process_not_alive');
+  }
+  if (!params.transport) {
+    reasons.push('missing_transport');
+  } else if (params.transport.isClosed) {
+    reasons.push('transport_closed');
+  }
+  if (!params.connection) {
+    reasons.push('missing_connection');
+  }
+  if (params.force) {
+    reasons.push('forced');
+  }
+  if (params.currentLaunchKey !== params.nextLaunchKey) {
+    reasons.push('launch_key_changed');
+  }
+  return reasons;
 }
 
 function normalizeApprovalInput(rawInput: unknown): Record<string, unknown> {
