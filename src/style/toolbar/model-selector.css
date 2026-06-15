@@ -401,6 +401,14 @@
   color: var(--grimoire-provider-opencode, #e0b341);
 }
 
+.grimoire-model-group-section--mimocode .grimoire-model-group-provider-icon {
+  color: var(--grimoire-provider-mimocode, #FF6A00);
+}
+
+.grimoire-model-group-section--kimicode .grimoire-model-group-provider-icon {
+  color: var(--grimoire-provider-kimicode, #7C3AED);
+}
+
 .grimoire-model-group-provider-icon * {
   display: none;
 }

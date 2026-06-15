@@ -24,6 +24,8 @@
   --gs-dot-antigravity: #5b8def;
   --gs-dot-gemini: #669df6;
   --gs-dot-opencode: #e0b341;
+  --gs-dot-mimocode: #FF6A00;
+  --gs-dot-kimicode: #7C3AED;
 }
 
 /* ── Layout: centered single column, like the prototype window ── */
@@ -342,6 +344,14 @@
 
 .grimoire-provider-row--opencode {
   --gs-provider-dot: var(--gs-dot-opencode);
+}
+
+.grimoire-provider-row--mimocode {
+  --gs-provider-dot: var(--gs-dot-mimocode);
+}
+
+.grimoire-provider-row--kimicode {
+  --gs-provider-dot: var(--gs-dot-kimicode);
 }
 
 /* ── Provider-disabled notice → .note-card ── */

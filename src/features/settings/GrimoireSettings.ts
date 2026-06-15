@@ -158,6 +158,14 @@ const PROVIDER_SETTING_COPY: Record<ProviderId, { desc: string; name: string }> 
     desc: 'Open-source, multi-vendor. Exposes the widest model catalog.',
     name: 'OpenCode',
   },
+  mimocode: {
+    desc: 'Xiaomi\'s fork of OpenCode with persistent memory and context management.',
+    name: 'MiMo Code',
+  },
+  kimicode: {
+    desc: 'MoonshotAI\'s multi-provider agent CLI. Supports Kimi, OpenAI, Anthropic, Gemini.',
+    name: 'Kimi Code',
+  },
 };
 
 export class GrimoireSettingTab extends PluginSettingTab {
