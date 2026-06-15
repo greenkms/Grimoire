@@ -311,6 +311,13 @@ export interface AcpSetSessionModeRequest {
 
 export type AcpSetSessionModeResponse = Record<string, never>;
 
+export interface AcpSetSessionModelRequest {
+  modelId: string;
+  sessionId: AcpSessionId;
+}
+
+export type AcpSetSessionModelResponse = Record<string, unknown>;
+
 export type AcpSetSessionConfigOptionRequest =
   | {
     configId: AcpSessionConfigId;
@@ -492,6 +499,38 @@ export type AcpRequestPermissionResponse = {
       outcome: 'selected';
     };
 };
+
+export interface AcpAskUserQuestionOption {
+  description?: string;
+  label: string;
+  preview?: string;
+}
+
+export interface AcpAskUserQuestionItem {
+  multiSelect?: boolean;
+  options: AcpAskUserQuestionOption[];
+  question: string;
+}
+
+export interface AcpAskUserQuestionRequest {
+  mode?: string;
+  questions: AcpAskUserQuestionItem[];
+  sessionId: AcpSessionId;
+  toolCallId?: string;
+}
+
+export type AcpAskUserQuestionResponse =
+  | {
+    annotations?: Record<string, { notes?: string; preview?: string }>;
+    answers: Record<string, string>;
+    outcome: 'accepted';
+  }
+  | {
+    outcome: 'cancelled';
+  }
+  | {
+    outcome: 'skip_interview';
+  };
 
 export interface AcpReadTextFileRequest {
   limit?: number | null;

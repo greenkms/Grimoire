@@ -11,7 +11,7 @@ import { getKimicodeProviderSettings } from './settings';
 import { kimicodeChatUIConfig } from './ui/KimicodeChatUIConfig';
 
 export const kimicodeProviderRegistration: ProviderRegistration = {
-  blankTabOrder: 10,
+  blankTabOrder: 60,
   capabilities: KIMICODE_PROVIDER_CAPABILITIES,
   chatUIConfig: kimicodeChatUIConfig,
   createInlineEditService: (plugin) => new KimicodeInlineEditService(plugin),

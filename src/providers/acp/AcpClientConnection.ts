@@ -8,6 +8,8 @@ import {
   getAcpMethodCandidates,
 } from './methodNames';
 import type {
+  AcpAskUserQuestionRequest,
+  AcpAskUserQuestionResponse,
   AcpAuthenticateRequest,
   AcpAuthenticateResponse,
   AcpCancelNotification,
@@ -36,6 +38,8 @@ import type {
   AcpSessionNotification,
   AcpSetSessionConfigOptionRequest,
   AcpSetSessionConfigOptionResponse,
+  AcpSetSessionModelRequest,
+  AcpSetSessionModelResponse,
   AcpSetSessionModeRequest,
   AcpSetSessionModeResponse,
   AcpTerminalOutputRequest,
@@ -69,6 +73,9 @@ export interface AcpTerminalDelegate {
 }
 
 export interface AcpClientConnectionDelegate {
+  askUserQuestion?: (
+    request: AcpAskUserQuestionRequest,
+  ) => Promise<AcpAskUserQuestionResponse>;
   fileSystem?: AcpFileSystemDelegate;
   onSessionNotification?: SessionNotificationListener;
   requestPermission?: (
@@ -176,6 +183,10 @@ export class AcpClientConnection {
     return this.requestWithFallback<AcpSetSessionModeResponse>('setMode', request);
   }
 
+  setModel(request: AcpSetSessionModelRequest): Promise<AcpSetSessionModelResponse> {
+    return this.requestWithFallback<AcpSetSessionModelResponse>('setModel', request);
+  }
+
   setConfigOption(
     request: AcpSetSessionConfigOptionRequest,
   ): Promise<AcpSetSessionConfigOptionResponse> {
@@ -227,6 +238,14 @@ export class AcpClientConnection {
       subscribeRequest(
         ACP_SERVER_REQUEST_ALIASES.requestPermission,
         (params) => requestPermission(params as AcpRequestPermissionRequest),
+      );
+    }
+
+    if (delegate?.askUserQuestion) {
+      const askUserQuestion = delegate.askUserQuestion;
+      subscribeRequest(
+        ACP_SERVER_REQUEST_ALIASES.askUserQuestion,
+        (params) => askUserQuestion(params as AcpAskUserQuestionRequest),
       );
     }
 

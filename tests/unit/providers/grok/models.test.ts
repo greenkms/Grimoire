@@ -234,6 +234,39 @@ describe('grokChatUIConfig', () => {
     )).toBe('max');
   });
 
+  it('exposes launch-time effort choices for native Grok Build models', () => {
+    const settings = {
+      model: 'grok:grok-build',
+      providerConfigs: {
+        grok: {
+          discoveredModels: [
+            { label: 'Grok Build', rawId: 'grok-build' },
+          ],
+          visibleModels: ['grok-build'],
+          thinkingOptionsByModel: {},
+        },
+      },
+    };
+
+    expect(grokChatUIConfig.isAdaptiveReasoningModel(
+      'grok:grok-build',
+      settings,
+    )).toBe(true);
+    expect(grokChatUIConfig.getReasoningOptions(
+      'grok:grok-build',
+      settings,
+    )).toEqual([
+      { label: 'Low', value: 'low' },
+      { label: 'Medium', value: 'medium' },
+      { label: 'High', value: 'high' },
+      { label: 'Extra high', value: 'xhigh' },
+    ]);
+    expect(grokChatUIConfig.getDefaultReasoningValue(
+      'grok:grok-build',
+      settings,
+    )).toBe('high');
+  });
+
   it('keeps at least three Grok Build effort choices before thought-level discovery finishes', () => {
     const settings = {
       model: 'grok:minimax-token-plan/minimax-m2',
@@ -277,9 +310,57 @@ describe('Grok Build discovered model grouping', () => {
       modelLabel: 'standalone-model',
       providerLabel: 'Other',
     });
+    expect(splitGrokModelLabel('Grok Build', 'grok-build')).toEqual({
+      modelLabel: 'Build',
+      providerLabel: 'Grok Build',
+    });
+    expect(splitGrokModelLabel('Grok Composer 2.5 Fast', 'grok-composer-2.5-fast')).toEqual({
+      modelLabel: '2.5 Fast',
+      providerLabel: 'Composer',
+    });
   });
 
   it('groups discovered models by provider label', () => {
+    expect(groupGrokDiscoveredModels([
+      { label: 'Grok Build', rawId: 'grok-build' },
+      { label: 'Grok Composer 2.5 Fast', rawId: 'grok-composer-2.5-fast' },
+      { label: 'Google/Gemini 2.5 Flash', rawId: 'google/gemini-2.5-flash' },
+      { label: 'Anthropic/Claude Sonnet 4', rawId: 'anthropic/claude-sonnet-4' },
+      { label: 'Google/Gemini 2.5 Pro', rawId: 'google/gemini-2.5-pro' },
+    ])).toEqual([
+      {
+        models: [
+          { label: 'Anthropic/Claude Sonnet 4', rawId: 'anthropic/claude-sonnet-4' },
+        ],
+        providerKey: 'anthropic',
+        providerLabel: 'Anthropic',
+      },
+      {
+        models: [
+          { label: 'Grok Composer 2.5 Fast', rawId: 'grok-composer-2.5-fast' },
+        ],
+        providerKey: 'composer',
+        providerLabel: 'Composer',
+      },
+      {
+        models: [
+          { label: 'Google/Gemini 2.5 Flash', rawId: 'google/gemini-2.5-flash' },
+          { label: 'Google/Gemini 2.5 Pro', rawId: 'google/gemini-2.5-pro' },
+        ],
+        providerKey: 'google',
+        providerLabel: 'Google',
+      },
+      {
+        models: [
+          { label: 'Grok Build', rawId: 'grok-build' },
+        ],
+        providerKey: 'grok build',
+        providerLabel: 'Grok Build',
+      },
+    ]);
+  });
+
+  it('groups slash-separated discovered models by provider label', () => {
     expect(groupGrokDiscoveredModels([
       { label: 'Google/Gemini 2.5 Flash', rawId: 'google/gemini-2.5-flash' },
       { label: 'Anthropic/Claude Sonnet 4', rawId: 'anthropic/claude-sonnet-4' },

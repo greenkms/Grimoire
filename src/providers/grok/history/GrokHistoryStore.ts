@@ -10,7 +10,7 @@ import {
   normalizeGrokToolName,
   normalizeGrokToolUseResult,
 } from '../normalization/grokToolNormalization';
-import { resolveGrokChatHistoryPath } from '../runtime/GrokPaths';
+import { buildManagedGrokProcessEnv, resolveGrokChatHistoryPath } from '../runtime/GrokPaths';
 import type { GrokProviderState } from '../types';
 
 type StoredRow = Record<string, unknown>;
@@ -42,10 +42,14 @@ export async function loadGrokSessionMessages(
   providerState?: GrokProviderState,
   workspacePath?: string | null,
 ): Promise<ChatMessage[]> {
+  const resolvedWorkspacePath = workspacePath ?? providerState?.workspacePath ?? null;
   const historyPath = resolveGrokChatHistoryPath(
     sessionId,
-    workspacePath ?? providerState?.workspacePath ?? null,
+    resolvedWorkspacePath,
     providerState?.sessionDirPath ?? null,
+    resolvedWorkspacePath
+      ? buildManagedGrokProcessEnv(resolvedWorkspacePath)
+      : process.env,
   );
   if (!historyPath) {
     return [];

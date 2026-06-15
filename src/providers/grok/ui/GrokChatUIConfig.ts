@@ -10,8 +10,11 @@ import {
   decodeGrokModelId,
   encodeGrokModelId,
   GROK_DEFAULT_THINKING_LEVEL,
+  GROK_NATIVE_THINKING_DEFAULT,
+  GROK_NATIVE_THINKING_OPTIONS,
   GROK_SYNTHETIC_MODEL_ID,
   isGrokModelSelectionId,
+  isGrokNativeBuildModelId,
   resolveGrokBaseModelRawId,
 } from '../models';
 import {
@@ -287,6 +290,15 @@ function getDefaultThinkingLevelForModel(
     return preferred;
   }
 
+  if (isGrokNativeBuildModelId(baseRawId)) {
+    return (preferred && supportedValues.has(preferred)
+      ? preferred
+      : (supportedValues.has(GROK_NATIVE_THINKING_DEFAULT)
+        ? GROK_NATIVE_THINKING_DEFAULT
+        : options[0]?.value))
+      ?? GROK_NATIVE_THINKING_DEFAULT;
+  }
+
   return (supportedValues.has(GROK_FALLBACK_THINKING_DEFAULT)
     ? GROK_FALLBACK_THINKING_DEFAULT
     : options[0]?.value)
@@ -299,9 +311,15 @@ function getSupportedThinkingOptionsForModel(
 ): ProviderReasoningOption[] {
   const grokSettings = getGrokProviderSettings(settings);
   const discoveredOptions = grokSettings.thinkingOptionsByModel[baseRawId] ?? [];
-  return discoveredOptions.length > 0
-    ? discoveredOptions
-    : GROK_FALLBACK_THINKING_OPTIONS;
+  if (discoveredOptions.length > 0) {
+    return discoveredOptions;
+  }
+
+  if (isGrokNativeBuildModelId(baseRawId)) {
+    return GROK_NATIVE_THINKING_OPTIONS;
+  }
+
+  return GROK_FALLBACK_THINKING_OPTIONS;
 }
 
 function getGrokThinkingOptions(

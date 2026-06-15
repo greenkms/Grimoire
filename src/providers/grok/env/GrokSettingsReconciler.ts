@@ -28,6 +28,8 @@ interface NormalizedSelection {
 }
 
 const GROK_ENV_HASH_KEYS = [
+  'GROK_AUTH',
+  'GROK_AUTH_PATH',
   'GROK_HOME',
   'XAI_API_KEY',
 ] as const;

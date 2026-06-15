@@ -19,6 +19,7 @@ import {
 import { decodeGrokModelId } from '../models';
 import type { GrokPermissionMode } from '../modes';
 import { grokChatUIConfig } from '../ui/GrokChatUIConfig';
+import { buildGrokAgentProcessArgs } from './GrokLaunchArgs';
 import { prepareGrokLaunchArtifacts } from './GrokLaunchArtifacts';
 import { buildGrokRuntimeEnv } from './GrokRuntimeEnvironment';
 import { normalizeGrokAcpSessionModels } from './normalizeGrokAcpSessionState';
@@ -67,15 +68,12 @@ export class GrokAuxQueryRunner implements AuxQueryRunner {
     const selectedModel = this.resolveSelectedRawModel(config.model);
     const nextModel = this.resolveApplicableModel(selectedModel);
     if (nextModel) {
-      const response = await this.connection.setConfigOption({
-        configId: 'model',
+      await this.connection.setModel({
+        modelId: nextModel,
         sessionId,
-        type: 'select',
-        value: nextModel,
       });
-      this.syncSessionModelState({
-        configOptions: response.configOptions,
-      });
+      this.currentModelId = nextModel;
+      this.availableModelIds.add(nextModel);
     }
 
     this.sessionUpdateNormalizer.reset();
@@ -164,11 +162,15 @@ export class GrokAuxQueryRunner implements AuxQueryRunner {
       workspaceRoot: cwd,
     });
     const runtimeEnv = buildGrokRuntimeEnv(settings, resolvedCliPath, artifacts.grokHomePath);
+    const reasoningEffort = typeof settings.effortLevel === 'string'
+      ? settings.effortLevel
+      : null;
     const nextLaunchKey = JSON.stringify({
       artifactKey: artifacts.launchKey,
       command: resolvedCliPath,
       envText: getRuntimeEnvironmentText(settings, 'grok'),
       grokHomePath: artifacts.grokHomePath,
+      reasoningEffort,
     });
 
     const shouldRestart = !this.process
@@ -186,6 +188,7 @@ export class GrokAuxQueryRunner implements AuxQueryRunner {
     await this.startProcess({
       command: resolvedCliPath,
       cwd,
+      reasoningEffort,
       runtimeEnv,
     });
     this.currentLaunchKey = nextLaunchKey;
@@ -216,6 +219,7 @@ export class GrokAuxQueryRunner implements AuxQueryRunner {
   private async startProcess(params: {
     command: string;
     cwd: string;
+    reasoningEffort?: string | null;
     runtimeEnv: NodeJS.ProcessEnv;
   }): Promise<void> {
     const processEnv: NodeJS.ProcessEnv = {
@@ -225,7 +229,7 @@ export class GrokAuxQueryRunner implements AuxQueryRunner {
     };
 
     this.process = new AcpSubprocess({
-      args: ['agent', 'stdio'],
+      args: buildGrokAgentProcessArgs(params.reasoningEffort),
       command: params.command,
       cwd: params.cwd,
       env: processEnv,

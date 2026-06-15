@@ -1,5 +1,5 @@
 import { TOOL_BASH, TOOL_READ } from '../../../../core/tools/toolNames';
-import type { ProviderId, ToolCallInfo } from '../../../../core/types';
+import type { ChatMessage, ProviderId, ToolCallInfo } from '../../../../core/types';
 
 export type RuntimeContextLoadMethod = 'read note' | 'shell' | 'tool';
 export type RuntimeContextLoadStatus = 'loading' | 'loaded' | 'failed';
@@ -67,7 +67,7 @@ export function extractRuntimeContextLoadEvent(
   const { providerId, toolCall } = options;
 
   if (toolCall.name === TOOL_READ) {
-    const path = getStringInput(toolCall.input, 'file_path', 'filepath', 'path');
+    const path = getStringInput(toolCall.input, 'file_path', 'filepath', 'filePath', 'path');
     if (!path) {
       return null;
     }
@@ -134,6 +134,8 @@ function getProviderLabel(providerId: ProviderId): string {
       return 'Antigravity';
     case 'gemini':
       return 'Gemini';
+    case 'grok':
+      return 'Grok';
     default:
       return providerId;
   }
@@ -157,6 +159,35 @@ export class RuntimeContextActivityView {
 
   clear(): void {
     this.state.clear();
+    this.render();
+  }
+
+  hydrateFromMessages(providerId: ProviderId, messages: ChatMessage[]): void {
+    this.state.clear();
+    for (const message of messages) {
+      for (const toolCall of message.toolCalls ?? []) {
+        const event = extractRuntimeContextLoadEvent({ providerId, toolCall });
+        if (event) {
+          this.state.record(event);
+        }
+      }
+    }
+    this.render();
+  }
+
+  recordPreloadedFile(providerId: ProviderId, filePath: string): void {
+    const normalizedPath = normalizeDisplayPath(filePath);
+    if (!normalizedPath) {
+      return;
+    }
+
+    this.state.record({
+      id: `preload:${normalizedPath.toLowerCase()}`,
+      path: normalizedPath,
+      providerId,
+      method: 'read note',
+      status: 'loaded',
+    });
     this.render();
   }
 

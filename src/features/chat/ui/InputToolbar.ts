@@ -105,6 +105,50 @@ function findFiveHourWindow(usage: ProviderPlanUsage | null | undefined): Provid
   return isUsagePctKnown(normalized) ? normalized : null;
 }
 
+function findPrimaryQuotaWindow(usage: ProviderPlanUsage | null | undefined): ProviderPlanUsageWindow | null {
+  const fiveHourWindow = findFiveHourWindow(usage);
+  if (fiveHourWindow) {
+    return fiveHourWindow;
+  }
+
+  if (!isQuotaUsage(usage)) {
+    return null;
+  }
+
+  for (const window of usage.windows) {
+    const normalized = normalizeUsageWindow(window);
+    if (isUsagePctKnown(normalized)) {
+      return normalized;
+    }
+  }
+
+  return null;
+}
+
+function formatQuotaBadgeLabel(label: string): string {
+  if (FIVE_HOUR_WINDOW_PATTERN.test(label)) {
+    return '5H';
+  }
+  if (WEEKLY_WINDOW_PATTERN.test(label)) {
+    return 'WK';
+  }
+
+  const trimmed = label.trim();
+  if (!trimmed) {
+    return 'Usage';
+  }
+
+  return trimmed.length <= 4 ? trimmed.toUpperCase() : trimmed;
+}
+
+function formatQuotaLimitDescription(window: ProviderPlanUsageWindow): string {
+  if (FIVE_HOUR_WINDOW_PATTERN.test(window.label)) {
+    return '5-hour limit';
+  }
+
+  return `${window.label} limit`;
+}
+
 function findWeeklyWindow(usage: ProviderPlanUsage): ProviderPlanUsageWindow | null {
   if (!isQuotaUsage(usage)) {
     return null;
@@ -134,9 +178,10 @@ function isUsageWindowHot(window: ProviderPlanUsageWindow): boolean {
 }
 
 function formatQuotaAriaLabel(plan: string, window: ProviderPlanUsageWindow): string {
+  const limitDescription = formatQuotaLimitDescription(window);
   return isUsagePctKnown(window)
-    ? `${plan} 5-hour limit: ${window.pct}% used, resets ${window.reset}`
-    : `${plan} 5-hour limit: resets ${window.reset}`;
+    ? `${plan} ${limitDescription}: ${window.pct}% used, resets ${window.reset}`
+    : `${plan} ${limitDescription}: resets ${window.reset}`;
 }
 
 function areUsageIndicatorsEnabled(settings: Partial<ToolbarSettings> | null | undefined): boolean {
@@ -730,9 +775,9 @@ export class PlanUsageBadge {
       return;
     }
 
-    const fiveHourWindow = findFiveHourWindow(usage);
-    if (fiveHourWindow) {
-      this.renderQuotaUsage(usage, fiveHourWindow);
+    const primaryWindow = findPrimaryQuotaWindow(usage);
+    if (primaryWindow) {
+      this.renderQuotaUsage(usage, primaryWindow);
       return;
     }
 
@@ -747,7 +792,7 @@ export class PlanUsageBadge {
   private renderQuotaUsage(usage: ProviderPlanUsage, window: ProviderPlanUsageWindow): void {
     this.container.removeClass('grimoire-hidden');
     this.container.toggleClass('is-hot', isUsageWindowHot(window));
-    this.labelEl?.setText('5H');
+    this.labelEl?.setText(formatQuotaBadgeLabel(window.label));
     if (this.fillEl) {
       this.fillEl.style.width = `${window.pct}%`;
     }
@@ -762,9 +807,10 @@ export class PlanUsageBadge {
       secondaryParts.push(isUsagePctKnown(weeklyWindow) ? `weekly ${weeklyWindow.pct}%` : 'weekly usage unavailable');
     }
 
+    const limitDescription = formatQuotaLimitDescription(window);
     this.container.setAttribute('aria-label', formatQuotaAriaLabel(usage.plan, window));
     this.renderTip(
-      `${usage.plan} · 5-hour limit`,
+      `${usage.plan} · ${limitDescription}`,
       secondaryParts.join(' · '),
     );
   }

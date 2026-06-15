@@ -11,7 +11,7 @@ import { getGrokProviderSettings } from './settings';
 import { grokChatUIConfig } from './ui/GrokChatUIConfig';
 
 export const grokProviderRegistration: ProviderRegistration = {
-  blankTabOrder: 10,
+  blankTabOrder: 40,
   capabilities: GROK_PROVIDER_CAPABILITIES,
   chatUIConfig: grokChatUIConfig,
   createInlineEditService: (plugin) => new GrokInlineEditService(plugin),

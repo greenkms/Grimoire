@@ -832,135 +832,71 @@ describe('GrokChatRuntime', () => {
     expect(refreshModelSelector).toHaveBeenCalledTimes(1);
   });
 
-  it('warms selected model metadata by switching ACP model config', async () => {
+  it('warms selected model metadata through Grok session/set_model', async () => {
     const plugin = createMockPlugin({
       settings: {
-        model: 'grok:deepseek/deepseek-v4-pro',
+        model: 'grok:grok-build',
         providerConfigs: {
           grok: {
             discoveredModels: [
-              { label: 'DeepSeek/DeepSeek V4 Pro', rawId: 'deepseek/deepseek-v4-pro' },
+              { label: 'Grok Build', rawId: 'grok-build' },
             ],
             preferredThinkingByModel: {},
-            visibleModels: ['deepseek/deepseek-v4-pro'],
+            visibleModels: ['grok-build'],
           },
         },
         settingsProvider: 'grok',
       },
     });
     const runtime = new GrokChatRuntime(plugin);
-    const setConfigOption = jest.fn().mockResolvedValue({
-      configOptions: [
-        {
-          category: 'model',
-          currentValue: 'deepseek/deepseek-v4-pro',
-          id: 'model',
-          name: 'Model',
-          options: [
-            { name: 'DeepSeek/DeepSeek V4 Pro', value: 'deepseek/deepseek-v4-pro' },
-          ],
-          type: 'select',
-        },
-        {
-          category: 'thought_level',
-          currentValue: 'low',
-          id: 'effort',
-          name: 'Effort',
-          options: [
-            { name: 'Low', value: 'low' },
-            { name: 'High', value: 'high' },
-          ],
-          type: 'select',
-        },
-      ],
+    const setModel = jest.fn().mockResolvedValue({
+      _meta: { model: { Ok: 'grok-build' } },
     });
-    (runtime as any).connection = { setConfigOption };
+    (runtime as any).connection = { setModel };
     (runtime as any).sessionId = 'session-1';
     jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
     jest.spyOn(ProviderRegistry, 'resolveSettingsProviderId').mockReturnValue('grok');
 
-    await expect(runtime.warmModelMetadata('grok:deepseek/deepseek-v4-pro')).resolves.toBe(true);
+    await expect(runtime.warmModelMetadata('grok:grok-build')).resolves.toBe(true);
 
-    expect(setConfigOption).toHaveBeenCalledWith({
-      configId: 'model',
+    expect(setModel).toHaveBeenCalledWith({
+      modelId: 'grok-build',
       sessionId: 'session-1',
-      type: 'select',
-      value: 'deepseek/deepseek-v4-pro',
     });
-    expect(plugin.settings.providerConfigs.grok.thinkingOptionsByModel).toEqual({
-      'deepseek/deepseek-v4-pro': [
-        { label: 'Low', value: 'low' },
-        { label: 'High', value: 'high' },
-      ],
-    });
-    expect(plugin.saveSettings).toHaveBeenCalledTimes(1);
+    expect((runtime as any).currentSessionModelId).toBe('grok-build');
   });
 
-  it('keeps Grok Build metadata attached to the selected model when ACP echoes a stale current model', async () => {
+  it('applies the selected Grok model through session/set_model before prompting', async () => {
     const plugin = createMockPlugin({
       settings: {
-        effortLevel: 'default',
-        model: 'grok:deepseek/deepseek-v4-pro',
+        model: 'grok:grok-composer-2.5-fast',
         providerConfigs: {
           grok: {
             discoveredModels: [
-              { label: 'DeepSeek/DeepSeek V4 Pro', rawId: 'deepseek/deepseek-v4-pro' },
-              { label: 'OpenAI/GPT-5', rawId: 'openai/gpt-5' },
+              { label: 'Grok Build', rawId: 'grok-build' },
+              { label: 'Grok Composer 2.5 Fast', rawId: 'grok-composer-2.5-fast' },
             ],
-            preferredThinkingByModel: {},
-            visibleModels: ['deepseek/deepseek-v4-pro', 'openai/gpt-5'],
+            visibleModels: ['grok-build', 'grok-composer-2.5-fast'],
           },
-        },
-        savedProviderModel: {
-          grok: 'grok:deepseek/deepseek-v4-pro',
         },
         settingsProvider: 'grok',
       },
     });
     const runtime = new GrokChatRuntime(plugin);
-    const setConfigOption = jest.fn().mockResolvedValue({
-      configOptions: [
-        {
-          category: 'model',
-          currentValue: 'openai/gpt-5',
-          id: 'model',
-          name: 'Model',
-          options: [
-            { name: 'DeepSeek/DeepSeek V4 Pro', value: 'deepseek/deepseek-v4-pro' },
-            { name: 'OpenAI/GPT-5', value: 'openai/gpt-5' },
-          ],
-          type: 'select',
-        },
-        {
-          category: 'thought_level',
-          currentValue: 'high',
-          id: 'effort',
-          name: 'Effort',
-          options: [
-            { name: 'Low', value: 'low' },
-            { name: 'High', value: 'high' },
-          ],
-          type: 'select',
-        },
-      ],
+    const setModel = jest.fn().mockResolvedValue({
+      _meta: { model: { Ok: 'grok-composer-2.5-fast' } },
     });
-    (runtime as any).connection = { setConfigOption };
-    (runtime as any).sessionId = 'session-1';
-    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
-    jest.spyOn(ProviderRegistry, 'resolveSettingsProviderId').mockReturnValue('grok');
+    (runtime as any).connection = { setModel };
+    (runtime as any).currentSessionModelId = 'grok-build';
+    jest.spyOn(ProviderSettingsCoordinator, 'getProviderSettingsSnapshot').mockReturnValue(plugin.settings);
 
-    await expect(runtime.warmModelMetadata('grok:deepseek/deepseek-v4-pro')).resolves.toBe(true);
+    await (runtime as any).applySelectedModel('session-1');
 
-    expect((runtime as any).currentSessionModelId).toBe('deepseek/deepseek-v4-pro');
-    expect(plugin.settings.model).toBe('grok:deepseek/deepseek-v4-pro');
-    expect(plugin.settings.savedProviderModel.grok).toBe('grok:deepseek/deepseek-v4-pro');
-    expect(plugin.settings.providerConfigs.grok.thinkingOptionsByModel).toEqual({
-      'deepseek/deepseek-v4-pro': [
-        { label: 'Low', value: 'low' },
-        { label: 'High', value: 'high' },
-      ],
+    expect(setModel).toHaveBeenCalledWith({
+      modelId: 'grok-composer-2.5-fast',
+      sessionId: 'session-1',
     });
-    expect(plugin.settings.providerConfigs.grok.thinkingOptionsByModel['openai/gpt-5']).toBeUndefined();
+    expect((runtime as any).currentSessionModelId).toBe('grok-composer-2.5-fast');
   });
 
   it('applies selected Grok Build effort through the detached ACP effort option', async () => {
@@ -1044,6 +980,47 @@ describe('GrokChatRuntime', () => {
     jest.spyOn(ProviderSettingsCoordinator, 'getProviderSettingsSnapshot').mockReturnValue(plugin.settings);
 
     expect(runtime.getAuxiliaryModel()).toBe('grok:anthropic/claude-sonnet-4');
+  });
+
+  it('answers Grok ask_user_question server requests through the chat callback', async () => {
+    const runtime = new GrokChatRuntime(createMockPlugin());
+    const askUserQuestion = jest.fn().mockResolvedValue({
+      'What do you want to do?': 'notes',
+    });
+    runtime.setAskUserQuestionCallback(askUserQuestion);
+
+    await expect((runtime as any).handleAskUserQuestionRequest({
+      questions: [{
+        multiSelect: false,
+        options: [
+          { description: 'Notes', label: 'notes' },
+          { description: 'Code', label: 'code' },
+        ],
+        question: 'What do you want to do?',
+      }],
+      sessionId: 'session-1',
+      toolCallId: 'call-1',
+    })).resolves.toEqual({
+      annotations: {},
+      answers: {
+        'What do you want to do?': 'notes',
+      },
+      outcome: 'accepted',
+    });
+
+    expect(askUserQuestion).toHaveBeenCalledWith(
+      {
+        questions: [{
+          multiSelect: false,
+          options: [
+            { description: 'Notes', label: 'notes' },
+            { description: 'Code', label: 'code' },
+          ],
+          question: 'What do you want to do?',
+        }],
+      },
+      expect.any(AbortSignal),
+    );
   });
 
   describe('resolveSessionPath workspace containment', () => {

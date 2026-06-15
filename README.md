@@ -27,32 +27,32 @@
   <sub>Chat with local CLI agents from the same Obsidian workspace where your notes live.</sub>
 </p>
 
-Grimoire brings agentic CLI assistants into Obsidian. Claude Code, Codex, Antigravity CLI, Gemini CLI (Legacy), OpenCode, MiMoCode, and Kimi Code all live in one side panel, where they read your notes, edit files, run commands, call tools, and keep session history against your real vault. Nothing routes through a Grimoire server. There's no telemetry, no hosted backend, and no proxy sitting in the middle.
+Grimoire brings agentic CLI assistants into Obsidian. Claude Code, Codex, Antigravity CLI, Gemini CLI (Legacy), OpenCode, MiMoCode, Kimi Code, and Grok Build all live in one side panel, where they read your notes, edit files, run commands, call tools, and keep session history against your real vault. Nothing routes through a Grimoire server. There's no telemetry, no hosted backend, and no proxy sitting in the middle.
 
 It's built for people who already work in Obsidian and want AI help that behaves like part of the vault: local context, local files, a provider you pick on purpose, and usage you can actually see.
 
 ## Why Grimoire
 
 - Use the CLI agents you already trust, right inside your notes.
-- Switch providers from the composer. Claude Code, Codex, Antigravity CLI, legacy Gemini CLI, OpenCode, MiMoCode, and Kimi Code share one model picker.
+- Switch providers from the composer. Claude Code, Codex, Antigravity CLI, legacy Gemini CLI, OpenCode, MiMoCode, Kimi Code, and Grok Build share one model picker.
 - Ground every turn in your vault. Mention notes, folders, and MCP tools instead of pasting paths by hand.
 - See cost and limits next to the model selector, where you're making the decision anyway.
 - Stay local-first. Grimoire doesn't collect telemetry, proxy prompts, or run a backend.
 
 ## What each provider can do
 
-| Capability | Claude Code | Codex | Antigravity CLI | Gemini CLI (Legacy) | OpenCode | MiMoCode | Kimi Code |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Local persistent runtime | Yes | Yes | No | Yes | Yes | Yes | Yes |
-| Native history hydration | Yes | Yes | No | Yes | Yes | Yes | Yes |
-| Plan mode | Yes | Yes | No | Yes | Yes | Yes | Yes |
-| Image attachments | Yes | Yes | No | Yes | Yes | Yes | Yes |
-| Instruction mode | Yes | Yes | No | Yes | Yes | Yes | Yes |
-| Reasoning effort controls | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
-| Rewind | Yes | No | No | No | No | No | No |
-| Fork | Yes | Yes | No | No | No | No | No |
-| Provider slash commands | Yes | No | No | No | Yes | Yes | Yes |
-| Grimoire-managed MCP UI | Yes | No | No | No | No | No | No |
+| Capability | Claude Code | Codex | Antigravity CLI | Gemini CLI (Legacy) | OpenCode | MiMoCode | Kimi Code | Grok Build |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Local persistent runtime | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes |
+| Native history hydration | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes |
+| Plan mode | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes |
+| Image attachments | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes |
+| Instruction mode | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes |
+| Reasoning effort controls | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
+| Rewind | Yes | No | No | No | No | No | No | Yes |
+| Fork | Yes | Yes | No | No | No | No | No | Yes |
+| Provider slash commands | Yes | No | No | No | Yes | Yes | Yes | Yes |
+| Grimoire-managed MCP UI | Yes | No | No | No | No | No | No | No |
 
 ## Installation
 
@@ -110,7 +110,7 @@ Enable the providers you want under Settings, Grimoire, Providers, and they'll a
 
 ### Recommended providers
 
-For the best Grimoire experience, start with Claude Code, Codex, OpenCode, MiMoCode, or Kimi Code. These providers currently expose the strongest runtime surfaces for vault-native work: persistent sessions, history hydration, plan-oriented workflows, tool activity, and rich model controls.
+For the best Grimoire experience, start with Claude Code, Codex, OpenCode, MiMoCode, Kimi Code, or Grok Build. These providers currently expose the strongest runtime surfaces for vault-native work: persistent sessions, history hydration, plan-oriented workflows, tool activity, and rich model controls.
 
 Antigravity CLI and Gemini CLI (Legacy) remain available, especially for Google accounts and compatibility cases, but they are more limited inside Grimoire today because their current CLI surfaces expose less session, tool, approval, and streaming metadata.
 
@@ -223,6 +223,20 @@ kimi
 
 - [Kimi Code GitHub](https://github.com/MoonshotAI/kimi-code)
 
+### Grok Build
+
+Pick Grok Build for xAI's agentic CLI in Obsidian, backed by SuperGrok credits or API keys.
+
+```bash
+grok
+```
+
+Install the Grok CLI from xAI, authenticate with grok.com OAuth or configure API keys, then enable Grok Build in Grimoire.
+
+- [Grok Build](https://grok.com/build)
+
+Inside Grimoire, Grok Build runs over ACP via `grok agent stdio` with Grimoire-managed launch artifacts under `.grimoire/grok/`, persistent runtime, native JSONL history hydration, plan mode, image input, provider commands, reasoning effort on native models, rewind, and fork. SuperGrok credit usage appears next to the model selector when OAuth auth is available; API spend aggregates from session cost metadata when reported.
+
 ## Your first chat
 
 1. Pick a provider and model in the composer.
@@ -239,7 +253,7 @@ A focused side panel with multiple tabs. Each tab keeps its own draft, provider,
 
 ### Model selector
 
-One picker, grouped by provider and sorted by label: Antigravity, Claude Code, Codex, Gemini CLI (Legacy), OpenCode. Search runs across labels, descriptions, groups, and model IDs without resizing the menu while you filter. Catalogs load lazily and remember which groups you collapsed. Add custom aliases and context-window overrides in settings. Claude's 1M variants are extra options, not replacements for the base models.
+One picker, grouped by provider and sorted by label: Antigravity, Claude Code, Codex, Gemini CLI (Legacy), Grok Build, OpenCode. Search runs across labels, descriptions, groups, and model IDs without resizing the menu while you filter. Catalogs load lazily and remember which groups you collapsed. Add custom aliases and context-window overrides in settings. Claude's 1M variants are extra options, not replacements for the base models.
 
 <p align="center">
   <img src="assets/readme/model-selector-usage.png" alt="Grimoire model selector showing provider groups, model search, and plan usage" width="100%">
@@ -256,10 +270,13 @@ A badge next to the model selector keeps the active provider's usage in view, wi
 | Antigravity CLI | Not available from `agy --print` yet |
 | Gemini CLI (Legacy) | ACP cost metadata when Gemini CLI reports it |
 | OpenCode | Monthly spend aggregated from ACP and session cost metadata |
+| MiMoCode | Monthly spend aggregated from ACP and session cost metadata |
+| Kimi Code | Monthly spend aggregated from ACP and session cost metadata |
+| Grok Build | SuperGrok credit windows from grok.com billing when OAuth is available; monthly API spend from session cost metadata |
 
 ### Context and mentions
 
-Mention vault notes and folders straight from the composer, pull in the current or linked note, and add persistent external context paths in settings. Paste or drop images when the provider takes image input. Mention MCP servers where the provider integration supports it.
+Mention vault notes and folders straight from the composer, pull in the current or linked note, and add persistent external context paths in settings. Paste or drop images when the provider takes image input. Mention MCP servers where the provider integration supports it. The Context tab shows the bound note, model, permission mode, pinned files, launch artifacts such as `.grimoire/grok/system.md`, and files the agent loaded during the session.
 
 ### Inline editing
 
@@ -297,8 +314,9 @@ General settings cover Obsidian-following theme behavior, auto-scroll, title gen
 | `.grimoire/sessions/*.meta.json` | Session metadata |
 | `.grimoire/logs/YYYY-MM-DD.jsonl` | Opt-in sanitized debug logs |
 | `.grimoire/claude/statusline-usage.json` | Claude usage snapshot for the plan meter |
+| `.grimoire/grok/` | Grok Build launch artifacts, managed config, and session pointers |
 
-Provider-native files under `.claude/`, `.codex/`, and `.opencode/` are read and written in place, so your provider setup stays portable outside Grimoire.
+Provider-native files under `.claude/`, `.codex/`, `.opencode/`, and `.grimoire/grok/` are read and written in place, so your provider setup stays portable outside Grimoire.
 
 ## Privacy
 
@@ -341,7 +359,7 @@ Obsidian Community plugins are the recommended user install path. GitHub Release
 
 ## Roadmap
 
-Today Grimoire ships with Claude Code, Codex, Antigravity CLI, Gemini CLI (Legacy), and OpenCode.
+Today Grimoire ships with Claude Code, Codex, Antigravity CLI, Gemini CLI (Legacy), OpenCode, MiMoCode, Kimi Code, and Grok Build.
 
 Next on the list: Qwen Code, GitHub Copilot CLI, other ACP-compatible providers, and local model CLIs once their runtime is stable enough to embed in Obsidian. Implementation notes live in [docs/provider-roadmap.md](docs/provider-roadmap.md).
 

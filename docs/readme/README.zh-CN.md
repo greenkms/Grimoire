@@ -27,7 +27,7 @@
   <sub>在笔记所在的同一个 Obsidian workspace 中，与本地 CLI 代理对话。</sub>
 </p>
 
-Grimoire 将 agentic CLI 助手带入 Obsidian。Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode、MiMoCode、Kimi Code 都在同一个侧边栏中运行：读取笔记、编辑文件、执行命令、调用工具，并把会话历史保存在真实的 vault 上下文中。Grimoire 不经过自家服务器：没有 telemetry、没有 hosted backend，也没有夹在你和 provider 之间的 proxy。
+Grimoire 将 agentic CLI 助手带入 Obsidian。Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode、MiMoCode、Kimi Code、Grok Build 都在同一个侧边栏中运行：读取笔记、编辑文件、执行命令、调用工具，并把会话历史保存在真实的 vault 上下文中。Grimoire 不经过自家服务器：没有 telemetry、没有 hosted backend，也没有夹在你和 provider 之间的 proxy。
 
 它面向已经在 Obsidian 中工作的人：你可以使用本地上下文、本地文件、明确选择的 provider，并在界面里直接看到 usage 和 cost。
 
@@ -36,25 +36,25 @@ Grimoire 将 agentic CLI 助手带入 Obsidian。Claude Code、Codex、Antigravi
 ## 为什么选择 Grimoire
 
 - 在笔记里直接使用你已经信任的 CLI 代理。
-- 从 composer 切换 provider。Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode、MiMoCode、Kimi Code 共用一个 model picker。
+- 从 composer 切换 provider。Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode、MiMoCode、Kimi Code、Grok Build 共用一个 model picker。
 - 让每一次 turn 都基于 vault 上下文。可以 mention 笔记、文件夹和 MCP tools，不需要手动复制路径。
 - 在选择模型的位置直接看到 cost 和 limits。
 - 保持 local-first。Grimoire 不收集 telemetry，不 proxy prompts，也不运行 backend。
 
 ## 各 provider 能做什么
 
-| 能力 | Claude Code | Codex | Antigravity CLI | Gemini CLI (Legacy) | OpenCode | MiMoCode | Kimi Code |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| 本地 persistent runtime | 是 | 是 | 否 | 是 | 是 | 是 | 是 |
-| 原生 history hydration | 是 | 是 | 否 | 是 | 是 | 是 | 是 |
-| Plan mode | 是 | 是 | 否 | 是 | 是 | 是 | 是 |
-| Image attachments | 是 | 是 | 否 | 是 | 是 | 是 | 是 |
-| Instruction mode | 是 | 是 | 否 | 是 | 是 | 是 | 是 |
-| Reasoning effort controls | 是 | 是 | 是 | 是 | 是 | 是 | 是 |
-| Rewind | 是 | 否 | 否 | 否 | 否 | 否 | 否 |
-| Fork | 是 | 是 | 否 | 否 | 否 | 否 | 否 |
-| Provider slash commands | 是 | 否 | 否 | 否 | 是 | 是 | 是 |
-| Grimoire-managed MCP UI | 是 | 否 | 否 | 否 | 否 | 否 | 否 |
+| 能力 | Claude Code | Codex | Antigravity CLI | Gemini CLI (Legacy) | OpenCode | MiMoCode | Kimi Code | Grok Build |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 本地 persistent runtime | 是 | 是 | 否 | 是 | 是 | 是 | 是 | 是 |
+| 原生 history hydration | 是 | 是 | 否 | 是 | 是 | 是 | 是 | 是 |
+| Plan mode | 是 | 是 | 否 | 是 | 是 | 是 | 是 | 是 |
+| Image attachments | 是 | 是 | 否 | 是 | 是 | 是 | 是 | 是 |
+| Instruction mode | 是 | 是 | 否 | 是 | 是 | 是 | 是 | 是 |
+| Reasoning effort controls | 是 | 是 | 是 | 是 | 是 | 是 | 是 | 是 |
+| Rewind | 是 | 否 | 否 | 否 | 否 | 否 | 否 | 是 |
+| Fork | 是 | 是 | 否 | 否 | 否 | 否 | 否 | 是 |
+| Provider slash commands | 是 | 否 | 否 | 否 | 是 | 是 | 是 | 是 |
+| Grimoire-managed MCP UI | 是 | 否 | 否 | 否 | 否 | 否 | 否 | 否 |
 
 ## 安装
 
@@ -112,7 +112,7 @@ cp dist/grimoire/main.js dist/grimoire/manifest.json dist/grimoire/styles.css \
 
 ### 推荐 providers
 
-为了获得最好的 Grimoire 体验，建议先从 Claude Code、Codex、OpenCode、MiMoCode 或 Kimi Code 开始。这些 providers 目前为 vault-native 工作提供最强的 runtime surface：persistent sessions、history hydration、plan-oriented workflows、tool activity，以及更丰富的 model controls。
+为了获得最好的 Grimoire 体验，建议先从 Claude Code、Codex、OpenCode、MiMoCode、Kimi Code 或 Grok Build 开始。这些 providers 目前为 vault-native 工作提供最强的 runtime surface：persistent sessions、history hydration、plan-oriented workflows、tool activity，以及更丰富的 model controls。
 
 Antigravity CLI 和 Gemini CLI (Legacy) 仍然可用，尤其适合 Google accounts 和 compatibility 场景，但它们现在在 Grimoire 中更受限制，因为当前 CLI surfaces 暴露的 session、tool、approval 和 streaming metadata 更少。
 
@@ -223,6 +223,20 @@ kimi
 
 - [Kimi Code GitHub](https://github.com/MoonshotAI/kimi-code)
 
+### Grok Build
+
+若要在 Obsidian 中使用 xAI 的 agentic CLI，可选择 Grok Build，支持 SuperGrok credits 或 API keys。
+
+```bash
+grok
+```
+
+安装 xAI 的 Grok CLI，通过 grok.com OAuth 认证或配置 API keys，然后在 Grimoire 中启用 Grok Build。
+
+- [Grok Build](https://grok.com/build)
+
+在 Grimoire 中，Grok Build 通过 `grok agent stdio` 以 ACP 运行，使用 `.grimoire/grok/` 下的 Grimoire-managed launch artifacts，并支持 persistent runtime、native JSONL history hydration、plan mode、image input、provider commands、native models 上的 reasoning effort、rewind 和 fork。OAuth auth 可用时，SuperGrok credit usage 会显示在 model selector 旁；API spend 会在 session cost metadata 上报时聚合显示。
+
 ## 第一次聊天
 
 1. 在 composer 中选择 provider 和 model。
@@ -239,7 +253,7 @@ kimi
 
 ### Model selector
 
-一个 picker，按 provider 分组，并按 label 排序：Antigravity、Claude Code、Codex、Gemini CLI (Legacy)、OpenCode。Search 会匹配 labels、descriptions、groups 和 model IDs。Catalogs 会 lazy load，并记住你折叠过的 groups。你可以在 settings 中添加 custom aliases 和 context-window overrides。Claude 的 1M variants 是额外 options，不会替代 base models。
+一个 picker，按 provider 分组，并按 label 排序：Antigravity、Claude Code、Codex、Gemini CLI (Legacy)、Grok Build、OpenCode。Search 会匹配 labels、descriptions、groups 和 model IDs。Catalogs 会 lazy load，并记住你折叠过的 groups。你可以在 settings 中添加 custom aliases 和 context-window overrides。Claude 的 1M variants 是额外 options，不会替代 base models。
 
 <p align="center">
   <img src="../../assets/readme/model-selector-usage.png" alt="Grimoire model selector 显示 provider groups、model search 和 plan usage" width="100%">
@@ -256,10 +270,13 @@ Model selector 旁边的 badge 会持续显示当前 provider 的 usage；model 
 | Antigravity CLI | `agy --print` 目前还不提供 |
 | Gemini CLI (Legacy) | Gemini CLI 返回时的 ACP cost metadata |
 | OpenCode | 从 ACP 和 session cost metadata 聚合的 monthly spend |
+| MiMoCode | 从 ACP 和 session cost metadata 聚合的 monthly spend |
+| Kimi Code | 从 ACP 和 session cost metadata 聚合的 monthly spend |
+| Grok Build | OAuth auth 可用时来自 grok.com billing 的 SuperGrok credit windows；来自 session cost metadata 的 monthly API spend |
 
 ### Context 和 mentions
 
-可以直接在 composer 中 mention vault notes 和 folders，拉入 current 或 linked note，并在 settings 中添加 persistent external context paths。Provider 支持 image input 时，可以粘贴或拖放图片。支持的 provider integrations 中也可以 mention MCP servers。
+可以直接在 composer 中 mention vault notes 和 folders，拉入 current 或 linked note，并在 settings 中添加 persistent external context paths。Provider 支持 image input 时，可以粘贴或拖放图片。支持的 provider integrations 中也可以 mention MCP servers。Context 标签页会显示绑定的笔记、model、permission mode、固定文件、`.grimoire/grok/system.md` 等 launch artifacts，以及 agent 在 session 期间加载的文件。
 
 ### Inline editing
 
@@ -293,8 +310,9 @@ General settings 覆盖 auto-scroll、title generation、usage indicators、debu
 | `.grimoire/sessions/*.meta.json` | Session metadata |
 | `.grimoire/logs/YYYY-MM-DD.jsonl` | Opt-in sanitized debug logs |
 | `.grimoire/claude/statusline-usage.json` | 用于 plan meter 的 Claude usage snapshot |
+| `.grimoire/grok/` | Grok Build launch artifacts、managed config 和 session pointers |
 
-Provider-native files under `.claude/`, `.codex/`, and `.opencode/` 会被原地读取和写入，因此你的 provider setup 在 Grimoire 之外仍然可移植。
+Provider-native files under `.claude/`, `.codex/`, `.opencode/`, and `.grimoire/grok/` 会被原地读取和写入，因此你的 provider setup 在 Grimoire 之外仍然可移植。
 
 ## 隐私
 
@@ -337,7 +355,7 @@ Obsidian Community plugins 是推荐的用户安装方式。GitHub Releases 仍�
 
 ## Roadmap
 
-目前 Grimoire 随 Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy) 和 OpenCode 一起发布。
+目前 Grimoire 随 Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode、MiMoCode、Kimi Code 和 Grok Build 一起发布。
 
 下一步计划：Qwen Code、GitHub Copilot CLI、其他 ACP-compatible providers，以及当 runtime 足够稳定可嵌入 Obsidian 时的 local model CLIs。Implementation notes 位于 [docs/provider-roadmap.md](../provider-roadmap.md)。
 

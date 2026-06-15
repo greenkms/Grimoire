@@ -14,6 +14,19 @@ describe('normalizeGrokToolName', () => {
 });
 
 describe('normalizeGrokToolInput', () => {
+  it('maps read payloads with path aliases onto file_path', () => {
+    expect(normalizeGrokToolInput('read', {
+      path: 'Geography/Indian Ocean.md',
+    })).toEqual({
+      file_path: 'Geography/Indian Ocean.md',
+    });
+    expect(normalizeGrokToolInput('read', {
+      filepath: '.grimoire/grok/system.md',
+    })).toEqual({
+      file_path: '.grimoire/grok/system.md',
+    });
+  });
+
   it('maps websearch payloads to the WebSearch renderer shape', () => {
     expect(normalizeGrokToolInput('websearch', {
       action: {
@@ -119,6 +132,25 @@ describe('createGrokToolStreamAdapter', () => {
         id: 'tool-1',
         isError: false,
         type: 'tool_result',
+      },
+    ]);
+  });
+
+  it('merges ACP read locations into tool input when rawInput has no path', () => {
+    const adapter = createGrokToolStreamAdapter();
+
+    expect(adapter.normalizeToolCallUpdate({
+      kind: 'read',
+      locations: [{ path: 'Geography/Indian Ocean.md' }],
+      status: 'completed',
+      title: 'read',
+      toolCallId: 'tool-locations',
+    }, [])).toEqual([
+      {
+        id: 'tool-locations',
+        input: { file_path: 'Geography/Indian Ocean.md' },
+        name: 'Read',
+        type: 'tool_use',
       },
     ]);
   });

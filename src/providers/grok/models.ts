@@ -27,6 +27,23 @@ export interface GrokDiscoveredModelGroup {
 
 export const GROK_SYNTHETIC_MODEL_ID = 'grok';
 export const GROK_DEFAULT_THINKING_LEVEL = 'default';
+export const GROK_NATIVE_THINKING_DEFAULT = 'high';
+
+const GROK_LAUNCH_REASONING_EFFORT_VALUES = new Set([
+  'none',
+  'minimal',
+  'low',
+  'medium',
+  'high',
+  'xhigh',
+]);
+
+export const GROK_NATIVE_THINKING_OPTIONS: GrokModelVariant[] = [
+  { label: 'Low', value: 'low' },
+  { label: 'Medium', value: 'medium' },
+  { label: 'High', value: 'high' },
+  { label: 'Extra high', value: 'xhigh' },
+];
 
 const GROK_MODEL_PREFIX = 'grok:';
 const GROK_VARIANT_ASCENDING_ORDER = [
@@ -44,6 +61,28 @@ const GROK_VARIANT_ASCENDING_RANK = new Map<string, number>(
 
 export function isGrokModelSelectionId(model: string): boolean {
   return model === GROK_SYNTHETIC_MODEL_ID || model.startsWith(GROK_MODEL_PREFIX);
+}
+
+export function normalizeGrokLaunchReasoningEffort(
+  value: string | null | undefined,
+): string | null {
+  const normalized = value?.trim().toLowerCase();
+  if (!normalized || normalized === GROK_DEFAULT_THINKING_LEVEL || normalized === 'default') {
+    return null;
+  }
+
+  return GROK_LAUNCH_REASONING_EFFORT_VALUES.has(normalized)
+    ? normalized
+    : null;
+}
+
+export function isGrokNativeBuildModelId(rawModelId: string): boolean {
+  const normalized = rawModelId.trim();
+  if (!normalized) {
+    return false;
+  }
+
+  return normalized === 'grok-build' || normalized.startsWith('grok-composer-');
 }
 
 export function encodeGrokModelId(rawModelId: string): string {
@@ -222,23 +261,119 @@ export function combineGrokRawModelSelection(
     : normalizedBaseRawId;
 }
 
-export function splitGrokModelLabel(label: string): {
+export function splitGrokModelLabel(
+  label: string,
+  rawId?: string,
+): {
   modelLabel: string;
   providerLabel: string;
 } {
-  const trimmed = label.trim();
-  const slashIndex = trimmed.indexOf('/');
-  if (slashIndex <= 0 || slashIndex >= trimmed.length - 1) {
+  const trimmedLabel = label.trim();
+  const trimmedRawId = rawId?.trim() ?? '';
+  const slashIndex = trimmedLabel.indexOf('/');
+  if (slashIndex > 0 && slashIndex < trimmedLabel.length - 1) {
     return {
-      modelLabel: trimmed,
-      providerLabel: 'Other',
+      modelLabel: trimmedLabel.slice(slashIndex + 1).trim(),
+      providerLabel: trimmedLabel.slice(0, slashIndex).trim(),
+    };
+  }
+
+  const fromRawId = splitGrokNativeModelIdentity(trimmedRawId);
+  if (fromRawId) {
+    return fromRawId;
+  }
+
+  const fromLabel = splitGrokNativeModelLabel(trimmedLabel);
+  if (fromLabel) {
+    return fromLabel;
+  }
+
+  return {
+    modelLabel: trimmedLabel,
+    providerLabel: 'Other',
+  };
+}
+
+function splitGrokNativeModelIdentity(
+  rawId: string,
+): { modelLabel: string; providerLabel: string } | null {
+  const normalized = rawId.trim().toLowerCase();
+  if (!normalized.startsWith('grok-')) {
+    return null;
+  }
+
+  const remainder = rawId.trim().slice('grok-'.length);
+  if (remainder.toLowerCase().startsWith('composer')) {
+    const composerRemainder = remainder.slice('composer'.length).replace(/^-/, '');
+    return {
+      modelLabel: formatGrokNativeModelSegment(composerRemainder) || 'Composer',
+      providerLabel: 'Composer',
+    };
+  }
+
+  if (remainder.toLowerCase().startsWith('build')) {
+    const buildRemainder = remainder.slice('build'.length).replace(/^-/, '');
+    return {
+      modelLabel: buildRemainder
+        ? formatGrokNativeModelSegment(buildRemainder)
+        : 'Build',
+      providerLabel: 'Grok Build',
     };
   }
 
   return {
-    modelLabel: trimmed.slice(slashIndex + 1).trim(),
-    providerLabel: trimmed.slice(0, slashIndex).trim(),
+    modelLabel: formatGrokNativeModelSegment(remainder),
+    providerLabel: 'Grok',
   };
+}
+
+function splitGrokNativeModelLabel(
+  label: string,
+): { modelLabel: string; providerLabel: string } | null {
+  const trimmed = label.trim();
+  const lower = trimmed.toLowerCase();
+  if (lower.startsWith('grok composer')) {
+    const modelLabel = trimmed.slice('grok composer'.length).trim();
+    return {
+      modelLabel: modelLabel || 'Composer',
+      providerLabel: 'Composer',
+    };
+  }
+
+  if (lower.startsWith('grok build')) {
+    const modelLabel = trimmed.slice('grok build'.length).trim();
+    return {
+      modelLabel: modelLabel || 'Build',
+      providerLabel: 'Grok Build',
+    };
+  }
+
+  if (lower.startsWith('grok ')) {
+    return {
+      modelLabel: trimmed.slice('grok '.length).trim() || trimmed,
+      providerLabel: 'Grok',
+    };
+  }
+
+  return null;
+}
+
+function formatGrokNativeModelSegment(segment: string): string {
+  return segment
+    .split('-')
+    .filter((part) => part.length > 0)
+    .map((part) => {
+      if (/^\d/.test(part)) {
+        return part;
+      }
+
+      if (part.toLowerCase() === 'xhigh') {
+        return 'XHigh';
+      }
+
+      return part.charAt(0).toUpperCase() + part.slice(1);
+    })
+    .join(' ');
 }
 
 export function buildGrokBaseModels(
@@ -315,7 +450,7 @@ export function groupGrokDiscoveredModels(
 ): GrokDiscoveredModelGroup[] {
   const groups = new Map<string, GrokDiscoveredModelGroup>();
   for (const model of buildGrokBaseModels(models)) {
-    const { providerLabel } = splitGrokModelLabel(model.label || model.rawId);
+    const { providerLabel } = splitGrokModelLabel(model.label || model.rawId, model.rawId);
     const providerKey = providerLabel.toLowerCase();
     const existing = groups.get(providerKey);
     if (existing) {

@@ -618,7 +618,7 @@ export const grokSettingsTabRenderer: ProviderSettingsTabRenderer = {
       heading: 'Environment',
       name: 'Environment Variables',
       desc: 'Extra environment variables passed to Grok. `GROK_ENABLE_EXA=1` is enabled by default.',
-      placeholder: `${GROK_DEFAULT_ENVIRONMENT_VARIABLES}\nGROK_DB=/path/to/grok.db`,
+      placeholder: `${GROK_DEFAULT_ENVIRONMENT_VARIABLES}\nGROK_AUTH_PATH=~/.grok/auth.json`,
       renderCustomContextLimits: (target) => context.renderCustomContextLimits(target, 'grok'),
     });
   },
@@ -633,7 +633,7 @@ function buildEnrichedModels(
   const baseModels = buildGrokBaseModels(discoveredModels);
 
   for (const model of baseModels) {
-    const { modelLabel, providerLabel } = splitGrokModelLabel(model.label || model.rawId);
+    const { modelLabel, providerLabel } = splitGrokModelLabel(model.label || model.rawId, model.rawId);
     discoveredIds.add(model.rawId);
     enriched.push({
       description: model.description ?? '',
@@ -650,7 +650,7 @@ function buildEnrichedModels(
       continue;
     }
 
-    const { modelLabel, providerLabel } = splitGrokModelLabel(rawId);
+    const { modelLabel, providerLabel } = splitGrokModelLabel(rawId, rawId);
     enriched.push({
       description: '',
       isAvailable: false,

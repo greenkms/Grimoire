@@ -13,7 +13,7 @@ import { getAntigravityProviderSettings } from './settings';
 import { antigravityChatUIConfig } from './ui/AntigravityChatUIConfig';
 
 export const antigravityProviderRegistration: ProviderRegistration = {
-  blankTabOrder: 4,
+  blankTabOrder: 70,
   capabilities: ANTIGRAVITY_PROVIDER_CAPABILITIES,
   chatUIConfig: antigravityChatUIConfig,
   createInlineEditService: () => new AntigravityInlineEditService(),

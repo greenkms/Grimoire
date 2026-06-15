@@ -517,7 +517,7 @@ describe('GrokSettingsTab', () => {
 
     expect(mockRenderEnvironmentSettingsSection).toHaveBeenCalledWith(expect.objectContaining({
       desc: expect.stringContaining(GROK_DEFAULT_ENVIRONMENT_VARIABLES),
-      placeholder: `${GROK_DEFAULT_ENVIRONMENT_VARIABLES}\nGROK_DB=/path/to/grok.db`,
+      placeholder: `${GROK_DEFAULT_ENVIRONMENT_VARIABLES}\nGROK_AUTH_PATH=~/.grok/auth.json`,
     }));
   });
 

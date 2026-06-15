@@ -11,7 +11,7 @@ import { getMimocodeProviderSettings } from './settings';
 import { mimocodeChatUIConfig } from './ui/MimocodeChatUIConfig';
 
 export const mimocodeProviderRegistration: ProviderRegistration = {
-  blankTabOrder: 10,
+  blankTabOrder: 50,
   capabilities: MIMOCODE_PROVIDER_CAPABILITIES,
   chatUIConfig: mimocodeChatUIConfig,
   createInlineEditService: (plugin) => new MimocodeInlineEditService(plugin),

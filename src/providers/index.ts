@@ -26,20 +26,20 @@ export function registerBuiltInProviders(): void {
 
   ProviderRegistry.register('claude', claudeProviderRegistration);
   ProviderRegistry.register('codex', codexProviderRegistration);
-  ProviderRegistry.register('antigravity', antigravityProviderRegistration);
-  ProviderRegistry.register('gemini', geminiProviderRegistration);
   ProviderRegistry.register('opencode', opencodeProviderRegistration);
+  ProviderRegistry.register('grok', grokProviderRegistration);
   ProviderRegistry.register('mimocode', mimocodeProviderRegistration);
   ProviderRegistry.register('kimicode', kimicodeProviderRegistration);
-  ProviderRegistry.register('grok', grokProviderRegistration);
+  ProviderRegistry.register('antigravity', antigravityProviderRegistration);
+  ProviderRegistry.register('gemini', geminiProviderRegistration);
   ProviderWorkspaceRegistry.register('claude', claudeWorkspaceRegistration);
   ProviderWorkspaceRegistry.register('codex', codexWorkspaceRegistration);
-  ProviderWorkspaceRegistry.register('antigravity', antigravityWorkspaceRegistration);
-  ProviderWorkspaceRegistry.register('gemini', geminiWorkspaceRegistration);
   ProviderWorkspaceRegistry.register('opencode', opencodeWorkspaceRegistration);
+  ProviderWorkspaceRegistry.register('grok', grokWorkspaceRegistration);
   ProviderWorkspaceRegistry.register('mimocode', mimocodeWorkspaceRegistration);
   ProviderWorkspaceRegistry.register('kimicode', kimicodeWorkspaceRegistration);
-  ProviderWorkspaceRegistry.register('grok', grokWorkspaceRegistration);
+  ProviderWorkspaceRegistry.register('antigravity', antigravityWorkspaceRegistration);
+  ProviderWorkspaceRegistry.register('gemini', geminiWorkspaceRegistration);
   builtInProvidersRegistered = true;
 }
 

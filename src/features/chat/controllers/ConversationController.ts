@@ -1,9 +1,9 @@
 import { Menu, Notice, setIcon } from 'obsidian';
 
-import type { TitleGenerationService } from '../../../core/providers/types';
+import type { ProviderId, TitleGenerationService } from '../../../core/providers/types';
 import type { ChatRuntime } from '../../../core/runtime/ChatRuntime';
 import type { ChatRewindMode } from '../../../core/runtime/types';
-import type { Conversation, ConversationMeta } from '../../../core/types';
+import type { ChatMessage, Conversation, ConversationMeta } from '../../../core/types';
 import { t } from '../../../i18n/i18n';
 import type GrimoirePlugin from '../../../main';
 import { confirm } from '../../../shared/modals/ConfirmModal';
@@ -52,6 +52,7 @@ export interface ConversationControllerDeps {
   ensureServiceForConversation?: (conversation: Conversation | null) => Promise<void>;
   dismissPendingInlinePrompts?: () => void;
   clearRuntimeContextActivity?: () => void;
+  hydrateRuntimeContextFromMessages?: (providerId: ProviderId, messages: ChatMessage[]) => void;
 }
 
 type SaveOptions = {
@@ -503,6 +504,7 @@ export class ConversationController {
     // Clear status panels (auto-hide: panels reappear when agent creates new todos)
     state.currentTodos = null;
     this.deps.clearRuntimeContextActivity?.();
+    this.deps.hydrateRuntimeContextFromMessages?.(conversation.providerId, state.messages);
 
     const hasMessages = state.messages.length > 0;
 

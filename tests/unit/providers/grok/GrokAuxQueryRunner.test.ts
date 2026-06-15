@@ -59,7 +59,7 @@ describe('GrokAuxQueryRunner', () => {
     newSession: jest.Mock;
     onSessionNotification: jest.Mock;
     prompt: jest.Mock;
-    setConfigOption: jest.Mock;
+    setModel: jest.Mock;
   };
   let mockProcess: {
     getStderrSnapshot: jest.Mock;
@@ -109,7 +109,7 @@ describe('GrokAuxQueryRunner', () => {
         });
         return { stopReason: 'end_turn' };
       }),
-      setConfigOption: jest.fn().mockResolvedValue({ configOptions: [] }),
+      setModel: jest.fn().mockResolvedValue({ _meta: { model: { Ok: 'openai/gpt-5' } } }),
     };
     mockProcess = {
       getStderrSnapshot: jest.fn().mockReturnValue(''),
@@ -160,11 +160,9 @@ describe('GrokAuxQueryRunner', () => {
       cwd: '/tmp/grimoire-test-vault',
       mcpServers: [],
     });
-    expect(mockConnection.setConfigOption).toHaveBeenCalledWith({
-      configId: 'model',
+    expect(mockConnection.setModel).toHaveBeenCalledWith({
+      modelId: 'openai/gpt-5',
       sessionId: 'session-1',
-      type: 'select',
-      value: 'openai/gpt-5',
     });
     expect(onTextChunk).toHaveBeenNthCalledWith(1, 'Fix title');
     expect(onTextChunk).toHaveBeenNthCalledWith(2, 'Fix title now');
@@ -183,6 +181,7 @@ describe('GrokAuxQueryRunner', () => {
     }, 'Generate a title')).resolves.toBe('Fix title now');
 
     expect(MockAcpSubprocess).toHaveBeenCalledWith(expect.objectContaining({
+      args: ['agent', 'stdio'],
       command: 'grok',
     }));
   });
@@ -243,11 +242,9 @@ describe('GrokAuxQueryRunner', () => {
       systemPrompt: 'Use this custom system prompt.',
     }, 'Generate a title')).resolves.toBe('Fix title now');
 
-    expect(mockConnection.setConfigOption).toHaveBeenCalledWith({
-      configId: 'model',
+    expect(mockConnection.setModel).toHaveBeenCalledWith({
+      modelId: 'openai/gpt-5.4',
       sessionId: 'session-1',
-      type: 'select',
-      value: 'openai/gpt-5.4',
     });
   });
 

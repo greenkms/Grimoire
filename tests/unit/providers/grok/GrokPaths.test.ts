@@ -3,31 +3,32 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 
 import {
+  buildManagedGrokProcessEnv,
   encodeGrokWorkspaceKey,
+  resolveGrokAuthPath,
   resolveGrokChatHistoryPath,
   resolveGrokDataDir,
-  resolveGrokNativeAuthPath,
-  resolveGrokNativeDataDir,
+  resolveManagedGrokHomePath,
   resolveGrokSessionDirectory,
 } from '../../../../src/providers/grok/runtime/GrokPaths';
 
 describe('GrokPaths', () => {
-  it('prefers GROK_HOME for managed config data', () => {
+  it('prefers GROK_HOME for Grok data directories', () => {
     expect(resolveGrokDataDir({
       GROK_HOME: '/tmp/grok-home',
       HOME: '/home/tester',
     } as NodeJS.ProcessEnv)).toBe('/tmp/grok-home');
   });
 
-  it('keeps native session storage under ~/.grok even when GROK_HOME is set', () => {
-    expect(resolveGrokNativeDataDir({
-      GROK_HOME: '/tmp/grok-home',
+  it('resolves auth.json from an explicit GROK_AUTH_PATH override', () => {
+    expect(resolveGrokAuthPath({
+      GROK_AUTH_PATH: '/custom/auth.json',
       HOME: '/home/tester',
-    } as NodeJS.ProcessEnv)).toBe('/home/tester/.grok');
+    } as NodeJS.ProcessEnv)).toBe('/custom/auth.json');
   });
 
-  it('resolves native auth.json under ~/.grok', () => {
-    expect(resolveGrokNativeAuthPath({
+  it('falls back to auth.json under the resolved data dir', () => {
+    expect(resolveGrokAuthPath({
       HOME: '/home/tester',
     } as NodeJS.ProcessEnv)).toBe('/home/tester/.grok/auth.json');
   });
@@ -54,6 +55,37 @@ describe('GrokPaths', () => {
     fs.writeFileSync(path.join(sessionDir, 'chat_history.jsonl'), '{"type":"user","content":"hi"}\n');
 
     const env = { HOME: home } as NodeJS.ProcessEnv;
+
+    expect(resolveGrokSessionDirectory(sessionId, workspacePath, null, env)).toBe(sessionDir);
+    expect(resolveGrokChatHistoryPath(sessionId, workspacePath, null, env)).toBe(
+      path.join(sessionDir, 'chat_history.jsonl'),
+    );
+  });
+
+  it('resolves managed Grok home under the vault .grimoire directory', () => {
+    expect(resolveManagedGrokHomePath('/vault/root')).toBe(
+      path.join('/vault/root', '.grimoire', 'grok'),
+    );
+    expect(buildManagedGrokProcessEnv('/vault/root')).toEqual({
+      GROK_HOME: path.join('/vault/root', '.grimoire', 'grok'),
+    });
+  });
+
+  it('resolves chat history from the managed Grok home sessions tree', () => {
+    const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'grimoire-grok-managed-'));
+    const workspacePath = path.join(tmpRoot, 'vault');
+    const sessionId = 'session-managed';
+    const managedHome = resolveManagedGrokHomePath(workspacePath);
+    const sessionDir = path.join(
+      managedHome,
+      'sessions',
+      encodeGrokWorkspaceKey(workspacePath),
+      sessionId,
+    );
+    fs.mkdirSync(sessionDir, { recursive: true });
+    fs.writeFileSync(path.join(sessionDir, 'chat_history.jsonl'), '{"type":"user","content":"hi"}\n');
+
+    const env = buildManagedGrokProcessEnv(workspacePath);
 
     expect(resolveGrokSessionDirectory(sessionId, workspacePath, null, env)).toBe(sessionDir);
     expect(resolveGrokChatHistoryPath(sessionId, workspacePath, null, env)).toBe(

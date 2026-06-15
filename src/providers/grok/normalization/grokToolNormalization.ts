@@ -326,18 +326,24 @@ export function normalizeGrokToolInput(
       return { questions: normalizeQuestionItems(input.questions) };
     case 'read':
       return {
-        ...(firstString(input.file_path, input.filePath) ? { file_path: firstString(input.file_path, input.filePath) } : {}),
+        ...(firstString(input.file_path, input.filePath, input.filepath, input.path)
+          ? { file_path: firstString(input.file_path, input.filePath, input.filepath, input.path) }
+          : {}),
         ...(typeof input.limit === 'number' ? { limit: input.limit } : {}),
         ...(typeof input.offset === 'number' ? { offset: input.offset } : {}),
       };
     case 'write':
       return {
         ...(typeof input.content === 'string' ? { content: input.content } : {}),
-        ...(firstString(input.file_path, input.filePath) ? { file_path: firstString(input.file_path, input.filePath) } : {}),
+        ...(firstString(input.file_path, input.filePath, input.filepath, input.path)
+          ? { file_path: firstString(input.file_path, input.filePath, input.filepath, input.path) }
+          : {}),
       };
     case 'edit':
       return {
-        ...(firstString(input.file_path, input.filePath) ? { file_path: firstString(input.file_path, input.filePath) } : {}),
+        ...(firstString(input.file_path, input.filePath, input.filepath, input.path)
+          ? { file_path: firstString(input.file_path, input.filePath, input.filepath, input.path) }
+          : {}),
         ...(firstString(input.old_string, input.oldString) ? { old_string: firstString(input.old_string, input.oldString) } : {}),
         ...(firstString(input.new_string, input.newString) ? { new_string: firstString(input.new_string, input.newString) } : {}),
         ...(typeof input.replace_all === 'boolean'

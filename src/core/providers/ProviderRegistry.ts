@@ -111,15 +111,23 @@ export class ProviderRegistry {
   }
 
   static getRegisteredProviderIds(): ProviderId[] {
-    return Object.keys(this.registrations);
+    return Object.keys(this.registrations)
+      .sort((left, right) => this.compareProviderTabOrder(left, right));
   }
 
   static getEnabledProviderIds(settings: Record<string, unknown>): ProviderId[] {
     return this.getRegisteredProviderIds()
-      .filter(providerId => this.getProviderRegistration(providerId).isEnabled(settings))
-      .sort((a, b) => (
-        this.getProviderRegistration(a).blankTabOrder - this.getProviderRegistration(b).blankTabOrder
-      ));
+      .filter(providerId => this.getProviderRegistration(providerId).isEnabled(settings));
+  }
+
+  private static compareProviderTabOrder(left: ProviderId, right: ProviderId): number {
+    const orderDiff = this.getProviderRegistration(left).blankTabOrder
+      - this.getProviderRegistration(right).blankTabOrder;
+    if (orderDiff !== 0) {
+      return orderDiff;
+    }
+
+    return left.localeCompare(right);
   }
 
   static getProviderDisplayName(providerId: ProviderId): string {

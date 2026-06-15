@@ -27,7 +27,7 @@
   <sub>ノートがある同じ Obsidian workspace で、ローカル CLI エージェントと会話できます。</sub>
 </p>
 
-Grimoire は agentic CLI アシスタントを Obsidian に組み込みます。Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode、MiMoCode、Kimi Code がひとつのサイドパネルに入り、ノートを読み、ファイルを編集し、コマンドを実行し、ツールを呼び出し、実際の vault に紐づいた session history を保持します。Grimoire のサーバーは介在しません。Telemetry も hosted backend も、あなたと provider の間に入る proxy もありません。
+Grimoire は agentic CLI アシスタントを Obsidian に組み込みます。Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode、MiMoCode、Kimi Code、Grok Build がひとつのサイドパネルに入り、ノートを読み、ファイルを編集し、コマンドを実行し、ツールを呼び出し、実際の vault に紐づいた session history を保持します。Grimoire のサーバーは介在しません。Telemetry も hosted backend も、あなたと provider の間に入る proxy もありません。
 
 Grimoire は、すでに Obsidian で作業している人のために作られています。ローカル context、ローカル files、意図して選ぶ provider、そして UI 上で確認できる usage と cost を重視しています。
 
@@ -36,25 +36,25 @@ Grimoire は、すでに Obsidian で作業している人のために作られ�
 ## Grimoire を使う理由
 
 - すでに信頼している CLI エージェントを、ノートの中で直接使えます。
-- Composer から provider を切り替えられます。Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode、MiMoCode、Kimi Code は同じ model picker を共有します。
+- Composer から provider を切り替えられます。Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode、MiMoCode、Kimi Code、Grok Build は同じ model picker を共有します。
 - すべての turn を vault context に grounded できます。ノート、フォルダ、MCP tools を mention でき、手で path を貼る必要がありません。
 - Model selector のすぐ横で cost と limits を確認できます。
 - Local-first のまま使えます。Grimoire は telemetry を集めず、prompts を proxy せず、backend を実行しません。
 
 ## 各 provider ができること
 
-| Capability | Claude Code | Codex | Antigravity CLI | Gemini CLI (Legacy) | OpenCode | MiMoCode | Kimi Code |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Local persistent runtime | Yes | Yes | No | Yes | Yes | Yes | Yes |
-| Native history hydration | Yes | Yes | No | Yes | Yes | Yes | Yes |
-| Plan mode | Yes | Yes | No | Yes | Yes | Yes | Yes |
-| Image attachments | Yes | Yes | No | Yes | Yes | Yes | Yes |
-| Instruction mode | Yes | Yes | No | Yes | Yes | Yes | Yes |
-| Reasoning effort controls | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
-| Rewind | Yes | No | No | No | No | No | No |
-| Fork | Yes | Yes | No | No | No | No | No |
-| Provider slash commands | Yes | No | No | No | Yes | Yes | No |
-| Grimoire-managed MCP UI | Yes | No | No | No | No | No | No |
+| Capability | Claude Code | Codex | Antigravity CLI | Gemini CLI (Legacy) | OpenCode | MiMoCode | Kimi Code | Grok Build |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Local persistent runtime | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes |
+| Native history hydration | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes |
+| Plan mode | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes |
+| Image attachments | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes |
+| Instruction mode | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes |
+| Reasoning effort controls | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
+| Rewind | Yes | No | No | No | No | No | No | Yes |
+| Fork | Yes | Yes | No | No | No | No | No | Yes |
+| Provider slash commands | Yes | No | No | No | Yes | Yes | Yes | Yes |
+| Grimoire-managed MCP UI | Yes | No | No | No | No | No | No | No |
 
 ## インストール
 
@@ -112,7 +112,7 @@ Settings, Grimoire, Providers で使いたい providers を有効化すると、
 
 ### 推奨 providers
 
-Grimoire で最高の体験を得るには、まず Claude Code、Codex、OpenCode、MiMoCode、Kimi Code から始めるのがおすすめです。これらの providers は現在、vault-native な作業に必要な runtime surface が最も強く、persistent sessions、history hydration、plan-oriented workflows、tool activity、豊富な model controls を扱えます。
+Grimoire で最高の体験を得るには、まず Claude Code、Codex、OpenCode、MiMoCode、Kimi Code、Grok Build から始めるのがおすすめです。これらの providers は現在、vault-native な作業に必要な runtime surface が最も強く、persistent sessions、history hydration、plan-oriented workflows、tool activity、豊富な model controls を扱えます。
 
 Antigravity CLI と Gemini CLI (Legacy) も引き続き利用できます。特に Google accounts や compatibility cases では役立ちますが、現時点の Grimoire ではより制限があります。現在の CLI surfaces から得られる session、tool、approval、streaming metadata が少ないためです。
 
@@ -231,6 +231,20 @@ Kimi Code 側で provider credentials を設定し、その後 Grimoire で有�
 
 Grimoire 内では、Kimi Code は ACP で動作し、persistent runtime、native history、plan mode、image input、provider commands、reasoning effort をサポートします。
 
+### Grok Build
+
+Obsidian で xAI の agentic CLI を使う場合は Grok Build を選びます。SuperGrok credits または API keys で利用できます。
+
+```bash
+grok
+```
+
+xAI の Grok CLI をインストールし、grok.com OAuth で認証するか API keys を設定してから、Grimoire で Grok Build を有効化します。
+
+- [Grok Build](https://grok.com/build)
+
+Grimoire 内では、Grok Build は `grok agent stdio` 経由の ACP で動作し、`.grimoire/grok/` 配下の Grimoire-managed launch artifacts、persistent runtime、native JSONL history hydration、plan mode、image input、provider commands、native models 向け reasoning effort、rewind、fork をサポートします。OAuth auth が利用できる場合、SuperGrok credit usage は model selector の横に表示されます。API spend は session cost metadata が報告されたときに集計されます。
+
 ## 最初のチャット
 
 1. Composer で provider と model を選びます。
@@ -247,7 +261,7 @@ Grimoire 内では、Kimi Code は ACP で動作し、persistent runtime、nativ
 
 ### Model selector
 
-ひとつの picker が provider ごとに grouped され、label 順に並びます：Antigravity、Claude Code、Codex、Gemini CLI (Legacy)、OpenCode。Search は labels、descriptions、groups、model IDs を横断します。Catalogs は lazily に load され、collapse した groups を記憶します。Settings で custom aliases と context-window overrides を追加できます。Claude の 1M variants は base models の置き換えではなく、追加 options です。
+ひとつの picker が provider ごとに grouped され、label 順に並びます：Antigravity、Claude Code、Codex、Gemini CLI (Legacy)、Grok Build、OpenCode。Search は labels、descriptions、groups、model IDs を横断します。Catalogs は lazily に load され、collapse した groups を記憶します。Settings で custom aliases と context-window overrides を追加できます。Claude の 1M variants は base models の置き換えではなく、追加 options です。
 
 <p align="center">
   <img src="../../assets/readme/model-selector-usage.png" alt="Provider groups、model search、plan usage を表示する Grimoire model selector" width="100%">
@@ -264,10 +278,13 @@ Model selector の横の badge が active provider の usage を表示します�
 | Antigravity CLI | `agy --print` からはまだ取得不可 |
 | Gemini CLI (Legacy) | Gemini CLI が返す場合の ACP cost metadata |
 | OpenCode | ACP と session cost metadata から集計した monthly spend |
+| MiMoCode | ACP と session cost metadata から集計した monthly spend |
+| Kimi Code | ACP と session cost metadata から集計した monthly spend |
+| Grok Build | OAuth auth が利用できる場合の grok.com billing からの SuperGrok credit windows；session cost metadata からの monthly API spend |
 
 ### Context と mentions
 
-Composer から vault notes と folders を直接 mention できます。Current note や linked note を取り込み、settings で persistent external context paths を追加できます。Provider が image input を受け付ける場合は、画像を貼り付けたり drop したりできます。Provider integration が対応する場合は MCP servers も mention できます。
+Composer から vault notes と folders を直接 mention できます。Current note や linked note を取り込み、settings で persistent external context paths を追加できます。Provider が image input を受け付ける場合は、画像を貼り付けたり drop したりできます。Provider integration が対応する場合は MCP servers も mention できます。Context tab には、bound note、model、permission mode、pinned files、`.grimoire/grok/system.md` のような launch artifacts、および session 中に agent が読み込んだ files が表示されます。
 
 ### Inline editing
 
@@ -301,8 +318,9 @@ General settings は auto-scroll、title generation、usage indicators、debug l
 | `.grimoire/sessions/*.meta.json` | Session metadata |
 | `.grimoire/logs/YYYY-MM-DD.jsonl` | Opt-in sanitized debug logs |
 | `.grimoire/claude/statusline-usage.json` | Plan meter 用の Claude usage snapshot |
+| `.grimoire/grok/` | Grok Build launch artifacts、managed config、session pointers |
 
-Provider-native files under `.claude/`, `.codex/`, and `.opencode/` はその場で読み書きされるため、provider setup は Grimoire の外でも portable なままです。
+Provider-native files under `.claude/`, `.codex/`, `.opencode/`, and `.grimoire/grok/` はその場で読み書きされるため、provider setup は Grimoire の外でも portable なままです。
 
 ## Privacy
 
@@ -345,7 +363,7 @@ Obsidian Community plugins が推奨されるユーザー向けインストー�
 
 ## Roadmap
 
-現在 Grimoire は Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode とともに ship されています。
+現在 Grimoire は Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode、MiMoCode、Kimi Code、Grok Build とともに ship されています。
 
 次の候補は Qwen Code、GitHub Copilot CLI、その他の ACP-compatible providers、そして runtime が Obsidian に embed できるほど安定した local model CLIs です。Implementation notes は [docs/provider-roadmap.md](../provider-roadmap.md) にあります。
 

@@ -1,6 +1,9 @@
+import '@/providers';
+
 import { createMockEl } from '@test/helpers/mockElement';
 
 import { DEFAULT_GRIMOIRE_SETTINGS } from '@/app/settings/defaultSettings';
+import { ProviderRegistry } from '@/core/providers/ProviderRegistry';
 import { GrimoireSettingTab } from '@/features/settings/GrimoireSettings';
 import { setLocale } from '@/i18n/i18n';
 
@@ -20,6 +23,7 @@ function createSettingsPlugin(overrides: Record<string, any> = {}): any {
     },
     saveSettings: jest.fn().mockResolvedValue(undefined),
     getAllViews: jest.fn().mockReturnValue([]),
+    getActiveEnvironmentVariables: jest.fn().mockReturnValue(''),
     getEnvironmentVariablesForScope: jest.fn().mockReturnValue(''),
     applyEnvironmentVariables: jest.fn().mockResolvedValue(undefined),
     applyEnvironmentVariablesBatch: jest.fn().mockResolvedValue(undefined),
@@ -101,5 +105,46 @@ describe('GrimoireSettingTab general tab settings', () => {
     const advancedText = collectText(container.querySelector('.grimoire-adv-body'));
     expect(advancedText).toContain('Usage indicators');
     expect(advancedText).toContain('Show plan usage and API spend indicators');
+  });
+});
+
+describe('GrimoireSettingTab provider tabs', () => {
+  beforeEach(() => {
+    setLocale('en');
+  });
+
+  it('renders provider settings tabs in registry order after General', () => {
+    const plugin = createSettingsPlugin();
+    const app: any = { hotkeyManager: {} };
+    const tab = new GrimoireSettingTab(app, plugin);
+    (tab as any).containerEl = createMockEl('div');
+
+    tab.display();
+
+    const tabLabels = Array.from(
+      (tab as any).containerEl.querySelectorAll('.grimoire-settings-tab'),
+    ).map((button: any) => button.textContent?.trim() ?? '');
+
+    expect(tabLabels[0]).toBe('General');
+    expect(tabLabels.slice(1)).toEqual([
+      'Claude Code',
+      'Codex',
+      'OpenCode',
+      'Grok Build',
+      'MiMo Code',
+      'Kimi Code',
+      'Antigravity',
+      'Gemini CLI (Legacy)',
+    ]);
+    expect(ProviderRegistry.getRegisteredProviderIds()).toEqual([
+      'claude',
+      'codex',
+      'opencode',
+      'grok',
+      'mimocode',
+      'kimicode',
+      'antigravity',
+      'gemini',
+    ]);
   });
 });

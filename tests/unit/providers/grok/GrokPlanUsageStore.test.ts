@@ -34,6 +34,36 @@ describe('GrokPlanUsageStore', () => {
     });
   });
 
+  it('merges SuperGrok credit windows with API spend usage', () => {
+    grokPlanUsageStore.setCreditsUsageForTests({
+      plan: 'SuperGrok',
+      windows: [{
+        label: 'Credits',
+        pct: 6,
+        pctKnown: true,
+        reset: 'Jul 1',
+      }],
+      note: 'Free credits · resets Jul 1',
+    });
+    grokPlanUsageStore.recordCost({ amount: 1.25, currency: 'USD' });
+
+    expect(grokPlanUsageStore.getCachedUsage({
+      plugin: {} as any,
+      providerId: 'grok',
+      settings: {},
+    })).toEqual({
+      plan: 'SuperGrok',
+      windows: [{
+        label: 'Credits',
+        pct: 6,
+        pctKnown: true,
+        reset: 'Jul 1',
+      }],
+      spend: '$1.25 this month',
+      note: 'Free credits · resets Jul 1 · Pay per token across vendors · no cap set.',
+    });
+  });
+
   it('records only deltas from cumulative Grok Build session costs', () => {
     const store = new GrokPlanUsageStore();
 

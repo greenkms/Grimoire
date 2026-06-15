@@ -41,6 +41,8 @@ import type GrimoirePlugin from '../../../main';
 import { getEnhancedPath } from '../../../utils/env';
 import { getVaultPath } from '../../../utils/path';
 import {
+  type AcpAskUserQuestionRequest,
+  type AcpAskUserQuestionResponse,
   AcpClientConnection,
   AcpJsonRpcTransport,
   type AcpReadTextFileRequest,
@@ -65,7 +67,10 @@ import {
 import { grokPlanUsageStore } from '../app/GrokPlanUsageStore';
 import { GROK_PROVIDER_CAPABILITIES } from '../capabilities';
 import { updateGrokDiscoveryState } from '../discoveryState';
-import { loadGrokSessionCost } from '../history/GrokUsageMetadataStore';
+import {
+  loadGrokSessionContextUsage,
+  loadGrokSessionCost,
+} from '../history/GrokUsageMetadataStore';
 import {
   sameDiscoveredModels,
   sameModes,
@@ -97,13 +102,16 @@ import { createGrokToolStreamAdapter } from '../normalization/grokToolNormalizat
 import { getGrokProviderSettings, updateGrokProviderSettings } from '../settings';
 import { getGrokState, type GrokProviderState } from '../types';
 import { buildGrokPromptBlocks, buildGrokPromptText } from './buildGrokPrompt';
+import { formatGrokAskUserQuestionResponse } from './formatGrokAskUserQuestionResponse';
 import {
   grokAuthPathExists,
   logGrokDebug,
   summarizeGrokCliText,
 } from './grokDebugLog';
+import { buildGrokAgentProcessArgs } from './GrokLaunchArgs';
 import { prepareGrokLaunchArtifacts } from './GrokLaunchArtifacts';
-import { resolveGrokSessionDirectory } from './GrokPaths';
+import { buildManagedGrokProcessEnv, resolveGrokSessionDirectory } from './GrokPaths';
+import { resolveGrokProviderAuthPath } from './GrokRuntimeEnvironment';
 import { buildGrokRuntimeEnv } from './GrokRuntimeEnvironment';
 import { normalizeGrokAcpSessionModels } from './normalizeGrokAcpSessionState';
 
@@ -158,6 +166,8 @@ export class GrokChatRuntime implements ChatRuntime {
 
   private activeTurn: ActiveTurn | null = null;
   private approvalCallback: ApprovalCallback | null = null;
+  private askUserQuestionAbortController: AbortController | null = null;
+  private askUserQuestionCallback: AskUserQuestionCallback | null = null;
   private connection: AcpClientConnection | null = null;
   private contextUsage: AcpUsageUpdate | null = null;
   private currentSessionDirPath: string | null = null;
@@ -275,16 +285,12 @@ export class GrokChatRuntime implements ChatRuntime {
       return false;
     }
 
-    const response = await this.connection.setConfigOption({
-      configId: 'model',
+    await this.connection.setModel({
+      modelId: selectedBaseRawModelId,
       sessionId: this.sessionId,
-      type: 'select',
-      value: selectedBaseRawModelId,
     });
     this.currentSessionModelId = selectedBaseRawModelId;
-    await this.syncSessionModelState({
-      configOptions: response.configOptions,
-    }, {
+    await this.syncSessionModelState({}, {
       currentRawModelId: selectedBaseRawModelId,
       seedActiveSelection: false,
     });
@@ -317,10 +323,12 @@ export class GrokChatRuntime implements ChatRuntime {
       resolvedCliPath,
       artifacts.grokHomePath,
     );
-    const grokAuthPath = typeof runtimeEnv.GROK_AUTH_PATH === 'string'
-      ? runtimeEnv.GROK_AUTH_PATH
-      : undefined;
+    const grokAuthPath = resolveGrokProviderAuthPath(this.plugin.settings, runtimeEnv);
 
+    const providerSettings = this.getProviderSettings();
+    const reasoningEffort = typeof providerSettings.effortLevel === 'string'
+      ? providerSettings.effortLevel
+      : null;
     const nextLaunchKey = JSON.stringify({
       artifactKey: artifacts.launchKey,
       command: resolvedCliPath,
@@ -328,6 +336,7 @@ export class GrokChatRuntime implements ChatRuntime {
       grokHomePath: artifacts.grokHomePath,
       permissionMode,
       promptKey: computeSystemPromptKey(promptSettings),
+      reasoningEffort,
     });
 
     const restartReasons = resolveGrokRestartReasons({
@@ -366,6 +375,7 @@ export class GrokChatRuntime implements ChatRuntime {
         await this.startProcess({
           command: resolvedCliPath,
           cwd,
+          reasoningEffort,
           runtimeEnv,
         });
         logGrokDebug(this.plugin, 'runtime.ready', {
@@ -648,7 +658,9 @@ export class GrokChatRuntime implements ChatRuntime {
 
   setApprovalDismisser(_dismisser: (() => void) | null): void {}
 
-  setAskUserQuestionCallback(_callback: AskUserQuestionCallback | null): void {}
+  setAskUserQuestionCallback(callback: AskUserQuestionCallback | null): void {
+    this.askUserQuestionCallback = callback;
+  }
 
   setExitPlanModeCallback(_callback: ExitPlanModeCallback | null): void {}
 
@@ -713,6 +725,7 @@ export class GrokChatRuntime implements ChatRuntime {
   private async startProcess(params: {
     command: string;
     cwd: string;
+    reasoningEffort?: string | null;
     runtimeEnv: NodeJS.ProcessEnv;
   }): Promise<void> {
     const processEnv: NodeJS.ProcessEnv = {
@@ -725,7 +738,7 @@ export class GrokChatRuntime implements ChatRuntime {
     };
 
     this.process = new AcpSubprocess({
-      args: ['agent', 'stdio'],
+      args: buildGrokAgentProcessArgs(params.reasoningEffort),
       command: params.command,
       cwd: params.cwd,
       env: processEnv,
@@ -750,6 +763,7 @@ export class GrokChatRuntime implements ChatRuntime {
         version: this.plugin.manifest?.version ?? '0.0.0',
       },
       delegate: {
+        askUserQuestion: (request) => this.handleAskUserQuestionRequest(request),
         fileSystem: {
           readTextFile: (request) => this.readTextFile(request),
           writeTextFile: (request) => this.writeTextFile(request),
@@ -933,16 +947,12 @@ export class GrokChatRuntime implements ChatRuntime {
       return;
     }
 
-    const response = await this.connection.setConfigOption({
-      configId: 'model',
+    await this.connection.setModel({
+      modelId: selectedRawModelId,
       sessionId,
-      type: 'select',
-      value: selectedRawModelId,
     });
     this.currentSessionModelId = selectedRawModelId;
-    await this.syncSessionModelState({
-      configOptions: response.configOptions,
-    }, {
+    await this.syncSessionModelState({}, {
       currentRawModelId: selectedRawModelId,
     });
   }
@@ -1391,16 +1401,61 @@ export class GrokChatRuntime implements ChatRuntime {
   }
 
   private async refreshFallbackPlanUsageFromSessionCost(sessionId: string): Promise<void> {
+    const providerState: GrokProviderState = {
+      ...(this.currentSessionDirPath ? { sessionDirPath: this.currentSessionDirPath } : {}),
+      ...(this.currentWorkspacePath ? { workspacePath: this.currentWorkspacePath } : {}),
+    };
+
+    if (!this.contextUsage) {
+      const contextUsage = await loadGrokSessionContextUsage(sessionId, providerState);
+      if (contextUsage) {
+        this.contextUsage = contextUsage;
+        const usage = buildAcpUsageInfo({
+          contextWindow: contextUsage,
+          model: this.getActiveDisplayModel(),
+          promptUsage: this.promptUsage,
+        });
+        if (usage && this.activeTurn) {
+          this.activeTurn.queue.push({
+            sessionId,
+            type: 'usage',
+            usage,
+          });
+        }
+      }
+    }
+
     if (this.currentTurnSawAcpCost) {
       return;
     }
 
-    const cost = await loadGrokSessionCost(sessionId, {
-      ...(this.currentSessionDirPath ? { sessionDirPath: this.currentSessionDirPath } : {}),
-      ...(this.currentWorkspacePath ? { workspacePath: this.currentWorkspacePath } : {}),
-    });
+    const cost = await loadGrokSessionCost(sessionId, providerState);
     if (grokPlanUsageStore.recordSessionTotalCost(sessionId, cost)) {
       this.refreshModelSelectors();
+    }
+  }
+
+  private async handleAskUserQuestionRequest(
+    request: AcpAskUserQuestionRequest,
+  ): Promise<AcpAskUserQuestionResponse> {
+    if (!this.askUserQuestionCallback) {
+      return { outcome: 'cancelled' };
+    }
+
+    this.askUserQuestionAbortController?.abort();
+    const abortController = new AbortController();
+    this.askUserQuestionAbortController = abortController;
+
+    try {
+      const userAnswers = await this.askUserQuestionCallback(
+        { questions: request.questions },
+        abortController.signal,
+      );
+      return formatGrokAskUserQuestionResponse(userAnswers);
+    } finally {
+      if (this.askUserQuestionAbortController === abortController) {
+        this.askUserQuestionAbortController = null;
+      }
     }
   }
 
@@ -1537,6 +1592,7 @@ export class GrokChatRuntime implements ChatRuntime {
       sessionId,
       cwd,
       this.currentSessionDirPath,
+      buildManagedGrokProcessEnv(cwd),
     );
     this.currentWorkspacePath = cwd;
     this.currentSessionDirPath = sessionDirPath;
