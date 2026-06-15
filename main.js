@@ -950,10 +950,10 @@ function mergeDefs(...defs) {
 function cloneDef(schema) {
   return mergeDefs(schema._zod.def);
 }
-function getElementAtPath(obj, path26) {
-  if (!path26)
+function getElementAtPath(obj, path36) {
+  if (!path36)
     return obj;
-  return path26.reduce((acc, key) => acc == null ? void 0 : acc[key], obj);
+  return path36.reduce((acc, key) => acc == null ? void 0 : acc[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -1266,12 +1266,12 @@ function aborted(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path26, issues) {
+function prefixIssues(path36, issues) {
   return issues.map((iss) => {
     var _a8;
     var _a7;
     (_a8 = (_a7 = iss).path) != null ? _a8 : _a7.path = [];
-    iss.path.unshift(path26);
+    iss.path.unshift(path36);
     return iss;
   });
 }
@@ -1515,7 +1515,7 @@ function formatError(error48, mapper = (issue2) => issue2.message) {
 }
 function treeifyError(error48, mapper = (issue2) => issue2.message) {
   const result = { errors: [] };
-  const processError = (error49, path26 = []) => {
+  const processError = (error49, path36 = []) => {
     var _a8, _b5, _c3, _d3;
     var _a7, _b4;
     for (const issue2 of error49.issues) {
@@ -1526,7 +1526,7 @@ function treeifyError(error48, mapper = (issue2) => issue2.message) {
       } else if (issue2.code === "invalid_element") {
         processError({ issues: issue2.issues }, issue2.path);
       } else {
-        const fullpath = [...path26, ...issue2.path];
+        const fullpath = [...path36, ...issue2.path];
         if (fullpath.length === 0) {
           result.errors.push(mapper(issue2));
           continue;
@@ -1558,8 +1558,8 @@ function treeifyError(error48, mapper = (issue2) => issue2.message) {
 }
 function toDotPath(_path) {
   const segs = [];
-  const path26 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
-  for (const seg of path26) {
+  const path36 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
+  for (const seg of path36) {
     if (typeof seg === "number")
       segs.push(`[${seg}]`);
     else if (typeof seg === "symbol")
@@ -18993,7 +18993,7 @@ var require_compile = __commonJS({
       const schOrFunc = root.refs[ref];
       if (schOrFunc)
         return schOrFunc;
-      let _sch = resolve7.call(this, root, ref);
+      let _sch = resolve9.call(this, root, ref);
       if (_sch === void 0) {
         const schema = (_a7 = root.localRefs) === null || _a7 === void 0 ? void 0 : _a7[ref];
         const { schemaId } = this.opts;
@@ -19020,7 +19020,7 @@ var require_compile = __commonJS({
     function sameSchemaEnv(s1, s22) {
       return s1.schema === s22.schema && s1.root === s22.root && s1.baseId === s22.baseId;
     }
-    function resolve7(root, ref) {
+    function resolve9(root, ref) {
       let sch;
       while (typeof (sch = this.refs[ref]) == "string")
         ref = sch;
@@ -19238,8 +19238,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path26) {
-      let input = path26;
+    function removeDotSegments(path36) {
+      let input = path36;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -19491,8 +19491,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path26, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path26 && path26 !== "/" ? path26 : void 0;
+        const [path36, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path36 && path36 !== "/" ? path36 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -19651,7 +19651,7 @@ var require_fast_uri = __commonJS({
       }
       return uri;
     }
-    function resolve7(baseURI, relativeURI, options) {
+    function resolve9(baseURI, relativeURI, options) {
       const schemelessOptions = options ? Object.assign({ scheme: "null" }, options) : { scheme: "null" };
       const resolved = resolveComponent(parse4(baseURI, schemelessOptions), parse4(relativeURI, schemelessOptions), schemelessOptions, true);
       schemelessOptions.skipEscape = true;
@@ -19909,7 +19909,7 @@ var require_fast_uri = __commonJS({
     var fastUri = {
       SCHEMES,
       normalize: normalize3,
-      resolve: resolve7,
+      resolve: resolve9,
       resolveComponent,
       equal,
       serialize,
@@ -22885,12 +22885,12 @@ var require_dist = __commonJS({
         throw new Error(`Unknown format "${name}"`);
       return f;
     };
-    function addFormats(ajv, list, fs34, exportName) {
+    function addFormats(ajv, list, fs50, exportName) {
       var _a7;
       var _b4;
       (_a7 = (_b4 = ajv.opts.code).formats) !== null && _a7 !== void 0 ? _a7 : _b4.formats = (0, codegen_1._)`require("ajv-formats/dist/formats").${exportName}`;
       for (const f of list)
-        ajv.addFormat(f, fs34[f]);
+        ajv.addFormat(f, fs50[f]);
     }
     module2.exports = exports = formatsPlugin;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -22903,8 +22903,8 @@ var require_windows = __commonJS({
   "node_modules/isexe/windows.js"(exports, module2) {
     module2.exports = isexe;
     isexe.sync = sync;
-    var fs34 = require("fs");
-    function checkPathExt(path26, options) {
+    var fs50 = require("fs");
+    function checkPathExt(path36, options) {
       var pathext = options.pathExt !== void 0 ? options.pathExt : process.env.PATHEXT;
       if (!pathext) {
         return true;
@@ -22915,25 +22915,25 @@ var require_windows = __commonJS({
       }
       for (var i3 = 0; i3 < pathext.length; i3++) {
         var p = pathext[i3].toLowerCase();
-        if (p && path26.substr(-p.length).toLowerCase() === p) {
+        if (p && path36.substr(-p.length).toLowerCase() === p) {
           return true;
         }
       }
       return false;
     }
-    function checkStat(stat, path26, options) {
+    function checkStat(stat, path36, options) {
       if (!stat.isSymbolicLink() && !stat.isFile()) {
         return false;
       }
-      return checkPathExt(path26, options);
+      return checkPathExt(path36, options);
     }
-    function isexe(path26, options, cb2) {
-      fs34.stat(path26, function(er2, stat) {
-        cb2(er2, er2 ? false : checkStat(stat, path26, options));
+    function isexe(path36, options, cb2) {
+      fs50.stat(path36, function(er2, stat) {
+        cb2(er2, er2 ? false : checkStat(stat, path36, options));
       });
     }
-    function sync(path26, options) {
-      return checkStat(fs34.statSync(path26), path26, options);
+    function sync(path36, options) {
+      return checkStat(fs50.statSync(path36), path36, options);
     }
   }
 });
@@ -22943,14 +22943,14 @@ var require_mode = __commonJS({
   "node_modules/isexe/mode.js"(exports, module2) {
     module2.exports = isexe;
     isexe.sync = sync;
-    var fs34 = require("fs");
-    function isexe(path26, options, cb2) {
-      fs34.stat(path26, function(er2, stat) {
+    var fs50 = require("fs");
+    function isexe(path36, options, cb2) {
+      fs50.stat(path36, function(er2, stat) {
         cb2(er2, er2 ? false : checkStat(stat, options));
       });
     }
-    function sync(path26, options) {
-      return checkStat(fs34.statSync(path26), options);
+    function sync(path36, options) {
+      return checkStat(fs50.statSync(path36), options);
     }
     function checkStat(stat, options) {
       return stat.isFile() && checkMode(stat, options);
@@ -22974,7 +22974,7 @@ var require_mode = __commonJS({
 // node_modules/isexe/index.js
 var require_isexe = __commonJS({
   "node_modules/isexe/index.js"(exports, module2) {
-    var fs34 = require("fs");
+    var fs50 = require("fs");
     var core;
     if (process.platform === "win32" || global.TESTING_WINDOWS) {
       core = require_windows();
@@ -22983,7 +22983,7 @@ var require_isexe = __commonJS({
     }
     module2.exports = isexe;
     isexe.sync = sync;
-    function isexe(path26, options, cb2) {
+    function isexe(path36, options, cb2) {
       if (typeof options === "function") {
         cb2 = options;
         options = {};
@@ -22992,17 +22992,17 @@ var require_isexe = __commonJS({
         if (typeof Promise !== "function") {
           throw new TypeError("callback not provided");
         }
-        return new Promise(function(resolve7, reject) {
-          isexe(path26, options || {}, function(er2, is) {
+        return new Promise(function(resolve9, reject) {
+          isexe(path36, options || {}, function(er2, is) {
             if (er2) {
               reject(er2);
             } else {
-              resolve7(is);
+              resolve9(is);
             }
           });
         });
       }
-      core(path26, options || {}, function(er2, is) {
+      core(path36, options || {}, function(er2, is) {
         if (er2) {
           if (er2.code === "EACCES" || options && options.ignoreErrors) {
             er2 = null;
@@ -23012,9 +23012,9 @@ var require_isexe = __commonJS({
         cb2(er2, is);
       });
     }
-    function sync(path26, options) {
+    function sync(path36, options) {
       try {
-        return core.sync(path26, options || {});
+        return core.sync(path36, options || {});
       } catch (er2) {
         if (options && options.ignoreErrors || er2.code === "EACCES") {
           return false;
@@ -23030,7 +23030,7 @@ var require_isexe = __commonJS({
 var require_which = __commonJS({
   "node_modules/which/which.js"(exports, module2) {
     var isWindows2 = process.platform === "win32" || process.env.OSTYPE === "cygwin" || process.env.OSTYPE === "msys";
-    var path26 = require("path");
+    var path36 = require("path");
     var COLON = isWindows2 ? ";" : ":";
     var isexe = require_isexe();
     var getNotFoundError = (cmd) => Object.assign(new Error(`not found: ${cmd}`), { code: "ENOENT" });
@@ -23063,27 +23063,27 @@ var require_which = __commonJS({
         opt = {};
       const { pathEnv, pathExt, pathExtExe } = getPathInfo(cmd, opt);
       const found = [];
-      const step = (i3) => new Promise((resolve7, reject) => {
+      const step = (i3) => new Promise((resolve9, reject) => {
         if (i3 === pathEnv.length)
-          return opt.all && found.length ? resolve7(found) : reject(getNotFoundError(cmd));
+          return opt.all && found.length ? resolve9(found) : reject(getNotFoundError(cmd));
         const ppRaw = pathEnv[i3];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path26.join(pathPart, cmd);
+        const pCmd = path36.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
-        resolve7(subStep(p, i3, 0));
+        resolve9(subStep(p, i3, 0));
       });
-      const subStep = (p, i3, ii2) => new Promise((resolve7, reject) => {
+      const subStep = (p, i3, ii2) => new Promise((resolve9, reject) => {
         if (ii2 === pathExt.length)
-          return resolve7(step(i3 + 1));
+          return resolve9(step(i3 + 1));
         const ext = pathExt[ii2];
         isexe(p + ext, { pathExt: pathExtExe }, (er2, is) => {
           if (!er2 && is) {
             if (opt.all)
               found.push(p + ext);
             else
-              return resolve7(p + ext);
+              return resolve9(p + ext);
           }
-          return resolve7(subStep(p, i3, ii2 + 1));
+          return resolve9(subStep(p, i3, ii2 + 1));
         });
       });
       return cb2 ? step(0).then((res) => cb2(null, res), cb2) : step(0);
@@ -23095,7 +23095,7 @@ var require_which = __commonJS({
       for (let i3 = 0; i3 < pathEnv.length; i3++) {
         const ppRaw = pathEnv[i3];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path26.join(pathPart, cmd);
+        const pCmd = path36.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         for (let j3 = 0; j3 < pathExt.length; j3++) {
           const cur = p + pathExt[j3];
@@ -23143,7 +23143,7 @@ var require_path_key = __commonJS({
 var require_resolveCommand = __commonJS({
   "node_modules/cross-spawn/lib/util/resolveCommand.js"(exports, module2) {
     "use strict";
-    var path26 = require("path");
+    var path36 = require("path");
     var which = require_which();
     var getPathKey = require_path_key();
     function resolveCommandAttempt(parsed, withoutPathExt) {
@@ -23161,7 +23161,7 @@ var require_resolveCommand = __commonJS({
       try {
         resolved = which.sync(parsed.command, {
           path: env[getPathKey({ env })],
-          pathExt: withoutPathExt ? path26.delimiter : void 0
+          pathExt: withoutPathExt ? path36.delimiter : void 0
         });
       } catch (e) {
       } finally {
@@ -23170,7 +23170,7 @@ var require_resolveCommand = __commonJS({
         }
       }
       if (resolved) {
-        resolved = path26.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
+        resolved = path36.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
       }
       return resolved;
     }
@@ -23224,8 +23224,8 @@ var require_shebang_command = __commonJS({
       if (!match) {
         return null;
       }
-      const [path26, argument] = match[0].replace(/#! ?/, "").split(" ");
-      const binary = path26.split("/").pop();
+      const [path36, argument] = match[0].replace(/#! ?/, "").split(" ");
+      const binary = path36.split("/").pop();
       if (binary === "env") {
         return argument;
       }
@@ -23238,16 +23238,16 @@ var require_shebang_command = __commonJS({
 var require_readShebang = __commonJS({
   "node_modules/cross-spawn/lib/util/readShebang.js"(exports, module2) {
     "use strict";
-    var fs34 = require("fs");
+    var fs50 = require("fs");
     var shebangCommand = require_shebang_command();
     function readShebang(command) {
       const size = 150;
       const buffer = Buffer.alloc(size);
       let fd2;
       try {
-        fd2 = fs34.openSync(command, "r");
-        fs34.readSync(fd2, buffer, 0, size, 0);
-        fs34.closeSync(fd2);
+        fd2 = fs50.openSync(command, "r");
+        fs50.readSync(fd2, buffer, 0, size, 0);
+        fs50.closeSync(fd2);
       } catch (e) {
       }
       return shebangCommand(buffer.toString());
@@ -23260,7 +23260,7 @@ var require_readShebang = __commonJS({
 var require_parse = __commonJS({
   "node_modules/cross-spawn/lib/parse.js"(exports, module2) {
     "use strict";
-    var path26 = require("path");
+    var path36 = require("path");
     var resolveCommand = require_resolveCommand();
     var escape2 = require_escape();
     var readShebang = require_readShebang();
@@ -23285,7 +23285,7 @@ var require_parse = __commonJS({
       const needsShell = !isExecutableRegExp.test(commandFile);
       if (parsed.options.forceShell || needsShell) {
         const needsDoubleEscapeMetaChars = isCmdShimRegExp.test(commandFile);
-        parsed.command = path26.normalize(parsed.command);
+        parsed.command = path36.normalize(parsed.command);
         parsed.command = escape2.command(parsed.command);
         parsed.args = parsed.args.map((arg) => escape2.argument(arg, needsDoubleEscapeMetaChars));
         const shellCommand = [parsed.command].concat(parsed.args).join(" ");
@@ -23381,7 +23381,7 @@ var require_cross_spawn = __commonJS({
       enoent.hookChildProcess(spawned, parsed);
       return spawned;
     }
-    function spawnSync3(command, args, options) {
+    function spawnSync7(command, args, options) {
       const parsed = parse4(command, args, options);
       const result = cp2.spawnSync(parsed.command, parsed.args, parsed.options);
       result.error = result.error || enoent.verifyENOENTSync(result.status, parsed);
@@ -23389,7 +23389,7 @@ var require_cross_spawn = __commonJS({
     }
     module2.exports = spawn7;
     module2.exports.spawn = spawn7;
-    module2.exports.sync = spawnSync3;
+    module2.exports.sync = spawnSync7;
     module2.exports._parse = parse4;
     module2.exports._enoent = enoent;
   }
@@ -24765,7 +24765,7 @@ var init_sse = __esm({
       _startOrAuth() {
         var _a7, _b4, _c3;
         const fetchImpl = (_c3 = (_b4 = (_a7 = this == null ? void 0 : this._eventSourceInit) == null ? void 0 : _a7.fetch) != null ? _b4 : this._fetch) != null ? _c3 : fetch;
-        return new Promise((resolve7, reject) => {
+        return new Promise((resolve9, reject) => {
           this._eventSource = new EventSource(this._url.href, {
             ...this._eventSourceInit,
             fetch: async (url2, init) => {
@@ -24787,7 +24787,7 @@ var init_sse = __esm({
           this._eventSource.onerror = (event) => {
             var _a8;
             if (event.code === 401 && this._authProvider) {
-              this._authThenStart().then(resolve7, reject);
+              this._authThenStart().then(resolve9, reject);
               return;
             }
             const error48 = new SseError(event.code, event.message, event);
@@ -24810,7 +24810,7 @@ var init_sse = __esm({
               void this.close();
               return;
             }
-            resolve7();
+            resolve9();
           });
           this._eventSource.onmessage = (event) => {
             var _a8, _b5;
@@ -25890,7 +25890,7 @@ function parseAntigravityModels(output) {
   return models;
 }
 function runAgyModels(spec) {
-  return new Promise((resolve7, reject) => {
+  return new Promise((resolve9, reject) => {
     var _a7, _b4, _c3, _d3, _e3, _f3, _g2;
     const previousProcess = getActiveModelsProcess();
     if (previousProcess && !previousProcess.killed) {
@@ -26061,7 +26061,7 @@ function runAgyModels(spec) {
           scope: "provider.antigravity"
         });
         if (code2 === 0) {
-          resolve7(stdout);
+          resolve9(stdout);
           return;
         }
         const details = stderr.trim();
@@ -31295,21 +31295,21 @@ function markButtonDestructive(button) {
   (_a7 = compat.setWarning) == null ? void 0 : _a7.call(compat);
 }
 function confirmDelete(app, message) {
-  return new Promise((resolve7) => {
-    new ConfirmModal(app, message, resolve7).open();
+  return new Promise((resolve9) => {
+    new ConfirmModal(app, message, resolve9).open();
   });
 }
 function confirm(app, message, confirmText) {
-  return new Promise((resolve7) => {
-    new ConfirmModal(app, message, resolve7, confirmText).open();
+  return new Promise((resolve9) => {
+    new ConfirmModal(app, message, resolve9, confirmText).open();
   });
 }
 var ConfirmModal = class extends import_obsidian.Modal {
-  constructor(app, message, resolve7, confirmText) {
+  constructor(app, message, resolve9, confirmText) {
     super(app);
     this.resolved = false;
     this.message = message;
-    this.resolve = resolve7;
+    this.resolve = resolve9;
     this.confirmText = confirmText != null ? confirmText : t("common.delete");
   }
   onOpen() {
@@ -32587,7 +32587,7 @@ var AntigravityChatRuntime = class {
       level: "debug",
       scope: "provider.antigravity"
     });
-    return new Promise((resolve7, reject) => {
+    return new Promise((resolve9, reject) => {
       var _a8, _b5, _c4, _d4, _e4;
       const launch = buildAntigravityProcessLaunch(spec.command, args, spec.runtimeEnv);
       (_b5 = (_a8 = this.plugin).recordDebugLog) == null ? void 0 : _b5.call(_a8, {
@@ -32745,7 +32745,7 @@ var AntigravityChatRuntime = class {
             scope: "provider.antigravity"
           });
           if (code2 === 0) {
-            resolve7(stdout);
+            resolve9(stdout);
             return;
           }
           reject(new Error(formatAntigravityExitError(code2, signal, stderr)));
@@ -32906,9 +32906,9 @@ function appendMcpIcon(container) {
   title.textContent = "MCP";
   svg.appendChild(title);
   for (const pathData of MCP_ICON_PATHS) {
-    const path26 = createSvgElement(container.ownerDocument, "path");
-    path26.setAttribute("d", pathData);
-    svg.appendChild(path26);
+    const path36 = createSvgElement(container.ownerDocument, "path");
+    path36.setAttribute("d", pathData);
+    svg.appendChild(path36);
   }
   container.appendChild(svg);
 }
@@ -32969,6 +32969,14 @@ var OPENCODE_PROVIDER_ICON = {
     }
   ]
 };
+var MIMOCODE_PROVIDER_ICON = {
+  viewBox: "0 0 24 24",
+  path: "M3 3h4v18H3V3zm7 0h4v18h-4V3zm7 0h4v18h-4V3zM1 10h6v4H1v-4zm10 0h6v4h-6v-4zm10 0h2v4h-2v-4z"
+};
+var KIMICODE_PROVIDER_ICON = {
+  viewBox: "0 0 24 24",
+  path: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6zm4 4h-2v-2h2v2zm0-4h-2V7h2v6z"
+};
 function createProviderIconSvg(icon, options = {}) {
   var _a7;
   const ownerDocument = (_a7 = options.ownerDocument) != null ? _a7 : window.document;
@@ -32995,10 +33003,10 @@ function createProviderIconSvg(icon, options = {}) {
     }
     return svg;
   }
-  const path26 = ownerDocument.createElementNS(SVG_NS, "path");
-  path26.setAttribute("d", icon.path);
-  path26.setAttribute("fill", "currentColor");
-  svg.appendChild(path26);
+  const path36 = ownerDocument.createElementNS(SVG_NS, "path");
+  path36.setAttribute("d", icon.path);
+  path36.setAttribute("fill", "currentColor");
+  svg.appendChild(path36);
   return svg;
 }
 function createProviderSvgChild(child, ownerDocument) {
@@ -55655,6 +55663,1552 @@ function pruneModelAliasesToVisible3(aliases, visibleModels) {
   return pruned;
 }
 
+// src/providers/kimicode/settings.ts
+init_env();
+
+// src/providers/kimicode/internal/compareCollections.ts
+function sameStringList2(left, right) {
+  if (left.length !== right.length) {
+    return false;
+  }
+  return left.every((entry, index) => entry === right[index]);
+}
+function sameStringMap2(left, right) {
+  const leftEntries = Object.entries(left);
+  if (leftEntries.length !== Object.keys(right).length) {
+    return false;
+  }
+  return leftEntries.every(([key, value]) => right[key] === value);
+}
+function sameModes2(left, right) {
+  if (left.length !== right.length) {
+    return false;
+  }
+  return left.every((mode, index) => {
+    var _a7, _b4, _c3, _d3, _e3;
+    return mode.id === ((_a7 = right[index]) == null ? void 0 : _a7.id) && mode.name === ((_b4 = right[index]) == null ? void 0 : _b4.name) && ((_c3 = mode.description) != null ? _c3 : "") === ((_e3 = (_d3 = right[index]) == null ? void 0 : _d3.description) != null ? _e3 : "");
+  });
+}
+function sameDiscoveredModels2(left, right) {
+  if (left.length !== right.length) {
+    return false;
+  }
+  return left.every((model, index) => {
+    var _a7, _b4, _c3, _d3, _e3;
+    return model.rawId === ((_a7 = right[index]) == null ? void 0 : _a7.rawId) && model.label === ((_b4 = right[index]) == null ? void 0 : _b4.label) && ((_c3 = model.description) != null ? _c3 : "") === ((_e3 = (_d3 = right[index]) == null ? void 0 : _d3.description) != null ? _e3 : "");
+  });
+}
+function sameThinkingOptionsByModel2(left, right) {
+  const leftEntries = Object.entries(left);
+  if (leftEntries.length !== Object.keys(right).length) {
+    return false;
+  }
+  return leftEntries.every(([rawId, leftOptions]) => {
+    var _a7;
+    const rightOptions = (_a7 = right[rawId]) != null ? _a7 : [];
+    if (leftOptions.length !== rightOptions.length) {
+      return false;
+    }
+    return leftOptions.every((option, index) => {
+      var _a8, _b4, _c3, _d3, _e3;
+      return option.value === ((_a8 = rightOptions[index]) == null ? void 0 : _a8.value) && option.label === ((_b4 = rightOptions[index]) == null ? void 0 : _b4.label) && ((_c3 = option.description) != null ? _c3 : "") === ((_e3 = (_d3 = rightOptions[index]) == null ? void 0 : _d3.description) != null ? _e3 : "");
+    });
+  });
+}
+
+// src/providers/kimicode/models.ts
+var KIMICODE_SYNTHETIC_MODEL_ID = "kimicode";
+var KIMICODE_DEFAULT_THINKING_LEVEL = "default";
+var KIMICODE_MODEL_PREFIX = "kimicode:";
+var KIMICODE_VARIANT_ASCENDING_ORDER = [
+  "none",
+  "minimal",
+  "low",
+  "medium",
+  "high",
+  "max",
+  "xhigh"
+];
+var KIMICODE_VARIANT_ASCENDING_RANK = new Map(
+  KIMICODE_VARIANT_ASCENDING_ORDER.map((value, index) => [value, index])
+);
+function isKimicodeModelSelectionId(model) {
+  return model === KIMICODE_SYNTHETIC_MODEL_ID || model.startsWith(KIMICODE_MODEL_PREFIX);
+}
+function encodeKimicodeModelId(rawModelId) {
+  const normalized = rawModelId.trim();
+  return normalized ? `${KIMICODE_MODEL_PREFIX}${normalized}` : KIMICODE_SYNTHETIC_MODEL_ID;
+}
+function decodeKimicodeModelId(model) {
+  if (!model.startsWith(KIMICODE_MODEL_PREFIX)) {
+    return null;
+  }
+  const rawModelId = model.slice(KIMICODE_MODEL_PREFIX.length).trim();
+  return rawModelId || null;
+}
+function normalizeKimicodeDiscoveredModels(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const normalized = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const entry of value) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      continue;
+    }
+    const record2 = entry;
+    const rawId = typeof record2.rawId === "string" ? record2.rawId.trim() : "";
+    const label = typeof record2.label === "string" ? record2.label.trim() : rawId;
+    const description = typeof record2.description === "string" ? record2.description.trim() : "";
+    if (!rawId || seen.has(rawId)) {
+      continue;
+    }
+    seen.add(rawId);
+    normalized.push({
+      ...description ? { description } : {},
+      label: label || rawId,
+      rawId
+    });
+  }
+  return normalized;
+}
+function normalizeKimicodeModelVariants(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const variants = [];
+  for (const entry of value) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      continue;
+    }
+    const record2 = entry;
+    const rawValue = typeof record2.value === "string" ? record2.value.trim() : "";
+    if (!rawValue) {
+      continue;
+    }
+    let rawLabel = "";
+    if (typeof record2.label === "string") {
+      rawLabel = record2.label.trim();
+    } else if (typeof record2.name === "string") {
+      rawLabel = record2.name.trim();
+    }
+    const description = typeof record2.description === "string" ? record2.description.trim() : "";
+    variants.push({
+      ...description ? { description } : {},
+      label: rawLabel || formatKimicodeThinkingLevelLabel(rawValue),
+      value: rawValue
+    });
+  }
+  return dedupeKimicodeVariants(variants);
+}
+function normalizeKimicodeThinkingOptionsByModel(value, discoveredModels = []) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+  const normalized = {};
+  for (const [rawId, variants] of Object.entries(value)) {
+    const normalizedRawId = resolveKimicodeBaseModelRawId(rawId.trim(), discoveredModels);
+    const normalizedVariants = normalizeKimicodeModelVariants(variants);
+    if (!normalizedRawId || normalizedVariants.length === 0) {
+      continue;
+    }
+    normalized[normalizedRawId] = normalizedVariants;
+  }
+  return normalized;
+}
+function resolveKimicodeBaseModelRawId(rawId, discoveredModels) {
+  const normalizedRawId = rawId.trim();
+  if (!normalizedRawId) {
+    return "";
+  }
+  const discoveredRawIds = discoveredModels instanceof Set ? discoveredModels : new Set(discoveredModels.map((model) => model.rawId));
+  const slashIndex = normalizedRawId.lastIndexOf("/");
+  if (slashIndex <= 0) {
+    return normalizedRawId;
+  }
+  const candidate = normalizedRawId.slice(0, slashIndex);
+  if (discoveredRawIds.has(candidate)) {
+    return candidate;
+  }
+  const variant = normalizedRawId.slice(slashIndex + 1).trim().toLowerCase();
+  return KIMICODE_VARIANT_ASCENDING_RANK.has(variant) ? candidate : normalizedRawId;
+}
+function extractKimicodeModelVariantValue(rawId, discoveredModels) {
+  const normalizedRawId = rawId.trim();
+  if (!normalizedRawId) {
+    return null;
+  }
+  const baseRawId = resolveKimicodeBaseModelRawId(normalizedRawId, discoveredModels);
+  if (baseRawId === normalizedRawId || baseRawId.length >= normalizedRawId.length) {
+    return null;
+  }
+  const variant = normalizedRawId.slice(baseRawId.length + 1).trim();
+  return variant || null;
+}
+function splitKimicodeModelLabel(label) {
+  const trimmed = label.trim();
+  const slashIndex = trimmed.indexOf("/");
+  if (slashIndex <= 0 || slashIndex >= trimmed.length - 1) {
+    return {
+      modelLabel: trimmed,
+      providerLabel: "Other"
+    };
+  }
+  return {
+    modelLabel: trimmed.slice(slashIndex + 1).trim(),
+    providerLabel: trimmed.slice(0, slashIndex).trim()
+  };
+}
+function buildKimicodeBaseModels(models) {
+  const discoveredRawIds = new Set(models.map((model) => model.rawId));
+  const discoveredByRawId = new Map(models.map((model) => [model.rawId, model]));
+  const grouped = /* @__PURE__ */ new Map();
+  for (const model of models) {
+    const baseRawId = resolveKimicodeBaseModelRawId(model.rawId, discoveredRawIds);
+    const existing = grouped.get(baseRawId);
+    if (existing) {
+      existing.push(model);
+    } else {
+      grouped.set(baseRawId, [model]);
+    }
+  }
+  return Array.from(grouped.entries()).map(([baseRawId, entries]) => {
+    var _a7, _b4;
+    const baseModel = (_a7 = discoveredByRawId.get(baseRawId)) != null ? _a7 : entries[0];
+    const variants = entries.flatMap((entry) => {
+      if (entry.rawId === baseRawId) {
+        return [];
+      }
+      const variant = extractKimicodeModelVariantValue(entry.rawId, discoveredRawIds);
+      if (!variant) {
+        return [];
+      }
+      return [{
+        ...entry.description ? { description: entry.description } : {},
+        label: formatKimicodeThinkingLevelLabel(variant),
+        value: variant
+      }];
+    });
+    return {
+      ...(baseModel == null ? void 0 : baseModel.description) ? { description: baseModel.description } : {},
+      label: (_b4 = baseModel == null ? void 0 : baseModel.label) != null ? _b4 : baseRawId,
+      rawId: baseRawId,
+      variants: dedupeKimicodeVariants(variants)
+    };
+  }).sort((left, right) => left.label.localeCompare(right.label));
+}
+function formatKimicodeThinkingLevelLabel(value) {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return "";
+  }
+  if (trimmed.toLowerCase() === "xhigh") {
+    return "XHigh";
+  }
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+}
+function dedupeKimicodeVariants(variants) {
+  const unique = /* @__PURE__ */ new Map();
+  for (const variant of variants) {
+    if (!unique.has(variant.value)) {
+      unique.set(variant.value, variant);
+    }
+  }
+  return Array.from(unique.values()).sort((left, right) => compareKimicodeVariantValues(left.value, right.value));
+}
+function compareKimicodeVariantValues(left, right) {
+  const leftRank = KIMICODE_VARIANT_ASCENDING_RANK.get(left.toLowerCase());
+  const rightRank = KIMICODE_VARIANT_ASCENDING_RANK.get(right.toLowerCase());
+  if (leftRank !== void 0 && rightRank !== void 0) {
+    return leftRank - rightRank;
+  }
+  if (leftRank !== void 0) {
+    return -1;
+  }
+  if (rightRank !== void 0) {
+    return 1;
+  }
+  return left.localeCompare(right);
+}
+
+// src/providers/kimicode/modes.ts
+var KIMICODE_BUILD_MODE_ID = "build";
+var KIMICODE_FULL_ACCESS_MODE_ID = "auto";
+var KIMICODE_LEGACY_YOLO_MODE_ID = "grimoire-yolo";
+var KIMICODE_SAFE_MODE_ID = "default";
+var KIMICODE_PLAN_MODE_ID = "plan";
+var KIMICODE_FALLBACK_MODES = Object.freeze([
+  {
+    description: "Auto-approve safe operations.",
+    id: KIMICODE_FULL_ACCESS_MODE_ID,
+    name: "Auto"
+  },
+  {
+    description: "Manual approvals; tools execute normally.",
+    id: KIMICODE_SAFE_MODE_ID,
+    name: "Default"
+  },
+  {
+    description: "Read-only planning; no tool execution.",
+    id: KIMICODE_PLAN_MODE_ID,
+    name: "Plan"
+  }
+]);
+var KIMICODE_MANAGED_MODE_IDS = /* @__PURE__ */ new Set([
+  KIMICODE_BUILD_MODE_ID,
+  KIMICODE_LEGACY_YOLO_MODE_ID,
+  ...KIMICODE_FALLBACK_MODES.map((mode) => mode.id)
+]);
+function normalizeKimicodeAvailableModes(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const normalized = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const entry of value) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      continue;
+    }
+    const record2 = entry;
+    const id2 = typeof record2.id === "string" ? record2.id.trim() : "";
+    const name = typeof record2.name === "string" ? record2.name.trim() : id2;
+    const description = typeof record2.description === "string" ? record2.description.trim() : "";
+    if (!id2 || seen.has(id2)) {
+      continue;
+    }
+    seen.add(id2);
+    normalized.push({
+      ...description ? { description } : {},
+      id: id2,
+      name: name || id2
+    });
+  }
+  return normalized;
+}
+function getEffectiveKimicodeModes(modes) {
+  return modes.length > 0 ? modes : [...KIMICODE_FALLBACK_MODES];
+}
+function isManagedKimicodeModeId(value) {
+  return KIMICODE_MANAGED_MODE_IDS.has(value);
+}
+function getManagedKimicodeModes(modes) {
+  const effectiveModes = getEffectiveKimicodeModes(modes);
+  return KIMICODE_FALLBACK_MODES.map((fallbackMode) => {
+    var _a7;
+    return (_a7 = effectiveModes.find((mode) => mode.id === fallbackMode.id)) != null ? _a7 : fallbackMode;
+  });
+}
+function normalizeKimicodeSelectedMode(value) {
+  if (typeof value !== "string") {
+    return "";
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return "";
+  }
+  return trimmed;
+}
+function normalizeManagedKimicodeSelectedMode(value, modes = []) {
+  var _a7, _b4;
+  const normalized = normalizeKimicodeSelectedMode(value);
+  if (!normalized) {
+    return "";
+  }
+  const canonicalModeId = normalized === KIMICODE_BUILD_MODE_ID || normalized === KIMICODE_LEGACY_YOLO_MODE_ID ? KIMICODE_FULL_ACCESS_MODE_ID : normalized;
+  const managedModes = getManagedKimicodeModes(modes);
+  return managedModes.some((mode) => mode.id === canonicalModeId) ? canonicalModeId : (_b4 = (_a7 = managedModes[0]) == null ? void 0 : _a7.id) != null ? _b4 : "";
+}
+function resolveKimicodeModeForPermissionMode(permissionMode, modes = []) {
+  var _a7, _b4;
+  const managedModes = getManagedKimicodeModes(modes);
+  const managedModeIds = new Set(managedModes.map((mode) => mode.id));
+  if (permissionMode === "plan" && managedModeIds.has(KIMICODE_PLAN_MODE_ID)) {
+    return KIMICODE_PLAN_MODE_ID;
+  }
+  if (permissionMode === "normal" && managedModeIds.has(KIMICODE_SAFE_MODE_ID)) {
+    return KIMICODE_SAFE_MODE_ID;
+  }
+  if (coercePermissionMode(permissionMode) === "full_access" && managedModeIds.has(KIMICODE_FULL_ACCESS_MODE_ID)) {
+    return KIMICODE_FULL_ACCESS_MODE_ID;
+  }
+  if (managedModeIds.has(KIMICODE_FULL_ACCESS_MODE_ID)) {
+    return KIMICODE_FULL_ACCESS_MODE_ID;
+  }
+  return (_b4 = (_a7 = managedModes[0]) == null ? void 0 : _a7.id) != null ? _b4 : "";
+}
+function resolvePermissionModeForManagedKimicodeMode(modeId) {
+  if (modeId === KIMICODE_BUILD_MODE_ID || modeId === KIMICODE_FULL_ACCESS_MODE_ID || modeId === KIMICODE_LEGACY_YOLO_MODE_ID) {
+    return "full_access";
+  }
+  if (modeId === KIMICODE_SAFE_MODE_ID) {
+    return "normal";
+  }
+  if (modeId === KIMICODE_PLAN_MODE_ID) {
+    return "plan";
+  }
+  return null;
+}
+
+// src/providers/kimicode/discoveryState.ts
+var KIMICODE_DISCOVERY_STATE = /* @__PURE__ */ Symbol("kimicodeDiscoveryState");
+function ensureDiscoveryState2(settings11) {
+  var _a7, _b4, _c3;
+  const bag = settings11;
+  const existing = bag[KIMICODE_DISCOVERY_STATE];
+  if (existing && typeof existing === "object" && !Array.isArray(existing)) {
+    const state = existing;
+    (_a7 = state.availableModes) != null ? _a7 : state.availableModes = [];
+    (_b4 = state.discoveredModels) != null ? _b4 : state.discoveredModels = [];
+    (_c3 = state.thinkingOptionsByModel) != null ? _c3 : state.thinkingOptionsByModel = {};
+    return state;
+  }
+  const next = {
+    availableModes: [],
+    discoveredModels: [],
+    thinkingOptionsByModel: {}
+  };
+  Object.defineProperty(bag, KIMICODE_DISCOVERY_STATE, {
+    configurable: true,
+    enumerable: false,
+    value: next,
+    writable: true
+  });
+  return next;
+}
+function cloneModes2(modes) {
+  return modes.map((mode) => ({ ...mode }));
+}
+function cloneDiscoveredModels2(models) {
+  return models.map((model) => ({ ...model }));
+}
+function cloneThinkingOptionsByModel2(optionsByModel) {
+  return Object.fromEntries(
+    Object.entries(optionsByModel).map(([rawId, options]) => [
+      rawId,
+      options.map((option) => ({ ...option }))
+    ])
+  );
+}
+function getKimicodeDiscoveryState(settings11) {
+  const state = ensureDiscoveryState2(settings11);
+  return {
+    availableModes: cloneModes2(state.availableModes),
+    discoveredModels: cloneDiscoveredModels2(state.discoveredModels),
+    thinkingOptionsByModel: cloneThinkingOptionsByModel2(state.thinkingOptionsByModel)
+  };
+}
+function updateKimicodeDiscoveryState(settings11, updates) {
+  const state = ensureDiscoveryState2(settings11);
+  const nextAvailableModes = "availableModes" in updates ? normalizeKimicodeAvailableModes(updates.availableModes) : state.availableModes;
+  const nextDiscoveredModels = "discoveredModels" in updates ? normalizeKimicodeDiscoveredModels(updates.discoveredModels) : state.discoveredModels;
+  const nextThinkingOptionsByModel = "thinkingOptionsByModel" in updates ? normalizeKimicodeThinkingOptionsByModel(updates.thinkingOptionsByModel, nextDiscoveredModels) : state.thinkingOptionsByModel;
+  const changed = !sameModes2(state.availableModes, nextAvailableModes) || !sameDiscoveredModels2(state.discoveredModels, nextDiscoveredModels) || !sameThinkingOptionsByModel2(state.thinkingOptionsByModel, nextThinkingOptionsByModel);
+  if (!changed) {
+    return false;
+  }
+  state.availableModes = cloneModes2(nextAvailableModes);
+  state.discoveredModels = cloneDiscoveredModels2(nextDiscoveredModels);
+  state.thinkingOptionsByModel = cloneThinkingOptionsByModel2(nextThinkingOptionsByModel);
+  return true;
+}
+function clearKimicodeDiscoveryState(settings11) {
+  const state = ensureDiscoveryState2(settings11);
+  if (state.availableModes.length === 0 && state.discoveredModels.length === 0 && Object.keys(state.thinkingOptionsByModel).length === 0) {
+    return false;
+  }
+  state.availableModes = [];
+  state.discoveredModels = [];
+  state.thinkingOptionsByModel = {};
+  return true;
+}
+function seedKimicodeDiscoveryStateFromLegacyConfig(settings11, legacyConfig) {
+  const state = ensureDiscoveryState2(settings11);
+  const nextAvailableModes = state.availableModes.length > 0 ? state.availableModes : normalizeKimicodeAvailableModes(legacyConfig.availableModes);
+  const nextDiscoveredModels = state.discoveredModels.length > 0 ? state.discoveredModels : normalizeKimicodeDiscoveredModels(legacyConfig.discoveredModels);
+  const nextThinkingOptionsByModel = Object.keys(state.thinkingOptionsByModel).length > 0 ? state.thinkingOptionsByModel : normalizeKimicodeThinkingOptionsByModel(legacyConfig.thinkingOptionsByModel, nextDiscoveredModels);
+  return updateKimicodeDiscoveryState(settings11, {
+    availableModes: nextAvailableModes,
+    discoveredModels: nextDiscoveredModels,
+    thinkingOptionsByModel: nextThinkingOptionsByModel
+  });
+}
+
+// src/providers/kimicode/internal/providerProjection.ts
+function ensureProviderProjectionMap2(settings11, key) {
+  const current = settings11[key];
+  if (current && typeof current === "object" && !Array.isArray(current)) {
+    return current;
+  }
+  const next = {};
+  settings11[key] = next;
+  return next;
+}
+
+// src/providers/kimicode/settings.ts
+var KIMICODE_DEFAULT_ENVIRONMENT_VARIABLES = "KIMICODE_ENABLE_EXA=1";
+var DEFAULT_KIMICODE_PROVIDER_SETTINGS = Object.freeze({
+  cliPath: "",
+  cliPathsByHost: {},
+  enabled: false,
+  environmentHash: "",
+  environmentVariables: KIMICODE_DEFAULT_ENVIRONMENT_VARIABLES,
+  modelAliases: {},
+  preferredThinkingByModel: {},
+  selectedMode: "",
+  thinkingOptionsByModel: {},
+  visibleModels: []
+});
+function normalizeHostnameCliPaths6(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+  const result = {};
+  for (const [key, entry] of Object.entries(value)) {
+    if (typeof entry === "string" && entry.trim()) {
+      result[key] = entry.trim();
+    }
+  }
+  return result;
+}
+function normalizeKimicodeVisibleModels(value, discoveredModels = []) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const normalized = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const entry of value) {
+    if (typeof entry !== "string") {
+      continue;
+    }
+    const trimmed = resolveKimicodeBaseModelRawId(entry.trim(), discoveredModels);
+    if (!trimmed || seen.has(trimmed)) {
+      continue;
+    }
+    seen.add(trimmed);
+    normalized.push(trimmed);
+  }
+  return normalized;
+}
+function normalizeKimicodeModelAliases(value, discoveredModels = []) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+  const normalized = {};
+  for (const [rawId, alias] of Object.entries(value)) {
+    if (typeof alias !== "string") {
+      continue;
+    }
+    const normalizedRawId = resolveKimicodeBaseModelRawId(rawId.trim(), discoveredModels);
+    const normalizedAlias = alias.trim();
+    if (!normalizedRawId || !normalizedAlias) {
+      continue;
+    }
+    normalized[normalizedRawId] = normalizedAlias;
+  }
+  return normalized;
+}
+function normalizeKimicodePreferredThinkingByModel(value, discoveredModels = []) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+  const normalized = {};
+  for (const [rawId, thinkingLevel] of Object.entries(value)) {
+    if (typeof thinkingLevel !== "string") {
+      continue;
+    }
+    const normalizedRawId = resolveKimicodeBaseModelRawId(rawId.trim(), discoveredModels);
+    const normalizedThinkingLevel = thinkingLevel.trim();
+    if (!normalizedRawId || !normalizedThinkingLevel) {
+      continue;
+    }
+    normalized[normalizedRawId] = normalizedThinkingLevel;
+  }
+  return normalized;
+}
+function getKimicodeProviderSettings(settings11) {
+  var _a7, _b4, _c3, _d3, _e3;
+  const config2 = getProviderConfig(settings11, "kimicode");
+  const normalizedCliPathsByHost = normalizeHostnameCliPaths6(config2.cliPathsByHost);
+  const cliPathsByHost = Object.keys(normalizedCliPathsByHost).length > 0 ? migrateLegacyHostnameKeyedMap(
+    normalizedCliPathsByHost,
+    getHostnameKey(),
+    getLegacyHostnameKey()
+  ) : normalizedCliPathsByHost;
+  seedKimicodeDiscoveryStateFromLegacyConfig(settings11, config2);
+  const discoveryState = getKimicodeDiscoveryState(settings11);
+  const availableModes = discoveryState.availableModes;
+  const discoveredModels = discoveryState.discoveredModels;
+  const persistedThinkingOptionsByModel = normalizeKimicodeThinkingOptionsByModel(
+    config2.thinkingOptionsByModel,
+    discoveredModels
+  );
+  const thinkingOptionsByModel = normalizeKimicodeThinkingOptionsByModel({
+    ...persistedThinkingOptionsByModel,
+    ...discoveryState.thinkingOptionsByModel
+  }, discoveredModels);
+  return {
+    availableModes,
+    cliPath: (_a7 = config2.cliPath) != null ? _a7 : DEFAULT_KIMICODE_PROVIDER_SETTINGS.cliPath,
+    cliPathsByHost,
+    discoveredModels,
+    enabled: (_b4 = config2.enabled) != null ? _b4 : DEFAULT_KIMICODE_PROVIDER_SETTINGS.enabled,
+    environmentHash: (_c3 = config2.environmentHash) != null ? _c3 : DEFAULT_KIMICODE_PROVIDER_SETTINGS.environmentHash,
+    environmentVariables: (_e3 = (_d3 = config2.environmentVariables) != null ? _d3 : getProviderEnvironmentVariables(settings11, "kimicode")) != null ? _e3 : DEFAULT_KIMICODE_PROVIDER_SETTINGS.environmentVariables,
+    modelAliases: normalizeKimicodeModelAliases(config2.modelAliases, discoveredModels),
+    preferredThinkingByModel: normalizeKimicodePreferredThinkingByModel(
+      config2.preferredThinkingByModel,
+      discoveredModels
+    ),
+    selectedMode: normalizeManagedKimicodeSelectedMode(config2.selectedMode, availableModes),
+    thinkingOptionsByModel,
+    visibleModels: normalizeKimicodeVisibleModels(config2.visibleModels, discoveredModels)
+  };
+}
+function updateKimicodeProviderSettings(settings11, updates) {
+  var _a7, _b4, _c3, _d3;
+  const current = getKimicodeProviderSettings(settings11);
+  const hostnameKey = getHostnameKey();
+  if ("availableModes" in updates || "discoveredModels" in updates || "thinkingOptionsByModel" in updates) {
+    updateKimicodeDiscoveryState(settings11, {
+      ...updates.availableModes !== void 0 ? { availableModes: updates.availableModes } : {},
+      ...updates.discoveredModels !== void 0 ? { discoveredModels: updates.discoveredModels } : {},
+      ...updates.thinkingOptionsByModel !== void 0 ? { thinkingOptionsByModel: updates.thinkingOptionsByModel } : {}
+    });
+  }
+  const discoveryState = getKimicodeDiscoveryState(settings11);
+  const nextAvailableModes = discoveryState.availableModes;
+  const nextDiscoveredModels = discoveryState.discoveredModels;
+  const nextThinkingOptionsByModel = updates.thinkingOptionsByModel !== void 0 ? discoveryState.thinkingOptionsByModel : normalizeKimicodeThinkingOptionsByModel(
+    current.thinkingOptionsByModel,
+    nextDiscoveredModels
+  );
+  const nextSelectedMode = normalizeManagedKimicodeSelectedMode(
+    (_a7 = updates.selectedMode) != null ? _a7 : current.selectedMode,
+    nextAvailableModes
+  );
+  const nextVisibleModels = normalizeKimicodeVisibleModels(
+    (_b4 = updates.visibleModels) != null ? _b4 : current.visibleModels,
+    nextDiscoveredModels
+  );
+  const nextModelAliases = pruneModelAliasesToVisible4(
+    normalizeKimicodeModelAliases(
+      (_c3 = updates.modelAliases) != null ? _c3 : current.modelAliases,
+      nextDiscoveredModels
+    ),
+    nextVisibleModels
+  );
+  const nextCliPathsByHost = "cliPathsByHost" in updates ? normalizeHostnameCliPaths6(updates.cliPathsByHost) : { ...current.cliPathsByHost };
+  let nextCliPath = "cliPathsByHost" in updates ? typeof updates.cliPath === "string" ? updates.cliPath.trim() : DEFAULT_KIMICODE_PROVIDER_SETTINGS.cliPath : current.cliPath.trim();
+  if ("cliPath" in updates && !("cliPathsByHost" in updates)) {
+    const trimmedCliPath = typeof updates.cliPath === "string" ? updates.cliPath.trim() : "";
+    if (trimmedCliPath) {
+      nextCliPathsByHost[hostnameKey] = trimmedCliPath;
+    } else {
+      delete nextCliPathsByHost[hostnameKey];
+    }
+    nextCliPath = DEFAULT_KIMICODE_PROVIDER_SETTINGS.cliPath;
+  }
+  const next = {
+    ...current,
+    ...updates,
+    availableModes: nextAvailableModes,
+    cliPath: nextCliPath,
+    cliPathsByHost: nextCliPathsByHost,
+    discoveredModels: nextDiscoveredModels,
+    modelAliases: nextModelAliases,
+    preferredThinkingByModel: normalizeKimicodePreferredThinkingByModel(
+      (_d3 = updates.preferredThinkingByModel) != null ? _d3 : current.preferredThinkingByModel,
+      nextDiscoveredModels
+    ),
+    selectedMode: nextSelectedMode,
+    thinkingOptionsByModel: nextThinkingOptionsByModel,
+    visibleModels: nextVisibleModels
+  };
+  if (updates.visibleModels !== void 0) {
+    retargetRemovedKimicodeSelections(settings11, next);
+  }
+  const persistedThinkingOptionsByModel = pruneThinkingOptionsToPersistedSelections2(
+    settings11,
+    next
+  );
+  setProviderConfig(settings11, "kimicode", {
+    cliPath: next.cliPath,
+    cliPathsByHost: next.cliPathsByHost,
+    enabled: next.enabled,
+    environmentHash: next.environmentHash,
+    environmentVariables: next.environmentVariables,
+    modelAliases: next.modelAliases,
+    preferredThinkingByModel: next.preferredThinkingByModel,
+    selectedMode: next.selectedMode,
+    thinkingOptionsByModel: persistedThinkingOptionsByModel,
+    visibleModels: next.visibleModels
+  });
+  return next;
+}
+function hasLegacyKimicodeDiscoveryFields(settings11) {
+  const config2 = getProviderConfig(settings11, "kimicode");
+  return "availableModes" in config2 || "discoveredModels" in config2;
+}
+function pruneModelAliasesToVisible4(aliases, visibleModels) {
+  if (visibleModels.length === 0 || Object.keys(aliases).length === 0) {
+    return {};
+  }
+  const visibleSet = new Set(visibleModels);
+  const pruned = {};
+  for (const [rawId, alias] of Object.entries(aliases)) {
+    if (visibleSet.has(rawId)) {
+      pruned[rawId] = alias;
+    }
+  }
+  return pruned;
+}
+function pruneThinkingOptionsToPersistedSelections2(settings11, next) {
+  const persistableRawIds = new Set(next.visibleModels);
+  addPersistableSelection2(persistableRawIds, settings11.model, next.discoveredModels);
+  addPersistableSelection2(persistableRawIds, settings11.titleGenerationModel, next.discoveredModels);
+  const savedProviderModel = settings11.savedProviderModel;
+  if (savedProviderModel && typeof savedProviderModel === "object" && !Array.isArray(savedProviderModel)) {
+    addPersistableSelection2(
+      persistableRawIds,
+      savedProviderModel.kimicode,
+      next.discoveredModels
+    );
+  }
+  const pruned = {};
+  for (const rawId of persistableRawIds) {
+    const options = next.thinkingOptionsByModel[rawId];
+    if (options == null ? void 0 : options.length) {
+      pruned[rawId] = options.map((option) => ({ ...option }));
+    }
+  }
+  return pruned;
+}
+function addPersistableSelection2(target, value, discoveredModels) {
+  if (typeof value !== "string" || !isKimicodeModelSelectionId(value)) {
+    return;
+  }
+  const rawModelId = decodeKimicodeModelId(value);
+  if (!rawModelId) {
+    return;
+  }
+  const baseRawId = resolveKimicodeBaseModelRawId(rawModelId, discoveredModels);
+  if (baseRawId) {
+    target.add(baseRawId);
+  }
+}
+function retargetRemovedKimicodeSelections(settings11, next) {
+  var _a7;
+  if (next.visibleModels.length === 0) {
+    if (typeof settings11.titleGenerationModel === "string" && isKimicodeModelSelectionId(settings11.titleGenerationModel)) {
+      settings11.titleGenerationModel = "";
+    }
+    return;
+  }
+  const visibleSet = new Set(next.visibleModels);
+  const fallbackRawId = next.visibleModels[0];
+  const fallbackModelId = encodeKimicodeModelId(fallbackRawId);
+  const fallbackEffort = (_a7 = next.preferredThinkingByModel[fallbackRawId]) != null ? _a7 : KIMICODE_DEFAULT_THINKING_LEVEL;
+  const maybeRetargetModel = (value) => {
+    if (typeof value !== "string" || !isKimicodeModelSelectionId(value)) {
+      return null;
+    }
+    const rawModelId = decodeKimicodeModelId(value);
+    if (!rawModelId) {
+      return fallbackModelId;
+    }
+    const baseRawId = resolveKimicodeBaseModelRawId(rawModelId, next.discoveredModels);
+    return visibleSet.has(baseRawId) ? null : fallbackModelId;
+  };
+  const savedProviderModel = ensureProviderProjectionMap2(settings11, "savedProviderModel");
+  const nextSavedModel = maybeRetargetModel(savedProviderModel.kimicode);
+  if (nextSavedModel) {
+    savedProviderModel.kimicode = nextSavedModel;
+    ensureProviderProjectionMap2(settings11, "savedProviderEffort").kimicode = fallbackEffort;
+  }
+  const nextTopLevelModel = maybeRetargetModel(settings11.model);
+  if (nextTopLevelModel) {
+    settings11.model = nextTopLevelModel;
+    settings11.effortLevel = fallbackEffort;
+  }
+  const nextTitleGenerationModel = maybeRetargetModel(settings11.titleGenerationModel);
+  if (nextTitleGenerationModel) {
+    settings11.titleGenerationModel = nextTitleGenerationModel;
+  }
+}
+
+// src/providers/mimocode/settings.ts
+init_env();
+
+// src/providers/mimocode/internal/compareCollections.ts
+function sameStringList3(left, right) {
+  if (left.length !== right.length) {
+    return false;
+  }
+  return left.every((entry, index) => entry === right[index]);
+}
+function sameStringMap3(left, right) {
+  const leftEntries = Object.entries(left);
+  if (leftEntries.length !== Object.keys(right).length) {
+    return false;
+  }
+  return leftEntries.every(([key, value]) => right[key] === value);
+}
+function sameModes3(left, right) {
+  if (left.length !== right.length) {
+    return false;
+  }
+  return left.every((mode, index) => {
+    var _a7, _b4, _c3, _d3, _e3;
+    return mode.id === ((_a7 = right[index]) == null ? void 0 : _a7.id) && mode.name === ((_b4 = right[index]) == null ? void 0 : _b4.name) && ((_c3 = mode.description) != null ? _c3 : "") === ((_e3 = (_d3 = right[index]) == null ? void 0 : _d3.description) != null ? _e3 : "");
+  });
+}
+function sameDiscoveredModels3(left, right) {
+  if (left.length !== right.length) {
+    return false;
+  }
+  return left.every((model, index) => {
+    var _a7, _b4, _c3, _d3, _e3;
+    return model.rawId === ((_a7 = right[index]) == null ? void 0 : _a7.rawId) && model.label === ((_b4 = right[index]) == null ? void 0 : _b4.label) && ((_c3 = model.description) != null ? _c3 : "") === ((_e3 = (_d3 = right[index]) == null ? void 0 : _d3.description) != null ? _e3 : "");
+  });
+}
+function sameThinkingOptionsByModel3(left, right) {
+  const leftEntries = Object.entries(left);
+  if (leftEntries.length !== Object.keys(right).length) {
+    return false;
+  }
+  return leftEntries.every(([rawId, leftOptions]) => {
+    var _a7;
+    const rightOptions = (_a7 = right[rawId]) != null ? _a7 : [];
+    if (leftOptions.length !== rightOptions.length) {
+      return false;
+    }
+    return leftOptions.every((option, index) => {
+      var _a8, _b4, _c3, _d3, _e3;
+      return option.value === ((_a8 = rightOptions[index]) == null ? void 0 : _a8.value) && option.label === ((_b4 = rightOptions[index]) == null ? void 0 : _b4.label) && ((_c3 = option.description) != null ? _c3 : "") === ((_e3 = (_d3 = rightOptions[index]) == null ? void 0 : _d3.description) != null ? _e3 : "");
+    });
+  });
+}
+
+// src/providers/mimocode/models.ts
+var MIMOCODE_SYNTHETIC_MODEL_ID = "mimocode";
+var MIMOCODE_DEFAULT_THINKING_LEVEL = "default";
+var MIMOCODE_MODEL_PREFIX = "mimocode:";
+var MIMOCODE_VARIANT_ASCENDING_ORDER = [
+  "none",
+  "minimal",
+  "low",
+  "medium",
+  "high",
+  "max",
+  "xhigh"
+];
+var MIMOCODE_VARIANT_ASCENDING_RANK = new Map(
+  MIMOCODE_VARIANT_ASCENDING_ORDER.map((value, index) => [value, index])
+);
+function isMimocodeModelSelectionId(model) {
+  return model === MIMOCODE_SYNTHETIC_MODEL_ID || model.startsWith(MIMOCODE_MODEL_PREFIX);
+}
+function encodeMimocodeModelId(rawModelId) {
+  const normalized = rawModelId.trim();
+  return normalized ? `${MIMOCODE_MODEL_PREFIX}${normalized}` : MIMOCODE_SYNTHETIC_MODEL_ID;
+}
+function decodeMimocodeModelId(model) {
+  if (!model.startsWith(MIMOCODE_MODEL_PREFIX)) {
+    return null;
+  }
+  const rawModelId = model.slice(MIMOCODE_MODEL_PREFIX.length).trim();
+  return rawModelId || null;
+}
+function normalizeMimocodeDiscoveredModels(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const normalized = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const entry of value) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      continue;
+    }
+    const record2 = entry;
+    const rawId = typeof record2.rawId === "string" ? record2.rawId.trim() : "";
+    const label = typeof record2.label === "string" ? record2.label.trim() : rawId;
+    const description = typeof record2.description === "string" ? record2.description.trim() : "";
+    if (!rawId || seen.has(rawId)) {
+      continue;
+    }
+    seen.add(rawId);
+    normalized.push({
+      ...description ? { description } : {},
+      label: label || rawId,
+      rawId
+    });
+  }
+  return normalized;
+}
+function normalizeMimocodeModelVariants(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const variants = [];
+  for (const entry of value) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      continue;
+    }
+    const record2 = entry;
+    const rawValue = typeof record2.value === "string" ? record2.value.trim() : "";
+    if (!rawValue) {
+      continue;
+    }
+    let rawLabel = "";
+    if (typeof record2.label === "string") {
+      rawLabel = record2.label.trim();
+    } else if (typeof record2.name === "string") {
+      rawLabel = record2.name.trim();
+    }
+    const description = typeof record2.description === "string" ? record2.description.trim() : "";
+    variants.push({
+      ...description ? { description } : {},
+      label: rawLabel || formatMimocodeThinkingLevelLabel(rawValue),
+      value: rawValue
+    });
+  }
+  return dedupeMimocodeVariants(variants);
+}
+function normalizeMimocodeThinkingOptionsByModel(value, discoveredModels = []) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+  const normalized = {};
+  for (const [rawId, variants] of Object.entries(value)) {
+    const normalizedRawId = resolveMimocodeBaseModelRawId(rawId.trim(), discoveredModels);
+    const normalizedVariants = normalizeMimocodeModelVariants(variants);
+    if (!normalizedRawId || normalizedVariants.length === 0) {
+      continue;
+    }
+    normalized[normalizedRawId] = normalizedVariants;
+  }
+  return normalized;
+}
+function resolveMimocodeBaseModelRawId(rawId, discoveredModels) {
+  const normalizedRawId = rawId.trim();
+  if (!normalizedRawId) {
+    return "";
+  }
+  const discoveredRawIds = discoveredModels instanceof Set ? discoveredModels : new Set(discoveredModels.map((model) => model.rawId));
+  const slashIndex = normalizedRawId.lastIndexOf("/");
+  if (slashIndex <= 0) {
+    return normalizedRawId;
+  }
+  const candidate = normalizedRawId.slice(0, slashIndex);
+  if (discoveredRawIds.has(candidate)) {
+    return candidate;
+  }
+  const variant = normalizedRawId.slice(slashIndex + 1).trim().toLowerCase();
+  return MIMOCODE_VARIANT_ASCENDING_RANK.has(variant) ? candidate : normalizedRawId;
+}
+function extractMimocodeModelVariantValue(rawId, discoveredModels) {
+  const normalizedRawId = rawId.trim();
+  if (!normalizedRawId) {
+    return null;
+  }
+  const baseRawId = resolveMimocodeBaseModelRawId(normalizedRawId, discoveredModels);
+  if (baseRawId === normalizedRawId || baseRawId.length >= normalizedRawId.length) {
+    return null;
+  }
+  const variant = normalizedRawId.slice(baseRawId.length + 1).trim();
+  return variant || null;
+}
+function splitMimocodeModelLabel(label) {
+  const trimmed = label.trim();
+  const slashIndex = trimmed.indexOf("/");
+  if (slashIndex <= 0 || slashIndex >= trimmed.length - 1) {
+    return {
+      modelLabel: trimmed,
+      providerLabel: "Other"
+    };
+  }
+  return {
+    modelLabel: trimmed.slice(slashIndex + 1).trim(),
+    providerLabel: trimmed.slice(0, slashIndex).trim()
+  };
+}
+function buildMimocodeBaseModels(models) {
+  const discoveredRawIds = new Set(models.map((model) => model.rawId));
+  const discoveredByRawId = new Map(models.map((model) => [model.rawId, model]));
+  const grouped = /* @__PURE__ */ new Map();
+  for (const model of models) {
+    const baseRawId = resolveMimocodeBaseModelRawId(model.rawId, discoveredRawIds);
+    const existing = grouped.get(baseRawId);
+    if (existing) {
+      existing.push(model);
+    } else {
+      grouped.set(baseRawId, [model]);
+    }
+  }
+  return Array.from(grouped.entries()).map(([baseRawId, entries]) => {
+    var _a7, _b4;
+    const baseModel = (_a7 = discoveredByRawId.get(baseRawId)) != null ? _a7 : entries[0];
+    const variants = entries.flatMap((entry) => {
+      if (entry.rawId === baseRawId) {
+        return [];
+      }
+      const variant = extractMimocodeModelVariantValue(entry.rawId, discoveredRawIds);
+      if (!variant) {
+        return [];
+      }
+      return [{
+        ...entry.description ? { description: entry.description } : {},
+        label: formatMimocodeThinkingLevelLabel(variant),
+        value: variant
+      }];
+    });
+    return {
+      ...(baseModel == null ? void 0 : baseModel.description) ? { description: baseModel.description } : {},
+      label: (_b4 = baseModel == null ? void 0 : baseModel.label) != null ? _b4 : baseRawId,
+      rawId: baseRawId,
+      variants: dedupeMimocodeVariants(variants)
+    };
+  }).sort((left, right) => left.label.localeCompare(right.label));
+}
+function formatMimocodeThinkingLevelLabel(value) {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return "";
+  }
+  if (trimmed.toLowerCase() === "xhigh") {
+    return "XHigh";
+  }
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+}
+function dedupeMimocodeVariants(variants) {
+  const unique = /* @__PURE__ */ new Map();
+  for (const variant of variants) {
+    if (!unique.has(variant.value)) {
+      unique.set(variant.value, variant);
+    }
+  }
+  return Array.from(unique.values()).sort((left, right) => compareMimocodeVariantValues(left.value, right.value));
+}
+function compareMimocodeVariantValues(left, right) {
+  const leftRank = MIMOCODE_VARIANT_ASCENDING_RANK.get(left.toLowerCase());
+  const rightRank = MIMOCODE_VARIANT_ASCENDING_RANK.get(right.toLowerCase());
+  if (leftRank !== void 0 && rightRank !== void 0) {
+    return leftRank - rightRank;
+  }
+  if (leftRank !== void 0) {
+    return -1;
+  }
+  if (rightRank !== void 0) {
+    return 1;
+  }
+  return left.localeCompare(right);
+}
+
+// src/providers/mimocode/modes.ts
+var MIMOCODE_BUILD_MODE_ID = "build";
+var MIMOCODE_FULL_ACCESS_MODE_ID = "grimoire-full-access";
+var MIMOCODE_LEGACY_YOLO_MODE_ID = "grimoire-yolo";
+var MIMOCODE_SAFE_MODE_ID = "grimoire-safe";
+var MIMOCODE_PLAN_MODE_ID = "plan";
+var MIMOCODE_FALLBACK_MODES = Object.freeze([
+  {
+    description: "Auto-approves tool actions.",
+    id: MIMOCODE_FULL_ACCESS_MODE_ID,
+    name: "auto-approve"
+  },
+  {
+    description: "Safe mode. Asks before shell commands and file edits.",
+    id: MIMOCODE_SAFE_MODE_ID,
+    name: "safe"
+  },
+  {
+    description: "Plan mode. Disallows all edit tools.",
+    id: MIMOCODE_PLAN_MODE_ID,
+    name: MIMOCODE_PLAN_MODE_ID
+  }
+]);
+var MIMOCODE_MANAGED_MODE_IDS = /* @__PURE__ */ new Set([
+  MIMOCODE_BUILD_MODE_ID,
+  MIMOCODE_LEGACY_YOLO_MODE_ID,
+  ...MIMOCODE_FALLBACK_MODES.map((mode) => mode.id)
+]);
+function normalizeMimocodeAvailableModes(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const normalized = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const entry of value) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      continue;
+    }
+    const record2 = entry;
+    const id2 = typeof record2.id === "string" ? record2.id.trim() : "";
+    const name = typeof record2.name === "string" ? record2.name.trim() : id2;
+    const description = typeof record2.description === "string" ? record2.description.trim() : "";
+    if (!id2 || seen.has(id2)) {
+      continue;
+    }
+    seen.add(id2);
+    normalized.push({
+      ...description ? { description } : {},
+      id: id2,
+      name: name || id2
+    });
+  }
+  return normalized;
+}
+function getEffectiveMimocodeModes(modes) {
+  return modes.length > 0 ? modes : [...MIMOCODE_FALLBACK_MODES];
+}
+function isManagedMimocodeModeId(value) {
+  return MIMOCODE_MANAGED_MODE_IDS.has(value);
+}
+function getManagedMimocodeModes(modes) {
+  const effectiveModes = getEffectiveMimocodeModes(modes);
+  return MIMOCODE_FALLBACK_MODES.map((fallbackMode) => {
+    var _a7;
+    return (_a7 = effectiveModes.find((mode) => mode.id === fallbackMode.id)) != null ? _a7 : fallbackMode;
+  });
+}
+function normalizeMimocodeSelectedMode(value) {
+  if (typeof value !== "string") {
+    return "";
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return "";
+  }
+  return trimmed;
+}
+function normalizeManagedMimocodeSelectedMode(value, modes = []) {
+  var _a7, _b4;
+  const normalized = normalizeMimocodeSelectedMode(value);
+  if (!normalized) {
+    return "";
+  }
+  const canonicalModeId = normalized === MIMOCODE_BUILD_MODE_ID || normalized === MIMOCODE_LEGACY_YOLO_MODE_ID ? MIMOCODE_FULL_ACCESS_MODE_ID : normalized;
+  const managedModes = getManagedMimocodeModes(modes);
+  return managedModes.some((mode) => mode.id === canonicalModeId) ? canonicalModeId : (_b4 = (_a7 = managedModes[0]) == null ? void 0 : _a7.id) != null ? _b4 : "";
+}
+function resolveMimocodeModeForPermissionMode(permissionMode, modes = []) {
+  var _a7, _b4;
+  const managedModes = getManagedMimocodeModes(modes);
+  const managedModeIds = new Set(managedModes.map((mode) => mode.id));
+  if (permissionMode === "plan" && managedModeIds.has(MIMOCODE_PLAN_MODE_ID)) {
+    return MIMOCODE_PLAN_MODE_ID;
+  }
+  if (permissionMode === "normal" && managedModeIds.has(MIMOCODE_SAFE_MODE_ID)) {
+    return MIMOCODE_SAFE_MODE_ID;
+  }
+  if (coercePermissionMode(permissionMode) === "full_access" && managedModeIds.has(MIMOCODE_FULL_ACCESS_MODE_ID)) {
+    return MIMOCODE_FULL_ACCESS_MODE_ID;
+  }
+  if (managedModeIds.has(MIMOCODE_FULL_ACCESS_MODE_ID)) {
+    return MIMOCODE_FULL_ACCESS_MODE_ID;
+  }
+  return (_b4 = (_a7 = managedModes[0]) == null ? void 0 : _a7.id) != null ? _b4 : "";
+}
+function resolvePermissionModeForManagedMimocodeMode(modeId) {
+  if (modeId === MIMOCODE_BUILD_MODE_ID || modeId === MIMOCODE_FULL_ACCESS_MODE_ID || modeId === MIMOCODE_LEGACY_YOLO_MODE_ID) {
+    return "full_access";
+  }
+  if (modeId === MIMOCODE_SAFE_MODE_ID) {
+    return "normal";
+  }
+  if (modeId === MIMOCODE_PLAN_MODE_ID) {
+    return "plan";
+  }
+  return null;
+}
+
+// src/providers/mimocode/discoveryState.ts
+var MIMOCODE_DISCOVERY_STATE = /* @__PURE__ */ Symbol("mimocodeDiscoveryState");
+function ensureDiscoveryState3(settings11) {
+  var _a7, _b4, _c3;
+  const bag = settings11;
+  const existing = bag[MIMOCODE_DISCOVERY_STATE];
+  if (existing && typeof existing === "object" && !Array.isArray(existing)) {
+    const state = existing;
+    (_a7 = state.availableModes) != null ? _a7 : state.availableModes = [];
+    (_b4 = state.discoveredModels) != null ? _b4 : state.discoveredModels = [];
+    (_c3 = state.thinkingOptionsByModel) != null ? _c3 : state.thinkingOptionsByModel = {};
+    return state;
+  }
+  const next = {
+    availableModes: [],
+    discoveredModels: [],
+    thinkingOptionsByModel: {}
+  };
+  Object.defineProperty(bag, MIMOCODE_DISCOVERY_STATE, {
+    configurable: true,
+    enumerable: false,
+    value: next,
+    writable: true
+  });
+  return next;
+}
+function cloneModes3(modes) {
+  return modes.map((mode) => ({ ...mode }));
+}
+function cloneDiscoveredModels3(models) {
+  return models.map((model) => ({ ...model }));
+}
+function cloneThinkingOptionsByModel3(optionsByModel) {
+  return Object.fromEntries(
+    Object.entries(optionsByModel).map(([rawId, options]) => [
+      rawId,
+      options.map((option) => ({ ...option }))
+    ])
+  );
+}
+function getMimocodeDiscoveryState(settings11) {
+  const state = ensureDiscoveryState3(settings11);
+  return {
+    availableModes: cloneModes3(state.availableModes),
+    discoveredModels: cloneDiscoveredModels3(state.discoveredModels),
+    thinkingOptionsByModel: cloneThinkingOptionsByModel3(state.thinkingOptionsByModel)
+  };
+}
+function updateMimocodeDiscoveryState(settings11, updates) {
+  const state = ensureDiscoveryState3(settings11);
+  const nextAvailableModes = "availableModes" in updates ? normalizeMimocodeAvailableModes(updates.availableModes) : state.availableModes;
+  const nextDiscoveredModels = "discoveredModels" in updates ? normalizeMimocodeDiscoveredModels(updates.discoveredModels) : state.discoveredModels;
+  const nextThinkingOptionsByModel = "thinkingOptionsByModel" in updates ? normalizeMimocodeThinkingOptionsByModel(updates.thinkingOptionsByModel, nextDiscoveredModels) : state.thinkingOptionsByModel;
+  const changed = !sameModes3(state.availableModes, nextAvailableModes) || !sameDiscoveredModels3(state.discoveredModels, nextDiscoveredModels) || !sameThinkingOptionsByModel3(state.thinkingOptionsByModel, nextThinkingOptionsByModel);
+  if (!changed) {
+    return false;
+  }
+  state.availableModes = cloneModes3(nextAvailableModes);
+  state.discoveredModels = cloneDiscoveredModels3(nextDiscoveredModels);
+  state.thinkingOptionsByModel = cloneThinkingOptionsByModel3(nextThinkingOptionsByModel);
+  return true;
+}
+function clearMimocodeDiscoveryState(settings11) {
+  const state = ensureDiscoveryState3(settings11);
+  if (state.availableModes.length === 0 && state.discoveredModels.length === 0 && Object.keys(state.thinkingOptionsByModel).length === 0) {
+    return false;
+  }
+  state.availableModes = [];
+  state.discoveredModels = [];
+  state.thinkingOptionsByModel = {};
+  return true;
+}
+function seedMimocodeDiscoveryStateFromLegacyConfig(settings11, legacyConfig) {
+  const state = ensureDiscoveryState3(settings11);
+  const nextAvailableModes = state.availableModes.length > 0 ? state.availableModes : normalizeMimocodeAvailableModes(legacyConfig.availableModes);
+  const nextDiscoveredModels = state.discoveredModels.length > 0 ? state.discoveredModels : normalizeMimocodeDiscoveredModels(legacyConfig.discoveredModels);
+  const nextThinkingOptionsByModel = Object.keys(state.thinkingOptionsByModel).length > 0 ? state.thinkingOptionsByModel : normalizeMimocodeThinkingOptionsByModel(legacyConfig.thinkingOptionsByModel, nextDiscoveredModels);
+  return updateMimocodeDiscoveryState(settings11, {
+    availableModes: nextAvailableModes,
+    discoveredModels: nextDiscoveredModels,
+    thinkingOptionsByModel: nextThinkingOptionsByModel
+  });
+}
+
+// src/providers/mimocode/internal/providerProjection.ts
+function ensureProviderProjectionMap3(settings11, key) {
+  const current = settings11[key];
+  if (current && typeof current === "object" && !Array.isArray(current)) {
+    return current;
+  }
+  const next = {};
+  settings11[key] = next;
+  return next;
+}
+
+// src/providers/mimocode/settings.ts
+var MIMOCODE_DEFAULT_ENVIRONMENT_VARIABLES = "MIMOCODE_ENABLE_EXA=1";
+var DEFAULT_MIMOCODE_PROVIDER_SETTINGS = Object.freeze({
+  cliPath: "",
+  cliPathsByHost: {},
+  enabled: false,
+  environmentHash: "",
+  environmentVariables: MIMOCODE_DEFAULT_ENVIRONMENT_VARIABLES,
+  modelAliases: {},
+  preferredThinkingByModel: {},
+  selectedMode: "",
+  thinkingOptionsByModel: {},
+  visibleModels: []
+});
+function normalizeHostnameCliPaths7(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+  const result = {};
+  for (const [key, entry] of Object.entries(value)) {
+    if (typeof entry === "string" && entry.trim()) {
+      result[key] = entry.trim();
+    }
+  }
+  return result;
+}
+function normalizeMimocodeVisibleModels(value, discoveredModels = []) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const normalized = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const entry of value) {
+    if (typeof entry !== "string") {
+      continue;
+    }
+    const trimmed = resolveMimocodeBaseModelRawId(entry.trim(), discoveredModels);
+    if (!trimmed || seen.has(trimmed)) {
+      continue;
+    }
+    seen.add(trimmed);
+    normalized.push(trimmed);
+  }
+  return normalized;
+}
+function normalizeMimocodeModelAliases(value, discoveredModels = []) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+  const normalized = {};
+  for (const [rawId, alias] of Object.entries(value)) {
+    if (typeof alias !== "string") {
+      continue;
+    }
+    const normalizedRawId = resolveMimocodeBaseModelRawId(rawId.trim(), discoveredModels);
+    const normalizedAlias = alias.trim();
+    if (!normalizedRawId || !normalizedAlias) {
+      continue;
+    }
+    normalized[normalizedRawId] = normalizedAlias;
+  }
+  return normalized;
+}
+function normalizeMimocodePreferredThinkingByModel(value, discoveredModels = []) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+  const normalized = {};
+  for (const [rawId, thinkingLevel] of Object.entries(value)) {
+    if (typeof thinkingLevel !== "string") {
+      continue;
+    }
+    const normalizedRawId = resolveMimocodeBaseModelRawId(rawId.trim(), discoveredModels);
+    const normalizedThinkingLevel = thinkingLevel.trim();
+    if (!normalizedRawId || !normalizedThinkingLevel) {
+      continue;
+    }
+    normalized[normalizedRawId] = normalizedThinkingLevel;
+  }
+  return normalized;
+}
+function getMimocodeProviderSettings(settings11) {
+  var _a7, _b4, _c3, _d3, _e3;
+  const config2 = getProviderConfig(settings11, "mimocode");
+  const normalizedCliPathsByHost = normalizeHostnameCliPaths7(config2.cliPathsByHost);
+  const cliPathsByHost = Object.keys(normalizedCliPathsByHost).length > 0 ? migrateLegacyHostnameKeyedMap(
+    normalizedCliPathsByHost,
+    getHostnameKey(),
+    getLegacyHostnameKey()
+  ) : normalizedCliPathsByHost;
+  seedMimocodeDiscoveryStateFromLegacyConfig(settings11, config2);
+  const discoveryState = getMimocodeDiscoveryState(settings11);
+  const availableModes = discoveryState.availableModes;
+  const discoveredModels = discoveryState.discoveredModels;
+  const persistedThinkingOptionsByModel = normalizeMimocodeThinkingOptionsByModel(
+    config2.thinkingOptionsByModel,
+    discoveredModels
+  );
+  const thinkingOptionsByModel = normalizeMimocodeThinkingOptionsByModel({
+    ...persistedThinkingOptionsByModel,
+    ...discoveryState.thinkingOptionsByModel
+  }, discoveredModels);
+  return {
+    availableModes,
+    cliPath: (_a7 = config2.cliPath) != null ? _a7 : DEFAULT_MIMOCODE_PROVIDER_SETTINGS.cliPath,
+    cliPathsByHost,
+    discoveredModels,
+    enabled: (_b4 = config2.enabled) != null ? _b4 : DEFAULT_MIMOCODE_PROVIDER_SETTINGS.enabled,
+    environmentHash: (_c3 = config2.environmentHash) != null ? _c3 : DEFAULT_MIMOCODE_PROVIDER_SETTINGS.environmentHash,
+    environmentVariables: (_e3 = (_d3 = config2.environmentVariables) != null ? _d3 : getProviderEnvironmentVariables(settings11, "mimocode")) != null ? _e3 : DEFAULT_MIMOCODE_PROVIDER_SETTINGS.environmentVariables,
+    modelAliases: normalizeMimocodeModelAliases(config2.modelAliases, discoveredModels),
+    preferredThinkingByModel: normalizeMimocodePreferredThinkingByModel(
+      config2.preferredThinkingByModel,
+      discoveredModels
+    ),
+    selectedMode: normalizeManagedMimocodeSelectedMode(config2.selectedMode, availableModes),
+    thinkingOptionsByModel,
+    visibleModels: normalizeMimocodeVisibleModels(config2.visibleModels, discoveredModels)
+  };
+}
+function updateMimocodeProviderSettings(settings11, updates) {
+  var _a7, _b4, _c3, _d3;
+  const current = getMimocodeProviderSettings(settings11);
+  const hostnameKey = getHostnameKey();
+  if ("availableModes" in updates || "discoveredModels" in updates || "thinkingOptionsByModel" in updates) {
+    updateMimocodeDiscoveryState(settings11, {
+      ...updates.availableModes !== void 0 ? { availableModes: updates.availableModes } : {},
+      ...updates.discoveredModels !== void 0 ? { discoveredModels: updates.discoveredModels } : {},
+      ...updates.thinkingOptionsByModel !== void 0 ? { thinkingOptionsByModel: updates.thinkingOptionsByModel } : {}
+    });
+  }
+  const discoveryState = getMimocodeDiscoveryState(settings11);
+  const nextAvailableModes = discoveryState.availableModes;
+  const nextDiscoveredModels = discoveryState.discoveredModels;
+  const nextThinkingOptionsByModel = updates.thinkingOptionsByModel !== void 0 ? discoveryState.thinkingOptionsByModel : normalizeMimocodeThinkingOptionsByModel(
+    current.thinkingOptionsByModel,
+    nextDiscoveredModels
+  );
+  const nextSelectedMode = normalizeManagedMimocodeSelectedMode(
+    (_a7 = updates.selectedMode) != null ? _a7 : current.selectedMode,
+    nextAvailableModes
+  );
+  const nextVisibleModels = normalizeMimocodeVisibleModels(
+    (_b4 = updates.visibleModels) != null ? _b4 : current.visibleModels,
+    nextDiscoveredModels
+  );
+  const nextModelAliases = pruneModelAliasesToVisible5(
+    normalizeMimocodeModelAliases(
+      (_c3 = updates.modelAliases) != null ? _c3 : current.modelAliases,
+      nextDiscoveredModels
+    ),
+    nextVisibleModels
+  );
+  const nextCliPathsByHost = "cliPathsByHost" in updates ? normalizeHostnameCliPaths7(updates.cliPathsByHost) : { ...current.cliPathsByHost };
+  let nextCliPath = "cliPathsByHost" in updates ? typeof updates.cliPath === "string" ? updates.cliPath.trim() : DEFAULT_MIMOCODE_PROVIDER_SETTINGS.cliPath : current.cliPath.trim();
+  if ("cliPath" in updates && !("cliPathsByHost" in updates)) {
+    const trimmedCliPath = typeof updates.cliPath === "string" ? updates.cliPath.trim() : "";
+    if (trimmedCliPath) {
+      nextCliPathsByHost[hostnameKey] = trimmedCliPath;
+    } else {
+      delete nextCliPathsByHost[hostnameKey];
+    }
+    nextCliPath = DEFAULT_MIMOCODE_PROVIDER_SETTINGS.cliPath;
+  }
+  const next = {
+    ...current,
+    ...updates,
+    availableModes: nextAvailableModes,
+    cliPath: nextCliPath,
+    cliPathsByHost: nextCliPathsByHost,
+    discoveredModels: nextDiscoveredModels,
+    modelAliases: nextModelAliases,
+    preferredThinkingByModel: normalizeMimocodePreferredThinkingByModel(
+      (_d3 = updates.preferredThinkingByModel) != null ? _d3 : current.preferredThinkingByModel,
+      nextDiscoveredModels
+    ),
+    selectedMode: nextSelectedMode,
+    thinkingOptionsByModel: nextThinkingOptionsByModel,
+    visibleModels: nextVisibleModels
+  };
+  if (updates.visibleModels !== void 0) {
+    retargetRemovedMimocodeSelections(settings11, next);
+  }
+  const persistedThinkingOptionsByModel = pruneThinkingOptionsToPersistedSelections3(
+    settings11,
+    next
+  );
+  setProviderConfig(settings11, "mimocode", {
+    cliPath: next.cliPath,
+    cliPathsByHost: next.cliPathsByHost,
+    enabled: next.enabled,
+    environmentHash: next.environmentHash,
+    environmentVariables: next.environmentVariables,
+    modelAliases: next.modelAliases,
+    preferredThinkingByModel: next.preferredThinkingByModel,
+    selectedMode: next.selectedMode,
+    thinkingOptionsByModel: persistedThinkingOptionsByModel,
+    visibleModels: next.visibleModels
+  });
+  return next;
+}
+function hasLegacyMimocodeDiscoveryFields(settings11) {
+  const config2 = getProviderConfig(settings11, "mimocode");
+  return "availableModes" in config2 || "discoveredModels" in config2;
+}
+function pruneModelAliasesToVisible5(aliases, visibleModels) {
+  if (visibleModels.length === 0 || Object.keys(aliases).length === 0) {
+    return {};
+  }
+  const visibleSet = new Set(visibleModels);
+  const pruned = {};
+  for (const [rawId, alias] of Object.entries(aliases)) {
+    if (visibleSet.has(rawId)) {
+      pruned[rawId] = alias;
+    }
+  }
+  return pruned;
+}
+function pruneThinkingOptionsToPersistedSelections3(settings11, next) {
+  const persistableRawIds = new Set(next.visibleModels);
+  addPersistableSelection3(persistableRawIds, settings11.model, next.discoveredModels);
+  addPersistableSelection3(persistableRawIds, settings11.titleGenerationModel, next.discoveredModels);
+  const savedProviderModel = settings11.savedProviderModel;
+  if (savedProviderModel && typeof savedProviderModel === "object" && !Array.isArray(savedProviderModel)) {
+    addPersistableSelection3(
+      persistableRawIds,
+      savedProviderModel.mimocode,
+      next.discoveredModels
+    );
+  }
+  const pruned = {};
+  for (const rawId of persistableRawIds) {
+    const options = next.thinkingOptionsByModel[rawId];
+    if (options == null ? void 0 : options.length) {
+      pruned[rawId] = options.map((option) => ({ ...option }));
+    }
+  }
+  return pruned;
+}
+function addPersistableSelection3(target, value, discoveredModels) {
+  if (typeof value !== "string" || !isMimocodeModelSelectionId(value)) {
+    return;
+  }
+  const rawModelId = decodeMimocodeModelId(value);
+  if (!rawModelId) {
+    return;
+  }
+  const baseRawId = resolveMimocodeBaseModelRawId(rawModelId, discoveredModels);
+  if (baseRawId) {
+    target.add(baseRawId);
+  }
+}
+function retargetRemovedMimocodeSelections(settings11, next) {
+  var _a7;
+  if (next.visibleModels.length === 0) {
+    if (typeof settings11.titleGenerationModel === "string" && isMimocodeModelSelectionId(settings11.titleGenerationModel)) {
+      settings11.titleGenerationModel = "";
+    }
+    return;
+  }
+  const visibleSet = new Set(next.visibleModels);
+  const fallbackRawId = next.visibleModels[0];
+  const fallbackModelId = encodeMimocodeModelId(fallbackRawId);
+  const fallbackEffort = (_a7 = next.preferredThinkingByModel[fallbackRawId]) != null ? _a7 : MIMOCODE_DEFAULT_THINKING_LEVEL;
+  const maybeRetargetModel = (value) => {
+    if (typeof value !== "string" || !isMimocodeModelSelectionId(value)) {
+      return null;
+    }
+    const rawModelId = decodeMimocodeModelId(value);
+    if (!rawModelId) {
+      return fallbackModelId;
+    }
+    const baseRawId = resolveMimocodeBaseModelRawId(rawModelId, next.discoveredModels);
+    return visibleSet.has(baseRawId) ? null : fallbackModelId;
+  };
+  const savedProviderModel = ensureProviderProjectionMap3(settings11, "savedProviderModel");
+  const nextSavedModel = maybeRetargetModel(savedProviderModel.mimocode);
+  if (nextSavedModel) {
+    savedProviderModel.mimocode = nextSavedModel;
+    ensureProviderProjectionMap3(settings11, "savedProviderEffort").mimocode = fallbackEffort;
+  }
+  const nextTopLevelModel = maybeRetargetModel(settings11.model);
+  if (nextTopLevelModel) {
+    settings11.model = nextTopLevelModel;
+    settings11.effortLevel = fallbackEffort;
+  }
+  const nextTitleGenerationModel = maybeRetargetModel(settings11.titleGenerationModel);
+  if (nextTitleGenerationModel) {
+    settings11.titleGenerationModel = nextTitleGenerationModel;
+  }
+}
+
 // src/providers/defaultProviderConfigs.ts
 function getBuiltInProviderDefaultConfigs() {
   return {
@@ -55662,6 +57216,8 @@ function getBuiltInProviderDefaultConfigs() {
     claude: { ...DEFAULT_CLAUDE_PROVIDER_SETTINGS },
     codex: { ...DEFAULT_CODEX_PROVIDER_SETTINGS },
     gemini: { ...DEFAULT_GEMINI_PROVIDER_SETTINGS },
+    kimicode: { ...DEFAULT_KIMICODE_PROVIDER_SETTINGS },
+    mimocode: { ...DEFAULT_MIMOCODE_PROVIDER_SETTINGS },
     opencode: { ...DEFAULT_OPENCODE_PROVIDER_SETTINGS }
   };
 }
@@ -56234,8 +57790,8 @@ function countSessionSources(meta3) {
   if (meta3.currentNote) {
     sources.add(meta3.currentNote);
   }
-  for (const path26 of (_a7 = meta3.externalContextPaths) != null ? _a7 : []) {
-    sources.add(path26);
+  for (const path36 of (_a7 = meta3.externalContextPaths) != null ? _a7 : []) {
+    sources.add(path36);
   }
   for (const entry of (_b4 = meta3.vaultSearchContexts) != null ? _b4 : []) {
     for (const snippet of entry.context.snippets) {
@@ -56398,39 +57954,39 @@ var VaultFileAdapter = class {
     this.app = app;
     this.writeQueue = Promise.resolve();
   }
-  async exists(path26) {
-    return this.app.vault.adapter.exists(path26);
+  async exists(path36) {
+    return this.app.vault.adapter.exists(path36);
   }
-  async read(path26) {
-    return this.app.vault.adapter.read(path26);
+  async read(path36) {
+    return this.app.vault.adapter.read(path36);
   }
-  async write(path26, content) {
-    await this.ensureParentFolder(path26);
-    await this.app.vault.adapter.write(path26, content);
+  async write(path36, content) {
+    await this.ensureParentFolder(path36);
+    await this.app.vault.adapter.write(path36, content);
   }
-  async append(path26, content) {
-    await this.ensureParentFolder(path26);
+  async append(path36, content) {
+    await this.ensureParentFolder(path36);
     this.writeQueue = this.writeQueue.then(async () => {
-      if (await this.exists(path26)) {
-        const existing = await this.read(path26);
-        await this.app.vault.adapter.write(path26, existing + content);
+      if (await this.exists(path36)) {
+        const existing = await this.read(path36);
+        await this.app.vault.adapter.write(path36, existing + content);
       } else {
-        await this.app.vault.adapter.write(path26, content);
+        await this.app.vault.adapter.write(path36, content);
       }
     }).catch(() => {
     });
     await this.writeQueue;
   }
-  async delete(path26) {
-    if (await this.exists(path26)) {
-      await this.app.vault.adapter.remove(path26);
+  async delete(path36) {
+    if (await this.exists(path36)) {
+      await this.app.vault.adapter.remove(path36);
     }
   }
   /** Fails silently if non-empty or missing. */
-  async deleteFolder(path26) {
+  async deleteFolder(path36) {
     try {
-      if (await this.exists(path26)) {
-        await this.app.vault.adapter.rmdir(path26, false);
+      if (await this.exists(path36)) {
+        await this.app.vault.adapter.rmdir(path36, false);
       }
     } catch (e) {
     }
@@ -56471,9 +58027,9 @@ var VaultFileAdapter = class {
     }
   }
   /** Ensure a folder exists, creating it and parent folders if needed. */
-  async ensureFolder(path26) {
-    if (await this.exists(path26)) return;
-    const parts = path26.split("/").filter(Boolean);
+  async ensureFolder(path36) {
+    if (await this.exists(path36)) return;
+    const parts = path36.split("/").filter(Boolean);
     let current = "";
     for (const part of parts) {
       current = current ? `${current}/${part}` : part;
@@ -56486,9 +58042,9 @@ var VaultFileAdapter = class {
   async rename(oldPath, newPath) {
     await this.app.vault.adapter.rename(oldPath, newPath);
   }
-  async stat(path26) {
+  async stat(path36) {
     try {
-      const stat = await this.app.vault.adapter.stat(path26);
+      const stat = await this.app.vault.adapter.stat(path36);
       if (!stat) return null;
       return { mtime: stat.mtime, size: stat.size };
     } catch (e) {
@@ -57824,8 +59380,8 @@ function getErrorMap() {
 
 // node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path26, errorMaps, issueData } = params;
-  const fullPath = [...path26, ...issueData.path || []];
+  const { data, path: path36, errorMaps, issueData } = params;
+  const fullPath = [...path36, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -57940,11 +59496,11 @@ var errorUtil;
 
 // node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path26, key) {
+  constructor(parent, value, path36, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path26;
+    this._path = path36;
     this._key = key;
   }
   get path() {
@@ -62104,7 +63660,7 @@ var Protocol = class {
           return;
         }
         const pollInterval = (_c3 = (_b4 = task2.pollInterval) != null ? _b4 : (_a7 = this._options) == null ? void 0 : _a7.defaultTaskPollInterval) != null ? _c3 : 1e3;
-        await new Promise((resolve7) => setTimeout(resolve7, pollInterval));
+        await new Promise((resolve9) => setTimeout(resolve9, pollInterval));
         (_d3 = options == null ? void 0 : options.signal) == null ? void 0 : _d3.throwIfAborted();
       }
     } catch (error48) {
@@ -62121,7 +63677,7 @@ var Protocol = class {
    */
   request(request, resultSchema, options) {
     const { relatedRequestId, resumptionToken, onresumptiontoken, task, relatedTask } = options != null ? options : {};
-    return new Promise((resolve7, reject) => {
+    return new Promise((resolve9, reject) => {
       var _a7, _b4, _c3, _d3, _e3, _f3, _g2;
       const earlyReject = (error48) => {
         reject(error48);
@@ -62202,7 +63758,7 @@ var Protocol = class {
           if (!parseResult.success) {
             reject(parseResult.error);
           } else {
-            resolve7(parseResult.data);
+            resolve9(parseResult.data);
           }
         } catch (error48) {
           reject(error48);
@@ -62468,12 +64024,12 @@ var Protocol = class {
       }
     } catch (e) {
     }
-    return new Promise((resolve7, reject) => {
+    return new Promise((resolve9, reject) => {
       if (signal.aborted) {
         reject(new McpError(ErrorCode.InvalidRequest, "Request cancelled"));
         return;
       }
-      const timeoutId = setTimeout(resolve7, interval);
+      const timeoutId = setTimeout(resolve9, interval);
       signal.addEventListener("abort", () => {
         clearTimeout(timeoutId);
         reject(new McpError(ErrorCode.InvalidRequest, "Request cancelled"));
@@ -63444,7 +65000,7 @@ var StdioClientTransport = class {
     if (this._process) {
       throw new Error("StdioClientTransport already started! If using Client class, note that connect() calls start() automatically.");
     }
-    return new Promise((resolve7, reject) => {
+    return new Promise((resolve9, reject) => {
       var _a7, _b4, _c3, _d3, _e3;
       this._process = (0, import_cross_spawn.default)(this._serverParams.command, (_a7 = this._serverParams.args) != null ? _a7 : [], {
         // merge default env with server env because mcp server needs some env vars
@@ -63463,7 +65019,7 @@ var StdioClientTransport = class {
         (_a8 = this.onerror) == null ? void 0 : _a8.call(this, error48);
       });
       this._process.on("spawn", () => {
-        resolve7();
+        resolve9();
       });
       this._process.on("close", (_code) => {
         var _a8;
@@ -63529,17 +65085,17 @@ var StdioClientTransport = class {
     if (this._process) {
       const processToClose = this._process;
       this._process = void 0;
-      const closePromise = new Promise((resolve7) => {
+      const closePromise = new Promise((resolve9) => {
         processToClose.once("close", () => {
-          resolve7();
+          resolve9();
         });
       });
       try {
         (_a7 = processToClose.stdin) == null ? void 0 : _a7.end();
       } catch (e) {
       }
-      await Promise.race([closePromise, new Promise((resolve7) => {
-        const closeTimeout = setTimeout(resolve7, 2e3);
+      await Promise.race([closePromise, new Promise((resolve9) => {
+        const closeTimeout = setTimeout(resolve9, 2e3);
         closeTimeout.unref?.();
       })]);
       if (processToClose.exitCode === null) {
@@ -63547,8 +65103,8 @@ var StdioClientTransport = class {
           processToClose.kill("SIGTERM");
         } catch (e) {
         }
-        await Promise.race([closePromise, new Promise((resolve7) => {
-        const closeTimeout = setTimeout(resolve7, 2e3);
+        await Promise.race([closePromise, new Promise((resolve9) => {
+        const closeTimeout = setTimeout(resolve9, 2e3);
         closeTimeout.unref?.();
       })]);
       }
@@ -63562,16 +65118,16 @@ var StdioClientTransport = class {
     this._readBuffer.clear();
   }
   send(message) {
-    return new Promise((resolve7) => {
+    return new Promise((resolve9) => {
       var _a7;
       if (!((_a7 = this._process) == null ? void 0 : _a7.stdin)) {
         throw new Error("Not connected");
       }
       const json2 = serializeMessage(message);
       if (this._process.stdin.write(json2)) {
-        resolve7();
+        resolve9();
       } else {
-        this._process.stdin.once("drain", resolve7);
+        this._process.stdin.once("drain", resolve9);
       }
     });
   }
@@ -64036,7 +65592,7 @@ function createNodeFetch() {
     const signal = (_b4 = init == null ? void 0 : init.signal) != null ? _b4 : input instanceof Request ? input.signal : void 0;
     const body = await getRequestBody((_c3 = init == null ? void 0 : init.body) != null ? _c3 : input instanceof Request ? input.body : void 0);
     const transport = requestUrl.protocol === "https:" ? https : http;
-    return new Promise((resolve7, reject) => {
+    return new Promise((resolve9, reject) => {
       let settled = false;
       const fail = (error48) => {
         if (settled) return;
@@ -64066,7 +65622,7 @@ function createNodeFetch() {
           if (settled) return;
           settled = true;
           signal == null ? void 0 : signal.removeEventListener("abort", onAbort);
-          resolve7(createFetchResponse(res));
+          resolve9(createFetchResponse(res));
         }
       );
       req.on("error", (error48) => fail(error48));
@@ -64526,12 +66082,12 @@ function appendSpinnerSvg(container) {
   svg.setAttribute("fill", "none");
   svg.setAttribute("stroke", "currentColor");
   svg.setAttribute("stroke-width", "2");
-  const path26 = container.ownerDocument.createElementNS(SVG_NS2, "path");
-  path26.setAttribute(
+  const path36 = container.ownerDocument.createElementNS(SVG_NS2, "path");
+  path36.setAttribute(
     "d",
     "M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"
   );
-  svg.appendChild(path26);
+  svg.appendChild(path36);
   container.appendChild(svg);
 }
 var McpTestModal = class extends import_obsidian9.Modal {
@@ -70689,9 +72245,9 @@ var MessageChannel = class {
     if (!this.turnActive) {
       if (this.resolveNext) {
         this.turnActive = true;
-        const resolve7 = this.resolveNext;
+        const resolve9 = this.resolveNext;
         this.resolveNext = null;
-        resolve7({ value: message, done: false });
+        resolve9({ value: message, done: false });
       } else {
         if (this.queue.length >= MESSAGE_CHANNEL_CONFIG.MAX_QUEUED_MESSAGES) {
           this.onWarning(`[MessageChannel] Queue full (${MESSAGE_CHANNEL_CONFIG.MAX_QUEUED_MESSAGES}), dropping newest`);
@@ -70738,18 +72294,18 @@ var MessageChannel = class {
     if (this.queue.length > 0 && this.resolveNext) {
       const pending = this.queue.shift();
       this.turnActive = true;
-      const resolve7 = this.resolveNext;
+      const resolve9 = this.resolveNext;
       this.resolveNext = null;
-      resolve7({ value: this.pendingToMessage(pending), done: false });
+      resolve9({ value: this.pendingToMessage(pending), done: false });
     }
   }
   close() {
     this.closed = true;
     this.queue = [];
     if (this.resolveNext) {
-      const resolve7 = this.resolveNext;
+      const resolve9 = this.resolveNext;
       this.resolveNext = null;
-      resolve7({ value: void 0, done: true });
+      resolve9({ value: void 0, done: true });
     }
   }
   reset() {
@@ -70772,8 +72328,8 @@ var MessageChannel = class {
           this.turnActive = true;
           return Promise.resolve({ value: this.pendingToMessage(pending), done: false });
         }
-        return new Promise((resolve7) => {
-          this.resolveNext = resolve7;
+        return new Promise((resolve9) => {
+          this.resolveNext = resolve9;
         });
       }
     };
@@ -72527,8 +74083,8 @@ var ClaudeChatRuntime = class {
         if (state.chunks.length > 0) {
           yield state.chunks.shift();
         } else {
-          const chunk = await new Promise((resolve7) => {
-            state.resolveChunk = resolve7;
+          const chunk = await new Promise((resolve9) => {
+            state.resolveChunk = resolve9;
           });
           if (chunk) {
             yield chunk;
@@ -73167,10 +74723,10 @@ var CodexAppServerProcess = class {
   }
   async shutdown() {
     if (!this.proc || !this.alive) return;
-    return new Promise((resolve7) => {
+    return new Promise((resolve9) => {
       const onExit = () => {
         window.clearTimeout(killTimer);
-        resolve7();
+        resolve9();
       };
       this.proc.once("exit", onExit);
       this.proc.kill("SIGTERM");
@@ -73501,13 +75057,13 @@ var CodexRpcTransport = class {
   request(method, params, timeoutMs = DEFAULT_TIMEOUT_MS) {
     const id2 = this.nextId++;
     const msg = { jsonrpc: "2.0", id: id2, method, params };
-    return new Promise((resolve7, reject) => {
+    return new Promise((resolve9, reject) => {
       const timer = timeoutMs > 0 ? window.setTimeout(() => {
         this.pending.delete(id2);
         reject(new Error(`Request timeout: ${method} (${timeoutMs}ms)`));
       }, timeoutMs) : null;
       const resolvePending = (result) => {
-        resolve7(result);
+        resolve9(result);
       };
       this.pending.set(id2, {
         resolve: resolvePending,
@@ -74072,7 +75628,7 @@ var CodexSkillCatalog = class {
 
 // src/providers/codex/modelDiscoveryState.ts
 var CODEX_MODEL_DISCOVERY_STATE = /* @__PURE__ */ Symbol("codexModelDiscoveryState");
-function ensureDiscoveryState2(settings11) {
+function ensureDiscoveryState4(settings11) {
   const bag = settings11;
   const existing = bag[CODEX_MODEL_DISCOVERY_STATE];
   if (existing && typeof existing === "object" && !Array.isArray(existing)) {
@@ -74091,7 +75647,7 @@ function ensureDiscoveryState2(settings11) {
   });
   return next;
 }
-function cloneDiscoveredModels2(models) {
+function cloneDiscoveredModels4(models) {
   return models.map((model) => ({ ...model }));
 }
 function normalizeCodexDiscoveredModels(value) {
@@ -74122,21 +75678,21 @@ function normalizeCodexDiscoveredModels(value) {
   return normalized;
 }
 function getCodexModelDiscoveryState(settings11) {
-  const state = ensureDiscoveryState2(settings11);
+  const state = ensureDiscoveryState4(settings11);
   return {
-    discoveredModels: cloneDiscoveredModels2(state.discoveredModels)
+    discoveredModels: cloneDiscoveredModels4(state.discoveredModels)
   };
 }
 function updateCodexModelDiscoveryState(settings11, updates) {
-  const state = ensureDiscoveryState2(settings11);
+  const state = ensureDiscoveryState4(settings11);
   const nextDiscoveredModels = "discoveredModels" in updates ? normalizeCodexDiscoveredModels(updates.discoveredModels) : state.discoveredModels;
-  if (sameDiscoveredModels2(state.discoveredModels, nextDiscoveredModels)) {
+  if (sameDiscoveredModels4(state.discoveredModels, nextDiscoveredModels)) {
     return false;
   }
-  state.discoveredModels = cloneDiscoveredModels2(nextDiscoveredModels);
+  state.discoveredModels = cloneDiscoveredModels4(nextDiscoveredModels);
   return true;
 }
-function sameDiscoveredModels2(left, right) {
+function sameDiscoveredModels4(left, right) {
   if (left.length !== right.length) {
     return false;
   }
@@ -76663,8 +78219,8 @@ var CodexAuxQueryRunner = class {
     let accumulatedText = "";
     let turnError = null;
     let resolveWait = null;
-    const donePromise = new Promise((resolve7) => {
-      resolveWait = resolve7;
+    const donePromise = new Promise((resolve9) => {
+      resolveWait = resolve9;
     });
     this.transport.onNotification("item/agentMessage/delta", (params) => {
       var _a8;
@@ -79560,15 +81116,15 @@ function normalizeFileChanges(changes) {
 function normalizeFileChange(change) {
   var _a7;
   const record2 = asRecord(change);
-  const path26 = firstString(record2 == null ? void 0 : record2.path);
-  if (!record2 || !path26) {
+  const path36 = firstString(record2 == null ? void 0 : record2.path);
+  if (!record2 || !path36) {
     return null;
   }
   const kindInfo = normalizeFileChangeKind((_a7 = record2.kind) != null ? _a7 : record2.type);
   const diff = firstString(record2.diff);
   return {
     ...record2,
-    path: path26,
+    path: path36,
     kind: kindInfo.kind,
     type: kindInfo.kind,
     ...kindInfo.movePath ? { movePath: kindInfo.movePath } : {},
@@ -79615,12 +81171,12 @@ function fileChangeKey(change) {
 }
 function formatFileChangeSummary(change) {
   const record2 = asRecord(change);
-  const path26 = firstString(record2 == null ? void 0 : record2.path);
-  if (!record2 || !path26) {
+  const path36 = firstString(record2 == null ? void 0 : record2.path);
+  if (!record2 || !path36) {
     return "";
   }
   const kind = firstString(record2.kind, record2.type) || "change";
-  return `${kind}: ${path26}`;
+  return `${kind}: ${path36}`;
 }
 function readContentText(value) {
   if (!Array.isArray(value)) {
@@ -80271,10 +81827,10 @@ User: ${turn.prompt}`
           return;
         }
         if (this.chunkBuffer.length === 0) {
-          await new Promise((resolve7) => {
-            this.chunkResolve = resolve7;
+          await new Promise((resolve9) => {
+            this.chunkResolve = resolve9;
             if (this.chunkBuffer.length > 0 || this.canceled) {
-              resolve7();
+              resolve9();
               this.chunkResolve = null;
             }
           });
@@ -81085,7 +82641,7 @@ var AcpJsonRpcTransport = class {
     }
     const id2 = this.nextId++;
     const timeoutMs = (_a7 = options.timeoutMs) != null ? _a7 : this.defaultTimeoutMs;
-    return new Promise((resolve7, reject) => {
+    return new Promise((resolve9, reject) => {
       let timer;
       let onAbort;
       const cleanup = () => {
@@ -81095,7 +82651,7 @@ var AcpJsonRpcTransport = class {
         }
       };
       const resolvePending = (result) => {
-        resolve7(result);
+        resolve9(result);
       };
       const pending = {
         cleanup,
@@ -81942,11 +83498,11 @@ var AcpSubprocess = class {
     if (!this.proc || this.proc.exitCode !== null) {
       return;
     }
-    await new Promise((resolve7) => {
+    await new Promise((resolve9) => {
       const proc = this.proc;
       const onClose = () => {
         cleanup();
-        resolve7();
+        resolve9();
       };
       const killTimer = window.setTimeout(() => {
         if (isWin32() && proc.pid !== void 0) {
@@ -82183,8 +83739,8 @@ var StreamChunkQueue = class {
     if (this.closed) {
       return null;
     }
-    return new Promise((resolve7) => {
-      this.waiters.push(resolve7);
+    return new Promise((resolve9) => {
+      this.waiters.push(resolve9);
     });
   }
 };
@@ -83169,8 +84725,8 @@ var geminiProviderRegistration = {
   taskResultInterpreter: new GeminiTaskResultInterpreter()
 };
 
-// src/providers/opencode/agents/OpencodeAgentMentionProvider.ts
-var OpencodeAgentMentionProvider = class {
+// src/providers/kimicode/agents/KimicodeAgentMentionProvider.ts
+var KimicodeAgentMentionProvider = class {
   constructor(storage) {
     this.storage = storage;
     this.agents = [];
@@ -83195,12 +84751,12 @@ function isMentionableSubagent(agent) {
   return agent.mode === "subagent";
 }
 
-// src/providers/opencode/commands/OpencodeCommandCatalog.ts
+// src/providers/kimicode/commands/KimicodeCommandCatalog.ts
 function slashCommandToEntry2(command) {
   var _a7;
   return {
     id: command.id,
-    providerId: "opencode",
+    providerId: "kimicode",
     kind: "command",
     name: command.name,
     description: command.description,
@@ -83241,7 +84797,7 @@ function dedupeRuntimeCommands(commands) {
   }
   return deduped;
 }
-var OpencodeCommandCatalog = class {
+var KimicodeCommandCatalog = class {
   constructor() {
     this.runtimeCommands = [];
   }
@@ -83255,14 +84811,14 @@ var OpencodeCommandCatalog = class {
     return [];
   }
   async saveVaultEntry(_entry) {
-    throw new Error("OpenCode runtime commands are not editable from Grimoire.");
+    throw new Error("Kimi Code runtime commands are not editable from Grimoire.");
   }
   async deleteVaultEntry(_entry) {
-    throw new Error("OpenCode runtime commands are not deletable from Grimoire.");
+    throw new Error("Kimi Code runtime commands are not deletable from Grimoire.");
   }
   getDropdownConfig() {
     return {
-      providerId: "opencode",
+      providerId: "kimicode",
       triggerChars: ["/"],
       builtInPrefix: "/",
       skillPrefix: "/",
@@ -83273,20 +84829,20 @@ var OpencodeCommandCatalog = class {
   }
 };
 
-// src/providers/opencode/runtime/OpencodeChatRuntime.ts
+// src/providers/kimicode/runtime/KimicodeChatRuntime.ts
 var fs26 = __toESM(require("node:fs/promises"));
 var path21 = __toESM(require("node:path"));
 init_env();
 init_path();
 
-// src/providers/opencode/app/OpencodePlanUsageStore.ts
-var OPENCODE_USAGE_NOTE = "Pay per token across vendors \xB7 no cap set.";
-var OpencodePlanUsageStore = class extends ProviderSpendUsageStore {
+// src/providers/kimicode/app/KimicodePlanUsageStore.ts
+var KIMICODE_USAGE_NOTE = "Pay per token across vendors \xB7 no cap set.";
+var KimicodePlanUsageStore = class extends ProviderSpendUsageStore {
   constructor() {
     super({
       plan: "API keys",
-      note: OPENCODE_USAGE_NOTE,
-      isAvailable: (settings11) => getOpencodeProviderSettings(settings11).enabled
+      note: KIMICODE_USAGE_NOTE,
+      isAvailable: (settings11) => getKimicodeProviderSettings(settings11).enabled
     });
     this.sessionTotals = /* @__PURE__ */ new Map();
   }
@@ -83313,15 +84869,15 @@ var OpencodePlanUsageStore = class extends ProviderSpendUsageStore {
     this.sessionTotals.clear();
   }
 };
-var opencodePlanUsageStore = new OpencodePlanUsageStore();
+var kimicodePlanUsageStore = new KimicodePlanUsageStore();
 function normalizeCurrency2(currency) {
   const normalized = currency == null ? void 0 : currency.trim().toUpperCase();
   return normalized || "USD";
 }
 
-// src/providers/opencode/capabilities.ts
-var OPENCODE_PROVIDER_CAPABILITIES = Object.freeze({
-  providerId: "opencode",
+// src/providers/kimicode/capabilities.ts
+var KIMICODE_PROVIDER_CAPABILITIES = Object.freeze({
+  providerId: "kimicode",
   supportsPersistentRuntime: true,
   supportsNativeHistory: true,
   supportsPlanMode: true,
@@ -83335,40 +84891,40 @@ var OPENCODE_PROVIDER_CAPABILITIES = Object.freeze({
   reasoningControl: "effort"
 });
 
-// src/providers/opencode/history/OpencodeUsageMetadataStore.ts
+// src/providers/kimicode/history/KimicodeUsageMetadataStore.ts
 var import_node_child_process4 = require("node:child_process");
 var fs24 = __toESM(require("node:fs"));
 
-// src/providers/opencode/runtime/OpencodePaths.ts
+// src/providers/kimicode/runtime/KimicodePaths.ts
 var fs23 = __toESM(require("node:fs"));
 var os11 = __toESM(require("node:os"));
 var path19 = __toESM(require("node:path"));
-var OPENCODE_APP_NAME = "opencode";
-var DEFAULT_DATABASE_NAME = "opencode.db";
-var DATABASE_NAME_PATTERN = /^opencode(?:-[a-z0-9._-]+)?\.db$/i;
-function resolveOpencodeDataDir(env = process.env) {
+var KIMICODE_APP_NAME = "kimicode";
+var DEFAULT_DATABASE_NAME = "kimicode.db";
+var DATABASE_NAME_PATTERN = /^kimicode(?:-[a-z0-9._-]+)?\.db$/i;
+function resolveKimicodeDataDir(env = process.env) {
   var _a7;
   const xdgDataHome = (_a7 = env.XDG_DATA_HOME) == null ? void 0 : _a7.trim();
   if (xdgDataHome) {
-    return path19.join(xdgDataHome, OPENCODE_APP_NAME);
+    return path19.join(xdgDataHome, KIMICODE_APP_NAME);
   }
   const home = env.HOME || os11.homedir();
   if (process.platform === "win32") {
     const appData = env.APPDATA || env.LOCALAPPDATA || path19.join(home, "AppData", "Roaming");
-    return path19.join(appData, OPENCODE_APP_NAME);
+    return path19.join(appData, KIMICODE_APP_NAME);
   }
-  return path19.join(home, ".local", "share", OPENCODE_APP_NAME);
+  return path19.join(home, ".local", "share", KIMICODE_APP_NAME);
 }
-function resolveOpencodeDatabasePath(env = process.env) {
+function resolveKimicodeDatabasePath(env = process.env) {
   var _a7, _b4;
-  const override = (_a7 = env.OPENCODE_DB) == null ? void 0 : _a7.trim();
+  const override = (_a7 = env.KIMICODE_DB) == null ? void 0 : _a7.trim();
   if (override) {
     if (override === ":memory:" || path19.isAbsolute(override)) {
       return override;
     }
-    return path19.join(resolveOpencodeDataDir(env), override);
+    return path19.join(resolveKimicodeDataDir(env), override);
   }
-  const candidates = getOpencodeDatabasePathCandidates(env);
+  const candidates = getKimicodeDatabasePathCandidates(env);
   for (const candidate of candidates) {
     if (fs23.existsSync(candidate)) {
       return candidate;
@@ -83376,7 +84932,7 @@ function resolveOpencodeDatabasePath(env = process.env) {
   }
   return (_b4 = candidates[0]) != null ? _b4 : null;
 }
-function resolveExistingOpencodeDatabasePath(preferredPath, env = process.env) {
+function resolveExistingKimicodeDatabasePath(preferredPath, env = process.env) {
   const preferred = preferredPath == null ? void 0 : preferredPath.trim();
   if (preferred) {
     if (preferred === ":memory:") {
@@ -83386,19 +84942,19 @@ function resolveExistingOpencodeDatabasePath(preferredPath, env = process.env) {
       return preferred;
     }
   }
-  const resolved = resolveOpencodeDatabasePath(env);
+  const resolved = resolveKimicodeDatabasePath(env);
   if (resolved && (resolved === ":memory:" || fs23.existsSync(resolved))) {
     return resolved;
   }
   return preferred != null ? preferred : resolved;
 }
-function getOpencodeDatabasePathCandidates(env) {
+function getKimicodeDatabasePathCandidates(env) {
   const candidates = [];
   const seen = /* @__PURE__ */ new Set();
   const home = env.HOME || os11.homedir();
   const dataDirs = [
-    resolveOpencodeDataDir(env),
-    path19.join(home, "Library", "Application Support", OPENCODE_APP_NAME)
+    resolveKimicodeDataDir(env),
+    path19.join(home, "Library", "Application Support", KIMICODE_APP_NAME)
   ];
   for (const dataDir of dataDirs) {
     pushCandidate(candidates, seen, path19.join(dataDir, DEFAULT_DATABASE_NAME));
@@ -83424,23 +84980,23 @@ function pushCandidate(candidates, seen, candidate) {
   candidates.push(candidate);
 }
 
-// src/providers/opencode/history/OpencodeUsageMetadataStore.ts
-async function loadOpencodeSessionCost(sessionId, providerState) {
-  const databasePath = resolveExistingOpencodeDatabasePath(providerState == null ? void 0 : providerState.databasePath);
+// src/providers/kimicode/history/KimicodeUsageMetadataStore.ts
+async function loadKimicodeSessionCost(sessionId, providerState) {
+  const databasePath = resolveExistingKimicodeDatabasePath(providerState == null ? void 0 : providerState.databasePath);
   if (!sessionId || !databasePath || databasePath === ":memory:" || !fs24.existsSync(databasePath)) {
     return null;
   }
-  const messageCost = sumOpencodeCostRows(await loadOpencodeCostRows(databasePath, sessionId, "message"));
+  const messageCost = sumKimicodeCostRows(await loadKimicodeCostRows(databasePath, sessionId, "message"));
   if (messageCost) {
     return messageCost;
   }
-  return sumOpencodeCostRows(await loadOpencodeCostRows(databasePath, sessionId, "step"));
+  return sumKimicodeCostRows(await loadKimicodeCostRows(databasePath, sessionId, "step"));
 }
-function sumOpencodeCostRows(rows) {
+function sumKimicodeCostRows(rows) {
   const amount = (rows != null ? rows : []).map((row) => readCostAmount(row.cost)).filter((cost) => cost !== null && cost > 0).reduce((total, cost) => total + cost, 0);
   return amount > 0 ? { amount, currency: "USD" } : null;
 }
-async function loadOpencodeCostRows(databasePath, sessionId, source) {
+async function loadKimicodeCostRows(databasePath, sessionId, source) {
   const viaNodeSqlite = await loadCostRowsWithNodeSqlite(databasePath, sessionId, source);
   if (viaNodeSqlite) {
     return viaNodeSqlite;
@@ -83524,7 +85080,7 @@ function isPlainObject4(value) {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
-// src/providers/opencode/normalization/opencodeToolNormalization.ts
+// src/providers/kimicode/normalization/kimicodeToolNormalization.ts
 var TOOL_NAME_MAP2 = {
   bash: TOOL_BASH,
   edit: TOOL_EDIT,
@@ -83697,7 +85253,7 @@ function extractToolMetadata(rawOutput) {
   }
   return isPlainObject5(rawOutput.metadata) ? rawOutput.metadata : null;
 }
-function resolveOpencodeRawToolName(currentRawName, update) {
+function resolveKimicodeRawToolName(currentRawName, update) {
   const titleName = firstTrimmedString(update.title);
   const knownTitleName = titleName && isKnownToolName(titleName) ? titleName.trim().toLowerCase() : void 0;
   if (knownTitleName) {
@@ -83744,14 +85300,14 @@ function normalizeWebSearchInput2(input) {
   }
   return normalized;
 }
-function normalizeOpencodeToolName(rawName) {
+function normalizeKimicodeToolName(rawName) {
   const knownName = toKnownToolName(rawName);
   if (!knownName) {
     return (rawName == null ? void 0 : rawName.trim()) || "tool";
   }
   return TOOL_NAME_MAP2[knownName];
 }
-function normalizeOpencodeToolInput(rawName, input) {
+function normalizeKimicodeToolInput(rawName, input) {
   const knownName = toKnownToolName(rawName);
   switch (knownName) {
     case "question":
@@ -83793,7 +85349,7 @@ function normalizeOpencodeToolInput(rawName, input) {
       return input;
   }
 }
-function normalizeOpencodeToolUseResult(rawName, input, rawOutput) {
+function normalizeKimicodeToolUseResult(rawName, input, rawOutput) {
   const knownName = toKnownToolName(rawName);
   const metadata = extractToolMetadata(rawOutput);
   const normalized = {};
@@ -83803,6 +85359,9520 @@ function normalizeOpencodeToolUseResult(rawName, input, rawOutput) {
   if (knownName === "question") {
     const questions = Array.isArray(input.questions) ? input.questions : [];
     const answers = normalizeQuestionAnswers(metadata == null ? void 0 : metadata.answers, questions);
+    if (answers) {
+      normalized.answers = answers;
+    }
+  }
+  return Object.keys(normalized).length > 0 ? normalized : void 0;
+}
+function createKimicodeToolStreamAdapter() {
+  return new AcpToolStreamAdapter({
+    normalizeToolInput: normalizeKimicodeToolInput,
+    normalizeToolName: normalizeKimicodeToolName,
+    normalizeToolUseResult: normalizeKimicodeToolUseResult,
+    resolveRawToolName: resolveKimicodeRawToolName
+  });
+}
+
+// src/providers/kimicode/types/index.ts
+function getKimicodeState(providerState) {
+  return providerState != null ? providerState : {};
+}
+
+// src/providers/kimicode/runtime/buildKimicodePrompt.ts
+function buildKimicodePromptText(request, conversationHistory = [], options = {}) {
+  let prompt = request.text;
+  if (request.currentNotePath) {
+    prompt = appendCurrentNote(prompt, request.currentNotePath);
+  }
+  if (request.vaultSearchContext) {
+    prompt = appendVaultSearchContext(prompt, request.vaultSearchContext);
+  }
+  if (request.projectWorkspaceContext) {
+    prompt = appendProjectWorkspaceContext(prompt, request.projectWorkspaceContext);
+  }
+  if (request.editorSelection && request.editorSelection.mode !== "none") {
+    prompt = appendEditorContext(prompt, request.editorSelection);
+  }
+  if (request.browserSelection) {
+    prompt = appendBrowserContext(prompt, request.browserSelection);
+  }
+  if (request.canvasSelection) {
+    prompt = appendCanvasContext(prompt, request.canvasSelection);
+  }
+  if (conversationHistory.length > 0) {
+    const historyContext = buildContextFromHistory(conversationHistory);
+    prompt = buildPromptWithHistoryContext(
+      historyContext,
+      prompt,
+      prompt,
+      conversationHistory
+    );
+  }
+  if (request.orchestratorMode === true || options.orchestratorMode === true) {
+    prompt = applyOrchestratorModeInstructions(prompt);
+  }
+  return prompt;
+}
+function buildKimicodePromptBlocks(request, conversationHistory = [], options = {}) {
+  var _a7;
+  const blocks = [
+    { type: "text", text: buildKimicodePromptText(request, conversationHistory, options) }
+  ];
+  for (const image of (_a7 = request.images) != null ? _a7 : []) {
+    if (!image.data) {
+      continue;
+    }
+    blocks.push({
+      data: image.data,
+      mimeType: image.mediaType,
+      type: "image"
+    });
+  }
+  return blocks;
+}
+
+// src/providers/kimicode/runtime/KimicodeLaunchArtifacts.ts
+var fs25 = __toESM(require("node:fs/promises"));
+var path20 = __toESM(require("node:path"));
+init_path();
+var DEFAULT_KIMICODE_MANAGED_AGENT_CONFIGS = [
+  { id: KIMICODE_BUILD_MODE_ID },
+  {
+    definition: {
+      mode: "primary",
+      permission: {
+        plan_enter: "allow",
+        question: "allow"
+      }
+    },
+    id: KIMICODE_FULL_ACCESS_MODE_ID
+  },
+  {
+    definition: {
+      mode: "primary",
+      permission: {
+        plan_enter: "allow",
+        question: "allow",
+        bash: "ask",
+        edit: "ask",
+        write: "ask"
+      }
+    },
+    id: KIMICODE_SAFE_MODE_ID
+  },
+  { id: KIMICODE_PLAN_MODE_ID }
+];
+async function prepareKimicodeLaunchArtifacts(params) {
+  var _a7, _b4, _c3, _d3, _e3, _f3;
+  const artifactsDir = path20.join(
+    params.workspaceRoot,
+    GRIMOIRE_STORAGE_PATH,
+    (_a7 = params.artifactsSubdir) != null ? _a7 : "kimicode"
+  );
+  const systemPromptPath = path20.join(artifactsDir, "system.md");
+  const configPath = path20.join(artifactsDir, "config.json");
+  const systemPrompt = normalizeSystemPrompt(
+    (_b4 = params.systemPromptText) != null ? _b4 : buildSystemPrompt(requireSettings(params))
+  );
+  const promptKey = (_c3 = params.systemPromptKey) != null ? _c3 : params.systemPromptText !== void 0 ? params.systemPromptText : computeSystemPromptKey(requireSettings(params));
+  const baseConfig = await loadKimicodeBaseConfig(
+    params.runtimeEnv.KIMICODE_CONFIG,
+    params.workspaceRoot
+  );
+  const configContent = `${JSON.stringify(
+    buildKimicodeManagedConfig(
+      baseConfig,
+      systemPromptPath,
+      (_e3 = params.userName) != null ? _e3 : (_d3 = params.settings) == null ? void 0 : _d3.userName,
+      params.managedAgents,
+      params.defaultAgentId
+    ),
+    null,
+    2
+  )}
+`;
+  const databasePath = resolveKimicodeDatabasePath(params.runtimeEnv);
+  await fs25.mkdir(artifactsDir, { recursive: true });
+  await ensureKimicodeDatabaseDirectory(databasePath);
+  await writeIfChanged(systemPromptPath, systemPrompt);
+  await writeIfChanged(configPath, configContent);
+  return {
+    configPath,
+    configContent,
+    databasePath,
+    launchKey: [
+      promptKey,
+      configContent,
+      databasePath != null ? databasePath : "",
+      (_f3 = params.runtimeEnv.XDG_DATA_HOME) != null ? _f3 : ""
+    ].join("::"),
+    systemPromptPath
+  };
+}
+async function ensureKimicodeDatabaseDirectory(databasePath) {
+  if (!databasePath || databasePath === ":memory:") {
+    return;
+  }
+  await fs25.mkdir(path20.dirname(databasePath), { recursive: true });
+}
+function buildKimicodeManagedConfig(baseConfig, systemPromptPath, userName, managedAgents = DEFAULT_KIMICODE_MANAGED_AGENT_CONFIGS, defaultAgentId) {
+  const config2 = {
+    ...baseConfig,
+    $schema: typeof baseConfig.$schema === "string" ? baseConfig.$schema : "https://kimicode.ai/config.json"
+  };
+  const existingAgents = isPlainObject6(baseConfig.agent) ? { ...baseConfig.agent } : {};
+  const nextAgents = { ...existingAgents };
+  const agentConfigs = managedAgents.length > 0 ? managedAgents : DEFAULT_KIMICODE_MANAGED_AGENT_CONFIGS;
+  for (const agentConfig of agentConfigs) {
+    const existingAgentValue = existingAgents[agentConfig.id];
+    const existingAgent = isPlainObject6(existingAgentValue) ? { ...existingAgentValue } : {};
+    nextAgents[agentConfig.id] = {
+      ...existingAgent,
+      ...isPlainObject6(agentConfig.definition) ? agentConfig.definition : {},
+      prompt: `{file:${systemPromptPath}}`
+    };
+  }
+  config2.agent = nextAgents;
+  const trimmedDefaultAgentId = defaultAgentId == null ? void 0 : defaultAgentId.trim();
+  if (trimmedDefaultAgentId) {
+    config2.default_agent = trimmedDefaultAgentId;
+  }
+  const trimmedUserName = userName == null ? void 0 : userName.trim();
+  if (trimmedUserName) {
+    config2.username = trimmedUserName;
+  }
+  return config2;
+}
+async function writeIfChanged(filePath, content) {
+  try {
+    const existing = await fs25.readFile(filePath, "utf-8");
+    if (existing === content) {
+      return;
+    }
+  } catch (e) {
+  }
+  await fs25.writeFile(filePath, content, "utf-8");
+}
+async function loadKimicodeBaseConfig(configuredPath, workspaceRoot) {
+  const trimmedPath = configuredPath == null ? void 0 : configuredPath.trim();
+  if (!trimmedPath) {
+    return {};
+  }
+  const expandedPath = expandHomePath(trimmedPath);
+  const resolvedPath = path20.isAbsolute(expandedPath) ? expandedPath : path20.resolve(workspaceRoot, expandedPath);
+  try {
+    const rawConfig = await fs25.readFile(resolvedPath, "utf8");
+    const parsedConfig = JSON.parse(rawConfig);
+    return isPlainObject6(parsedConfig) ? parsedConfig : {};
+  } catch (e) {
+    return {};
+  }
+}
+function isPlainObject6(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+function normalizeSystemPrompt(systemPrompt) {
+  return systemPrompt.endsWith("\n") ? systemPrompt : `${systemPrompt}
+`;
+}
+function requireSettings(params) {
+  if (params.settings) {
+    return params.settings;
+  }
+  throw new Error("prepareKimicodeLaunchArtifacts requires settings when no systemPromptText is provided");
+}
+
+// src/providers/kimicode/runtime/KimicodeRuntimeEnvironment.ts
+init_env();
+function buildKimicodeRuntimeEnv(settings11, cliPath, databasePathOverride) {
+  const envText = getRuntimeEnvironmentText(settings11, "kimicode");
+  const envVars = parseEnvironmentVariables(envText);
+  return {
+    ...process.env,
+    ...envVars,
+    KIMICODE_DISABLE_CLAUDE_CODE_PROMPT: "true",
+    ...databasePathOverride ? { KIMICODE_DB: databasePathOverride } : {},
+    PATH: getEnhancedPath(envVars.PATH, cliPath || void 0)
+  };
+}
+
+// src/providers/kimicode/runtime/KimicodeChatRuntime.ts
+var StreamChunkQueue2 = class {
+  constructor() {
+    this.closed = false;
+    this.items = [];
+    this.waiters = [];
+  }
+  push(chunk) {
+    const waiter = this.waiters.shift();
+    if (waiter) {
+      waiter(chunk);
+      return;
+    }
+    this.items.push(chunk);
+  }
+  close() {
+    var _a7;
+    if (this.closed) {
+      return;
+    }
+    this.closed = true;
+    while (this.waiters.length > 0) {
+      (_a7 = this.waiters.shift()) == null ? void 0 : _a7(null);
+    }
+  }
+  async next() {
+    var _a7;
+    if (this.items.length > 0) {
+      return (_a7 = this.items.shift()) != null ? _a7 : null;
+    }
+    if (this.closed) {
+      return null;
+    }
+    return new Promise((resolve9) => {
+      this.waiters.push(resolve9);
+    });
+  }
+};
+var KimicodeChatRuntime = class {
+  constructor(plugin) {
+    this.plugin = plugin;
+    this.providerId = "kimicode";
+    this.activeTurn = null;
+    this.approvalCallback = null;
+    this.connection = null;
+    this.contextUsage = null;
+    this.currentDatabasePath = null;
+    this.currentLaunchKey = null;
+    this.currentSessionEffortConfigId = null;
+    this.currentSessionEffortValue = null;
+    this.currentSessionEffortValues = /* @__PURE__ */ new Set();
+    this.currentSessionModelId = null;
+    this.currentSessionModeId = null;
+    this.currentTurnSawAcpCost = false;
+    this.currentTurnMetadata = {};
+    this.loadedSessionId = null;
+    this.permissionModeSyncCallback = null;
+    this.process = null;
+    this.promptUsage = null;
+    this.readyListeners = [];
+    this.ready = false;
+    this.sessionInvalidated = false;
+    this.supportedCommandWaiters = [];
+    this.supportedCommands = [];
+    this.sessionCwds = /* @__PURE__ */ new Map();
+    this.sessionId = null;
+    this.sessionUpdateNormalizer = new AcpSessionUpdateNormalizer();
+    this.toolStreamAdapter = createKimicodeToolStreamAdapter();
+    this.transport = null;
+    this.unregisterTransportClose = null;
+  }
+  getCapabilities() {
+    return KIMICODE_PROVIDER_CAPABILITIES;
+  }
+  prepareTurn(request) {
+    var _a7;
+    return {
+      isCompact: false,
+      mcpMentions: (_a7 = request.enabledMcpServers) != null ? _a7 : /* @__PURE__ */ new Set(),
+      persistedContent: "",
+      prompt: buildKimicodePromptText(request),
+      request
+    };
+  }
+  onReadyStateChange(listener) {
+    this.readyListeners.push(listener);
+    return () => {
+      const index = this.readyListeners.indexOf(listener);
+      if (index >= 0) {
+        this.readyListeners.splice(index, 1);
+      }
+    };
+  }
+  setResumeCheckpoint(_checkpointId) {
+  }
+  syncConversationState(conversation) {
+    var _a7;
+    const previousSessionId = this.sessionId;
+    const nextSessionId = (_a7 = conversation == null ? void 0 : conversation.sessionId) != null ? _a7 : null;
+    if (this.sessionId !== nextSessionId) {
+      this.currentSessionEffortConfigId = null;
+      this.currentSessionEffortValue = null;
+      this.currentSessionEffortValues = /* @__PURE__ */ new Set();
+      this.currentSessionModelId = null;
+      this.currentSessionModeId = null;
+      this.sessionInvalidated = false;
+      this.setSupportedCommands([]);
+    }
+    this.sessionId = nextSessionId;
+    const state = getKimicodeState(conversation == null ? void 0 : conversation.providerState);
+    if (state.databasePath) {
+      this.currentDatabasePath = state.databasePath;
+      return;
+    }
+    if (!nextSessionId || nextSessionId !== previousSessionId) {
+      this.currentDatabasePath = null;
+    }
+  }
+  async reloadMcpServers() {
+  }
+  async warmModelMetadata(model) {
+    const selectedRawModelId = decodeKimicodeModelId(model);
+    if (!selectedRawModelId) {
+      return false;
+    }
+    if (!await this.ensureReady({ allowSessionCreation: true })) {
+      return false;
+    }
+    if (!this.connection || !this.sessionId) {
+      return false;
+    }
+    const discoveredModels = getKimicodeProviderSettings(this.plugin.settings).discoveredModels;
+    const selectedBaseRawModelId = resolveKimicodeBaseModelRawId(selectedRawModelId, discoveredModels);
+    if (!selectedBaseRawModelId) {
+      return false;
+    }
+    const availableModelIds = new Set(discoveredModels.map((entry) => entry.rawId));
+    if (availableModelIds.size > 0 && !availableModelIds.has(selectedBaseRawModelId)) {
+      return false;
+    }
+    const response = await this.connection.setConfigOption({
+      configId: "model",
+      sessionId: this.sessionId,
+      type: "select",
+      value: selectedBaseRawModelId
+    });
+    this.currentSessionModelId = selectedBaseRawModelId;
+    await this.syncSessionModelState({
+      configOptions: response.configOptions
+    }, {
+      currentRawModelId: selectedBaseRawModelId,
+      seedActiveSelection: false
+    });
+    return true;
+  }
+  async ensureReady(options) {
+    var _a7, _b4;
+    const settings11 = getKimicodeProviderSettings(this.plugin.settings);
+    if (!settings11.enabled) {
+      this.setReady(false);
+      return false;
+    }
+    const cwd = (_a7 = getVaultPath(this.plugin.app)) != null ? _a7 : process.cwd();
+    const targetSessionId = this.sessionId;
+    const resolvedCliPath = (_b4 = this.plugin.getResolvedProviderCliPath("kimicode")) != null ? _b4 : "kimi";
+    const runtimeEnv = this.buildRuntimeEnv(
+      resolvedCliPath,
+      this.currentDatabasePath
+    );
+    const promptSettings = this.getSystemPromptSettings(cwd);
+    const artifacts = await prepareKimicodeLaunchArtifacts({
+      runtimeEnv,
+      settings: promptSettings,
+      workspaceRoot: cwd
+    });
+    this.currentDatabasePath = artifacts.databasePath;
+    const nextLaunchKey = JSON.stringify({
+      command: resolvedCliPath,
+      configPath: artifacts.configPath,
+      envText: getRuntimeEnvironmentText(this.plugin.settings, "kimicode"),
+      promptKey: computeSystemPromptKey(promptSettings),
+      artifactKey: artifacts.launchKey
+    });
+    const shouldRestart = !this.process || !this.transport || !this.connection || !this.process.isAlive() || this.transport.isClosed || (options == null ? void 0 : options.force) === true || this.currentLaunchKey !== nextLaunchKey;
+    if (shouldRestart) {
+      await this.shutdownProcess();
+      await this.startProcess({
+        command: resolvedCliPath,
+        configPath: artifacts.configPath,
+        cwd,
+        runtimeEnv
+      });
+      this.currentLaunchKey = nextLaunchKey;
+      this.loadedSessionId = null;
+    }
+    if (targetSessionId) {
+      if (this.loadedSessionId !== targetSessionId) {
+        const loaded = await this.loadSession(targetSessionId, cwd);
+        if (!loaded) {
+          this.sessionInvalidated = true;
+          this.clearActiveSession();
+        }
+      }
+      return true;
+    }
+    if (!this.sessionId && !this.sessionInvalidated) {
+      if ((options == null ? void 0 : options.allowSessionCreation) === false) {
+        return true;
+      }
+      return Boolean(await this.createSession(cwd));
+    }
+    return true;
+  }
+  async *query(turn, conversationHistory, queryOptions) {
+    var _a7, _b4;
+    const previousMessages = conversationHistory != null ? conversationHistory : [];
+    const expectedSessionId = this.sessionId;
+    let shouldBootstrapHistory = previousMessages.length > 0 && (!expectedSessionId || this.sessionInvalidated);
+    if (!await this.ensureReady()) {
+      yield { type: "error", content: "Failed to start Kimi Code. Check the CLI path and login state." };
+      yield { type: "done" };
+      return;
+    }
+    if (!this.connection) {
+      yield { type: "error", content: "Kimi Code runtime is not ready." };
+      yield { type: "done" };
+      return;
+    }
+    const cwd = (_a7 = getVaultPath(this.plugin.app)) != null ? _a7 : process.cwd();
+    if (expectedSessionId && !this.sessionId) {
+      shouldBootstrapHistory = previousMessages.length > 0;
+    }
+    if (!this.sessionId) {
+      const sessionId2 = await this.createSession(cwd);
+      if (!sessionId2) {
+        yield { type: "error", content: "Failed to create an Kimi Code session." };
+        yield { type: "done" };
+        return;
+      }
+    }
+    const sessionId = this.sessionId;
+    (_b4 = this.activeTurn) == null ? void 0 : _b4.queue.close();
+    this.activeTurn = {
+      queue: new StreamChunkQueue2(),
+      sawOutput: false,
+      sessionId
+    };
+    this.currentTurnMetadata = {};
+    this.currentTurnSawAcpCost = false;
+    this.contextUsage = null;
+    this.promptUsage = null;
+    this.sessionUpdateNormalizer.reset();
+    this.toolStreamAdapter.reset();
+    const activeTurn = this.activeTurn;
+    try {
+      await this.applySelectedMode(sessionId);
+      await this.applySelectedModel(sessionId, queryOptions);
+      await this.applySelectedEffort(sessionId);
+    } catch (error48) {
+      yield {
+        type: "error",
+        content: this.formatRuntimeError(error48)
+      };
+      yield { type: "done" };
+      activeTurn.queue.close();
+      this.activeTurn = null;
+      return;
+    }
+    const runPrompt = async (promptSessionId) => {
+      var _a8;
+      const response = await this.connection.prompt({
+        prompt: buildKimicodePromptBlocks(
+          turn.request,
+          shouldBootstrapHistory ? previousMessages : [],
+          { orchestratorMode: queryOptions == null ? void 0 : queryOptions.orchestratorMode }
+        ),
+        sessionId: promptSessionId
+      });
+      if (response.userMessageId) {
+        this.currentTurnMetadata.userMessageId = response.userMessageId;
+      }
+      this.promptUsage = (_a8 = response.usage) != null ? _a8 : null;
+      const usage = buildAcpUsageInfo({
+        contextWindow: this.contextUsage,
+        model: this.getActiveDisplayModel(queryOptions),
+        promptUsage: this.promptUsage
+      });
+      if (usage) {
+        activeTurn.queue.push({ sessionId: promptSessionId, type: "usage", usage });
+      }
+      await this.refreshFallbackPlanUsageFromSessionCost(promptSessionId);
+      activeTurn.queue.push({ type: "done" });
+      activeTurn.queue.close();
+    };
+    const promptPromise = runPrompt(sessionId).catch(async (error48) => {
+      let reportedError = error48;
+      try {
+        if (await this.prepareClosedTransportRetry(error48, activeTurn, cwd)) {
+          const retrySessionId = this.sessionId;
+          if (this.connection && retrySessionId) {
+            activeTurn.sessionId = retrySessionId;
+            this.currentTurnMetadata = {};
+            this.currentTurnSawAcpCost = false;
+            this.contextUsage = null;
+            this.promptUsage = null;
+            this.sessionUpdateNormalizer.reset();
+            this.toolStreamAdapter.reset();
+            await this.applySelectedMode(retrySessionId);
+            await this.applySelectedModel(retrySessionId, queryOptions);
+            await this.applySelectedEffort(retrySessionId);
+            await runPrompt(retrySessionId);
+            return;
+          }
+        }
+      } catch (retryError) {
+        reportedError = retryError;
+      }
+      activeTurn.queue.push({
+        type: "error",
+        content: this.formatRuntimeError(reportedError)
+      });
+      activeTurn.queue.push({ type: "done" });
+      activeTurn.queue.close();
+    }).finally(() => {
+      if (this.activeTurn === activeTurn) {
+        this.activeTurn = null;
+      }
+    });
+    try {
+      while (true) {
+        const chunk = await activeTurn.queue.next();
+        if (!chunk) {
+          break;
+        }
+        yield chunk;
+      }
+      await promptPromise;
+    } finally {
+      if (this.activeTurn === activeTurn) {
+        this.activeTurn = null;
+      }
+    }
+  }
+  cancel() {
+    if (this.connection && this.sessionId) {
+      this.connection.cancel({ sessionId: this.sessionId });
+    }
+  }
+  resetSession() {
+    this.clearActiveSession();
+    this.sessionInvalidated = false;
+  }
+  getSessionId() {
+    return this.sessionId;
+  }
+  consumeSessionInvalidation() {
+    const invalidated = this.sessionInvalidated;
+    this.sessionInvalidated = false;
+    return invalidated;
+  }
+  isReady() {
+    return this.ready;
+  }
+  async getSupportedCommands() {
+    if (this.supportedCommands.length > 0 && this.loadedSessionId === this.sessionId) {
+      return [...this.supportedCommands];
+    }
+    if (this.sessionId && this.loadedSessionId !== this.sessionId) {
+      const ready = await this.ensureReady({ allowSessionCreation: false });
+      if (!ready) {
+        return [];
+      }
+    }
+    if (!this.sessionId) {
+      return [];
+    }
+    if (this.supportedCommands.length > 0) {
+      return [...this.supportedCommands];
+    }
+    if (!this.sessionId || this.loadedSessionId !== this.sessionId) {
+      return [];
+    }
+    return this.waitForSupportedCommands();
+  }
+  cleanup() {
+    var _a7;
+    (_a7 = this.activeTurn) == null ? void 0 : _a7.queue.close();
+    void this.shutdownProcess();
+  }
+  async rewind(_userMessageId, _assistantMessageId, _mode) {
+    return { canRewind: false };
+  }
+  setApprovalCallback(callback) {
+    this.approvalCallback = callback;
+  }
+  setApprovalDismisser(_dismisser) {
+  }
+  setAskUserQuestionCallback(_callback) {
+  }
+  setExitPlanModeCallback(_callback) {
+  }
+  setPermissionModeSyncCallback(callback) {
+    this.permissionModeSyncCallback = callback;
+  }
+  setSubagentHookProvider(_getState) {
+  }
+  setAutoTurnCallback(_callback) {
+  }
+  consumeTurnMetadata() {
+    const metadata = this.currentTurnMetadata;
+    this.currentTurnMetadata = {};
+    return metadata;
+  }
+  buildSessionUpdates(params) {
+    var _a7;
+    const existingState = params.conversation ? getKimicodeState(params.conversation.providerState) : null;
+    const providerState = {
+      ...this.currentDatabasePath || (existingState == null ? void 0 : existingState.databasePath) ? { databasePath: (_a7 = this.currentDatabasePath) != null ? _a7 : existingState == null ? void 0 : existingState.databasePath } : {}
+    };
+    const updates = {
+      providerState: Object.keys(providerState).length > 0 ? providerState : void 0,
+      sessionId: this.sessionId
+    };
+    if (params.sessionInvalidated) {
+      if (!this.sessionId) {
+        updates.providerState = void 0;
+        updates.sessionId = null;
+      }
+    }
+    return { updates };
+  }
+  resolveSessionIdForFork(conversation) {
+    var _a7, _b4;
+    return (_b4 = (_a7 = this.sessionId) != null ? _a7 : conversation == null ? void 0 : conversation.sessionId) != null ? _b4 : null;
+  }
+  async loadSubagentToolCalls(_agentId) {
+    return [];
+  }
+  async loadSubagentFinalResult(_agentId) {
+    return null;
+  }
+  async startProcess(params) {
+    var _a7, _b4;
+    const processEnv = {
+      ...process.env,
+      ...params.runtimeEnv,
+      KIMICODE_CONFIG: params.configPath,
+      PATH: getEnhancedPath(
+        params.runtimeEnv.PATH,
+        path21.isAbsolute(params.command) ? params.command : void 0
+      )
+    };
+    this.process = new AcpSubprocess({
+      args: ["acp"],
+      command: params.command,
+      cwd: params.cwd,
+      env: processEnv
+    });
+    this.process.start();
+    this.transport = new AcpJsonRpcTransport({
+      input: this.process.stdout,
+      onClose: (listener) => this.process.onClose(listener),
+      output: this.process.stdin
+    });
+    const transport = this.transport;
+    this.unregisterTransportClose = transport.onClose(() => {
+      if (this.transport === transport) {
+        this.setReady(false);
+      }
+    });
+    this.connection = new AcpClientConnection({
+      clientInfo: {
+        name: "grimoire",
+        version: (_b4 = (_a7 = this.plugin.manifest) == null ? void 0 : _a7.version) != null ? _b4 : "0.0.0"
+      },
+      delegate: {
+        fileSystem: {
+          readTextFile: (request) => this.readTextFile(request),
+          writeTextFile: (request) => this.writeTextFile(request)
+        },
+        onSessionNotification: (notification) => this.handleSessionNotification(notification),
+        requestPermission: (request) => this.handlePermissionRequest(request)
+      },
+      transport: this.transport
+    });
+    this.transport.start();
+    await this.connection.initialize();
+    this.setReady(true);
+  }
+  async shutdownProcess(options) {
+    var _a7, _b4, _c3, _d3;
+    this.setReady(false);
+    if (!(options == null ? void 0 : options.preserveActiveTurn)) {
+      (_a7 = this.activeTurn) == null ? void 0 : _a7.queue.close();
+      this.activeTurn = null;
+    }
+    this.currentSessionModelId = null;
+    this.currentSessionModeId = null;
+    this.setSupportedCommands([]);
+    (_b4 = this.unregisterTransportClose) == null ? void 0 : _b4.call(this);
+    this.unregisterTransportClose = null;
+    (_c3 = this.connection) == null ? void 0 : _c3.dispose();
+    this.connection = null;
+    (_d3 = this.transport) == null ? void 0 : _d3.dispose();
+    this.transport = null;
+    if (this.process) {
+      await this.process.shutdown().catch(() => {
+      });
+      this.process = null;
+    }
+  }
+  setReady(ready) {
+    if (this.ready === ready) {
+      return;
+    }
+    this.ready = ready;
+    for (const listener of this.readyListeners) {
+      listener(ready);
+    }
+  }
+  getSystemPromptSettings(vaultPath) {
+    return {
+      customPrompt: this.plugin.settings.systemPrompt,
+      mediaFolder: this.plugin.settings.mediaFolder,
+      userName: this.plugin.settings.userName,
+      vaultPath
+    };
+  }
+  buildRuntimeEnv(cliPath, databasePathOverride) {
+    return buildKimicodeRuntimeEnv(
+      this.plugin.settings,
+      cliPath,
+      databasePathOverride
+    );
+  }
+  getProviderSettings() {
+    return ProviderSettingsCoordinator.getProviderSettingsSnapshot(
+      this.plugin.settings,
+      this.providerId
+    );
+  }
+  resolveSelectedRawModelId(queryOptions) {
+    const providerSettings = this.getProviderSettings();
+    const selectedModel = typeof (queryOptions == null ? void 0 : queryOptions.model) === "string" ? queryOptions.model : typeof providerSettings.model === "string" ? providerSettings.model : "";
+    if (!isKimicodeModelSelectionId(selectedModel)) {
+      return null;
+    }
+    const selectedBaseRawModelId = decodeKimicodeModelId(selectedModel);
+    if (!selectedBaseRawModelId) {
+      return null;
+    }
+    const discoveredModels = getKimicodeProviderSettings(providerSettings).discoveredModels;
+    const normalizedBaseRawModelId = resolveKimicodeBaseModelRawId(selectedBaseRawModelId, discoveredModels);
+    if (!normalizedBaseRawModelId) {
+      return null;
+    }
+    const availableModelIds = new Set(discoveredModels.map((model) => model.rawId));
+    if (availableModelIds.size > 0 && !availableModelIds.has(normalizedBaseRawModelId)) {
+      return null;
+    }
+    return normalizedBaseRawModelId;
+  }
+  getAuxiliaryModel() {
+    var _a7;
+    return (_a7 = this.getActiveDisplayModel()) != null ? _a7 : null;
+  }
+  getActiveDisplayModel(queryOptions) {
+    const providerSettings = this.getProviderSettings();
+    const selectedModel = typeof (queryOptions == null ? void 0 : queryOptions.model) === "string" ? queryOptions.model : typeof providerSettings.model === "string" ? providerSettings.model : "";
+    if (selectedModel && selectedModel !== KIMICODE_SYNTHETIC_MODEL_ID && isKimicodeModelSelectionId(selectedModel)) {
+      const selectedRawModelId = this.resolveSelectedRawModelId(queryOptions);
+      return selectedRawModelId ? encodeKimicodeModelId(selectedRawModelId) : selectedModel;
+    }
+    return this.currentSessionModelId ? encodeKimicodeModelId(this.currentSessionModelId) : selectedModel && isKimicodeModelSelectionId(selectedModel) ? selectedModel : void 0;
+  }
+  resolveSelectedModeId() {
+    var _a7;
+    const providerSettings = this.getProviderSettings();
+    const kimicodeSettings = getKimicodeProviderSettings(providerSettings);
+    const availableModes = getManagedKimicodeModes(kimicodeSettings.availableModes);
+    const mappedModeId = resolveKimicodeModeForPermissionMode(
+      providerSettings.permissionMode,
+      kimicodeSettings.availableModes
+    );
+    if (mappedModeId) {
+      return mappedModeId;
+    }
+    if (kimicodeSettings.selectedMode) {
+      if (availableModes.some((mode) => mode.id === kimicodeSettings.selectedMode)) {
+        return kimicodeSettings.selectedMode;
+      }
+    }
+    return ((_a7 = availableModes[0]) == null ? void 0 : _a7.id) || null;
+  }
+  async applySelectedMode(sessionId) {
+    if (!this.connection) {
+      return;
+    }
+    const selectedModeId = this.resolveSelectedModeId();
+    if (!selectedModeId || selectedModeId === this.currentSessionModeId) {
+      return;
+    }
+    const response = await this.connection.setConfigOption({
+      configId: "mode",
+      sessionId,
+      type: "select",
+      value: selectedModeId
+    });
+    this.currentSessionModeId = selectedModeId;
+    await this.syncSessionModeState({
+      configOptions: response.configOptions
+    });
+  }
+  async applySelectedModel(sessionId, queryOptions) {
+    if (!this.connection) {
+      return;
+    }
+    const selectedRawModelId = this.resolveSelectedRawModelId(queryOptions);
+    if (!selectedRawModelId || selectedRawModelId === this.currentSessionModelId) {
+      return;
+    }
+    const response = await this.connection.setConfigOption({
+      configId: "model",
+      sessionId,
+      type: "select",
+      value: selectedRawModelId
+    });
+    this.currentSessionModelId = selectedRawModelId;
+    await this.syncSessionModelState({
+      configOptions: response.configOptions
+    }, {
+      currentRawModelId: selectedRawModelId
+    });
+  }
+  resolveSelectedEffortValue() {
+    const providerSettings = this.getProviderSettings();
+    const selectedEffort = typeof providerSettings.effortLevel === "string" ? providerSettings.effortLevel.trim() : "";
+    if (!selectedEffort || selectedEffort === KIMICODE_DEFAULT_THINKING_LEVEL) {
+      return null;
+    }
+    return this.currentSessionEffortValues.has(selectedEffort) ? selectedEffort : null;
+  }
+  async applySelectedEffort(sessionId) {
+    if (!this.connection || !this.currentSessionEffortConfigId) {
+      return;
+    }
+    const selectedEffort = this.resolveSelectedEffortValue();
+    if (!selectedEffort || selectedEffort === this.currentSessionEffortValue) {
+      return;
+    }
+    const response = await this.connection.setConfigOption({
+      configId: this.currentSessionEffortConfigId,
+      sessionId,
+      type: "select",
+      value: selectedEffort
+    });
+    this.currentSessionEffortValue = selectedEffort;
+    await this.syncSessionModelState({
+      configOptions: response.configOptions
+    });
+  }
+  async syncSessionModelState(params, options = {}) {
+    const acpState = extractAcpSessionModelState(params);
+    const forcedCurrentRawModelId = typeof options.currentRawModelId === "string" ? options.currentRawModelId.trim() : "";
+    const currentRawModelId = forcedCurrentRawModelId || acpState.currentModelId || this.currentSessionModelId;
+    const discoveredModels = normalizeKimicodeDiscoveredModels(
+      acpState.availableModels.map((model) => ({
+        ...model.description ? { description: model.description } : {},
+        label: model.name,
+        rawId: model.id
+      }))
+    );
+    if (currentRawModelId) {
+      this.currentSessionModelId = currentRawModelId;
+    }
+    const settingsBag = this.plugin.settings;
+    const currentSettings = getKimicodeProviderSettings(settingsBag);
+    const currentBaseRawModelId = currentRawModelId ? resolveKimicodeBaseModelRawId(currentRawModelId, discoveredModels) : null;
+    const thoughtLevelState = extractAcpSessionThoughtLevelState(params);
+    const currentThinkingOptions = normalizeKimicodeModelVariants(
+      thoughtLevelState.availableLevels.map((level) => ({
+        ...level.description ? { description: level.description } : {},
+        label: level.name,
+        value: level.id
+      }))
+    );
+    const currentThinkingLevel = thoughtLevelState.currentLevel;
+    this.currentSessionEffortConfigId = currentThinkingOptions.length > 0 ? thoughtLevelState.configId : null;
+    this.currentSessionEffortValue = currentThinkingOptions.length > 0 ? currentThinkingLevel : null;
+    this.currentSessionEffortValues = new Set(currentThinkingOptions.map((option) => option.value));
+    const nextThinkingOptionsByModel = { ...currentSettings.thinkingOptionsByModel };
+    if (currentBaseRawModelId) {
+      if (currentThinkingOptions.length > 0) {
+        nextThinkingOptionsByModel[currentBaseRawModelId] = currentThinkingOptions;
+      } else {
+        delete nextThinkingOptionsByModel[currentBaseRawModelId];
+      }
+    }
+    const discoveredBaseModelIds = buildKimicodeBaseModels(discoveredModels).map((model) => model.rawId);
+    const nextVisibleModels = currentSettings.visibleModels.length === 0 ? discoveredBaseModelIds.length > 0 ? discoveredBaseModelIds : currentBaseRawModelId ? [currentBaseRawModelId] : [] : currentSettings.visibleModels;
+    const currentPreferredThinking = currentBaseRawModelId ? currentSettings.preferredThinkingByModel[currentBaseRawModelId] : "";
+    const shouldSeedCurrentThinking = currentBaseRawModelId && currentThinkingLevel && (!currentPreferredThinking || currentThinkingOptions.length > 0 && !this.currentSessionEffortValues.has(currentPreferredThinking));
+    const nextPreferredThinkingByModel = shouldSeedCurrentThinking && currentBaseRawModelId && currentThinkingLevel ? {
+      ...currentSettings.preferredThinkingByModel,
+      [currentBaseRawModelId]: currentThinkingLevel
+    } : currentSettings.preferredThinkingByModel;
+    const shouldSeedVisibleModels = !sameStringList2(currentSettings.visibleModels, nextVisibleModels);
+    const shouldSeedPreferredThinking = !sameStringMap2(
+      currentSettings.preferredThinkingByModel,
+      nextPreferredThinkingByModel
+    );
+    const shouldUpdateDiscoveredModels = discoveredModels.length > 0 && !sameDiscoveredModels2(currentSettings.discoveredModels, discoveredModels);
+    const shouldUpdateThinkingOptions = !sameThinkingOptionsByModel2(
+      currentSettings.thinkingOptionsByModel,
+      nextThinkingOptionsByModel
+    );
+    const discoveryChanged = shouldUpdateDiscoveredModels && updateKimicodeDiscoveryState(settingsBag, { discoveredModels });
+    let changed = shouldSeedVisibleModels || shouldSeedPreferredThinking;
+    if (currentBaseRawModelId && options.seedActiveSelection !== false) {
+      const seeded = this.seedActiveModelSelection(
+        settingsBag,
+        encodeKimicodeModelId(currentBaseRawModelId),
+        currentThinkingLevel
+      );
+      changed = changed || seeded;
+    }
+    if (shouldUpdateThinkingOptions || shouldSeedPreferredThinking || shouldSeedVisibleModels) {
+      updateKimicodeProviderSettings(settingsBag, {
+        ...shouldSeedPreferredThinking ? { preferredThinkingByModel: nextPreferredThinkingByModel } : {},
+        ...shouldUpdateThinkingOptions ? { thinkingOptionsByModel: nextThinkingOptionsByModel } : {},
+        ...shouldSeedVisibleModels ? { visibleModels: nextVisibleModels } : {}
+      });
+    }
+    if (!changed && !discoveryChanged && !shouldUpdateThinkingOptions) {
+      return;
+    }
+    if (changed || shouldUpdateThinkingOptions) {
+      await this.plugin.saveSettings();
+    }
+    this.refreshModelSelectors();
+  }
+  seedActiveModelSelection(settingsBag, modelSelection, thinkingLevel) {
+    let changed = false;
+    const savedProviderModel = ensureProviderProjectionMap2(settingsBag, "savedProviderModel");
+    const savedModel = typeof savedProviderModel.kimicode === "string" ? savedProviderModel.kimicode : "";
+    if (!savedModel || savedModel === KIMICODE_SYNTHETIC_MODEL_ID) {
+      savedProviderModel.kimicode = modelSelection;
+      changed = true;
+    }
+    if (thinkingLevel) {
+      const savedProviderEffort = ensureProviderProjectionMap2(settingsBag, "savedProviderEffort");
+      const savedEffort = typeof savedProviderEffort.kimicode === "string" ? savedProviderEffort.kimicode.trim() : "";
+      if (!savedEffort || savedEffort === KIMICODE_DEFAULT_THINKING_LEVEL) {
+        savedProviderEffort.kimicode = thinkingLevel;
+        changed = true;
+      }
+    }
+    if (ProviderRegistry.resolveSettingsProviderId(settingsBag) !== this.providerId) {
+      return changed;
+    }
+    const activeModel = typeof settingsBag.model === "string" ? settingsBag.model : "";
+    if (!activeModel || activeModel === KIMICODE_SYNTHETIC_MODEL_ID) {
+      settingsBag.model = modelSelection;
+      changed = true;
+    }
+    if (thinkingLevel) {
+      const activeEffort = typeof settingsBag.effortLevel === "string" ? settingsBag.effortLevel : "";
+      if (!activeEffort || activeEffort === KIMICODE_DEFAULT_THINKING_LEVEL) {
+        settingsBag.effortLevel = thinkingLevel;
+        changed = true;
+      }
+    }
+    return changed;
+  }
+  async syncSessionModeState(params) {
+    var _a7;
+    const acpState = extractAcpSessionModeState(params);
+    const availableModes = normalizeKimicodeAvailableModes(acpState.availableModes);
+    const currentModeId = (_a7 = params.currentModeId) != null ? _a7 : acpState.currentModeId;
+    if (currentModeId) {
+      this.currentSessionModeId = currentModeId;
+      this.emitPermissionModeSync(currentModeId);
+    }
+    const settingsBag = this.plugin.settings;
+    const currentSettings = getKimicodeProviderSettings(settingsBag);
+    const shouldSeedSelectedMode = typeof currentModeId === "string" && !currentSettings.selectedMode && isManagedKimicodeModeId(currentModeId);
+    const discoveryChanged = availableModes.length > 0 && !sameModes2(currentSettings.availableModes, availableModes) && updateKimicodeDiscoveryState(settingsBag, { availableModes });
+    if (!discoveryChanged && !shouldSeedSelectedMode) {
+      return;
+    }
+    if (shouldSeedSelectedMode && currentModeId) {
+      updateKimicodeProviderSettings(settingsBag, { selectedMode: currentModeId });
+      await this.plugin.saveSettings();
+    }
+    this.refreshModelSelectors();
+  }
+  refreshModelSelectors() {
+    for (const view of this.plugin.getAllViews()) {
+      view.refreshModelSelector();
+    }
+  }
+  emitPermissionModeSync(modeId) {
+    const permissionMode = resolvePermissionModeForManagedKimicodeMode(modeId);
+    if (!permissionMode || !this.permissionModeSyncCallback) {
+      return;
+    }
+    try {
+      this.permissionModeSyncCallback(permissionMode);
+    } catch (e) {
+    }
+  }
+  async createSession(cwd) {
+    var _a7, _b4, _c3, _d3;
+    if (!this.connection) {
+      return null;
+    }
+    try {
+      this.setSupportedCommands([]);
+      const response = await this.connection.newSession({
+        cwd,
+        mcpServers: []
+      });
+      this.sessionInvalidated = false;
+      this.loadedSessionId = response.sessionId;
+      this.sessionId = response.sessionId;
+      this.sessionCwds.set(response.sessionId, cwd);
+      await this.syncSessionModelState({
+        configOptions: (_a7 = response.configOptions) != null ? _a7 : null,
+        models: (_b4 = response.models) != null ? _b4 : null
+      });
+      await this.syncSessionModeState({
+        configOptions: (_c3 = response.configOptions) != null ? _c3 : null,
+        modes: (_d3 = response.modes) != null ? _d3 : null
+      });
+      return response.sessionId;
+    } catch (e) {
+      return null;
+    }
+  }
+  async loadSession(sessionId, cwd) {
+    var _a7, _b4, _c3, _d3;
+    if (!this.connection) {
+      return false;
+    }
+    try {
+      this.setSupportedCommands([]);
+      const response = await this.connection.loadSession({
+        cwd,
+        mcpServers: [],
+        sessionId
+      });
+      this.sessionInvalidated = false;
+      this.loadedSessionId = response.sessionId;
+      this.sessionId = response.sessionId;
+      this.sessionCwds.set(response.sessionId, cwd);
+      await this.syncSessionModelState({
+        configOptions: (_a7 = response.configOptions) != null ? _a7 : null,
+        models: (_b4 = response.models) != null ? _b4 : null
+      });
+      await this.syncSessionModeState({
+        configOptions: (_c3 = response.configOptions) != null ? _c3 : null,
+        modes: (_d3 = response.modes) != null ? _d3 : null
+      });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  async handleSessionNotification(notification) {
+    var _a7;
+    if (notification.sessionId !== this.sessionId) {
+      return;
+    }
+    const normalized = this.sessionUpdateNormalizer.normalize(notification.update);
+    if (normalized.type === "config_options") {
+      await this.syncSessionModelState({
+        configOptions: normalized.configOptions
+      });
+      await this.syncSessionModeState({
+        configOptions: normalized.configOptions
+      });
+      return;
+    }
+    if (normalized.type === "current_mode") {
+      await this.syncSessionModeState({
+        currentModeId: normalized.currentModeId
+      });
+      return;
+    }
+    if (normalized.type === "commands") {
+      this.setSupportedCommands(normalized.commands);
+      return;
+    }
+    if (!this.activeTurn || this.activeTurn.sessionId !== notification.sessionId) {
+      return;
+    }
+    switch (normalized.type) {
+      case "message_chunk": {
+        if (normalized.role === "assistant" && normalized.messageId) {
+          this.currentTurnMetadata.assistantMessageId = normalized.messageId;
+        }
+        if (normalized.role === "user" && normalized.messageId) {
+          this.currentTurnMetadata.userMessageId = normalized.messageId;
+        }
+        if (normalized.streamChunks.length > 0) {
+          this.activeTurn.sawOutput = true;
+        }
+        for (const chunk of normalized.streamChunks) {
+          this.activeTurn.queue.push(chunk);
+        }
+        return;
+      }
+      case "tool_call":
+      case "tool_call_update": {
+        const streamChunks = normalized.type === "tool_call" ? this.toolStreamAdapter.normalizeToolCall(normalized.toolCall, normalized.streamChunks) : this.toolStreamAdapter.normalizeToolCallUpdate(normalized.toolCallUpdate, normalized.streamChunks);
+        if (streamChunks.length > 0) {
+          this.activeTurn.sawOutput = true;
+        }
+        for (const chunk of streamChunks) {
+          this.activeTurn.queue.push(chunk);
+        }
+        return;
+      }
+      case "usage": {
+        this.contextUsage = normalized.usage;
+        if (kimicodePlanUsageStore.recordCost((_a7 = normalized.usage.cost) != null ? _a7 : null)) {
+          this.currentTurnSawAcpCost = true;
+          this.refreshModelSelectors();
+        }
+        const usage = buildAcpUsageInfo({
+          contextWindow: normalized.usage,
+          model: this.getActiveDisplayModel(),
+          promptUsage: this.promptUsage
+        });
+        if (usage) {
+          this.activeTurn.queue.push({
+            sessionId: notification.sessionId,
+            type: "usage",
+            usage
+          });
+        }
+        return;
+      }
+      default:
+        return;
+    }
+  }
+  async refreshFallbackPlanUsageFromSessionCost(sessionId) {
+    var _a7;
+    if (this.currentTurnSawAcpCost) {
+      return;
+    }
+    const cost = await loadKimicodeSessionCost(sessionId, {
+      databasePath: (_a7 = this.currentDatabasePath) != null ? _a7 : void 0
+    });
+    if (kimicodePlanUsageStore.recordSessionTotalCost(sessionId, cost)) {
+      this.refreshModelSelectors();
+    }
+  }
+  async handlePermissionRequest(request) {
+    if (!this.approvalCallback) {
+      return { outcome: { outcome: "cancelled" } };
+    }
+    const input = normalizeApprovalInput(request.toolCall.rawInput);
+    const presentation = buildKimicodePermissionPresentation(request.toolCall.title, input, request.toolCall.locations);
+    const decision = await this.approvalCallback(
+      presentation.toolName,
+      input,
+      presentation.description,
+      {
+        ...presentation.blockedPath ? { blockedPath: presentation.blockedPath } : {},
+        ...presentation.decisionReason ? { decisionReason: presentation.decisionReason } : {},
+        decisionOptions: buildAcpApprovalDecisionOptions(request.options)
+      }
+    );
+    return mapApprovalDecision(decision, request.options);
+  }
+  setSupportedCommands(commands) {
+    this.supportedCommands = commands.map((command) => ({ ...command }));
+    const waiters = this.supportedCommandWaiters.splice(0);
+    for (const waiter of waiters) {
+      waiter(this.supportedCommands);
+    }
+  }
+  waitForSupportedCommands(timeoutMs = 250) {
+    if (this.supportedCommands.length > 0) {
+      return Promise.resolve([...this.supportedCommands]);
+    }
+    return new Promise((resolve9) => {
+      const waiter = (commands) => {
+        window.clearTimeout(timeoutId);
+        resolve9([...commands]);
+      };
+      const timeoutId = window.setTimeout(() => {
+        const index = this.supportedCommandWaiters.indexOf(waiter);
+        if (index >= 0) {
+          this.supportedCommandWaiters.splice(index, 1);
+        }
+        resolve9([...this.supportedCommands]);
+      }, timeoutMs);
+      this.supportedCommandWaiters.push(waiter);
+    });
+  }
+  async readTextFile(request) {
+    var _a7;
+    const resolvedPath = this.resolveSessionPath(request.sessionId, request.path);
+    const content = await fs26.readFile(resolvedPath, "utf-8");
+    if (request.line === void 0 && request.limit === void 0) {
+      return { content };
+    }
+    const lines = content.split(/\r?\n/);
+    const startIndex = Math.max(0, ((_a7 = request.line) != null ? _a7 : 1) - 1);
+    const endIndex = request.limit ? startIndex + Math.max(0, request.limit) : lines.length;
+    return {
+      content: lines.slice(startIndex, endIndex).join("\n")
+    };
+  }
+  async writeTextFile(request) {
+    const resolvedPath = this.resolveSessionPath(request.sessionId, request.path);
+    await fs26.mkdir(path21.dirname(resolvedPath), { recursive: true });
+    await fs26.writeFile(resolvedPath, request.content, "utf-8");
+    return {};
+  }
+  resolveSessionPath(sessionId, rawPath) {
+    var _a7, _b4;
+    const cwd = (_b4 = (_a7 = this.sessionCwds.get(sessionId)) != null ? _a7 : getVaultPath(this.plugin.app)) != null ? _b4 : process.cwd();
+    const allowOutsideWorkspace = coercePermissionMode(this.getProviderSettings().permissionMode) === "full_access";
+    return resolveWorkspacePath(cwd, rawPath, { allowOutsideWorkspace });
+  }
+  formatRuntimeError(error48) {
+    var _a7;
+    const baseMessage = error48 instanceof Error ? error48.message : "Kimi Code request failed";
+    const stderr = (_a7 = this.process) == null ? void 0 : _a7.getStderrSnapshot();
+    return stderr ? `${baseMessage}
+
+${stderr}` : baseMessage;
+  }
+  async prepareClosedTransportRetry(error48, activeTurn, cwd) {
+    if (!this.isRetryableTransportClose(error48) || activeTurn.sawOutput) {
+      return false;
+    }
+    await this.shutdownProcess({ preserveActiveTurn: true });
+    const ready = await this.ensureReady({ force: true, allowSessionCreation: false });
+    if (!ready || !this.connection) {
+      return false;
+    }
+    if (!this.sessionId) {
+      return Boolean(await this.createSession(cwd));
+    }
+    return true;
+  }
+  isRetryableTransportClose(error48) {
+    return error48 instanceof JsonRpcTransportClosedError || error48 instanceof Error && error48.name === "JsonRpcTransportClosedError";
+  }
+  clearActiveSession() {
+    this.currentDatabasePath = null;
+    this.sessionId = null;
+    this.loadedSessionId = null;
+    this.currentSessionModelId = null;
+    this.currentSessionModeId = null;
+    this.setSupportedCommands([]);
+  }
+};
+function normalizeApprovalInput(rawInput) {
+  if (rawInput && typeof rawInput === "object" && !Array.isArray(rawInput)) {
+    return rawInput;
+  }
+  if (rawInput === void 0) {
+    return {};
+  }
+  return { value: rawInput };
+}
+function buildKimicodePermissionPresentation(rawTitle, input, locations) {
+  const permissionId = normalizePermissionId(rawTitle);
+  const blockedPath = extractPermissionPath(input, locations);
+  switch (permissionId) {
+    case "bash":
+      return {
+        decisionReason: "Command execution permission required",
+        description: "Kimi Code wants to run a shell command.",
+        toolName: "bash"
+      };
+    case "codesearch":
+      return {
+        description: "Kimi Code wants to search indexed code outside the active buffer.",
+        toolName: "codesearch"
+      };
+    case "doom_loop": {
+      const repeatedTool = typeof input.tool === "string" ? input.tool.trim() : "";
+      return {
+        decisionReason: "Kimi Code detected repeated identical tool calls",
+        description: repeatedTool ? `Allow another repeated \`${repeatedTool}\` call.` : "Allow another repeated tool call.",
+        toolName: "Doom Loop Guard"
+      };
+    }
+    case "edit":
+      return {
+        ...blockedPath ? { blockedPath } : {},
+        decisionReason: "File write permission required",
+        description: blockedPath ? "Kimi Code wants to modify this file." : "Kimi Code wants to apply file changes.",
+        toolName: "edit"
+      };
+    case "external_directory":
+      return {
+        ...blockedPath ? { blockedPath } : {},
+        decisionReason: "Path is outside the session working directory",
+        description: blockedPath ? "Kimi Code wants to access a path outside the working directory." : "Kimi Code wants to access files outside the working directory.",
+        toolName: "External Directory"
+      };
+    case "glob":
+      return {
+        description: "Kimi Code wants to scan file paths with a glob pattern.",
+        toolName: "glob"
+      };
+    case "grep":
+      return {
+        description: "Kimi Code wants to search file contents with a pattern.",
+        toolName: "grep"
+      };
+    case "lsp":
+      return {
+        description: "Kimi Code wants to query language server data.",
+        toolName: "lsp"
+      };
+    case "plan_enter":
+      return {
+        description: "Kimi Code wants to switch this session into planning mode.",
+        toolName: "Enter Plan Mode"
+      };
+    case "plan_exit":
+      return {
+        description: "Kimi Code wants to leave planning mode and resume implementation.",
+        toolName: "Exit Plan Mode"
+      };
+    case "question":
+      return {
+        description: "Kimi Code wants to ask you a direct question before continuing.",
+        toolName: "Ask Question"
+      };
+    case "read":
+      return {
+        ...blockedPath ? { blockedPath } : {},
+        description: blockedPath ? "Kimi Code wants to read this path." : "Kimi Code wants to read project files.",
+        toolName: "read"
+      };
+    case "skill":
+      return {
+        description: "Kimi Code wants to load a skill into the current session.",
+        toolName: "skill"
+      };
+    case "todowrite":
+      return {
+        description: "Kimi Code wants to update the shared task list.",
+        toolName: "todowrite"
+      };
+    case "webfetch":
+      return {
+        description: "Kimi Code wants to fetch content from a URL.",
+        toolName: "webfetch"
+      };
+    case "websearch":
+      return {
+        description: "Kimi Code wants to search the web.",
+        toolName: "websearch"
+      };
+    case "workflow_tool_approval": {
+      const summary = summarizeWorkflowTools(input);
+      return {
+        decisionReason: "Session-level workflow approval requested",
+        description: summary ? `Pre-approve workflow tools for this session: ${summary}.` : "Pre-approve workflow tools for this session.",
+        toolName: "Workflow Approval"
+      };
+    }
+    default:
+      return {
+        ...blockedPath ? { blockedPath } : {},
+        description: blockedPath ? `Kimi Code wants permission to use ${formatPermissionLabel(permissionId)} on this path.` : `Kimi Code wants permission to use ${formatPermissionLabel(permissionId)}.`,
+        toolName: formatPermissionLabel(permissionId)
+      };
+  }
+}
+function normalizePermissionId(value) {
+  return (value == null ? void 0 : value.trim().toLowerCase()) || "tool";
+}
+function extractPermissionPath(input, locations) {
+  var _a7;
+  const candidateKeys = ["filepath", "filePath", "path", "parentDir"];
+  for (const key of candidateKeys) {
+    const value = input[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+  const locationPath = (_a7 = locations == null ? void 0 : locations.find((location) => location.path.trim())) == null ? void 0 : _a7.path;
+  return (locationPath == null ? void 0 : locationPath.trim()) || void 0;
+}
+function summarizeWorkflowTools(input) {
+  const tools = Array.isArray(input.tools) ? input.tools : [];
+  const names = tools.flatMap((tool) => {
+    if (!tool || typeof tool !== "object" || Array.isArray(tool)) {
+      return [];
+    }
+    const entry = tool;
+    const name = typeof entry.name === "string" ? entry.name.trim() : "";
+    if (!name) {
+      return [];
+    }
+    let title = "";
+    if (typeof entry.args === "string") {
+      try {
+        const parsedArgs = JSON.parse(entry.args);
+        title = typeof parsedArgs.title === "string" ? parsedArgs.title.trim() : typeof parsedArgs.name === "string" ? parsedArgs.name.trim() : "";
+      } catch (e) {
+        title = "";
+      }
+    }
+    return [title ? `${name}: ${title}` : name];
+  });
+  if (names.length === 0) {
+    return "";
+  }
+  if (names.length <= 3) {
+    return names.join(", ");
+  }
+  return `${names.slice(0, 3).join(", ")} +${names.length - 3} more`;
+}
+function formatPermissionLabel(permissionId) {
+  return permissionId.split(/[_\s]+/).filter(Boolean).map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1)).join(" ");
+}
+function mapApprovalDecision(decision, options) {
+  if (decision === "allow") {
+    return selectPermissionOption(options, ["allow_once", "allow_always"]);
+  }
+  if (decision === "allow-always") {
+    return selectPermissionOption(options, ["allow_always", "allow_once"]);
+  }
+  if (decision === "deny") {
+    return selectPermissionOption(options, ["reject_once", "reject_always"]);
+  }
+  if (typeof decision === "object" && decision.type === "select-option") {
+    return {
+      outcome: {
+        optionId: decision.value,
+        outcome: "selected"
+      }
+    };
+  }
+  return { outcome: { outcome: "cancelled" } };
+}
+function buildAcpApprovalDecisionOptions(options) {
+  return options.map((option) => ({
+    ...option.kind === "allow_once" ? { decision: "allow" } : option.kind === "allow_always" ? { decision: "allow-always" } : {},
+    label: option.name,
+    value: option.optionId
+  }));
+}
+function selectPermissionOption(options, preferredKinds) {
+  for (const kind of preferredKinds) {
+    const option = options.find((entry) => entry.kind === kind);
+    if (option) {
+      return {
+        outcome: {
+          optionId: option.optionId,
+          outcome: "selected"
+        }
+      };
+    }
+  }
+  return { outcome: { outcome: "cancelled" } };
+}
+
+// src/providers/kimicode/runtime/KimicodeCliResolver.ts
+var fs27 = __toESM(require("node:fs"));
+var os12 = __toESM(require("node:os"));
+var path22 = __toESM(require("node:path"));
+init_env();
+init_path();
+var KIMI_CODE_DEFAULT_BIN = path22.join(os12.homedir(), ".kimi-code", "bin", "kimi");
+var KimicodeCliResolver = class {
+  constructor() {
+    this.cachedHostname = getHostnameKey();
+    this.lastCliPath = "";
+    this.lastHostnamePath = "";
+    this.lastEnvText = "";
+    this.resolvedPath = null;
+  }
+  resolveFromSettings(settings11) {
+    var _a7;
+    const kimicodeSettings = getKimicodeProviderSettings(settings11);
+    const cliPath = kimicodeSettings.cliPath.trim();
+    const hostnamePath = ((_a7 = kimicodeSettings.cliPathsByHost[this.cachedHostname]) != null ? _a7 : "").trim();
+    const envText = getRuntimeEnvironmentText(settings11, "kimicode");
+    if (this.resolvedPath !== null && cliPath === this.lastCliPath && hostnamePath === this.lastHostnamePath && envText === this.lastEnvText) {
+      return this.resolvedPath;
+    }
+    this.lastCliPath = cliPath;
+    this.lastHostnamePath = hostnamePath;
+    this.lastEnvText = envText;
+    this.resolvedPath = this.resolve(
+      kimicodeSettings.cliPathsByHost,
+      cliPath,
+      envText
+    );
+    return this.resolvedPath;
+  }
+  resolve(hostnamePaths, legacyPath, _envText) {
+    var _a7, _b4, _c3;
+    const hostnamePath = ((_a7 = hostnamePaths == null ? void 0 : hostnamePaths[this.cachedHostname]) != null ? _a7 : "").trim();
+    return (_c3 = (_b4 = resolveConfiguredCliPath3(hostnamePath)) != null ? _b4 : resolveConfiguredCliPath3(legacyPath.trim())) != null ? _c3 : resolveConfiguredCliPath3(KIMI_CODE_DEFAULT_BIN);
+  }
+  reset() {
+    this.lastCliPath = "";
+    this.lastHostnamePath = "";
+    this.lastEnvText = "";
+    this.resolvedPath = null;
+  }
+};
+function resolveConfiguredCliPath3(cliPath) {
+  if (!cliPath) {
+    return null;
+  }
+  try {
+    const expanded = expandHomePath(cliPath);
+    if (fs27.existsSync(expanded) && fs27.statSync(expanded).isFile()) {
+      return expanded;
+    }
+  } catch (e) {
+    return null;
+  }
+  return null;
+}
+
+// src/providers/kimicode/storage/KimicodeAgentStorage.ts
+var path23 = __toESM(require("node:path"));
+
+// src/providers/kimicode/types/agent.ts
+var KIMICODE_AGENT_KNOWN_KEYS = /* @__PURE__ */ new Set([
+  "name",
+  "description",
+  "mode",
+  "model",
+  "variant",
+  "temperature",
+  "top_p",
+  "steps",
+  "maxSteps",
+  "hidden",
+  "color",
+  "disable",
+  "tools",
+  "options",
+  "permission"
+]);
+
+// src/providers/kimicode/storage/KimicodeAgentStorage.ts
+var KIMICODE_AGENT_PATH = ".kimicode/agent";
+var KIMICODE_AGENTS_PATH = ".kimicode/agents";
+var KIMICODE_AGENT_SCAN_PATHS = [
+  KIMICODE_AGENTS_PATH,
+  KIMICODE_AGENT_PATH
+];
+var KIMICODE_DEFAULT_AGENT_SAVE_PATH = KIMICODE_AGENT_PATH;
+var KIMICODE_AGENT_PERSISTENCE_PREFIX = "kimicode-agent";
+function createKimicodeAgentPersistenceKey(location) {
+  return `${KIMICODE_AGENT_PERSISTENCE_PREFIX}:${encodeURIComponent(normalizeVaultPath(location.filePath))}`;
+}
+function parseKimicodeAgentPersistenceKey(persistenceKey) {
+  if (!persistenceKey) {
+    return null;
+  }
+  const normalizedKey = normalizeVaultPath(persistenceKey);
+  if (isSupportedAgentFilePath(normalizedKey)) {
+    return { filePath: normalizedKey };
+  }
+  const [prefix, encodedRelativePath] = persistenceKey.split(":");
+  if (prefix !== KIMICODE_AGENT_PERSISTENCE_PREFIX || !encodedRelativePath) {
+    return null;
+  }
+  const decoded = normalizeVaultPath(decodeURIComponent(encodedRelativePath));
+  if (isSupportedAgentFilePath(decoded)) {
+    return { filePath: decoded };
+  }
+  return decoded.endsWith(".md") ? { filePath: `${KIMICODE_AGENTS_PATH}/${decoded}` } : null;
+}
+var KimicodeAgentStorage = class {
+  constructor(vaultAdapter) {
+    this.vaultAdapter = vaultAdapter;
+  }
+  async loadAll() {
+    return this.scanAdapter(this.vaultAdapter);
+  }
+  async load(agent) {
+    const filePath = this.resolveCurrentPath(agent);
+    try {
+      if (!await this.vaultAdapter.exists(filePath)) return null;
+      const content = await this.vaultAdapter.read(filePath);
+      return parseKimicodeAgentMarkdown(content, filePath);
+    } catch (e) {
+      return null;
+    }
+  }
+  async save(agent, previous) {
+    const filePath = this.resolveTargetPath(agent, previous);
+    const previousPath = previous ? this.resolveCurrentPath(previous) : null;
+    await this.vaultAdapter.ensureFolder(path23.posix.dirname(filePath));
+    const content = serializeKimicodeAgentMarkdown(agent);
+    await this.vaultAdapter.write(filePath, content);
+    if (previousPath && previousPath !== filePath) {
+      await this.vaultAdapter.delete(previousPath);
+    }
+  }
+  async delete(agent) {
+    const filePath = this.resolveCurrentPath(agent);
+    await this.vaultAdapter.delete(filePath);
+  }
+  resolveCurrentPath(agent) {
+    const persistedLocation = parseKimicodeAgentPersistenceKey(agent.persistenceKey);
+    if (persistedLocation) {
+      return persistedLocation.filePath;
+    }
+    return `${KIMICODE_DEFAULT_AGENT_SAVE_PATH}/${agent.name}.md`;
+  }
+  resolveTargetPath(agent, previous) {
+    if (previous && previous.name === agent.name) {
+      return this.resolveCurrentPath(previous);
+    }
+    return `${KIMICODE_DEFAULT_AGENT_SAVE_PATH}/${agent.name}.md`;
+  }
+  async scanAdapter(adapter) {
+    const agentsByName = /* @__PURE__ */ new Map();
+    for (const rootPath of KIMICODE_AGENT_SCAN_PATHS) {
+      try {
+        const files = await adapter.listFilesRecursive(rootPath);
+        for (const filePath of files) {
+          if (!filePath.endsWith(".md")) continue;
+          try {
+            const content = await adapter.read(filePath);
+            const agent = parseKimicodeAgentMarkdown(content, filePath);
+            if (!agent) continue;
+            const dedupeKey = agent.name.toLowerCase();
+            agentsByName.delete(dedupeKey);
+            agentsByName.set(dedupeKey, agent);
+          } catch (e) {
+          }
+        }
+      } catch (e) {
+      }
+    }
+    return Array.from(agentsByName.values());
+  }
+};
+function parseKimicodeAgentMarkdown(content, filePath) {
+  var _a7;
+  const parsed = parseFrontmatter(content);
+  if (!parsed) {
+    return null;
+  }
+  const fileName = normalizeAgentNameFromPath(filePath);
+  const frontmatter = parsed.frontmatter;
+  const rawName = typeof frontmatter.name === "string" ? frontmatter.name.trim() : "";
+  const name = rawName || fileName;
+  const description = typeof frontmatter.description === "string" ? frontmatter.description.trim() : "";
+  if (!name || !description) {
+    return null;
+  }
+  const result = {
+    name,
+    description,
+    prompt: parsed.body.trim(),
+    persistenceKey: createKimicodeAgentPersistenceKey({
+      filePath: normalizeVaultPath(filePath)
+    })
+  };
+  const mode = normalizeMode(frontmatter.mode);
+  if (mode) result.mode = mode;
+  if (typeof frontmatter.model === "string" && frontmatter.model.trim()) {
+    result.model = frontmatter.model.trim();
+  }
+  if (typeof frontmatter.variant === "string" && frontmatter.variant.trim()) {
+    result.variant = frontmatter.variant.trim();
+  }
+  if (typeof frontmatter.temperature === "number" && Number.isFinite(frontmatter.temperature)) {
+    result.temperature = frontmatter.temperature;
+  }
+  const topP = normalizeFiniteNumber(frontmatter.top_p);
+  if (topP !== void 0) {
+    result.topP = topP;
+  }
+  if (typeof frontmatter.color === "string" && frontmatter.color.trim()) {
+    result.color = frontmatter.color.trim();
+  }
+  const steps = (_a7 = normalizePositiveInteger(frontmatter.steps)) != null ? _a7 : normalizePositiveInteger(frontmatter.maxSteps);
+  if (steps !== void 0) {
+    result.steps = steps;
+  }
+  if (extractBoolean(frontmatter, "hidden") !== void 0) {
+    result.hidden = extractBoolean(frontmatter, "hidden");
+  }
+  if (extractBoolean(frontmatter, "disable") !== void 0) {
+    result.disable = extractBoolean(frontmatter, "disable");
+  }
+  if (isBooleanRecord(frontmatter.tools)) {
+    result.tools = { ...frontmatter.tools };
+  }
+  if (isRecord2(frontmatter.options)) {
+    result.options = { ...frontmatter.options };
+  }
+  if (frontmatter.permission !== void 0) {
+    result.permission = frontmatter.permission;
+  }
+  const extraFrontmatter = {};
+  for (const [key, value] of Object.entries(frontmatter)) {
+    if (!KIMICODE_AGENT_KNOWN_KEYS.has(key)) {
+      extraFrontmatter[key] = value;
+    }
+  }
+  if (Object.keys(extraFrontmatter).length > 0) {
+    result.extraFrontmatter = extraFrontmatter;
+  }
+  return result;
+}
+function serializeKimicodeAgentMarkdown(agent) {
+  const lines = ["---"];
+  lines.push(`name: ${yamlString(agent.name)}`);
+  lines.push(`description: ${yamlString(agent.description)}`);
+  if (agent.mode) {
+    lines.push(`mode: ${agent.mode}`);
+  }
+  if (agent.model) {
+    lines.push(`model: ${serializeYamlValue(agent.model)}`);
+  }
+  if (agent.variant) {
+    lines.push(`variant: ${serializeYamlValue(agent.variant)}`);
+  }
+  if (agent.temperature !== void 0) {
+    lines.push(`temperature: ${serializeYamlValue(agent.temperature)}`);
+  }
+  if (agent.topP !== void 0) {
+    lines.push(`top_p: ${serializeYamlValue(agent.topP)}`);
+  }
+  if (agent.color) {
+    lines.push(`color: ${serializeYamlValue(agent.color)}`);
+  }
+  if (agent.steps !== void 0) {
+    lines.push(`steps: ${serializeYamlValue(agent.steps)}`);
+  }
+  if (agent.hidden) {
+    lines.push("hidden: true");
+  }
+  if (agent.disable) {
+    lines.push("disable: true");
+  }
+  if (agent.tools && Object.keys(agent.tools).length > 0) {
+    lines.push(`tools: ${serializeYamlValue(agent.tools)}`);
+  }
+  if (agent.options && Object.keys(agent.options).length > 0) {
+    lines.push(`options: ${serializeYamlValue(agent.options)}`);
+  }
+  if (agent.permission !== void 0) {
+    lines.push(`permission: ${serializeYamlValue(agent.permission)}`);
+  }
+  if (agent.extraFrontmatter) {
+    for (const [key, value] of Object.entries(agent.extraFrontmatter)) {
+      lines.push(`${key}: ${serializeYamlValue(value)}`);
+    }
+  }
+  lines.push("---");
+  lines.push(agent.prompt);
+  return lines.join("\n");
+}
+function normalizeAgentNameFromPath(filePath) {
+  const relativePath = toRelativeAgentPath(filePath);
+  return relativePath.replace(/\.md$/i, "");
+}
+function toRelativeAgentPath(filePath) {
+  var _a7;
+  const normalized = normalizeVaultPath(filePath);
+  for (const rootPath of KIMICODE_AGENT_SCAN_PATHS) {
+    const prefix = `${rootPath}/`;
+    const index = normalized.lastIndexOf(prefix);
+    if (index >= 0) {
+      return normalized.slice(index + prefix.length);
+    }
+  }
+  return (_a7 = normalized.split("/").pop()) != null ? _a7 : normalized;
+}
+function normalizeMode(value) {
+  return value === "subagent" || value === "primary" || value === "all" ? value : void 0;
+}
+function normalizeFiniteNumber(value) {
+  return typeof value === "number" && Number.isFinite(value) ? value : void 0;
+}
+function normalizePositiveInteger(value) {
+  return typeof value === "number" && Number.isInteger(value) && value > 0 ? value : void 0;
+}
+function isBooleanRecord(value) {
+  if (!isRecord2(value)) {
+    return false;
+  }
+  return Object.values(value).every((entry) => typeof entry === "boolean");
+}
+function serializeYamlValue(value) {
+  if (typeof value === "string") {
+    return yamlString(value);
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  if (value === null) {
+    return "null";
+  }
+  return JSON.stringify(value);
+}
+function normalizeVaultPath(filePath) {
+  return filePath.replace(/\\/g, "/");
+}
+function isSupportedAgentFilePath(filePath) {
+  return KIMICODE_AGENT_SCAN_PATHS.some((rootPath) => filePath.startsWith(`${rootPath}/`)) && filePath.endsWith(".md");
+}
+
+// src/providers/kimicode/ui/KimicodeSettingsTab.ts
+var fs28 = __toESM(require("fs"));
+var import_obsidian20 = require("obsidian");
+init_env();
+init_path();
+
+// src/providers/kimicode/ui/KimicodeAgentSettings.ts
+var import_obsidian19 = require("obsidian");
+var KIMICODE_AGENT_INVALID_SEGMENT_PATTERN = /[<>:"\\|?*]/;
+function validateKimicodeAgentName(name) {
+  if (!name) return "Agent name is required";
+  const segments = name.split("/");
+  if (segments.length === 0 || segments.some((segment) => segment.length === 0)) {
+    return "Agent name must use slash-separated path segments without leading or trailing slashes";
+  }
+  for (const segment of segments) {
+    if (!segment.trim()) {
+      return "Agent name path segments cannot be empty or whitespace-only";
+    }
+    if (segment !== segment.trim()) {
+      return "Agent name path segments cannot start or end with whitespace";
+    }
+    if (segment === "." || segment === "..") {
+      return 'Agent name cannot include "." or ".." path segments';
+    }
+    if (segment.includes("\0") || KIMICODE_AGENT_INVALID_SEGMENT_PATTERN.test(segment)) {
+      return "Agent name path segments cannot contain Windows-reserved filename characters";
+    }
+  }
+  return null;
+}
+function findKimicodeAgentNameConflict(agents, name, currentPersistenceKey) {
+  var _a7;
+  const normalizedName = name.toLowerCase();
+  return (_a7 = agents.find(
+    (agent) => agent.name.toLowerCase() === normalizedName && agent.persistenceKey !== currentPersistenceKey
+  )) != null ? _a7 : null;
+}
+var KimicodeAgentModal = class extends import_obsidian19.Modal {
+  constructor(app, existing, allAgents, onSave) {
+    super(app);
+    this.existing = existing;
+    this.allAgents = allAgents;
+    this.onSave = onSave;
+  }
+  onOpen() {
+    var _a7, _b4, _c3, _d3, _e3, _f3, _g2, _h2, _i3, _j2, _k2, _l3, _m2, _n5, _o2, _p3, _q;
+    this.setTitle(this.existing ? "Edit Kimi Code Subagent" : "Add Kimi Code Subagent");
+    this.modalEl.addClass("grimoire-sp-modal");
+    const { contentEl } = this;
+    let nameInput;
+    let descriptionInput;
+    let modelInput;
+    let variantInput;
+    let temperatureInput;
+    let topPInput;
+    let colorInput;
+    let stepsInput;
+    let hiddenValue = (_b4 = (_a7 = this.existing) == null ? void 0 : _a7.hidden) != null ? _b4 : false;
+    let disableValue = (_d3 = (_c3 = this.existing) == null ? void 0 : _c3.disable) != null ? _d3 : false;
+    let toolsInput;
+    let permissionInput;
+    let optionsInput;
+    new import_obsidian19.Setting(contentEl).setName("Name").setDesc("Kimi Code agent name. Use slash-separated segments for nested agents.").addText((text) => {
+      var _a8, _b5;
+      nameInput = text.inputEl;
+      text.setValue((_b5 = (_a8 = this.existing) == null ? void 0 : _a8.name) != null ? _b5 : "").setPlaceholder("Review");
+    });
+    new import_obsidian19.Setting(contentEl).setName("Description").setDesc("When Kimi Code should use this subagent").addText((text) => {
+      var _a8, _b5;
+      descriptionInput = text.inputEl;
+      text.setValue((_b5 = (_a8 = this.existing) == null ? void 0 : _a8.description) != null ? _b5 : "").setPlaceholder("Reviews code for correctness and maintainability");
+    });
+    const details = contentEl.createEl("details", { cls: "grimoire-sp-advanced-section" });
+    details.createEl("summary", {
+      text: "Advanced options",
+      cls: "grimoire-sp-advanced-summary"
+    });
+    if (((_e3 = this.existing) == null ? void 0 : _e3.model) || ((_f3 = this.existing) == null ? void 0 : _f3.variant) || ((_g2 = this.existing) == null ? void 0 : _g2.temperature) !== void 0 || ((_h2 = this.existing) == null ? void 0 : _h2.topP) !== void 0 || ((_i3 = this.existing) == null ? void 0 : _i3.color) || ((_j2 = this.existing) == null ? void 0 : _j2.steps) !== void 0 || ((_k2 = this.existing) == null ? void 0 : _k2.hidden) || ((_l3 = this.existing) == null ? void 0 : _l3.disable) || ((_m2 = this.existing) == null ? void 0 : _m2.tools) || ((_n5 = this.existing) == null ? void 0 : _n5.permission) !== void 0 || ((_o2 = this.existing) == null ? void 0 : _o2.options)) {
+      details.open = true;
+    }
+    new import_obsidian19.Setting(details).setName("Model").setDesc("Model override in provider/model format").addText((text) => {
+      var _a8, _b5;
+      modelInput = text.inputEl;
+      text.setValue((_b5 = (_a8 = this.existing) == null ? void 0 : _a8.model) != null ? _b5 : "").setPlaceholder("Anthropic/Claude-sonnet-4-20250514");
+    });
+    new import_obsidian19.Setting(details).setName("Variant").setDesc("Model variant override").addText((text) => {
+      var _a8, _b5;
+      variantInput = text.inputEl;
+      text.setValue((_b5 = (_a8 = this.existing) == null ? void 0 : _a8.variant) != null ? _b5 : "").setPlaceholder("High");
+    });
+    new import_obsidian19.Setting(details).setName("Temperature").setDesc("Optional sampling temperature").addText((text) => {
+      var _a8;
+      temperatureInput = text.inputEl;
+      text.setValue(((_a8 = this.existing) == null ? void 0 : _a8.temperature) !== void 0 ? String(this.existing.temperature) : "").setPlaceholder("0.1");
+    });
+    new import_obsidian19.Setting(details).setName("Top p").setDesc("Optional nucleus sampling value").addText((text) => {
+      var _a8;
+      topPInput = text.inputEl;
+      text.setValue(((_a8 = this.existing) == null ? void 0 : _a8.topP) !== void 0 ? String(this.existing.topP) : "").setPlaceholder("0.9");
+    });
+    new import_obsidian19.Setting(details).setName("Color").setDesc("Hex color or theme token").addText((text) => {
+      var _a8, _b5;
+      colorInput = text.inputEl;
+      text.setValue((_b5 = (_a8 = this.existing) == null ? void 0 : _a8.color) != null ? _b5 : "").setPlaceholder("#Ff5733");
+    });
+    new import_obsidian19.Setting(details).setName("Steps").setDesc("Maximum agentic iterations before forcing text-only output").addText((text) => {
+      var _a8;
+      stepsInput = text.inputEl;
+      text.setValue(((_a8 = this.existing) == null ? void 0 : _a8.steps) !== void 0 ? String(this.existing.steps) : "").setPlaceholder("10");
+    });
+    new import_obsidian19.Setting(details).setName("Hide from @mention").setDesc("Hide this subagent from the @ autocomplete menu").addToggle((toggle) => {
+      toggle.setValue(hiddenValue).onChange((value) => {
+        hiddenValue = value;
+      });
+    });
+    new import_obsidian19.Setting(details).setName("Disable agent").setDesc("Disable the agent without deleting the file").addToggle((toggle) => {
+      toggle.setValue(disableValue).onChange((value) => {
+        disableValue = value;
+      });
+    });
+    new import_obsidian19.Setting(details).setName("Enabled tools (JSON)").setDesc('Optional deprecated tools map, e.g. {"write":false,"edit":false}').addTextArea((text) => {
+      var _a8;
+      toolsInput = text.inputEl;
+      text.setValue(((_a8 = this.existing) == null ? void 0 : _a8.tools) ? JSON.stringify(this.existing.tools, null, 2) : "").setPlaceholder('{\n  "write": false,\n  "edit": false\n}');
+    });
+    new import_obsidian19.Setting(details).setName("Permission (JSON)").setDesc('Optional permission config, e.g. {"edit":"deny","bash":"allow"}').addTextArea((text) => {
+      var _a8;
+      permissionInput = text.inputEl;
+      text.setValue(((_a8 = this.existing) == null ? void 0 : _a8.permission) !== void 0 ? JSON.stringify(this.existing.permission, null, 2) : "").setPlaceholder('{\n  "edit": "deny"\n}');
+    });
+    new import_obsidian19.Setting(details).setName("Options (JSON)").setDesc("Optional custom agent options").addTextArea((text) => {
+      var _a8;
+      optionsInput = text.inputEl;
+      text.setValue(((_a8 = this.existing) == null ? void 0 : _a8.options) ? JSON.stringify(this.existing.options, null, 2) : "").setPlaceholder('{\n  "focus": "security"\n}');
+    });
+    new import_obsidian19.Setting(contentEl).setName("Prompt").setDesc("Markdown body used as the agent prompt");
+    const promptArea = contentEl.createEl("textarea", {
+      cls: "grimoire-sp-content-area",
+      attr: {
+        rows: "10",
+        placeholder: "Review code changes carefully and call out correctness, regressions, and missing coverage."
+      }
+    });
+    promptArea.value = (_q = (_p3 = this.existing) == null ? void 0 : _p3.prompt) != null ? _q : "";
+    const buttonContainer = contentEl.createDiv({ cls: "grimoire-sp-modal-buttons" });
+    const cancelBtn = buttonContainer.createEl("button", {
+      text: "Cancel",
+      cls: "grimoire-cancel-btn"
+    });
+    cancelBtn.addEventListener("click", () => this.close());
+    const saveBtn = buttonContainer.createEl("button", {
+      text: "Save",
+      cls: "grimoire-save-btn"
+    });
+    saveBtn.addEventListener("click", () => {
+      void (async () => {
+        var _a8, _b5, _c4;
+        const name = nameInput.value.trim();
+        const nameError = validateKimicodeAgentName(name);
+        if (nameError) {
+          new import_obsidian19.Notice(nameError);
+          return;
+        }
+        const description = descriptionInput.value.trim();
+        if (!description) {
+          new import_obsidian19.Notice("Description is required");
+          return;
+        }
+        const prompt = promptArea.value;
+        if (!prompt.trim()) {
+          new import_obsidian19.Notice("Prompt is required");
+          return;
+        }
+        const duplicate = findKimicodeAgentNameConflict(
+          this.allAgents,
+          name,
+          (_a8 = this.existing) == null ? void 0 : _a8.persistenceKey
+        );
+        if (duplicate) {
+          new import_obsidian19.Notice(`A subagent named "${name}" already exists`);
+          return;
+        }
+        const temperature = parseOptionalNumber(temperatureInput.value, "Temperature");
+        if (temperature.error) {
+          new import_obsidian19.Notice(temperature.error);
+          return;
+        }
+        const topP = parseOptionalNumber(topPInput.value, "Top P");
+        if (topP.error) {
+          new import_obsidian19.Notice(topP.error);
+          return;
+        }
+        const steps = parseOptionalPositiveInteger(stepsInput.value, "Steps");
+        if (steps.error) {
+          new import_obsidian19.Notice(steps.error);
+          return;
+        }
+        const tools = parseOptionalJsonObjectOfBooleans(toolsInput.value, "Enabled Tools");
+        if (tools.error) {
+          new import_obsidian19.Notice(tools.error);
+          return;
+        }
+        const permission = parseOptionalJson(permissionInput.value, "Permission");
+        if (permission.error) {
+          new import_obsidian19.Notice(permission.error);
+          return;
+        }
+        const options = parseOptionalJsonObject(optionsInput.value, "Options");
+        if (options.error) {
+          new import_obsidian19.Notice(options.error);
+          return;
+        }
+        const agent = {
+          name,
+          description,
+          prompt,
+          mode: "subagent",
+          hidden: hiddenValue || void 0,
+          disable: disableValue || void 0,
+          model: modelInput.value.trim() || void 0,
+          variant: variantInput.value.trim() || void 0,
+          temperature: temperature.value,
+          topP: topP.value,
+          color: colorInput.value.trim() || void 0,
+          steps: steps.value,
+          tools: tools.value,
+          permission: permission.value,
+          options: options.value,
+          persistenceKey: (_b5 = this.existing) == null ? void 0 : _b5.persistenceKey,
+          extraFrontmatter: (_c4 = this.existing) == null ? void 0 : _c4.extraFrontmatter
+        };
+        try {
+          await this.onSave(agent);
+        } catch (error48) {
+          const message = error48 instanceof Error ? error48.message : "Unknown error";
+          new import_obsidian19.Notice(`Failed to save subagent: ${message}`);
+          return;
+        }
+        this.close();
+      })();
+    });
+  }
+  onClose() {
+    this.contentEl.empty();
+  }
+};
+var KimicodeAgentSettings = class {
+  constructor(containerEl, storage, app, onChanged) {
+    this.agents = [];
+    this.containerEl = containerEl;
+    this.storage = storage;
+    this.app = app;
+    this.onChanged = onChanged;
+    void this.render();
+  }
+  async render() {
+    this.containerEl.empty();
+    try {
+      this.agents = await this.storage.loadAll();
+    } catch (e) {
+      this.agents = [];
+    }
+    const visibleAgents = this.agents.filter((agent) => agent.mode === "subagent");
+    const headerEl = this.containerEl.createDiv({ cls: "grimoire-sp-header" });
+    headerEl.createSpan({ text: "Kimi Code Subagents", cls: "grimoire-sp-label" });
+    const actionsEl = headerEl.createDiv({ cls: "grimoire-sp-header-actions" });
+    const refreshBtn = actionsEl.createEl("button", {
+      cls: "grimoire-settings-action-btn",
+      attr: { "aria-label": "Refresh" }
+    });
+    (0, import_obsidian19.setIcon)(refreshBtn, "refresh-cw");
+    refreshBtn.addEventListener("click", () => {
+      void this.render();
+    });
+    const addBtn = actionsEl.createEl("button", {
+      cls: "grimoire-settings-action-btn",
+      attr: { "aria-label": "Add" }
+    });
+    (0, import_obsidian19.setIcon)(addBtn, "plus");
+    addBtn.addEventListener("click", () => this.openModal(null));
+    if (visibleAgents.length === 0) {
+      const emptyEl = this.containerEl.createDiv({ cls: "grimoire-sp-empty-state" });
+      emptyEl.setText("No Kimi Code subagents in vault. Click + to create one.");
+      return;
+    }
+    const listEl = this.containerEl.createDiv({ cls: "grimoire-sp-list" });
+    for (const agent of visibleAgents) {
+      this.renderItem(listEl, agent);
+    }
+  }
+  renderItem(listEl, agent) {
+    const itemEl = listEl.createDiv({ cls: "grimoire-sp-item" });
+    const infoEl = itemEl.createDiv({ cls: "grimoire-sp-info" });
+    const headerRow = infoEl.createDiv({ cls: "grimoire-sp-item-header" });
+    const nameEl = headerRow.createSpan({ cls: "grimoire-sp-item-name" });
+    nameEl.setText(agent.name);
+    headerRow.createSpan({
+      text: "subagent",
+      cls: "grimoire-slash-item-badge"
+    });
+    if (agent.model) {
+      headerRow.createSpan({ text: agent.model, cls: "grimoire-slash-item-badge" });
+    }
+    if (agent.description) {
+      const descEl = infoEl.createDiv({ cls: "grimoire-sp-item-desc" });
+      descEl.setText(agent.description);
+    }
+    const actionsEl = itemEl.createDiv({ cls: "grimoire-sp-item-actions" });
+    const editBtn = actionsEl.createEl("button", {
+      cls: "grimoire-settings-action-btn",
+      attr: { "aria-label": "Edit" }
+    });
+    (0, import_obsidian19.setIcon)(editBtn, "pencil");
+    editBtn.addEventListener("click", () => this.openModal(agent));
+    const deleteBtn = actionsEl.createEl("button", {
+      cls: "grimoire-settings-action-btn grimoire-settings-delete-btn",
+      attr: { "aria-label": "Delete" }
+    });
+    (0, import_obsidian19.setIcon)(deleteBtn, "trash-2");
+    deleteBtn.addEventListener("click", () => {
+      void (async () => {
+        var _a7;
+        if (!this.app) return;
+        const confirmed = await confirmDelete(
+          this.app,
+          `Delete subagent "${agent.name}"?`
+        );
+        if (!confirmed) return;
+        try {
+          await this.storage.delete(agent);
+          await this.render();
+          await ((_a7 = this.onChanged) == null ? void 0 : _a7.call(this));
+          new import_obsidian19.Notice(`Subagent "${agent.name}" deleted`);
+        } catch (e) {
+          new import_obsidian19.Notice("Failed to delete subagent");
+        }
+      })();
+    });
+  }
+  openModal(existing) {
+    if (!this.app) return;
+    const modal = new KimicodeAgentModal(
+      this.app,
+      existing,
+      this.agents,
+      async (agent) => {
+        var _a7;
+        await this.storage.save(agent, existing);
+        await this.render();
+        await ((_a7 = this.onChanged) == null ? void 0 : _a7.call(this));
+        new import_obsidian19.Notice(
+          existing ? `Subagent "${agent.name}" updated` : `Subagent "${agent.name}" created`
+        );
+      }
+    );
+    modal.open();
+  }
+};
+function parseOptionalNumber(value, label) {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return {};
+  }
+  const parsed = Number(trimmed);
+  if (!Number.isFinite(parsed)) {
+    return { error: `${label} must be a valid number` };
+  }
+  return { value: parsed };
+}
+function parseOptionalPositiveInteger(value, label) {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return {};
+  }
+  const parsed = Number(trimmed);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    return { error: `${label} must be a positive integer` };
+  }
+  return { value: parsed };
+}
+function parseOptionalJson(value, label) {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return {};
+  }
+  try {
+    return { value: JSON.parse(trimmed) };
+  } catch (e) {
+    return { error: `${label} must be valid JSON` };
+  }
+}
+function parseOptionalJsonObject(value, label) {
+  const parsed = parseOptionalJson(value, label);
+  if (parsed.error || parsed.value === void 0) {
+    return parsed.error ? { error: parsed.error } : {};
+  }
+  if (!isJsonObject(parsed.value)) {
+    return { error: `${label} must be a JSON object` };
+  }
+  return { value: parsed.value };
+}
+function parseOptionalJsonObjectOfBooleans(value, label) {
+  const parsed = parseOptionalJsonObject(value, label);
+  if (parsed.error || parsed.value === void 0) {
+    return parsed.error ? { error: parsed.error } : {};
+  }
+  if (!Object.values(parsed.value).every((entry) => typeof entry === "boolean")) {
+    return { error: `${label} must map tool names to boolean values` };
+  }
+  return { value: parsed.value };
+}
+function isJsonObject(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+// src/providers/kimicode/ui/KimicodeSettingsTab.ts
+var ALL_PROVIDERS_KEY = "all";
+var KIMICODE_METADATA_WARMUP_DB = ":memory:";
+var kimicodeSettingsTabRenderer = {
+  render(container, context) {
+    const kimicodeWorkspace = maybeGetKimicodeWorkspaceServices();
+    const settingsBag = context.plugin.settings;
+    const kimicodeSettings = getKimicodeProviderSettings(settingsBag);
+    const hostnameKey = getHostnameKey();
+    if (!kimicodeSettings.enabled) {
+      renderProviderDisabledNotice(container, "Kimi Code");
+    }
+    new import_obsidian20.Setting(container).setName("Setup").setHeading();
+    const cliPathSetting = new import_obsidian20.Setting(container).setName("CLI path").setDesc("Optional absolute path to the Kimi Code CLI for this computer. Leave empty to use `kimi` from PATH.");
+    const validationEl = container.createDiv({
+      cls: "grimoire-cli-path-validation grimoire-setting-validation grimoire-setting-validation-error grimoire-hidden"
+    });
+    const validatePath = (value) => {
+      const trimmed = value.trim();
+      if (!trimmed) {
+        return null;
+      }
+      const expandedPath = expandHomePath(trimmed);
+      if (!fs28.existsSync(expandedPath)) {
+        return "Path does not exist";
+      }
+      const stat = fs28.statSync(expandedPath);
+      if (!stat.isFile()) {
+        return "Path must point to a file";
+      }
+      return null;
+    };
+    const updateCliPathValidation = (value, inputEl) => {
+      const error48 = validatePath(value);
+      if (error48) {
+        validationEl.setText(error48);
+        validationEl.toggleClass("grimoire-hidden", false);
+        if (inputEl) {
+          inputEl.toggleClass("grimoire-input-error", true);
+        }
+        return false;
+      }
+      validationEl.toggleClass("grimoire-hidden", true);
+      if (inputEl) {
+        inputEl.toggleClass("grimoire-input-error", false);
+      }
+      return true;
+    };
+    const cliPathsByHost = { ...kimicodeSettings.cliPathsByHost };
+    const currentValue = kimicodeSettings.cliPathsByHost[hostnameKey] || "";
+    let cliPathInputEl = null;
+    const persistCliPath = async (value) => {
+      var _a7;
+      const isValid2 = updateCliPathValidation(value, cliPathInputEl != null ? cliPathInputEl : void 0);
+      if (!isValid2) {
+        return false;
+      }
+      const trimmed = value.trim();
+      if (trimmed) {
+        cliPathsByHost[hostnameKey] = trimmed;
+      } else {
+        delete cliPathsByHost[hostnameKey];
+      }
+      updateKimicodeProviderSettings(settingsBag, { cliPathsByHost: { ...cliPathsByHost } });
+      clearKimicodeDiscoveryState(settingsBag);
+      await context.plugin.saveSettings();
+      (_a7 = kimicodeWorkspace == null ? void 0 : kimicodeWorkspace.cliResolver) == null ? void 0 : _a7.reset();
+      await recycleKimicodeRuntime();
+      return true;
+    };
+    const recycleKimicodeRuntime = async () => {
+      var _a7, _b4;
+      for (const view of context.plugin.getAllViews()) {
+        const tabManager = view.getTabManager();
+        if (tabManager == null ? void 0 : tabManager.broadcastToProviderTabs) {
+          await tabManager.broadcastToProviderTabs("kimicode", (service) => Promise.resolve(service.cleanup()));
+        } else {
+          await (tabManager == null ? void 0 : tabManager.broadcastToAllTabs(
+            (service) => Promise.resolve(service.cleanup())
+          ));
+        }
+        (_a7 = view.invalidateProviderCommandCaches) == null ? void 0 : _a7.call(view, ["kimicode"]);
+        (_b4 = view.refreshModelSelector) == null ? void 0 : _b4.call(view);
+      }
+    };
+    cliPathSetting.addText((text) => {
+      text.setPlaceholder(process.platform === "win32" ? "C:\\Users\\you\\AppData\\Roaming\\npm\\kimi.cmd" : "/usr/local/bin/kimi").setValue(currentValue).onChange(async (value) => {
+        await persistCliPath(value);
+      });
+      text.inputEl.addClass("grimoire-settings-cli-path-input");
+      cliPathInputEl = text.inputEl;
+      updateCliPathValidation(currentValue, text.inputEl);
+    });
+    new import_obsidian20.Setting(container).setName("Models").setHeading();
+    new import_obsidian20.Setting(container).setName("Visible models").setDesc("Choose which Kimi Code models appear in the chat selector. Filter by provider or type to search. The current session model stays pinned even if it is not selected here.");
+    const pickerEl = container.createDiv({ cls: "grimoire-kimicode-model-picker" });
+    let searchQuery = "";
+    let providerFilter = ALL_PROVIDERS_KEY;
+    const summaryEl = pickerEl.createDiv({ cls: "grimoire-kimicode-model-picker-summary" });
+    const selectedEl = pickerEl.createDiv({ cls: "grimoire-kimicode-model-picker-selected" });
+    const catalogEl = pickerEl.createEl("details", { cls: "grimoire-kimicode-model-picker-catalog" });
+    catalogEl.open = getKimicodeProviderSettings(settingsBag).visibleModels.length === 0;
+    const catalogSummaryEl = catalogEl.createEl("summary", {
+      cls: "grimoire-kimicode-model-picker-catalog-summary"
+    });
+    catalogSummaryEl.createSpan({
+      cls: "grimoire-kimicode-model-picker-catalog-caret",
+      text: "\u25B8"
+    });
+    catalogSummaryEl.createSpan({
+      cls: "grimoire-kimicode-model-picker-catalog-title",
+      text: "Browse models"
+    });
+    const catalogSummaryCountEl = catalogSummaryEl.createSpan({
+      cls: "grimoire-kimicode-model-picker-catalog-count"
+    });
+    const controlsEl = catalogEl.createDiv({ cls: "grimoire-kimicode-model-picker-controls" });
+    const searchInput = controlsEl.createEl("input", {
+      cls: "grimoire-kimicode-model-picker-search",
+      type: "search"
+    });
+    searchInput.placeholder = "Filter by model, provider, or ID\u2026";
+    searchInput.addEventListener("input", () => {
+      searchQuery = searchInput.value.trim().toLowerCase();
+      renderList();
+    });
+    const providerSelectEl = controlsEl.createEl("select", {
+      cls: "grimoire-kimicode-model-picker-provider"
+    });
+    providerSelectEl.addEventListener("change", () => {
+      providerFilter = providerSelectEl.value;
+      renderList();
+    });
+    const listEl = catalogEl.createDiv({ cls: "grimoire-kimicode-model-picker-list" });
+    let loadingModelCatalog = false;
+    let modelCatalogLoadFailed = false;
+    const getEnrichedModels = () => {
+      const current = getKimicodeProviderSettings(settingsBag);
+      return buildEnrichedModels(current.discoveredModels, current.visibleModels);
+    };
+    const filterModels = (models) => {
+      return models.filter((model) => {
+        if (providerFilter !== ALL_PROVIDERS_KEY && model.providerKey !== providerFilter) {
+          return false;
+        }
+        if (!searchQuery) {
+          return true;
+        }
+        return model.rawId.toLowerCase().includes(searchQuery) || model.modelLabel.toLowerCase().includes(searchQuery) || model.providerLabel.toLowerCase().includes(searchQuery) || model.description.toLowerCase().includes(searchQuery);
+      });
+    };
+    const persistVisibleModels = async (visibleModels) => {
+      const currentVisibleModels = getKimicodeProviderSettings(settingsBag).visibleModels;
+      const normalized = normalizeKimicodeVisibleModels(
+        visibleModels,
+        getKimicodeProviderSettings(settingsBag).discoveredModels
+      );
+      if (sameStringList2(currentVisibleModels, normalized)) {
+        return;
+      }
+      updateKimicodeProviderSettings(settingsBag, { visibleModels: normalized });
+      await context.plugin.saveSettings();
+      renderAll();
+      context.refreshModelSelectors();
+    };
+    const persistModelMetadata = async (rawId) => {
+      const runtime = new KimicodeChatRuntime(context.plugin);
+      try {
+        runtime.syncConversationState({
+          providerState: { databasePath: KIMICODE_METADATA_WARMUP_DB },
+          sessionId: null
+        });
+        const loaded = await runtime.warmModelMetadata(encodeKimicodeModelId(rawId));
+        if (loaded) {
+          context.refreshModelSelectors();
+        }
+      } catch (e) {
+      } finally {
+        runtime.cleanup();
+      }
+    };
+    const persistModelAliases = async (modelAliases) => {
+      updateKimicodeProviderSettings(settingsBag, { modelAliases });
+      await context.plugin.saveSettings();
+      renderSelected();
+      context.refreshModelSelectors();
+    };
+    const renderSummary = () => {
+      summaryEl.empty();
+      const current = getKimicodeProviderSettings(settingsBag);
+      const enriched = getEnrichedModels();
+      const providerCount = new Set(enriched.map((model) => model.providerKey)).size;
+      const providerWord = providerCount === 1 ? "provider" : "providers";
+      summaryEl.createSpan({ text: "Visible: " });
+      summaryEl.createSpan({
+        cls: "grimoire-kimicode-model-picker-summary-value",
+        text: String(current.visibleModels.length)
+      });
+      summaryEl.createSpan({
+        text: ` of ${current.discoveredModels.length} discovered \u2022 ${providerCount} ${providerWord}`
+      });
+      let catalogSummary = "No models discovered yet";
+      if (loadingModelCatalog) {
+        catalogSummary = "Loading models...";
+      } else if (current.discoveredModels.length > 0) {
+        catalogSummary = `${current.discoveredModels.length} available`;
+      }
+      catalogSummaryCountEl.setText(catalogSummary);
+    };
+    const renderSelected = () => {
+      var _a7;
+      selectedEl.empty();
+      const current = getKimicodeProviderSettings(settingsBag);
+      if (current.visibleModels.length === 0) {
+        selectedEl.toggleClass("grimoire-hidden", true);
+        return;
+      }
+      selectedEl.toggleClass("grimoire-hidden", false);
+      const enrichedByRawId = new Map(
+        getEnrichedModels().map((model) => [model.rawId, model])
+      );
+      const headerEl = selectedEl.createDiv({ cls: "grimoire-kimicode-model-picker-selected-header" });
+      headerEl.createEl("span", {
+        cls: "grimoire-kimicode-model-picker-selected-label",
+        text: `Selected (${current.visibleModels.length})`
+      });
+      const clearAllBtn = headerEl.createEl("button", {
+        cls: "grimoire-kimicode-model-picker-selected-clear",
+        text: "Clear all"
+      });
+      clearAllBtn.setAttribute("aria-label", "Clear all selected models");
+      clearAllBtn.addEventListener("click", () => {
+        void persistVisibleModels([]);
+      });
+      const rowsEl = selectedEl.createDiv({ cls: "grimoire-kimicode-model-picker-selected-rows" });
+      for (const rawId of current.visibleModels) {
+        const enriched = enrichedByRawId.get(rawId);
+        const defaultLabel = enriched ? `${enriched.providerLabel}/${enriched.modelLabel}` : rawId;
+        const rowEl = rowsEl.createDiv({ cls: "grimoire-kimicode-model-picker-selected-row" });
+        if (enriched && !enriched.isAvailable) {
+          rowEl.classList.add("grimoire-kimicode-model-picker-selected-row--unavailable");
+        }
+        const infoEl = rowEl.createDiv({ cls: "grimoire-kimicode-model-picker-selected-info" });
+        const titleEl = infoEl.createDiv({ cls: "grimoire-kimicode-model-picker-selected-title" });
+        if (enriched) {
+          titleEl.createEl("span", {
+            cls: "grimoire-kimicode-model-picker-selected-badge",
+            text: enriched.providerLabel
+          });
+          titleEl.createEl("span", {
+            cls: "grimoire-kimicode-model-picker-selected-name",
+            text: enriched.modelLabel
+          });
+        } else {
+          titleEl.createEl("span", {
+            cls: "grimoire-kimicode-model-picker-selected-name",
+            text: rawId
+          });
+        }
+        if (enriched && !enriched.isAvailable) {
+          infoEl.createEl("div", {
+            cls: "grimoire-kimicode-model-picker-selected-unavailable",
+            text: "Not currently reported by Kimi Code"
+          });
+        }
+        infoEl.createEl("div", {
+          cls: "grimoire-kimicode-model-picker-selected-id",
+          text: rawId
+        });
+        const controlsEl2 = rowEl.createDiv({ cls: "grimoire-kimicode-model-picker-selected-controls" });
+        const aliasInput = controlsEl2.createEl("input", {
+          cls: "grimoire-kimicode-model-picker-selected-alias",
+          type: "text"
+        });
+        aliasInput.placeholder = defaultLabel;
+        aliasInput.value = (_a7 = current.modelAliases[rawId]) != null ? _a7 : "";
+        aliasInput.setAttribute("aria-label", `Alias for ${defaultLabel}`);
+        aliasInput.title = "Custom label shown in the model selector. Leave empty to use the default.";
+        const commitAlias = () => {
+          var _a8;
+          const latest = getKimicodeProviderSettings(settingsBag);
+          const existing = (_a8 = latest.modelAliases[rawId]) != null ? _a8 : "";
+          const next = aliasInput.value.trim();
+          if (next === existing) {
+            aliasInput.value = existing;
+            return;
+          }
+          const nextAliases = { ...latest.modelAliases };
+          if (next) {
+            nextAliases[rawId] = next;
+          } else {
+            delete nextAliases[rawId];
+          }
+          void persistModelAliases(nextAliases);
+        };
+        aliasInput.addEventListener("blur", commitAlias);
+        aliasInput.addEventListener("keydown", (event) => {
+          var _a8;
+          if (event.key === "Enter") {
+            event.preventDefault();
+            aliasInput.blur();
+          } else if (event.key === "Escape") {
+            event.preventDefault();
+            aliasInput.value = (_a8 = getKimicodeProviderSettings(settingsBag).modelAliases[rawId]) != null ? _a8 : "";
+            aliasInput.blur();
+          }
+        });
+        const removeBtn = controlsEl2.createEl("button", {
+          cls: "grimoire-kimicode-model-picker-selected-remove",
+          text: "\xD7"
+        });
+        removeBtn.setAttribute("aria-label", `Remove ${defaultLabel}`);
+        removeBtn.addEventListener("click", () => {
+          void persistVisibleModels(current.visibleModels.filter((entry) => entry !== rawId));
+        });
+      }
+    };
+    const renderProviderSelect = () => {
+      const enriched = getEnrichedModels();
+      const providers = /* @__PURE__ */ new Map();
+      for (const model of enriched) {
+        const existing = providers.get(model.providerKey);
+        if (existing) {
+          existing.count += 1;
+        } else {
+          providers.set(model.providerKey, { count: 1, label: model.providerLabel });
+        }
+      }
+      providerSelectEl.empty();
+      providerSelectEl.createEl("option", {
+        text: `All providers (${enriched.length})`,
+        value: ALL_PROVIDERS_KEY
+      });
+      const sortedProviders = Array.from(providers.entries()).sort(([, left], [, right]) => left.label.localeCompare(right.label));
+      for (const [key, { count, label }] of sortedProviders) {
+        providerSelectEl.createEl("option", {
+          text: `${label} (${count})`,
+          value: key
+        });
+      }
+      if (providerFilter !== ALL_PROVIDERS_KEY && !providers.has(providerFilter)) {
+        providerFilter = ALL_PROVIDERS_KEY;
+      }
+      providerSelectEl.value = providerFilter;
+    };
+    const renderList = () => {
+      listEl.empty();
+      const current = getKimicodeProviderSettings(settingsBag);
+      const selectedIds = new Set(current.visibleModels);
+      const enriched = getEnrichedModels();
+      const filtered = filterModels(enriched);
+      if (filtered.length === 0) {
+        const emptyEl = listEl.createDiv({ cls: "grimoire-kimicode-model-picker-empty" });
+        let emptyText = "No models match your filter.";
+        if (loadingModelCatalog) {
+          emptyText = "Loading Kimi Code model catalog...";
+        } else if (modelCatalogLoadFailed) {
+          emptyText = "Could not load the Kimi Code model catalog. Check the CLI path and login state, then expand this section again.";
+        } else if (enriched.length === 0) {
+          emptyText = "Start Kimi Code once to load its model catalog. Grimoire will then let you pick visible models.";
+        }
+        emptyEl.setText(emptyText);
+        return;
+      }
+      for (const model of filtered) {
+        const rowEl = listEl.createEl("label", { cls: "grimoire-kimicode-model-picker-row" });
+        const isSelected = selectedIds.has(model.rawId);
+        if (isSelected) {
+          rowEl.classList.add("grimoire-kimicode-model-picker-row--selected");
+        }
+        rowEl.title = model.rawId;
+        const checkboxEl = rowEl.createEl("input", { type: "checkbox" });
+        checkboxEl.checked = isSelected;
+        checkboxEl.addEventListener("change", () => {
+          const currentVisibleModels = getKimicodeProviderSettings(settingsBag).visibleModels;
+          const next = checkboxEl.checked ? [...currentVisibleModels, model.rawId] : currentVisibleModels.filter((id2) => id2 !== model.rawId);
+          void (async () => {
+            await persistVisibleModels(next);
+            if (checkboxEl.checked) {
+              await persistModelMetadata(model.rawId);
+            }
+          })();
+        });
+        const textEl = rowEl.createDiv({ cls: "grimoire-kimicode-model-picker-row-text" });
+        const headerEl = textEl.createDiv({ cls: "grimoire-kimicode-model-picker-row-header" });
+        headerEl.createEl("span", {
+          cls: "grimoire-kimicode-model-picker-row-name",
+          text: model.modelLabel
+        });
+        const badgeEl = headerEl.createEl("span", {
+          cls: "grimoire-kimicode-model-picker-row-badge",
+          text: model.providerLabel
+        });
+        if (!model.isAvailable) {
+          badgeEl.classList.add("grimoire-kimicode-model-picker-row-badge--unavailable");
+          badgeEl.setText("Unavailable");
+          badgeEl.title = "Configured model not currently reported by Kimi Code";
+        }
+        textEl.createDiv({
+          cls: "grimoire-kimicode-model-picker-row-meta",
+          text: model.rawId
+        });
+        if (model.description) {
+          textEl.createDiv({
+            cls: "grimoire-kimicode-model-picker-row-desc",
+            text: model.description
+          });
+        }
+      }
+    };
+    const renderAll = () => {
+      renderSummary();
+      renderSelected();
+      renderProviderSelect();
+      renderList();
+    };
+    renderAll();
+    const loadModelCatalog = async () => {
+      if (loadingModelCatalog || getKimicodeProviderSettings(settingsBag).discoveredModels.length > 0) {
+        return;
+      }
+      loadingModelCatalog = true;
+      modelCatalogLoadFailed = false;
+      renderAll();
+      const runtime = new KimicodeChatRuntime(context.plugin);
+      try {
+        runtime.syncConversationState({
+          providerState: { databasePath: KIMICODE_METADATA_WARMUP_DB },
+          sessionId: null
+        });
+        const loaded = await runtime.ensureReady({ allowSessionCreation: true });
+        modelCatalogLoadFailed = !loaded || getKimicodeProviderSettings(settingsBag).discoveredModels.length === 0;
+        if (!modelCatalogLoadFailed) {
+          context.refreshModelSelectors();
+        }
+      } catch (e) {
+        modelCatalogLoadFailed = true;
+      } finally {
+        loadingModelCatalog = false;
+        runtime.cleanup();
+        renderAll();
+      }
+    };
+    catalogEl.addEventListener("toggle", () => {
+      if (catalogEl.open) {
+        void loadModelCatalog();
+      }
+    });
+    if (catalogEl.open) {
+      void loadModelCatalog();
+    }
+    const advancedContainer = context.renderAdvancedSection(container, {
+      count: 4,
+      summary: "Hidden commands, subagents, environment, and context overrides"
+    });
+    new import_obsidian20.Setting(advancedContainer).setName("Commands and skills").setHeading();
+    const commandsDesc = advancedContainer.createDiv({ cls: "grimoire-sp-settings-desc" });
+    commandsDesc.createEl("p", {
+      cls: "setting-item-description",
+      text: "Kimi Code can auto-detect vault-level Claude slash commands from .claude/commands/ and skills from .claude/skills/, .codex/skills/, and .agents/skills/. Manage those entries in the Claude or Codex settings tab. This setting only hides entries from the Kimi Code dropdown."
+    });
+    context.renderHiddenProviderCommandSetting(advancedContainer, "kimicode", {
+      name: "Hidden Commands and Skills",
+      desc: "Hide specific Kimi Code commands and skills from the dropdown. Enter names without the leading slash, one per line.",
+      placeholder: "compact\nreview\nfix"
+    });
+    if (kimicodeWorkspace == null ? void 0 : kimicodeWorkspace.agentStorage) {
+      new import_obsidian20.Setting(advancedContainer).setName("Subagents").setHeading();
+      const subagentsDesc = advancedContainer.createDiv({ cls: "grimoire-sp-settings-desc" });
+      subagentsDesc.createEl("p", {
+        cls: "setting-item-description",
+        text: "Manage vault-level Kimi Code subagents from .kimicode/agent/ and legacy .kimicode/agents/. New entries are saved as subagent-only files and appear in the @mention menu."
+      });
+      const subagentsContainer = advancedContainer.createDiv({ cls: "grimoire-slash-commands-container" });
+      new KimicodeAgentSettings(
+        subagentsContainer,
+        kimicodeWorkspace.agentStorage,
+        context.plugin.app,
+        async () => {
+          var _a7;
+          await ((_a7 = kimicodeWorkspace.refreshAgentMentions) == null ? void 0 : _a7.call(kimicodeWorkspace));
+          await recycleKimicodeRuntime();
+        }
+      );
+    }
+    renderEnvironmentSettingsSection({
+      container: advancedContainer,
+      plugin: context.plugin,
+      scope: "provider:kimicode",
+      heading: "Environment",
+      name: "Environment Variables",
+      desc: "Extra environment variables passed to Kimi Code. `KIMICODE_ENABLE_EXA=1` is enabled by default.",
+      placeholder: `${KIMICODE_DEFAULT_ENVIRONMENT_VARIABLES}
+KIMICODE_DB=/path/to/kimicode.db`,
+      renderCustomContextLimits: (target) => context.renderCustomContextLimits(target, "kimicode")
+    });
+  }
+};
+function buildEnrichedModels(discoveredModels, visibleModels) {
+  var _a7;
+  const enriched = [];
+  const discoveredIds = /* @__PURE__ */ new Set();
+  const baseModels = buildKimicodeBaseModels(discoveredModels);
+  for (const model of baseModels) {
+    const { modelLabel, providerLabel } = splitKimicodeModelLabel(model.label || model.rawId);
+    discoveredIds.add(model.rawId);
+    enriched.push({
+      description: (_a7 = model.description) != null ? _a7 : "",
+      isAvailable: true,
+      modelLabel,
+      providerKey: providerLabel.toLowerCase(),
+      providerLabel,
+      rawId: model.rawId
+    });
+  }
+  for (const rawId of visibleModels) {
+    if (discoveredIds.has(rawId)) {
+      continue;
+    }
+    const { modelLabel, providerLabel } = splitKimicodeModelLabel(rawId);
+    enriched.push({
+      description: "",
+      isAvailable: false,
+      modelLabel,
+      providerKey: providerLabel.toLowerCase(),
+      providerLabel,
+      rawId
+    });
+  }
+  return enriched.sort((left, right) => {
+    const providerCmp = left.providerLabel.localeCompare(right.providerLabel);
+    if (providerCmp !== 0) {
+      return providerCmp;
+    }
+    return left.modelLabel.localeCompare(right.modelLabel);
+  });
+}
+
+// src/providers/kimicode/app/KimicodeRuntimeCommandLoader.ts
+var KIMICODE_METADATA_WARMUP_DB2 = ":memory:";
+var KimicodeRuntimeCommandLoader = class {
+  isAvailable(settings11) {
+    return getKimicodeProviderSettings(settings11).enabled;
+  }
+  async loadCommands(context) {
+    var _a7, _b4, _c3;
+    const shouldWarmBlankSession = context.allowSessionCreation === true && !((_a7 = context.conversation) == null ? void 0 : _a7.sessionId);
+    const shouldWarmPreSessionConversation = !!context.conversation && !context.conversation.sessionId && context.conversation.messages.length > 0;
+    if (!context.runtime && !((_b4 = context.conversation) == null ? void 0 : _b4.sessionId) && !shouldWarmBlankSession && !shouldWarmPreSessionConversation) {
+      return [];
+    }
+    const canReuseRuntime = ((_c3 = context.runtime) == null ? void 0 : _c3.providerId) === "kimicode" && !shouldWarmPreSessionConversation;
+    const runtime = canReuseRuntime ? context.runtime : new KimicodeChatRuntime(context.plugin);
+    try {
+      if (context.conversation) {
+        runtime.syncConversationState(context.conversation, context.externalContextPaths);
+      } else if (shouldWarmBlankSession) {
+        runtime.syncConversationState({
+          providerState: { databasePath: KIMICODE_METADATA_WARMUP_DB2 },
+          sessionId: null
+        });
+      }
+      const ready = await runtime.ensureReady({
+        allowSessionCreation: shouldWarmBlankSession || shouldWarmPreSessionConversation
+      });
+      if (!ready) {
+        return [];
+      }
+      return await runtime.getSupportedCommands();
+    } finally {
+      if (runtime !== context.runtime) {
+        runtime.cleanup();
+      }
+    }
+  }
+};
+
+// src/providers/kimicode/app/KimicodeWorkspaceServices.ts
+var KIMICODE_METADATA_WARMUP_DB3 = ":memory:";
+var kimicodeTabWarmupPolicy = {
+  resolveMode() {
+    return "commands";
+  }
+};
+var MODEL_CATALOG_CACHE_TTL_MS2 = 10 * 60 * 1e3;
+function createKimicodeModelCatalog(plugin) {
+  var _a7;
+  const initialSettings = getKimicodeProviderSettings((_a7 = plugin.settings) != null ? _a7 : {});
+  let lastRefreshAt = initialSettings.discoveredModels.length > 0 ? Date.now() : 0;
+  let lastRefreshCacheKey = buildKimicodeModelCatalogCacheKey(initialSettings);
+  return {
+    isAvailable(settings11) {
+      return getKimicodeProviderSettings(settings11).enabled;
+    },
+    async refreshModels({ settings: settings11 }) {
+      var _a8;
+      const currentSettings = getKimicodeProviderSettings(settings11);
+      const cacheKey = buildKimicodeModelCatalogCacheKey(currentSettings);
+      if (currentSettings.discoveredModels.length > 0 && lastRefreshAt === 0) {
+        lastRefreshAt = Date.now();
+        lastRefreshCacheKey = cacheKey;
+      }
+      const cacheAgeMs = lastRefreshAt > 0 ? Date.now() - lastRefreshAt : Number.POSITIVE_INFINITY;
+      if (currentSettings.discoveredModels.length > 0 && cacheKey === lastRefreshCacheKey && cacheAgeMs < MODEL_CATALOG_CACHE_TTL_MS2) {
+        (_a8 = plugin.recordDebugLog) == null ? void 0 : _a8.call(plugin, {
+          data: {
+            ageMs: cacheAgeMs,
+            modelCount: currentSettings.discoveredModels.length,
+            providerId: "kimicode",
+            reason: "cache_fresh",
+            ttlMs: MODEL_CATALOG_CACHE_TTL_MS2
+          },
+          event: "modelCatalog.refresh.skipped",
+          level: "debug",
+          scope: "provider.kimicode"
+        });
+        return false;
+      }
+      const before = JSON.stringify(currentSettings.discoveredModels);
+      const runtime = new KimicodeChatRuntime(plugin);
+      try {
+        runtime.syncConversationState({
+          providerState: { databasePath: KIMICODE_METADATA_WARMUP_DB3 },
+          sessionId: null
+        });
+        const loaded = await runtime.ensureReady({ allowSessionCreation: true });
+        const updatedSettings = getKimicodeProviderSettings(settings11);
+        lastRefreshAt = Date.now();
+        lastRefreshCacheKey = buildKimicodeModelCatalogCacheKey(updatedSettings);
+        const after = JSON.stringify(getKimicodeProviderSettings(settings11).discoveredModels);
+        return loaded && before !== after;
+      } finally {
+        runtime.cleanup();
+      }
+    }
+  };
+}
+function buildKimicodeModelCatalogCacheKey(settings11) {
+  return JSON.stringify({
+    cliPath: settings11.cliPath,
+    cliPathsByHost: settings11.cliPathsByHost,
+    environmentHash: settings11.environmentHash,
+    environmentVariables: settings11.environmentVariables
+  });
+}
+async function createKimicodeWorkspaceServices(plugin, vaultAdapter) {
+  const agentStorage = new KimicodeAgentStorage(vaultAdapter);
+  const agentMentionProvider = new KimicodeAgentMentionProvider(agentStorage);
+  await agentMentionProvider.loadAgents();
+  return {
+    agentStorage,
+    agentMentionProvider,
+    commandCatalog: new KimicodeCommandCatalog(),
+    cliResolver: new KimicodeCliResolver(),
+    modelCatalog: createKimicodeModelCatalog(plugin),
+    usageProvider: kimicodePlanUsageStore,
+    runtimeCommandLoader: new KimicodeRuntimeCommandLoader(),
+    settingsTabRenderer: kimicodeSettingsTabRenderer,
+    tabWarmupPolicy: kimicodeTabWarmupPolicy,
+    refreshAgentMentions: async () => {
+      await agentMentionProvider.loadAgents();
+    }
+  };
+}
+var kimicodeWorkspaceRegistration = {
+  initialize: async ({ plugin, vaultAdapter }) => createKimicodeWorkspaceServices(plugin, vaultAdapter)
+};
+function maybeGetKimicodeWorkspaceServices() {
+  return ProviderWorkspaceRegistry.getServices("kimicode");
+}
+
+// src/providers/kimicode/runtime/KimicodeAuxQueryRunner.ts
+var fs29 = __toESM(require("node:fs/promises"));
+init_path();
+
+// src/providers/kimicode/ui/KimicodeChatUIConfig.ts
+var KIMICODE_MODELS = [
+  { value: KIMICODE_SYNTHETIC_MODEL_ID, label: "Kimi Code", description: "ACP runtime" }
+];
+var KIMICODE_FALLBACK_THINKING_OPTIONS = [
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" }
+];
+var KIMICODE_FALLBACK_THINKING_DEFAULT = "high";
+var DEFAULT_CONTEXT_WINDOW4 = 2e5;
+var KIMICODE_METADATA_WARMUP_DB4 = ":memory:";
+var KIMICODE_PERMISSION_MODE_TOGGLE = {
+  inactiveValue: "normal",
+  inactiveLabel: "Safe",
+  activeValue: "full_access",
+  activeLabel: "Auto-approve",
+  planValue: "plan",
+  planLabel: "Plan"
+};
+var kimicodeChatUIConfig = {
+  getModelOptions(settings11) {
+    var _a7, _b4;
+    const kimicodeSettings = getKimicodeProviderSettings(settings11);
+    const applyAlias = (rawId, option) => {
+      const alias = kimicodeSettings.modelAliases[rawId];
+      return alias ? { ...option, label: alias } : option;
+    };
+    const discoveredModels = new Map(buildKimicodeBaseModels(kimicodeSettings.discoveredModels).map((model) => {
+      var _a8;
+      return [
+        encodeKimicodeModelId(model.rawId),
+        applyAlias(model.rawId, {
+          description: (_a8 = model.description) != null ? _a8 : "ACP runtime",
+          label: model.label,
+          value: encodeKimicodeModelId(model.rawId)
+        })
+      ];
+    }));
+    const savedProviderModel = settings11.savedProviderModel && typeof settings11.savedProviderModel === "object" && !Array.isArray(settings11.savedProviderModel) ? settings11.savedProviderModel : null;
+    const seenValues = /* @__PURE__ */ new Set();
+    const options = [];
+    for (const rawModelId of kimicodeSettings.visibleModels) {
+      const encodedModelId = encodeKimicodeModelId(rawModelId);
+      pushOption(
+        options,
+        seenValues,
+        encodedModelId,
+        (_a7 = discoveredModels.get(encodedModelId)) != null ? _a7 : applyAlias(rawModelId, {
+          description: "Configured model",
+          label: rawModelId,
+          value: encodedModelId
+        })
+      );
+    }
+    const selectedModelValues = [
+      typeof settings11.model === "string" ? settings11.model : "",
+      typeof (savedProviderModel == null ? void 0 : savedProviderModel.kimicode) === "string" ? savedProviderModel.kimicode : ""
+    ];
+    for (const model of selectedModelValues) {
+      const rawModelId = decodeKimicodeModelId(model);
+      if (!model || !isKimicodeModelSelectionId(model) || model === KIMICODE_SYNTHETIC_MODEL_ID || !rawModelId) {
+        continue;
+      }
+      const baseRawId = resolveKimicodeBaseModelRawId(rawModelId, kimicodeSettings.discoveredModels);
+      const baseModelId = encodeKimicodeModelId(baseRawId);
+      pushOption(
+        options,
+        seenValues,
+        baseModelId,
+        (_b4 = discoveredModels.get(baseModelId)) != null ? _b4 : applyAlias(baseRawId, {
+          description: "Selected in an existing session",
+          label: baseRawId,
+          value: baseModelId
+        })
+      );
+    }
+    return options.length > 0 ? options : [...KIMICODE_MODELS];
+  },
+  ownsModel(model) {
+    return isKimicodeModelSelectionId(model);
+  },
+  isAdaptiveReasoningModel(model, settings11) {
+    return getKimicodeThinkingOptions(model, settings11).length > 0;
+  },
+  getReasoningOptions(model, settings11) {
+    return getKimicodeThinkingOptions(model, settings11).map((variant) => ({
+      description: variant.description,
+      label: variant.label,
+      value: variant.value
+    }));
+  },
+  getDefaultReasoningValue(model, settings11) {
+    const rawModelId = decodeKimicodeModelId(model);
+    if (!rawModelId) {
+      return KIMICODE_FALLBACK_THINKING_DEFAULT;
+    }
+    const kimicodeSettings = getKimicodeProviderSettings(settings11);
+    const baseRawId = resolveKimicodeBaseModelRawId(rawModelId, kimicodeSettings.discoveredModels);
+    return getDefaultThinkingLevelForModel(baseRawId, settings11);
+  },
+  getContextWindowSize(model, customLimits) {
+    var _a7;
+    return (_a7 = customLimits == null ? void 0 : customLimits[model]) != null ? _a7 : DEFAULT_CONTEXT_WINDOW4;
+  },
+  isDefaultModel(model) {
+    return isKimicodeModelSelectionId(model);
+  },
+  applyModelDefaults(model, settings11) {
+    if (!settings11 || typeof settings11 !== "object" || Array.isArray(settings11)) {
+      return;
+    }
+    const settingsBag = settings11;
+    const rawModelId = decodeKimicodeModelId(model);
+    if (!rawModelId) {
+      settingsBag.effortLevel = KIMICODE_FALLBACK_THINKING_DEFAULT;
+      return;
+    }
+    const kimicodeSettings = getKimicodeProviderSettings(settingsBag);
+    const baseRawId = resolveKimicodeBaseModelRawId(rawModelId, kimicodeSettings.discoveredModels);
+    settingsBag.model = encodeKimicodeModelId(baseRawId);
+    settingsBag.effortLevel = getDefaultThinkingLevelForModel(baseRawId, settingsBag);
+  },
+  async prepareModelMetadata(model, _settings, context) {
+    const rawModelId = decodeKimicodeModelId(model);
+    if (!rawModelId) {
+      return;
+    }
+    const kimicodeSettings = getKimicodeProviderSettings(context.plugin.settings);
+    const baseRawId = resolveKimicodeBaseModelRawId(rawModelId, kimicodeSettings.discoveredModels);
+    if (baseRawId && kimicodeSettings.thinkingOptionsByModel[baseRawId]) {
+      return;
+    }
+    const runtime = new KimicodeChatRuntime(context.plugin);
+    try {
+      runtime.syncConversationState({
+        providerState: { databasePath: KIMICODE_METADATA_WARMUP_DB4 },
+        sessionId: null
+      });
+      await runtime.warmModelMetadata(model);
+    } catch (e) {
+    } finally {
+      runtime.cleanup();
+    }
+  },
+  applyReasoningSelection(model, value, settings11) {
+    if (!settings11 || typeof settings11 !== "object" || Array.isArray(settings11)) {
+      return;
+    }
+    const settingsBag = settings11;
+    const rawModelId = decodeKimicodeModelId(model);
+    if (!rawModelId) {
+      return;
+    }
+    const kimicodeSettings = getKimicodeProviderSettings(settingsBag);
+    const baseRawId = resolveKimicodeBaseModelRawId(rawModelId, kimicodeSettings.discoveredModels);
+    const supportedValues = new Set(getSupportedThinkingOptionsForModel(baseRawId, settingsBag).map((variant) => variant.value));
+    const nextPreferredThinkingByModel = {
+      ...kimicodeSettings.preferredThinkingByModel
+    };
+    if (!value || value === KIMICODE_DEFAULT_THINKING_LEVEL || !supportedValues.has(value)) {
+      delete nextPreferredThinkingByModel[baseRawId];
+    } else {
+      nextPreferredThinkingByModel[baseRawId] = value;
+    }
+    updateKimicodeProviderSettings(settingsBag, {
+      preferredThinkingByModel: nextPreferredThinkingByModel
+    });
+  },
+  normalizeModelVariant(model, settings11) {
+    const rawModelId = decodeKimicodeModelId(model);
+    if (!rawModelId) {
+      return model;
+    }
+    const kimicodeSettings = getKimicodeProviderSettings(settings11);
+    const baseRawId = resolveKimicodeBaseModelRawId(rawModelId, kimicodeSettings.discoveredModels);
+    return encodeKimicodeModelId(baseRawId);
+  },
+  getCustomModelIds() {
+    return /* @__PURE__ */ new Set();
+  },
+  getModeSelector() {
+    return null;
+  },
+  getPermissionModeToggle() {
+    return KIMICODE_PERMISSION_MODE_TOGGLE;
+  },
+  resolvePermissionMode(settings11) {
+    const selectedMode = getKimicodeProviderSettings(settings11).selectedMode;
+    return resolvePermissionModeForManagedKimicodeMode(selectedMode);
+  },
+  applyPermissionMode(value, settings11) {
+    if (!settings11 || typeof settings11 !== "object" || Array.isArray(settings11)) {
+      return;
+    }
+    const settingsBag = settings11;
+    settingsBag.permissionMode = value;
+    updateKimicodeProviderSettings(settingsBag, {
+      selectedMode: resolveKimicodeModeForPermissionMode(
+        value,
+        getKimicodeProviderSettings(settingsBag).availableModes
+      )
+    });
+  },
+  getProviderIcon() {
+    return KIMICODE_PROVIDER_ICON;
+  }
+};
+function getDefaultThinkingLevelForModel(baseRawId, settings11) {
+  var _a7, _b4;
+  const kimicodeSettings = getKimicodeProviderSettings(settings11);
+  const preferred = kimicodeSettings.preferredThinkingByModel[baseRawId];
+  const options = getSupportedThinkingOptionsForModel(baseRawId, settings11);
+  const supportedValues = new Set(options.map((variant) => variant.value));
+  if (preferred && supportedValues.has(preferred)) {
+    return preferred;
+  }
+  return (_b4 = supportedValues.has(KIMICODE_FALLBACK_THINKING_DEFAULT) ? KIMICODE_FALLBACK_THINKING_DEFAULT : (_a7 = options[0]) == null ? void 0 : _a7.value) != null ? _b4 : KIMICODE_DEFAULT_THINKING_LEVEL;
+}
+function getSupportedThinkingOptionsForModel(baseRawId, settings11) {
+  var _a7;
+  const kimicodeSettings = getKimicodeProviderSettings(settings11);
+  const discoveredOptions = (_a7 = kimicodeSettings.thinkingOptionsByModel[baseRawId]) != null ? _a7 : [];
+  return discoveredOptions.length > 0 ? discoveredOptions : KIMICODE_FALLBACK_THINKING_OPTIONS;
+}
+function getKimicodeThinkingOptions(model, settings11) {
+  if (!isKimicodeModelSelectionId(model)) {
+    return [];
+  }
+  const rawModelId = decodeKimicodeModelId(model);
+  if (!rawModelId) {
+    return KIMICODE_FALLBACK_THINKING_OPTIONS;
+  }
+  const kimicodeSettings = getKimicodeProviderSettings(settings11);
+  const baseRawId = resolveKimicodeBaseModelRawId(rawModelId, kimicodeSettings.discoveredModels);
+  return getSupportedThinkingOptionsForModel(baseRawId, settings11);
+}
+function pushOption(target, seenValues, value, option) {
+  if (seenValues.has(value)) {
+    return;
+  }
+  seenValues.add(value);
+  target.push(option);
+}
+
+// src/providers/kimicode/runtime/KimicodeAuxQueryRunner.ts
+var KIMICODE_AUX_AGENT_IDS = {
+  passive: "grimoire-aux-passive",
+  readonly: "grimoire-aux-readonly"
+};
+var KIMICODE_AUX_READ_PERMISSION = Object.freeze({
+  "*": "allow",
+  "*.env": "deny",
+  "*.env.*": "deny",
+  "*.env.example": "allow"
+});
+var KimicodeAuxQueryRunner = class {
+  constructor(plugin, options) {
+    this.plugin = plugin;
+    this.options = options;
+    this.availableModelIds = /* @__PURE__ */ new Set();
+    this.connection = null;
+    this.currentModelId = null;
+    this.currentLaunchKey = null;
+    this.process = null;
+    this.sessionCwds = /* @__PURE__ */ new Map();
+    this.sessionId = null;
+    this.sessionUpdateNormalizer = new AcpSessionUpdateNormalizer();
+    this.transport = null;
+  }
+  async query(config2, prompt) {
+    var _a7, _b4, _c3, _d3, _e3, _f3;
+    const cwd = (_a7 = getVaultPath(this.plugin.app)) != null ? _a7 : process.cwd();
+    await this.ensureReady(cwd, config2.systemPrompt);
+    if (!this.connection) {
+      throw new Error("Kimi Code runtime is not ready.");
+    }
+    if (!this.sessionId) {
+      const sessionId2 = await this.createSession(cwd);
+      if (!sessionId2) {
+        throw new Error("Failed to create an Kimi Code session.");
+      }
+    }
+    const sessionId = this.sessionId;
+    const selectedModel = this.resolveSelectedRawModel(config2.model);
+    const nextModel = this.resolveApplicableModel(selectedModel);
+    if (nextModel) {
+      const response = await this.connection.setConfigOption({
+        configId: "model",
+        sessionId,
+        type: "select",
+        value: nextModel
+      });
+      this.syncSessionModelState({
+        configOptions: response.configOptions
+      });
+    }
+    this.sessionUpdateNormalizer.reset();
+    let accumulatedText = "";
+    const removeListener = this.connection.onSessionNotification((notification) => {
+      var _a8;
+      if (notification.sessionId !== sessionId) {
+        return;
+      }
+      const normalized = this.sessionUpdateNormalizer.normalize(notification.update);
+      if (normalized.type !== "message_chunk" || normalized.role !== "assistant") {
+        return;
+      }
+      for (const chunk of normalized.streamChunks) {
+        if (chunk.type !== "text") {
+          continue;
+        }
+        accumulatedText += chunk.content;
+        (_a8 = config2.onTextChunk) == null ? void 0 : _a8.call(config2, accumulatedText);
+      }
+    });
+    const abortHandler = () => {
+      if (this.connection && this.sessionId) {
+        this.connection.cancel({ sessionId: this.sessionId });
+      }
+    };
+    (_b4 = config2.abortController) == null ? void 0 : _b4.signal.addEventListener("abort", abortHandler, { once: true });
+    try {
+      if ((_c3 = config2.abortController) == null ? void 0 : _c3.signal.aborted) {
+        throw new Error("Cancelled");
+      }
+      await this.connection.prompt({
+        prompt: [{ type: "text", text: prompt }],
+        sessionId
+      });
+      if ((_d3 = config2.abortController) == null ? void 0 : _d3.signal.aborted) {
+        throw new Error("Cancelled");
+      }
+      return accumulatedText;
+    } catch (error48) {
+      const message = error48 instanceof Error ? error48.message : "Kimi Code request failed";
+      const stderr = (_e3 = this.process) == null ? void 0 : _e3.getStderrSnapshot();
+      throw new Error(
+        stderr ? `${message}
+
+${stderr}` : message,
+        error48 instanceof Error ? { cause: error48 } : void 0
+      );
+    } finally {
+      (_f3 = config2.abortController) == null ? void 0 : _f3.signal.removeEventListener("abort", abortHandler);
+      removeListener();
+    }
+  }
+  reset() {
+    var _a7, _b4;
+    this.availableModelIds.clear();
+    this.sessionId = null;
+    this.sessionCwds.clear();
+    this.currentModelId = null;
+    this.currentLaunchKey = null;
+    (_a7 = this.connection) == null ? void 0 : _a7.dispose();
+    this.connection = null;
+    (_b4 = this.transport) == null ? void 0 : _b4.dispose();
+    this.transport = null;
+    if (this.process) {
+      void this.process.shutdown().catch(() => {
+      });
+    }
+    this.process = null;
+    this.sessionUpdateNormalizer.reset();
+  }
+  async ensureReady(cwd, systemPrompt) {
+    var _a7;
+    const resolvedCliPath = (_a7 = this.plugin.getResolvedProviderCliPath("kimicode")) != null ? _a7 : "kimi";
+    const settings11 = this.plugin.settings;
+    const runtimeEnv = buildKimicodeRuntimeEnv(settings11, resolvedCliPath);
+    const auxAgentId = KIMICODE_AUX_AGENT_IDS[this.options.agentProfile];
+    const artifacts = await prepareKimicodeLaunchArtifacts({
+      artifactsSubdir: `kimicode/auxiliary/${this.options.artifactPurpose}`,
+      defaultAgentId: auxAgentId,
+      managedAgents: [buildKimicodeAuxAgentConfig(this.options.agentProfile)],
+      runtimeEnv,
+      systemPromptKey: systemPrompt,
+      systemPromptText: systemPrompt,
+      userName: typeof settings11.userName === "string" ? settings11.userName : void 0,
+      workspaceRoot: cwd
+    });
+    const nextLaunchKey = JSON.stringify({
+      artifactKey: artifacts.launchKey,
+      command: resolvedCliPath,
+      configPath: artifacts.configPath,
+      envText: getRuntimeEnvironmentText(settings11, "kimicode")
+    });
+    const shouldRestart = !this.process || !this.transport || !this.connection || !this.process.isAlive() || this.transport.isClosed || this.currentLaunchKey !== nextLaunchKey;
+    if (!shouldRestart) {
+      return;
+    }
+    this.reset();
+    await this.startProcess({
+      command: resolvedCliPath,
+      configPath: artifacts.configPath,
+      configContent: artifacts.configContent,
+      cwd,
+      runtimeEnv
+    });
+    this.currentLaunchKey = nextLaunchKey;
+  }
+  async createSession(cwd) {
+    var _a7, _b4;
+    if (!this.connection) {
+      return null;
+    }
+    try {
+      const response = await this.connection.newSession({
+        cwd,
+        mcpServers: []
+      });
+      this.syncSessionModelState({
+        configOptions: (_a7 = response.configOptions) != null ? _a7 : null,
+        models: (_b4 = response.models) != null ? _b4 : null
+      });
+      await this.connection.setConfigOption({
+        configId: "mode",
+        sessionId: response.sessionId,
+        type: "select",
+        value: KIMICODE_AUX_AGENT_IDS[this.options.agentProfile]
+      });
+      this.sessionId = response.sessionId;
+      this.sessionCwds.set(response.sessionId, cwd);
+      return response.sessionId;
+    } catch (e) {
+      return null;
+    }
+  }
+  async startProcess(params) {
+    var _a7, _b4;
+    const processEnv = {
+      ...process.env,
+      ...params.runtimeEnv,
+      KIMICODE_CONFIG: params.configPath,
+      KIMICODE_CONFIG_CONTENT: params.configContent,
+      PATH: params.runtimeEnv.PATH
+    };
+    this.process = new AcpSubprocess({
+      args: ["acp"],
+      command: params.command,
+      cwd: params.cwd,
+      env: processEnv
+    });
+    this.process.start();
+    this.transport = new AcpJsonRpcTransport({
+      input: this.process.stdout,
+      onClose: (listener) => this.process.onClose(listener),
+      output: this.process.stdin
+    });
+    this.connection = new AcpClientConnection({
+      clientInfo: {
+        name: "grimoire-aux",
+        version: (_b4 = (_a7 = this.plugin.manifest) == null ? void 0 : _a7.version) != null ? _b4 : "0.0.0"
+      },
+      delegate: {
+        fileSystem: this.options.allowReadTextFile ? {
+          readTextFile: (request) => this.readTextFile(request)
+        } : void 0,
+        requestPermission: (request) => this.handlePermissionRequest(request)
+      },
+      transport: this.transport
+    });
+    this.transport.start();
+    await this.connection.initialize();
+  }
+  async readTextFile(request) {
+    var _a7;
+    const resolvedPath = this.resolveSessionPath(request.sessionId, request.path);
+    const content = await fs29.readFile(resolvedPath, "utf-8");
+    if (request.line === void 0 && request.limit === void 0) {
+      return { content };
+    }
+    const lines = content.split(/\r?\n/);
+    const startIndex = Math.max(0, ((_a7 = request.line) != null ? _a7 : 1) - 1);
+    const endIndex = request.limit ? startIndex + Math.max(0, request.limit) : lines.length;
+    return {
+      content: lines.slice(startIndex, endIndex).join("\n")
+    };
+  }
+  async handlePermissionRequest(request) {
+    return selectPermissionOption2(request.options, ["reject_once", "reject_always"]);
+  }
+  resolveSelectedRawModel(explicitModel) {
+    var _a7, _b4;
+    const projectedSettings = ProviderSettingsCoordinator.getProviderSettingsSnapshot(
+      this.plugin.settings,
+      "kimicode"
+    );
+    if (explicitModel) {
+      const trimmed = explicitModel.trim();
+      if (!trimmed) {
+        return void 0;
+      }
+      return kimicodeChatUIConfig.ownsModel(trimmed, projectedSettings) ? (_a7 = decodeKimicodeModelId(trimmed)) != null ? _a7 : void 0 : trimmed;
+    }
+    const selectedModel = typeof projectedSettings.model === "string" ? projectedSettings.model : "";
+    return kimicodeChatUIConfig.ownsModel(selectedModel, projectedSettings) ? (_b4 = decodeKimicodeModelId(selectedModel)) != null ? _b4 : void 0 : void 0;
+  }
+  resolveApplicableModel(selectedModel) {
+    if (!selectedModel) {
+      return null;
+    }
+    if (selectedModel === this.currentModelId) {
+      return null;
+    }
+    if (this.availableModelIds.size === 0) {
+      return selectedModel;
+    }
+    return this.availableModelIds.has(selectedModel) ? selectedModel : null;
+  }
+  syncSessionModelState(params) {
+    const state = extractAcpSessionModelState(params);
+    this.currentModelId = state.currentModelId;
+    this.availableModelIds = new Set(state.availableModels.map((model) => model.id));
+  }
+  resolveSessionPath(sessionId, rawPath) {
+    var _a7, _b4;
+    const cwd = (_b4 = (_a7 = this.sessionCwds.get(sessionId)) != null ? _a7 : getVaultPath(this.plugin.app)) != null ? _b4 : process.cwd();
+    return resolveWorkspacePath(cwd, rawPath, {
+      containmentMessage: "Kimi Code aux read access is limited to the current workspace."
+    });
+  }
+};
+function buildKimicodeAuxAgentConfig(profile) {
+  const id2 = KIMICODE_AUX_AGENT_IDS[profile];
+  if (profile === "readonly") {
+    return {
+      definition: {
+        description: "Internal Grimoire read-only agent for Kimi Code auxiliary tasks.",
+        mode: "primary",
+        permission: {
+          "*": "deny",
+          codesearch: "allow",
+          external_directory: "deny",
+          glob: "allow",
+          grep: "allow",
+          lsp: "allow",
+          read: KIMICODE_AUX_READ_PERMISSION,
+          webfetch: "allow",
+          websearch: "allow"
+        }
+      },
+      id: id2
+    };
+  }
+  return {
+    definition: {
+      description: "Internal Grimoire no-tool agent for Kimi Code auxiliary tasks.",
+      mode: "primary",
+      permission: {
+        "*": "deny",
+        external_directory: "deny"
+      }
+    },
+    id: id2
+  };
+}
+function selectPermissionOption2(options, preferredKinds) {
+  for (const kind of preferredKinds) {
+    const option = options.find((entry) => entry.kind === kind);
+    if (option) {
+      return {
+        outcome: {
+          optionId: option.optionId,
+          outcome: "selected"
+        }
+      };
+    }
+  }
+  return { outcome: { outcome: "cancelled" } };
+}
+
+// src/providers/kimicode/auxiliary/KimicodeInlineEditService.ts
+var KimicodeInlineEditService = class extends QueryBackedInlineEditService {
+  constructor(plugin) {
+    super(new KimicodeAuxQueryRunner(plugin, {
+      agentProfile: "readonly",
+      artifactPurpose: "inline",
+      allowReadTextFile: true
+    }));
+  }
+};
+
+// src/providers/kimicode/auxiliary/KimicodeInstructionRefineService.ts
+var KimicodeInstructionRefineService = class extends QueryBackedInstructionRefineService {
+  constructor(plugin) {
+    super(new KimicodeAuxQueryRunner(plugin, {
+      agentProfile: "passive",
+      artifactPurpose: "instructions"
+    }));
+  }
+};
+
+// src/providers/kimicode/auxiliary/KimicodeTaskResultInterpreter.ts
+var KimicodeTaskResultInterpreter = class {
+  hasAsyncLaunchMarker(_toolUseResult) {
+    return false;
+  }
+  extractAgentId(_toolUseResult) {
+    return null;
+  }
+  extractStructuredResult(_toolUseResult) {
+    return null;
+  }
+  resolveTerminalStatus(_toolUseResult, fallbackStatus) {
+    return fallbackStatus;
+  }
+  extractTagValue(_payload, _tagName) {
+    return null;
+  }
+};
+
+// src/providers/kimicode/auxiliary/KimicodeTitleGenerationService.ts
+var KimicodeTitleGenerationService = class extends QueryBackedTitleGenerationService {
+  constructor(plugin) {
+    super({
+      createRunner: () => new KimicodeAuxQueryRunner(plugin, {
+        agentProfile: "passive",
+        artifactPurpose: "title-gen"
+      }),
+      resolveModel: () => {
+        var _a7;
+        const settings11 = plugin.settings;
+        const titleModel = typeof settings11.titleGenerationModel === "string" ? settings11.titleGenerationModel : "";
+        if (!kimicodeChatUIConfig.ownsModel(titleModel, settings11)) {
+          return void 0;
+        }
+        return (_a7 = decodeKimicodeModelId(titleModel)) != null ? _a7 : void 0;
+      }
+    });
+  }
+};
+
+// src/providers/kimicode/env/KimicodeSettingsReconciler.ts
+init_env();
+var KIMICODE_ENV_HASH_KEYS = [
+  "KIMICODE_CONFIG",
+  "KIMICODE_DB",
+  "KIMICODE_DISABLE_PROJECT_CONFIG",
+  "XDG_DATA_HOME"
+];
+function computeKimicodeEnvHash(envText) {
+  const envVars = parseEnvironmentVariables(envText || "");
+  return KIMICODE_ENV_HASH_KEYS.filter((key) => envVars[key]).map((key) => `${key}=${envVars[key]}`).sort().join("|");
+}
+var kimicodeSettingsReconciler = {
+  handleEnvironmentChange(settings11) {
+    return clearKimicodeDiscoveryState(settings11);
+  },
+  reconcileModelWithEnvironment(settings11, conversations) {
+    const envText = getRuntimeEnvironmentText(settings11, "kimicode");
+    const currentHash = computeKimicodeEnvHash(envText);
+    const savedHash = getKimicodeProviderSettings(settings11).environmentHash;
+    if (currentHash === savedHash) {
+      return { changed: false, invalidatedConversations: [] };
+    }
+    const invalidatedConversations = [];
+    for (const conversation of conversations) {
+      if (conversation.providerId !== "kimicode") {
+        continue;
+      }
+      const state = getKimicodeState(conversation.providerState);
+      if (!conversation.sessionId && !state.databasePath) {
+        continue;
+      }
+      conversation.sessionId = null;
+      conversation.providerState = void 0;
+      invalidatedConversations.push(conversation);
+    }
+    updateKimicodeProviderSettings(settings11, { environmentHash: currentHash });
+    return { changed: true, invalidatedConversations };
+  },
+  normalizeModelVariantSettings(settings11) {
+    const hadLegacyDiscoveryFields = hasLegacyKimicodeDiscoveryFields(settings11);
+    if (hadLegacyDiscoveryFields) {
+      updateKimicodeProviderSettings(settings11, {});
+    }
+    const kimicodeSettings = getKimicodeProviderSettings(settings11);
+    let changed = hadLegacyDiscoveryFields;
+    const normalizeSelection = (value) => {
+      if (typeof value !== "string" || !isKimicodeModelSelectionId(value)) {
+        return { baseModelId: null, variant: null };
+      }
+      const rawModelId = decodeKimicodeModelId(value);
+      if (!rawModelId) {
+        return { baseModelId: value, variant: null };
+      }
+      const baseRawId = resolveKimicodeBaseModelRawId(rawModelId, kimicodeSettings.discoveredModels);
+      return {
+        baseModelId: encodeKimicodeModelId(baseRawId),
+        variant: extractKimicodeModelVariantValue(rawModelId, kimicodeSettings.discoveredModels)
+      };
+    };
+    const modelSelection = normalizeSelection(settings11.model);
+    if (typeof settings11.model === "string" && modelSelection.baseModelId && settings11.model !== modelSelection.baseModelId) {
+      settings11.model = modelSelection.baseModelId;
+      changed = true;
+    }
+    if (modelSelection.variant && (typeof settings11.effortLevel !== "string" || settings11.effortLevel.trim().length === 0)) {
+      settings11.effortLevel = modelSelection.variant;
+      changed = true;
+    }
+    const titleModelSelection = normalizeSelection(settings11.titleGenerationModel);
+    if (typeof settings11.titleGenerationModel === "string" && titleModelSelection.baseModelId && settings11.titleGenerationModel !== titleModelSelection.baseModelId) {
+      settings11.titleGenerationModel = titleModelSelection.baseModelId;
+      changed = true;
+    }
+    const savedProviderModelRaw = settings11.savedProviderModel;
+    if (savedProviderModelRaw && typeof savedProviderModelRaw === "object" && !Array.isArray(savedProviderModelRaw)) {
+      const savedProviderModel = savedProviderModelRaw;
+      const savedSelection = normalizeSelection(savedProviderModel.kimicode);
+      if (typeof savedProviderModel.kimicode === "string" && savedSelection.baseModelId && savedProviderModel.kimicode !== savedSelection.baseModelId) {
+        savedProviderModel.kimicode = savedSelection.baseModelId;
+        changed = true;
+      }
+      if (savedSelection.variant) {
+        const savedEffort = ensureProviderProjectionMap2(settings11, "savedProviderEffort");
+        if (typeof savedEffort.kimicode !== "string") {
+          savedEffort.kimicode = savedSelection.variant;
+          changed = true;
+        }
+      }
+    }
+    const normalizedVisibleModels = normalizeKimicodeVisibleModels(
+      kimicodeSettings.visibleModels,
+      kimicodeSettings.discoveredModels
+    );
+    const normalizedPreferredThinking = normalizeKimicodePreferredThinkingByModel(
+      kimicodeSettings.preferredThinkingByModel,
+      kimicodeSettings.discoveredModels
+    );
+    const shouldUpdateProviderSettings = !sameStringList2(normalizedVisibleModels, kimicodeSettings.visibleModels) || !sameStringMap2(normalizedPreferredThinking, kimicodeSettings.preferredThinkingByModel);
+    if (shouldUpdateProviderSettings) {
+      updateKimicodeProviderSettings(settings11, {
+        preferredThinkingByModel: normalizedPreferredThinking,
+        visibleModels: normalizedVisibleModels
+      });
+      changed = true;
+    }
+    if (typeof settings11.effortLevel === "string" && !settings11.effortLevel.trim()) {
+      settings11.effortLevel = KIMICODE_DEFAULT_THINKING_LEVEL;
+      changed = true;
+    }
+    return changed;
+  }
+};
+
+// src/providers/kimicode/history/KimicodeHistoryStore.ts
+var import_node_child_process5 = require("node:child_process");
+var fs30 = __toESM(require("node:fs"));
+async function loadKimicodeSessionMessages(sessionId, providerState) {
+  const databasePath = resolveExistingKimicodeDatabasePath(providerState == null ? void 0 : providerState.databasePath);
+  if (!databasePath || databasePath === ":memory:" || !fs30.existsSync(databasePath)) {
+    return [];
+  }
+  const rows = await loadKimicodeSessionRows(databasePath, sessionId);
+  if (!rows) {
+    return [];
+  }
+  return mapKimicodeMessages(
+    hydrateStoredMessages(rows.messageRows, rows.partRows)
+  );
+}
+function mapKimicodeMessages(messages) {
+  return mergeAdjacentAssistantMessages(messages.map((message) => mapStoredMessage(message)).filter((message) => message !== null));
+}
+function hydrateStoredMessages(messageRows, partRows) {
+  var _a7;
+  const partsByMessage = /* @__PURE__ */ new Map();
+  for (const row of partRows) {
+    const messageId = getString(row.message_id);
+    const id2 = getString(row.id);
+    const data = parseJsonObject2(row.data);
+    if (!messageId || !id2 || !data) {
+      continue;
+    }
+    const parts = (_a7 = partsByMessage.get(messageId)) != null ? _a7 : [];
+    parts.push({ ...data, id: id2 });
+    partsByMessage.set(messageId, parts);
+  }
+  return messageRows.flatMap((row) => {
+    var _a8;
+    const id2 = getString(row.id);
+    const data = parseJsonObject2(row.data);
+    if (!id2 || !data) {
+      return [];
+    }
+    return [{
+      info: { ...data, id: id2, time_created: row.time_created },
+      parts: (_a8 = partsByMessage.get(id2)) != null ? _a8 : []
+    }];
+  });
+}
+function mapStoredMessage(message) {
+  var _a7, _b4;
+  const role = getString(message.info.role);
+  const id2 = getString(message.info.id);
+  if (!id2 || role !== "user" && role !== "assistant") {
+    return null;
+  }
+  const createdAt = (_b4 = (_a7 = getNestedNumber(message.info, ["time", "created"])) != null ? _a7 : getNumber(message.info.time_created)) != null ? _b4 : Date.now();
+  if (role === "user") {
+    const promptText = extractVisibleUserPrompt(getJoinedTextParts(message.parts));
+    return {
+      assistantMessageId: void 0,
+      content: promptText,
+      id: id2,
+      role: "user",
+      timestamp: createdAt,
+      userMessageId: id2
+    };
+  }
+  const contentBlocks = buildAssistantContentBlocks(message.parts);
+  const toolCalls = buildAssistantToolCalls(message.parts);
+  const completedAt = getNestedNumber(message.info, ["time", "completed"]);
+  const durationSeconds = completedAt && completedAt >= createdAt ? Math.max(0, (completedAt - createdAt) / 1e3) : void 0;
+  return {
+    assistantMessageId: id2,
+    content: contentBlocks.filter((block) => block.type === "text").map((block) => block.content).join(""),
+    contentBlocks: contentBlocks.length > 0 ? contentBlocks : void 0,
+    durationSeconds,
+    id: id2,
+    role: "assistant",
+    timestamp: createdAt,
+    toolCalls: toolCalls.length > 0 ? toolCalls : void 0
+  };
+}
+function extractVisibleUserPrompt(rawPrompt) {
+  var _a7, _b4;
+  const promptText = extractUserQuery(rawPrompt);
+  const roleMarkerPattern = /(^|\n)(User|Assistant):[ \t]*/g;
+  const markers = [];
+  let match;
+  while ((match = roleMarkerPattern.exec(promptText)) !== null) {
+    const linePrefix = (_a7 = match[1]) != null ? _a7 : "";
+    markers.push({
+      role: match[2],
+      start: match.index + linePrefix.length,
+      contentStart: roleMarkerPattern.lastIndex
+    });
+  }
+  for (let index = markers.length - 1; index >= 0; index -= 1) {
+    const marker = markers[index];
+    if (marker.role !== "User") {
+      continue;
+    }
+    const nextMarker = markers[index + 1];
+    return promptText.slice(marker.contentStart, (_b4 = nextMarker == null ? void 0 : nextMarker.start) != null ? _b4 : promptText.length).trim();
+  }
+  return promptText;
+}
+function mergeAdjacentAssistantMessages(messages) {
+  var _a7, _b4;
+  const merged = [];
+  for (const message of messages) {
+    const previous = merged[merged.length - 1];
+    if (message.role === "assistant" && (previous == null ? void 0 : previous.role) === "assistant" && !message.isInterrupt && !previous.isInterrupt) {
+      previous.content += message.content;
+      previous.assistantMessageId = (_a7 = message.assistantMessageId) != null ? _a7 : previous.assistantMessageId;
+      previous.durationFlavorWord = (_b4 = message.durationFlavorWord) != null ? _b4 : previous.durationFlavorWord;
+      previous.durationSeconds = mergeAssistantDurationSeconds(previous, message);
+      previous.toolCalls = mergeOptionalArrays(previous.toolCalls, message.toolCalls);
+      previous.contentBlocks = mergeOptionalArrays(previous.contentBlocks, message.contentBlocks);
+      continue;
+    }
+    merged.push(message);
+  }
+  return merged;
+}
+function mergeOptionalArrays(left, right) {
+  if (!(left == null ? void 0 : left.length) && !(right == null ? void 0 : right.length)) {
+    return void 0;
+  }
+  return [
+    ...left != null ? left : [],
+    ...right != null ? right : []
+  ];
+}
+function mergeAssistantDurationSeconds(first, next) {
+  const firstEnd = getMessageCompletionTime(first);
+  const nextEnd = getMessageCompletionTime(next);
+  if (firstEnd === null && nextEnd === null) {
+    return void 0;
+  }
+  const end = Math.max(firstEnd != null ? firstEnd : first.timestamp, nextEnd != null ? nextEnd : next.timestamp);
+  return Math.max(0, (end - first.timestamp) / 1e3);
+}
+function getMessageCompletionTime(message) {
+  if (typeof message.durationSeconds !== "number") {
+    return null;
+  }
+  return message.timestamp + message.durationSeconds * 1e3;
+}
+function buildAssistantContentBlocks(parts) {
+  var _a7;
+  const blocks = [];
+  for (const part of parts) {
+    switch (getString(part.type)) {
+      case "reasoning": {
+        const text = (_a7 = getString(part.text)) == null ? void 0 : _a7.trim();
+        if (!text) {
+          break;
+        }
+        blocks.push({
+          content: text,
+          durationSeconds: getDurationSeconds(part),
+          type: "thinking"
+        });
+        break;
+      }
+      case "text": {
+        const text = getString(part.text);
+        if (!text || getBoolean(part.ignored)) {
+          break;
+        }
+        blocks.push({
+          content: text,
+          type: "text"
+        });
+        break;
+      }
+      case "tool": {
+        const toolId = getString(part.callID);
+        if (!toolId) {
+          break;
+        }
+        blocks.push({
+          toolId,
+          type: "tool_use"
+        });
+        break;
+      }
+    }
+  }
+  return blocks;
+}
+function buildAssistantToolCalls(parts) {
+  return parts.flatMap((part) => {
+    var _a7, _b4, _c3, _d3;
+    if (getString(part.type) !== "tool") {
+      return [];
+    }
+    const id2 = getString(part.callID);
+    const rawName = getString(part.tool);
+    const state = getObject(part.state);
+    const status = mapToolStatus(getString(state == null ? void 0 : state.status));
+    if (!id2 || !rawName || !status) {
+      return [];
+    }
+    const input = normalizeKimicodeToolInput(rawName, (_a7 = getObject(state == null ? void 0 : state.input)) != null ? _a7 : {});
+    const name = normalizeKimicodeToolName(rawName);
+    const result = (_c3 = (_b4 = getString(state == null ? void 0 : state.output)) != null ? _b4 : getString(state == null ? void 0 : state.error)) != null ? _c3 : void 0;
+    const toolUseResult = normalizeKimicodeToolUseResult(rawName, input, {
+      ...result ? { output: result } : {},
+      ...getObject(state == null ? void 0 : state.metadata) ? { metadata: getObject(state == null ? void 0 : state.metadata) } : {}
+    });
+    const toolCall = {
+      id: id2,
+      input,
+      name,
+      result,
+      status
+    };
+    if (name === TOOL_ASK_USER_QUESTION) {
+      toolCall.resolvedAnswers = (_d3 = toolUseResult == null ? void 0 : toolUseResult.answers) != null ? _d3 : extractResolvedAnswersFromResultText(result);
+    }
+    if (status === "completed" && isWriteEditTool(name)) {
+      const diffData = extractDiffData(toolUseResult, toolCall);
+      if (diffData) {
+        toolCall.diffData = diffData;
+      }
+    }
+    return [toolCall];
+  });
+}
+function getJoinedTextParts(parts) {
+  return parts.filter((part) => getString(part.type) === "text" && !getBoolean(part.ignored)).map((part) => {
+    var _a7;
+    return (_a7 = getString(part.text)) != null ? _a7 : "";
+  }).join("");
+}
+function getDurationSeconds(part) {
+  const start = getNestedNumber(part, ["time", "start"]);
+  const end = getNestedNumber(part, ["time", "end"]);
+  if (start === null || end === null || end < start) {
+    return void 0;
+  }
+  return Math.max(0, (end - start) / 1e3);
+}
+function mapToolStatus(status) {
+  switch (status) {
+    case "pending":
+    case "running":
+      return "running";
+    case "completed":
+      return "completed";
+    case "error":
+      return "error";
+    default:
+      return null;
+  }
+}
+function parseJsonObject2(value) {
+  if (typeof value !== "string") {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(value);
+    return isPlainObject7(parsed) ? parsed : null;
+  } catch (e) {
+    return null;
+  }
+}
+function isPlainObject7(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+function getBoolean(value) {
+  return value === true;
+}
+function getObject(value) {
+  return isPlainObject7(value) ? value : null;
+}
+function getString(value) {
+  return typeof value === "string" ? value : null;
+}
+function getNumber(value) {
+  return typeof value === "number" ? value : null;
+}
+function getNestedNumber(value, keys) {
+  let current = value;
+  for (const key of keys) {
+    if (!isPlainObject7(current)) {
+      return null;
+    }
+    current = current[key];
+  }
+  return getNumber(current);
+}
+async function loadSqliteModule2() {
+  try {
+    return await import("node:sqlite");
+  } catch (e) {
+    return null;
+  }
+}
+async function loadKimicodeSessionRows(databasePath, sessionId) {
+  const viaNodeSqlite = await loadSessionRowsWithNodeSqlite(databasePath, sessionId);
+  if (viaNodeSqlite) {
+    return viaNodeSqlite;
+  }
+  return loadSessionRowsWithSqliteCli(databasePath, sessionId);
+}
+async function loadSessionRowsWithNodeSqlite(databasePath, sessionId) {
+  const sqlite = await loadSqliteModule2();
+  if (!sqlite) {
+    return null;
+  }
+  let db2 = null;
+  try {
+    db2 = new sqlite.DatabaseSync(databasePath, { readonly: true });
+    const messageRows = db2.prepare(
+      "select id, time_created, data from message where session_id = ? order by time_created asc, id asc"
+    ).all(sessionId);
+    const partRows = db2.prepare(
+      "select id, message_id, data from part where session_id = ? order by message_id asc, id asc"
+    ).all(sessionId);
+    return { messageRows, partRows };
+  } catch (e) {
+    return null;
+  } finally {
+    db2 == null ? void 0 : db2.close();
+  }
+}
+function loadSessionRowsWithSqliteCli(databasePath, sessionId) {
+  const escapedSessionId = escapeSqlLiteral2(sessionId);
+  const messageRows = runSqlite3JsonQuery(
+    databasePath,
+    `select id, time_created, data from message where session_id = '${escapedSessionId}' order by time_created asc, id asc;`
+  );
+  const partRows = runSqlite3JsonQuery(
+    databasePath,
+    `select id, message_id, data from part where session_id = '${escapedSessionId}' order by message_id asc, id asc;`
+  );
+  if (!messageRows || !partRows) {
+    return null;
+  }
+  return { messageRows, partRows };
+}
+function runSqlite3JsonQuery(databasePath, sql) {
+  const result = (0, import_node_child_process5.spawnSync)(
+    "sqlite3",
+    ["-json", databasePath, sql],
+    {
+      encoding: "utf8"
+    }
+  );
+  if (result.error || result.status !== 0) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(result.stdout || "[]");
+    return Array.isArray(parsed) ? parsed.filter((row) => isPlainObject7(row)) : null;
+  } catch (e) {
+    return null;
+  }
+}
+function escapeSqlLiteral2(value) {
+  return value.replaceAll("'", "''");
+}
+
+// src/providers/kimicode/history/KimicodeConversationHistoryService.ts
+var KimicodeConversationHistoryService = class {
+  constructor() {
+    this.hydratedKeys = /* @__PURE__ */ new Map();
+  }
+  async hydrateConversationHistory(conversation, _vaultPath) {
+    var _a7;
+    const sessionId = conversation.sessionId;
+    if (!sessionId) {
+      this.hydratedKeys.delete(conversation.id);
+      return;
+    }
+    const state = getKimicodeState(conversation.providerState);
+    const hydrationKey = `${sessionId}::${(_a7 = state.databasePath) != null ? _a7 : ""}`;
+    if (conversation.messages.length > 0 && this.hydratedKeys.get(conversation.id) === hydrationKey) {
+      return;
+    }
+    const messages = await loadKimicodeSessionMessages(sessionId, state);
+    if (messages.length === 0) {
+      this.hydratedKeys.delete(conversation.id);
+      return;
+    }
+    conversation.messages = messages;
+    this.hydratedKeys.set(conversation.id, hydrationKey);
+  }
+  async deleteConversationSession(_conversation, _vaultPath) {
+  }
+  resolveSessionIdForConversation(conversation) {
+    var _a7;
+    return (_a7 = conversation == null ? void 0 : conversation.sessionId) != null ? _a7 : null;
+  }
+  isPendingForkConversation(_conversation) {
+    return false;
+  }
+  buildForkProviderState(_sourceSessionId, _resumeAt, _sourceProviderState) {
+    return {};
+  }
+  buildPersistedProviderState(conversation) {
+    const state = getKimicodeState(conversation.providerState);
+    const providerState = {
+      ...state.databasePath ? { databasePath: state.databasePath } : {}
+    };
+    return Object.keys(providerState).length > 0 ? providerState : void 0;
+  }
+};
+
+// src/providers/kimicode/registration.ts
+var kimicodeProviderRegistration = {
+  blankTabOrder: 10,
+  capabilities: KIMICODE_PROVIDER_CAPABILITIES,
+  chatUIConfig: kimicodeChatUIConfig,
+  createInlineEditService: (plugin) => new KimicodeInlineEditService(plugin),
+  createInstructionRefineService: (plugin) => new KimicodeInstructionRefineService(plugin),
+  createRuntime: ({ plugin }) => new KimicodeChatRuntime(plugin),
+  createTitleGenerationService: (plugin) => new KimicodeTitleGenerationService(plugin),
+  displayName: "Kimi Code",
+  environmentKeyPatterns: [/^KIMICODE_/i],
+  historyService: new KimicodeConversationHistoryService(),
+  isEnabled: (settings11) => getKimicodeProviderSettings(settings11).enabled,
+  settingsReconciler: kimicodeSettingsReconciler,
+  taskResultInterpreter: new KimicodeTaskResultInterpreter()
+};
+
+// src/providers/mimocode/agents/MimocodeAgentMentionProvider.ts
+var MimocodeAgentMentionProvider = class {
+  constructor(storage) {
+    this.storage = storage;
+    this.agents = [];
+  }
+  async loadAgents() {
+    this.agents = await this.storage.loadAll();
+  }
+  searchAgents(query) {
+    const q = query.toLowerCase();
+    return this.agents.filter((agent) => isMentionableSubagent2(agent)).filter((agent) => agent.name.toLowerCase().includes(q) || agent.description.toLowerCase().includes(q)).map((agent) => ({
+      id: agent.name,
+      name: agent.name,
+      description: agent.description,
+      source: "vault"
+    }));
+  }
+};
+function isMentionableSubagent2(agent) {
+  if (agent.hidden || agent.disable) {
+    return false;
+  }
+  return agent.mode === "subagent";
+}
+
+// src/providers/mimocode/commands/MimocodeCommandCatalog.ts
+function slashCommandToEntry3(command) {
+  var _a7;
+  return {
+    id: command.id,
+    providerId: "mimocode",
+    kind: "command",
+    name: command.name,
+    description: command.description,
+    content: command.content,
+    argumentHint: command.argumentHint,
+    allowedTools: command.allowedTools,
+    model: command.model,
+    disableModelInvocation: command.disableModelInvocation,
+    userInvocable: command.userInvocable,
+    context: command.context,
+    agent: command.agent,
+    hooks: command.hooks,
+    scope: "runtime",
+    source: (_a7 = command.source) != null ? _a7 : "sdk",
+    isEditable: false,
+    isDeletable: false,
+    displayPrefix: "/",
+    insertPrefix: "/"
+  };
+}
+function dedupeRuntimeCommands2(commands) {
+  const deduped = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const command of commands) {
+    const normalizedName = command.name.trim().replace(/^\/+/, "");
+    if (!normalizedName) {
+      continue;
+    }
+    const key = normalizedName.toLowerCase();
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    deduped.push({
+      ...command,
+      name: normalizedName
+    });
+  }
+  return deduped;
+}
+var MimocodeCommandCatalog = class {
+  constructor() {
+    this.runtimeCommands = [];
+  }
+  setRuntimeCommands(commands) {
+    this.runtimeCommands = dedupeRuntimeCommands2(commands);
+  }
+  async listDropdownEntries(_context) {
+    return this.runtimeCommands.map(slashCommandToEntry3);
+  }
+  async listVaultEntries() {
+    return [];
+  }
+  async saveVaultEntry(_entry) {
+    throw new Error("Mimocode runtime commands are not editable from Grimoire.");
+  }
+  async deleteVaultEntry(_entry) {
+    throw new Error("Mimocode runtime commands are not deletable from Grimoire.");
+  }
+  getDropdownConfig() {
+    return {
+      providerId: "mimocode",
+      triggerChars: ["/"],
+      builtInPrefix: "/",
+      skillPrefix: "/",
+      commandPrefix: "/"
+    };
+  }
+  async refresh() {
+  }
+};
+
+// src/providers/mimocode/runtime/MimocodeChatRuntime.ts
+var fs34 = __toESM(require("node:fs/promises"));
+var path26 = __toESM(require("node:path"));
+init_env();
+init_path();
+
+// src/providers/mimocode/app/MimocodePlanUsageStore.ts
+var MIMOCODE_USAGE_NOTE = "Pay per token across vendors \xB7 no cap set.";
+var MimocodePlanUsageStore = class extends ProviderSpendUsageStore {
+  constructor() {
+    super({
+      plan: "API keys",
+      note: MIMOCODE_USAGE_NOTE,
+      isAvailable: (settings11) => getMimocodeProviderSettings(settings11).enabled
+    });
+    this.sessionTotals = /* @__PURE__ */ new Map();
+  }
+  recordSessionTotalCost(sessionId, cost) {
+    var _a7;
+    const amount = cost == null ? void 0 : cost.amount;
+    if (!sessionId || typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0) {
+      return false;
+    }
+    const currency = normalizeCurrency3(cost == null ? void 0 : cost.currency);
+    const key = `${sessionId}:${currency}`;
+    const previous = (_a7 = this.sessionTotals.get(key)) != null ? _a7 : 0;
+    this.sessionTotals.set(key, amount);
+    if (amount <= previous) {
+      return false;
+    }
+    return this.recordCost({
+      amount: amount - previous,
+      currency
+    });
+  }
+  reset() {
+    super.reset();
+    this.sessionTotals.clear();
+  }
+};
+var mimocodePlanUsageStore = new MimocodePlanUsageStore();
+function normalizeCurrency3(currency) {
+  const normalized = currency == null ? void 0 : currency.trim().toUpperCase();
+  return normalized || "USD";
+}
+
+// src/providers/mimocode/capabilities.ts
+var MIMOCODE_PROVIDER_CAPABILITIES = Object.freeze({
+  providerId: "mimocode",
+  supportsPersistentRuntime: true,
+  supportsNativeHistory: true,
+  supportsPlanMode: true,
+  supportsRewind: false,
+  supportsFork: false,
+  supportsProviderCommands: true,
+  supportsImageAttachments: true,
+  supportsInstructionMode: true,
+  supportsMcpTools: false,
+  supportsTurnSteer: false,
+  reasoningControl: "effort"
+});
+
+// src/providers/mimocode/history/MimocodeUsageMetadataStore.ts
+var import_node_child_process6 = require("node:child_process");
+var fs32 = __toESM(require("node:fs"));
+
+// src/providers/mimocode/runtime/MimocodePaths.ts
+var fs31 = __toESM(require("node:fs"));
+var os13 = __toESM(require("node:os"));
+var path24 = __toESM(require("node:path"));
+var MIMOCODE_APP_NAME = "mimocode";
+var DEFAULT_DATABASE_NAME2 = "mimocode.db";
+var DATABASE_NAME_PATTERN2 = /^mimocode(?:-[a-z0-9._-]+)?\.db$/i;
+function resolveMimocodeDataDir(env = process.env) {
+  var _a7;
+  const xdgDataHome = (_a7 = env.XDG_DATA_HOME) == null ? void 0 : _a7.trim();
+  if (xdgDataHome) {
+    return path24.join(xdgDataHome, MIMOCODE_APP_NAME);
+  }
+  const home = env.HOME || os13.homedir();
+  if (process.platform === "win32") {
+    const appData = env.APPDATA || env.LOCALAPPDATA || path24.join(home, "AppData", "Roaming");
+    return path24.join(appData, MIMOCODE_APP_NAME);
+  }
+  return path24.join(home, ".local", "share", MIMOCODE_APP_NAME);
+}
+function resolveMimocodeDatabasePath(env = process.env) {
+  var _a7, _b4;
+  const override = (_a7 = env.MIMOCODE_DB) == null ? void 0 : _a7.trim();
+  if (override) {
+    if (override === ":memory:" || path24.isAbsolute(override)) {
+      return override;
+    }
+    return path24.join(resolveMimocodeDataDir(env), override);
+  }
+  const candidates = getMimocodeDatabasePathCandidates(env);
+  for (const candidate of candidates) {
+    if (fs31.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return (_b4 = candidates[0]) != null ? _b4 : null;
+}
+function resolveExistingMimocodeDatabasePath(preferredPath, env = process.env) {
+  const preferred = preferredPath == null ? void 0 : preferredPath.trim();
+  if (preferred) {
+    if (preferred === ":memory:") {
+      return preferred;
+    }
+    if (fs31.existsSync(preferred)) {
+      return preferred;
+    }
+  }
+  const resolved = resolveMimocodeDatabasePath(env);
+  if (resolved && (resolved === ":memory:" || fs31.existsSync(resolved))) {
+    return resolved;
+  }
+  return preferred != null ? preferred : resolved;
+}
+function getMimocodeDatabasePathCandidates(env) {
+  const candidates = [];
+  const seen = /* @__PURE__ */ new Set();
+  const home = env.HOME || os13.homedir();
+  const dataDirs = [
+    resolveMimocodeDataDir(env),
+    path24.join(home, "Library", "Application Support", MIMOCODE_APP_NAME)
+  ];
+  for (const dataDir of dataDirs) {
+    pushCandidate2(candidates, seen, path24.join(dataDir, DEFAULT_DATABASE_NAME2));
+    try {
+      const matches = fs31.readdirSync(dataDir).filter((entry) => DATABASE_NAME_PATTERN2.test(entry)).sort((left, right) => {
+        if (left === DEFAULT_DATABASE_NAME2) return -1;
+        if (right === DEFAULT_DATABASE_NAME2) return 1;
+        return left.localeCompare(right);
+      });
+      for (const entry of matches) {
+        pushCandidate2(candidates, seen, path24.join(dataDir, entry));
+      }
+    } catch (e) {
+    }
+  }
+  return candidates;
+}
+function pushCandidate2(candidates, seen, candidate) {
+  if (seen.has(candidate)) {
+    return;
+  }
+  seen.add(candidate);
+  candidates.push(candidate);
+}
+
+// src/providers/mimocode/history/MimocodeUsageMetadataStore.ts
+async function loadMimocodeSessionCost(sessionId, providerState) {
+  const databasePath = resolveExistingMimocodeDatabasePath(providerState == null ? void 0 : providerState.databasePath);
+  if (!sessionId || !databasePath || databasePath === ":memory:" || !fs32.existsSync(databasePath)) {
+    return null;
+  }
+  const messageCost = sumMimocodeCostRows(await loadMimocodeCostRows(databasePath, sessionId, "message"));
+  if (messageCost) {
+    return messageCost;
+  }
+  return sumMimocodeCostRows(await loadMimocodeCostRows(databasePath, sessionId, "step"));
+}
+function sumMimocodeCostRows(rows) {
+  const amount = (rows != null ? rows : []).map((row) => readCostAmount2(row.cost)).filter((cost) => cost !== null && cost > 0).reduce((total, cost) => total + cost, 0);
+  return amount > 0 ? { amount, currency: "USD" } : null;
+}
+async function loadMimocodeCostRows(databasePath, sessionId, source) {
+  const viaNodeSqlite = await loadCostRowsWithNodeSqlite2(databasePath, sessionId, source);
+  if (viaNodeSqlite) {
+    return viaNodeSqlite;
+  }
+  return loadCostRowsWithSqliteCli2(databasePath, sessionId, source);
+}
+async function loadSqliteModule3() {
+  try {
+    return await import("node:sqlite");
+  } catch (e) {
+    return null;
+  }
+}
+async function loadCostRowsWithNodeSqlite2(databasePath, sessionId, source) {
+  const sqlite = await loadSqliteModule3();
+  if (!sqlite) {
+    return null;
+  }
+  let db2 = null;
+  try {
+    db2 = new sqlite.DatabaseSync(databasePath, { readonly: true });
+    return db2.prepare(buildCostQuery2(source, "?")).all(sessionId);
+  } catch (e) {
+    return null;
+  } finally {
+    db2 == null ? void 0 : db2.close();
+  }
+}
+function loadCostRowsWithSqliteCli2(databasePath, sessionId, source) {
+  const result = (0, import_node_child_process6.spawnSync)(
+    "sqlite3",
+    [
+      "-json",
+      databasePath,
+      `${buildCostQuery2(source, `'${escapeSqlLiteral3(sessionId)}'`)};`
+    ],
+    {
+      encoding: "utf8"
+    }
+  );
+  if (result.error || result.status !== 0) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(result.stdout || "[]");
+    return Array.isArray(parsed) ? parsed.filter((row) => isPlainObject8(row)) : null;
+  } catch (e) {
+    return null;
+  }
+}
+function buildCostQuery2(source, sessionPlaceholder) {
+  if (source === "message") {
+    return [
+      "select json_extract(data, '$.cost') as cost",
+      "from message",
+      `where session_id = ${sessionPlaceholder}`,
+      "and json_extract(data, '$.role') = 'assistant'"
+    ].join(" ");
+  }
+  return [
+    "select json_extract(data, '$.cost') as cost",
+    "from part",
+    `where session_id = ${sessionPlaceholder}`,
+    "and json_extract(data, '$.type') = 'step-finish'"
+  ].join(" ");
+}
+function readCostAmount2(value) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string") {
+    const parsed = Number(value.trim());
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+function escapeSqlLiteral3(value) {
+  return value.replace(/'/g, "''");
+}
+function isPlainObject8(value) {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+// src/providers/mimocode/normalization/mimocodeToolNormalization.ts
+var TOOL_NAME_MAP3 = {
+  bash: TOOL_BASH,
+  edit: TOOL_EDIT,
+  glob: TOOL_GLOB,
+  grep: TOOL_GREP,
+  question: TOOL_ASK_USER_QUESTION,
+  read: TOOL_READ,
+  skill: TOOL_SKILL,
+  task: TOOL_TASK,
+  todowrite: TOOL_TODO_WRITE,
+  webfetch: TOOL_WEB_FETCH,
+  websearch: TOOL_WEB_SEARCH,
+  write: TOOL_WRITE
+};
+function isPlainObject9(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+function isKnownToolName2(value) {
+  if (typeof value !== "string") {
+    return false;
+  }
+  return value.trim().toLowerCase() in TOOL_NAME_MAP3;
+}
+function toKnownToolName2(value) {
+  if (!value) {
+    return null;
+  }
+  const normalized = value.trim().toLowerCase();
+  return isKnownToolName2(normalized) ? normalized : null;
+}
+function firstString3(...values) {
+  for (const value of values) {
+    if (typeof value === "string") {
+      return value;
+    }
+  }
+  return void 0;
+}
+function firstTrimmedString2(...values) {
+  for (const value of values) {
+    if (typeof value !== "string") {
+      continue;
+    }
+    const trimmed = value.trim();
+    if (trimmed.length > 0) {
+      return trimmed;
+    }
+  }
+  return void 0;
+}
+function firstNonEmptyString3(...values) {
+  var _a7;
+  return (_a7 = firstTrimmedString2(...values)) != null ? _a7 : "";
+}
+function normalizeStringArray4(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const uniqueValues = /* @__PURE__ */ new Set();
+  for (const entry of value) {
+    if (typeof entry !== "string") {
+      continue;
+    }
+    const trimmed = entry.trim();
+    if (!trimmed) {
+      continue;
+    }
+    uniqueValues.add(trimmed);
+  }
+  return [...uniqueValues];
+}
+function normalizeQuestionOptions2(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.flatMap((option) => {
+    if (typeof option === "string") {
+      const label2 = option.trim();
+      return label2 ? [{ description: "", label: label2 }] : [];
+    }
+    if (!isPlainObject9(option)) {
+      return [];
+    }
+    const label = typeof option.label === "string" ? option.label.trim() : "";
+    if (!label) {
+      return [];
+    }
+    return [{
+      description: typeof option.description === "string" ? option.description : "",
+      label
+    }];
+  });
+}
+function normalizeQuestionItems2(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.map((item, index) => {
+    var _a7, _b4;
+    const record2 = isPlainObject9(item) ? item : {};
+    const question = (_a7 = firstTrimmedString2(record2.question)) != null ? _a7 : `Question ${index + 1}`;
+    const header = (_b4 = firstTrimmedString2(record2.header)) != null ? _b4 : `Q${index + 1}`;
+    return {
+      ...typeof record2.id === "string" && record2.id.trim() ? { id: record2.id } : {},
+      header,
+      multiSelect: record2.multiSelect === true || record2.multi_select === true || record2.multiple === true,
+      options: normalizeQuestionOptions2(record2.options),
+      question
+    };
+  });
+}
+function normalizeTodoStatus2(value) {
+  switch (value) {
+    case "completed":
+    case "cancelled":
+      return "completed";
+    case "in_progress":
+      return "in_progress";
+    default:
+      return "pending";
+  }
+}
+function normalizeTodos2(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.flatMap((item) => {
+    var _a7;
+    if (!isPlainObject9(item)) {
+      return [];
+    }
+    const content = firstTrimmedString2(item.content, item.title, item.description);
+    if (!content) {
+      return [];
+    }
+    return [{
+      activeForm: (_a7 = firstTrimmedString2(item.activeForm, item.active_form)) != null ? _a7 : content,
+      content,
+      ...typeof item.id === "string" ? { id: item.id } : {},
+      status: normalizeTodoStatus2(item.status)
+    }];
+  });
+}
+function normalizeQuestionAnswers2(rawAnswers, questions) {
+  if (!Array.isArray(rawAnswers) || questions.length === 0) {
+    return void 0;
+  }
+  const answers = {};
+  for (let index = 0; index < Math.min(rawAnswers.length, questions.length); index += 1) {
+    const question = questions[index];
+    const rawEntry = rawAnswers[index];
+    if (!question) {
+      continue;
+    }
+    const values = Array.isArray(rawEntry) ? rawEntry.filter((value) => typeof value === "string" && value.trim().length > 0) : typeof rawEntry === "string" && rawEntry.trim().length > 0 ? [rawEntry] : [];
+    if (values.length === 0) {
+      continue;
+    }
+    const normalizedValue = values.length === 1 ? values[0] : values;
+    answers[question.question] = normalizedValue;
+    if (question.id) {
+      answers[question.id] = normalizedValue;
+    }
+  }
+  return Object.keys(answers).length > 0 ? answers : void 0;
+}
+function extractToolMetadata2(rawOutput) {
+  if (!isPlainObject9(rawOutput)) {
+    return null;
+  }
+  return isPlainObject9(rawOutput.metadata) ? rawOutput.metadata : null;
+}
+function resolveMimocodeRawToolName(currentRawName, update) {
+  const titleName = firstTrimmedString2(update.title);
+  const knownTitleName = titleName && isKnownToolName2(titleName) ? titleName.trim().toLowerCase() : void 0;
+  if (knownTitleName) {
+    return knownTitleName;
+  }
+  if (currentRawName) {
+    return currentRawName;
+  }
+  switch (update.kind) {
+    case "execute":
+      return "bash";
+    case "fetch":
+      return "webfetch";
+    case "read":
+      return "read";
+    default:
+      return titleName != null ? titleName : "tool";
+  }
+}
+function normalizeWebSearchInput3(input) {
+  var _a7;
+  const action = isPlainObject9(input.action) ? input.action : {};
+  const queries = normalizeStringArray4((_a7 = action.queries) != null ? _a7 : input.queries);
+  const query = firstNonEmptyString3(action.query, input.query, queries[0]);
+  const url2 = firstNonEmptyString3(action.url, input.url);
+  const pattern = firstNonEmptyString3(action.pattern, input.pattern);
+  const explicitType = firstNonEmptyString3(action.type, input.actionType, input.action_type);
+  const actionType = explicitType || (url2 && pattern ? "find_in_page" : url2 ? "open_page" : query || queries.length > 0 ? "search" : "");
+  const normalized = {};
+  if (actionType) {
+    normalized.actionType = actionType;
+  }
+  if (query) {
+    normalized.query = query;
+  }
+  if (queries.length > 0) {
+    normalized.queries = queries;
+  }
+  if (url2) {
+    normalized.url = url2;
+  }
+  if (pattern) {
+    normalized.pattern = pattern;
+  }
+  return normalized;
+}
+function normalizeMimocodeToolName(rawName) {
+  const knownName = toKnownToolName2(rawName);
+  if (!knownName) {
+    return (rawName == null ? void 0 : rawName.trim()) || "tool";
+  }
+  return TOOL_NAME_MAP3[knownName];
+}
+function normalizeMimocodeToolInput(rawName, input) {
+  const knownName = toKnownToolName2(rawName);
+  switch (knownName) {
+    case "question":
+      return { questions: normalizeQuestionItems2(input.questions) };
+    case "read":
+      return {
+        ...firstString3(input.file_path, input.filePath) ? { file_path: firstString3(input.file_path, input.filePath) } : {},
+        ...typeof input.limit === "number" ? { limit: input.limit } : {},
+        ...typeof input.offset === "number" ? { offset: input.offset } : {}
+      };
+    case "write":
+      return {
+        ...typeof input.content === "string" ? { content: input.content } : {},
+        ...firstString3(input.file_path, input.filePath) ? { file_path: firstString3(input.file_path, input.filePath) } : {}
+      };
+    case "edit":
+      return {
+        ...firstString3(input.file_path, input.filePath) ? { file_path: firstString3(input.file_path, input.filePath) } : {},
+        ...firstString3(input.old_string, input.oldString) ? { old_string: firstString3(input.old_string, input.oldString) } : {},
+        ...firstString3(input.new_string, input.newString) ? { new_string: firstString3(input.new_string, input.newString) } : {},
+        ...typeof input.replace_all === "boolean" ? { replace_all: input.replace_all } : typeof input.replaceAll === "boolean" ? { replace_all: input.replaceAll } : {}
+      };
+    case "task":
+      return {
+        ...firstTrimmedString2(input.command) ? { command: firstTrimmedString2(input.command) } : {},
+        ...firstTrimmedString2(input.description) ? { description: firstTrimmedString2(input.description) } : {},
+        ...firstTrimmedString2(input.prompt) ? { prompt: firstTrimmedString2(input.prompt) } : {},
+        ...input.run_in_background === true || input.run_in_background === false ? { run_in_background: input.run_in_background } : {},
+        ...firstTrimmedString2(input.subagent_type) ? { subagent_type: firstTrimmedString2(input.subagent_type) } : {},
+        ...firstTrimmedString2(input.task_id) ? { task_id: firstTrimmedString2(input.task_id) } : {}
+      };
+    case "todowrite":
+      return { todos: normalizeTodos2(input.todos) };
+    case "skill":
+      return firstTrimmedString2(input.skill, input.name) ? { skill: firstTrimmedString2(input.skill, input.name) } : {};
+    case "websearch":
+      return normalizeWebSearchInput3(input);
+    default:
+      return input;
+  }
+}
+function normalizeMimocodeToolUseResult(rawName, input, rawOutput) {
+  const knownName = toKnownToolName2(rawName);
+  const metadata = extractToolMetadata2(rawOutput);
+  const normalized = {};
+  if ((knownName === "write" || knownName === "edit") && firstString3(input.file_path, input.filePath, metadata == null ? void 0 : metadata.filepath, metadata == null ? void 0 : metadata.filePath)) {
+    normalized.filePath = firstString3(input.file_path, input.filePath, metadata == null ? void 0 : metadata.filepath, metadata == null ? void 0 : metadata.filePath);
+  }
+  if (knownName === "question") {
+    const questions = Array.isArray(input.questions) ? input.questions : [];
+    const answers = normalizeQuestionAnswers2(metadata == null ? void 0 : metadata.answers, questions);
+    if (answers) {
+      normalized.answers = answers;
+    }
+  }
+  return Object.keys(normalized).length > 0 ? normalized : void 0;
+}
+function createMimocodeToolStreamAdapter() {
+  return new AcpToolStreamAdapter({
+    normalizeToolInput: normalizeMimocodeToolInput,
+    normalizeToolName: normalizeMimocodeToolName,
+    normalizeToolUseResult: normalizeMimocodeToolUseResult,
+    resolveRawToolName: resolveMimocodeRawToolName
+  });
+}
+
+// src/providers/mimocode/types/index.ts
+function getMimocodeState(providerState) {
+  return providerState != null ? providerState : {};
+}
+
+// src/providers/mimocode/runtime/buildMimocodePrompt.ts
+function buildMimocodePromptText(request, conversationHistory = [], options = {}) {
+  let prompt = request.text;
+  if (request.currentNotePath) {
+    prompt = appendCurrentNote(prompt, request.currentNotePath);
+  }
+  if (request.vaultSearchContext) {
+    prompt = appendVaultSearchContext(prompt, request.vaultSearchContext);
+  }
+  if (request.projectWorkspaceContext) {
+    prompt = appendProjectWorkspaceContext(prompt, request.projectWorkspaceContext);
+  }
+  if (request.editorSelection && request.editorSelection.mode !== "none") {
+    prompt = appendEditorContext(prompt, request.editorSelection);
+  }
+  if (request.browserSelection) {
+    prompt = appendBrowserContext(prompt, request.browserSelection);
+  }
+  if (request.canvasSelection) {
+    prompt = appendCanvasContext(prompt, request.canvasSelection);
+  }
+  if (conversationHistory.length > 0) {
+    const historyContext = buildContextFromHistory(conversationHistory);
+    prompt = buildPromptWithHistoryContext(
+      historyContext,
+      prompt,
+      prompt,
+      conversationHistory
+    );
+  }
+  if (request.orchestratorMode === true || options.orchestratorMode === true) {
+    prompt = applyOrchestratorModeInstructions(prompt);
+  }
+  return prompt;
+}
+function buildMimocodePromptBlocks(request, conversationHistory = [], options = {}) {
+  var _a7;
+  const blocks = [
+    { type: "text", text: buildMimocodePromptText(request, conversationHistory, options) }
+  ];
+  for (const image of (_a7 = request.images) != null ? _a7 : []) {
+    if (!image.data) {
+      continue;
+    }
+    blocks.push({
+      data: image.data,
+      mimeType: image.mediaType,
+      type: "image"
+    });
+  }
+  return blocks;
+}
+
+// src/providers/mimocode/runtime/MimocodeLaunchArtifacts.ts
+var fs33 = __toESM(require("node:fs/promises"));
+var path25 = __toESM(require("node:path"));
+init_path();
+var DEFAULT_MIMOCODE_MANAGED_AGENT_CONFIGS = [
+  { id: MIMOCODE_BUILD_MODE_ID },
+  {
+    definition: {
+      mode: "primary",
+      permission: {
+        plan_enter: "allow",
+        question: "allow"
+      }
+    },
+    id: MIMOCODE_FULL_ACCESS_MODE_ID
+  },
+  {
+    definition: {
+      mode: "primary",
+      permission: {
+        plan_enter: "allow",
+        question: "allow",
+        bash: "ask",
+        edit: "ask",
+        write: "ask"
+      }
+    },
+    id: MIMOCODE_SAFE_MODE_ID
+  },
+  { id: MIMOCODE_PLAN_MODE_ID }
+];
+async function prepareMimocodeLaunchArtifacts(params) {
+  var _a7, _b4, _c3, _d3, _e3, _f3;
+  const artifactsDir = path25.join(
+    params.workspaceRoot,
+    GRIMOIRE_STORAGE_PATH,
+    (_a7 = params.artifactsSubdir) != null ? _a7 : "mimocode"
+  );
+  const systemPromptPath = path25.join(artifactsDir, "system.md");
+  const configPath = path25.join(artifactsDir, "config.json");
+  const systemPrompt = normalizeSystemPrompt2(
+    (_b4 = params.systemPromptText) != null ? _b4 : buildSystemPrompt(requireSettings2(params))
+  );
+  const promptKey = (_c3 = params.systemPromptKey) != null ? _c3 : params.systemPromptText !== void 0 ? params.systemPromptText : computeSystemPromptKey(requireSettings2(params));
+  const baseConfig = await loadMimocodeBaseConfig(
+    params.runtimeEnv.MIMOCODE_CONFIG,
+    params.workspaceRoot
+  );
+  const configContent = `${JSON.stringify(
+    buildMimocodeManagedConfig(
+      baseConfig,
+      systemPromptPath,
+      (_e3 = params.userName) != null ? _e3 : (_d3 = params.settings) == null ? void 0 : _d3.userName,
+      params.managedAgents,
+      params.defaultAgentId
+    ),
+    null,
+    2
+  )}
+`;
+  const databasePath = resolveMimocodeDatabasePath(params.runtimeEnv);
+  await fs33.mkdir(artifactsDir, { recursive: true });
+  await ensureMimocodeDatabaseDirectory(databasePath);
+  await writeIfChanged2(systemPromptPath, systemPrompt);
+  await writeIfChanged2(configPath, configContent);
+  return {
+    configPath,
+    configContent,
+    databasePath,
+    launchKey: [
+      promptKey,
+      configContent,
+      databasePath != null ? databasePath : "",
+      (_f3 = params.runtimeEnv.XDG_DATA_HOME) != null ? _f3 : ""
+    ].join("::"),
+    systemPromptPath
+  };
+}
+async function ensureMimocodeDatabaseDirectory(databasePath) {
+  if (!databasePath || databasePath === ":memory:") {
+    return;
+  }
+  await fs33.mkdir(path25.dirname(databasePath), { recursive: true });
+}
+function buildMimocodeManagedConfig(baseConfig, systemPromptPath, userName, managedAgents = DEFAULT_MIMOCODE_MANAGED_AGENT_CONFIGS, defaultAgentId) {
+  const config2 = {
+    ...baseConfig,
+    $schema: typeof baseConfig.$schema === "string" ? baseConfig.$schema : "https://mimocode.ai/config.json"
+  };
+  const existingAgents = isPlainObject10(baseConfig.agent) ? { ...baseConfig.agent } : {};
+  const nextAgents = { ...existingAgents };
+  const agentConfigs = managedAgents.length > 0 ? managedAgents : DEFAULT_MIMOCODE_MANAGED_AGENT_CONFIGS;
+  for (const agentConfig of agentConfigs) {
+    const existingAgentValue = existingAgents[agentConfig.id];
+    const existingAgent = isPlainObject10(existingAgentValue) ? { ...existingAgentValue } : {};
+    nextAgents[agentConfig.id] = {
+      ...existingAgent,
+      ...isPlainObject10(agentConfig.definition) ? agentConfig.definition : {},
+      prompt: `{file:${systemPromptPath}}`
+    };
+  }
+  config2.agent = nextAgents;
+  const trimmedDefaultAgentId = defaultAgentId == null ? void 0 : defaultAgentId.trim();
+  if (trimmedDefaultAgentId) {
+    config2.default_agent = trimmedDefaultAgentId;
+  }
+  const trimmedUserName = userName == null ? void 0 : userName.trim();
+  if (trimmedUserName) {
+    config2.username = trimmedUserName;
+  }
+  return config2;
+}
+async function writeIfChanged2(filePath, content) {
+  try {
+    const existing = await fs33.readFile(filePath, "utf-8");
+    if (existing === content) {
+      return;
+    }
+  } catch (e) {
+  }
+  await fs33.writeFile(filePath, content, "utf-8");
+}
+async function loadMimocodeBaseConfig(configuredPath, workspaceRoot) {
+  const trimmedPath = configuredPath == null ? void 0 : configuredPath.trim();
+  if (!trimmedPath) {
+    return {};
+  }
+  const expandedPath = expandHomePath(trimmedPath);
+  const resolvedPath = path25.isAbsolute(expandedPath) ? expandedPath : path25.resolve(workspaceRoot, expandedPath);
+  try {
+    const rawConfig = await fs33.readFile(resolvedPath, "utf8");
+    const parsedConfig = JSON.parse(rawConfig);
+    return isPlainObject10(parsedConfig) ? parsedConfig : {};
+  } catch (e) {
+    return {};
+  }
+}
+function isPlainObject10(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+function normalizeSystemPrompt2(systemPrompt) {
+  return systemPrompt.endsWith("\n") ? systemPrompt : `${systemPrompt}
+`;
+}
+function requireSettings2(params) {
+  if (params.settings) {
+    return params.settings;
+  }
+  throw new Error("prepareMimocodeLaunchArtifacts requires settings when no systemPromptText is provided");
+}
+
+// src/providers/mimocode/runtime/MimocodeRuntimeEnvironment.ts
+init_env();
+function buildMimocodeRuntimeEnv(settings11, cliPath, databasePathOverride) {
+  const envText = getRuntimeEnvironmentText(settings11, "mimocode");
+  const envVars = parseEnvironmentVariables(envText);
+  return {
+    ...process.env,
+    ...envVars,
+    MIMOCODE_DISABLE_CLAUDE_CODE_PROMPT: "true",
+    ...databasePathOverride ? { MIMOCODE_DB: databasePathOverride } : {},
+    PATH: getEnhancedPath(envVars.PATH, cliPath || void 0)
+  };
+}
+
+// src/providers/mimocode/runtime/MimocodeChatRuntime.ts
+var StreamChunkQueue3 = class {
+  constructor() {
+    this.closed = false;
+    this.items = [];
+    this.waiters = [];
+  }
+  push(chunk) {
+    const waiter = this.waiters.shift();
+    if (waiter) {
+      waiter(chunk);
+      return;
+    }
+    this.items.push(chunk);
+  }
+  close() {
+    var _a7;
+    if (this.closed) {
+      return;
+    }
+    this.closed = true;
+    while (this.waiters.length > 0) {
+      (_a7 = this.waiters.shift()) == null ? void 0 : _a7(null);
+    }
+  }
+  async next() {
+    var _a7;
+    if (this.items.length > 0) {
+      return (_a7 = this.items.shift()) != null ? _a7 : null;
+    }
+    if (this.closed) {
+      return null;
+    }
+    return new Promise((resolve9) => {
+      this.waiters.push(resolve9);
+    });
+  }
+};
+var MimocodeChatRuntime = class {
+  constructor(plugin) {
+    this.plugin = plugin;
+    this.providerId = "mimocode";
+    this.activeTurn = null;
+    this.approvalCallback = null;
+    this.connection = null;
+    this.contextUsage = null;
+    this.currentDatabasePath = null;
+    this.currentLaunchKey = null;
+    this.currentSessionEffortConfigId = null;
+    this.currentSessionEffortValue = null;
+    this.currentSessionEffortValues = /* @__PURE__ */ new Set();
+    this.currentSessionModelId = null;
+    this.currentSessionModeId = null;
+    this.currentTurnSawAcpCost = false;
+    this.currentTurnMetadata = {};
+    this.loadedSessionId = null;
+    this.permissionModeSyncCallback = null;
+    this.process = null;
+    this.promptUsage = null;
+    this.readyListeners = [];
+    this.ready = false;
+    this.sessionInvalidated = false;
+    this.supportedCommandWaiters = [];
+    this.supportedCommands = [];
+    this.sessionCwds = /* @__PURE__ */ new Map();
+    this.sessionId = null;
+    this.sessionUpdateNormalizer = new AcpSessionUpdateNormalizer();
+    this.toolStreamAdapter = createMimocodeToolStreamAdapter();
+    this.transport = null;
+    this.unregisterTransportClose = null;
+  }
+  getCapabilities() {
+    return MIMOCODE_PROVIDER_CAPABILITIES;
+  }
+  prepareTurn(request) {
+    var _a7;
+    return {
+      isCompact: false,
+      mcpMentions: (_a7 = request.enabledMcpServers) != null ? _a7 : /* @__PURE__ */ new Set(),
+      persistedContent: "",
+      prompt: buildMimocodePromptText(request),
+      request
+    };
+  }
+  onReadyStateChange(listener) {
+    this.readyListeners.push(listener);
+    return () => {
+      const index = this.readyListeners.indexOf(listener);
+      if (index >= 0) {
+        this.readyListeners.splice(index, 1);
+      }
+    };
+  }
+  setResumeCheckpoint(_checkpointId) {
+  }
+  syncConversationState(conversation) {
+    var _a7;
+    const previousSessionId = this.sessionId;
+    const nextSessionId = (_a7 = conversation == null ? void 0 : conversation.sessionId) != null ? _a7 : null;
+    if (this.sessionId !== nextSessionId) {
+      this.currentSessionEffortConfigId = null;
+      this.currentSessionEffortValue = null;
+      this.currentSessionEffortValues = /* @__PURE__ */ new Set();
+      this.currentSessionModelId = null;
+      this.currentSessionModeId = null;
+      this.sessionInvalidated = false;
+      this.setSupportedCommands([]);
+    }
+    this.sessionId = nextSessionId;
+    const state = getMimocodeState(conversation == null ? void 0 : conversation.providerState);
+    if (state.databasePath) {
+      this.currentDatabasePath = state.databasePath;
+      return;
+    }
+    if (!nextSessionId || nextSessionId !== previousSessionId) {
+      this.currentDatabasePath = null;
+    }
+  }
+  async reloadMcpServers() {
+  }
+  async warmModelMetadata(model) {
+    const selectedRawModelId = decodeMimocodeModelId(model);
+    if (!selectedRawModelId) {
+      return false;
+    }
+    if (!await this.ensureReady({ allowSessionCreation: true })) {
+      return false;
+    }
+    if (!this.connection || !this.sessionId) {
+      return false;
+    }
+    const discoveredModels = getMimocodeProviderSettings(this.plugin.settings).discoveredModels;
+    const selectedBaseRawModelId = resolveMimocodeBaseModelRawId(selectedRawModelId, discoveredModels);
+    if (!selectedBaseRawModelId) {
+      return false;
+    }
+    const availableModelIds = new Set(discoveredModels.map((entry) => entry.rawId));
+    if (availableModelIds.size > 0 && !availableModelIds.has(selectedBaseRawModelId)) {
+      return false;
+    }
+    const response = await this.connection.setConfigOption({
+      configId: "model",
+      sessionId: this.sessionId,
+      type: "select",
+      value: selectedBaseRawModelId
+    });
+    this.currentSessionModelId = selectedBaseRawModelId;
+    await this.syncSessionModelState({
+      configOptions: response.configOptions
+    }, {
+      currentRawModelId: selectedBaseRawModelId,
+      seedActiveSelection: false
+    });
+    return true;
+  }
+  async ensureReady(options) {
+    var _a7, _b4;
+    const settings11 = getMimocodeProviderSettings(this.plugin.settings);
+    if (!settings11.enabled) {
+      this.setReady(false);
+      return false;
+    }
+    const cwd = (_a7 = getVaultPath(this.plugin.app)) != null ? _a7 : process.cwd();
+    const targetSessionId = this.sessionId;
+    const resolvedCliPath = (_b4 = this.plugin.getResolvedProviderCliPath("mimocode")) != null ? _b4 : "mimo";
+    const runtimeEnv = this.buildRuntimeEnv(
+      resolvedCliPath,
+      this.currentDatabasePath
+    );
+    const promptSettings = this.getSystemPromptSettings(cwd);
+    const artifacts = await prepareMimocodeLaunchArtifacts({
+      runtimeEnv,
+      settings: promptSettings,
+      workspaceRoot: cwd
+    });
+    this.currentDatabasePath = artifacts.databasePath;
+    const nextLaunchKey = JSON.stringify({
+      command: resolvedCliPath,
+      configPath: artifacts.configPath,
+      envText: getRuntimeEnvironmentText(this.plugin.settings, "mimocode"),
+      promptKey: computeSystemPromptKey(promptSettings),
+      artifactKey: artifacts.launchKey
+    });
+    const shouldRestart = !this.process || !this.transport || !this.connection || !this.process.isAlive() || this.transport.isClosed || (options == null ? void 0 : options.force) === true || this.currentLaunchKey !== nextLaunchKey;
+    if (shouldRestart) {
+      await this.shutdownProcess();
+      await this.startProcess({
+        command: resolvedCliPath,
+        configPath: artifacts.configPath,
+        cwd,
+        runtimeEnv
+      });
+      this.currentLaunchKey = nextLaunchKey;
+      this.loadedSessionId = null;
+    }
+    if (targetSessionId) {
+      if (this.loadedSessionId !== targetSessionId) {
+        const loaded = await this.loadSession(targetSessionId, cwd);
+        if (!loaded) {
+          this.sessionInvalidated = true;
+          this.clearActiveSession();
+        }
+      }
+      return true;
+    }
+    if (!this.sessionId && !this.sessionInvalidated) {
+      if ((options == null ? void 0 : options.allowSessionCreation) === false) {
+        return true;
+      }
+      return Boolean(await this.createSession(cwd));
+    }
+    return true;
+  }
+  async *query(turn, conversationHistory, queryOptions) {
+    var _a7, _b4;
+    const previousMessages = conversationHistory != null ? conversationHistory : [];
+    const expectedSessionId = this.sessionId;
+    let shouldBootstrapHistory = previousMessages.length > 0 && (!expectedSessionId || this.sessionInvalidated);
+    if (!await this.ensureReady()) {
+      yield { type: "error", content: "Failed to start Mimocode. Check the CLI path and login state." };
+      yield { type: "done" };
+      return;
+    }
+    if (!this.connection) {
+      yield { type: "error", content: "Mimocode runtime is not ready." };
+      yield { type: "done" };
+      return;
+    }
+    const cwd = (_a7 = getVaultPath(this.plugin.app)) != null ? _a7 : process.cwd();
+    if (expectedSessionId && !this.sessionId) {
+      shouldBootstrapHistory = previousMessages.length > 0;
+    }
+    if (!this.sessionId) {
+      const sessionId2 = await this.createSession(cwd);
+      if (!sessionId2) {
+        yield { type: "error", content: "Failed to create an Mimocode session." };
+        yield { type: "done" };
+        return;
+      }
+    }
+    const sessionId = this.sessionId;
+    (_b4 = this.activeTurn) == null ? void 0 : _b4.queue.close();
+    this.activeTurn = {
+      queue: new StreamChunkQueue3(),
+      sawOutput: false,
+      sessionId
+    };
+    this.currentTurnMetadata = {};
+    this.currentTurnSawAcpCost = false;
+    this.contextUsage = null;
+    this.promptUsage = null;
+    this.sessionUpdateNormalizer.reset();
+    this.toolStreamAdapter.reset();
+    const activeTurn = this.activeTurn;
+    try {
+      await this.applySelectedMode(sessionId);
+      await this.applySelectedModel(sessionId, queryOptions);
+      await this.applySelectedEffort(sessionId);
+    } catch (error48) {
+      yield {
+        type: "error",
+        content: this.formatRuntimeError(error48)
+      };
+      yield { type: "done" };
+      activeTurn.queue.close();
+      this.activeTurn = null;
+      return;
+    }
+    const runPrompt = async (promptSessionId) => {
+      var _a8;
+      const response = await this.connection.prompt({
+        prompt: buildMimocodePromptBlocks(
+          turn.request,
+          shouldBootstrapHistory ? previousMessages : [],
+          { orchestratorMode: queryOptions == null ? void 0 : queryOptions.orchestratorMode }
+        ),
+        sessionId: promptSessionId
+      });
+      if (response.userMessageId) {
+        this.currentTurnMetadata.userMessageId = response.userMessageId;
+      }
+      this.promptUsage = (_a8 = response.usage) != null ? _a8 : null;
+      const usage = buildAcpUsageInfo({
+        contextWindow: this.contextUsage,
+        model: this.getActiveDisplayModel(queryOptions),
+        promptUsage: this.promptUsage
+      });
+      if (usage) {
+        activeTurn.queue.push({ sessionId: promptSessionId, type: "usage", usage });
+      }
+      await this.refreshFallbackPlanUsageFromSessionCost(promptSessionId);
+      activeTurn.queue.push({ type: "done" });
+      activeTurn.queue.close();
+    };
+    const promptPromise = runPrompt(sessionId).catch(async (error48) => {
+      let reportedError = error48;
+      try {
+        if (await this.prepareClosedTransportRetry(error48, activeTurn, cwd)) {
+          const retrySessionId = this.sessionId;
+          if (this.connection && retrySessionId) {
+            activeTurn.sessionId = retrySessionId;
+            this.currentTurnMetadata = {};
+            this.currentTurnSawAcpCost = false;
+            this.contextUsage = null;
+            this.promptUsage = null;
+            this.sessionUpdateNormalizer.reset();
+            this.toolStreamAdapter.reset();
+            await this.applySelectedMode(retrySessionId);
+            await this.applySelectedModel(retrySessionId, queryOptions);
+            await this.applySelectedEffort(retrySessionId);
+            await runPrompt(retrySessionId);
+            return;
+          }
+        }
+      } catch (retryError) {
+        reportedError = retryError;
+      }
+      activeTurn.queue.push({
+        type: "error",
+        content: this.formatRuntimeError(reportedError)
+      });
+      activeTurn.queue.push({ type: "done" });
+      activeTurn.queue.close();
+    }).finally(() => {
+      if (this.activeTurn === activeTurn) {
+        this.activeTurn = null;
+      }
+    });
+    try {
+      while (true) {
+        const chunk = await activeTurn.queue.next();
+        if (!chunk) {
+          break;
+        }
+        yield chunk;
+      }
+      await promptPromise;
+    } finally {
+      if (this.activeTurn === activeTurn) {
+        this.activeTurn = null;
+      }
+    }
+  }
+  cancel() {
+    if (this.connection && this.sessionId) {
+      this.connection.cancel({ sessionId: this.sessionId });
+    }
+  }
+  resetSession() {
+    this.clearActiveSession();
+    this.sessionInvalidated = false;
+  }
+  getSessionId() {
+    return this.sessionId;
+  }
+  consumeSessionInvalidation() {
+    const invalidated = this.sessionInvalidated;
+    this.sessionInvalidated = false;
+    return invalidated;
+  }
+  isReady() {
+    return this.ready;
+  }
+  async getSupportedCommands() {
+    if (this.supportedCommands.length > 0 && this.loadedSessionId === this.sessionId) {
+      return [...this.supportedCommands];
+    }
+    if (this.sessionId && this.loadedSessionId !== this.sessionId) {
+      const ready = await this.ensureReady({ allowSessionCreation: false });
+      if (!ready) {
+        return [];
+      }
+    }
+    if (!this.sessionId) {
+      return [];
+    }
+    if (this.supportedCommands.length > 0) {
+      return [...this.supportedCommands];
+    }
+    if (!this.sessionId || this.loadedSessionId !== this.sessionId) {
+      return [];
+    }
+    return this.waitForSupportedCommands();
+  }
+  cleanup() {
+    var _a7;
+    (_a7 = this.activeTurn) == null ? void 0 : _a7.queue.close();
+    void this.shutdownProcess();
+  }
+  async rewind(_userMessageId, _assistantMessageId, _mode) {
+    return { canRewind: false };
+  }
+  setApprovalCallback(callback) {
+    this.approvalCallback = callback;
+  }
+  setApprovalDismisser(_dismisser) {
+  }
+  setAskUserQuestionCallback(_callback) {
+  }
+  setExitPlanModeCallback(_callback) {
+  }
+  setPermissionModeSyncCallback(callback) {
+    this.permissionModeSyncCallback = callback;
+  }
+  setSubagentHookProvider(_getState) {
+  }
+  setAutoTurnCallback(_callback) {
+  }
+  consumeTurnMetadata() {
+    const metadata = this.currentTurnMetadata;
+    this.currentTurnMetadata = {};
+    return metadata;
+  }
+  buildSessionUpdates(params) {
+    var _a7;
+    const existingState = params.conversation ? getMimocodeState(params.conversation.providerState) : null;
+    const providerState = {
+      ...this.currentDatabasePath || (existingState == null ? void 0 : existingState.databasePath) ? { databasePath: (_a7 = this.currentDatabasePath) != null ? _a7 : existingState == null ? void 0 : existingState.databasePath } : {}
+    };
+    const updates = {
+      providerState: Object.keys(providerState).length > 0 ? providerState : void 0,
+      sessionId: this.sessionId
+    };
+    if (params.sessionInvalidated) {
+      if (!this.sessionId) {
+        updates.providerState = void 0;
+        updates.sessionId = null;
+      }
+    }
+    return { updates };
+  }
+  resolveSessionIdForFork(conversation) {
+    var _a7, _b4;
+    return (_b4 = (_a7 = this.sessionId) != null ? _a7 : conversation == null ? void 0 : conversation.sessionId) != null ? _b4 : null;
+  }
+  async loadSubagentToolCalls(_agentId) {
+    return [];
+  }
+  async loadSubagentFinalResult(_agentId) {
+    return null;
+  }
+  async startProcess(params) {
+    var _a7, _b4;
+    const processEnv = {
+      ...process.env,
+      ...params.runtimeEnv,
+      MIMOCODE_CONFIG: params.configPath,
+      PATH: getEnhancedPath(
+        params.runtimeEnv.PATH,
+        path26.isAbsolute(params.command) ? params.command : void 0
+      )
+    };
+    this.process = new AcpSubprocess({
+      args: ["acp", `--cwd=${params.cwd}`],
+      command: params.command,
+      cwd: params.cwd,
+      env: processEnv
+    });
+    this.process.start();
+    this.transport = new AcpJsonRpcTransport({
+      input: this.process.stdout,
+      onClose: (listener) => this.process.onClose(listener),
+      output: this.process.stdin
+    });
+    const transport = this.transport;
+    this.unregisterTransportClose = transport.onClose(() => {
+      if (this.transport === transport) {
+        this.setReady(false);
+      }
+    });
+    this.connection = new AcpClientConnection({
+      clientInfo: {
+        name: "grimoire",
+        version: (_b4 = (_a7 = this.plugin.manifest) == null ? void 0 : _a7.version) != null ? _b4 : "0.0.0"
+      },
+      delegate: {
+        fileSystem: {
+          readTextFile: (request) => this.readTextFile(request),
+          writeTextFile: (request) => this.writeTextFile(request)
+        },
+        onSessionNotification: (notification) => this.handleSessionNotification(notification),
+        requestPermission: (request) => this.handlePermissionRequest(request)
+      },
+      transport: this.transport
+    });
+    this.transport.start();
+    await this.connection.initialize();
+    this.setReady(true);
+  }
+  async shutdownProcess(options) {
+    var _a7, _b4, _c3, _d3;
+    this.setReady(false);
+    if (!(options == null ? void 0 : options.preserveActiveTurn)) {
+      (_a7 = this.activeTurn) == null ? void 0 : _a7.queue.close();
+      this.activeTurn = null;
+    }
+    this.currentSessionModelId = null;
+    this.currentSessionModeId = null;
+    this.setSupportedCommands([]);
+    (_b4 = this.unregisterTransportClose) == null ? void 0 : _b4.call(this);
+    this.unregisterTransportClose = null;
+    (_c3 = this.connection) == null ? void 0 : _c3.dispose();
+    this.connection = null;
+    (_d3 = this.transport) == null ? void 0 : _d3.dispose();
+    this.transport = null;
+    if (this.process) {
+      await this.process.shutdown().catch(() => {
+      });
+      this.process = null;
+    }
+  }
+  setReady(ready) {
+    if (this.ready === ready) {
+      return;
+    }
+    this.ready = ready;
+    for (const listener of this.readyListeners) {
+      listener(ready);
+    }
+  }
+  getSystemPromptSettings(vaultPath) {
+    return {
+      customPrompt: this.plugin.settings.systemPrompt,
+      mediaFolder: this.plugin.settings.mediaFolder,
+      userName: this.plugin.settings.userName,
+      vaultPath
+    };
+  }
+  buildRuntimeEnv(cliPath, databasePathOverride) {
+    return buildMimocodeRuntimeEnv(
+      this.plugin.settings,
+      cliPath,
+      databasePathOverride
+    );
+  }
+  getProviderSettings() {
+    return ProviderSettingsCoordinator.getProviderSettingsSnapshot(
+      this.plugin.settings,
+      this.providerId
+    );
+  }
+  resolveSelectedRawModelId(queryOptions) {
+    const providerSettings = this.getProviderSettings();
+    const selectedModel = typeof (queryOptions == null ? void 0 : queryOptions.model) === "string" ? queryOptions.model : typeof providerSettings.model === "string" ? providerSettings.model : "";
+    if (!isMimocodeModelSelectionId(selectedModel)) {
+      return null;
+    }
+    const selectedBaseRawModelId = decodeMimocodeModelId(selectedModel);
+    if (!selectedBaseRawModelId) {
+      return null;
+    }
+    const discoveredModels = getMimocodeProviderSettings(providerSettings).discoveredModels;
+    const normalizedBaseRawModelId = resolveMimocodeBaseModelRawId(selectedBaseRawModelId, discoveredModels);
+    if (!normalizedBaseRawModelId) {
+      return null;
+    }
+    const availableModelIds = new Set(discoveredModels.map((model) => model.rawId));
+    if (availableModelIds.size > 0 && !availableModelIds.has(normalizedBaseRawModelId)) {
+      return null;
+    }
+    return normalizedBaseRawModelId;
+  }
+  getAuxiliaryModel() {
+    var _a7;
+    return (_a7 = this.getActiveDisplayModel()) != null ? _a7 : null;
+  }
+  getActiveDisplayModel(queryOptions) {
+    const providerSettings = this.getProviderSettings();
+    const selectedModel = typeof (queryOptions == null ? void 0 : queryOptions.model) === "string" ? queryOptions.model : typeof providerSettings.model === "string" ? providerSettings.model : "";
+    if (selectedModel && selectedModel !== MIMOCODE_SYNTHETIC_MODEL_ID && isMimocodeModelSelectionId(selectedModel)) {
+      const selectedRawModelId = this.resolveSelectedRawModelId(queryOptions);
+      return selectedRawModelId ? encodeMimocodeModelId(selectedRawModelId) : selectedModel;
+    }
+    return this.currentSessionModelId ? encodeMimocodeModelId(this.currentSessionModelId) : selectedModel && isMimocodeModelSelectionId(selectedModel) ? selectedModel : void 0;
+  }
+  resolveSelectedModeId() {
+    var _a7;
+    const providerSettings = this.getProviderSettings();
+    const mimocodeSettings = getMimocodeProviderSettings(providerSettings);
+    const availableModes = getManagedMimocodeModes(mimocodeSettings.availableModes);
+    const mappedModeId = resolveMimocodeModeForPermissionMode(
+      providerSettings.permissionMode,
+      mimocodeSettings.availableModes
+    );
+    if (mappedModeId) {
+      return mappedModeId;
+    }
+    if (mimocodeSettings.selectedMode) {
+      if (availableModes.some((mode) => mode.id === mimocodeSettings.selectedMode)) {
+        return mimocodeSettings.selectedMode;
+      }
+    }
+    return ((_a7 = availableModes[0]) == null ? void 0 : _a7.id) || null;
+  }
+  async applySelectedMode(sessionId) {
+    if (!this.connection) {
+      return;
+    }
+    const selectedModeId = this.resolveSelectedModeId();
+    if (!selectedModeId || selectedModeId === this.currentSessionModeId) {
+      return;
+    }
+    const response = await this.connection.setConfigOption({
+      configId: "mode",
+      sessionId,
+      type: "select",
+      value: selectedModeId
+    });
+    this.currentSessionModeId = selectedModeId;
+    await this.syncSessionModeState({
+      configOptions: response.configOptions
+    });
+  }
+  async applySelectedModel(sessionId, queryOptions) {
+    if (!this.connection) {
+      return;
+    }
+    const selectedRawModelId = this.resolveSelectedRawModelId(queryOptions);
+    if (!selectedRawModelId || selectedRawModelId === this.currentSessionModelId) {
+      return;
+    }
+    const response = await this.connection.setConfigOption({
+      configId: "model",
+      sessionId,
+      type: "select",
+      value: selectedRawModelId
+    });
+    this.currentSessionModelId = selectedRawModelId;
+    await this.syncSessionModelState({
+      configOptions: response.configOptions
+    }, {
+      currentRawModelId: selectedRawModelId
+    });
+  }
+  resolveSelectedEffortValue() {
+    const providerSettings = this.getProviderSettings();
+    const selectedEffort = typeof providerSettings.effortLevel === "string" ? providerSettings.effortLevel.trim() : "";
+    if (!selectedEffort || selectedEffort === MIMOCODE_DEFAULT_THINKING_LEVEL) {
+      return null;
+    }
+    return this.currentSessionEffortValues.has(selectedEffort) ? selectedEffort : null;
+  }
+  async applySelectedEffort(sessionId) {
+    if (!this.connection || !this.currentSessionEffortConfigId) {
+      return;
+    }
+    const selectedEffort = this.resolveSelectedEffortValue();
+    if (!selectedEffort || selectedEffort === this.currentSessionEffortValue) {
+      return;
+    }
+    const response = await this.connection.setConfigOption({
+      configId: this.currentSessionEffortConfigId,
+      sessionId,
+      type: "select",
+      value: selectedEffort
+    });
+    this.currentSessionEffortValue = selectedEffort;
+    await this.syncSessionModelState({
+      configOptions: response.configOptions
+    });
+  }
+  async syncSessionModelState(params, options = {}) {
+    const acpState = extractAcpSessionModelState(params);
+    const forcedCurrentRawModelId = typeof options.currentRawModelId === "string" ? options.currentRawModelId.trim() : "";
+    const currentRawModelId = forcedCurrentRawModelId || acpState.currentModelId || this.currentSessionModelId;
+    const discoveredModels = normalizeMimocodeDiscoveredModels(
+      acpState.availableModels.map((model) => ({
+        ...model.description ? { description: model.description } : {},
+        label: model.name,
+        rawId: model.id
+      }))
+    );
+    if (currentRawModelId) {
+      this.currentSessionModelId = currentRawModelId;
+    }
+    const settingsBag = this.plugin.settings;
+    const currentSettings = getMimocodeProviderSettings(settingsBag);
+    const currentBaseRawModelId = currentRawModelId ? resolveMimocodeBaseModelRawId(currentRawModelId, discoveredModels) : null;
+    const thoughtLevelState = extractAcpSessionThoughtLevelState(params);
+    const currentThinkingOptions = normalizeMimocodeModelVariants(
+      thoughtLevelState.availableLevels.map((level) => ({
+        ...level.description ? { description: level.description } : {},
+        label: level.name,
+        value: level.id
+      }))
+    );
+    const currentThinkingLevel = thoughtLevelState.currentLevel;
+    this.currentSessionEffortConfigId = currentThinkingOptions.length > 0 ? thoughtLevelState.configId : null;
+    this.currentSessionEffortValue = currentThinkingOptions.length > 0 ? currentThinkingLevel : null;
+    this.currentSessionEffortValues = new Set(currentThinkingOptions.map((option) => option.value));
+    const nextThinkingOptionsByModel = { ...currentSettings.thinkingOptionsByModel };
+    if (currentBaseRawModelId) {
+      if (currentThinkingOptions.length > 0) {
+        nextThinkingOptionsByModel[currentBaseRawModelId] = currentThinkingOptions;
+      } else {
+        delete nextThinkingOptionsByModel[currentBaseRawModelId];
+      }
+    }
+    const discoveredBaseModelIds = buildMimocodeBaseModels(discoveredModels).map((model) => model.rawId);
+    const nextVisibleModels = currentSettings.visibleModels.length === 0 ? discoveredBaseModelIds.length > 0 ? discoveredBaseModelIds : currentBaseRawModelId ? [currentBaseRawModelId] : [] : currentSettings.visibleModels;
+    const currentPreferredThinking = currentBaseRawModelId ? currentSettings.preferredThinkingByModel[currentBaseRawModelId] : "";
+    const shouldSeedCurrentThinking = currentBaseRawModelId && currentThinkingLevel && (!currentPreferredThinking || currentThinkingOptions.length > 0 && !this.currentSessionEffortValues.has(currentPreferredThinking));
+    const nextPreferredThinkingByModel = shouldSeedCurrentThinking && currentBaseRawModelId && currentThinkingLevel ? {
+      ...currentSettings.preferredThinkingByModel,
+      [currentBaseRawModelId]: currentThinkingLevel
+    } : currentSettings.preferredThinkingByModel;
+    const shouldSeedVisibleModels = !sameStringList3(currentSettings.visibleModels, nextVisibleModels);
+    const shouldSeedPreferredThinking = !sameStringMap3(
+      currentSettings.preferredThinkingByModel,
+      nextPreferredThinkingByModel
+    );
+    const shouldUpdateDiscoveredModels = discoveredModels.length > 0 && !sameDiscoveredModels3(currentSettings.discoveredModels, discoveredModels);
+    const shouldUpdateThinkingOptions = !sameThinkingOptionsByModel3(
+      currentSettings.thinkingOptionsByModel,
+      nextThinkingOptionsByModel
+    );
+    const discoveryChanged = shouldUpdateDiscoveredModels && updateMimocodeDiscoveryState(settingsBag, { discoveredModels });
+    let changed = shouldSeedVisibleModels || shouldSeedPreferredThinking;
+    if (currentBaseRawModelId && options.seedActiveSelection !== false) {
+      const seeded = this.seedActiveModelSelection(
+        settingsBag,
+        encodeMimocodeModelId(currentBaseRawModelId),
+        currentThinkingLevel
+      );
+      changed = changed || seeded;
+    }
+    if (shouldUpdateThinkingOptions || shouldSeedPreferredThinking || shouldSeedVisibleModels) {
+      updateMimocodeProviderSettings(settingsBag, {
+        ...shouldSeedPreferredThinking ? { preferredThinkingByModel: nextPreferredThinkingByModel } : {},
+        ...shouldUpdateThinkingOptions ? { thinkingOptionsByModel: nextThinkingOptionsByModel } : {},
+        ...shouldSeedVisibleModels ? { visibleModels: nextVisibleModels } : {}
+      });
+    }
+    if (!changed && !discoveryChanged && !shouldUpdateThinkingOptions) {
+      return;
+    }
+    if (changed || shouldUpdateThinkingOptions) {
+      await this.plugin.saveSettings();
+    }
+    this.refreshModelSelectors();
+  }
+  seedActiveModelSelection(settingsBag, modelSelection, thinkingLevel) {
+    let changed = false;
+    const savedProviderModel = ensureProviderProjectionMap3(settingsBag, "savedProviderModel");
+    const savedModel = typeof savedProviderModel.mimocode === "string" ? savedProviderModel.mimocode : "";
+    if (!savedModel || savedModel === MIMOCODE_SYNTHETIC_MODEL_ID) {
+      savedProviderModel.mimocode = modelSelection;
+      changed = true;
+    }
+    if (thinkingLevel) {
+      const savedProviderEffort = ensureProviderProjectionMap3(settingsBag, "savedProviderEffort");
+      const savedEffort = typeof savedProviderEffort.mimocode === "string" ? savedProviderEffort.mimocode.trim() : "";
+      if (!savedEffort || savedEffort === MIMOCODE_DEFAULT_THINKING_LEVEL) {
+        savedProviderEffort.mimocode = thinkingLevel;
+        changed = true;
+      }
+    }
+    if (ProviderRegistry.resolveSettingsProviderId(settingsBag) !== this.providerId) {
+      return changed;
+    }
+    const activeModel = typeof settingsBag.model === "string" ? settingsBag.model : "";
+    if (!activeModel || activeModel === MIMOCODE_SYNTHETIC_MODEL_ID) {
+      settingsBag.model = modelSelection;
+      changed = true;
+    }
+    if (thinkingLevel) {
+      const activeEffort = typeof settingsBag.effortLevel === "string" ? settingsBag.effortLevel : "";
+      if (!activeEffort || activeEffort === MIMOCODE_DEFAULT_THINKING_LEVEL) {
+        settingsBag.effortLevel = thinkingLevel;
+        changed = true;
+      }
+    }
+    return changed;
+  }
+  async syncSessionModeState(params) {
+    var _a7;
+    const acpState = extractAcpSessionModeState(params);
+    const availableModes = normalizeMimocodeAvailableModes(acpState.availableModes);
+    const currentModeId = (_a7 = params.currentModeId) != null ? _a7 : acpState.currentModeId;
+    if (currentModeId) {
+      this.currentSessionModeId = currentModeId;
+      this.emitPermissionModeSync(currentModeId);
+    }
+    const settingsBag = this.plugin.settings;
+    const currentSettings = getMimocodeProviderSettings(settingsBag);
+    const shouldSeedSelectedMode = typeof currentModeId === "string" && !currentSettings.selectedMode && isManagedMimocodeModeId(currentModeId);
+    const discoveryChanged = availableModes.length > 0 && !sameModes3(currentSettings.availableModes, availableModes) && updateMimocodeDiscoveryState(settingsBag, { availableModes });
+    if (!discoveryChanged && !shouldSeedSelectedMode) {
+      return;
+    }
+    if (shouldSeedSelectedMode && currentModeId) {
+      updateMimocodeProviderSettings(settingsBag, { selectedMode: currentModeId });
+      await this.plugin.saveSettings();
+    }
+    this.refreshModelSelectors();
+  }
+  refreshModelSelectors() {
+    for (const view of this.plugin.getAllViews()) {
+      view.refreshModelSelector();
+    }
+  }
+  emitPermissionModeSync(modeId) {
+    const permissionMode = resolvePermissionModeForManagedMimocodeMode(modeId);
+    if (!permissionMode || !this.permissionModeSyncCallback) {
+      return;
+    }
+    try {
+      this.permissionModeSyncCallback(permissionMode);
+    } catch (e) {
+    }
+  }
+  async createSession(cwd) {
+    var _a7, _b4, _c3, _d3;
+    if (!this.connection) {
+      return null;
+    }
+    try {
+      this.setSupportedCommands([]);
+      const response = await this.connection.newSession({
+        cwd,
+        mcpServers: []
+      });
+      this.sessionInvalidated = false;
+      this.loadedSessionId = response.sessionId;
+      this.sessionId = response.sessionId;
+      this.sessionCwds.set(response.sessionId, cwd);
+      await this.syncSessionModelState({
+        configOptions: (_a7 = response.configOptions) != null ? _a7 : null,
+        models: (_b4 = response.models) != null ? _b4 : null
+      });
+      await this.syncSessionModeState({
+        configOptions: (_c3 = response.configOptions) != null ? _c3 : null,
+        modes: (_d3 = response.modes) != null ? _d3 : null
+      });
+      return response.sessionId;
+    } catch (e) {
+      return null;
+    }
+  }
+  async loadSession(sessionId, cwd) {
+    var _a7, _b4, _c3, _d3;
+    if (!this.connection) {
+      return false;
+    }
+    try {
+      this.setSupportedCommands([]);
+      const response = await this.connection.loadSession({
+        cwd,
+        mcpServers: [],
+        sessionId
+      });
+      this.sessionInvalidated = false;
+      this.loadedSessionId = response.sessionId;
+      this.sessionId = response.sessionId;
+      this.sessionCwds.set(response.sessionId, cwd);
+      await this.syncSessionModelState({
+        configOptions: (_a7 = response.configOptions) != null ? _a7 : null,
+        models: (_b4 = response.models) != null ? _b4 : null
+      });
+      await this.syncSessionModeState({
+        configOptions: (_c3 = response.configOptions) != null ? _c3 : null,
+        modes: (_d3 = response.modes) != null ? _d3 : null
+      });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  async handleSessionNotification(notification) {
+    var _a7;
+    if (notification.sessionId !== this.sessionId) {
+      return;
+    }
+    const normalized = this.sessionUpdateNormalizer.normalize(notification.update);
+    if (normalized.type === "config_options") {
+      await this.syncSessionModelState({
+        configOptions: normalized.configOptions
+      });
+      await this.syncSessionModeState({
+        configOptions: normalized.configOptions
+      });
+      return;
+    }
+    if (normalized.type === "current_mode") {
+      await this.syncSessionModeState({
+        currentModeId: normalized.currentModeId
+      });
+      return;
+    }
+    if (normalized.type === "commands") {
+      this.setSupportedCommands(normalized.commands);
+      return;
+    }
+    if (!this.activeTurn || this.activeTurn.sessionId !== notification.sessionId) {
+      return;
+    }
+    switch (normalized.type) {
+      case "message_chunk": {
+        if (normalized.role === "assistant" && normalized.messageId) {
+          this.currentTurnMetadata.assistantMessageId = normalized.messageId;
+        }
+        if (normalized.role === "user" && normalized.messageId) {
+          this.currentTurnMetadata.userMessageId = normalized.messageId;
+        }
+        if (normalized.streamChunks.length > 0) {
+          this.activeTurn.sawOutput = true;
+        }
+        for (const chunk of normalized.streamChunks) {
+          this.activeTurn.queue.push(chunk);
+        }
+        return;
+      }
+      case "tool_call":
+      case "tool_call_update": {
+        const streamChunks = normalized.type === "tool_call" ? this.toolStreamAdapter.normalizeToolCall(normalized.toolCall, normalized.streamChunks) : this.toolStreamAdapter.normalizeToolCallUpdate(normalized.toolCallUpdate, normalized.streamChunks);
+        if (streamChunks.length > 0) {
+          this.activeTurn.sawOutput = true;
+        }
+        for (const chunk of streamChunks) {
+          this.activeTurn.queue.push(chunk);
+        }
+        return;
+      }
+      case "usage": {
+        this.contextUsage = normalized.usage;
+        if (mimocodePlanUsageStore.recordCost((_a7 = normalized.usage.cost) != null ? _a7 : null)) {
+          this.currentTurnSawAcpCost = true;
+          this.refreshModelSelectors();
+        }
+        const usage = buildAcpUsageInfo({
+          contextWindow: normalized.usage,
+          model: this.getActiveDisplayModel(),
+          promptUsage: this.promptUsage
+        });
+        if (usage) {
+          this.activeTurn.queue.push({
+            sessionId: notification.sessionId,
+            type: "usage",
+            usage
+          });
+        }
+        return;
+      }
+      default:
+        return;
+    }
+  }
+  async refreshFallbackPlanUsageFromSessionCost(sessionId) {
+    var _a7;
+    if (this.currentTurnSawAcpCost) {
+      return;
+    }
+    const cost = await loadMimocodeSessionCost(sessionId, {
+      databasePath: (_a7 = this.currentDatabasePath) != null ? _a7 : void 0
+    });
+    if (mimocodePlanUsageStore.recordSessionTotalCost(sessionId, cost)) {
+      this.refreshModelSelectors();
+    }
+  }
+  async handlePermissionRequest(request) {
+    if (!this.approvalCallback) {
+      return { outcome: { outcome: "cancelled" } };
+    }
+    const input = normalizeApprovalInput2(request.toolCall.rawInput);
+    const presentation = buildMimocodePermissionPresentation(request.toolCall.title, input, request.toolCall.locations);
+    const decision = await this.approvalCallback(
+      presentation.toolName,
+      input,
+      presentation.description,
+      {
+        ...presentation.blockedPath ? { blockedPath: presentation.blockedPath } : {},
+        ...presentation.decisionReason ? { decisionReason: presentation.decisionReason } : {},
+        decisionOptions: buildAcpApprovalDecisionOptions2(request.options)
+      }
+    );
+    return mapApprovalDecision2(decision, request.options);
+  }
+  setSupportedCommands(commands) {
+    this.supportedCommands = commands.map((command) => ({ ...command }));
+    const waiters = this.supportedCommandWaiters.splice(0);
+    for (const waiter of waiters) {
+      waiter(this.supportedCommands);
+    }
+  }
+  waitForSupportedCommands(timeoutMs = 250) {
+    if (this.supportedCommands.length > 0) {
+      return Promise.resolve([...this.supportedCommands]);
+    }
+    return new Promise((resolve9) => {
+      const waiter = (commands) => {
+        window.clearTimeout(timeoutId);
+        resolve9([...commands]);
+      };
+      const timeoutId = window.setTimeout(() => {
+        const index = this.supportedCommandWaiters.indexOf(waiter);
+        if (index >= 0) {
+          this.supportedCommandWaiters.splice(index, 1);
+        }
+        resolve9([...this.supportedCommands]);
+      }, timeoutMs);
+      this.supportedCommandWaiters.push(waiter);
+    });
+  }
+  async readTextFile(request) {
+    var _a7;
+    const resolvedPath = this.resolveSessionPath(request.sessionId, request.path);
+    const content = await fs34.readFile(resolvedPath, "utf-8");
+    if (request.line === void 0 && request.limit === void 0) {
+      return { content };
+    }
+    const lines = content.split(/\r?\n/);
+    const startIndex = Math.max(0, ((_a7 = request.line) != null ? _a7 : 1) - 1);
+    const endIndex = request.limit ? startIndex + Math.max(0, request.limit) : lines.length;
+    return {
+      content: lines.slice(startIndex, endIndex).join("\n")
+    };
+  }
+  async writeTextFile(request) {
+    const resolvedPath = this.resolveSessionPath(request.sessionId, request.path);
+    await fs34.mkdir(path26.dirname(resolvedPath), { recursive: true });
+    await fs34.writeFile(resolvedPath, request.content, "utf-8");
+    return {};
+  }
+  resolveSessionPath(sessionId, rawPath) {
+    var _a7, _b4;
+    const cwd = (_b4 = (_a7 = this.sessionCwds.get(sessionId)) != null ? _a7 : getVaultPath(this.plugin.app)) != null ? _b4 : process.cwd();
+    const allowOutsideWorkspace = coercePermissionMode(this.getProviderSettings().permissionMode) === "full_access";
+    return resolveWorkspacePath(cwd, rawPath, { allowOutsideWorkspace });
+  }
+  formatRuntimeError(error48) {
+    var _a7;
+    const baseMessage = error48 instanceof Error ? error48.message : "Mimocode request failed";
+    const stderr = (_a7 = this.process) == null ? void 0 : _a7.getStderrSnapshot();
+    return stderr ? `${baseMessage}
+
+${stderr}` : baseMessage;
+  }
+  async prepareClosedTransportRetry(error48, activeTurn, cwd) {
+    if (!this.isRetryableTransportClose(error48) || activeTurn.sawOutput) {
+      return false;
+    }
+    await this.shutdownProcess({ preserveActiveTurn: true });
+    const ready = await this.ensureReady({ force: true, allowSessionCreation: false });
+    if (!ready || !this.connection) {
+      return false;
+    }
+    if (!this.sessionId) {
+      return Boolean(await this.createSession(cwd));
+    }
+    return true;
+  }
+  isRetryableTransportClose(error48) {
+    return error48 instanceof JsonRpcTransportClosedError || error48 instanceof Error && error48.name === "JsonRpcTransportClosedError";
+  }
+  clearActiveSession() {
+    this.currentDatabasePath = null;
+    this.sessionId = null;
+    this.loadedSessionId = null;
+    this.currentSessionModelId = null;
+    this.currentSessionModeId = null;
+    this.setSupportedCommands([]);
+  }
+};
+function normalizeApprovalInput2(rawInput) {
+  if (rawInput && typeof rawInput === "object" && !Array.isArray(rawInput)) {
+    return rawInput;
+  }
+  if (rawInput === void 0) {
+    return {};
+  }
+  return { value: rawInput };
+}
+function buildMimocodePermissionPresentation(rawTitle, input, locations) {
+  const permissionId = normalizePermissionId2(rawTitle);
+  const blockedPath = extractPermissionPath2(input, locations);
+  switch (permissionId) {
+    case "bash":
+      return {
+        decisionReason: "Command execution permission required",
+        description: "MiMoCode wants to run a shell command.",
+        toolName: "bash"
+      };
+    case "codesearch":
+      return {
+        description: "MiMoCode wants to search indexed code outside the active buffer.",
+        toolName: "codesearch"
+      };
+    case "doom_loop": {
+      const repeatedTool = typeof input.tool === "string" ? input.tool.trim() : "";
+      return {
+        decisionReason: "Mimocode detected repeated identical tool calls",
+        description: repeatedTool ? `Allow another repeated \`${repeatedTool}\` call.` : "Allow another repeated tool call.",
+        toolName: "Doom Loop Guard"
+      };
+    }
+    case "edit":
+      return {
+        ...blockedPath ? { blockedPath } : {},
+        decisionReason: "File write permission required",
+        description: blockedPath ? "MiMoCode wants to modify this file." : "MiMoCode wants to apply file changes.",
+        toolName: "edit"
+      };
+    case "external_directory":
+      return {
+        ...blockedPath ? { blockedPath } : {},
+        decisionReason: "Path is outside the session working directory",
+        description: blockedPath ? "MiMoCode wants to access a path outside the working directory." : "MiMoCode wants to access files outside the working directory.",
+        toolName: "External Directory"
+      };
+    case "glob":
+      return {
+        description: "MiMoCode wants to scan file paths with a glob pattern.",
+        toolName: "glob"
+      };
+    case "grep":
+      return {
+        description: "MiMoCode wants to search file contents with a pattern.",
+        toolName: "grep"
+      };
+    case "lsp":
+      return {
+        description: "MiMoCode wants to query language server data.",
+        toolName: "lsp"
+      };
+    case "plan_enter":
+      return {
+        description: "MiMoCode wants to switch this session into planning mode.",
+        toolName: "Enter Plan Mode"
+      };
+    case "plan_exit":
+      return {
+        description: "MiMoCode wants to leave planning mode and resume implementation.",
+        toolName: "Exit Plan Mode"
+      };
+    case "question":
+      return {
+        description: "MiMoCode wants to ask you a direct question before continuing.",
+        toolName: "Ask Question"
+      };
+    case "read":
+      return {
+        ...blockedPath ? { blockedPath } : {},
+        description: blockedPath ? "MiMoCode wants to read this path." : "MiMoCode wants to read project files.",
+        toolName: "read"
+      };
+    case "skill":
+      return {
+        description: "MiMoCode wants to load a skill into the current session.",
+        toolName: "skill"
+      };
+    case "todowrite":
+      return {
+        description: "MiMoCode wants to update the shared task list.",
+        toolName: "todowrite"
+      };
+    case "webfetch":
+      return {
+        description: "MiMoCode wants to fetch content from a URL.",
+        toolName: "webfetch"
+      };
+    case "websearch":
+      return {
+        description: "MiMoCode wants to search the web.",
+        toolName: "websearch"
+      };
+    case "workflow_tool_approval": {
+      const summary = summarizeWorkflowTools2(input);
+      return {
+        decisionReason: "Session-level workflow approval requested",
+        description: summary ? `Pre-approve workflow tools for this session: ${summary}.` : "Pre-approve workflow tools for this session.",
+        toolName: "Workflow Approval"
+      };
+    }
+    default:
+      return {
+        ...blockedPath ? { blockedPath } : {},
+        description: blockedPath ? `Mimocode wants permission to use ${formatPermissionLabel2(permissionId)} on this path.` : `Mimocode wants permission to use ${formatPermissionLabel2(permissionId)}.`,
+        toolName: formatPermissionLabel2(permissionId)
+      };
+  }
+}
+function normalizePermissionId2(value) {
+  return (value == null ? void 0 : value.trim().toLowerCase()) || "tool";
+}
+function extractPermissionPath2(input, locations) {
+  var _a7;
+  const candidateKeys = ["filepath", "filePath", "path", "parentDir"];
+  for (const key of candidateKeys) {
+    const value = input[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+  const locationPath = (_a7 = locations == null ? void 0 : locations.find((location) => location.path.trim())) == null ? void 0 : _a7.path;
+  return (locationPath == null ? void 0 : locationPath.trim()) || void 0;
+}
+function summarizeWorkflowTools2(input) {
+  const tools = Array.isArray(input.tools) ? input.tools : [];
+  const names = tools.flatMap((tool) => {
+    if (!tool || typeof tool !== "object" || Array.isArray(tool)) {
+      return [];
+    }
+    const entry = tool;
+    const name = typeof entry.name === "string" ? entry.name.trim() : "";
+    if (!name) {
+      return [];
+    }
+    let title = "";
+    if (typeof entry.args === "string") {
+      try {
+        const parsedArgs = JSON.parse(entry.args);
+        title = typeof parsedArgs.title === "string" ? parsedArgs.title.trim() : typeof parsedArgs.name === "string" ? parsedArgs.name.trim() : "";
+      } catch (e) {
+        title = "";
+      }
+    }
+    return [title ? `${name}: ${title}` : name];
+  });
+  if (names.length === 0) {
+    return "";
+  }
+  if (names.length <= 3) {
+    return names.join(", ");
+  }
+  return `${names.slice(0, 3).join(", ")} +${names.length - 3} more`;
+}
+function formatPermissionLabel2(permissionId) {
+  return permissionId.split(/[_\s]+/).filter(Boolean).map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1)).join(" ");
+}
+function mapApprovalDecision2(decision, options) {
+  if (decision === "allow") {
+    return selectPermissionOption3(options, ["allow_once", "allow_always"]);
+  }
+  if (decision === "allow-always") {
+    return selectPermissionOption3(options, ["allow_always", "allow_once"]);
+  }
+  if (decision === "deny") {
+    return selectPermissionOption3(options, ["reject_once", "reject_always"]);
+  }
+  if (typeof decision === "object" && decision.type === "select-option") {
+    return {
+      outcome: {
+        optionId: decision.value,
+        outcome: "selected"
+      }
+    };
+  }
+  return { outcome: { outcome: "cancelled" } };
+}
+function buildAcpApprovalDecisionOptions2(options) {
+  return options.map((option) => ({
+    ...option.kind === "allow_once" ? { decision: "allow" } : option.kind === "allow_always" ? { decision: "allow-always" } : {},
+    label: option.name,
+    value: option.optionId
+  }));
+}
+function selectPermissionOption3(options, preferredKinds) {
+  for (const kind of preferredKinds) {
+    const option = options.find((entry) => entry.kind === kind);
+    if (option) {
+      return {
+        outcome: {
+          optionId: option.optionId,
+          outcome: "selected"
+        }
+      };
+    }
+  }
+  return { outcome: { outcome: "cancelled" } };
+}
+
+// src/providers/mimocode/runtime/MimocodeCliResolver.ts
+var fs35 = __toESM(require("node:fs"));
+var os14 = __toESM(require("node:os"));
+var path27 = __toESM(require("node:path"));
+init_env();
+init_path();
+var MIMOCODE_DEFAULT_BIN = path27.join(os14.homedir(), ".mimocode", "bin", "mimo");
+var MimocodeCliResolver = class {
+  constructor() {
+    this.cachedHostname = getHostnameKey();
+    this.lastCliPath = "";
+    this.lastHostnamePath = "";
+    this.lastEnvText = "";
+    this.resolvedPath = null;
+  }
+  resolveFromSettings(settings11) {
+    var _a7;
+    const mimocodeSettings = getMimocodeProviderSettings(settings11);
+    const cliPath = mimocodeSettings.cliPath.trim();
+    const hostnamePath = ((_a7 = mimocodeSettings.cliPathsByHost[this.cachedHostname]) != null ? _a7 : "").trim();
+    const envText = getRuntimeEnvironmentText(settings11, "mimocode");
+    if (this.resolvedPath !== null && cliPath === this.lastCliPath && hostnamePath === this.lastHostnamePath && envText === this.lastEnvText) {
+      return this.resolvedPath;
+    }
+    this.lastCliPath = cliPath;
+    this.lastHostnamePath = hostnamePath;
+    this.lastEnvText = envText;
+    this.resolvedPath = this.resolve(
+      mimocodeSettings.cliPathsByHost,
+      cliPath,
+      envText
+    );
+    return this.resolvedPath;
+  }
+  resolve(hostnamePaths, legacyPath, _envText) {
+    var _a7, _b4, _c3;
+    const hostnamePath = ((_a7 = hostnamePaths == null ? void 0 : hostnamePaths[this.cachedHostname]) != null ? _a7 : "").trim();
+    return (_c3 = (_b4 = resolveConfiguredCliPath4(hostnamePath)) != null ? _b4 : resolveConfiguredCliPath4(legacyPath.trim())) != null ? _c3 : resolveConfiguredCliPath4(MIMOCODE_DEFAULT_BIN);
+  }
+  reset() {
+    this.lastCliPath = "";
+    this.lastHostnamePath = "";
+    this.lastEnvText = "";
+    this.resolvedPath = null;
+  }
+};
+function resolveConfiguredCliPath4(cliPath) {
+  if (!cliPath) {
+    return null;
+  }
+  try {
+    const expanded = expandHomePath(cliPath);
+    if (fs35.existsSync(expanded) && fs35.statSync(expanded).isFile()) {
+      return expanded;
+    }
+  } catch (e) {
+    return null;
+  }
+  return null;
+}
+
+// src/providers/mimocode/storage/MimocodeAgentStorage.ts
+var path28 = __toESM(require("node:path"));
+
+// src/providers/mimocode/types/agent.ts
+var MIMOCODE_AGENT_KNOWN_KEYS = /* @__PURE__ */ new Set([
+  "name",
+  "description",
+  "mode",
+  "model",
+  "variant",
+  "temperature",
+  "top_p",
+  "steps",
+  "maxSteps",
+  "hidden",
+  "color",
+  "disable",
+  "tools",
+  "options",
+  "permission"
+]);
+
+// src/providers/mimocode/storage/MimocodeAgentStorage.ts
+var MIMOCODE_AGENT_PATH = ".mimocode/agent";
+var MIMOCODE_AGENTS_PATH = ".mimocode/agents";
+var MIMOCODE_AGENT_SCAN_PATHS = [
+  MIMOCODE_AGENTS_PATH,
+  MIMOCODE_AGENT_PATH
+];
+var MIMOCODE_DEFAULT_AGENT_SAVE_PATH = MIMOCODE_AGENT_PATH;
+var MIMOCODE_AGENT_PERSISTENCE_PREFIX = "mimocode-agent";
+function createMimocodeAgentPersistenceKey(location) {
+  return `${MIMOCODE_AGENT_PERSISTENCE_PREFIX}:${encodeURIComponent(normalizeVaultPath2(location.filePath))}`;
+}
+function parseMimocodeAgentPersistenceKey(persistenceKey) {
+  if (!persistenceKey) {
+    return null;
+  }
+  const normalizedKey = normalizeVaultPath2(persistenceKey);
+  if (isSupportedAgentFilePath2(normalizedKey)) {
+    return { filePath: normalizedKey };
+  }
+  const [prefix, encodedRelativePath] = persistenceKey.split(":");
+  if (prefix !== MIMOCODE_AGENT_PERSISTENCE_PREFIX || !encodedRelativePath) {
+    return null;
+  }
+  const decoded = normalizeVaultPath2(decodeURIComponent(encodedRelativePath));
+  if (isSupportedAgentFilePath2(decoded)) {
+    return { filePath: decoded };
+  }
+  return decoded.endsWith(".md") ? { filePath: `${MIMOCODE_AGENTS_PATH}/${decoded}` } : null;
+}
+var MimocodeAgentStorage = class {
+  constructor(vaultAdapter) {
+    this.vaultAdapter = vaultAdapter;
+  }
+  async loadAll() {
+    return this.scanAdapter(this.vaultAdapter);
+  }
+  async load(agent) {
+    const filePath = this.resolveCurrentPath(agent);
+    try {
+      if (!await this.vaultAdapter.exists(filePath)) return null;
+      const content = await this.vaultAdapter.read(filePath);
+      return parseMimocodeAgentMarkdown(content, filePath);
+    } catch (e) {
+      return null;
+    }
+  }
+  async save(agent, previous) {
+    const filePath = this.resolveTargetPath(agent, previous);
+    const previousPath = previous ? this.resolveCurrentPath(previous) : null;
+    await this.vaultAdapter.ensureFolder(path28.posix.dirname(filePath));
+    const content = serializeMimocodeAgentMarkdown(agent);
+    await this.vaultAdapter.write(filePath, content);
+    if (previousPath && previousPath !== filePath) {
+      await this.vaultAdapter.delete(previousPath);
+    }
+  }
+  async delete(agent) {
+    const filePath = this.resolveCurrentPath(agent);
+    await this.vaultAdapter.delete(filePath);
+  }
+  resolveCurrentPath(agent) {
+    const persistedLocation = parseMimocodeAgentPersistenceKey(agent.persistenceKey);
+    if (persistedLocation) {
+      return persistedLocation.filePath;
+    }
+    return `${MIMOCODE_DEFAULT_AGENT_SAVE_PATH}/${agent.name}.md`;
+  }
+  resolveTargetPath(agent, previous) {
+    if (previous && previous.name === agent.name) {
+      return this.resolveCurrentPath(previous);
+    }
+    return `${MIMOCODE_DEFAULT_AGENT_SAVE_PATH}/${agent.name}.md`;
+  }
+  async scanAdapter(adapter) {
+    const agentsByName = /* @__PURE__ */ new Map();
+    for (const rootPath of MIMOCODE_AGENT_SCAN_PATHS) {
+      try {
+        const files = await adapter.listFilesRecursive(rootPath);
+        for (const filePath of files) {
+          if (!filePath.endsWith(".md")) continue;
+          try {
+            const content = await adapter.read(filePath);
+            const agent = parseMimocodeAgentMarkdown(content, filePath);
+            if (!agent) continue;
+            const dedupeKey = agent.name.toLowerCase();
+            agentsByName.delete(dedupeKey);
+            agentsByName.set(dedupeKey, agent);
+          } catch (e) {
+          }
+        }
+      } catch (e) {
+      }
+    }
+    return Array.from(agentsByName.values());
+  }
+};
+function parseMimocodeAgentMarkdown(content, filePath) {
+  var _a7;
+  const parsed = parseFrontmatter(content);
+  if (!parsed) {
+    return null;
+  }
+  const fileName = normalizeAgentNameFromPath2(filePath);
+  const frontmatter = parsed.frontmatter;
+  const rawName = typeof frontmatter.name === "string" ? frontmatter.name.trim() : "";
+  const name = rawName || fileName;
+  const description = typeof frontmatter.description === "string" ? frontmatter.description.trim() : "";
+  if (!name || !description) {
+    return null;
+  }
+  const result = {
+    name,
+    description,
+    prompt: parsed.body.trim(),
+    persistenceKey: createMimocodeAgentPersistenceKey({
+      filePath: normalizeVaultPath2(filePath)
+    })
+  };
+  const mode = normalizeMode2(frontmatter.mode);
+  if (mode) result.mode = mode;
+  if (typeof frontmatter.model === "string" && frontmatter.model.trim()) {
+    result.model = frontmatter.model.trim();
+  }
+  if (typeof frontmatter.variant === "string" && frontmatter.variant.trim()) {
+    result.variant = frontmatter.variant.trim();
+  }
+  if (typeof frontmatter.temperature === "number" && Number.isFinite(frontmatter.temperature)) {
+    result.temperature = frontmatter.temperature;
+  }
+  const topP = normalizeFiniteNumber2(frontmatter.top_p);
+  if (topP !== void 0) {
+    result.topP = topP;
+  }
+  if (typeof frontmatter.color === "string" && frontmatter.color.trim()) {
+    result.color = frontmatter.color.trim();
+  }
+  const steps = (_a7 = normalizePositiveInteger2(frontmatter.steps)) != null ? _a7 : normalizePositiveInteger2(frontmatter.maxSteps);
+  if (steps !== void 0) {
+    result.steps = steps;
+  }
+  if (extractBoolean(frontmatter, "hidden") !== void 0) {
+    result.hidden = extractBoolean(frontmatter, "hidden");
+  }
+  if (extractBoolean(frontmatter, "disable") !== void 0) {
+    result.disable = extractBoolean(frontmatter, "disable");
+  }
+  if (isBooleanRecord2(frontmatter.tools)) {
+    result.tools = { ...frontmatter.tools };
+  }
+  if (isRecord2(frontmatter.options)) {
+    result.options = { ...frontmatter.options };
+  }
+  if (frontmatter.permission !== void 0) {
+    result.permission = frontmatter.permission;
+  }
+  const extraFrontmatter = {};
+  for (const [key, value] of Object.entries(frontmatter)) {
+    if (!MIMOCODE_AGENT_KNOWN_KEYS.has(key)) {
+      extraFrontmatter[key] = value;
+    }
+  }
+  if (Object.keys(extraFrontmatter).length > 0) {
+    result.extraFrontmatter = extraFrontmatter;
+  }
+  return result;
+}
+function serializeMimocodeAgentMarkdown(agent) {
+  const lines = ["---"];
+  lines.push(`name: ${yamlString(agent.name)}`);
+  lines.push(`description: ${yamlString(agent.description)}`);
+  if (agent.mode) {
+    lines.push(`mode: ${agent.mode}`);
+  }
+  if (agent.model) {
+    lines.push(`model: ${serializeYamlValue2(agent.model)}`);
+  }
+  if (agent.variant) {
+    lines.push(`variant: ${serializeYamlValue2(agent.variant)}`);
+  }
+  if (agent.temperature !== void 0) {
+    lines.push(`temperature: ${serializeYamlValue2(agent.temperature)}`);
+  }
+  if (agent.topP !== void 0) {
+    lines.push(`top_p: ${serializeYamlValue2(agent.topP)}`);
+  }
+  if (agent.color) {
+    lines.push(`color: ${serializeYamlValue2(agent.color)}`);
+  }
+  if (agent.steps !== void 0) {
+    lines.push(`steps: ${serializeYamlValue2(agent.steps)}`);
+  }
+  if (agent.hidden) {
+    lines.push("hidden: true");
+  }
+  if (agent.disable) {
+    lines.push("disable: true");
+  }
+  if (agent.tools && Object.keys(agent.tools).length > 0) {
+    lines.push(`tools: ${serializeYamlValue2(agent.tools)}`);
+  }
+  if (agent.options && Object.keys(agent.options).length > 0) {
+    lines.push(`options: ${serializeYamlValue2(agent.options)}`);
+  }
+  if (agent.permission !== void 0) {
+    lines.push(`permission: ${serializeYamlValue2(agent.permission)}`);
+  }
+  if (agent.extraFrontmatter) {
+    for (const [key, value] of Object.entries(agent.extraFrontmatter)) {
+      lines.push(`${key}: ${serializeYamlValue2(value)}`);
+    }
+  }
+  lines.push("---");
+  lines.push(agent.prompt);
+  return lines.join("\n");
+}
+function normalizeAgentNameFromPath2(filePath) {
+  const relativePath = toRelativeAgentPath2(filePath);
+  return relativePath.replace(/\.md$/i, "");
+}
+function toRelativeAgentPath2(filePath) {
+  var _a7;
+  const normalized = normalizeVaultPath2(filePath);
+  for (const rootPath of MIMOCODE_AGENT_SCAN_PATHS) {
+    const prefix = `${rootPath}/`;
+    const index = normalized.lastIndexOf(prefix);
+    if (index >= 0) {
+      return normalized.slice(index + prefix.length);
+    }
+  }
+  return (_a7 = normalized.split("/").pop()) != null ? _a7 : normalized;
+}
+function normalizeMode2(value) {
+  return value === "subagent" || value === "primary" || value === "all" ? value : void 0;
+}
+function normalizeFiniteNumber2(value) {
+  return typeof value === "number" && Number.isFinite(value) ? value : void 0;
+}
+function normalizePositiveInteger2(value) {
+  return typeof value === "number" && Number.isInteger(value) && value > 0 ? value : void 0;
+}
+function isBooleanRecord2(value) {
+  if (!isRecord2(value)) {
+    return false;
+  }
+  return Object.values(value).every((entry) => typeof entry === "boolean");
+}
+function serializeYamlValue2(value) {
+  if (typeof value === "string") {
+    return yamlString(value);
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  if (value === null) {
+    return "null";
+  }
+  return JSON.stringify(value);
+}
+function normalizeVaultPath2(filePath) {
+  return filePath.replace(/\\/g, "/");
+}
+function isSupportedAgentFilePath2(filePath) {
+  return MIMOCODE_AGENT_SCAN_PATHS.some((rootPath) => filePath.startsWith(`${rootPath}/`)) && filePath.endsWith(".md");
+}
+
+// src/providers/mimocode/ui/MimocodeSettingsTab.ts
+var fs36 = __toESM(require("fs"));
+var import_obsidian22 = require("obsidian");
+init_env();
+init_path();
+
+// src/providers/mimocode/ui/MimocodeAgentSettings.ts
+var import_obsidian21 = require("obsidian");
+var MIMOCODE_AGENT_INVALID_SEGMENT_PATTERN = /[<>:"\\|?*]/;
+function validateMimocodeAgentName(name) {
+  if (!name) return "Agent name is required";
+  const segments = name.split("/");
+  if (segments.length === 0 || segments.some((segment) => segment.length === 0)) {
+    return "Agent name must use slash-separated path segments without leading or trailing slashes";
+  }
+  for (const segment of segments) {
+    if (!segment.trim()) {
+      return "Agent name path segments cannot be empty or whitespace-only";
+    }
+    if (segment !== segment.trim()) {
+      return "Agent name path segments cannot start or end with whitespace";
+    }
+    if (segment === "." || segment === "..") {
+      return 'Agent name cannot include "." or ".." path segments';
+    }
+    if (segment.includes("\0") || MIMOCODE_AGENT_INVALID_SEGMENT_PATTERN.test(segment)) {
+      return "Agent name path segments cannot contain Windows-reserved filename characters";
+    }
+  }
+  return null;
+}
+function findMimocodeAgentNameConflict(agents, name, currentPersistenceKey) {
+  var _a7;
+  const normalizedName = name.toLowerCase();
+  return (_a7 = agents.find(
+    (agent) => agent.name.toLowerCase() === normalizedName && agent.persistenceKey !== currentPersistenceKey
+  )) != null ? _a7 : null;
+}
+var MimocodeAgentModal = class extends import_obsidian21.Modal {
+  constructor(app, existing, allAgents, onSave) {
+    super(app);
+    this.existing = existing;
+    this.allAgents = allAgents;
+    this.onSave = onSave;
+  }
+  onOpen() {
+    var _a7, _b4, _c3, _d3, _e3, _f3, _g2, _h2, _i3, _j2, _k2, _l3, _m2, _n5, _o2, _p3, _q;
+    this.setTitle(this.existing ? "Edit Mimocode Subagent" : "Add Mimocode Subagent");
+    this.modalEl.addClass("grimoire-sp-modal");
+    const { contentEl } = this;
+    let nameInput;
+    let descriptionInput;
+    let modelInput;
+    let variantInput;
+    let temperatureInput;
+    let topPInput;
+    let colorInput;
+    let stepsInput;
+    let hiddenValue = (_b4 = (_a7 = this.existing) == null ? void 0 : _a7.hidden) != null ? _b4 : false;
+    let disableValue = (_d3 = (_c3 = this.existing) == null ? void 0 : _c3.disable) != null ? _d3 : false;
+    let toolsInput;
+    let permissionInput;
+    let optionsInput;
+    new import_obsidian21.Setting(contentEl).setName("Name").setDesc("MiMoCode agent name. Use slash-separated segments for nested agents.").addText((text) => {
+      var _a8, _b5;
+      nameInput = text.inputEl;
+      text.setValue((_b5 = (_a8 = this.existing) == null ? void 0 : _a8.name) != null ? _b5 : "").setPlaceholder("Review");
+    });
+    new import_obsidian21.Setting(contentEl).setName("Description").setDesc("When MiMoCode should use this subagent").addText((text) => {
+      var _a8, _b5;
+      descriptionInput = text.inputEl;
+      text.setValue((_b5 = (_a8 = this.existing) == null ? void 0 : _a8.description) != null ? _b5 : "").setPlaceholder("Reviews code for correctness and maintainability");
+    });
+    const details = contentEl.createEl("details", { cls: "grimoire-sp-advanced-section" });
+    details.createEl("summary", {
+      text: "Advanced options",
+      cls: "grimoire-sp-advanced-summary"
+    });
+    if (((_e3 = this.existing) == null ? void 0 : _e3.model) || ((_f3 = this.existing) == null ? void 0 : _f3.variant) || ((_g2 = this.existing) == null ? void 0 : _g2.temperature) !== void 0 || ((_h2 = this.existing) == null ? void 0 : _h2.topP) !== void 0 || ((_i3 = this.existing) == null ? void 0 : _i3.color) || ((_j2 = this.existing) == null ? void 0 : _j2.steps) !== void 0 || ((_k2 = this.existing) == null ? void 0 : _k2.hidden) || ((_l3 = this.existing) == null ? void 0 : _l3.disable) || ((_m2 = this.existing) == null ? void 0 : _m2.tools) || ((_n5 = this.existing) == null ? void 0 : _n5.permission) !== void 0 || ((_o2 = this.existing) == null ? void 0 : _o2.options)) {
+      details.open = true;
+    }
+    new import_obsidian21.Setting(details).setName("Model").setDesc("Model override in provider/model format").addText((text) => {
+      var _a8, _b5;
+      modelInput = text.inputEl;
+      text.setValue((_b5 = (_a8 = this.existing) == null ? void 0 : _a8.model) != null ? _b5 : "").setPlaceholder("Anthropic/Claude-sonnet-4-20250514");
+    });
+    new import_obsidian21.Setting(details).setName("Variant").setDesc("Model variant override").addText((text) => {
+      var _a8, _b5;
+      variantInput = text.inputEl;
+      text.setValue((_b5 = (_a8 = this.existing) == null ? void 0 : _a8.variant) != null ? _b5 : "").setPlaceholder("High");
+    });
+    new import_obsidian21.Setting(details).setName("Temperature").setDesc("Optional sampling temperature").addText((text) => {
+      var _a8;
+      temperatureInput = text.inputEl;
+      text.setValue(((_a8 = this.existing) == null ? void 0 : _a8.temperature) !== void 0 ? String(this.existing.temperature) : "").setPlaceholder("0.1");
+    });
+    new import_obsidian21.Setting(details).setName("Top p").setDesc("Optional nucleus sampling value").addText((text) => {
+      var _a8;
+      topPInput = text.inputEl;
+      text.setValue(((_a8 = this.existing) == null ? void 0 : _a8.topP) !== void 0 ? String(this.existing.topP) : "").setPlaceholder("0.9");
+    });
+    new import_obsidian21.Setting(details).setName("Color").setDesc("Hex color or theme token").addText((text) => {
+      var _a8, _b5;
+      colorInput = text.inputEl;
+      text.setValue((_b5 = (_a8 = this.existing) == null ? void 0 : _a8.color) != null ? _b5 : "").setPlaceholder("#Ff5733");
+    });
+    new import_obsidian21.Setting(details).setName("Steps").setDesc("Maximum agentic iterations before forcing text-only output").addText((text) => {
+      var _a8;
+      stepsInput = text.inputEl;
+      text.setValue(((_a8 = this.existing) == null ? void 0 : _a8.steps) !== void 0 ? String(this.existing.steps) : "").setPlaceholder("10");
+    });
+    new import_obsidian21.Setting(details).setName("Hide from @mention").setDesc("Hide this subagent from the @ autocomplete menu").addToggle((toggle) => {
+      toggle.setValue(hiddenValue).onChange((value) => {
+        hiddenValue = value;
+      });
+    });
+    new import_obsidian21.Setting(details).setName("Disable agent").setDesc("Disable the agent without deleting the file").addToggle((toggle) => {
+      toggle.setValue(disableValue).onChange((value) => {
+        disableValue = value;
+      });
+    });
+    new import_obsidian21.Setting(details).setName("Enabled tools (JSON)").setDesc('Optional deprecated tools map, e.g. {"write":false,"edit":false}').addTextArea((text) => {
+      var _a8;
+      toolsInput = text.inputEl;
+      text.setValue(((_a8 = this.existing) == null ? void 0 : _a8.tools) ? JSON.stringify(this.existing.tools, null, 2) : "").setPlaceholder('{\n  "write": false,\n  "edit": false\n}');
+    });
+    new import_obsidian21.Setting(details).setName("Permission (JSON)").setDesc('Optional permission config, e.g. {"edit":"deny","bash":"allow"}').addTextArea((text) => {
+      var _a8;
+      permissionInput = text.inputEl;
+      text.setValue(((_a8 = this.existing) == null ? void 0 : _a8.permission) !== void 0 ? JSON.stringify(this.existing.permission, null, 2) : "").setPlaceholder('{\n  "edit": "deny"\n}');
+    });
+    new import_obsidian21.Setting(details).setName("Options (JSON)").setDesc("Optional custom agent options").addTextArea((text) => {
+      var _a8;
+      optionsInput = text.inputEl;
+      text.setValue(((_a8 = this.existing) == null ? void 0 : _a8.options) ? JSON.stringify(this.existing.options, null, 2) : "").setPlaceholder('{\n  "focus": "security"\n}');
+    });
+    new import_obsidian21.Setting(contentEl).setName("Prompt").setDesc("Markdown body used as the agent prompt");
+    const promptArea = contentEl.createEl("textarea", {
+      cls: "grimoire-sp-content-area",
+      attr: {
+        rows: "10",
+        placeholder: "Review code changes carefully and call out correctness, regressions, and missing coverage."
+      }
+    });
+    promptArea.value = (_q = (_p3 = this.existing) == null ? void 0 : _p3.prompt) != null ? _q : "";
+    const buttonContainer = contentEl.createDiv({ cls: "grimoire-sp-modal-buttons" });
+    const cancelBtn = buttonContainer.createEl("button", {
+      text: "Cancel",
+      cls: "grimoire-cancel-btn"
+    });
+    cancelBtn.addEventListener("click", () => this.close());
+    const saveBtn = buttonContainer.createEl("button", {
+      text: "Save",
+      cls: "grimoire-save-btn"
+    });
+    saveBtn.addEventListener("click", () => {
+      void (async () => {
+        var _a8, _b5, _c4;
+        const name = nameInput.value.trim();
+        const nameError = validateMimocodeAgentName(name);
+        if (nameError) {
+          new import_obsidian21.Notice(nameError);
+          return;
+        }
+        const description = descriptionInput.value.trim();
+        if (!description) {
+          new import_obsidian21.Notice("Description is required");
+          return;
+        }
+        const prompt = promptArea.value;
+        if (!prompt.trim()) {
+          new import_obsidian21.Notice("Prompt is required");
+          return;
+        }
+        const duplicate = findMimocodeAgentNameConflict(
+          this.allAgents,
+          name,
+          (_a8 = this.existing) == null ? void 0 : _a8.persistenceKey
+        );
+        if (duplicate) {
+          new import_obsidian21.Notice(`A subagent named "${name}" already exists`);
+          return;
+        }
+        const temperature = parseOptionalNumber2(temperatureInput.value, "Temperature");
+        if (temperature.error) {
+          new import_obsidian21.Notice(temperature.error);
+          return;
+        }
+        const topP = parseOptionalNumber2(topPInput.value, "Top P");
+        if (topP.error) {
+          new import_obsidian21.Notice(topP.error);
+          return;
+        }
+        const steps = parseOptionalPositiveInteger2(stepsInput.value, "Steps");
+        if (steps.error) {
+          new import_obsidian21.Notice(steps.error);
+          return;
+        }
+        const tools = parseOptionalJsonObjectOfBooleans2(toolsInput.value, "Enabled Tools");
+        if (tools.error) {
+          new import_obsidian21.Notice(tools.error);
+          return;
+        }
+        const permission = parseOptionalJson2(permissionInput.value, "Permission");
+        if (permission.error) {
+          new import_obsidian21.Notice(permission.error);
+          return;
+        }
+        const options = parseOptionalJsonObject2(optionsInput.value, "Options");
+        if (options.error) {
+          new import_obsidian21.Notice(options.error);
+          return;
+        }
+        const agent = {
+          name,
+          description,
+          prompt,
+          mode: "subagent",
+          hidden: hiddenValue || void 0,
+          disable: disableValue || void 0,
+          model: modelInput.value.trim() || void 0,
+          variant: variantInput.value.trim() || void 0,
+          temperature: temperature.value,
+          topP: topP.value,
+          color: colorInput.value.trim() || void 0,
+          steps: steps.value,
+          tools: tools.value,
+          permission: permission.value,
+          options: options.value,
+          persistenceKey: (_b5 = this.existing) == null ? void 0 : _b5.persistenceKey,
+          extraFrontmatter: (_c4 = this.existing) == null ? void 0 : _c4.extraFrontmatter
+        };
+        try {
+          await this.onSave(agent);
+        } catch (error48) {
+          const message = error48 instanceof Error ? error48.message : "Unknown error";
+          new import_obsidian21.Notice(`Failed to save subagent: ${message}`);
+          return;
+        }
+        this.close();
+      })();
+    });
+  }
+  onClose() {
+    this.contentEl.empty();
+  }
+};
+var MimocodeAgentSettings = class {
+  constructor(containerEl, storage, app, onChanged) {
+    this.agents = [];
+    this.containerEl = containerEl;
+    this.storage = storage;
+    this.app = app;
+    this.onChanged = onChanged;
+    void this.render();
+  }
+  async render() {
+    this.containerEl.empty();
+    try {
+      this.agents = await this.storage.loadAll();
+    } catch (e) {
+      this.agents = [];
+    }
+    const visibleAgents = this.agents.filter((agent) => agent.mode === "subagent");
+    const headerEl = this.containerEl.createDiv({ cls: "grimoire-sp-header" });
+    headerEl.createSpan({ text: "MiMoCode Subagents", cls: "grimoire-sp-label" });
+    const actionsEl = headerEl.createDiv({ cls: "grimoire-sp-header-actions" });
+    const refreshBtn = actionsEl.createEl("button", {
+      cls: "grimoire-settings-action-btn",
+      attr: { "aria-label": "Refresh" }
+    });
+    (0, import_obsidian21.setIcon)(refreshBtn, "refresh-cw");
+    refreshBtn.addEventListener("click", () => {
+      void this.render();
+    });
+    const addBtn = actionsEl.createEl("button", {
+      cls: "grimoire-settings-action-btn",
+      attr: { "aria-label": "Add" }
+    });
+    (0, import_obsidian21.setIcon)(addBtn, "plus");
+    addBtn.addEventListener("click", () => this.openModal(null));
+    if (visibleAgents.length === 0) {
+      const emptyEl = this.containerEl.createDiv({ cls: "grimoire-sp-empty-state" });
+      emptyEl.setText("No MiMoCode subagents in vault. Click + to create one.");
+      return;
+    }
+    const listEl = this.containerEl.createDiv({ cls: "grimoire-sp-list" });
+    for (const agent of visibleAgents) {
+      this.renderItem(listEl, agent);
+    }
+  }
+  renderItem(listEl, agent) {
+    const itemEl = listEl.createDiv({ cls: "grimoire-sp-item" });
+    const infoEl = itemEl.createDiv({ cls: "grimoire-sp-info" });
+    const headerRow = infoEl.createDiv({ cls: "grimoire-sp-item-header" });
+    const nameEl = headerRow.createSpan({ cls: "grimoire-sp-item-name" });
+    nameEl.setText(agent.name);
+    headerRow.createSpan({
+      text: "subagent",
+      cls: "grimoire-slash-item-badge"
+    });
+    if (agent.model) {
+      headerRow.createSpan({ text: agent.model, cls: "grimoire-slash-item-badge" });
+    }
+    if (agent.description) {
+      const descEl = infoEl.createDiv({ cls: "grimoire-sp-item-desc" });
+      descEl.setText(agent.description);
+    }
+    const actionsEl = itemEl.createDiv({ cls: "grimoire-sp-item-actions" });
+    const editBtn = actionsEl.createEl("button", {
+      cls: "grimoire-settings-action-btn",
+      attr: { "aria-label": "Edit" }
+    });
+    (0, import_obsidian21.setIcon)(editBtn, "pencil");
+    editBtn.addEventListener("click", () => this.openModal(agent));
+    const deleteBtn = actionsEl.createEl("button", {
+      cls: "grimoire-settings-action-btn grimoire-settings-delete-btn",
+      attr: { "aria-label": "Delete" }
+    });
+    (0, import_obsidian21.setIcon)(deleteBtn, "trash-2");
+    deleteBtn.addEventListener("click", () => {
+      void (async () => {
+        var _a7;
+        if (!this.app) return;
+        const confirmed = await confirmDelete(
+          this.app,
+          `Delete subagent "${agent.name}"?`
+        );
+        if (!confirmed) return;
+        try {
+          await this.storage.delete(agent);
+          await this.render();
+          await ((_a7 = this.onChanged) == null ? void 0 : _a7.call(this));
+          new import_obsidian21.Notice(`Subagent "${agent.name}" deleted`);
+        } catch (e) {
+          new import_obsidian21.Notice("Failed to delete subagent");
+        }
+      })();
+    });
+  }
+  openModal(existing) {
+    if (!this.app) return;
+    const modal = new MimocodeAgentModal(
+      this.app,
+      existing,
+      this.agents,
+      async (agent) => {
+        var _a7;
+        await this.storage.save(agent, existing);
+        await this.render();
+        await ((_a7 = this.onChanged) == null ? void 0 : _a7.call(this));
+        new import_obsidian21.Notice(
+          existing ? `Subagent "${agent.name}" updated` : `Subagent "${agent.name}" created`
+        );
+      }
+    );
+    modal.open();
+  }
+};
+function parseOptionalNumber2(value, label) {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return {};
+  }
+  const parsed = Number(trimmed);
+  if (!Number.isFinite(parsed)) {
+    return { error: `${label} must be a valid number` };
+  }
+  return { value: parsed };
+}
+function parseOptionalPositiveInteger2(value, label) {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return {};
+  }
+  const parsed = Number(trimmed);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    return { error: `${label} must be a positive integer` };
+  }
+  return { value: parsed };
+}
+function parseOptionalJson2(value, label) {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return {};
+  }
+  try {
+    return { value: JSON.parse(trimmed) };
+  } catch (e) {
+    return { error: `${label} must be valid JSON` };
+  }
+}
+function parseOptionalJsonObject2(value, label) {
+  const parsed = parseOptionalJson2(value, label);
+  if (parsed.error || parsed.value === void 0) {
+    return parsed.error ? { error: parsed.error } : {};
+  }
+  if (!isJsonObject2(parsed.value)) {
+    return { error: `${label} must be a JSON object` };
+  }
+  return { value: parsed.value };
+}
+function parseOptionalJsonObjectOfBooleans2(value, label) {
+  const parsed = parseOptionalJsonObject2(value, label);
+  if (parsed.error || parsed.value === void 0) {
+    return parsed.error ? { error: parsed.error } : {};
+  }
+  if (!Object.values(parsed.value).every((entry) => typeof entry === "boolean")) {
+    return { error: `${label} must map tool names to boolean values` };
+  }
+  return { value: parsed.value };
+}
+function isJsonObject2(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+// src/providers/mimocode/ui/MimocodeSettingsTab.ts
+var ALL_PROVIDERS_KEY2 = "all";
+var MIMOCODE_METADATA_WARMUP_DB = ":memory:";
+var mimocodeSettingsTabRenderer = {
+  render(container, context) {
+    const mimocodeWorkspace = maybeGetMimocodeWorkspaceServices();
+    const settingsBag = context.plugin.settings;
+    const mimocodeSettings = getMimocodeProviderSettings(settingsBag);
+    const hostnameKey = getHostnameKey();
+    if (!mimocodeSettings.enabled) {
+      renderProviderDisabledNotice(container, "Mimocode");
+    }
+    new import_obsidian22.Setting(container).setName("Setup").setHeading();
+    const cliPathSetting = new import_obsidian22.Setting(container).setName("CLI path").setDesc("Optional absolute path to the MiMoCode CLI for this computer. Leave empty to use `mimo` from PATH.");
+    const validationEl = container.createDiv({
+      cls: "grimoire-cli-path-validation grimoire-setting-validation grimoire-setting-validation-error grimoire-hidden"
+    });
+    const validatePath = (value) => {
+      const trimmed = value.trim();
+      if (!trimmed) {
+        return null;
+      }
+      const expandedPath = expandHomePath(trimmed);
+      if (!fs36.existsSync(expandedPath)) {
+        return "Path does not exist";
+      }
+      const stat = fs36.statSync(expandedPath);
+      if (!stat.isFile()) {
+        return "Path must point to a file";
+      }
+      return null;
+    };
+    const updateCliPathValidation = (value, inputEl) => {
+      const error48 = validatePath(value);
+      if (error48) {
+        validationEl.setText(error48);
+        validationEl.toggleClass("grimoire-hidden", false);
+        if (inputEl) {
+          inputEl.toggleClass("grimoire-input-error", true);
+        }
+        return false;
+      }
+      validationEl.toggleClass("grimoire-hidden", true);
+      if (inputEl) {
+        inputEl.toggleClass("grimoire-input-error", false);
+      }
+      return true;
+    };
+    const cliPathsByHost = { ...mimocodeSettings.cliPathsByHost };
+    const currentValue = mimocodeSettings.cliPathsByHost[hostnameKey] || "";
+    let cliPathInputEl = null;
+    const persistCliPath = async (value) => {
+      var _a7;
+      const isValid2 = updateCliPathValidation(value, cliPathInputEl != null ? cliPathInputEl : void 0);
+      if (!isValid2) {
+        return false;
+      }
+      const trimmed = value.trim();
+      if (trimmed) {
+        cliPathsByHost[hostnameKey] = trimmed;
+      } else {
+        delete cliPathsByHost[hostnameKey];
+      }
+      updateMimocodeProviderSettings(settingsBag, { cliPathsByHost: { ...cliPathsByHost } });
+      clearMimocodeDiscoveryState(settingsBag);
+      await context.plugin.saveSettings();
+      (_a7 = mimocodeWorkspace == null ? void 0 : mimocodeWorkspace.cliResolver) == null ? void 0 : _a7.reset();
+      await recycleMimocodeRuntime();
+      return true;
+    };
+    const recycleMimocodeRuntime = async () => {
+      var _a7, _b4;
+      for (const view of context.plugin.getAllViews()) {
+        const tabManager = view.getTabManager();
+        if (tabManager == null ? void 0 : tabManager.broadcastToProviderTabs) {
+          await tabManager.broadcastToProviderTabs("mimocode", (service) => Promise.resolve(service.cleanup()));
+        } else {
+          await (tabManager == null ? void 0 : tabManager.broadcastToAllTabs(
+            (service) => Promise.resolve(service.cleanup())
+          ));
+        }
+        (_a7 = view.invalidateProviderCommandCaches) == null ? void 0 : _a7.call(view, ["mimocode"]);
+        (_b4 = view.refreshModelSelector) == null ? void 0 : _b4.call(view);
+      }
+    };
+    cliPathSetting.addText((text) => {
+      text.setPlaceholder(process.platform === "win32" ? "C:\\Users\\you\\AppData\\Roaming\\npm\\mimo.cmd" : "/usr/local/bin/mimo").setValue(currentValue).onChange(async (value) => {
+        await persistCliPath(value);
+      });
+      text.inputEl.addClass("grimoire-settings-cli-path-input");
+      cliPathInputEl = text.inputEl;
+      updateCliPathValidation(currentValue, text.inputEl);
+    });
+    new import_obsidian22.Setting(container).setName("Models").setHeading();
+    new import_obsidian22.Setting(container).setName("Visible models").setDesc("Choose which MiMoCode models appear in the chat selector. Filter by provider or type to search. The current session model stays pinned even if it is not selected here.");
+    const pickerEl = container.createDiv({ cls: "grimoire-mimocode-model-picker" });
+    let searchQuery = "";
+    let providerFilter = ALL_PROVIDERS_KEY2;
+    const summaryEl = pickerEl.createDiv({ cls: "grimoire-mimocode-model-picker-summary" });
+    const selectedEl = pickerEl.createDiv({ cls: "grimoire-mimocode-model-picker-selected" });
+    const catalogEl = pickerEl.createEl("details", { cls: "grimoire-mimocode-model-picker-catalog" });
+    catalogEl.open = getMimocodeProviderSettings(settingsBag).visibleModels.length === 0;
+    const catalogSummaryEl = catalogEl.createEl("summary", {
+      cls: "grimoire-mimocode-model-picker-catalog-summary"
+    });
+    catalogSummaryEl.createSpan({
+      cls: "grimoire-mimocode-model-picker-catalog-caret",
+      text: "\u25B8"
+    });
+    catalogSummaryEl.createSpan({
+      cls: "grimoire-mimocode-model-picker-catalog-title",
+      text: "Browse models"
+    });
+    const catalogSummaryCountEl = catalogSummaryEl.createSpan({
+      cls: "grimoire-mimocode-model-picker-catalog-count"
+    });
+    const controlsEl = catalogEl.createDiv({ cls: "grimoire-mimocode-model-picker-controls" });
+    const searchInput = controlsEl.createEl("input", {
+      cls: "grimoire-mimocode-model-picker-search",
+      type: "search"
+    });
+    searchInput.placeholder = "Filter by model, provider, or ID\u2026";
+    searchInput.addEventListener("input", () => {
+      searchQuery = searchInput.value.trim().toLowerCase();
+      renderList();
+    });
+    const providerSelectEl = controlsEl.createEl("select", {
+      cls: "grimoire-mimocode-model-picker-provider"
+    });
+    providerSelectEl.addEventListener("change", () => {
+      providerFilter = providerSelectEl.value;
+      renderList();
+    });
+    const listEl = catalogEl.createDiv({ cls: "grimoire-mimocode-model-picker-list" });
+    let loadingModelCatalog = false;
+    let modelCatalogLoadFailed = false;
+    const getEnrichedModels = () => {
+      const current = getMimocodeProviderSettings(settingsBag);
+      return buildEnrichedModels2(current.discoveredModels, current.visibleModels);
+    };
+    const filterModels = (models) => {
+      return models.filter((model) => {
+        if (providerFilter !== ALL_PROVIDERS_KEY2 && model.providerKey !== providerFilter) {
+          return false;
+        }
+        if (!searchQuery) {
+          return true;
+        }
+        return model.rawId.toLowerCase().includes(searchQuery) || model.modelLabel.toLowerCase().includes(searchQuery) || model.providerLabel.toLowerCase().includes(searchQuery) || model.description.toLowerCase().includes(searchQuery);
+      });
+    };
+    const persistVisibleModels = async (visibleModels) => {
+      const currentVisibleModels = getMimocodeProviderSettings(settingsBag).visibleModels;
+      const normalized = normalizeMimocodeVisibleModels(
+        visibleModels,
+        getMimocodeProviderSettings(settingsBag).discoveredModels
+      );
+      if (sameStringList3(currentVisibleModels, normalized)) {
+        return;
+      }
+      updateMimocodeProviderSettings(settingsBag, { visibleModels: normalized });
+      await context.plugin.saveSettings();
+      renderAll();
+      context.refreshModelSelectors();
+    };
+    const persistModelMetadata = async (rawId) => {
+      const runtime = new MimocodeChatRuntime(context.plugin);
+      try {
+        runtime.syncConversationState({
+          providerState: { databasePath: MIMOCODE_METADATA_WARMUP_DB },
+          sessionId: null
+        });
+        const loaded = await runtime.warmModelMetadata(encodeMimocodeModelId(rawId));
+        if (loaded) {
+          context.refreshModelSelectors();
+        }
+      } catch (e) {
+      } finally {
+        runtime.cleanup();
+      }
+    };
+    const persistModelAliases = async (modelAliases) => {
+      updateMimocodeProviderSettings(settingsBag, { modelAliases });
+      await context.plugin.saveSettings();
+      renderSelected();
+      context.refreshModelSelectors();
+    };
+    const renderSummary = () => {
+      summaryEl.empty();
+      const current = getMimocodeProviderSettings(settingsBag);
+      const enriched = getEnrichedModels();
+      const providerCount = new Set(enriched.map((model) => model.providerKey)).size;
+      const providerWord = providerCount === 1 ? "provider" : "providers";
+      summaryEl.createSpan({ text: "Visible: " });
+      summaryEl.createSpan({
+        cls: "grimoire-mimocode-model-picker-summary-value",
+        text: String(current.visibleModels.length)
+      });
+      summaryEl.createSpan({
+        text: ` of ${current.discoveredModels.length} discovered \u2022 ${providerCount} ${providerWord}`
+      });
+      let catalogSummary = "No models discovered yet";
+      if (loadingModelCatalog) {
+        catalogSummary = "Loading models...";
+      } else if (current.discoveredModels.length > 0) {
+        catalogSummary = `${current.discoveredModels.length} available`;
+      }
+      catalogSummaryCountEl.setText(catalogSummary);
+    };
+    const renderSelected = () => {
+      var _a7;
+      selectedEl.empty();
+      const current = getMimocodeProviderSettings(settingsBag);
+      if (current.visibleModels.length === 0) {
+        selectedEl.toggleClass("grimoire-hidden", true);
+        return;
+      }
+      selectedEl.toggleClass("grimoire-hidden", false);
+      const enrichedByRawId = new Map(
+        getEnrichedModels().map((model) => [model.rawId, model])
+      );
+      const headerEl = selectedEl.createDiv({ cls: "grimoire-mimocode-model-picker-selected-header" });
+      headerEl.createEl("span", {
+        cls: "grimoire-mimocode-model-picker-selected-label",
+        text: `Selected (${current.visibleModels.length})`
+      });
+      const clearAllBtn = headerEl.createEl("button", {
+        cls: "grimoire-mimocode-model-picker-selected-clear",
+        text: "Clear all"
+      });
+      clearAllBtn.setAttribute("aria-label", "Clear all selected models");
+      clearAllBtn.addEventListener("click", () => {
+        void persistVisibleModels([]);
+      });
+      const rowsEl = selectedEl.createDiv({ cls: "grimoire-mimocode-model-picker-selected-rows" });
+      for (const rawId of current.visibleModels) {
+        const enriched = enrichedByRawId.get(rawId);
+        const defaultLabel = enriched ? `${enriched.providerLabel}/${enriched.modelLabel}` : rawId;
+        const rowEl = rowsEl.createDiv({ cls: "grimoire-mimocode-model-picker-selected-row" });
+        if (enriched && !enriched.isAvailable) {
+          rowEl.classList.add("grimoire-mimocode-model-picker-selected-row--unavailable");
+        }
+        const infoEl = rowEl.createDiv({ cls: "grimoire-mimocode-model-picker-selected-info" });
+        const titleEl = infoEl.createDiv({ cls: "grimoire-mimocode-model-picker-selected-title" });
+        if (enriched) {
+          titleEl.createEl("span", {
+            cls: "grimoire-mimocode-model-picker-selected-badge",
+            text: enriched.providerLabel
+          });
+          titleEl.createEl("span", {
+            cls: "grimoire-mimocode-model-picker-selected-name",
+            text: enriched.modelLabel
+          });
+        } else {
+          titleEl.createEl("span", {
+            cls: "grimoire-mimocode-model-picker-selected-name",
+            text: rawId
+          });
+        }
+        if (enriched && !enriched.isAvailable) {
+          infoEl.createEl("div", {
+            cls: "grimoire-mimocode-model-picker-selected-unavailable",
+            text: "Not currently reported by MiMoCode"
+          });
+        }
+        infoEl.createEl("div", {
+          cls: "grimoire-mimocode-model-picker-selected-id",
+          text: rawId
+        });
+        const controlsEl2 = rowEl.createDiv({ cls: "grimoire-mimocode-model-picker-selected-controls" });
+        const aliasInput = controlsEl2.createEl("input", {
+          cls: "grimoire-mimocode-model-picker-selected-alias",
+          type: "text"
+        });
+        aliasInput.placeholder = defaultLabel;
+        aliasInput.value = (_a7 = current.modelAliases[rawId]) != null ? _a7 : "";
+        aliasInput.setAttribute("aria-label", `Alias for ${defaultLabel}`);
+        aliasInput.title = "Custom label shown in the model selector. Leave empty to use the default.";
+        const commitAlias = () => {
+          var _a8;
+          const latest = getMimocodeProviderSettings(settingsBag);
+          const existing = (_a8 = latest.modelAliases[rawId]) != null ? _a8 : "";
+          const next = aliasInput.value.trim();
+          if (next === existing) {
+            aliasInput.value = existing;
+            return;
+          }
+          const nextAliases = { ...latest.modelAliases };
+          if (next) {
+            nextAliases[rawId] = next;
+          } else {
+            delete nextAliases[rawId];
+          }
+          void persistModelAliases(nextAliases);
+        };
+        aliasInput.addEventListener("blur", commitAlias);
+        aliasInput.addEventListener("keydown", (event) => {
+          var _a8;
+          if (event.key === "Enter") {
+            event.preventDefault();
+            aliasInput.blur();
+          } else if (event.key === "Escape") {
+            event.preventDefault();
+            aliasInput.value = (_a8 = getMimocodeProviderSettings(settingsBag).modelAliases[rawId]) != null ? _a8 : "";
+            aliasInput.blur();
+          }
+        });
+        const removeBtn = controlsEl2.createEl("button", {
+          cls: "grimoire-mimocode-model-picker-selected-remove",
+          text: "\xD7"
+        });
+        removeBtn.setAttribute("aria-label", `Remove ${defaultLabel}`);
+        removeBtn.addEventListener("click", () => {
+          void persistVisibleModels(current.visibleModels.filter((entry) => entry !== rawId));
+        });
+      }
+    };
+    const renderProviderSelect = () => {
+      const enriched = getEnrichedModels();
+      const providers = /* @__PURE__ */ new Map();
+      for (const model of enriched) {
+        const existing = providers.get(model.providerKey);
+        if (existing) {
+          existing.count += 1;
+        } else {
+          providers.set(model.providerKey, { count: 1, label: model.providerLabel });
+        }
+      }
+      providerSelectEl.empty();
+      providerSelectEl.createEl("option", {
+        text: `All providers (${enriched.length})`,
+        value: ALL_PROVIDERS_KEY2
+      });
+      const sortedProviders = Array.from(providers.entries()).sort(([, left], [, right]) => left.label.localeCompare(right.label));
+      for (const [key, { count, label }] of sortedProviders) {
+        providerSelectEl.createEl("option", {
+          text: `${label} (${count})`,
+          value: key
+        });
+      }
+      if (providerFilter !== ALL_PROVIDERS_KEY2 && !providers.has(providerFilter)) {
+        providerFilter = ALL_PROVIDERS_KEY2;
+      }
+      providerSelectEl.value = providerFilter;
+    };
+    const renderList = () => {
+      listEl.empty();
+      const current = getMimocodeProviderSettings(settingsBag);
+      const selectedIds = new Set(current.visibleModels);
+      const enriched = getEnrichedModels();
+      const filtered = filterModels(enriched);
+      if (filtered.length === 0) {
+        const emptyEl = listEl.createDiv({ cls: "grimoire-mimocode-model-picker-empty" });
+        let emptyText = "No models match your filter.";
+        if (loadingModelCatalog) {
+          emptyText = "Loading MiMoCode model catalog...";
+        } else if (modelCatalogLoadFailed) {
+          emptyText = "Could not load the MiMoCode model catalog. Check the CLI path and login state, then expand this section again.";
+        } else if (enriched.length === 0) {
+          emptyText = "Start MiMoCode once to load its model catalog. Grimoire will then let you pick visible models.";
+        }
+        emptyEl.setText(emptyText);
+        return;
+      }
+      for (const model of filtered) {
+        const rowEl = listEl.createEl("label", { cls: "grimoire-mimocode-model-picker-row" });
+        const isSelected = selectedIds.has(model.rawId);
+        if (isSelected) {
+          rowEl.classList.add("grimoire-mimocode-model-picker-row--selected");
+        }
+        rowEl.title = model.rawId;
+        const checkboxEl = rowEl.createEl("input", { type: "checkbox" });
+        checkboxEl.checked = isSelected;
+        checkboxEl.addEventListener("change", () => {
+          const currentVisibleModels = getMimocodeProviderSettings(settingsBag).visibleModels;
+          const next = checkboxEl.checked ? [...currentVisibleModels, model.rawId] : currentVisibleModels.filter((id2) => id2 !== model.rawId);
+          void (async () => {
+            await persistVisibleModels(next);
+            if (checkboxEl.checked) {
+              await persistModelMetadata(model.rawId);
+            }
+          })();
+        });
+        const textEl = rowEl.createDiv({ cls: "grimoire-mimocode-model-picker-row-text" });
+        const headerEl = textEl.createDiv({ cls: "grimoire-mimocode-model-picker-row-header" });
+        headerEl.createEl("span", {
+          cls: "grimoire-mimocode-model-picker-row-name",
+          text: model.modelLabel
+        });
+        const badgeEl = headerEl.createEl("span", {
+          cls: "grimoire-mimocode-model-picker-row-badge",
+          text: model.providerLabel
+        });
+        if (!model.isAvailable) {
+          badgeEl.classList.add("grimoire-mimocode-model-picker-row-badge--unavailable");
+          badgeEl.setText("Unavailable");
+          badgeEl.title = "Configured model not currently reported by MiMoCode";
+        }
+        textEl.createDiv({
+          cls: "grimoire-mimocode-model-picker-row-meta",
+          text: model.rawId
+        });
+        if (model.description) {
+          textEl.createDiv({
+            cls: "grimoire-mimocode-model-picker-row-desc",
+            text: model.description
+          });
+        }
+      }
+    };
+    const renderAll = () => {
+      renderSummary();
+      renderSelected();
+      renderProviderSelect();
+      renderList();
+    };
+    renderAll();
+    const loadModelCatalog = async () => {
+      if (loadingModelCatalog || getMimocodeProviderSettings(settingsBag).discoveredModels.length > 0) {
+        return;
+      }
+      loadingModelCatalog = true;
+      modelCatalogLoadFailed = false;
+      renderAll();
+      const runtime = new MimocodeChatRuntime(context.plugin);
+      try {
+        runtime.syncConversationState({
+          providerState: { databasePath: MIMOCODE_METADATA_WARMUP_DB },
+          sessionId: null
+        });
+        const loaded = await runtime.ensureReady({ allowSessionCreation: true });
+        modelCatalogLoadFailed = !loaded || getMimocodeProviderSettings(settingsBag).discoveredModels.length === 0;
+        if (!modelCatalogLoadFailed) {
+          context.refreshModelSelectors();
+        }
+      } catch (e) {
+        modelCatalogLoadFailed = true;
+      } finally {
+        loadingModelCatalog = false;
+        runtime.cleanup();
+        renderAll();
+      }
+    };
+    catalogEl.addEventListener("toggle", () => {
+      if (catalogEl.open) {
+        void loadModelCatalog();
+      }
+    });
+    if (catalogEl.open) {
+      void loadModelCatalog();
+    }
+    const advancedContainer = context.renderAdvancedSection(container, {
+      count: 4,
+      summary: "Hidden commands, subagents, environment, and context overrides"
+    });
+    new import_obsidian22.Setting(advancedContainer).setName("Commands and skills").setHeading();
+    const commandsDesc = advancedContainer.createDiv({ cls: "grimoire-sp-settings-desc" });
+    commandsDesc.createEl("p", {
+      cls: "setting-item-description",
+      text: "MiMoCode can auto-detect vault-level Claude slash commands from .claude/commands/ and skills from .claude/skills/, .codex/skills/, and .agents/skills/. Manage those entries in the Claude or Codex settings tab. This setting only hides entries from the MiMoCode dropdown."
+    });
+    context.renderHiddenProviderCommandSetting(advancedContainer, "mimocode", {
+      name: "Hidden Commands and Skills",
+      desc: "Hide specific MiMoCode commands and skills from the dropdown. Enter names without the leading slash, one per line.",
+      placeholder: "compact\nreview\nfix"
+    });
+    if (mimocodeWorkspace == null ? void 0 : mimocodeWorkspace.agentStorage) {
+      new import_obsidian22.Setting(advancedContainer).setName("Subagents").setHeading();
+      const subagentsDesc = advancedContainer.createDiv({ cls: "grimoire-sp-settings-desc" });
+      subagentsDesc.createEl("p", {
+        cls: "setting-item-description",
+        text: "Manage vault-level MiMoCode subagents from .mimocode/agent/ and legacy .mimocode/agents/. New entries are saved as subagent-only files and appear in the @mention menu."
+      });
+      const subagentsContainer = advancedContainer.createDiv({ cls: "grimoire-slash-commands-container" });
+      new MimocodeAgentSettings(
+        subagentsContainer,
+        mimocodeWorkspace.agentStorage,
+        context.plugin.app,
+        async () => {
+          var _a7;
+          await ((_a7 = mimocodeWorkspace.refreshAgentMentions) == null ? void 0 : _a7.call(mimocodeWorkspace));
+          await recycleMimocodeRuntime();
+        }
+      );
+    }
+    renderEnvironmentSettingsSection({
+      container: advancedContainer,
+      plugin: context.plugin,
+      scope: "provider:mimocode",
+      heading: "Environment",
+      name: "Environment Variables",
+      desc: "Extra environment variables passed to Mimocode. `MIMOCODE_ENABLE_EXA=1` is enabled by default.",
+      placeholder: `${MIMOCODE_DEFAULT_ENVIRONMENT_VARIABLES}
+MIMOCODE_DB=/path/to/mimocode.db`,
+      renderCustomContextLimits: (target) => context.renderCustomContextLimits(target, "mimocode")
+    });
+  }
+};
+function buildEnrichedModels2(discoveredModels, visibleModels) {
+  var _a7;
+  const enriched = [];
+  const discoveredIds = /* @__PURE__ */ new Set();
+  const baseModels = buildMimocodeBaseModels(discoveredModels);
+  for (const model of baseModels) {
+    const { modelLabel, providerLabel } = splitMimocodeModelLabel(model.label || model.rawId);
+    discoveredIds.add(model.rawId);
+    enriched.push({
+      description: (_a7 = model.description) != null ? _a7 : "",
+      isAvailable: true,
+      modelLabel,
+      providerKey: providerLabel.toLowerCase(),
+      providerLabel,
+      rawId: model.rawId
+    });
+  }
+  for (const rawId of visibleModels) {
+    if (discoveredIds.has(rawId)) {
+      continue;
+    }
+    const { modelLabel, providerLabel } = splitMimocodeModelLabel(rawId);
+    enriched.push({
+      description: "",
+      isAvailable: false,
+      modelLabel,
+      providerKey: providerLabel.toLowerCase(),
+      providerLabel,
+      rawId
+    });
+  }
+  return enriched.sort((left, right) => {
+    const providerCmp = left.providerLabel.localeCompare(right.providerLabel);
+    if (providerCmp !== 0) {
+      return providerCmp;
+    }
+    return left.modelLabel.localeCompare(right.modelLabel);
+  });
+}
+
+// src/providers/mimocode/app/MimocodeRuntimeCommandLoader.ts
+var MIMOCODE_METADATA_WARMUP_DB2 = ":memory:";
+var MimocodeRuntimeCommandLoader = class {
+  isAvailable(settings11) {
+    return getMimocodeProviderSettings(settings11).enabled;
+  }
+  async loadCommands(context) {
+    var _a7, _b4, _c3;
+    const shouldWarmBlankSession = context.allowSessionCreation === true && !((_a7 = context.conversation) == null ? void 0 : _a7.sessionId);
+    const shouldWarmPreSessionConversation = !!context.conversation && !context.conversation.sessionId && context.conversation.messages.length > 0;
+    if (!context.runtime && !((_b4 = context.conversation) == null ? void 0 : _b4.sessionId) && !shouldWarmBlankSession && !shouldWarmPreSessionConversation) {
+      return [];
+    }
+    const canReuseRuntime = ((_c3 = context.runtime) == null ? void 0 : _c3.providerId) === "mimocode" && !shouldWarmPreSessionConversation;
+    const runtime = canReuseRuntime ? context.runtime : new MimocodeChatRuntime(context.plugin);
+    try {
+      if (context.conversation) {
+        runtime.syncConversationState(context.conversation, context.externalContextPaths);
+      } else if (shouldWarmBlankSession) {
+        runtime.syncConversationState({
+          providerState: { databasePath: MIMOCODE_METADATA_WARMUP_DB2 },
+          sessionId: null
+        });
+      }
+      const ready = await runtime.ensureReady({
+        allowSessionCreation: shouldWarmBlankSession || shouldWarmPreSessionConversation
+      });
+      if (!ready) {
+        return [];
+      }
+      return await runtime.getSupportedCommands();
+    } finally {
+      if (runtime !== context.runtime) {
+        runtime.cleanup();
+      }
+    }
+  }
+};
+
+// src/providers/mimocode/app/MimocodeWorkspaceServices.ts
+var MIMOCODE_METADATA_WARMUP_DB3 = ":memory:";
+var mimocodeTabWarmupPolicy = {
+  resolveMode() {
+    return "commands";
+  }
+};
+var MODEL_CATALOG_CACHE_TTL_MS3 = 10 * 60 * 1e3;
+function createMimocodeModelCatalog(plugin) {
+  var _a7;
+  const initialSettings = getMimocodeProviderSettings((_a7 = plugin.settings) != null ? _a7 : {});
+  let lastRefreshAt = initialSettings.discoveredModels.length > 0 ? Date.now() : 0;
+  let lastRefreshCacheKey = buildMimocodeModelCatalogCacheKey(initialSettings);
+  return {
+    isAvailable(settings11) {
+      return getMimocodeProviderSettings(settings11).enabled;
+    },
+    async refreshModels({ settings: settings11 }) {
+      var _a8;
+      const currentSettings = getMimocodeProviderSettings(settings11);
+      const cacheKey = buildMimocodeModelCatalogCacheKey(currentSettings);
+      if (currentSettings.discoveredModels.length > 0 && lastRefreshAt === 0) {
+        lastRefreshAt = Date.now();
+        lastRefreshCacheKey = cacheKey;
+      }
+      const cacheAgeMs = lastRefreshAt > 0 ? Date.now() - lastRefreshAt : Number.POSITIVE_INFINITY;
+      if (currentSettings.discoveredModels.length > 0 && cacheKey === lastRefreshCacheKey && cacheAgeMs < MODEL_CATALOG_CACHE_TTL_MS3) {
+        (_a8 = plugin.recordDebugLog) == null ? void 0 : _a8.call(plugin, {
+          data: {
+            ageMs: cacheAgeMs,
+            modelCount: currentSettings.discoveredModels.length,
+            providerId: "mimocode",
+            reason: "cache_fresh",
+            ttlMs: MODEL_CATALOG_CACHE_TTL_MS3
+          },
+          event: "modelCatalog.refresh.skipped",
+          level: "debug",
+          scope: "provider.mimocode"
+        });
+        return false;
+      }
+      const before = JSON.stringify(currentSettings.discoveredModels);
+      const runtime = new MimocodeChatRuntime(plugin);
+      try {
+        runtime.syncConversationState({
+          providerState: { databasePath: MIMOCODE_METADATA_WARMUP_DB3 },
+          sessionId: null
+        });
+        const loaded = await runtime.ensureReady({ allowSessionCreation: true });
+        const updatedSettings = getMimocodeProviderSettings(settings11);
+        lastRefreshAt = Date.now();
+        lastRefreshCacheKey = buildMimocodeModelCatalogCacheKey(updatedSettings);
+        const after = JSON.stringify(getMimocodeProviderSettings(settings11).discoveredModels);
+        return loaded && before !== after;
+      } finally {
+        runtime.cleanup();
+      }
+    }
+  };
+}
+function buildMimocodeModelCatalogCacheKey(settings11) {
+  return JSON.stringify({
+    cliPath: settings11.cliPath,
+    cliPathsByHost: settings11.cliPathsByHost,
+    environmentHash: settings11.environmentHash,
+    environmentVariables: settings11.environmentVariables
+  });
+}
+async function createMimocodeWorkspaceServices(plugin, vaultAdapter) {
+  const agentStorage = new MimocodeAgentStorage(vaultAdapter);
+  const agentMentionProvider = new MimocodeAgentMentionProvider(agentStorage);
+  await agentMentionProvider.loadAgents();
+  return {
+    agentStorage,
+    agentMentionProvider,
+    commandCatalog: new MimocodeCommandCatalog(),
+    cliResolver: new MimocodeCliResolver(),
+    modelCatalog: createMimocodeModelCatalog(plugin),
+    usageProvider: mimocodePlanUsageStore,
+    runtimeCommandLoader: new MimocodeRuntimeCommandLoader(),
+    settingsTabRenderer: mimocodeSettingsTabRenderer,
+    tabWarmupPolicy: mimocodeTabWarmupPolicy,
+    refreshAgentMentions: async () => {
+      await agentMentionProvider.loadAgents();
+    }
+  };
+}
+var mimocodeWorkspaceRegistration = {
+  initialize: async ({ plugin, vaultAdapter }) => createMimocodeWorkspaceServices(plugin, vaultAdapter)
+};
+function maybeGetMimocodeWorkspaceServices() {
+  return ProviderWorkspaceRegistry.getServices("mimocode");
+}
+
+// src/providers/mimocode/runtime/MimocodeAuxQueryRunner.ts
+var fs37 = __toESM(require("node:fs/promises"));
+init_path();
+
+// src/providers/mimocode/ui/MimocodeChatUIConfig.ts
+var MIMOCODE_MODELS = [
+  { value: MIMOCODE_SYNTHETIC_MODEL_ID, label: "MiMoCode", description: "ACP runtime" }
+];
+var MIMOCODE_FALLBACK_THINKING_OPTIONS = [
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" }
+];
+var MIMOCODE_FALLBACK_THINKING_DEFAULT = "high";
+var DEFAULT_CONTEXT_WINDOW5 = 2e5;
+var MIMOCODE_METADATA_WARMUP_DB4 = ":memory:";
+var MIMOCODE_PERMISSION_MODE_TOGGLE = {
+  inactiveValue: "normal",
+  inactiveLabel: "Safe",
+  activeValue: "full_access",
+  activeLabel: "Auto-approve",
+  planValue: "plan",
+  planLabel: "Plan"
+};
+var mimocodeChatUIConfig = {
+  getModelOptions(settings11) {
+    var _a7, _b4;
+    const mimocodeSettings = getMimocodeProviderSettings(settings11);
+    const applyAlias = (rawId, option) => {
+      const alias = mimocodeSettings.modelAliases[rawId];
+      return alias ? { ...option, label: alias } : option;
+    };
+    const discoveredModels = new Map(buildMimocodeBaseModels(mimocodeSettings.discoveredModels).map((model) => {
+      var _a8;
+      return [
+        encodeMimocodeModelId(model.rawId),
+        applyAlias(model.rawId, {
+          description: (_a8 = model.description) != null ? _a8 : "ACP runtime",
+          label: model.label,
+          value: encodeMimocodeModelId(model.rawId)
+        })
+      ];
+    }));
+    const savedProviderModel = settings11.savedProviderModel && typeof settings11.savedProviderModel === "object" && !Array.isArray(settings11.savedProviderModel) ? settings11.savedProviderModel : null;
+    const seenValues = /* @__PURE__ */ new Set();
+    const options = [];
+    for (const rawModelId of mimocodeSettings.visibleModels) {
+      const encodedModelId = encodeMimocodeModelId(rawModelId);
+      pushOption2(
+        options,
+        seenValues,
+        encodedModelId,
+        (_a7 = discoveredModels.get(encodedModelId)) != null ? _a7 : applyAlias(rawModelId, {
+          description: "Configured model",
+          label: rawModelId,
+          value: encodedModelId
+        })
+      );
+    }
+    const selectedModelValues = [
+      typeof settings11.model === "string" ? settings11.model : "",
+      typeof (savedProviderModel == null ? void 0 : savedProviderModel.mimocode) === "string" ? savedProviderModel.mimocode : ""
+    ];
+    for (const model of selectedModelValues) {
+      const rawModelId = decodeMimocodeModelId(model);
+      if (!model || !isMimocodeModelSelectionId(model) || model === MIMOCODE_SYNTHETIC_MODEL_ID || !rawModelId) {
+        continue;
+      }
+      const baseRawId = resolveMimocodeBaseModelRawId(rawModelId, mimocodeSettings.discoveredModels);
+      const baseModelId = encodeMimocodeModelId(baseRawId);
+      pushOption2(
+        options,
+        seenValues,
+        baseModelId,
+        (_b4 = discoveredModels.get(baseModelId)) != null ? _b4 : applyAlias(baseRawId, {
+          description: "Selected in an existing session",
+          label: baseRawId,
+          value: baseModelId
+        })
+      );
+    }
+    return options.length > 0 ? options : [...MIMOCODE_MODELS];
+  },
+  ownsModel(model) {
+    return isMimocodeModelSelectionId(model);
+  },
+  isAdaptiveReasoningModel(model, settings11) {
+    return getMimocodeThinkingOptions(model, settings11).length > 0;
+  },
+  getReasoningOptions(model, settings11) {
+    return getMimocodeThinkingOptions(model, settings11).map((variant) => ({
+      description: variant.description,
+      label: variant.label,
+      value: variant.value
+    }));
+  },
+  getDefaultReasoningValue(model, settings11) {
+    const rawModelId = decodeMimocodeModelId(model);
+    if (!rawModelId) {
+      return MIMOCODE_FALLBACK_THINKING_DEFAULT;
+    }
+    const mimocodeSettings = getMimocodeProviderSettings(settings11);
+    const baseRawId = resolveMimocodeBaseModelRawId(rawModelId, mimocodeSettings.discoveredModels);
+    return getDefaultThinkingLevelForModel2(baseRawId, settings11);
+  },
+  getContextWindowSize(model, customLimits) {
+    var _a7;
+    return (_a7 = customLimits == null ? void 0 : customLimits[model]) != null ? _a7 : DEFAULT_CONTEXT_WINDOW5;
+  },
+  isDefaultModel(model) {
+    return isMimocodeModelSelectionId(model);
+  },
+  applyModelDefaults(model, settings11) {
+    if (!settings11 || typeof settings11 !== "object" || Array.isArray(settings11)) {
+      return;
+    }
+    const settingsBag = settings11;
+    const rawModelId = decodeMimocodeModelId(model);
+    if (!rawModelId) {
+      settingsBag.effortLevel = MIMOCODE_FALLBACK_THINKING_DEFAULT;
+      return;
+    }
+    const mimocodeSettings = getMimocodeProviderSettings(settingsBag);
+    const baseRawId = resolveMimocodeBaseModelRawId(rawModelId, mimocodeSettings.discoveredModels);
+    settingsBag.model = encodeMimocodeModelId(baseRawId);
+    settingsBag.effortLevel = getDefaultThinkingLevelForModel2(baseRawId, settingsBag);
+  },
+  async prepareModelMetadata(model, _settings, context) {
+    const rawModelId = decodeMimocodeModelId(model);
+    if (!rawModelId) {
+      return;
+    }
+    const mimocodeSettings = getMimocodeProviderSettings(context.plugin.settings);
+    const baseRawId = resolveMimocodeBaseModelRawId(rawModelId, mimocodeSettings.discoveredModels);
+    if (baseRawId && mimocodeSettings.thinkingOptionsByModel[baseRawId]) {
+      return;
+    }
+    const runtime = new MimocodeChatRuntime(context.plugin);
+    try {
+      runtime.syncConversationState({
+        providerState: { databasePath: MIMOCODE_METADATA_WARMUP_DB4 },
+        sessionId: null
+      });
+      await runtime.warmModelMetadata(model);
+    } catch (e) {
+    } finally {
+      runtime.cleanup();
+    }
+  },
+  applyReasoningSelection(model, value, settings11) {
+    if (!settings11 || typeof settings11 !== "object" || Array.isArray(settings11)) {
+      return;
+    }
+    const settingsBag = settings11;
+    const rawModelId = decodeMimocodeModelId(model);
+    if (!rawModelId) {
+      return;
+    }
+    const mimocodeSettings = getMimocodeProviderSettings(settingsBag);
+    const baseRawId = resolveMimocodeBaseModelRawId(rawModelId, mimocodeSettings.discoveredModels);
+    const supportedValues = new Set(getSupportedThinkingOptionsForModel2(baseRawId, settingsBag).map((variant) => variant.value));
+    const nextPreferredThinkingByModel = {
+      ...mimocodeSettings.preferredThinkingByModel
+    };
+    if (!value || value === MIMOCODE_DEFAULT_THINKING_LEVEL || !supportedValues.has(value)) {
+      delete nextPreferredThinkingByModel[baseRawId];
+    } else {
+      nextPreferredThinkingByModel[baseRawId] = value;
+    }
+    updateMimocodeProviderSettings(settingsBag, {
+      preferredThinkingByModel: nextPreferredThinkingByModel
+    });
+  },
+  normalizeModelVariant(model, settings11) {
+    const rawModelId = decodeMimocodeModelId(model);
+    if (!rawModelId) {
+      return model;
+    }
+    const mimocodeSettings = getMimocodeProviderSettings(settings11);
+    const baseRawId = resolveMimocodeBaseModelRawId(rawModelId, mimocodeSettings.discoveredModels);
+    return encodeMimocodeModelId(baseRawId);
+  },
+  getCustomModelIds() {
+    return /* @__PURE__ */ new Set();
+  },
+  getModeSelector() {
+    return null;
+  },
+  getPermissionModeToggle() {
+    return MIMOCODE_PERMISSION_MODE_TOGGLE;
+  },
+  resolvePermissionMode(settings11) {
+    const selectedMode = getMimocodeProviderSettings(settings11).selectedMode;
+    return resolvePermissionModeForManagedMimocodeMode(selectedMode);
+  },
+  applyPermissionMode(value, settings11) {
+    if (!settings11 || typeof settings11 !== "object" || Array.isArray(settings11)) {
+      return;
+    }
+    const settingsBag = settings11;
+    settingsBag.permissionMode = value;
+    updateMimocodeProviderSettings(settingsBag, {
+      selectedMode: resolveMimocodeModeForPermissionMode(
+        value,
+        getMimocodeProviderSettings(settingsBag).availableModes
+      )
+    });
+  },
+  getProviderIcon() {
+    return MIMOCODE_PROVIDER_ICON;
+  }
+};
+function getDefaultThinkingLevelForModel2(baseRawId, settings11) {
+  var _a7, _b4;
+  const mimocodeSettings = getMimocodeProviderSettings(settings11);
+  const preferred = mimocodeSettings.preferredThinkingByModel[baseRawId];
+  const options = getSupportedThinkingOptionsForModel2(baseRawId, settings11);
+  const supportedValues = new Set(options.map((variant) => variant.value));
+  if (preferred && supportedValues.has(preferred)) {
+    return preferred;
+  }
+  return (_b4 = supportedValues.has(MIMOCODE_FALLBACK_THINKING_DEFAULT) ? MIMOCODE_FALLBACK_THINKING_DEFAULT : (_a7 = options[0]) == null ? void 0 : _a7.value) != null ? _b4 : MIMOCODE_DEFAULT_THINKING_LEVEL;
+}
+function getSupportedThinkingOptionsForModel2(baseRawId, settings11) {
+  var _a7;
+  const mimocodeSettings = getMimocodeProviderSettings(settings11);
+  const discoveredOptions = (_a7 = mimocodeSettings.thinkingOptionsByModel[baseRawId]) != null ? _a7 : [];
+  return discoveredOptions.length > 0 ? discoveredOptions : MIMOCODE_FALLBACK_THINKING_OPTIONS;
+}
+function getMimocodeThinkingOptions(model, settings11) {
+  if (!isMimocodeModelSelectionId(model)) {
+    return [];
+  }
+  const rawModelId = decodeMimocodeModelId(model);
+  if (!rawModelId) {
+    return MIMOCODE_FALLBACK_THINKING_OPTIONS;
+  }
+  const mimocodeSettings = getMimocodeProviderSettings(settings11);
+  const baseRawId = resolveMimocodeBaseModelRawId(rawModelId, mimocodeSettings.discoveredModels);
+  return getSupportedThinkingOptionsForModel2(baseRawId, settings11);
+}
+function pushOption2(target, seenValues, value, option) {
+  if (seenValues.has(value)) {
+    return;
+  }
+  seenValues.add(value);
+  target.push(option);
+}
+
+// src/providers/mimocode/runtime/MimocodeAuxQueryRunner.ts
+var MIMOCODE_AUX_AGENT_IDS = {
+  passive: "grimoire-aux-passive",
+  readonly: "grimoire-aux-readonly"
+};
+var MIMOCODE_AUX_READ_PERMISSION = Object.freeze({
+  "*": "allow",
+  "*.env": "deny",
+  "*.env.*": "deny",
+  "*.env.example": "allow"
+});
+var MimocodeAuxQueryRunner = class {
+  constructor(plugin, options) {
+    this.plugin = plugin;
+    this.options = options;
+    this.availableModelIds = /* @__PURE__ */ new Set();
+    this.connection = null;
+    this.currentModelId = null;
+    this.currentLaunchKey = null;
+    this.process = null;
+    this.sessionCwds = /* @__PURE__ */ new Map();
+    this.sessionId = null;
+    this.sessionUpdateNormalizer = new AcpSessionUpdateNormalizer();
+    this.transport = null;
+  }
+  async query(config2, prompt) {
+    var _a7, _b4, _c3, _d3, _e3, _f3;
+    const cwd = (_a7 = getVaultPath(this.plugin.app)) != null ? _a7 : process.cwd();
+    await this.ensureReady(cwd, config2.systemPrompt);
+    if (!this.connection) {
+      throw new Error("Mimocode runtime is not ready.");
+    }
+    if (!this.sessionId) {
+      const sessionId2 = await this.createSession(cwd);
+      if (!sessionId2) {
+        throw new Error("Failed to create an Mimocode session.");
+      }
+    }
+    const sessionId = this.sessionId;
+    const selectedModel = this.resolveSelectedRawModel(config2.model);
+    const nextModel = this.resolveApplicableModel(selectedModel);
+    if (nextModel) {
+      const response = await this.connection.setConfigOption({
+        configId: "model",
+        sessionId,
+        type: "select",
+        value: nextModel
+      });
+      this.syncSessionModelState({
+        configOptions: response.configOptions
+      });
+    }
+    this.sessionUpdateNormalizer.reset();
+    let accumulatedText = "";
+    const removeListener = this.connection.onSessionNotification((notification) => {
+      var _a8;
+      if (notification.sessionId !== sessionId) {
+        return;
+      }
+      const normalized = this.sessionUpdateNormalizer.normalize(notification.update);
+      if (normalized.type !== "message_chunk" || normalized.role !== "assistant") {
+        return;
+      }
+      for (const chunk of normalized.streamChunks) {
+        if (chunk.type !== "text") {
+          continue;
+        }
+        accumulatedText += chunk.content;
+        (_a8 = config2.onTextChunk) == null ? void 0 : _a8.call(config2, accumulatedText);
+      }
+    });
+    const abortHandler = () => {
+      if (this.connection && this.sessionId) {
+        this.connection.cancel({ sessionId: this.sessionId });
+      }
+    };
+    (_b4 = config2.abortController) == null ? void 0 : _b4.signal.addEventListener("abort", abortHandler, { once: true });
+    try {
+      if ((_c3 = config2.abortController) == null ? void 0 : _c3.signal.aborted) {
+        throw new Error("Cancelled");
+      }
+      await this.connection.prompt({
+        prompt: [{ type: "text", text: prompt }],
+        sessionId
+      });
+      if ((_d3 = config2.abortController) == null ? void 0 : _d3.signal.aborted) {
+        throw new Error("Cancelled");
+      }
+      return accumulatedText;
+    } catch (error48) {
+      const message = error48 instanceof Error ? error48.message : "Mimocode request failed";
+      const stderr = (_e3 = this.process) == null ? void 0 : _e3.getStderrSnapshot();
+      throw new Error(
+        stderr ? `${message}
+
+${stderr}` : message,
+        error48 instanceof Error ? { cause: error48 } : void 0
+      );
+    } finally {
+      (_f3 = config2.abortController) == null ? void 0 : _f3.signal.removeEventListener("abort", abortHandler);
+      removeListener();
+    }
+  }
+  reset() {
+    var _a7, _b4;
+    this.availableModelIds.clear();
+    this.sessionId = null;
+    this.sessionCwds.clear();
+    this.currentModelId = null;
+    this.currentLaunchKey = null;
+    (_a7 = this.connection) == null ? void 0 : _a7.dispose();
+    this.connection = null;
+    (_b4 = this.transport) == null ? void 0 : _b4.dispose();
+    this.transport = null;
+    if (this.process) {
+      void this.process.shutdown().catch(() => {
+      });
+    }
+    this.process = null;
+    this.sessionUpdateNormalizer.reset();
+  }
+  async ensureReady(cwd, systemPrompt) {
+    var _a7;
+    const resolvedCliPath = (_a7 = this.plugin.getResolvedProviderCliPath("mimocode")) != null ? _a7 : "mimo";
+    const settings11 = this.plugin.settings;
+    const runtimeEnv = buildMimocodeRuntimeEnv(settings11, resolvedCliPath);
+    const auxAgentId = MIMOCODE_AUX_AGENT_IDS[this.options.agentProfile];
+    const artifacts = await prepareMimocodeLaunchArtifacts({
+      artifactsSubdir: `mimocode/auxiliary/${this.options.artifactPurpose}`,
+      defaultAgentId: auxAgentId,
+      managedAgents: [buildMimocodeAuxAgentConfig(this.options.agentProfile)],
+      runtimeEnv,
+      systemPromptKey: systemPrompt,
+      systemPromptText: systemPrompt,
+      userName: typeof settings11.userName === "string" ? settings11.userName : void 0,
+      workspaceRoot: cwd
+    });
+    const nextLaunchKey = JSON.stringify({
+      artifactKey: artifacts.launchKey,
+      command: resolvedCliPath,
+      configPath: artifacts.configPath,
+      envText: getRuntimeEnvironmentText(settings11, "mimocode")
+    });
+    const shouldRestart = !this.process || !this.transport || !this.connection || !this.process.isAlive() || this.transport.isClosed || this.currentLaunchKey !== nextLaunchKey;
+    if (!shouldRestart) {
+      return;
+    }
+    this.reset();
+    await this.startProcess({
+      command: resolvedCliPath,
+      configPath: artifacts.configPath,
+      configContent: artifacts.configContent,
+      cwd,
+      runtimeEnv
+    });
+    this.currentLaunchKey = nextLaunchKey;
+  }
+  async createSession(cwd) {
+    var _a7, _b4;
+    if (!this.connection) {
+      return null;
+    }
+    try {
+      const response = await this.connection.newSession({
+        cwd,
+        mcpServers: []
+      });
+      this.syncSessionModelState({
+        configOptions: (_a7 = response.configOptions) != null ? _a7 : null,
+        models: (_b4 = response.models) != null ? _b4 : null
+      });
+      await this.connection.setConfigOption({
+        configId: "mode",
+        sessionId: response.sessionId,
+        type: "select",
+        value: MIMOCODE_AUX_AGENT_IDS[this.options.agentProfile]
+      });
+      this.sessionId = response.sessionId;
+      this.sessionCwds.set(response.sessionId, cwd);
+      return response.sessionId;
+    } catch (e) {
+      return null;
+    }
+  }
+  async startProcess(params) {
+    var _a7, _b4;
+    const processEnv = {
+      ...process.env,
+      ...params.runtimeEnv,
+      MIMOCODE_CONFIG: params.configPath,
+      MIMOCODE_CONFIG_CONTENT: params.configContent,
+      PATH: params.runtimeEnv.PATH
+    };
+    this.process = new AcpSubprocess({
+      args: ["acp", `--cwd=${params.cwd}`],
+      command: params.command,
+      cwd: params.cwd,
+      env: processEnv
+    });
+    this.process.start();
+    this.transport = new AcpJsonRpcTransport({
+      input: this.process.stdout,
+      onClose: (listener) => this.process.onClose(listener),
+      output: this.process.stdin
+    });
+    this.connection = new AcpClientConnection({
+      clientInfo: {
+        name: "grimoire-aux",
+        version: (_b4 = (_a7 = this.plugin.manifest) == null ? void 0 : _a7.version) != null ? _b4 : "0.0.0"
+      },
+      delegate: {
+        fileSystem: this.options.allowReadTextFile ? {
+          readTextFile: (request) => this.readTextFile(request)
+        } : void 0,
+        requestPermission: (request) => this.handlePermissionRequest(request)
+      },
+      transport: this.transport
+    });
+    this.transport.start();
+    await this.connection.initialize();
+  }
+  async readTextFile(request) {
+    var _a7;
+    const resolvedPath = this.resolveSessionPath(request.sessionId, request.path);
+    const content = await fs37.readFile(resolvedPath, "utf-8");
+    if (request.line === void 0 && request.limit === void 0) {
+      return { content };
+    }
+    const lines = content.split(/\r?\n/);
+    const startIndex = Math.max(0, ((_a7 = request.line) != null ? _a7 : 1) - 1);
+    const endIndex = request.limit ? startIndex + Math.max(0, request.limit) : lines.length;
+    return {
+      content: lines.slice(startIndex, endIndex).join("\n")
+    };
+  }
+  async handlePermissionRequest(request) {
+    return selectPermissionOption4(request.options, ["reject_once", "reject_always"]);
+  }
+  resolveSelectedRawModel(explicitModel) {
+    var _a7, _b4;
+    const projectedSettings = ProviderSettingsCoordinator.getProviderSettingsSnapshot(
+      this.plugin.settings,
+      "mimocode"
+    );
+    if (explicitModel) {
+      const trimmed = explicitModel.trim();
+      if (!trimmed) {
+        return void 0;
+      }
+      return mimocodeChatUIConfig.ownsModel(trimmed, projectedSettings) ? (_a7 = decodeMimocodeModelId(trimmed)) != null ? _a7 : void 0 : trimmed;
+    }
+    const selectedModel = typeof projectedSettings.model === "string" ? projectedSettings.model : "";
+    return mimocodeChatUIConfig.ownsModel(selectedModel, projectedSettings) ? (_b4 = decodeMimocodeModelId(selectedModel)) != null ? _b4 : void 0 : void 0;
+  }
+  resolveApplicableModel(selectedModel) {
+    if (!selectedModel) {
+      return null;
+    }
+    if (selectedModel === this.currentModelId) {
+      return null;
+    }
+    if (this.availableModelIds.size === 0) {
+      return selectedModel;
+    }
+    return this.availableModelIds.has(selectedModel) ? selectedModel : null;
+  }
+  syncSessionModelState(params) {
+    const state = extractAcpSessionModelState(params);
+    this.currentModelId = state.currentModelId;
+    this.availableModelIds = new Set(state.availableModels.map((model) => model.id));
+  }
+  resolveSessionPath(sessionId, rawPath) {
+    var _a7, _b4;
+    const cwd = (_b4 = (_a7 = this.sessionCwds.get(sessionId)) != null ? _a7 : getVaultPath(this.plugin.app)) != null ? _b4 : process.cwd();
+    return resolveWorkspacePath(cwd, rawPath, {
+      containmentMessage: "MiMoCode aux read access is limited to the current workspace."
+    });
+  }
+};
+function buildMimocodeAuxAgentConfig(profile) {
+  const id2 = MIMOCODE_AUX_AGENT_IDS[profile];
+  if (profile === "readonly") {
+    return {
+      definition: {
+        description: "Internal Grimoire read-only agent for MiMoCode auxiliary tasks.",
+        mode: "primary",
+        permission: {
+          "*": "deny",
+          codesearch: "allow",
+          external_directory: "deny",
+          glob: "allow",
+          grep: "allow",
+          lsp: "allow",
+          read: MIMOCODE_AUX_READ_PERMISSION,
+          webfetch: "allow",
+          websearch: "allow"
+        }
+      },
+      id: id2
+    };
+  }
+  return {
+    definition: {
+      description: "Internal Grimoire no-tool agent for MiMoCode auxiliary tasks.",
+      mode: "primary",
+      permission: {
+        "*": "deny",
+        external_directory: "deny"
+      }
+    },
+    id: id2
+  };
+}
+function selectPermissionOption4(options, preferredKinds) {
+  for (const kind of preferredKinds) {
+    const option = options.find((entry) => entry.kind === kind);
+    if (option) {
+      return {
+        outcome: {
+          optionId: option.optionId,
+          outcome: "selected"
+        }
+      };
+    }
+  }
+  return { outcome: { outcome: "cancelled" } };
+}
+
+// src/providers/mimocode/auxiliary/MimocodeInlineEditService.ts
+var MimocodeInlineEditService = class extends QueryBackedInlineEditService {
+  constructor(plugin) {
+    super(new MimocodeAuxQueryRunner(plugin, {
+      agentProfile: "readonly",
+      artifactPurpose: "inline",
+      allowReadTextFile: true
+    }));
+  }
+};
+
+// src/providers/mimocode/auxiliary/MimocodeInstructionRefineService.ts
+var MimocodeInstructionRefineService = class extends QueryBackedInstructionRefineService {
+  constructor(plugin) {
+    super(new MimocodeAuxQueryRunner(plugin, {
+      agentProfile: "passive",
+      artifactPurpose: "instructions"
+    }));
+  }
+};
+
+// src/providers/mimocode/auxiliary/MimocodeTaskResultInterpreter.ts
+var MimocodeTaskResultInterpreter = class {
+  hasAsyncLaunchMarker(_toolUseResult) {
+    return false;
+  }
+  extractAgentId(_toolUseResult) {
+    return null;
+  }
+  extractStructuredResult(_toolUseResult) {
+    return null;
+  }
+  resolveTerminalStatus(_toolUseResult, fallbackStatus) {
+    return fallbackStatus;
+  }
+  extractTagValue(_payload, _tagName) {
+    return null;
+  }
+};
+
+// src/providers/mimocode/auxiliary/MimocodeTitleGenerationService.ts
+var MimocodeTitleGenerationService = class extends QueryBackedTitleGenerationService {
+  constructor(plugin) {
+    super({
+      createRunner: () => new MimocodeAuxQueryRunner(plugin, {
+        agentProfile: "passive",
+        artifactPurpose: "title-gen"
+      }),
+      resolveModel: () => {
+        var _a7;
+        const settings11 = plugin.settings;
+        const titleModel = typeof settings11.titleGenerationModel === "string" ? settings11.titleGenerationModel : "";
+        if (!mimocodeChatUIConfig.ownsModel(titleModel, settings11)) {
+          return void 0;
+        }
+        return (_a7 = decodeMimocodeModelId(titleModel)) != null ? _a7 : void 0;
+      }
+    });
+  }
+};
+
+// src/providers/mimocode/env/MimocodeSettingsReconciler.ts
+init_env();
+var MIMOCODE_ENV_HASH_KEYS = [
+  "MIMOCODE_CONFIG",
+  "MIMOCODE_DB",
+  "MIMOCODE_DISABLE_PROJECT_CONFIG",
+  "XDG_DATA_HOME"
+];
+function computeMimocodeEnvHash(envText) {
+  const envVars = parseEnvironmentVariables(envText || "");
+  return MIMOCODE_ENV_HASH_KEYS.filter((key) => envVars[key]).map((key) => `${key}=${envVars[key]}`).sort().join("|");
+}
+var mimocodeSettingsReconciler = {
+  handleEnvironmentChange(settings11) {
+    return clearMimocodeDiscoveryState(settings11);
+  },
+  reconcileModelWithEnvironment(settings11, conversations) {
+    const envText = getRuntimeEnvironmentText(settings11, "mimocode");
+    const currentHash = computeMimocodeEnvHash(envText);
+    const savedHash = getMimocodeProviderSettings(settings11).environmentHash;
+    if (currentHash === savedHash) {
+      return { changed: false, invalidatedConversations: [] };
+    }
+    const invalidatedConversations = [];
+    for (const conversation of conversations) {
+      if (conversation.providerId !== "mimocode") {
+        continue;
+      }
+      const state = getMimocodeState(conversation.providerState);
+      if (!conversation.sessionId && !state.databasePath) {
+        continue;
+      }
+      conversation.sessionId = null;
+      conversation.providerState = void 0;
+      invalidatedConversations.push(conversation);
+    }
+    updateMimocodeProviderSettings(settings11, { environmentHash: currentHash });
+    return { changed: true, invalidatedConversations };
+  },
+  normalizeModelVariantSettings(settings11) {
+    const hadLegacyDiscoveryFields = hasLegacyMimocodeDiscoveryFields(settings11);
+    if (hadLegacyDiscoveryFields) {
+      updateMimocodeProviderSettings(settings11, {});
+    }
+    const mimocodeSettings = getMimocodeProviderSettings(settings11);
+    let changed = hadLegacyDiscoveryFields;
+    const normalizeSelection = (value) => {
+      if (typeof value !== "string" || !isMimocodeModelSelectionId(value)) {
+        return { baseModelId: null, variant: null };
+      }
+      const rawModelId = decodeMimocodeModelId(value);
+      if (!rawModelId) {
+        return { baseModelId: value, variant: null };
+      }
+      const baseRawId = resolveMimocodeBaseModelRawId(rawModelId, mimocodeSettings.discoveredModels);
+      return {
+        baseModelId: encodeMimocodeModelId(baseRawId),
+        variant: extractMimocodeModelVariantValue(rawModelId, mimocodeSettings.discoveredModels)
+      };
+    };
+    const modelSelection = normalizeSelection(settings11.model);
+    if (typeof settings11.model === "string" && modelSelection.baseModelId && settings11.model !== modelSelection.baseModelId) {
+      settings11.model = modelSelection.baseModelId;
+      changed = true;
+    }
+    if (modelSelection.variant && (typeof settings11.effortLevel !== "string" || settings11.effortLevel.trim().length === 0)) {
+      settings11.effortLevel = modelSelection.variant;
+      changed = true;
+    }
+    const titleModelSelection = normalizeSelection(settings11.titleGenerationModel);
+    if (typeof settings11.titleGenerationModel === "string" && titleModelSelection.baseModelId && settings11.titleGenerationModel !== titleModelSelection.baseModelId) {
+      settings11.titleGenerationModel = titleModelSelection.baseModelId;
+      changed = true;
+    }
+    const savedProviderModelRaw = settings11.savedProviderModel;
+    if (savedProviderModelRaw && typeof savedProviderModelRaw === "object" && !Array.isArray(savedProviderModelRaw)) {
+      const savedProviderModel = savedProviderModelRaw;
+      const savedSelection = normalizeSelection(savedProviderModel.mimocode);
+      if (typeof savedProviderModel.mimocode === "string" && savedSelection.baseModelId && savedProviderModel.mimocode !== savedSelection.baseModelId) {
+        savedProviderModel.mimocode = savedSelection.baseModelId;
+        changed = true;
+      }
+      if (savedSelection.variant) {
+        const savedEffort = ensureProviderProjectionMap3(settings11, "savedProviderEffort");
+        if (typeof savedEffort.mimocode !== "string") {
+          savedEffort.mimocode = savedSelection.variant;
+          changed = true;
+        }
+      }
+    }
+    const normalizedVisibleModels = normalizeMimocodeVisibleModels(
+      mimocodeSettings.visibleModels,
+      mimocodeSettings.discoveredModels
+    );
+    const normalizedPreferredThinking = normalizeMimocodePreferredThinkingByModel(
+      mimocodeSettings.preferredThinkingByModel,
+      mimocodeSettings.discoveredModels
+    );
+    const shouldUpdateProviderSettings = !sameStringList3(normalizedVisibleModels, mimocodeSettings.visibleModels) || !sameStringMap3(normalizedPreferredThinking, mimocodeSettings.preferredThinkingByModel);
+    if (shouldUpdateProviderSettings) {
+      updateMimocodeProviderSettings(settings11, {
+        preferredThinkingByModel: normalizedPreferredThinking,
+        visibleModels: normalizedVisibleModels
+      });
+      changed = true;
+    }
+    if (typeof settings11.effortLevel === "string" && !settings11.effortLevel.trim()) {
+      settings11.effortLevel = MIMOCODE_DEFAULT_THINKING_LEVEL;
+      changed = true;
+    }
+    return changed;
+  }
+};
+
+// src/providers/mimocode/history/MimocodeHistoryStore.ts
+var import_node_child_process7 = require("node:child_process");
+var fs38 = __toESM(require("node:fs"));
+async function loadMimocodeSessionMessages(sessionId, providerState) {
+  const databasePath = resolveExistingMimocodeDatabasePath(providerState == null ? void 0 : providerState.databasePath);
+  if (!databasePath || databasePath === ":memory:" || !fs38.existsSync(databasePath)) {
+    return [];
+  }
+  const rows = await loadMimocodeSessionRows(databasePath, sessionId);
+  if (!rows) {
+    return [];
+  }
+  return mapMimocodeMessages(
+    hydrateStoredMessages2(rows.messageRows, rows.partRows)
+  );
+}
+function mapMimocodeMessages(messages) {
+  return mergeAdjacentAssistantMessages2(messages.map((message) => mapStoredMessage2(message)).filter((message) => message !== null));
+}
+function hydrateStoredMessages2(messageRows, partRows) {
+  var _a7;
+  const partsByMessage = /* @__PURE__ */ new Map();
+  for (const row of partRows) {
+    const messageId = getString2(row.message_id);
+    const id2 = getString2(row.id);
+    const data = parseJsonObject3(row.data);
+    if (!messageId || !id2 || !data) {
+      continue;
+    }
+    const parts = (_a7 = partsByMessage.get(messageId)) != null ? _a7 : [];
+    parts.push({ ...data, id: id2 });
+    partsByMessage.set(messageId, parts);
+  }
+  return messageRows.flatMap((row) => {
+    var _a8;
+    const id2 = getString2(row.id);
+    const data = parseJsonObject3(row.data);
+    if (!id2 || !data) {
+      return [];
+    }
+    return [{
+      info: { ...data, id: id2, time_created: row.time_created },
+      parts: (_a8 = partsByMessage.get(id2)) != null ? _a8 : []
+    }];
+  });
+}
+function mapStoredMessage2(message) {
+  var _a7, _b4;
+  const role = getString2(message.info.role);
+  const id2 = getString2(message.info.id);
+  if (!id2 || role !== "user" && role !== "assistant") {
+    return null;
+  }
+  const createdAt = (_b4 = (_a7 = getNestedNumber2(message.info, ["time", "created"])) != null ? _a7 : getNumber2(message.info.time_created)) != null ? _b4 : Date.now();
+  if (role === "user") {
+    const promptText = extractVisibleUserPrompt2(getJoinedTextParts2(message.parts));
+    return {
+      assistantMessageId: void 0,
+      content: promptText,
+      id: id2,
+      role: "user",
+      timestamp: createdAt,
+      userMessageId: id2
+    };
+  }
+  const contentBlocks = buildAssistantContentBlocks2(message.parts);
+  const toolCalls = buildAssistantToolCalls2(message.parts);
+  const completedAt = getNestedNumber2(message.info, ["time", "completed"]);
+  const durationSeconds = completedAt && completedAt >= createdAt ? Math.max(0, (completedAt - createdAt) / 1e3) : void 0;
+  return {
+    assistantMessageId: id2,
+    content: contentBlocks.filter((block) => block.type === "text").map((block) => block.content).join(""),
+    contentBlocks: contentBlocks.length > 0 ? contentBlocks : void 0,
+    durationSeconds,
+    id: id2,
+    role: "assistant",
+    timestamp: createdAt,
+    toolCalls: toolCalls.length > 0 ? toolCalls : void 0
+  };
+}
+function extractVisibleUserPrompt2(rawPrompt) {
+  var _a7, _b4;
+  const promptText = extractUserQuery(rawPrompt);
+  const roleMarkerPattern = /(^|\n)(User|Assistant):[ \t]*/g;
+  const markers = [];
+  let match;
+  while ((match = roleMarkerPattern.exec(promptText)) !== null) {
+    const linePrefix = (_a7 = match[1]) != null ? _a7 : "";
+    markers.push({
+      role: match[2],
+      start: match.index + linePrefix.length,
+      contentStart: roleMarkerPattern.lastIndex
+    });
+  }
+  for (let index = markers.length - 1; index >= 0; index -= 1) {
+    const marker = markers[index];
+    if (marker.role !== "User") {
+      continue;
+    }
+    const nextMarker = markers[index + 1];
+    return promptText.slice(marker.contentStart, (_b4 = nextMarker == null ? void 0 : nextMarker.start) != null ? _b4 : promptText.length).trim();
+  }
+  return promptText;
+}
+function mergeAdjacentAssistantMessages2(messages) {
+  var _a7, _b4;
+  const merged = [];
+  for (const message of messages) {
+    const previous = merged[merged.length - 1];
+    if (message.role === "assistant" && (previous == null ? void 0 : previous.role) === "assistant" && !message.isInterrupt && !previous.isInterrupt) {
+      previous.content += message.content;
+      previous.assistantMessageId = (_a7 = message.assistantMessageId) != null ? _a7 : previous.assistantMessageId;
+      previous.durationFlavorWord = (_b4 = message.durationFlavorWord) != null ? _b4 : previous.durationFlavorWord;
+      previous.durationSeconds = mergeAssistantDurationSeconds2(previous, message);
+      previous.toolCalls = mergeOptionalArrays2(previous.toolCalls, message.toolCalls);
+      previous.contentBlocks = mergeOptionalArrays2(previous.contentBlocks, message.contentBlocks);
+      continue;
+    }
+    merged.push(message);
+  }
+  return merged;
+}
+function mergeOptionalArrays2(left, right) {
+  if (!(left == null ? void 0 : left.length) && !(right == null ? void 0 : right.length)) {
+    return void 0;
+  }
+  return [
+    ...left != null ? left : [],
+    ...right != null ? right : []
+  ];
+}
+function mergeAssistantDurationSeconds2(first, next) {
+  const firstEnd = getMessageCompletionTime2(first);
+  const nextEnd = getMessageCompletionTime2(next);
+  if (firstEnd === null && nextEnd === null) {
+    return void 0;
+  }
+  const end = Math.max(firstEnd != null ? firstEnd : first.timestamp, nextEnd != null ? nextEnd : next.timestamp);
+  return Math.max(0, (end - first.timestamp) / 1e3);
+}
+function getMessageCompletionTime2(message) {
+  if (typeof message.durationSeconds !== "number") {
+    return null;
+  }
+  return message.timestamp + message.durationSeconds * 1e3;
+}
+function buildAssistantContentBlocks2(parts) {
+  var _a7;
+  const blocks = [];
+  for (const part of parts) {
+    switch (getString2(part.type)) {
+      case "reasoning": {
+        const text = (_a7 = getString2(part.text)) == null ? void 0 : _a7.trim();
+        if (!text) {
+          break;
+        }
+        blocks.push({
+          content: text,
+          durationSeconds: getDurationSeconds2(part),
+          type: "thinking"
+        });
+        break;
+      }
+      case "text": {
+        const text = getString2(part.text);
+        if (!text || getBoolean2(part.ignored)) {
+          break;
+        }
+        blocks.push({
+          content: text,
+          type: "text"
+        });
+        break;
+      }
+      case "tool": {
+        const toolId = getString2(part.callID);
+        if (!toolId) {
+          break;
+        }
+        blocks.push({
+          toolId,
+          type: "tool_use"
+        });
+        break;
+      }
+    }
+  }
+  return blocks;
+}
+function buildAssistantToolCalls2(parts) {
+  return parts.flatMap((part) => {
+    var _a7, _b4, _c3, _d3;
+    if (getString2(part.type) !== "tool") {
+      return [];
+    }
+    const id2 = getString2(part.callID);
+    const rawName = getString2(part.tool);
+    const state = getObject2(part.state);
+    const status = mapToolStatus2(getString2(state == null ? void 0 : state.status));
+    if (!id2 || !rawName || !status) {
+      return [];
+    }
+    const input = normalizeMimocodeToolInput(rawName, (_a7 = getObject2(state == null ? void 0 : state.input)) != null ? _a7 : {});
+    const name = normalizeMimocodeToolName(rawName);
+    const result = (_c3 = (_b4 = getString2(state == null ? void 0 : state.output)) != null ? _b4 : getString2(state == null ? void 0 : state.error)) != null ? _c3 : void 0;
+    const toolUseResult = normalizeMimocodeToolUseResult(rawName, input, {
+      ...result ? { output: result } : {},
+      ...getObject2(state == null ? void 0 : state.metadata) ? { metadata: getObject2(state == null ? void 0 : state.metadata) } : {}
+    });
+    const toolCall = {
+      id: id2,
+      input,
+      name,
+      result,
+      status
+    };
+    if (name === TOOL_ASK_USER_QUESTION) {
+      toolCall.resolvedAnswers = (_d3 = toolUseResult == null ? void 0 : toolUseResult.answers) != null ? _d3 : extractResolvedAnswersFromResultText(result);
+    }
+    if (status === "completed" && isWriteEditTool(name)) {
+      const diffData = extractDiffData(toolUseResult, toolCall);
+      if (diffData) {
+        toolCall.diffData = diffData;
+      }
+    }
+    return [toolCall];
+  });
+}
+function getJoinedTextParts2(parts) {
+  return parts.filter((part) => getString2(part.type) === "text" && !getBoolean2(part.ignored)).map((part) => {
+    var _a7;
+    return (_a7 = getString2(part.text)) != null ? _a7 : "";
+  }).join("");
+}
+function getDurationSeconds2(part) {
+  const start = getNestedNumber2(part, ["time", "start"]);
+  const end = getNestedNumber2(part, ["time", "end"]);
+  if (start === null || end === null || end < start) {
+    return void 0;
+  }
+  return Math.max(0, (end - start) / 1e3);
+}
+function mapToolStatus2(status) {
+  switch (status) {
+    case "pending":
+    case "running":
+      return "running";
+    case "completed":
+      return "completed";
+    case "error":
+      return "error";
+    default:
+      return null;
+  }
+}
+function parseJsonObject3(value) {
+  if (typeof value !== "string") {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(value);
+    return isPlainObject11(parsed) ? parsed : null;
+  } catch (e) {
+    return null;
+  }
+}
+function isPlainObject11(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+function getBoolean2(value) {
+  return value === true;
+}
+function getObject2(value) {
+  return isPlainObject11(value) ? value : null;
+}
+function getString2(value) {
+  return typeof value === "string" ? value : null;
+}
+function getNumber2(value) {
+  return typeof value === "number" ? value : null;
+}
+function getNestedNumber2(value, keys) {
+  let current = value;
+  for (const key of keys) {
+    if (!isPlainObject11(current)) {
+      return null;
+    }
+    current = current[key];
+  }
+  return getNumber2(current);
+}
+async function loadSqliteModule4() {
+  try {
+    return await import("node:sqlite");
+  } catch (e) {
+    return null;
+  }
+}
+async function loadMimocodeSessionRows(databasePath, sessionId) {
+  const viaNodeSqlite = await loadSessionRowsWithNodeSqlite2(databasePath, sessionId);
+  if (viaNodeSqlite) {
+    return viaNodeSqlite;
+  }
+  return loadSessionRowsWithSqliteCli2(databasePath, sessionId);
+}
+async function loadSessionRowsWithNodeSqlite2(databasePath, sessionId) {
+  const sqlite = await loadSqliteModule4();
+  if (!sqlite) {
+    return null;
+  }
+  let db2 = null;
+  try {
+    db2 = new sqlite.DatabaseSync(databasePath, { readonly: true });
+    const messageRows = db2.prepare(
+      "select id, time_created, data from message where session_id = ? order by time_created asc, id asc"
+    ).all(sessionId);
+    const partRows = db2.prepare(
+      "select id, message_id, data from part where session_id = ? order by message_id asc, id asc"
+    ).all(sessionId);
+    return { messageRows, partRows };
+  } catch (e) {
+    return null;
+  } finally {
+    db2 == null ? void 0 : db2.close();
+  }
+}
+function loadSessionRowsWithSqliteCli2(databasePath, sessionId) {
+  const escapedSessionId = escapeSqlLiteral4(sessionId);
+  const messageRows = runSqlite3JsonQuery2(
+    databasePath,
+    `select id, time_created, data from message where session_id = '${escapedSessionId}' order by time_created asc, id asc;`
+  );
+  const partRows = runSqlite3JsonQuery2(
+    databasePath,
+    `select id, message_id, data from part where session_id = '${escapedSessionId}' order by message_id asc, id asc;`
+  );
+  if (!messageRows || !partRows) {
+    return null;
+  }
+  return { messageRows, partRows };
+}
+function runSqlite3JsonQuery2(databasePath, sql) {
+  const result = (0, import_node_child_process7.spawnSync)(
+    "sqlite3",
+    ["-json", databasePath, sql],
+    {
+      encoding: "utf8"
+    }
+  );
+  if (result.error || result.status !== 0) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(result.stdout || "[]");
+    return Array.isArray(parsed) ? parsed.filter((row) => isPlainObject11(row)) : null;
+  } catch (e) {
+    return null;
+  }
+}
+function escapeSqlLiteral4(value) {
+  return value.replaceAll("'", "''");
+}
+
+// src/providers/mimocode/history/MimocodeConversationHistoryService.ts
+var MimocodeConversationHistoryService = class {
+  constructor() {
+    this.hydratedKeys = /* @__PURE__ */ new Map();
+  }
+  async hydrateConversationHistory(conversation, _vaultPath) {
+    var _a7;
+    const sessionId = conversation.sessionId;
+    if (!sessionId) {
+      this.hydratedKeys.delete(conversation.id);
+      return;
+    }
+    const state = getMimocodeState(conversation.providerState);
+    const hydrationKey = `${sessionId}::${(_a7 = state.databasePath) != null ? _a7 : ""}`;
+    if (conversation.messages.length > 0 && this.hydratedKeys.get(conversation.id) === hydrationKey) {
+      return;
+    }
+    const messages = await loadMimocodeSessionMessages(sessionId, state);
+    if (messages.length === 0) {
+      this.hydratedKeys.delete(conversation.id);
+      return;
+    }
+    conversation.messages = messages;
+    this.hydratedKeys.set(conversation.id, hydrationKey);
+  }
+  async deleteConversationSession(_conversation, _vaultPath) {
+  }
+  resolveSessionIdForConversation(conversation) {
+    var _a7;
+    return (_a7 = conversation == null ? void 0 : conversation.sessionId) != null ? _a7 : null;
+  }
+  isPendingForkConversation(_conversation) {
+    return false;
+  }
+  buildForkProviderState(_sourceSessionId, _resumeAt, _sourceProviderState) {
+    return {};
+  }
+  buildPersistedProviderState(conversation) {
+    const state = getMimocodeState(conversation.providerState);
+    const providerState = {
+      ...state.databasePath ? { databasePath: state.databasePath } : {}
+    };
+    return Object.keys(providerState).length > 0 ? providerState : void 0;
+  }
+};
+
+// src/providers/mimocode/registration.ts
+var mimocodeProviderRegistration = {
+  blankTabOrder: 10,
+  capabilities: MIMOCODE_PROVIDER_CAPABILITIES,
+  chatUIConfig: mimocodeChatUIConfig,
+  createInlineEditService: (plugin) => new MimocodeInlineEditService(plugin),
+  createInstructionRefineService: (plugin) => new MimocodeInstructionRefineService(plugin),
+  createRuntime: ({ plugin }) => new MimocodeChatRuntime(plugin),
+  createTitleGenerationService: (plugin) => new MimocodeTitleGenerationService(plugin),
+  displayName: "MiMo Code",
+  environmentKeyPatterns: [/^MIMOCODE_/i],
+  historyService: new MimocodeConversationHistoryService(),
+  isEnabled: (settings11) => getMimocodeProviderSettings(settings11).enabled,
+  settingsReconciler: mimocodeSettingsReconciler,
+  taskResultInterpreter: new MimocodeTaskResultInterpreter()
+};
+
+// src/providers/opencode/agents/OpencodeAgentMentionProvider.ts
+var OpencodeAgentMentionProvider = class {
+  constructor(storage) {
+    this.storage = storage;
+    this.agents = [];
+  }
+  async loadAgents() {
+    this.agents = await this.storage.loadAll();
+  }
+  searchAgents(query) {
+    const q = query.toLowerCase();
+    return this.agents.filter((agent) => isMentionableSubagent3(agent)).filter((agent) => agent.name.toLowerCase().includes(q) || agent.description.toLowerCase().includes(q)).map((agent) => ({
+      id: agent.name,
+      name: agent.name,
+      description: agent.description,
+      source: "vault"
+    }));
+  }
+};
+function isMentionableSubagent3(agent) {
+  if (agent.hidden || agent.disable) {
+    return false;
+  }
+  return agent.mode === "subagent";
+}
+
+// src/providers/opencode/commands/OpencodeCommandCatalog.ts
+function slashCommandToEntry4(command) {
+  var _a7;
+  return {
+    id: command.id,
+    providerId: "opencode",
+    kind: "command",
+    name: command.name,
+    description: command.description,
+    content: command.content,
+    argumentHint: command.argumentHint,
+    allowedTools: command.allowedTools,
+    model: command.model,
+    disableModelInvocation: command.disableModelInvocation,
+    userInvocable: command.userInvocable,
+    context: command.context,
+    agent: command.agent,
+    hooks: command.hooks,
+    scope: "runtime",
+    source: (_a7 = command.source) != null ? _a7 : "sdk",
+    isEditable: false,
+    isDeletable: false,
+    displayPrefix: "/",
+    insertPrefix: "/"
+  };
+}
+function dedupeRuntimeCommands3(commands) {
+  const deduped = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const command of commands) {
+    const normalizedName = command.name.trim().replace(/^\/+/, "");
+    if (!normalizedName) {
+      continue;
+    }
+    const key = normalizedName.toLowerCase();
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    deduped.push({
+      ...command,
+      name: normalizedName
+    });
+  }
+  return deduped;
+}
+var OpencodeCommandCatalog = class {
+  constructor() {
+    this.runtimeCommands = [];
+  }
+  setRuntimeCommands(commands) {
+    this.runtimeCommands = dedupeRuntimeCommands3(commands);
+  }
+  async listDropdownEntries(_context) {
+    return this.runtimeCommands.map(slashCommandToEntry4);
+  }
+  async listVaultEntries() {
+    return [];
+  }
+  async saveVaultEntry(_entry) {
+    throw new Error("OpenCode runtime commands are not editable from Grimoire.");
+  }
+  async deleteVaultEntry(_entry) {
+    throw new Error("OpenCode runtime commands are not deletable from Grimoire.");
+  }
+  getDropdownConfig() {
+    return {
+      providerId: "opencode",
+      triggerChars: ["/"],
+      builtInPrefix: "/",
+      skillPrefix: "/",
+      commandPrefix: "/"
+    };
+  }
+  async refresh() {
+  }
+};
+
+// src/providers/opencode/runtime/OpencodeChatRuntime.ts
+var fs42 = __toESM(require("node:fs/promises"));
+var path31 = __toESM(require("node:path"));
+init_env();
+init_path();
+
+// src/providers/opencode/app/OpencodePlanUsageStore.ts
+var OPENCODE_USAGE_NOTE = "Pay per token across vendors \xB7 no cap set.";
+var OpencodePlanUsageStore = class extends ProviderSpendUsageStore {
+  constructor() {
+    super({
+      plan: "API keys",
+      note: OPENCODE_USAGE_NOTE,
+      isAvailable: (settings11) => getOpencodeProviderSettings(settings11).enabled
+    });
+    this.sessionTotals = /* @__PURE__ */ new Map();
+  }
+  recordSessionTotalCost(sessionId, cost) {
+    var _a7;
+    const amount = cost == null ? void 0 : cost.amount;
+    if (!sessionId || typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0) {
+      return false;
+    }
+    const currency = normalizeCurrency4(cost == null ? void 0 : cost.currency);
+    const key = `${sessionId}:${currency}`;
+    const previous = (_a7 = this.sessionTotals.get(key)) != null ? _a7 : 0;
+    this.sessionTotals.set(key, amount);
+    if (amount <= previous) {
+      return false;
+    }
+    return this.recordCost({
+      amount: amount - previous,
+      currency
+    });
+  }
+  reset() {
+    super.reset();
+    this.sessionTotals.clear();
+  }
+};
+var opencodePlanUsageStore = new OpencodePlanUsageStore();
+function normalizeCurrency4(currency) {
+  const normalized = currency == null ? void 0 : currency.trim().toUpperCase();
+  return normalized || "USD";
+}
+
+// src/providers/opencode/capabilities.ts
+var OPENCODE_PROVIDER_CAPABILITIES = Object.freeze({
+  providerId: "opencode",
+  supportsPersistentRuntime: true,
+  supportsNativeHistory: true,
+  supportsPlanMode: true,
+  supportsRewind: false,
+  supportsFork: false,
+  supportsProviderCommands: true,
+  supportsImageAttachments: true,
+  supportsInstructionMode: true,
+  supportsMcpTools: false,
+  supportsTurnSteer: false,
+  reasoningControl: "effort"
+});
+
+// src/providers/opencode/history/OpencodeUsageMetadataStore.ts
+var import_node_child_process8 = require("node:child_process");
+var fs40 = __toESM(require("node:fs"));
+
+// src/providers/opencode/runtime/OpencodePaths.ts
+var fs39 = __toESM(require("node:fs"));
+var os15 = __toESM(require("node:os"));
+var path29 = __toESM(require("node:path"));
+var OPENCODE_APP_NAME = "opencode";
+var DEFAULT_DATABASE_NAME3 = "opencode.db";
+var DATABASE_NAME_PATTERN3 = /^opencode(?:-[a-z0-9._-]+)?\.db$/i;
+function resolveOpencodeDataDir(env = process.env) {
+  var _a7;
+  const xdgDataHome = (_a7 = env.XDG_DATA_HOME) == null ? void 0 : _a7.trim();
+  if (xdgDataHome) {
+    return path29.join(xdgDataHome, OPENCODE_APP_NAME);
+  }
+  const home = env.HOME || os15.homedir();
+  if (process.platform === "win32") {
+    const appData = env.APPDATA || env.LOCALAPPDATA || path29.join(home, "AppData", "Roaming");
+    return path29.join(appData, OPENCODE_APP_NAME);
+  }
+  return path29.join(home, ".local", "share", OPENCODE_APP_NAME);
+}
+function resolveOpencodeDatabasePath(env = process.env) {
+  var _a7, _b4;
+  const override = (_a7 = env.OPENCODE_DB) == null ? void 0 : _a7.trim();
+  if (override) {
+    if (override === ":memory:" || path29.isAbsolute(override)) {
+      return override;
+    }
+    return path29.join(resolveOpencodeDataDir(env), override);
+  }
+  const candidates = getOpencodeDatabasePathCandidates(env);
+  for (const candidate of candidates) {
+    if (fs39.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return (_b4 = candidates[0]) != null ? _b4 : null;
+}
+function resolveExistingOpencodeDatabasePath(preferredPath, env = process.env) {
+  const preferred = preferredPath == null ? void 0 : preferredPath.trim();
+  if (preferred) {
+    if (preferred === ":memory:") {
+      return preferred;
+    }
+    if (fs39.existsSync(preferred)) {
+      return preferred;
+    }
+  }
+  const resolved = resolveOpencodeDatabasePath(env);
+  if (resolved && (resolved === ":memory:" || fs39.existsSync(resolved))) {
+    return resolved;
+  }
+  return preferred != null ? preferred : resolved;
+}
+function getOpencodeDatabasePathCandidates(env) {
+  const candidates = [];
+  const seen = /* @__PURE__ */ new Set();
+  const home = env.HOME || os15.homedir();
+  const dataDirs = [
+    resolveOpencodeDataDir(env),
+    path29.join(home, "Library", "Application Support", OPENCODE_APP_NAME)
+  ];
+  for (const dataDir of dataDirs) {
+    pushCandidate3(candidates, seen, path29.join(dataDir, DEFAULT_DATABASE_NAME3));
+    try {
+      const matches = fs39.readdirSync(dataDir).filter((entry) => DATABASE_NAME_PATTERN3.test(entry)).sort((left, right) => {
+        if (left === DEFAULT_DATABASE_NAME3) return -1;
+        if (right === DEFAULT_DATABASE_NAME3) return 1;
+        return left.localeCompare(right);
+      });
+      for (const entry of matches) {
+        pushCandidate3(candidates, seen, path29.join(dataDir, entry));
+      }
+    } catch (e) {
+    }
+  }
+  return candidates;
+}
+function pushCandidate3(candidates, seen, candidate) {
+  if (seen.has(candidate)) {
+    return;
+  }
+  seen.add(candidate);
+  candidates.push(candidate);
+}
+
+// src/providers/opencode/history/OpencodeUsageMetadataStore.ts
+async function loadOpencodeSessionCost(sessionId, providerState) {
+  const databasePath = resolveExistingOpencodeDatabasePath(providerState == null ? void 0 : providerState.databasePath);
+  if (!sessionId || !databasePath || databasePath === ":memory:" || !fs40.existsSync(databasePath)) {
+    return null;
+  }
+  const messageCost = sumOpencodeCostRows(await loadOpencodeCostRows(databasePath, sessionId, "message"));
+  if (messageCost) {
+    return messageCost;
+  }
+  return sumOpencodeCostRows(await loadOpencodeCostRows(databasePath, sessionId, "step"));
+}
+function sumOpencodeCostRows(rows) {
+  const amount = (rows != null ? rows : []).map((row) => readCostAmount3(row.cost)).filter((cost) => cost !== null && cost > 0).reduce((total, cost) => total + cost, 0);
+  return amount > 0 ? { amount, currency: "USD" } : null;
+}
+async function loadOpencodeCostRows(databasePath, sessionId, source) {
+  const viaNodeSqlite = await loadCostRowsWithNodeSqlite3(databasePath, sessionId, source);
+  if (viaNodeSqlite) {
+    return viaNodeSqlite;
+  }
+  return loadCostRowsWithSqliteCli3(databasePath, sessionId, source);
+}
+async function loadSqliteModule5() {
+  try {
+    return await import("node:sqlite");
+  } catch (e) {
+    return null;
+  }
+}
+async function loadCostRowsWithNodeSqlite3(databasePath, sessionId, source) {
+  const sqlite = await loadSqliteModule5();
+  if (!sqlite) {
+    return null;
+  }
+  let db2 = null;
+  try {
+    db2 = new sqlite.DatabaseSync(databasePath, { readonly: true });
+    return db2.prepare(buildCostQuery3(source, "?")).all(sessionId);
+  } catch (e) {
+    return null;
+  } finally {
+    db2 == null ? void 0 : db2.close();
+  }
+}
+function loadCostRowsWithSqliteCli3(databasePath, sessionId, source) {
+  const result = (0, import_node_child_process8.spawnSync)(
+    "sqlite3",
+    [
+      "-json",
+      databasePath,
+      `${buildCostQuery3(source, `'${escapeSqlLiteral5(sessionId)}'`)};`
+    ],
+    {
+      encoding: "utf8"
+    }
+  );
+  if (result.error || result.status !== 0) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(result.stdout || "[]");
+    return Array.isArray(parsed) ? parsed.filter((row) => isPlainObject12(row)) : null;
+  } catch (e) {
+    return null;
+  }
+}
+function buildCostQuery3(source, sessionPlaceholder) {
+  if (source === "message") {
+    return [
+      "select json_extract(data, '$.cost') as cost",
+      "from message",
+      `where session_id = ${sessionPlaceholder}`,
+      "and json_extract(data, '$.role') = 'assistant'"
+    ].join(" ");
+  }
+  return [
+    "select json_extract(data, '$.cost') as cost",
+    "from part",
+    `where session_id = ${sessionPlaceholder}`,
+    "and json_extract(data, '$.type') = 'step-finish'"
+  ].join(" ");
+}
+function readCostAmount3(value) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string") {
+    const parsed = Number(value.trim());
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+function escapeSqlLiteral5(value) {
+  return value.replace(/'/g, "''");
+}
+function isPlainObject12(value) {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+// src/providers/opencode/normalization/opencodeToolNormalization.ts
+var TOOL_NAME_MAP4 = {
+  bash: TOOL_BASH,
+  edit: TOOL_EDIT,
+  glob: TOOL_GLOB,
+  grep: TOOL_GREP,
+  question: TOOL_ASK_USER_QUESTION,
+  read: TOOL_READ,
+  skill: TOOL_SKILL,
+  task: TOOL_TASK,
+  todowrite: TOOL_TODO_WRITE,
+  webfetch: TOOL_WEB_FETCH,
+  websearch: TOOL_WEB_SEARCH,
+  write: TOOL_WRITE
+};
+function isPlainObject13(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+function isKnownToolName3(value) {
+  if (typeof value !== "string") {
+    return false;
+  }
+  return value.trim().toLowerCase() in TOOL_NAME_MAP4;
+}
+function toKnownToolName3(value) {
+  if (!value) {
+    return null;
+  }
+  const normalized = value.trim().toLowerCase();
+  return isKnownToolName3(normalized) ? normalized : null;
+}
+function firstString4(...values) {
+  for (const value of values) {
+    if (typeof value === "string") {
+      return value;
+    }
+  }
+  return void 0;
+}
+function firstTrimmedString3(...values) {
+  for (const value of values) {
+    if (typeof value !== "string") {
+      continue;
+    }
+    const trimmed = value.trim();
+    if (trimmed.length > 0) {
+      return trimmed;
+    }
+  }
+  return void 0;
+}
+function firstNonEmptyString4(...values) {
+  var _a7;
+  return (_a7 = firstTrimmedString3(...values)) != null ? _a7 : "";
+}
+function normalizeStringArray5(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const uniqueValues = /* @__PURE__ */ new Set();
+  for (const entry of value) {
+    if (typeof entry !== "string") {
+      continue;
+    }
+    const trimmed = entry.trim();
+    if (!trimmed) {
+      continue;
+    }
+    uniqueValues.add(trimmed);
+  }
+  return [...uniqueValues];
+}
+function normalizeQuestionOptions3(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.flatMap((option) => {
+    if (typeof option === "string") {
+      const label2 = option.trim();
+      return label2 ? [{ description: "", label: label2 }] : [];
+    }
+    if (!isPlainObject13(option)) {
+      return [];
+    }
+    const label = typeof option.label === "string" ? option.label.trim() : "";
+    if (!label) {
+      return [];
+    }
+    return [{
+      description: typeof option.description === "string" ? option.description : "",
+      label
+    }];
+  });
+}
+function normalizeQuestionItems3(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.map((item, index) => {
+    var _a7, _b4;
+    const record2 = isPlainObject13(item) ? item : {};
+    const question = (_a7 = firstTrimmedString3(record2.question)) != null ? _a7 : `Question ${index + 1}`;
+    const header = (_b4 = firstTrimmedString3(record2.header)) != null ? _b4 : `Q${index + 1}`;
+    return {
+      ...typeof record2.id === "string" && record2.id.trim() ? { id: record2.id } : {},
+      header,
+      multiSelect: record2.multiSelect === true || record2.multi_select === true || record2.multiple === true,
+      options: normalizeQuestionOptions3(record2.options),
+      question
+    };
+  });
+}
+function normalizeTodoStatus3(value) {
+  switch (value) {
+    case "completed":
+    case "cancelled":
+      return "completed";
+    case "in_progress":
+      return "in_progress";
+    default:
+      return "pending";
+  }
+}
+function normalizeTodos3(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.flatMap((item) => {
+    var _a7;
+    if (!isPlainObject13(item)) {
+      return [];
+    }
+    const content = firstTrimmedString3(item.content, item.title, item.description);
+    if (!content) {
+      return [];
+    }
+    return [{
+      activeForm: (_a7 = firstTrimmedString3(item.activeForm, item.active_form)) != null ? _a7 : content,
+      content,
+      ...typeof item.id === "string" ? { id: item.id } : {},
+      status: normalizeTodoStatus3(item.status)
+    }];
+  });
+}
+function normalizeQuestionAnswers3(rawAnswers, questions) {
+  if (!Array.isArray(rawAnswers) || questions.length === 0) {
+    return void 0;
+  }
+  const answers = {};
+  for (let index = 0; index < Math.min(rawAnswers.length, questions.length); index += 1) {
+    const question = questions[index];
+    const rawEntry = rawAnswers[index];
+    if (!question) {
+      continue;
+    }
+    const values = Array.isArray(rawEntry) ? rawEntry.filter((value) => typeof value === "string" && value.trim().length > 0) : typeof rawEntry === "string" && rawEntry.trim().length > 0 ? [rawEntry] : [];
+    if (values.length === 0) {
+      continue;
+    }
+    const normalizedValue = values.length === 1 ? values[0] : values;
+    answers[question.question] = normalizedValue;
+    if (question.id) {
+      answers[question.id] = normalizedValue;
+    }
+  }
+  return Object.keys(answers).length > 0 ? answers : void 0;
+}
+function extractToolMetadata3(rawOutput) {
+  if (!isPlainObject13(rawOutput)) {
+    return null;
+  }
+  return isPlainObject13(rawOutput.metadata) ? rawOutput.metadata : null;
+}
+function resolveOpencodeRawToolName(currentRawName, update) {
+  const titleName = firstTrimmedString3(update.title);
+  const knownTitleName = titleName && isKnownToolName3(titleName) ? titleName.trim().toLowerCase() : void 0;
+  if (knownTitleName) {
+    return knownTitleName;
+  }
+  if (currentRawName) {
+    return currentRawName;
+  }
+  switch (update.kind) {
+    case "execute":
+      return "bash";
+    case "fetch":
+      return "webfetch";
+    case "read":
+      return "read";
+    default:
+      return titleName != null ? titleName : "tool";
+  }
+}
+function normalizeWebSearchInput4(input) {
+  var _a7;
+  const action = isPlainObject13(input.action) ? input.action : {};
+  const queries = normalizeStringArray5((_a7 = action.queries) != null ? _a7 : input.queries);
+  const query = firstNonEmptyString4(action.query, input.query, queries[0]);
+  const url2 = firstNonEmptyString4(action.url, input.url);
+  const pattern = firstNonEmptyString4(action.pattern, input.pattern);
+  const explicitType = firstNonEmptyString4(action.type, input.actionType, input.action_type);
+  const actionType = explicitType || (url2 && pattern ? "find_in_page" : url2 ? "open_page" : query || queries.length > 0 ? "search" : "");
+  const normalized = {};
+  if (actionType) {
+    normalized.actionType = actionType;
+  }
+  if (query) {
+    normalized.query = query;
+  }
+  if (queries.length > 0) {
+    normalized.queries = queries;
+  }
+  if (url2) {
+    normalized.url = url2;
+  }
+  if (pattern) {
+    normalized.pattern = pattern;
+  }
+  return normalized;
+}
+function normalizeOpencodeToolName(rawName) {
+  const knownName = toKnownToolName3(rawName);
+  if (!knownName) {
+    return (rawName == null ? void 0 : rawName.trim()) || "tool";
+  }
+  return TOOL_NAME_MAP4[knownName];
+}
+function normalizeOpencodeToolInput(rawName, input) {
+  const knownName = toKnownToolName3(rawName);
+  switch (knownName) {
+    case "question":
+      return { questions: normalizeQuestionItems3(input.questions) };
+    case "read":
+      return {
+        ...firstString4(input.file_path, input.filePath) ? { file_path: firstString4(input.file_path, input.filePath) } : {},
+        ...typeof input.limit === "number" ? { limit: input.limit } : {},
+        ...typeof input.offset === "number" ? { offset: input.offset } : {}
+      };
+    case "write":
+      return {
+        ...typeof input.content === "string" ? { content: input.content } : {},
+        ...firstString4(input.file_path, input.filePath) ? { file_path: firstString4(input.file_path, input.filePath) } : {}
+      };
+    case "edit":
+      return {
+        ...firstString4(input.file_path, input.filePath) ? { file_path: firstString4(input.file_path, input.filePath) } : {},
+        ...firstString4(input.old_string, input.oldString) ? { old_string: firstString4(input.old_string, input.oldString) } : {},
+        ...firstString4(input.new_string, input.newString) ? { new_string: firstString4(input.new_string, input.newString) } : {},
+        ...typeof input.replace_all === "boolean" ? { replace_all: input.replace_all } : typeof input.replaceAll === "boolean" ? { replace_all: input.replaceAll } : {}
+      };
+    case "task":
+      return {
+        ...firstTrimmedString3(input.command) ? { command: firstTrimmedString3(input.command) } : {},
+        ...firstTrimmedString3(input.description) ? { description: firstTrimmedString3(input.description) } : {},
+        ...firstTrimmedString3(input.prompt) ? { prompt: firstTrimmedString3(input.prompt) } : {},
+        ...input.run_in_background === true || input.run_in_background === false ? { run_in_background: input.run_in_background } : {},
+        ...firstTrimmedString3(input.subagent_type) ? { subagent_type: firstTrimmedString3(input.subagent_type) } : {},
+        ...firstTrimmedString3(input.task_id) ? { task_id: firstTrimmedString3(input.task_id) } : {}
+      };
+    case "todowrite":
+      return { todos: normalizeTodos3(input.todos) };
+    case "skill":
+      return firstTrimmedString3(input.skill, input.name) ? { skill: firstTrimmedString3(input.skill, input.name) } : {};
+    case "websearch":
+      return normalizeWebSearchInput4(input);
+    default:
+      return input;
+  }
+}
+function normalizeOpencodeToolUseResult(rawName, input, rawOutput) {
+  const knownName = toKnownToolName3(rawName);
+  const metadata = extractToolMetadata3(rawOutput);
+  const normalized = {};
+  if ((knownName === "write" || knownName === "edit") && firstString4(input.file_path, input.filePath, metadata == null ? void 0 : metadata.filepath, metadata == null ? void 0 : metadata.filePath)) {
+    normalized.filePath = firstString4(input.file_path, input.filePath, metadata == null ? void 0 : metadata.filepath, metadata == null ? void 0 : metadata.filePath);
+  }
+  if (knownName === "question") {
+    const questions = Array.isArray(input.questions) ? input.questions : [];
+    const answers = normalizeQuestionAnswers3(metadata == null ? void 0 : metadata.answers, questions);
     if (answers) {
       normalized.answers = answers;
     }
@@ -83877,8 +94947,8 @@ function buildOpencodePromptBlocks(request, conversationHistory = [], options = 
 }
 
 // src/providers/opencode/runtime/OpencodeLaunchArtifacts.ts
-var fs25 = __toESM(require("node:fs/promises"));
-var path20 = __toESM(require("node:path"));
+var fs41 = __toESM(require("node:fs/promises"));
+var path30 = __toESM(require("node:path"));
 init_path();
 var DEFAULT_OPENCODE_MANAGED_AGENT_CONFIGS = [
   { id: OPENCODE_BUILD_MODE_ID },
@@ -83909,17 +94979,17 @@ var DEFAULT_OPENCODE_MANAGED_AGENT_CONFIGS = [
 ];
 async function prepareOpencodeLaunchArtifacts(params) {
   var _a7, _b4, _c3, _d3, _e3, _f3;
-  const artifactsDir = path20.join(
+  const artifactsDir = path30.join(
     params.workspaceRoot,
     GRIMOIRE_STORAGE_PATH,
     (_a7 = params.artifactsSubdir) != null ? _a7 : "opencode"
   );
-  const systemPromptPath = path20.join(artifactsDir, "system.md");
-  const configPath = path20.join(artifactsDir, "config.json");
-  const systemPrompt = normalizeSystemPrompt(
-    (_b4 = params.systemPromptText) != null ? _b4 : buildSystemPrompt(requireSettings(params))
+  const systemPromptPath = path30.join(artifactsDir, "system.md");
+  const configPath = path30.join(artifactsDir, "config.json");
+  const systemPrompt = normalizeSystemPrompt3(
+    (_b4 = params.systemPromptText) != null ? _b4 : buildSystemPrompt(requireSettings3(params))
   );
-  const promptKey = (_c3 = params.systemPromptKey) != null ? _c3 : params.systemPromptText !== void 0 ? params.systemPromptText : computeSystemPromptKey(requireSettings(params));
+  const promptKey = (_c3 = params.systemPromptKey) != null ? _c3 : params.systemPromptText !== void 0 ? params.systemPromptText : computeSystemPromptKey(requireSettings3(params));
   const baseConfig = await loadOpencodeBaseConfig(
     params.runtimeEnv.OPENCODE_CONFIG,
     params.workspaceRoot
@@ -83937,10 +95007,10 @@ async function prepareOpencodeLaunchArtifacts(params) {
   )}
 `;
   const databasePath = resolveOpencodeDatabasePath(params.runtimeEnv);
-  await fs25.mkdir(artifactsDir, { recursive: true });
+  await fs41.mkdir(artifactsDir, { recursive: true });
   await ensureOpencodeDatabaseDirectory(databasePath);
-  await writeIfChanged(systemPromptPath, systemPrompt);
-  await writeIfChanged(configPath, configContent);
+  await writeIfChanged3(systemPromptPath, systemPrompt);
+  await writeIfChanged3(configPath, configContent);
   return {
     configPath,
     configContent,
@@ -83958,22 +95028,22 @@ async function ensureOpencodeDatabaseDirectory(databasePath) {
   if (!databasePath || databasePath === ":memory:") {
     return;
   }
-  await fs25.mkdir(path20.dirname(databasePath), { recursive: true });
+  await fs41.mkdir(path30.dirname(databasePath), { recursive: true });
 }
 function buildOpencodeManagedConfig(baseConfig, systemPromptPath, userName, managedAgents = DEFAULT_OPENCODE_MANAGED_AGENT_CONFIGS, defaultAgentId) {
   const config2 = {
     ...baseConfig,
     $schema: typeof baseConfig.$schema === "string" ? baseConfig.$schema : "https://opencode.ai/config.json"
   };
-  const existingAgents = isPlainObject6(baseConfig.agent) ? { ...baseConfig.agent } : {};
+  const existingAgents = isPlainObject14(baseConfig.agent) ? { ...baseConfig.agent } : {};
   const nextAgents = { ...existingAgents };
   const agentConfigs = managedAgents.length > 0 ? managedAgents : DEFAULT_OPENCODE_MANAGED_AGENT_CONFIGS;
   for (const agentConfig of agentConfigs) {
     const existingAgentValue = existingAgents[agentConfig.id];
-    const existingAgent = isPlainObject6(existingAgentValue) ? { ...existingAgentValue } : {};
+    const existingAgent = isPlainObject14(existingAgentValue) ? { ...existingAgentValue } : {};
     nextAgents[agentConfig.id] = {
       ...existingAgent,
-      ...isPlainObject6(agentConfig.definition) ? agentConfig.definition : {},
+      ...isPlainObject14(agentConfig.definition) ? agentConfig.definition : {},
       prompt: `{file:${systemPromptPath}}`
     };
   }
@@ -83988,15 +95058,15 @@ function buildOpencodeManagedConfig(baseConfig, systemPromptPath, userName, mana
   }
   return config2;
 }
-async function writeIfChanged(filePath, content) {
+async function writeIfChanged3(filePath, content) {
   try {
-    const existing = await fs25.readFile(filePath, "utf-8");
+    const existing = await fs41.readFile(filePath, "utf-8");
     if (existing === content) {
       return;
     }
   } catch (e) {
   }
-  await fs25.writeFile(filePath, content, "utf-8");
+  await fs41.writeFile(filePath, content, "utf-8");
 }
 async function loadOpencodeBaseConfig(configuredPath, workspaceRoot) {
   const trimmedPath = configuredPath == null ? void 0 : configuredPath.trim();
@@ -84004,23 +95074,23 @@ async function loadOpencodeBaseConfig(configuredPath, workspaceRoot) {
     return {};
   }
   const expandedPath = expandHomePath(trimmedPath);
-  const resolvedPath = path20.isAbsolute(expandedPath) ? expandedPath : path20.resolve(workspaceRoot, expandedPath);
+  const resolvedPath = path30.isAbsolute(expandedPath) ? expandedPath : path30.resolve(workspaceRoot, expandedPath);
   try {
-    const rawConfig = await fs25.readFile(resolvedPath, "utf8");
+    const rawConfig = await fs41.readFile(resolvedPath, "utf8");
     const parsedConfig = JSON.parse(rawConfig);
-    return isPlainObject6(parsedConfig) ? parsedConfig : {};
+    return isPlainObject14(parsedConfig) ? parsedConfig : {};
   } catch (e) {
     return {};
   }
 }
-function isPlainObject6(value) {
+function isPlainObject14(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
-function normalizeSystemPrompt(systemPrompt) {
+function normalizeSystemPrompt3(systemPrompt) {
   return systemPrompt.endsWith("\n") ? systemPrompt : `${systemPrompt}
 `;
 }
-function requireSettings(params) {
+function requireSettings3(params) {
   if (params.settings) {
     return params.settings;
   }
@@ -84042,7 +95112,7 @@ function buildOpencodeRuntimeEnv(settings11, cliPath, databasePathOverride) {
 }
 
 // src/providers/opencode/runtime/OpencodeChatRuntime.ts
-var StreamChunkQueue2 = class {
+var StreamChunkQueue4 = class {
   constructor() {
     this.closed = false;
     this.items = [];
@@ -84074,8 +95144,8 @@ var StreamChunkQueue2 = class {
     if (this.closed) {
       return null;
     }
-    return new Promise((resolve7) => {
-      this.waiters.push(resolve7);
+    return new Promise((resolve9) => {
+      this.waiters.push(resolve9);
     });
   }
 };
@@ -84284,7 +95354,7 @@ var OpencodeChatRuntime = class {
     const sessionId = this.sessionId;
     (_b4 = this.activeTurn) == null ? void 0 : _b4.queue.close();
     this.activeTurn = {
-      queue: new StreamChunkQueue2(),
+      queue: new StreamChunkQueue4(),
       sawOutput: false,
       sessionId
     };
@@ -84490,7 +95560,7 @@ var OpencodeChatRuntime = class {
       OPENCODE_CONFIG: params.configPath,
       PATH: getEnhancedPath(
         params.runtimeEnv.PATH,
-        path21.isAbsolute(params.command) ? params.command : void 0
+        path31.isAbsolute(params.command) ? params.command : void 0
       )
     };
     this.process = new AcpSubprocess({
@@ -85004,7 +96074,7 @@ var OpencodeChatRuntime = class {
     if (!this.approvalCallback) {
       return { outcome: { outcome: "cancelled" } };
     }
-    const input = normalizeApprovalInput(request.toolCall.rawInput);
+    const input = normalizeApprovalInput3(request.toolCall.rawInput);
     const presentation = buildOpencodePermissionPresentation(request.toolCall.title, input, request.toolCall.locations);
     const decision = await this.approvalCallback(
       presentation.toolName,
@@ -85013,10 +96083,10 @@ var OpencodeChatRuntime = class {
       {
         ...presentation.blockedPath ? { blockedPath: presentation.blockedPath } : {},
         ...presentation.decisionReason ? { decisionReason: presentation.decisionReason } : {},
-        decisionOptions: buildAcpApprovalDecisionOptions(request.options)
+        decisionOptions: buildAcpApprovalDecisionOptions3(request.options)
       }
     );
-    return mapApprovalDecision(decision, request.options);
+    return mapApprovalDecision3(decision, request.options);
   }
   setSupportedCommands(commands) {
     this.supportedCommands = commands.map((command) => ({ ...command }));
@@ -85029,17 +96099,17 @@ var OpencodeChatRuntime = class {
     if (this.supportedCommands.length > 0) {
       return Promise.resolve([...this.supportedCommands]);
     }
-    return new Promise((resolve7) => {
+    return new Promise((resolve9) => {
       const waiter = (commands) => {
         window.clearTimeout(timeoutId);
-        resolve7([...commands]);
+        resolve9([...commands]);
       };
       const timeoutId = window.setTimeout(() => {
         const index = this.supportedCommandWaiters.indexOf(waiter);
         if (index >= 0) {
           this.supportedCommandWaiters.splice(index, 1);
         }
-        resolve7([...this.supportedCommands]);
+        resolve9([...this.supportedCommands]);
       }, timeoutMs);
       this.supportedCommandWaiters.push(waiter);
     });
@@ -85047,7 +96117,7 @@ var OpencodeChatRuntime = class {
   async readTextFile(request) {
     var _a7;
     const resolvedPath = this.resolveSessionPath(request.sessionId, request.path);
-    const content = await fs26.readFile(resolvedPath, "utf-8");
+    const content = await fs42.readFile(resolvedPath, "utf-8");
     if (request.line === void 0 && request.limit === void 0) {
       return { content };
     }
@@ -85060,8 +96130,8 @@ var OpencodeChatRuntime = class {
   }
   async writeTextFile(request) {
     const resolvedPath = this.resolveSessionPath(request.sessionId, request.path);
-    await fs26.mkdir(path21.dirname(resolvedPath), { recursive: true });
-    await fs26.writeFile(resolvedPath, request.content, "utf-8");
+    await fs42.mkdir(path31.dirname(resolvedPath), { recursive: true });
+    await fs42.writeFile(resolvedPath, request.content, "utf-8");
     return {};
   }
   resolveSessionPath(sessionId, rawPath) {
@@ -85104,7 +96174,7 @@ ${stderr}` : baseMessage;
     this.setSupportedCommands([]);
   }
 };
-function normalizeApprovalInput(rawInput) {
+function normalizeApprovalInput3(rawInput) {
   if (rawInput && typeof rawInput === "object" && !Array.isArray(rawInput)) {
     return rawInput;
   }
@@ -85114,8 +96184,8 @@ function normalizeApprovalInput(rawInput) {
   return { value: rawInput };
 }
 function buildOpencodePermissionPresentation(rawTitle, input, locations) {
-  const permissionId = normalizePermissionId(rawTitle);
-  const blockedPath = extractPermissionPath(input, locations);
+  const permissionId = normalizePermissionId3(rawTitle);
+  const blockedPath = extractPermissionPath3(input, locations);
   switch (permissionId) {
     case "bash":
       return {
@@ -85207,7 +96277,7 @@ function buildOpencodePermissionPresentation(rawTitle, input, locations) {
         toolName: "websearch"
       };
     case "workflow_tool_approval": {
-      const summary = summarizeWorkflowTools(input);
+      const summary = summarizeWorkflowTools3(input);
       return {
         decisionReason: "Session-level workflow approval requested",
         description: summary ? `Pre-approve workflow tools for this session: ${summary}.` : "Pre-approve workflow tools for this session.",
@@ -85217,15 +96287,15 @@ function buildOpencodePermissionPresentation(rawTitle, input, locations) {
     default:
       return {
         ...blockedPath ? { blockedPath } : {},
-        description: blockedPath ? `OpenCode wants permission to use ${formatPermissionLabel(permissionId)} on this path.` : `OpenCode wants permission to use ${formatPermissionLabel(permissionId)}.`,
-        toolName: formatPermissionLabel(permissionId)
+        description: blockedPath ? `OpenCode wants permission to use ${formatPermissionLabel3(permissionId)} on this path.` : `OpenCode wants permission to use ${formatPermissionLabel3(permissionId)}.`,
+        toolName: formatPermissionLabel3(permissionId)
       };
   }
 }
-function normalizePermissionId(value) {
+function normalizePermissionId3(value) {
   return (value == null ? void 0 : value.trim().toLowerCase()) || "tool";
 }
-function extractPermissionPath(input, locations) {
+function extractPermissionPath3(input, locations) {
   var _a7;
   const candidateKeys = ["filepath", "filePath", "path", "parentDir"];
   for (const key of candidateKeys) {
@@ -85237,7 +96307,7 @@ function extractPermissionPath(input, locations) {
   const locationPath = (_a7 = locations == null ? void 0 : locations.find((location) => location.path.trim())) == null ? void 0 : _a7.path;
   return (locationPath == null ? void 0 : locationPath.trim()) || void 0;
 }
-function summarizeWorkflowTools(input) {
+function summarizeWorkflowTools3(input) {
   const tools = Array.isArray(input.tools) ? input.tools : [];
   const names = tools.flatMap((tool) => {
     if (!tool || typeof tool !== "object" || Array.isArray(tool)) {
@@ -85267,18 +96337,18 @@ function summarizeWorkflowTools(input) {
   }
   return `${names.slice(0, 3).join(", ")} +${names.length - 3} more`;
 }
-function formatPermissionLabel(permissionId) {
+function formatPermissionLabel3(permissionId) {
   return permissionId.split(/[_\s]+/).filter(Boolean).map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1)).join(" ");
 }
-function mapApprovalDecision(decision, options) {
+function mapApprovalDecision3(decision, options) {
   if (decision === "allow") {
-    return selectPermissionOption(options, ["allow_once", "allow_always"]);
+    return selectPermissionOption5(options, ["allow_once", "allow_always"]);
   }
   if (decision === "allow-always") {
-    return selectPermissionOption(options, ["allow_always", "allow_once"]);
+    return selectPermissionOption5(options, ["allow_always", "allow_once"]);
   }
   if (decision === "deny") {
-    return selectPermissionOption(options, ["reject_once", "reject_always"]);
+    return selectPermissionOption5(options, ["reject_once", "reject_always"]);
   }
   if (typeof decision === "object" && decision.type === "select-option") {
     return {
@@ -85290,14 +96360,14 @@ function mapApprovalDecision(decision, options) {
   }
   return { outcome: { outcome: "cancelled" } };
 }
-function buildAcpApprovalDecisionOptions(options) {
+function buildAcpApprovalDecisionOptions3(options) {
   return options.map((option) => ({
     ...option.kind === "allow_once" ? { decision: "allow" } : option.kind === "allow_always" ? { decision: "allow-always" } : {},
     label: option.name,
     value: option.optionId
   }));
 }
-function selectPermissionOption(options, preferredKinds) {
+function selectPermissionOption5(options, preferredKinds) {
   for (const kind of preferredKinds) {
     const option = options.find((entry) => entry.kind === kind);
     if (option) {
@@ -85313,7 +96383,7 @@ function selectPermissionOption(options, preferredKinds) {
 }
 
 // src/providers/opencode/runtime/OpencodeCliResolver.ts
-var fs27 = __toESM(require("node:fs"));
+var fs43 = __toESM(require("node:fs"));
 init_env();
 init_path();
 var OpencodeCliResolver = class {
@@ -85346,7 +96416,7 @@ var OpencodeCliResolver = class {
   resolve(hostnamePaths, legacyPath, _envText) {
     var _a7, _b4;
     const hostnamePath = ((_a7 = hostnamePaths == null ? void 0 : hostnamePaths[this.cachedHostname]) != null ? _a7 : "").trim();
-    return (_b4 = resolveConfiguredCliPath3(hostnamePath)) != null ? _b4 : resolveConfiguredCliPath3(legacyPath.trim());
+    return (_b4 = resolveConfiguredCliPath5(hostnamePath)) != null ? _b4 : resolveConfiguredCliPath5(legacyPath.trim());
   }
   reset() {
     this.lastCliPath = "";
@@ -85355,13 +96425,13 @@ var OpencodeCliResolver = class {
     this.resolvedPath = null;
   }
 };
-function resolveConfiguredCliPath3(cliPath) {
+function resolveConfiguredCliPath5(cliPath) {
   if (!cliPath) {
     return null;
   }
   try {
     const expanded = expandHomePath(cliPath);
-    if (fs27.existsSync(expanded) && fs27.statSync(expanded).isFile()) {
+    if (fs43.existsSync(expanded) && fs43.statSync(expanded).isFile()) {
       return expanded;
     }
   } catch (e) {
@@ -85371,7 +96441,7 @@ function resolveConfiguredCliPath3(cliPath) {
 }
 
 // src/providers/opencode/storage/OpencodeAgentStorage.ts
-var path22 = __toESM(require("node:path"));
+var path32 = __toESM(require("node:path"));
 
 // src/providers/opencode/types/agent.ts
 var OPENCODE_AGENT_KNOWN_KEYS = /* @__PURE__ */ new Set([
@@ -85402,22 +96472,22 @@ var OPENCODE_AGENT_SCAN_PATHS = [
 var OPENCODE_DEFAULT_AGENT_SAVE_PATH = OPENCODE_AGENT_PATH;
 var OPENCODE_AGENT_PERSISTENCE_PREFIX = "opencode-agent";
 function createOpencodeAgentPersistenceKey(location) {
-  return `${OPENCODE_AGENT_PERSISTENCE_PREFIX}:${encodeURIComponent(normalizeVaultPath(location.filePath))}`;
+  return `${OPENCODE_AGENT_PERSISTENCE_PREFIX}:${encodeURIComponent(normalizeVaultPath3(location.filePath))}`;
 }
 function parseOpencodeAgentPersistenceKey(persistenceKey) {
   if (!persistenceKey) {
     return null;
   }
-  const normalizedKey = normalizeVaultPath(persistenceKey);
-  if (isSupportedAgentFilePath(normalizedKey)) {
+  const normalizedKey = normalizeVaultPath3(persistenceKey);
+  if (isSupportedAgentFilePath3(normalizedKey)) {
     return { filePath: normalizedKey };
   }
   const [prefix, encodedRelativePath] = persistenceKey.split(":");
   if (prefix !== OPENCODE_AGENT_PERSISTENCE_PREFIX || !encodedRelativePath) {
     return null;
   }
-  const decoded = normalizeVaultPath(decodeURIComponent(encodedRelativePath));
-  if (isSupportedAgentFilePath(decoded)) {
+  const decoded = normalizeVaultPath3(decodeURIComponent(encodedRelativePath));
+  if (isSupportedAgentFilePath3(decoded)) {
     return { filePath: decoded };
   }
   return decoded.endsWith(".md") ? { filePath: `${OPENCODE_AGENTS_PATH}/${decoded}` } : null;
@@ -85442,7 +96512,7 @@ var OpencodeAgentStorage = class {
   async save(agent, previous) {
     const filePath = this.resolveTargetPath(agent, previous);
     const previousPath = previous ? this.resolveCurrentPath(previous) : null;
-    await this.vaultAdapter.ensureFolder(path22.posix.dirname(filePath));
+    await this.vaultAdapter.ensureFolder(path32.posix.dirname(filePath));
     const content = serializeOpencodeAgentMarkdown(agent);
     await this.vaultAdapter.write(filePath, content);
     if (previousPath && previousPath !== filePath) {
@@ -85495,7 +96565,7 @@ function parseOpencodeAgentMarkdown(content, filePath) {
   if (!parsed) {
     return null;
   }
-  const fileName = normalizeAgentNameFromPath(filePath);
+  const fileName = normalizeAgentNameFromPath3(filePath);
   const frontmatter = parsed.frontmatter;
   const rawName = typeof frontmatter.name === "string" ? frontmatter.name.trim() : "";
   const name = rawName || fileName;
@@ -85508,10 +96578,10 @@ function parseOpencodeAgentMarkdown(content, filePath) {
     description,
     prompt: parsed.body.trim(),
     persistenceKey: createOpencodeAgentPersistenceKey({
-      filePath: normalizeVaultPath(filePath)
+      filePath: normalizeVaultPath3(filePath)
     })
   };
-  const mode = normalizeMode(frontmatter.mode);
+  const mode = normalizeMode3(frontmatter.mode);
   if (mode) result.mode = mode;
   if (typeof frontmatter.model === "string" && frontmatter.model.trim()) {
     result.model = frontmatter.model.trim();
@@ -85522,14 +96592,14 @@ function parseOpencodeAgentMarkdown(content, filePath) {
   if (typeof frontmatter.temperature === "number" && Number.isFinite(frontmatter.temperature)) {
     result.temperature = frontmatter.temperature;
   }
-  const topP = normalizeFiniteNumber(frontmatter.top_p);
+  const topP = normalizeFiniteNumber3(frontmatter.top_p);
   if (topP !== void 0) {
     result.topP = topP;
   }
   if (typeof frontmatter.color === "string" && frontmatter.color.trim()) {
     result.color = frontmatter.color.trim();
   }
-  const steps = (_a7 = normalizePositiveInteger(frontmatter.steps)) != null ? _a7 : normalizePositiveInteger(frontmatter.maxSteps);
+  const steps = (_a7 = normalizePositiveInteger3(frontmatter.steps)) != null ? _a7 : normalizePositiveInteger3(frontmatter.maxSteps);
   if (steps !== void 0) {
     result.steps = steps;
   }
@@ -85539,7 +96609,7 @@ function parseOpencodeAgentMarkdown(content, filePath) {
   if (extractBoolean(frontmatter, "disable") !== void 0) {
     result.disable = extractBoolean(frontmatter, "disable");
   }
-  if (isBooleanRecord(frontmatter.tools)) {
+  if (isBooleanRecord3(frontmatter.tools)) {
     result.tools = { ...frontmatter.tools };
   }
   if (isRecord2(frontmatter.options)) {
@@ -85567,22 +96637,22 @@ function serializeOpencodeAgentMarkdown(agent) {
     lines.push(`mode: ${agent.mode}`);
   }
   if (agent.model) {
-    lines.push(`model: ${serializeYamlValue(agent.model)}`);
+    lines.push(`model: ${serializeYamlValue3(agent.model)}`);
   }
   if (agent.variant) {
-    lines.push(`variant: ${serializeYamlValue(agent.variant)}`);
+    lines.push(`variant: ${serializeYamlValue3(agent.variant)}`);
   }
   if (agent.temperature !== void 0) {
-    lines.push(`temperature: ${serializeYamlValue(agent.temperature)}`);
+    lines.push(`temperature: ${serializeYamlValue3(agent.temperature)}`);
   }
   if (agent.topP !== void 0) {
-    lines.push(`top_p: ${serializeYamlValue(agent.topP)}`);
+    lines.push(`top_p: ${serializeYamlValue3(agent.topP)}`);
   }
   if (agent.color) {
-    lines.push(`color: ${serializeYamlValue(agent.color)}`);
+    lines.push(`color: ${serializeYamlValue3(agent.color)}`);
   }
   if (agent.steps !== void 0) {
-    lines.push(`steps: ${serializeYamlValue(agent.steps)}`);
+    lines.push(`steps: ${serializeYamlValue3(agent.steps)}`);
   }
   if (agent.hidden) {
     lines.push("hidden: true");
@@ -85591,30 +96661,30 @@ function serializeOpencodeAgentMarkdown(agent) {
     lines.push("disable: true");
   }
   if (agent.tools && Object.keys(agent.tools).length > 0) {
-    lines.push(`tools: ${serializeYamlValue(agent.tools)}`);
+    lines.push(`tools: ${serializeYamlValue3(agent.tools)}`);
   }
   if (agent.options && Object.keys(agent.options).length > 0) {
-    lines.push(`options: ${serializeYamlValue(agent.options)}`);
+    lines.push(`options: ${serializeYamlValue3(agent.options)}`);
   }
   if (agent.permission !== void 0) {
-    lines.push(`permission: ${serializeYamlValue(agent.permission)}`);
+    lines.push(`permission: ${serializeYamlValue3(agent.permission)}`);
   }
   if (agent.extraFrontmatter) {
     for (const [key, value] of Object.entries(agent.extraFrontmatter)) {
-      lines.push(`${key}: ${serializeYamlValue(value)}`);
+      lines.push(`${key}: ${serializeYamlValue3(value)}`);
     }
   }
   lines.push("---");
   lines.push(agent.prompt);
   return lines.join("\n");
 }
-function normalizeAgentNameFromPath(filePath) {
-  const relativePath = toRelativeAgentPath(filePath);
+function normalizeAgentNameFromPath3(filePath) {
+  const relativePath = toRelativeAgentPath3(filePath);
   return relativePath.replace(/\.md$/i, "");
 }
-function toRelativeAgentPath(filePath) {
+function toRelativeAgentPath3(filePath) {
   var _a7;
-  const normalized = normalizeVaultPath(filePath);
+  const normalized = normalizeVaultPath3(filePath);
   for (const rootPath of OPENCODE_AGENT_SCAN_PATHS) {
     const prefix = `${rootPath}/`;
     const index = normalized.lastIndexOf(prefix);
@@ -85624,22 +96694,22 @@ function toRelativeAgentPath(filePath) {
   }
   return (_a7 = normalized.split("/").pop()) != null ? _a7 : normalized;
 }
-function normalizeMode(value) {
+function normalizeMode3(value) {
   return value === "subagent" || value === "primary" || value === "all" ? value : void 0;
 }
-function normalizeFiniteNumber(value) {
+function normalizeFiniteNumber3(value) {
   return typeof value === "number" && Number.isFinite(value) ? value : void 0;
 }
-function normalizePositiveInteger(value) {
+function normalizePositiveInteger3(value) {
   return typeof value === "number" && Number.isInteger(value) && value > 0 ? value : void 0;
 }
-function isBooleanRecord(value) {
+function isBooleanRecord3(value) {
   if (!isRecord2(value)) {
     return false;
   }
   return Object.values(value).every((entry) => typeof entry === "boolean");
 }
-function serializeYamlValue(value) {
+function serializeYamlValue3(value) {
   if (typeof value === "string") {
     return yamlString(value);
   }
@@ -85651,21 +96721,21 @@ function serializeYamlValue(value) {
   }
   return JSON.stringify(value);
 }
-function normalizeVaultPath(filePath) {
+function normalizeVaultPath3(filePath) {
   return filePath.replace(/\\/g, "/");
 }
-function isSupportedAgentFilePath(filePath) {
+function isSupportedAgentFilePath3(filePath) {
   return OPENCODE_AGENT_SCAN_PATHS.some((rootPath) => filePath.startsWith(`${rootPath}/`)) && filePath.endsWith(".md");
 }
 
 // src/providers/opencode/ui/OpencodeSettingsTab.ts
-var fs28 = __toESM(require("fs"));
-var import_obsidian20 = require("obsidian");
+var fs44 = __toESM(require("fs"));
+var import_obsidian24 = require("obsidian");
 init_env();
 init_path();
 
 // src/providers/opencode/ui/OpencodeAgentSettings.ts
-var import_obsidian19 = require("obsidian");
+var import_obsidian23 = require("obsidian");
 var OPENCODE_AGENT_INVALID_SEGMENT_PATTERN = /[<>:"\\|?*]/;
 function validateOpencodeAgentName(name) {
   if (!name) return "Agent name is required";
@@ -85696,7 +96766,7 @@ function findOpencodeAgentNameConflict(agents, name, currentPersistenceKey) {
     (agent) => agent.name.toLowerCase() === normalizedName && agent.persistenceKey !== currentPersistenceKey
   )) != null ? _a7 : null;
 }
-var OpencodeAgentModal = class extends import_obsidian19.Modal {
+var OpencodeAgentModal = class extends import_obsidian23.Modal {
   constructor(app, existing, allAgents, onSave) {
     super(app);
     this.existing = existing;
@@ -85721,12 +96791,12 @@ var OpencodeAgentModal = class extends import_obsidian19.Modal {
     let toolsInput;
     let permissionInput;
     let optionsInput;
-    new import_obsidian19.Setting(contentEl).setName("Name").setDesc("OpenCode agent name. Use slash-separated segments for nested agents.").addText((text) => {
+    new import_obsidian23.Setting(contentEl).setName("Name").setDesc("OpenCode agent name. Use slash-separated segments for nested agents.").addText((text) => {
       var _a8, _b5;
       nameInput = text.inputEl;
       text.setValue((_b5 = (_a8 = this.existing) == null ? void 0 : _a8.name) != null ? _b5 : "").setPlaceholder("Review");
     });
-    new import_obsidian19.Setting(contentEl).setName("Description").setDesc("When OpenCode should use this subagent").addText((text) => {
+    new import_obsidian23.Setting(contentEl).setName("Description").setDesc("When OpenCode should use this subagent").addText((text) => {
       var _a8, _b5;
       descriptionInput = text.inputEl;
       text.setValue((_b5 = (_a8 = this.existing) == null ? void 0 : _a8.description) != null ? _b5 : "").setPlaceholder("Reviews code for correctness and maintainability");
@@ -85739,62 +96809,62 @@ var OpencodeAgentModal = class extends import_obsidian19.Modal {
     if (((_e3 = this.existing) == null ? void 0 : _e3.model) || ((_f3 = this.existing) == null ? void 0 : _f3.variant) || ((_g2 = this.existing) == null ? void 0 : _g2.temperature) !== void 0 || ((_h2 = this.existing) == null ? void 0 : _h2.topP) !== void 0 || ((_i3 = this.existing) == null ? void 0 : _i3.color) || ((_j2 = this.existing) == null ? void 0 : _j2.steps) !== void 0 || ((_k2 = this.existing) == null ? void 0 : _k2.hidden) || ((_l3 = this.existing) == null ? void 0 : _l3.disable) || ((_m2 = this.existing) == null ? void 0 : _m2.tools) || ((_n5 = this.existing) == null ? void 0 : _n5.permission) !== void 0 || ((_o2 = this.existing) == null ? void 0 : _o2.options)) {
       details.open = true;
     }
-    new import_obsidian19.Setting(details).setName("Model").setDesc("Model override in provider/model format").addText((text) => {
+    new import_obsidian23.Setting(details).setName("Model").setDesc("Model override in provider/model format").addText((text) => {
       var _a8, _b5;
       modelInput = text.inputEl;
       text.setValue((_b5 = (_a8 = this.existing) == null ? void 0 : _a8.model) != null ? _b5 : "").setPlaceholder("Anthropic/Claude-sonnet-4-20250514");
     });
-    new import_obsidian19.Setting(details).setName("Variant").setDesc("Model variant override").addText((text) => {
+    new import_obsidian23.Setting(details).setName("Variant").setDesc("Model variant override").addText((text) => {
       var _a8, _b5;
       variantInput = text.inputEl;
       text.setValue((_b5 = (_a8 = this.existing) == null ? void 0 : _a8.variant) != null ? _b5 : "").setPlaceholder("High");
     });
-    new import_obsidian19.Setting(details).setName("Temperature").setDesc("Optional sampling temperature").addText((text) => {
+    new import_obsidian23.Setting(details).setName("Temperature").setDesc("Optional sampling temperature").addText((text) => {
       var _a8;
       temperatureInput = text.inputEl;
       text.setValue(((_a8 = this.existing) == null ? void 0 : _a8.temperature) !== void 0 ? String(this.existing.temperature) : "").setPlaceholder("0.1");
     });
-    new import_obsidian19.Setting(details).setName("Top p").setDesc("Optional nucleus sampling value").addText((text) => {
+    new import_obsidian23.Setting(details).setName("Top p").setDesc("Optional nucleus sampling value").addText((text) => {
       var _a8;
       topPInput = text.inputEl;
       text.setValue(((_a8 = this.existing) == null ? void 0 : _a8.topP) !== void 0 ? String(this.existing.topP) : "").setPlaceholder("0.9");
     });
-    new import_obsidian19.Setting(details).setName("Color").setDesc("Hex color or theme token").addText((text) => {
+    new import_obsidian23.Setting(details).setName("Color").setDesc("Hex color or theme token").addText((text) => {
       var _a8, _b5;
       colorInput = text.inputEl;
       text.setValue((_b5 = (_a8 = this.existing) == null ? void 0 : _a8.color) != null ? _b5 : "").setPlaceholder("#Ff5733");
     });
-    new import_obsidian19.Setting(details).setName("Steps").setDesc("Maximum agentic iterations before forcing text-only output").addText((text) => {
+    new import_obsidian23.Setting(details).setName("Steps").setDesc("Maximum agentic iterations before forcing text-only output").addText((text) => {
       var _a8;
       stepsInput = text.inputEl;
       text.setValue(((_a8 = this.existing) == null ? void 0 : _a8.steps) !== void 0 ? String(this.existing.steps) : "").setPlaceholder("10");
     });
-    new import_obsidian19.Setting(details).setName("Hide from @mention").setDesc("Hide this subagent from the @ autocomplete menu").addToggle((toggle) => {
+    new import_obsidian23.Setting(details).setName("Hide from @mention").setDesc("Hide this subagent from the @ autocomplete menu").addToggle((toggle) => {
       toggle.setValue(hiddenValue).onChange((value) => {
         hiddenValue = value;
       });
     });
-    new import_obsidian19.Setting(details).setName("Disable agent").setDesc("Disable the agent without deleting the file").addToggle((toggle) => {
+    new import_obsidian23.Setting(details).setName("Disable agent").setDesc("Disable the agent without deleting the file").addToggle((toggle) => {
       toggle.setValue(disableValue).onChange((value) => {
         disableValue = value;
       });
     });
-    new import_obsidian19.Setting(details).setName("Enabled tools (JSON)").setDesc('Optional deprecated tools map, e.g. {"write":false,"edit":false}').addTextArea((text) => {
+    new import_obsidian23.Setting(details).setName("Enabled tools (JSON)").setDesc('Optional deprecated tools map, e.g. {"write":false,"edit":false}').addTextArea((text) => {
       var _a8;
       toolsInput = text.inputEl;
       text.setValue(((_a8 = this.existing) == null ? void 0 : _a8.tools) ? JSON.stringify(this.existing.tools, null, 2) : "").setPlaceholder('{\n  "write": false,\n  "edit": false\n}');
     });
-    new import_obsidian19.Setting(details).setName("Permission (JSON)").setDesc('Optional permission config, e.g. {"edit":"deny","bash":"allow"}').addTextArea((text) => {
+    new import_obsidian23.Setting(details).setName("Permission (JSON)").setDesc('Optional permission config, e.g. {"edit":"deny","bash":"allow"}').addTextArea((text) => {
       var _a8;
       permissionInput = text.inputEl;
       text.setValue(((_a8 = this.existing) == null ? void 0 : _a8.permission) !== void 0 ? JSON.stringify(this.existing.permission, null, 2) : "").setPlaceholder('{\n  "edit": "deny"\n}');
     });
-    new import_obsidian19.Setting(details).setName("Options (JSON)").setDesc("Optional custom agent options").addTextArea((text) => {
+    new import_obsidian23.Setting(details).setName("Options (JSON)").setDesc("Optional custom agent options").addTextArea((text) => {
       var _a8;
       optionsInput = text.inputEl;
       text.setValue(((_a8 = this.existing) == null ? void 0 : _a8.options) ? JSON.stringify(this.existing.options, null, 2) : "").setPlaceholder('{\n  "focus": "security"\n}');
     });
-    new import_obsidian19.Setting(contentEl).setName("Prompt").setDesc("Markdown body used as the agent prompt");
+    new import_obsidian23.Setting(contentEl).setName("Prompt").setDesc("Markdown body used as the agent prompt");
     const promptArea = contentEl.createEl("textarea", {
       cls: "grimoire-sp-content-area",
       attr: {
@@ -85819,17 +96889,17 @@ var OpencodeAgentModal = class extends import_obsidian19.Modal {
         const name = nameInput.value.trim();
         const nameError = validateOpencodeAgentName(name);
         if (nameError) {
-          new import_obsidian19.Notice(nameError);
+          new import_obsidian23.Notice(nameError);
           return;
         }
         const description = descriptionInput.value.trim();
         if (!description) {
-          new import_obsidian19.Notice("Description is required");
+          new import_obsidian23.Notice("Description is required");
           return;
         }
         const prompt = promptArea.value;
         if (!prompt.trim()) {
-          new import_obsidian19.Notice("Prompt is required");
+          new import_obsidian23.Notice("Prompt is required");
           return;
         }
         const duplicate = findOpencodeAgentNameConflict(
@@ -85838,37 +96908,37 @@ var OpencodeAgentModal = class extends import_obsidian19.Modal {
           (_a8 = this.existing) == null ? void 0 : _a8.persistenceKey
         );
         if (duplicate) {
-          new import_obsidian19.Notice(`A subagent named "${name}" already exists`);
+          new import_obsidian23.Notice(`A subagent named "${name}" already exists`);
           return;
         }
-        const temperature = parseOptionalNumber(temperatureInput.value, "Temperature");
+        const temperature = parseOptionalNumber3(temperatureInput.value, "Temperature");
         if (temperature.error) {
-          new import_obsidian19.Notice(temperature.error);
+          new import_obsidian23.Notice(temperature.error);
           return;
         }
-        const topP = parseOptionalNumber(topPInput.value, "Top P");
+        const topP = parseOptionalNumber3(topPInput.value, "Top P");
         if (topP.error) {
-          new import_obsidian19.Notice(topP.error);
+          new import_obsidian23.Notice(topP.error);
           return;
         }
-        const steps = parseOptionalPositiveInteger(stepsInput.value, "Steps");
+        const steps = parseOptionalPositiveInteger3(stepsInput.value, "Steps");
         if (steps.error) {
-          new import_obsidian19.Notice(steps.error);
+          new import_obsidian23.Notice(steps.error);
           return;
         }
-        const tools = parseOptionalJsonObjectOfBooleans(toolsInput.value, "Enabled Tools");
+        const tools = parseOptionalJsonObjectOfBooleans3(toolsInput.value, "Enabled Tools");
         if (tools.error) {
-          new import_obsidian19.Notice(tools.error);
+          new import_obsidian23.Notice(tools.error);
           return;
         }
-        const permission = parseOptionalJson(permissionInput.value, "Permission");
+        const permission = parseOptionalJson3(permissionInput.value, "Permission");
         if (permission.error) {
-          new import_obsidian19.Notice(permission.error);
+          new import_obsidian23.Notice(permission.error);
           return;
         }
-        const options = parseOptionalJsonObject(optionsInput.value, "Options");
+        const options = parseOptionalJsonObject3(optionsInput.value, "Options");
         if (options.error) {
-          new import_obsidian19.Notice(options.error);
+          new import_obsidian23.Notice(options.error);
           return;
         }
         const agent = {
@@ -85894,7 +96964,7 @@ var OpencodeAgentModal = class extends import_obsidian19.Modal {
           await this.onSave(agent);
         } catch (error48) {
           const message = error48 instanceof Error ? error48.message : "Unknown error";
-          new import_obsidian19.Notice(`Failed to save subagent: ${message}`);
+          new import_obsidian23.Notice(`Failed to save subagent: ${message}`);
           return;
         }
         this.close();
@@ -85929,7 +96999,7 @@ var OpencodeAgentSettings = class {
       cls: "grimoire-settings-action-btn",
       attr: { "aria-label": "Refresh" }
     });
-    (0, import_obsidian19.setIcon)(refreshBtn, "refresh-cw");
+    (0, import_obsidian23.setIcon)(refreshBtn, "refresh-cw");
     refreshBtn.addEventListener("click", () => {
       void this.render();
     });
@@ -85937,7 +97007,7 @@ var OpencodeAgentSettings = class {
       cls: "grimoire-settings-action-btn",
       attr: { "aria-label": "Add" }
     });
-    (0, import_obsidian19.setIcon)(addBtn, "plus");
+    (0, import_obsidian23.setIcon)(addBtn, "plus");
     addBtn.addEventListener("click", () => this.openModal(null));
     if (visibleAgents.length === 0) {
       const emptyEl = this.containerEl.createDiv({ cls: "grimoire-sp-empty-state" });
@@ -85971,13 +97041,13 @@ var OpencodeAgentSettings = class {
       cls: "grimoire-settings-action-btn",
       attr: { "aria-label": "Edit" }
     });
-    (0, import_obsidian19.setIcon)(editBtn, "pencil");
+    (0, import_obsidian23.setIcon)(editBtn, "pencil");
     editBtn.addEventListener("click", () => this.openModal(agent));
     const deleteBtn = actionsEl.createEl("button", {
       cls: "grimoire-settings-action-btn grimoire-settings-delete-btn",
       attr: { "aria-label": "Delete" }
     });
-    (0, import_obsidian19.setIcon)(deleteBtn, "trash-2");
+    (0, import_obsidian23.setIcon)(deleteBtn, "trash-2");
     deleteBtn.addEventListener("click", () => {
       void (async () => {
         var _a7;
@@ -85991,9 +97061,9 @@ var OpencodeAgentSettings = class {
           await this.storage.delete(agent);
           await this.render();
           await ((_a7 = this.onChanged) == null ? void 0 : _a7.call(this));
-          new import_obsidian19.Notice(`Subagent "${agent.name}" deleted`);
+          new import_obsidian23.Notice(`Subagent "${agent.name}" deleted`);
         } catch (e) {
-          new import_obsidian19.Notice("Failed to delete subagent");
+          new import_obsidian23.Notice("Failed to delete subagent");
         }
       })();
     });
@@ -86009,7 +97079,7 @@ var OpencodeAgentSettings = class {
         await this.storage.save(agent, existing);
         await this.render();
         await ((_a7 = this.onChanged) == null ? void 0 : _a7.call(this));
-        new import_obsidian19.Notice(
+        new import_obsidian23.Notice(
           existing ? `Subagent "${agent.name}" updated` : `Subagent "${agent.name}" created`
         );
       }
@@ -86017,7 +97087,7 @@ var OpencodeAgentSettings = class {
     modal.open();
   }
 };
-function parseOptionalNumber(value, label) {
+function parseOptionalNumber3(value, label) {
   const trimmed = value.trim();
   if (!trimmed) {
     return {};
@@ -86028,7 +97098,7 @@ function parseOptionalNumber(value, label) {
   }
   return { value: parsed };
 }
-function parseOptionalPositiveInteger(value, label) {
+function parseOptionalPositiveInteger3(value, label) {
   const trimmed = value.trim();
   if (!trimmed) {
     return {};
@@ -86039,7 +97109,7 @@ function parseOptionalPositiveInteger(value, label) {
   }
   return { value: parsed };
 }
-function parseOptionalJson(value, label) {
+function parseOptionalJson3(value, label) {
   const trimmed = value.trim();
   if (!trimmed) {
     return {};
@@ -86050,18 +97120,18 @@ function parseOptionalJson(value, label) {
     return { error: `${label} must be valid JSON` };
   }
 }
-function parseOptionalJsonObject(value, label) {
-  const parsed = parseOptionalJson(value, label);
+function parseOptionalJsonObject3(value, label) {
+  const parsed = parseOptionalJson3(value, label);
   if (parsed.error || parsed.value === void 0) {
     return parsed.error ? { error: parsed.error } : {};
   }
-  if (!isJsonObject(parsed.value)) {
+  if (!isJsonObject3(parsed.value)) {
     return { error: `${label} must be a JSON object` };
   }
   return { value: parsed.value };
 }
-function parseOptionalJsonObjectOfBooleans(value, label) {
-  const parsed = parseOptionalJsonObject(value, label);
+function parseOptionalJsonObjectOfBooleans3(value, label) {
+  const parsed = parseOptionalJsonObject3(value, label);
   if (parsed.error || parsed.value === void 0) {
     return parsed.error ? { error: parsed.error } : {};
   }
@@ -86070,12 +97140,12 @@ function parseOptionalJsonObjectOfBooleans(value, label) {
   }
   return { value: parsed.value };
 }
-function isJsonObject(value) {
+function isJsonObject3(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 // src/providers/opencode/ui/OpencodeSettingsTab.ts
-var ALL_PROVIDERS_KEY = "all";
+var ALL_PROVIDERS_KEY3 = "all";
 var OPENCODE_METADATA_WARMUP_DB = ":memory:";
 var opencodeSettingsTabRenderer = {
   render(container, context) {
@@ -86086,8 +97156,8 @@ var opencodeSettingsTabRenderer = {
     if (!opencodeSettings.enabled) {
       renderProviderDisabledNotice(container, "OpenCode");
     }
-    new import_obsidian20.Setting(container).setName("Setup").setHeading();
-    const cliPathSetting = new import_obsidian20.Setting(container).setName("CLI path").setDesc("Optional absolute path to the OpenCode CLI for this computer. Leave empty to use `opencode` from PATH.");
+    new import_obsidian24.Setting(container).setName("Setup").setHeading();
+    const cliPathSetting = new import_obsidian24.Setting(container).setName("CLI path").setDesc("Optional absolute path to the OpenCode CLI for this computer. Leave empty to use `opencode` from PATH.");
     const validationEl = container.createDiv({
       cls: "grimoire-cli-path-validation grimoire-setting-validation grimoire-setting-validation-error grimoire-hidden"
     });
@@ -86097,10 +97167,10 @@ var opencodeSettingsTabRenderer = {
         return null;
       }
       const expandedPath = expandHomePath(trimmed);
-      if (!fs28.existsSync(expandedPath)) {
+      if (!fs44.existsSync(expandedPath)) {
         return "Path does not exist";
       }
-      const stat = fs28.statSync(expandedPath);
+      const stat = fs44.statSync(expandedPath);
       if (!stat.isFile()) {
         return "Path must point to a file";
       }
@@ -86167,11 +97237,11 @@ var opencodeSettingsTabRenderer = {
       cliPathInputEl = text.inputEl;
       updateCliPathValidation(currentValue, text.inputEl);
     });
-    new import_obsidian20.Setting(container).setName("Models").setHeading();
-    new import_obsidian20.Setting(container).setName("Visible models").setDesc("Choose which OpenCode models appear in the chat selector. Filter by provider or type to search. The current session model stays pinned even if it is not selected here.");
+    new import_obsidian24.Setting(container).setName("Models").setHeading();
+    new import_obsidian24.Setting(container).setName("Visible models").setDesc("Choose which OpenCode models appear in the chat selector. Filter by provider or type to search. The current session model stays pinned even if it is not selected here.");
     const pickerEl = container.createDiv({ cls: "grimoire-opencode-model-picker" });
     let searchQuery = "";
-    let providerFilter = ALL_PROVIDERS_KEY;
+    let providerFilter = ALL_PROVIDERS_KEY3;
     const summaryEl = pickerEl.createDiv({ cls: "grimoire-opencode-model-picker-summary" });
     const selectedEl = pickerEl.createDiv({ cls: "grimoire-opencode-model-picker-selected" });
     const catalogEl = pickerEl.createEl("details", { cls: "grimoire-opencode-model-picker-catalog" });
@@ -86212,11 +97282,11 @@ var opencodeSettingsTabRenderer = {
     let modelCatalogLoadFailed = false;
     const getEnrichedModels = () => {
       const current = getOpencodeProviderSettings(settingsBag);
-      return buildEnrichedModels(current.discoveredModels, current.visibleModels);
+      return buildEnrichedModels3(current.discoveredModels, current.visibleModels);
     };
     const filterModels = (models) => {
       return models.filter((model) => {
-        if (providerFilter !== ALL_PROVIDERS_KEY && model.providerKey !== providerFilter) {
+        if (providerFilter !== ALL_PROVIDERS_KEY3 && model.providerKey !== providerFilter) {
           return false;
         }
         if (!searchQuery) {
@@ -86405,7 +97475,7 @@ var opencodeSettingsTabRenderer = {
       providerSelectEl.empty();
       providerSelectEl.createEl("option", {
         text: `All providers (${enriched.length})`,
-        value: ALL_PROVIDERS_KEY
+        value: ALL_PROVIDERS_KEY3
       });
       const sortedProviders = Array.from(providers.entries()).sort(([, left], [, right]) => left.label.localeCompare(right.label));
       for (const [key, { count, label }] of sortedProviders) {
@@ -86414,8 +97484,8 @@ var opencodeSettingsTabRenderer = {
           value: key
         });
       }
-      if (providerFilter !== ALL_PROVIDERS_KEY && !providers.has(providerFilter)) {
-        providerFilter = ALL_PROVIDERS_KEY;
+      if (providerFilter !== ALL_PROVIDERS_KEY3 && !providers.has(providerFilter)) {
+        providerFilter = ALL_PROVIDERS_KEY3;
       }
       providerSelectEl.value = providerFilter;
     };
@@ -86529,7 +97599,7 @@ var opencodeSettingsTabRenderer = {
       count: 4,
       summary: "Hidden commands, subagents, environment, and context overrides"
     });
-    new import_obsidian20.Setting(advancedContainer).setName("Commands and skills").setHeading();
+    new import_obsidian24.Setting(advancedContainer).setName("Commands and skills").setHeading();
     const commandsDesc = advancedContainer.createDiv({ cls: "grimoire-sp-settings-desc" });
     commandsDesc.createEl("p", {
       cls: "setting-item-description",
@@ -86541,7 +97611,7 @@ var opencodeSettingsTabRenderer = {
       placeholder: "compact\nreview\nfix"
     });
     if (opencodeWorkspace == null ? void 0 : opencodeWorkspace.agentStorage) {
-      new import_obsidian20.Setting(advancedContainer).setName("Subagents").setHeading();
+      new import_obsidian24.Setting(advancedContainer).setName("Subagents").setHeading();
       const subagentsDesc = advancedContainer.createDiv({ cls: "grimoire-sp-settings-desc" });
       subagentsDesc.createEl("p", {
         cls: "setting-item-description",
@@ -86572,7 +97642,7 @@ OPENCODE_DB=/path/to/opencode.db`,
     });
   }
 };
-function buildEnrichedModels(discoveredModels, visibleModels) {
+function buildEnrichedModels3(discoveredModels, visibleModels) {
   var _a7;
   const enriched = [];
   const discoveredIds = /* @__PURE__ */ new Set();
@@ -86658,7 +97728,7 @@ var opencodeTabWarmupPolicy = {
     return "commands";
   }
 };
-var MODEL_CATALOG_CACHE_TTL_MS2 = 10 * 60 * 1e3;
+var MODEL_CATALOG_CACHE_TTL_MS4 = 10 * 60 * 1e3;
 function createOpencodeModelCatalog(plugin) {
   var _a7;
   const initialSettings = getOpencodeProviderSettings((_a7 = plugin.settings) != null ? _a7 : {});
@@ -86677,14 +97747,14 @@ function createOpencodeModelCatalog(plugin) {
         lastRefreshCacheKey = cacheKey;
       }
       const cacheAgeMs = lastRefreshAt > 0 ? Date.now() - lastRefreshAt : Number.POSITIVE_INFINITY;
-      if (currentSettings.discoveredModels.length > 0 && cacheKey === lastRefreshCacheKey && cacheAgeMs < MODEL_CATALOG_CACHE_TTL_MS2) {
+      if (currentSettings.discoveredModels.length > 0 && cacheKey === lastRefreshCacheKey && cacheAgeMs < MODEL_CATALOG_CACHE_TTL_MS4) {
         (_a8 = plugin.recordDebugLog) == null ? void 0 : _a8.call(plugin, {
           data: {
             ageMs: cacheAgeMs,
             modelCount: currentSettings.discoveredModels.length,
             providerId: "opencode",
             reason: "cache_fresh",
-            ttlMs: MODEL_CATALOG_CACHE_TTL_MS2
+            ttlMs: MODEL_CATALOG_CACHE_TTL_MS4
           },
           event: "modelCatalog.refresh.skipped",
           level: "debug",
@@ -86746,7 +97816,7 @@ function maybeGetOpencodeWorkspaceServices() {
 }
 
 // src/providers/opencode/runtime/OpencodeAuxQueryRunner.ts
-var fs29 = __toESM(require("node:fs/promises"));
+var fs45 = __toESM(require("node:fs/promises"));
 init_path();
 
 // src/providers/opencode/ui/OpencodeChatUIConfig.ts
@@ -86759,7 +97829,7 @@ var OPENCODE_FALLBACK_THINKING_OPTIONS = [
   { value: "high", label: "High" }
 ];
 var OPENCODE_FALLBACK_THINKING_DEFAULT = "high";
-var DEFAULT_CONTEXT_WINDOW4 = 2e5;
+var DEFAULT_CONTEXT_WINDOW6 = 2e5;
 var OPENCODE_METADATA_WARMUP_DB4 = ":memory:";
 var OPENCODE_PERMISSION_MODE_TOGGLE = {
   inactiveValue: "normal",
@@ -86793,7 +97863,7 @@ var opencodeChatUIConfig = {
     const options = [];
     for (const rawModelId of opencodeSettings.visibleModels) {
       const encodedModelId = encodeOpencodeModelId(rawModelId);
-      pushOption(
+      pushOption3(
         options,
         seenValues,
         encodedModelId,
@@ -86815,7 +97885,7 @@ var opencodeChatUIConfig = {
       }
       const baseRawId = resolveOpencodeBaseModelRawId(rawModelId, opencodeSettings.discoveredModels);
       const baseModelId = encodeOpencodeModelId(baseRawId);
-      pushOption(
+      pushOption3(
         options,
         seenValues,
         baseModelId,
@@ -86848,11 +97918,11 @@ var opencodeChatUIConfig = {
     }
     const opencodeSettings = getOpencodeProviderSettings(settings11);
     const baseRawId = resolveOpencodeBaseModelRawId(rawModelId, opencodeSettings.discoveredModels);
-    return getDefaultThinkingLevelForModel(baseRawId, settings11);
+    return getDefaultThinkingLevelForModel3(baseRawId, settings11);
   },
   getContextWindowSize(model, customLimits) {
     var _a7;
-    return (_a7 = customLimits == null ? void 0 : customLimits[model]) != null ? _a7 : DEFAULT_CONTEXT_WINDOW4;
+    return (_a7 = customLimits == null ? void 0 : customLimits[model]) != null ? _a7 : DEFAULT_CONTEXT_WINDOW6;
   },
   isDefaultModel(model) {
     return isOpencodeModelSelectionId(model);
@@ -86870,7 +97940,7 @@ var opencodeChatUIConfig = {
     const opencodeSettings = getOpencodeProviderSettings(settingsBag);
     const baseRawId = resolveOpencodeBaseModelRawId(rawModelId, opencodeSettings.discoveredModels);
     settingsBag.model = encodeOpencodeModelId(baseRawId);
-    settingsBag.effortLevel = getDefaultThinkingLevelForModel(baseRawId, settingsBag);
+    settingsBag.effortLevel = getDefaultThinkingLevelForModel3(baseRawId, settingsBag);
   },
   async prepareModelMetadata(model, _settings, context) {
     const rawModelId = decodeOpencodeModelId(model);
@@ -86905,7 +97975,7 @@ var opencodeChatUIConfig = {
     }
     const opencodeSettings = getOpencodeProviderSettings(settingsBag);
     const baseRawId = resolveOpencodeBaseModelRawId(rawModelId, opencodeSettings.discoveredModels);
-    const supportedValues = new Set(getSupportedThinkingOptionsForModel(baseRawId, settingsBag).map((variant) => variant.value));
+    const supportedValues = new Set(getSupportedThinkingOptionsForModel3(baseRawId, settingsBag).map((variant) => variant.value));
     const nextPreferredThinkingByModel = {
       ...opencodeSettings.preferredThinkingByModel
     };
@@ -86957,18 +98027,18 @@ var opencodeChatUIConfig = {
     return OPENCODE_PROVIDER_ICON;
   }
 };
-function getDefaultThinkingLevelForModel(baseRawId, settings11) {
+function getDefaultThinkingLevelForModel3(baseRawId, settings11) {
   var _a7, _b4;
   const opencodeSettings = getOpencodeProviderSettings(settings11);
   const preferred = opencodeSettings.preferredThinkingByModel[baseRawId];
-  const options = getSupportedThinkingOptionsForModel(baseRawId, settings11);
+  const options = getSupportedThinkingOptionsForModel3(baseRawId, settings11);
   const supportedValues = new Set(options.map((variant) => variant.value));
   if (preferred && supportedValues.has(preferred)) {
     return preferred;
   }
   return (_b4 = supportedValues.has(OPENCODE_FALLBACK_THINKING_DEFAULT) ? OPENCODE_FALLBACK_THINKING_DEFAULT : (_a7 = options[0]) == null ? void 0 : _a7.value) != null ? _b4 : OPENCODE_DEFAULT_THINKING_LEVEL;
 }
-function getSupportedThinkingOptionsForModel(baseRawId, settings11) {
+function getSupportedThinkingOptionsForModel3(baseRawId, settings11) {
   var _a7;
   const opencodeSettings = getOpencodeProviderSettings(settings11);
   const discoveredOptions = (_a7 = opencodeSettings.thinkingOptionsByModel[baseRawId]) != null ? _a7 : [];
@@ -86984,9 +98054,9 @@ function getOpencodeThinkingOptions(model, settings11) {
   }
   const opencodeSettings = getOpencodeProviderSettings(settings11);
   const baseRawId = resolveOpencodeBaseModelRawId(rawModelId, opencodeSettings.discoveredModels);
-  return getSupportedThinkingOptionsForModel(baseRawId, settings11);
+  return getSupportedThinkingOptionsForModel3(baseRawId, settings11);
 }
-function pushOption(target, seenValues, value, option) {
+function pushOption3(target, seenValues, value, option) {
   if (seenValues.has(value)) {
     return;
   }
@@ -87218,7 +98288,7 @@ ${stderr}` : message,
   async readTextFile(request) {
     var _a7;
     const resolvedPath = this.resolveSessionPath(request.sessionId, request.path);
-    const content = await fs29.readFile(resolvedPath, "utf-8");
+    const content = await fs45.readFile(resolvedPath, "utf-8");
     if (request.line === void 0 && request.limit === void 0) {
       return { content };
     }
@@ -87230,7 +98300,7 @@ ${stderr}` : message,
     };
   }
   async handlePermissionRequest(request) {
-    return selectPermissionOption2(request.options, ["reject_once", "reject_always"]);
+    return selectPermissionOption6(request.options, ["reject_once", "reject_always"]);
   }
   resolveSelectedRawModel(explicitModel) {
     var _a7, _b4;
@@ -87307,7 +98377,7 @@ function buildOpencodeAuxAgentConfig(profile) {
     id: id2
   };
 }
-function selectPermissionOption2(options, preferredKinds) {
+function selectPermissionOption6(options, preferredKinds) {
   for (const kind of preferredKinds) {
     const option = options.find((entry) => entry.kind === kind);
     if (option) {
@@ -87498,11 +98568,11 @@ var opencodeSettingsReconciler = {
 };
 
 // src/providers/opencode/history/OpencodeHistoryStore.ts
-var import_node_child_process5 = require("node:child_process");
-var fs30 = __toESM(require("node:fs"));
+var import_node_child_process9 = require("node:child_process");
+var fs46 = __toESM(require("node:fs"));
 async function loadOpencodeSessionMessages(sessionId, providerState) {
   const databasePath = resolveExistingOpencodeDatabasePath(providerState == null ? void 0 : providerState.databasePath);
-  if (!databasePath || databasePath === ":memory:" || !fs30.existsSync(databasePath)) {
+  if (!databasePath || databasePath === ":memory:" || !fs46.existsSync(databasePath)) {
     return [];
   }
   const rows = await loadOpencodeSessionRows(databasePath, sessionId);
@@ -87510,19 +98580,19 @@ async function loadOpencodeSessionMessages(sessionId, providerState) {
     return [];
   }
   return mapOpencodeMessages(
-    hydrateStoredMessages(rows.messageRows, rows.partRows)
+    hydrateStoredMessages3(rows.messageRows, rows.partRows)
   );
 }
 function mapOpencodeMessages(messages) {
-  return mergeAdjacentAssistantMessages(messages.map((message) => mapStoredMessage(message)).filter((message) => message !== null));
+  return mergeAdjacentAssistantMessages3(messages.map((message) => mapStoredMessage3(message)).filter((message) => message !== null));
 }
-function hydrateStoredMessages(messageRows, partRows) {
+function hydrateStoredMessages3(messageRows, partRows) {
   var _a7;
   const partsByMessage = /* @__PURE__ */ new Map();
   for (const row of partRows) {
-    const messageId = getString(row.message_id);
-    const id2 = getString(row.id);
-    const data = parseJsonObject2(row.data);
+    const messageId = getString3(row.message_id);
+    const id2 = getString3(row.id);
+    const data = parseJsonObject4(row.data);
     if (!messageId || !id2 || !data) {
       continue;
     }
@@ -87532,8 +98602,8 @@ function hydrateStoredMessages(messageRows, partRows) {
   }
   return messageRows.flatMap((row) => {
     var _a8;
-    const id2 = getString(row.id);
-    const data = parseJsonObject2(row.data);
+    const id2 = getString3(row.id);
+    const data = parseJsonObject4(row.data);
     if (!id2 || !data) {
       return [];
     }
@@ -87543,16 +98613,16 @@ function hydrateStoredMessages(messageRows, partRows) {
     }];
   });
 }
-function mapStoredMessage(message) {
+function mapStoredMessage3(message) {
   var _a7, _b4;
-  const role = getString(message.info.role);
-  const id2 = getString(message.info.id);
+  const role = getString3(message.info.role);
+  const id2 = getString3(message.info.id);
   if (!id2 || role !== "user" && role !== "assistant") {
     return null;
   }
-  const createdAt = (_b4 = (_a7 = getNestedNumber(message.info, ["time", "created"])) != null ? _a7 : getNumber(message.info.time_created)) != null ? _b4 : Date.now();
+  const createdAt = (_b4 = (_a7 = getNestedNumber3(message.info, ["time", "created"])) != null ? _a7 : getNumber3(message.info.time_created)) != null ? _b4 : Date.now();
   if (role === "user") {
-    const promptText = extractVisibleUserPrompt(getJoinedTextParts(message.parts));
+    const promptText = extractVisibleUserPrompt3(getJoinedTextParts3(message.parts));
     return {
       assistantMessageId: void 0,
       content: promptText,
@@ -87562,9 +98632,9 @@ function mapStoredMessage(message) {
       userMessageId: id2
     };
   }
-  const contentBlocks = buildAssistantContentBlocks(message.parts);
-  const toolCalls = buildAssistantToolCalls(message.parts);
-  const completedAt = getNestedNumber(message.info, ["time", "completed"]);
+  const contentBlocks = buildAssistantContentBlocks3(message.parts);
+  const toolCalls = buildAssistantToolCalls3(message.parts);
+  const completedAt = getNestedNumber3(message.info, ["time", "completed"]);
   const durationSeconds = completedAt && completedAt >= createdAt ? Math.max(0, (completedAt - createdAt) / 1e3) : void 0;
   return {
     assistantMessageId: id2,
@@ -87577,7 +98647,7 @@ function mapStoredMessage(message) {
     toolCalls: toolCalls.length > 0 ? toolCalls : void 0
   };
 }
-function extractVisibleUserPrompt(rawPrompt) {
+function extractVisibleUserPrompt3(rawPrompt) {
   var _a7, _b4;
   const promptText = extractUserQuery(rawPrompt);
   const roleMarkerPattern = /(^|\n)(User|Assistant):[ \t]*/g;
@@ -87601,7 +98671,7 @@ function extractVisibleUserPrompt(rawPrompt) {
   }
   return promptText;
 }
-function mergeAdjacentAssistantMessages(messages) {
+function mergeAdjacentAssistantMessages3(messages) {
   var _a7, _b4;
   const merged = [];
   for (const message of messages) {
@@ -87610,16 +98680,16 @@ function mergeAdjacentAssistantMessages(messages) {
       previous.content += message.content;
       previous.assistantMessageId = (_a7 = message.assistantMessageId) != null ? _a7 : previous.assistantMessageId;
       previous.durationFlavorWord = (_b4 = message.durationFlavorWord) != null ? _b4 : previous.durationFlavorWord;
-      previous.durationSeconds = mergeAssistantDurationSeconds(previous, message);
-      previous.toolCalls = mergeOptionalArrays(previous.toolCalls, message.toolCalls);
-      previous.contentBlocks = mergeOptionalArrays(previous.contentBlocks, message.contentBlocks);
+      previous.durationSeconds = mergeAssistantDurationSeconds3(previous, message);
+      previous.toolCalls = mergeOptionalArrays3(previous.toolCalls, message.toolCalls);
+      previous.contentBlocks = mergeOptionalArrays3(previous.contentBlocks, message.contentBlocks);
       continue;
     }
     merged.push(message);
   }
   return merged;
 }
-function mergeOptionalArrays(left, right) {
+function mergeOptionalArrays3(left, right) {
   if (!(left == null ? void 0 : left.length) && !(right == null ? void 0 : right.length)) {
     return void 0;
   }
@@ -87628,41 +98698,41 @@ function mergeOptionalArrays(left, right) {
     ...right != null ? right : []
   ];
 }
-function mergeAssistantDurationSeconds(first, next) {
-  const firstEnd = getMessageCompletionTime(first);
-  const nextEnd = getMessageCompletionTime(next);
+function mergeAssistantDurationSeconds3(first, next) {
+  const firstEnd = getMessageCompletionTime3(first);
+  const nextEnd = getMessageCompletionTime3(next);
   if (firstEnd === null && nextEnd === null) {
     return void 0;
   }
   const end = Math.max(firstEnd != null ? firstEnd : first.timestamp, nextEnd != null ? nextEnd : next.timestamp);
   return Math.max(0, (end - first.timestamp) / 1e3);
 }
-function getMessageCompletionTime(message) {
+function getMessageCompletionTime3(message) {
   if (typeof message.durationSeconds !== "number") {
     return null;
   }
   return message.timestamp + message.durationSeconds * 1e3;
 }
-function buildAssistantContentBlocks(parts) {
+function buildAssistantContentBlocks3(parts) {
   var _a7;
   const blocks = [];
   for (const part of parts) {
-    switch (getString(part.type)) {
+    switch (getString3(part.type)) {
       case "reasoning": {
-        const text = (_a7 = getString(part.text)) == null ? void 0 : _a7.trim();
+        const text = (_a7 = getString3(part.text)) == null ? void 0 : _a7.trim();
         if (!text) {
           break;
         }
         blocks.push({
           content: text,
-          durationSeconds: getDurationSeconds(part),
+          durationSeconds: getDurationSeconds3(part),
           type: "thinking"
         });
         break;
       }
       case "text": {
-        const text = getString(part.text);
-        if (!text || getBoolean(part.ignored)) {
+        const text = getString3(part.text);
+        if (!text || getBoolean3(part.ignored)) {
           break;
         }
         blocks.push({
@@ -87672,7 +98742,7 @@ function buildAssistantContentBlocks(parts) {
         break;
       }
       case "tool": {
-        const toolId = getString(part.callID);
+        const toolId = getString3(part.callID);
         if (!toolId) {
           break;
         }
@@ -87686,25 +98756,25 @@ function buildAssistantContentBlocks(parts) {
   }
   return blocks;
 }
-function buildAssistantToolCalls(parts) {
+function buildAssistantToolCalls3(parts) {
   return parts.flatMap((part) => {
     var _a7, _b4, _c3, _d3;
-    if (getString(part.type) !== "tool") {
+    if (getString3(part.type) !== "tool") {
       return [];
     }
-    const id2 = getString(part.callID);
-    const rawName = getString(part.tool);
-    const state = getObject(part.state);
-    const status = mapToolStatus(getString(state == null ? void 0 : state.status));
+    const id2 = getString3(part.callID);
+    const rawName = getString3(part.tool);
+    const state = getObject3(part.state);
+    const status = mapToolStatus3(getString3(state == null ? void 0 : state.status));
     if (!id2 || !rawName || !status) {
       return [];
     }
-    const input = normalizeOpencodeToolInput(rawName, (_a7 = getObject(state == null ? void 0 : state.input)) != null ? _a7 : {});
+    const input = normalizeOpencodeToolInput(rawName, (_a7 = getObject3(state == null ? void 0 : state.input)) != null ? _a7 : {});
     const name = normalizeOpencodeToolName(rawName);
-    const result = (_c3 = (_b4 = getString(state == null ? void 0 : state.output)) != null ? _b4 : getString(state == null ? void 0 : state.error)) != null ? _c3 : void 0;
+    const result = (_c3 = (_b4 = getString3(state == null ? void 0 : state.output)) != null ? _b4 : getString3(state == null ? void 0 : state.error)) != null ? _c3 : void 0;
     const toolUseResult = normalizeOpencodeToolUseResult(rawName, input, {
       ...result ? { output: result } : {},
-      ...getObject(state == null ? void 0 : state.metadata) ? { metadata: getObject(state == null ? void 0 : state.metadata) } : {}
+      ...getObject3(state == null ? void 0 : state.metadata) ? { metadata: getObject3(state == null ? void 0 : state.metadata) } : {}
     });
     const toolCall = {
       id: id2,
@@ -87725,21 +98795,21 @@ function buildAssistantToolCalls(parts) {
     return [toolCall];
   });
 }
-function getJoinedTextParts(parts) {
-  return parts.filter((part) => getString(part.type) === "text" && !getBoolean(part.ignored)).map((part) => {
+function getJoinedTextParts3(parts) {
+  return parts.filter((part) => getString3(part.type) === "text" && !getBoolean3(part.ignored)).map((part) => {
     var _a7;
-    return (_a7 = getString(part.text)) != null ? _a7 : "";
+    return (_a7 = getString3(part.text)) != null ? _a7 : "";
   }).join("");
 }
-function getDurationSeconds(part) {
-  const start = getNestedNumber(part, ["time", "start"]);
-  const end = getNestedNumber(part, ["time", "end"]);
+function getDurationSeconds3(part) {
+  const start = getNestedNumber3(part, ["time", "start"]);
+  const end = getNestedNumber3(part, ["time", "end"]);
   if (start === null || end === null || end < start) {
     return void 0;
   }
   return Math.max(0, (end - start) / 1e3);
 }
-function mapToolStatus(status) {
+function mapToolStatus3(status) {
   switch (status) {
     case "pending":
     case "running":
@@ -87752,43 +98822,43 @@ function mapToolStatus(status) {
       return null;
   }
 }
-function parseJsonObject2(value) {
+function parseJsonObject4(value) {
   if (typeof value !== "string") {
     return null;
   }
   try {
     const parsed = JSON.parse(value);
-    return isPlainObject7(parsed) ? parsed : null;
+    return isPlainObject15(parsed) ? parsed : null;
   } catch (e) {
     return null;
   }
 }
-function isPlainObject7(value) {
+function isPlainObject15(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
-function getBoolean(value) {
+function getBoolean3(value) {
   return value === true;
 }
-function getObject(value) {
-  return isPlainObject7(value) ? value : null;
+function getObject3(value) {
+  return isPlainObject15(value) ? value : null;
 }
-function getString(value) {
+function getString3(value) {
   return typeof value === "string" ? value : null;
 }
-function getNumber(value) {
+function getNumber3(value) {
   return typeof value === "number" ? value : null;
 }
-function getNestedNumber(value, keys) {
+function getNestedNumber3(value, keys) {
   let current = value;
   for (const key of keys) {
-    if (!isPlainObject7(current)) {
+    if (!isPlainObject15(current)) {
       return null;
     }
     current = current[key];
   }
-  return getNumber(current);
+  return getNumber3(current);
 }
-async function loadSqliteModule2() {
+async function loadSqliteModule6() {
   try {
     return await import("node:sqlite");
   } catch (e) {
@@ -87796,14 +98866,14 @@ async function loadSqliteModule2() {
   }
 }
 async function loadOpencodeSessionRows(databasePath, sessionId) {
-  const viaNodeSqlite = await loadSessionRowsWithNodeSqlite(databasePath, sessionId);
+  const viaNodeSqlite = await loadSessionRowsWithNodeSqlite3(databasePath, sessionId);
   if (viaNodeSqlite) {
     return viaNodeSqlite;
   }
-  return loadSessionRowsWithSqliteCli(databasePath, sessionId);
+  return loadSessionRowsWithSqliteCli3(databasePath, sessionId);
 }
-async function loadSessionRowsWithNodeSqlite(databasePath, sessionId) {
-  const sqlite = await loadSqliteModule2();
+async function loadSessionRowsWithNodeSqlite3(databasePath, sessionId) {
+  const sqlite = await loadSqliteModule6();
   if (!sqlite) {
     return null;
   }
@@ -87823,13 +98893,13 @@ async function loadSessionRowsWithNodeSqlite(databasePath, sessionId) {
     db2 == null ? void 0 : db2.close();
   }
 }
-function loadSessionRowsWithSqliteCli(databasePath, sessionId) {
-  const escapedSessionId = escapeSqlLiteral2(sessionId);
-  const messageRows = runSqlite3JsonQuery(
+function loadSessionRowsWithSqliteCli3(databasePath, sessionId) {
+  const escapedSessionId = escapeSqlLiteral6(sessionId);
+  const messageRows = runSqlite3JsonQuery3(
     databasePath,
     `select id, time_created, data from message where session_id = '${escapedSessionId}' order by time_created asc, id asc;`
   );
-  const partRows = runSqlite3JsonQuery(
+  const partRows = runSqlite3JsonQuery3(
     databasePath,
     `select id, message_id, data from part where session_id = '${escapedSessionId}' order by message_id asc, id asc;`
   );
@@ -87838,8 +98908,8 @@ function loadSessionRowsWithSqliteCli(databasePath, sessionId) {
   }
   return { messageRows, partRows };
 }
-function runSqlite3JsonQuery(databasePath, sql) {
-  const result = (0, import_node_child_process5.spawnSync)(
+function runSqlite3JsonQuery3(databasePath, sql) {
+  const result = (0, import_node_child_process9.spawnSync)(
     "sqlite3",
     ["-json", databasePath, sql],
     {
@@ -87851,12 +98921,12 @@ function runSqlite3JsonQuery(databasePath, sql) {
   }
   try {
     const parsed = JSON.parse(result.stdout || "[]");
-    return Array.isArray(parsed) ? parsed.filter((row) => isPlainObject7(row)) : null;
+    return Array.isArray(parsed) ? parsed.filter((row) => isPlainObject15(row)) : null;
   } catch (e) {
     return null;
   }
 }
-function escapeSqlLiteral2(value) {
+function escapeSqlLiteral6(value) {
   return value.replaceAll("'", "''");
 }
 
@@ -87934,20 +99004,24 @@ function registerBuiltInProviders() {
   ProviderRegistry.register("antigravity", antigravityProviderRegistration);
   ProviderRegistry.register("gemini", geminiProviderRegistration);
   ProviderRegistry.register("opencode", opencodeProviderRegistration);
+  ProviderRegistry.register("mimocode", mimocodeProviderRegistration);
+  ProviderRegistry.register("kimicode", kimicodeProviderRegistration);
   ProviderWorkspaceRegistry.register("claude", claudeWorkspaceRegistration);
   ProviderWorkspaceRegistry.register("codex", codexWorkspaceRegistration);
   ProviderWorkspaceRegistry.register("antigravity", antigravityWorkspaceRegistration);
   ProviderWorkspaceRegistry.register("gemini", geminiWorkspaceRegistration);
   ProviderWorkspaceRegistry.register("opencode", opencodeWorkspaceRegistration);
+  ProviderWorkspaceRegistry.register("mimocode", mimocodeWorkspaceRegistration);
+  ProviderWorkspaceRegistry.register("kimicode", kimicodeWorkspaceRegistration);
   builtInProvidersRegistered = true;
 }
 registerBuiltInProviders();
 
 // src/main.ts
-var import_obsidian51 = require("obsidian");
+var import_obsidian55 = require("obsidian");
 
 // src/app/storage/SharedStorageService.ts
-var import_obsidian21 = require("obsidian");
+var import_obsidian25 = require("obsidian");
 function isRecord10(value) {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
@@ -87999,7 +99073,7 @@ var SharedStorageService = class {
       data.tabManagerState = state;
       await this.plugin.saveData(data);
     } catch (e) {
-      new import_obsidian21.Notice("Failed to save tab layout");
+      new import_obsidian25.Notice("Failed to save tab layout");
     }
   }
   async getTabManagerState() {
@@ -88172,10 +99246,10 @@ var DebugLogService = class {
       ts: now.toISOString(),
       ...event.error ? { error: sanitizeDebugError(event.error) } : {}
     };
-    const path26 = `${GRIMOIRE_DEBUG_LOGS_PATH}/${formatLocalDate(now)}.jsonl`;
+    const path36 = `${GRIMOIRE_DEBUG_LOGS_PATH}/${formatLocalDate(now)}.jsonl`;
     try {
       await this.adapter.ensureFolder(GRIMOIRE_DEBUG_LOGS_PATH);
-      await this.adapter.append(path26, `${JSON.stringify(entry)}
+      await this.adapter.append(path36, `${JSON.stringify(entry)}
 `);
     } catch (e) {
     }
@@ -88183,7 +99257,7 @@ var DebugLogService = class {
 };
 
 // src/features/chat/GrimoireView.ts
-var import_obsidian47 = require("obsidian");
+var import_obsidian51 = require("obsidian");
 
 // src/shared/appIcon.ts
 var GRIMOIRE_APP_ICON_ID = "grimoire";
@@ -88227,11 +99301,11 @@ function cancelScheduledAnimationFrame(frame) {
 
 // src/features/chat/rendering/InlineOrchestratorPlan.ts
 var InlineOrchestratorPlan = class {
-  constructor(containerEl, plan, resolve7) {
+  constructor(containerEl, plan, resolve9) {
     this.resolved = false;
     this.containerEl = containerEl;
     this.plan = plan;
-    this.resolveCallback = resolve7;
+    this.resolveCallback = resolve9;
   }
   render() {
     this.rootEl = this.containerEl.createDiv({ cls: "grimoire-orchestrator-plan-inline" });
@@ -88352,7 +99426,7 @@ var OrchestratorService = class {
 };
 
 // src/features/chat/tabs/Tab.ts
-var import_obsidian44 = require("obsidian");
+var import_obsidian48 = require("obsidian");
 
 // src/app/version.ts
 function formatGrimoireVersion(manifest) {
@@ -88442,7 +99516,7 @@ var RelevantNotesService = class {
     if (!current || options.maxResults <= 0) {
       return [];
     }
-    return this.index.getAllDocuments().filter((candidate) => candidate.path !== current.path).map((candidate) => scoreCandidate(current, candidate)).filter((note) => note !== null).sort(compareRelevantNotes).slice(0, options.maxResults).map(({ path: path26, title, score, reasons }) => ({ path: path26, title, score, reasons }));
+    return this.index.getAllDocuments().filter((candidate) => candidate.path !== current.path).map((candidate) => scoreCandidate(current, candidate)).filter((note) => note !== null).sort(compareRelevantNotes).slice(0, options.maxResults).map(({ path: path36, title, score, reasons }) => ({ path: path36, title, score, reasons }));
   }
 };
 function scoreCandidate(current, candidate) {
@@ -88510,9 +99584,9 @@ function countSharedValues(left, right) {
   }
   return count;
 }
-function getFolderPath(path26) {
-  const index = path26.lastIndexOf("/");
-  return index === -1 ? "" : path26.slice(0, index);
+function getFolderPath(path36) {
+  const index = path36.lastIndexOf("/");
+  return index === -1 ? "" : path36.slice(0, index);
 }
 function compareRelevantNotes(left, right) {
   if (right.score !== left.score) {
@@ -88691,23 +99765,23 @@ var VaultTextIndex = class {
       });
     }
     this.documents.clear();
-    for (const [path26, document2] of documents) {
-      this.documents.set(path26, document2);
+    for (const [path36, document2] of documents) {
+      this.documents.set(path36, document2);
     }
   }
-  markDirty(path26) {
-    if (path26 === void 0) {
+  markDirty(path36) {
+    if (path36 === void 0) {
       this.documents.clear();
       return;
     }
-    this.documents.delete(path26);
+    this.documents.delete(path36);
   }
   getAllDocuments() {
     return Array.from(this.documents.values());
   }
-  getByPath(path26) {
+  getByPath(path36) {
     var _a7;
-    return (_a7 = this.documents.get(path26)) != null ? _a7 : null;
+    return (_a7 = this.documents.get(path36)) != null ? _a7 : null;
   }
 };
 function extractTags(cache) {
@@ -89519,7 +100593,7 @@ var CanvasSelectionController = class {
 };
 
 // src/features/chat/controllers/ConversationController.ts
-var import_obsidian22 = require("obsidian");
+var import_obsidian26 = require("obsidian");
 
 // src/features/chat/rendering/collapsible.ts
 function setupCollapsible(wrapperEl, headerEl, contentEl, state, options = {}) {
@@ -89774,7 +100848,7 @@ function getRandomGreeting(input) {
 // src/features/chat/controllers/ConversationController.ts
 function runConversationAction(action, failureMessage) {
   void action().catch(() => {
-    new import_obsidian22.Notice(failureMessage);
+    new import_obsidian26.Notice(failureMessage);
   });
 }
 var ConversationController = class {
@@ -89976,27 +101050,27 @@ var ConversationController = class {
     const { plugin, state, renderer } = this.deps;
     const agentServiceForCheck = this.getAgentService();
     if (agentServiceForCheck && !agentServiceForCheck.getCapabilities().supportsRewind) {
-      new import_obsidian22.Notice(t("chat.rewind.failed", { error: "Rewind is not supported by this provider." }));
+      new import_obsidian26.Notice(t("chat.rewind.failed", { error: "Rewind is not supported by this provider." }));
       return;
     }
     if (state.isStreaming) {
-      new import_obsidian22.Notice(t("chat.rewind.unavailableStreaming"));
+      new import_obsidian26.Notice(t("chat.rewind.unavailableStreaming"));
       return;
     }
     const msgs = state.messages;
     const userIdx = msgs.findIndex((m) => m.id === userMessageId);
     if (userIdx === -1) {
-      new import_obsidian22.Notice(t("chat.rewind.failed", { error: "Message not found" }));
+      new import_obsidian26.Notice(t("chat.rewind.failed", { error: "Message not found" }));
       return;
     }
     const userMsg = msgs[userIdx];
     if (!userMsg.userMessageId) {
-      new import_obsidian22.Notice(t("chat.rewind.unavailableNoUuid"));
+      new import_obsidian26.Notice(t("chat.rewind.unavailableNoUuid"));
       return;
     }
     const rewindCtx = findRewindContext(msgs, userIdx);
     if (!rewindCtx.hasResponse || !rewindCtx.prevAssistantUuid) {
-      new import_obsidian22.Notice(t("chat.rewind.unavailableNoUuid"));
+      new import_obsidian26.Notice(t("chat.rewind.unavailableNoUuid"));
       return;
     }
     const prevAssistantUuid = rewindCtx.prevAssistantUuid;
@@ -90007,23 +101081,23 @@ var ConversationController = class {
     );
     if (!confirmed) return;
     if (state.isStreaming) {
-      new import_obsidian22.Notice(t("chat.rewind.unavailableStreaming"));
+      new import_obsidian26.Notice(t("chat.rewind.unavailableStreaming"));
       return;
     }
     const agentService = this.getAgentService();
     if (!agentService) {
-      new import_obsidian22.Notice(t("chat.rewind.failed", { error: "Agent service not available" }));
+      new import_obsidian26.Notice(t("chat.rewind.failed", { error: "Agent service not available" }));
       return;
     }
     let result;
     try {
       result = await agentService.rewind(userMsg.userMessageId, prevAssistantUuid, mode);
     } catch (e) {
-      new import_obsidian22.Notice(t("chat.rewind.failed", { error: e instanceof Error ? e.message : "Unknown error" }));
+      new import_obsidian26.Notice(t("chat.rewind.failed", { error: e instanceof Error ? e.message : "Unknown error" }));
       return;
     }
     if (!result.canRewind) {
-      new import_obsidian22.Notice(t("chat.rewind.cannot", { error: (_a7 = result.error) != null ? _a7 : "Unknown error" }));
+      new import_obsidian26.Notice(t("chat.rewind.cannot", { error: (_a7 = result.error) != null ? _a7 : "Unknown error" }));
       return;
     }
     state.truncateAt(userMessageId);
@@ -90041,12 +101115,12 @@ var ConversationController = class {
       saveError = e instanceof Error ? e.message : "Failed to save";
     }
     if (saveError) {
-      new import_obsidian22.Notice(
+      new import_obsidian26.Notice(
         mode === "conversation" ? t("chat.rewind.noticeConversationOnlySaveFailed", { error: saveError }) : t("chat.rewind.noticeSaveFailed", { count: String(filesChanged), error: saveError })
       );
       return;
     }
-    new import_obsidian22.Notice(
+    new import_obsidian26.Notice(
       mode === "conversation" ? t("chat.rewind.noticeConversationOnly") : t("chat.rewind.notice", { count: String(filesChanged) })
     );
   }
@@ -90202,7 +101276,7 @@ var ConversationController = class {
         "aria-label": "Close history"
       }
     });
-    (0, import_obsidian22.setIcon)(closeBtn, "x");
+    (0, import_obsidian26.setIcon)(closeBtn, "x");
     closeBtn.addEventListener("click", (event) => {
       var _a7;
       event.stopPropagation();
@@ -90210,7 +101284,7 @@ var ConversationController = class {
     });
     const searchRow = container.createDiv({ cls: "grimoire-history-search" });
     const searchIcon = searchRow.createSpan({ cls: "grimoire-history-search-icon" });
-    (0, import_obsidian22.setIcon)(searchIcon, "search");
+    (0, import_obsidian26.setIcon)(searchIcon, "search");
     const searchInput = searchRow.createEl("input", {
       cls: "grimoire-history-search-input",
       attr: {
@@ -90322,7 +101396,7 @@ var ConversationController = class {
     const actions = item.createDiv({ cls: "grimoire-history-item-actions" });
     if (!isCurrent && options.onOpenConversationInNewTab && openState === "closed") {
       const openBtn = actions.createEl("button", { cls: "grimoire-action-btn grimoire-history-new-tab-btn" });
-      (0, import_obsidian22.setIcon)(openBtn, "external-link");
+      (0, import_obsidian26.setIcon)(openBtn, "external-link");
       openBtn.setAttribute("aria-label", "Open in new tab");
       openBtn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -90340,11 +101414,11 @@ var ConversationController = class {
     }
     if (conv.titleGenerationStatus === "pending") {
       const loadingEl = actions.createEl("span", { cls: "grimoire-action-btn grimoire-action-loading" });
-      (0, import_obsidian22.setIcon)(loadingEl, "loader-2");
+      (0, import_obsidian26.setIcon)(loadingEl, "loader-2");
       loadingEl.setAttribute("aria-label", "Generating title...");
     } else if (conv.titleGenerationStatus === "failed") {
       const regenerateBtn = actions.createEl("button", { cls: "grimoire-action-btn grimoire-history-regenerate-btn" });
-      (0, import_obsidian22.setIcon)(regenerateBtn, "refresh-cw");
+      (0, import_obsidian26.setIcon)(regenerateBtn, "refresh-cw");
       regenerateBtn.setAttribute("aria-label", "Regenerate title");
       regenerateBtn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -90355,7 +101429,7 @@ var ConversationController = class {
       });
     }
     const deleteBtn = actions.createEl("button", { cls: "grimoire-action-btn grimoire-delete-btn" });
-    (0, import_obsidian22.setIcon)(deleteBtn, "trash-2");
+    (0, import_obsidian26.setIcon)(deleteBtn, "trash-2");
     deleteBtn.setAttribute("aria-label", "Delete");
     deleteBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -90454,12 +101528,12 @@ var ConversationController = class {
     try {
       await action();
     } catch (e) {
-      new import_obsidian22.Notice(errorMessage);
+      new import_obsidian26.Notice(errorMessage);
     }
   }
   showHistoryContextMenu(item, conv, isCurrent, options, event) {
     var _a7, _b4;
-    const menu = new import_obsidian22.Menu();
+    const menu = new import_obsidian26.Menu();
     const conversationId = conv.id;
     const openState = (_b4 = (_a7 = options.getConversationOpenState) == null ? void 0 : _a7.call(options, conversationId)) != null ? _b4 : isCurrent ? "current" : "closed";
     if (!isCurrent) {
@@ -90537,7 +101611,7 @@ var ConversationController = class {
         await this.deps.plugin.renameConversation(convId, newTitle);
         this.updateHistoryDropdown();
       } catch (e) {
-        new import_obsidian22.Notice("Failed to rename conversation");
+        new import_obsidian26.Notice("Failed to rename conversation");
       }
     };
     input.addEventListener("blur", () => {
@@ -90657,7 +101731,7 @@ var ConversationController = class {
 };
 
 // src/features/chat/controllers/InputController.ts
-var import_obsidian29 = require("obsidian");
+var import_obsidian33 = require("obsidian");
 
 // src/core/runtime/QueuedTurn.ts
 function cloneChatTurnRequest(request) {
@@ -90754,7 +101828,7 @@ function mergeSets(first, second) {
 }
 
 // src/shared/components/ResumeSessionDropdown.ts
-var import_obsidian23 = require("obsidian");
+var import_obsidian27 = require("obsidian");
 var ResumeSessionDropdown = class {
   constructor(containerEl, inputEl, conversations, currentConversationId, callbacks) {
     this.selectedIndex = 0;
@@ -90857,7 +101931,7 @@ var ResumeSessionDropdown = class {
       if (isCurrent) item.addClass("current");
       if (i3 === this.selectedIndex) item.addClass("selected");
       const iconEl = item.createDiv({ cls: "grimoire-resume-item-icon" });
-      (0, import_obsidian23.setIcon)(iconEl, isCurrent ? "message-square-dot" : "message-square");
+      (0, import_obsidian27.setIcon)(iconEl, isCurrent ? "message-square-dot" : "message-square");
       const content = item.createDiv({ cls: "grimoire-resume-item-content" });
       const titleEl = content.createDiv({ cls: "grimoire-resume-item-title", text: conv.title });
       titleEl.setAttribute("title", conv.title);
@@ -90889,8 +101963,8 @@ var ResumeSessionDropdown = class {
 };
 
 // src/shared/modals/InstructionConfirmModal.ts
-var import_obsidian24 = require("obsidian");
-var InstructionModal = class extends import_obsidian24.Modal {
+var import_obsidian28 = require("obsidian");
+var InstructionModal = class extends import_obsidian28.Modal {
   constructor(app, rawInstruction, callbacks) {
     super(app);
     this.state = "loading";
@@ -90934,7 +102008,7 @@ var InstructionModal = class extends import_obsidian24.Modal {
     const responseSection = this.clarificationEl.createDiv({ cls: "grimoire-instruction-section" });
     const responseLabel = responseSection.createDiv({ cls: "grimoire-instruction-label" });
     responseLabel.setText("Your response:");
-    this.responseTextarea = new import_obsidian24.TextAreaComponent(responseSection);
+    this.responseTextarea = new import_obsidian28.TextAreaComponent(responseSection);
     this.responseTextarea.inputEl.addClass("grimoire-instruction-response-textarea");
     this.responseTextarea.inputEl.rows = 3;
     this.responseTextarea.inputEl.placeholder = "Provide more details...";
@@ -90952,7 +102026,7 @@ var InstructionModal = class extends import_obsidian24.Modal {
     this.refinedDisplayEl = refinedSection.createDiv({ cls: "grimoire-instruction-refined" });
     this.editContainerEl = refinedSection.createDiv({ cls: "grimoire-instruction-edit-container" });
     this.editContainerEl.addClass("grimoire-hidden");
-    this.editTextarea = new import_obsidian24.TextAreaComponent(this.editContainerEl);
+    this.editTextarea = new import_obsidian28.TextAreaComponent(this.editContainerEl);
     this.editTextarea.inputEl.addClass("grimoire-instruction-edit-textarea");
     this.editTextarea.inputEl.rows = 4;
     this.buttonsEl = contentEl.createDiv({ cls: "grimoire-instruction-buttons" });
@@ -91258,14 +102332,14 @@ function buildImageGenerationPrompt({
 }
 
 // src/features/chat/rendering/InlineAskUserQuestion.ts
-var import_obsidian25 = require("obsidian");
+var import_obsidian29 = require("obsidian");
 var KIND_LABELS = {
   single: "single",
   multi: "multiple",
   freeform: "opt."
 };
 var InlineAskUserQuestion = class {
-  constructor(containerEl, input, resolve7, signal, config2) {
+  constructor(containerEl, input, resolve9, signal, config2) {
     this.resolved = false;
     this.questions = [];
     this.questionStates = [];
@@ -91279,7 +102353,7 @@ var InlineAskUserQuestion = class {
     var _a7, _b4, _c3;
     this.containerEl = containerEl;
     this.input = input;
-    this.resolveCallback = resolve7;
+    this.resolveCallback = resolve9;
     this.signal = signal;
     this.config = {
       title: (_a7 = config2 == null ? void 0 : config2.title) != null ? _a7 : "Question",
@@ -91323,7 +102397,7 @@ var InlineAskUserQuestion = class {
   renderHeader() {
     const head = this.formEl.createDiv({ cls: "grimoire-ask-head" });
     const glyph = head.createDiv({ cls: "grimoire-ask-glyph" });
-    (0, import_obsidian25.setIcon)(glyph, "message-circle-question");
+    (0, import_obsidian29.setIcon)(glyph, "message-circle-question");
     const titleBlock = head.createDiv({ cls: "grimoire-ask-title-block" });
     titleBlock.createDiv({ text: "Needs a detail", cls: "grimoire-ask-title" });
     const questionCount = this.questions.length;
@@ -91332,7 +102406,7 @@ var InlineAskUserQuestion = class {
       cls: "grimoire-ask-subtitle"
     });
     const pill = head.createDiv({ cls: "grimoire-ask-tool-pill" });
-    (0, import_obsidian25.setIcon)(pill.createSpan(), "message-circle");
+    (0, import_obsidian29.setIcon)(pill.createSpan(), "message-circle");
     pill.createSpan({ text: "ask_user" });
   }
   renderBody() {
@@ -91362,7 +102436,7 @@ var InlineAskUserQuestion = class {
           const mark = row.createDiv({ cls: "grimoire-ask-opt-mark" });
           if (q.multiSelect) {
             const box = mark.createDiv({ cls: "grimoire-ask-opt-box" });
-            (0, import_obsidian25.setIcon)(box, "check");
+            (0, import_obsidian29.setIcon)(box, "check");
             row.setAttribute("role", "checkbox");
             row.setAttribute("aria-checked", "false");
           } else {
@@ -91417,7 +102491,7 @@ var InlineAskUserQuestion = class {
     this.submitBtn = actions.createEl("button", {
       cls: "grimoire-ask-btn grimoire-ask-btn--submit"
     });
-    (0, import_obsidian25.setIcon)(this.submitBtn.createSpan(), "arrow-right");
+    (0, import_obsidian29.setIcon)(this.submitBtn.createSpan(), "arrow-right");
     this.submitBtn.createSpan({ text: "Send answers" });
     this.submitBtn.addEventListener("click", () => this.handleSubmit());
     this.refreshValidity();
@@ -91686,11 +102760,11 @@ var InlineAskUserQuestion = class {
 };
 
 // src/features/chat/rendering/InlineExitPlanMode.ts
-var fs31 = __toESM(require("fs"));
+var fs47 = __toESM(require("fs"));
 var nodePath = __toESM(require("path"));
 var HINTS_TEXT = "Arrow keys to navigate \xB7 Enter to select \xB7 Esc to cancel";
 var InlineExitPlanMode = class {
-  constructor(containerEl, input, resolve7, signal, renderContent, planPathPrefix) {
+  constructor(containerEl, input, resolve9, signal, renderContent, planPathPrefix) {
     this.resolved = false;
     this.planContent = null;
     this.planReadError = null;
@@ -91700,7 +102774,7 @@ var InlineExitPlanMode = class {
     this.abortHandler = null;
     this.containerEl = containerEl;
     this.input = input;
-    this.resolveCallback = resolve7;
+    this.resolveCallback = resolve9;
     this.signal = signal;
     this.renderContent = renderContent;
     this.planPathPrefix = planPathPrefix;
@@ -91801,7 +102875,7 @@ var InlineExitPlanMode = class {
       return null;
     }
     try {
-      const content = fs31.readFileSync(planFilePath, "utf-8");
+      const content = fs47.readFileSync(planFilePath, "utf-8");
       return content.trim() || null;
     } catch (err) {
       this.planReadError = err instanceof Error ? err.message : "unknown error";
@@ -91912,10 +102986,10 @@ ${this.planContent}`;
 };
 
 // src/features/chat/rendering/InlinePermissionRequest.ts
-var import_obsidian28 = require("obsidian");
+var import_obsidian32 = require("obsidian");
 
 // src/features/chat/rendering/ToolCallRenderer.ts
-var import_obsidian27 = require("obsidian");
+var import_obsidian31 = require("obsidian");
 
 // src/core/tools/toolIcons.ts
 var TOOL_ICONS = {
@@ -92050,7 +103124,7 @@ function renderDiffContent(containerEl, diffLines, contextLines = 3) {
 }
 
 // src/features/chat/rendering/todoUtils.ts
-var import_obsidian26 = require("obsidian");
+var import_obsidian30 = require("obsidian");
 function getTodoStatusIcon(status) {
   return status === "completed" ? "check" : "dot";
 }
@@ -92063,7 +103137,7 @@ function renderTodoItems(container, todos) {
     const item = container.createDiv({ cls: `grimoire-todo-item grimoire-todo-${todo.status}` });
     const icon = item.createSpan({ cls: "grimoire-todo-status-icon" });
     icon.setAttribute("aria-hidden", "true");
-    (0, import_obsidian26.setIcon)(icon, getTodoStatusIcon(todo.status));
+    (0, import_obsidian30.setIcon)(icon, getTodoStatusIcon(todo.status));
     const text = item.createSpan({ cls: "grimoire-todo-text" });
     text.setText(getTodoDisplayText(todo));
   }
@@ -92075,7 +103149,7 @@ function setToolIcon(el2, name) {
   if (icon === MCP_ICON_MARKER) {
     appendMcpIcon(el2);
   } else {
-    (0, import_obsidian27.setIcon)(el2, icon);
+    (0, import_obsidian31.setIcon)(el2, icon);
   }
 }
 function stringifyToolValue(value) {
@@ -92405,7 +103479,7 @@ function appendToolLink(parent, title, url2) {
     linkEl.setAttribute("rel", "noopener noreferrer");
   }
   const iconEl = linkEl.createSpan({ cls: "grimoire-tool-link-icon" });
-  (0, import_obsidian27.setIcon)(iconEl, "external-link");
+  (0, import_obsidian31.setIcon)(iconEl, "external-link");
   linkEl.createSpan({ cls: "grimoire-tool-link-title", text: title });
 }
 function isPlaceholderWebSearchResult(result) {
@@ -92624,10 +103698,10 @@ function renderApplyPatchExpanded(container, input, result) {
     for (const change of changes) {
       if (!change || typeof change !== "object" || Array.isArray(change)) continue;
       const changeRecord = change;
-      const path26 = typeof changeRecord.path === "string" ? changeRecord.path : "";
-      if (!path26) continue;
+      const path36 = typeof changeRecord.path === "string" ? changeRecord.path : "";
+      if (!path36) continue;
       const movedTo = readMoveTarget(changeRecord.kind);
-      const pathText = movedTo ? `${path26} -> ${movedTo}` : path26;
+      const pathText = movedTo ? `${path36} -> ${movedTo}` : path36;
       linesEl.createDiv({ cls: "grimoire-tool-line", text: pathText });
     }
     return;
@@ -92797,7 +103871,7 @@ function setTodoWriteStatus(statusEl, input) {
   const status = isComplete ? "completed" : "running";
   const ariaLabel = isComplete ? "Status: completed" : "Status: in progress";
   resetStatusElement(statusEl, `status-${status}`, ariaLabel);
-  if (isComplete) (0, import_obsidian27.setIcon)(statusEl, "check");
+  if (isComplete) (0, import_obsidian31.setIcon)(statusEl, "check");
 }
 function setToolStatus(statusEl, status) {
   resetStatusElement(statusEl, `status-${status}`, `Status: ${status}`);
@@ -92806,7 +103880,7 @@ function setToolStatus(statusEl, status) {
     return;
   }
   const icon = STATUS_ICONS[status];
-  if (icon) (0, import_obsidian27.setIcon)(statusEl, icon);
+  if (icon) (0, import_obsidian31.setIcon)(statusEl, icon);
 }
 function setApplyPatchHeaderRight(statusEl, toolCall) {
   const isError = toolCall.status === "error" || toolCall.status === "blocked";
@@ -93103,7 +104177,7 @@ function renderToolGroup(parentEl, toolCalls, toolCallElements) {
   header.setAttribute("role", "button");
   const iconEl = header.createSpan({ cls: "grimoire-tool-icon grimoire-tool-icon-tile" });
   iconEl.setAttribute("aria-hidden", "true");
-  (0, import_obsidian27.setIcon)(iconEl, getToolGroupIcon(toolCalls));
+  (0, import_obsidian31.setIcon)(iconEl, getToolGroupIcon(toolCalls));
   header.createSpan({ cls: "grimoire-tool-name grimoire-tool-group-name", text: getToolGroupName(toolCalls) });
   header.createSpan({ cls: "grimoire-tool-summary grimoire-tool-group-summary", text: getToolGroupSummary(toolCalls) });
   header.createSpan({ cls: "grimoire-tool-count-chip", text: getToolGroupCountLabel(toolCalls) });
@@ -93235,7 +104309,7 @@ var InlinePermissionRequest = class {
   renderHeader(cardEl) {
     const headEl = cardEl.createDiv({ cls: "grimoire-permission-head" });
     const shieldEl = headEl.createSpan({ cls: "grimoire-permission-shield" });
-    (0, import_obsidian28.setIcon)(shieldEl, "shield-check");
+    (0, import_obsidian32.setIcon)(shieldEl, "shield-check");
     const titleEl = headEl.createDiv({ cls: "grimoire-permission-title-block" });
     titleEl.createEl("strong", {
       cls: "grimoire-permission-title",
@@ -93297,9 +104371,9 @@ var InlinePermissionRequest = class {
         attr: { type: "button" }
       });
       if (action === "allow") {
-        (0, import_obsidian28.setIcon)(buttonEl.createSpan({ cls: "grimoire-permission-button-icon" }), "check");
+        (0, import_obsidian32.setIcon)(buttonEl.createSpan({ cls: "grimoire-permission-button-icon" }), "check");
       } else if (action === "reject") {
-        (0, import_obsidian28.setIcon)(buttonEl.createSpan({ cls: "grimoire-permission-button-icon" }), "x");
+        (0, import_obsidian32.setIcon)(buttonEl.createSpan({ cls: "grimoire-permission-button-icon" }), "x");
       }
       buttonEl.createSpan({
         cls: "grimoire-permission-button-label",
@@ -93399,13 +104473,13 @@ var InlinePermissionRequest = class {
 // src/features/chat/rendering/InlinePlanApproval.ts
 var HINTS_TEXT2 = "Arrow keys to navigate \xB7 Enter to select \xB7 Esc to cancel";
 var InlinePlanApproval = class {
-  constructor(containerEl, resolve7) {
+  constructor(containerEl, resolve9) {
     this.resolved = false;
     this.focusedIndex = 0;
     this.items = [];
     this.isInputFocused = false;
     this.containerEl = containerEl;
-    this.resolveCallback = resolve7;
+    this.resolveCallback = resolve9;
     this.boundKeyDown = (event) => this.handleKeyDown(event);
   }
   render() {
@@ -93636,12 +104710,12 @@ function mergeExternalContextPaths(...pathLists) {
   const merged = [];
   const seen = /* @__PURE__ */ new Set();
   for (const paths of pathLists) {
-    for (const path26 of paths != null ? paths : []) {
-      if (!path26 || seen.has(path26)) {
+    for (const path36 of paths != null ? paths : []) {
+      if (!path36 || seen.has(path36)) {
         continue;
       }
-      seen.add(path26);
-      merged.push(path26);
+      seen.add(path36);
+      merged.push(path36);
     }
   }
   return merged.length > 0 ? merged : void 0;
@@ -93846,7 +104920,7 @@ var InputController = class {
         imageContextManager == null ? void 0 : imageContextManager.setImages(imagesForMessage != null ? imagesForMessage : []);
       }
       if (error48 instanceof ProjectWorkspaceRoutingError) {
-        new import_obsidian29.Notice(error48.message);
+        new import_obsidian33.Notice(error48.message);
         return;
       }
       throw error48;
@@ -93890,7 +104964,7 @@ var InputController = class {
     if (this.deps.ensureServiceInitialized) {
       const ready = await this.deps.ensureServiceInitialized();
       if (!ready) {
-        new import_obsidian29.Notice("Failed to initialize agent service. Please try again.");
+        new import_obsidian33.Notice("Failed to initialize agent service. Please try again.");
         streamController.hideThinkingIndicator();
         state.isStreaming = false;
         this.activeStreamingAssistantMessage = null;
@@ -93900,7 +104974,7 @@ var InputController = class {
     }
     const agentService = this.getAgentService();
     if (!agentService) {
-      new import_obsidian29.Notice("Agent service not available. Please reload the plugin.");
+      new import_obsidian33.Notice("Agent service not available. Please reload the plugin.");
       this.activeStreamingAssistantMessage = null;
       this.resetProviderMessageBoundaryState();
       return;
@@ -94260,7 +105334,7 @@ var InputController = class {
       excludedTags: settings11.excludedTags
     }).then((result) => result.snippets.length > 0 ? { query: trimmedQueryText, snippets: result.snippets } : void 0).catch((error48) => {
       const message = error48 instanceof Error ? error48.message : String(error48);
-      new import_obsidian29.Notice(t("chat.vaultSearch.failed", { message }));
+      new import_obsidian33.Notice(t("chat.vaultSearch.failed", { message }));
       throw error48;
     });
   }
@@ -94341,7 +105415,7 @@ var InputController = class {
         type: "button"
       }
     });
-    (0, import_obsidian29.setIcon)(button, icon);
+    (0, import_obsidian33.setIcon)(button, icon);
     return button;
   }
   canSteerQueuedMessage() {
@@ -94458,7 +105532,7 @@ var InputController = class {
       });
     } catch (e) {
       this.restoreQueuedMessageAfterSteerFailure(queuedMessage);
-      new import_obsidian29.Notice("Failed to steer the queued Codex message. It is still available.");
+      new import_obsidian33.Notice("Failed to steer the queued Codex message. It is still available.");
     }
   }
   restoreQueuedMessageAfterSteerFailure(message) {
@@ -94704,7 +105778,7 @@ var InputController = class {
               const currentPrompt = plugin.settings.systemPrompt;
               plugin.settings.systemPrompt = appendMarkdownSnippet(currentPrompt, finalInstruction);
               await plugin.saveSettings();
-              new import_obsidian29.Notice("Instruction added to custom system prompt");
+              new import_obsidian33.Notice("Instruction added to custom system prompt");
               instructionModeManager == null ? void 0 : instructionModeManager.clear();
             })();
           },
@@ -94723,7 +105797,7 @@ var InputController = class {
               if (result2.error === "Cancelled") {
                 return;
               }
-              new import_obsidian29.Notice(result2.error || "Failed to process response");
+              new import_obsidian33.Notice(result2.error || "Failed to process response");
               modal == null ? void 0 : modal.showError(result2.error || "Failed to process response");
               return;
             }
@@ -94750,7 +105824,7 @@ var InputController = class {
           instructionModeManager == null ? void 0 : instructionModeManager.clear();
           return;
         }
-        new import_obsidian29.Notice(result.error || "Failed to refine instruction");
+        new import_obsidian33.Notice(result.error || "Failed to refine instruction");
         modal.showError(result.error || "Failed to refine instruction");
         instructionModeManager == null ? void 0 : instructionModeManager.clear();
         return;
@@ -94760,13 +105834,13 @@ var InputController = class {
       } else if (result.refinedInstruction) {
         modal.showConfirmation(result.refinedInstruction);
       } else {
-        new import_obsidian29.Notice("No instruction received");
+        new import_obsidian33.Notice("No instruction received");
         modal.showError("No instruction received");
         instructionModeManager == null ? void 0 : instructionModeManager.clear();
       }
     } catch (error48) {
       const errorMsg = error48 instanceof Error ? error48.message : "Unknown error";
-      new import_obsidian29.Notice(`Error: ${errorMsg}`);
+      new import_obsidian33.Notice(`Error: ${errorMsg}`);
       modal == null ? void 0 : modal.showError(errorMsg);
       instructionModeManager == null ? void 0 : instructionModeManager.clear();
     }
@@ -94803,7 +105877,7 @@ var InputController = class {
     this.deps.streamController.hideThinkingIndicator();
     const restoreAwaitingTool = this.markToolAwaitingPermission(toolName, input);
     const restoreComposer = this.lockComposerForPermission(inputContainerEl, parentEl);
-    const result = await new Promise((resolve7, reject) => {
+    const result = await new Promise((resolve9, reject) => {
       const inline = new InlinePermissionRequest(parentEl, {
         toolName,
         input,
@@ -94816,7 +105890,7 @@ var InputController = class {
           this.pendingApprovalInline = null;
           restoreAwaitingTool();
           restoreComposer();
-          resolve7(value);
+          resolve9(value);
         }
       });
       this.pendingApprovalInline = inline;
@@ -94847,14 +105921,14 @@ var InputController = class {
     }
     this.deps.streamController.hideThinkingIndicator();
     composerSurfaceEl.addClass("grimoire-asking");
-    return new Promise((resolve7, reject) => {
+    return new Promise((resolve9, reject) => {
       const inline = new InlineAskUserQuestion(
         composerSurfaceEl,
         input,
         (result) => {
           this.pendingAskInline = null;
           composerSurfaceEl.removeClass("grimoire-asking");
-          resolve7(result);
+          resolve9(result);
         },
         signal
       );
@@ -94880,14 +105954,14 @@ var InputController = class {
     const enrichedInput = state.planFilePath ? { ...input, planFilePath: state.planFilePath } : input;
     const renderContent = (el2, markdown) => this.deps.renderer.renderContent(el2, markdown);
     const planPathPrefix = this.getActiveCapabilities().planPathPrefix;
-    return new Promise((resolve7, reject) => {
+    return new Promise((resolve9, reject) => {
       const inline = new InlineExitPlanMode(
         parentEl,
         enrichedInput,
         (decision) => {
           this.pendingExitPlanModeInline = null;
           this.restoreInputContainer(inputContainerEl);
-          resolve7(decision);
+          resolve9(decision);
         },
         signal,
         renderContent,
@@ -94931,7 +106005,7 @@ var InputController = class {
     }
     this.hideInputContainer(inputContainerEl);
     this.pendingPlanApprovalInvalidated = false;
-    return new Promise((resolve7, reject) => {
+    return new Promise((resolve9, reject) => {
       const inline = new InlinePlanApproval(
         parentEl,
         (decision) => {
@@ -94939,7 +106013,7 @@ var InputController = class {
           this.pendingPlanApprovalInvalidated = false;
           this.pendingPlanApproval = null;
           this.restoreInputContainer(inputContainerEl);
-          resolve7({ decision, invalidated });
+          resolve9({ decision, invalidated });
         }
       );
       this.pendingPlanApproval = inline;
@@ -95036,7 +106110,7 @@ var InputController = class {
     const { conversationController } = this.deps;
     const capabilities = this.getActiveCapabilities();
     if (!isBuiltInCommandSupported(command, capabilities)) {
-      new import_obsidian29.Notice(`/${command.name} is not supported by this provider.`);
+      new import_obsidian33.Notice(`/${command.name} is not supported by this provider.`);
       return;
     }
     switch (command.action) {
@@ -95046,14 +106120,14 @@ var InputController = class {
       case "add-dir": {
         const externalContextSelector = this.deps.getExternalContextSelector();
         if (!externalContextSelector) {
-          new import_obsidian29.Notice("External context selector not available.");
+          new import_obsidian33.Notice("External context selector not available.");
           return;
         }
         const result = externalContextSelector.addExternalContext(args);
         if (result.success) {
-          new import_obsidian29.Notice(`Added external context: ${result.normalizedPath}`);
+          new import_obsidian33.Notice(`Added external context: ${result.normalizedPath}`);
         } else {
-          new import_obsidian29.Notice(result.error);
+          new import_obsidian33.Notice(result.error);
         }
         break;
       }
@@ -95062,11 +106136,11 @@ var InputController = class {
         break;
       case "fork": {
         if (!this.getActiveCapabilities().supportsFork) {
-          new import_obsidian29.Notice("Fork is not supported by this provider.");
+          new import_obsidian33.Notice("Fork is not supported by this provider.");
           return;
         }
         if (!this.deps.onForkAll) {
-          new import_obsidian29.Notice("Fork not available.");
+          new import_obsidian33.Notice("Fork not available.");
           return;
         }
         await this.deps.onForkAll();
@@ -95075,7 +106149,7 @@ var InputController = class {
       case "image": {
         const prompt = args.trim();
         if (!prompt) {
-          new import_obsidian29.Notice("Usage: /image <prompt>");
+          new import_obsidian33.Notice("Usage: /image <prompt>");
           return;
         }
         await this.sendMessage({
@@ -95090,7 +106164,7 @@ var InputController = class {
       }
       default: {
         const unknownAction = typeof command.action === "string" ? command.action : "unknown";
-        new import_obsidian29.Notice(`Unknown command: ${unknownAction}`);
+        new import_obsidian33.Notice(`Unknown command: ${unknownAction}`);
         break;
       }
     }
@@ -95119,7 +106193,7 @@ var InputController = class {
     this.destroyResumeDropdown();
     const conversations = plugin.getConversationList();
     if (conversations.length === 0) {
-      new import_obsidian29.Notice("No conversations to resume");
+      new import_obsidian33.Notice("No conversations to resume");
       return;
     }
     const openConversation = (_a7 = this.deps.openConversation) != null ? _a7 : ((id2) => conversationController.switchTo(id2));
@@ -95133,7 +106207,7 @@ var InputController = class {
           this.destroyResumeDropdown();
           openConversation(id2).catch((err) => {
             const msg = err instanceof Error ? err.message : String(err);
-            new import_obsidian29.Notice(`Failed to open conversation: ${msg}`);
+            new import_obsidian33.Notice(`Failed to open conversation: ${msg}`);
           });
         },
         onDismiss: () => {
@@ -95279,7 +106353,7 @@ var NavigationController = class {
 };
 
 // src/features/chat/controllers/SelectionController.ts
-var import_obsidian30 = require("obsidian");
+var import_obsidian34 = require("obsidian");
 
 // node_modules/@marijn/find-cluster-break/src/index.js
 var rangeFrom = [];
@@ -106886,7 +117960,7 @@ var SelectionController = class {
   // ============================================
   poll() {
     var _a7;
-    const view = this.app.workspace.getActiveViewOfType(import_obsidian30.MarkdownView);
+    const view = this.app.workspace.getActiveViewOfType(import_obsidian34.MarkdownView);
     if (!view) {
       this.clearWhenMarkdownContextIsUnavailable();
       return;
@@ -107142,7 +118216,7 @@ var SelectionController = class {
 };
 
 // src/features/chat/controllers/StreamController.ts
-var import_obsidian33 = require("obsidian");
+var import_obsidian37 = require("obsidian");
 
 // src/core/tools/todo.ts
 function isValidTodoItem(item) {
@@ -107334,7 +118408,7 @@ function adapterOwnsTool(adapter, toolName) {
 }
 
 // src/features/chat/rendering/SubagentRenderer.ts
-var import_obsidian31 = require("obsidian");
+var import_obsidian35 = require("obsidian");
 var SUBAGENT_TOOL_STATUS_ICONS = {
   completed: "check",
   error: "x",
@@ -107393,7 +118467,7 @@ function setSubagentToolStatus(view, status) {
   view.statusEl.setAttribute("aria-label", `Status: ${status}`);
   const statusIcon = SUBAGENT_TOOL_STATUS_ICONS[status];
   if (statusIcon) {
-    (0, import_obsidian31.setIcon)(view.statusEl, statusIcon);
+    (0, import_obsidian35.setIcon)(view.statusEl, statusIcon);
   }
 }
 function updateSubagentToolView(view, toolCall) {
@@ -107498,7 +118572,7 @@ function createSubagentBlock(parentEl, taskToolId, taskInput) {
   headerEl.setAttribute("role", "button");
   const iconEl = headerEl.createDiv({ cls: "grimoire-subagent-icon" });
   iconEl.setAttribute("aria-hidden", "true");
-  (0, import_obsidian31.setIcon)(iconEl, getToolIcon(TOOL_TASK));
+  (0, import_obsidian35.setIcon)(iconEl, getToolIcon(TOOL_TASK));
   const labelEl = headerEl.createDiv({ cls: "grimoire-subagent-label" });
   labelEl.setText(truncateDescription(description));
   const statusEl = headerEl.createDiv({ cls: "grimoire-subagent-status status-running" });
@@ -107573,11 +118647,11 @@ function finalizeSubagentBlock(state, result, isError) {
   state.statusEl.addClass(`status-${state.info.status}`);
   state.statusEl.empty();
   if (state.info.status === "completed") {
-    (0, import_obsidian31.setIcon)(state.statusEl, "check");
+    (0, import_obsidian35.setIcon)(state.statusEl, "check");
     state.wrapperEl.removeClass("error");
     state.wrapperEl.addClass("done");
   } else {
-    (0, import_obsidian31.setIcon)(state.statusEl, "x");
+    (0, import_obsidian35.setIcon)(state.statusEl, "x");
     state.wrapperEl.removeClass("done");
     state.wrapperEl.addClass("error");
   }
@@ -107699,7 +118773,7 @@ function createAsyncSubagentBlock(parentEl, taskToolId, taskInput) {
   headerEl.setAttribute("aria-label", `Background task: ${description} - Initializing - click to expand`);
   const iconEl = headerEl.createDiv({ cls: "grimoire-subagent-icon" });
   iconEl.setAttribute("aria-hidden", "true");
-  (0, import_obsidian31.setIcon)(iconEl, getToolIcon(TOOL_TASK));
+  (0, import_obsidian35.setIcon)(iconEl, getToolIcon(TOOL_TASK));
   const labelEl = headerEl.createDiv({ cls: "grimoire-subagent-label" });
   labelEl.setText(truncateDescription(description));
   const statusTextEl = headerEl.createDiv({ cls: "grimoire-subagent-status-text" });
@@ -107738,9 +118812,9 @@ function finalizeAsyncSubagent(state, result, isError) {
   state.statusEl.addClass(`status-${isError ? "error" : "completed"}`);
   state.statusEl.empty();
   if (isError) {
-    (0, import_obsidian31.setIcon)(state.statusEl, "x");
+    (0, import_obsidian35.setIcon)(state.statusEl, "x");
   } else {
-    (0, import_obsidian31.setIcon)(state.statusEl, "check");
+    (0, import_obsidian35.setIcon)(state.statusEl, "check");
   }
   if (isError) {
     state.wrapperEl.addClass("error");
@@ -107758,7 +118832,7 @@ function markAsyncSubagentOrphaned(state) {
   state.statusTextEl.setText("Orphaned");
   state.statusEl.className = "grimoire-subagent-status status-error";
   state.statusEl.empty();
-  (0, import_obsidian31.setIcon)(state.statusEl, "alert-circle");
+  (0, import_obsidian35.setIcon)(state.statusEl, "alert-circle");
   state.wrapperEl.addClass("error");
   state.wrapperEl.addClass("orphaned");
   renderAsyncContentLikeSync(state.contentEl, state.info, "orphaned");
@@ -107785,7 +118859,7 @@ function renderStoredAsyncSubagent(parentEl, subagent) {
   );
   const iconEl = headerEl.createDiv({ cls: "grimoire-subagent-icon" });
   iconEl.setAttribute("aria-hidden", "true");
-  (0, import_obsidian31.setIcon)(iconEl, getToolIcon(TOOL_TASK));
+  (0, import_obsidian35.setIcon)(iconEl, getToolIcon(TOOL_TASK));
   const labelEl = headerEl.createDiv({ cls: "grimoire-subagent-label" });
   labelEl.setText(truncateDescription(subagent.description));
   const statusTextEl = headerEl.createDiv({ cls: "grimoire-subagent-status-text" });
@@ -107806,13 +118880,13 @@ function renderStoredAsyncSubagent(parentEl, subagent) {
   statusEl.setAttribute("aria-label", `Status: ${statusAriaLabel}`);
   switch (displayStatus) {
     case "completed":
-      (0, import_obsidian31.setIcon)(statusEl, "check");
+      (0, import_obsidian35.setIcon)(statusEl, "check");
       break;
     case "error":
-      (0, import_obsidian31.setIcon)(statusEl, "x");
+      (0, import_obsidian35.setIcon)(statusEl, "x");
       break;
     case "orphaned":
-      (0, import_obsidian31.setIcon)(statusEl, "alert-circle");
+      (0, import_obsidian35.setIcon)(statusEl, "alert-circle");
       break;
   }
   const contentEl = wrapperEl.createDiv({ cls: "grimoire-subagent-content" });
@@ -107823,7 +118897,7 @@ function renderStoredAsyncSubagent(parentEl, subagent) {
 }
 
 // src/features/chat/rendering/WriteEditRenderer.ts
-var import_obsidian32 = require("obsidian");
+var import_obsidian36 = require("obsidian");
 function shortenPath2(filePath, maxLength = 40) {
   if (!filePath) return "file";
   const normalized = filePath.replace(/\\/g, "/");
@@ -107851,7 +118925,7 @@ function createWriteEditBlock(parentEl, toolCall) {
   headerEl.setAttribute("aria-label", `${toolName}: ${shortenPath2(filePath)} - click to expand`);
   const iconEl = headerEl.createDiv({ cls: "grimoire-write-edit-icon" });
   iconEl.setAttribute("aria-hidden", "true");
-  (0, import_obsidian32.setIcon)(iconEl, getToolIcon(toolName));
+  (0, import_obsidian36.setIcon)(iconEl, getToolIcon(toolName));
   const nameEl = headerEl.createDiv({ cls: "grimoire-write-edit-name" });
   nameEl.setText(toolName);
   const summaryEl = headerEl.createDiv({ cls: "grimoire-write-edit-summary" });
@@ -107892,7 +118966,7 @@ function finalizeWriteEditBlock(state, isError) {
   state.statusEl.empty();
   if (isError) {
     state.statusEl.addClass("status-error");
-    (0, import_obsidian32.setIcon)(state.statusEl, "x");
+    (0, import_obsidian36.setIcon)(state.statusEl, "x");
     state.statusEl.setAttribute("aria-label", "Status: error");
     if (!state.diffLines) {
       state.contentEl.empty();
@@ -107928,7 +119002,7 @@ function renderStoredWriteEdit(parentEl, toolCall) {
   headerEl.setAttribute("role", "button");
   const iconEl = headerEl.createDiv({ cls: "grimoire-write-edit-icon" });
   iconEl.setAttribute("aria-hidden", "true");
-  (0, import_obsidian32.setIcon)(iconEl, getToolIcon(toolName));
+  (0, import_obsidian36.setIcon)(iconEl, getToolIcon(toolName));
   const nameEl = headerEl.createDiv({ cls: "grimoire-write-edit-name" });
   nameEl.setText(toolName);
   const summaryEl = headerEl.createDiv({ cls: "grimoire-write-edit-summary" });
@@ -107940,7 +119014,7 @@ function renderStoredWriteEdit(parentEl, toolCall) {
   const statusEl = headerEl.createDiv({ cls: "grimoire-write-edit-status" });
   if (isError) {
     statusEl.addClass("status-error");
-    (0, import_obsidian32.setIcon)(statusEl, "x");
+    (0, import_obsidian36.setIcon)(statusEl, "x");
   }
   const contentEl = wrapperEl.createDiv({ cls: "grimoire-write-edit-content" });
   const row = contentEl.createDiv({ cls: "grimoire-write-edit-diff-row" });
@@ -108502,8 +119576,8 @@ var _StreamController = class _StreamController {
   }
   scheduleCurrentTextRender() {
     if (!this.pendingTextRenderPromise) {
-      this.pendingTextRenderPromise = new Promise((resolve7) => {
-        this.resolvePendingTextRender = resolve7;
+      this.pendingTextRenderPromise = new Promise((resolve9) => {
+        this.resolvePendingTextRender = resolve9;
       });
     }
     if (this.pendingTextRenderFrame === null && !this.isTextRenderRunning) {
@@ -108551,20 +119625,20 @@ var _StreamController = class _StreamController {
       }, this.getStreamingRenderWindow());
       return;
     }
-    const resolve7 = this.resolvePendingTextRender;
+    const resolve9 = this.resolvePendingTextRender;
     this.pendingTextRenderPromise = null;
     this.resolvePendingTextRender = null;
-    resolve7 == null ? void 0 : resolve7();
+    resolve9 == null ? void 0 : resolve9();
   }
   cancelPendingTextRender() {
     if (this.pendingTextRenderFrame !== null) {
       cancelScheduledAnimationFrame(this.pendingTextRenderFrame);
       this.pendingTextRenderFrame = null;
     }
-    const resolve7 = this.resolvePendingTextRender;
+    const resolve9 = this.resolvePendingTextRender;
     this.pendingTextRenderPromise = null;
     this.resolvePendingTextRender = null;
-    resolve7 == null ? void 0 : resolve7();
+    resolve9 == null ? void 0 : resolve9();
   }
   scheduleToolOutputRender(toolId, toolCall) {
     if (this.pendingToolOutputFrames.has(toolId)) return;
@@ -108624,8 +119698,8 @@ var _StreamController = class _StreamController {
   }
   scheduleCurrentThinkingRender() {
     if (!this.pendingThinkingRenderPromise) {
-      this.pendingThinkingRenderPromise = new Promise((resolve7) => {
-        this.resolvePendingThinkingRender = resolve7;
+      this.pendingThinkingRenderPromise = new Promise((resolve9) => {
+        this.resolvePendingThinkingRender = resolve9;
       });
     }
     if (this.pendingThinkingRenderFrame === null && !this.isThinkingRenderRunning) {
@@ -108674,20 +119748,20 @@ var _StreamController = class _StreamController {
       }, this.getThinkingRenderWindow());
       return;
     }
-    const resolve7 = this.resolvePendingThinkingRender;
+    const resolve9 = this.resolvePendingThinkingRender;
     this.pendingThinkingRenderPromise = null;
     this.resolvePendingThinkingRender = null;
-    resolve7 == null ? void 0 : resolve7();
+    resolve9 == null ? void 0 : resolve9();
   }
   cancelPendingThinkingRender() {
     if (this.pendingThinkingRenderFrame !== null) {
       cancelScheduledAnimationFrame(this.pendingThinkingRenderFrame);
       this.pendingThinkingRenderFrame = null;
     }
-    const resolve7 = this.resolvePendingThinkingRender;
+    const resolve9 = this.resolvePendingThinkingRender;
     this.pendingThinkingRenderPromise = null;
     this.resolvePendingThinkingRender = null;
-    resolve7 == null ? void 0 : resolve7();
+    resolve9 == null ? void 0 : resolve9();
   }
   // ============================================
   // Subagent Tool Handling (via SubagentManager)
@@ -109086,7 +120160,7 @@ var _StreamController = class _StreamController {
     window.setTimeout(() => {
       const { vault } = this.deps.plugin.app;
       const file2 = vault.getAbstractFileByPath(relativePath);
-      if (file2 instanceof import_obsidian33.TFile) {
+      if (file2 instanceof import_obsidian37.TFile) {
         vault.trigger("modify", file2);
       } else {
         const parentDir = relativePath.includes("/") ? relativePath.substring(0, relativePath.lastIndexOf("/")) : "";
@@ -109185,7 +120259,7 @@ _StreamController.THINKING_INDICATOR_DELAY = 400;
 var StreamController = _StreamController;
 
 // src/features/chat/rendering/MessageRenderer.ts
-var import_obsidian34 = require("obsidian");
+var import_obsidian38 = require("obsidian");
 
 // src/utils/obsidianCompat.ts
 function getVaultFileByPath(app, filePath) {
@@ -109392,9 +120466,9 @@ var IMAGE_EXTENSIONS = /* @__PURE__ */ new Set([
   "ico"
 ]);
 var IMAGE_EMBED_PATTERN = /!\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
-function isImagePath(path26) {
+function isImagePath(path36) {
   var _a7;
-  const ext = (_a7 = path26.split(".").pop()) == null ? void 0 : _a7.toLowerCase();
+  const ext = (_a7 = path36.split(".").pop()) == null ? void 0 : _a7.toLowerCase();
   return ext ? IMAGE_EXTENSIONS.has(ext) : false;
 }
 function resolveImageFile(app, imagePath, mediaFolder) {
@@ -109467,12 +120541,12 @@ function uniqueSourcePaths(context) {
   const paths = [];
   const seen = /* @__PURE__ */ new Set();
   for (const snippet of context.snippets) {
-    const path26 = snippet.source.path;
-    if (seen.has(path26)) {
+    const path36 = snippet.source.path;
+    if (seen.has(path36)) {
       continue;
     }
-    seen.add(path26);
-    paths.push(path26);
+    seen.add(path36);
+    paths.push(path36);
   }
   return paths;
 }
@@ -109490,11 +120564,11 @@ function renderVaultSearchSources(containerEl, context, openVaultPath) {
     count: paths.length,
     sourceLabel: t(paths.length === 1 ? "chat.vaultSearch.sourceSingular" : "chat.vaultSearch.sourcePlural")
   });
-  for (const path26 of paths.slice(0, MAX_VISIBLE_SOURCES)) {
+  for (const path36 of paths.slice(0, MAX_VISIBLE_SOURCES)) {
     const sourceEl = createChild(rowEl, "button", "grimoire-vault-search-source");
     sourceEl.type = "button";
-    sourceEl.textContent = path26;
-    sourceEl.addEventListener("click", () => openVaultPath(path26));
+    sourceEl.textContent = path36;
+    sourceEl.addEventListener("click", () => openVaultPath(path36));
   }
   const overflowCount = paths.length - MAX_VISIBLE_SOURCES;
   if (overflowCount > 0) {
@@ -109818,20 +120892,20 @@ var MessageRenderer = class {
     renderVaultSearchSources(
       contentEl,
       vaultSearchContext,
-      (path26) => this.openVaultSearchSource(path26)
+      (path36) => this.openVaultSearchSource(path36)
     );
   }
-  openVaultSearchSource(path26) {
-    const file2 = this.app.vault.getAbstractFileByPath(path26);
-    if (!(file2 instanceof import_obsidian34.TFile)) {
-      new import_obsidian34.Notice(`Could not open file: ${path26}`);
+  openVaultSearchSource(path36) {
+    const file2 = this.app.vault.getAbstractFileByPath(path36);
+    if (!(file2 instanceof import_obsidian38.TFile)) {
+      new import_obsidian38.Notice(`Could not open file: ${path36}`);
       return;
     }
     runRendererAction(async () => {
       try {
         await this.app.workspace.getLeaf().openFile(file2);
       } catch (error48) {
-        new import_obsidian34.Notice(`Failed to open file: ${error48 instanceof Error ? error48.message : String(error48)}`);
+        new import_obsidian38.Notice(`Failed to open file: ${error48 instanceof Error ? error48.message : String(error48)}`);
       }
     });
   }
@@ -110167,7 +121241,7 @@ var MessageRenderer = class {
         this.app,
         this.plugin.settings.mediaFolder
       );
-      await import_obsidian34.MarkdownRenderer.render(
+      await import_obsidian38.MarkdownRenderer.render(
         this.app,
         processedMarkdown,
         el2,
@@ -110231,7 +121305,7 @@ var MessageRenderer = class {
    */
   addTextCopyButton(textEl, markdown) {
     const copyBtn = textEl.createSpan({ cls: "grimoire-text-copy-btn" });
-    (0, import_obsidian34.setIcon)(copyBtn, "copy");
+    (0, import_obsidian38.setIcon)(copyBtn, "copy");
     let feedbackTimeout = null;
     copyBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -110249,7 +121323,7 @@ var MessageRenderer = class {
         copyBtn.classList.add("copied");
         feedbackTimeout = window.setTimeout(() => {
           copyBtn.empty();
-          (0, import_obsidian34.setIcon)(copyBtn, "copy");
+          (0, import_obsidian38.setIcon)(copyBtn, "copy");
           copyBtn.classList.remove("copied");
           feedbackTimeout = null;
         }, 1500);
@@ -110284,7 +121358,7 @@ var MessageRenderer = class {
   addUserCopyButton(msgEl, content) {
     const toolbar = this.getOrCreateActionsToolbar(msgEl);
     const copyBtn = toolbar.createSpan({ cls: "grimoire-user-msg-copy-btn" });
-    (0, import_obsidian34.setIcon)(copyBtn, "copy");
+    (0, import_obsidian38.setIcon)(copyBtn, "copy");
     copyBtn.setAttribute("aria-label", "Copy message");
     let feedbackTimeout = null;
     copyBtn.addEventListener("click", (e) => {
@@ -110301,7 +121375,7 @@ var MessageRenderer = class {
         copyBtn.classList.add("copied");
         feedbackTimeout = window.setTimeout(() => {
           copyBtn.empty();
-          (0, import_obsidian34.setIcon)(copyBtn, "copy");
+          (0, import_obsidian38.setIcon)(copyBtn, "copy");
           copyBtn.classList.remove("copied");
           feedbackTimeout = null;
         }, 1500);
@@ -110313,7 +121387,7 @@ var MessageRenderer = class {
     const toolbar = this.getOrCreateActionsToolbar(msgEl);
     const btn = toolbar.createSpan({ cls: "grimoire-message-rewind-btn" });
     if (toolbar.firstChild !== btn) toolbar.insertBefore(btn, toolbar.firstChild);
-    (0, import_obsidian34.setIcon)(btn, "rotate-ccw");
+    (0, import_obsidian38.setIcon)(btn, "rotate-ccw");
     btn.setAttribute("aria-label", t("chat.rewind.ariaLabel"));
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -110321,7 +121395,7 @@ var MessageRenderer = class {
     });
   }
   showRewindMenu(event, messageId) {
-    const menu = new import_obsidian34.Menu();
+    const menu = new import_obsidian38.Menu();
     this.addRewindMenuItem(menu, messageId, "conversation");
     this.addRewindMenuItem(menu, messageId, "code-and-conversation");
     menu.showAtMouseEvent(event);
@@ -110336,7 +121410,7 @@ var MessageRenderer = class {
           try {
             await ((_a7 = this.rewindCallback) == null ? void 0 : _a7.call(this, messageId, mode));
           } catch (err) {
-            new import_obsidian34.Notice(t("chat.rewind.failed", { error: err instanceof Error ? err.message : "Unknown error" }));
+            new import_obsidian38.Notice(t("chat.rewind.failed", { error: err instanceof Error ? err.message : "Unknown error" }));
           }
         });
       });
@@ -110347,7 +121421,7 @@ var MessageRenderer = class {
     const toolbar = this.getOrCreateActionsToolbar(msgEl);
     const btn = toolbar.createSpan({ cls: "grimoire-message-fork-btn" });
     if (toolbar.firstChild !== btn) toolbar.insertBefore(btn, toolbar.firstChild);
-    (0, import_obsidian34.setIcon)(btn, "git-fork");
+    (0, import_obsidian38.setIcon)(btn, "git-fork");
     btn.setAttribute("aria-label", t("chat.fork.ariaLabel"));
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -110356,7 +121430,7 @@ var MessageRenderer = class {
         try {
           await ((_a7 = this.forkCallback) == null ? void 0 : _a7.call(this, messageId));
         } catch (err) {
-          new import_obsidian34.Notice(t("chat.fork.failed", { error: err instanceof Error ? err.message : "Unknown error" }));
+          new import_obsidian38.Notice(t("chat.fork.failed", { error: err instanceof Error ? err.message : "Unknown error" }));
         }
       });
     });
@@ -110409,7 +121483,7 @@ var BangBashService = class {
     this.enhancedPath = enhancedPath;
   }
   execute(command) {
-    return new Promise((resolve7) => {
+    return new Promise((resolve9) => {
       (0, import_child_process9.exec)(command, {
         cwd: this.cwd,
         env: { ...process.env, PATH: this.enhancedPath },
@@ -110419,7 +121493,7 @@ var BangBashService = class {
       }, (error48, stdout, stderr) => {
         if (error48 && "killed" in error48 && error48.killed) {
           const isMaxBuffer = "code" in error48 && error48.code === "ERR_CHILD_PROCESS_STDIO_MAXBUFFER";
-          resolve7({
+          resolve9({
             command,
             stdout: stdout != null ? stdout : "",
             stderr: stderr != null ? stderr : "",
@@ -110428,7 +121502,7 @@ var BangBashService = class {
           });
           return;
         }
-        resolve7({
+        resolve9({
           command,
           stdout: stdout != null ? stdout : "",
           stderr: stderr != null ? stderr : "",
@@ -110442,7 +121516,7 @@ var BangBashService = class {
 // src/features/chat/services/SubagentManager.ts
 var import_fs11 = require("fs");
 var import_os6 = require("os");
-var import_path45 = require("path");
+var import_path55 = require("path");
 function isRecord13(value) {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
@@ -111262,7 +122336,7 @@ var _SubagentManager = class _SubagentManager {
     return Array.from(roots);
   }
   isTrustedOutputPath(fullOutputPath) {
-    if (!(0, import_path45.isAbsolute)(fullOutputPath)) {
+    if (!(0, import_path55.isAbsolute)(fullOutputPath)) {
       return false;
     }
     if (!fullOutputPath.toLowerCase().endsWith(_SubagentManager.TRUSTED_OUTPUT_EXT)) {
@@ -111275,7 +122349,7 @@ var _SubagentManager = class _SubagentManager {
       return false;
     }
     return _SubagentManager.TRUSTED_TMP_ROOTS.some(
-      (root) => resolvedPath === root || resolvedPath.startsWith(`${root}${import_path45.sep}`)
+      (root) => resolvedPath === root || resolvedPath.startsWith(`${root}${import_path55.sep}`)
     );
   }
 };
@@ -111632,7 +122706,7 @@ var ChatState = class {
 };
 
 // src/features/chat/ui/BangBashModeManager.ts
-var import_obsidian35 = require("obsidian");
+var import_obsidian39 = require("obsidian");
 var BangBashModeManager = class {
   constructor(inputEl, callbacks) {
     this.state = { active: false, rawCommand: "" };
@@ -111702,7 +122776,7 @@ var BangBashModeManager = class {
       this.clear();
       await this.callbacks.onSubmit(rawCommand);
     } catch (e) {
-      new import_obsidian35.Notice(`Command failed: ${e instanceof Error ? e.message : String(e)}`);
+      new import_obsidian39.Notice(`Command failed: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       this.isSubmitting = false;
     }
@@ -111733,8 +122807,8 @@ function getStringInput(input, ...keys) {
   }
   return "";
 }
-function normalizeDisplayPath(path26) {
-  return path26.trim().replace(/\\/g, "/");
+function normalizeDisplayPath(path36) {
+  return path36.trim().replace(/\\/g, "/");
 }
 function stripShellQuotes(value) {
   const trimmed = value.trim();
@@ -111749,19 +122823,19 @@ function extractMarkdownPathFromShell(command) {
   if (!readSegment) return null;
   const markdownPathMatch = readSegment.match(/(["'])([^"']+\.md)\1|([^\s"'`;&|]+\.md)/u);
   const rawPath = (_b4 = (_a7 = markdownPathMatch == null ? void 0 : markdownPathMatch[2]) != null ? _a7 : markdownPathMatch == null ? void 0 : markdownPathMatch[3]) != null ? _b4 : "";
-  const path26 = stripShellQuotes(rawPath);
-  return path26 ? normalizeDisplayPath(path26) : null;
+  const path36 = stripShellQuotes(rawPath);
+  return path36 ? normalizeDisplayPath(path36) : null;
 }
 function extractRuntimeContextLoadEvent(options) {
   const { providerId, toolCall } = options;
   if (toolCall.name === TOOL_READ) {
-    const path26 = getStringInput(toolCall.input, "file_path", "filepath", "path");
-    if (!path26) {
+    const path36 = getStringInput(toolCall.input, "file_path", "filepath", "path");
+    if (!path36) {
       return null;
     }
     return {
       id: toolCall.id,
-      path: normalizeDisplayPath(path26),
+      path: normalizeDisplayPath(path36),
       providerId,
       method: "read note",
       status: normalizeStatus(toolCall.status)
@@ -111769,13 +122843,13 @@ function extractRuntimeContextLoadEvent(options) {
   }
   if (toolCall.name === TOOL_BASH) {
     const command = getStringInput(toolCall.input, "command");
-    const path26 = command ? extractMarkdownPathFromShell(command) : null;
-    if (!path26) {
+    const path36 = command ? extractMarkdownPathFromShell(command) : null;
+    if (!path36) {
       return null;
     }
     return {
       id: toolCall.id,
-      path: path26,
+      path: path36,
       providerId,
       method: "shell",
       status: normalizeStatus(toolCall.status)
@@ -111801,8 +122875,8 @@ var RuntimeContextActivityState = class {
     this.entriesByPath.clear();
   }
 };
-function getFileName(path26) {
-  return normalizeDisplayPath(path26).split("/").pop() || path26;
+function getFileName(path36) {
+  return normalizeDisplayPath(path36).split("/").pop() || path36;
 }
 function getProviderLabel(providerId) {
   switch (providerId) {
@@ -111878,13 +122952,13 @@ var RuntimeContextActivityView = class {
 };
 
 // src/features/chat/ui/FileContext.ts
-var import_obsidian39 = require("obsidian");
+var import_obsidian43 = require("obsidian");
 
 // src/shared/mention/MentionDropdownController.ts
-var import_obsidian36 = require("obsidian");
+var import_obsidian40 = require("obsidian");
 
 // src/utils/externalContext.ts
-var fs32 = __toESM(require("fs"));
+var fs48 = __toESM(require("fs"));
 init_path();
 function normalizePathForComparison3(p) {
   return normalizePathForComparison(p);
@@ -111944,7 +123018,7 @@ function buildExternalContextDisplayEntries(externalContexts) {
 }
 function validateDirectoryPath(p) {
   try {
-    const stats = fs32.statSync(p);
+    const stats = fs48.statSync(p);
     if (!stats.isDirectory()) {
       return { valid: false, error: "Path exists but is not a directory" };
     }
@@ -111972,8 +123046,8 @@ function isDuplicatePath(newPath, existingPaths) {
 }
 
 // src/utils/externalContextScanner.ts
-var fs33 = __toESM(require("fs"));
-var path23 = __toESM(require("path"));
+var fs49 = __toESM(require("fs"));
+var path33 = __toESM(require("path"));
 init_path();
 var CACHE_TTL_MS = 3e4;
 var MAX_FILES_PER_PATH = 1e3;
@@ -112019,25 +123093,25 @@ var ExternalContextScanner = class {
     if (depth > MAX_DEPTH2) return [];
     const files = [];
     try {
-      if (!fs33.existsSync(dir)) return [];
-      const stat = fs33.statSync(dir);
+      if (!fs49.existsSync(dir)) return [];
+      const stat = fs49.statSync(dir);
       if (!stat.isDirectory()) return [];
-      const entries = fs33.readdirSync(dir, { withFileTypes: true });
+      const entries = fs49.readdirSync(dir, { withFileTypes: true });
       for (const entry of entries) {
         if (entry.name.startsWith(".")) continue;
         if (SKIP_DIRECTORIES.has(entry.name)) continue;
         if (entry.isSymbolicLink()) continue;
-        const fullPath = path23.join(dir, entry.name);
+        const fullPath = path33.join(dir, entry.name);
         if (entry.isDirectory()) {
           const subFiles = this.scanDirectory(fullPath, contextRoot, depth + 1);
           files.push(...subFiles);
         } else if (entry.isFile()) {
           try {
-            const fileStat = fs33.statSync(fullPath);
+            const fileStat = fs49.statSync(fullPath);
             files.push({
               path: fullPath,
               name: entry.name,
-              relativePath: path23.relative(contextRoot, fullPath),
+              relativePath: path33.relative(contextRoot, fullPath),
               contextRoot,
               mtime: fileStat.mtimeMs
             });
@@ -112595,24 +123669,24 @@ var MentionDropdownController = class {
         const iconEl = itemEl.createSpan({ cls: "grimoire-mention-icon" });
         switch (item.type) {
           case "tool":
-            (0, import_obsidian36.setIcon)(iconEl, "search");
+            (0, import_obsidian40.setIcon)(iconEl, "search");
             break;
           case "mcp-server":
             appendMcpIcon(iconEl);
             break;
           case "agent":
           case "agent-folder":
-            (0, import_obsidian36.setIcon)(iconEl, "bot");
+            (0, import_obsidian40.setIcon)(iconEl, "bot");
             break;
           case "context-file":
-            (0, import_obsidian36.setIcon)(iconEl, "folder-open");
+            (0, import_obsidian40.setIcon)(iconEl, "folder-open");
             break;
           case "folder":
           case "context-folder":
-            (0, import_obsidian36.setIcon)(iconEl, "folder");
+            (0, import_obsidian40.setIcon)(iconEl, "folder");
             break;
           default:
-            (0, import_obsidian36.setIcon)(iconEl, "file-text");
+            (0, import_obsidian40.setIcon)(iconEl, "file-text");
         }
         const textEl = itemEl.createSpan({ cls: "grimoire-mention-text" });
         switch (item.type) {
@@ -112767,7 +123841,7 @@ var MentionDropdownController = class {
 };
 
 // src/shared/mention/VaultMentionCache.ts
-var import_obsidian37 = require("obsidian");
+var import_obsidian41 = require("obsidian");
 var VaultFileCache = class {
   constructor(app, options = {}) {
     this.app = app;
@@ -112846,7 +123920,7 @@ var VaultFolderCache = class {
     }
   }
   loadFolders() {
-    return this.app.vault.getAllLoadedFiles().filter((file2) => file2 instanceof import_obsidian37.TFolder && isVisibleFolder(file2));
+    return this.app.vault.getAllLoadedFiles().filter((file2) => file2 instanceof import_obsidian41.TFolder && isVisibleFolder(file2));
   }
 };
 
@@ -113031,11 +124105,11 @@ var FileContextState = class {
       this.attachedFiles.add(file2);
     }
   }
-  attachFile(path26) {
-    this.attachedFiles.add(path26);
+  attachFile(path36) {
+    this.attachedFiles.add(path36);
   }
-  detachFile(path26) {
-    this.attachedFiles.delete(path26);
+  detachFile(path36) {
+    this.attachedFiles.delete(path36);
   }
   clearAttachments() {
     this.attachedFiles.clear();
@@ -113059,7 +124133,7 @@ var FileContextState = class {
 };
 
 // src/features/chat/ui/file-context/view/FileChipsView.ts
-var import_obsidian38 = require("obsidian");
+var import_obsidian42 = require("obsidian");
 var FileChipsView = class {
   constructor(containerEl, callbacks) {
     this.containerEl = containerEl;
@@ -113089,7 +124163,7 @@ var FileChipsView = class {
   renderFileChip(filePath, onRemove) {
     const chipEl = this.fileIndicatorEl.createDiv({ cls: "grimoire-file-chip" });
     const iconEl = chipEl.createSpan({ cls: "grimoire-file-chip-icon" });
-    (0, import_obsidian38.setIcon)(iconEl, "file-text");
+    (0, import_obsidian42.setIcon)(iconEl, "file-text");
     const normalizedPath = filePath.replace(/\\/g, "/");
     const filename = normalizedPath.split("/").pop() || filePath;
     const nameEl = chipEl.createSpan({ cls: "grimoire-file-chip-name" });
@@ -113138,14 +124212,14 @@ var FileContextManager = class {
       onOpenFile: (filePath) => {
         void (async () => {
           const file2 = this.app.vault.getAbstractFileByPath(filePath);
-          if (!(file2 instanceof import_obsidian39.TFile)) {
-            new import_obsidian39.Notice(`Could not open file: ${filePath}`);
+          if (!(file2 instanceof import_obsidian43.TFile)) {
+            new import_obsidian43.Notice(`Could not open file: ${filePath}`);
             return;
           }
           try {
             await this.app.workspace.getLeaf().openFile(file2);
           } catch (error48) {
-            new import_obsidian39.Notice(`Failed to open file: ${error48 instanceof Error ? error48.message : String(error48)}`);
+            new import_obsidian43.Notice(`Failed to open file: ${error48 instanceof Error ? error48.message : String(error48)}`);
           }
         })();
       }
@@ -113185,10 +124259,10 @@ var FileContextManager = class {
       }
     );
     this.deleteEventRef = this.app.vault.on("delete", (file2) => {
-      if (file2 instanceof import_obsidian39.TFile) this.handleFileDeleted(file2.path);
+      if (file2 instanceof import_obsidian43.TFile) this.handleFileDeleted(file2.path);
     });
     this.renameEventRef = this.app.vault.on("rename", (file2, oldPath) => {
-      if (file2 instanceof import_obsidian39.TFile) this.handleFileRenamed(oldPath, file2.path);
+      if (file2 instanceof import_obsidian43.TFile) this.handleFileRenamed(oldPath, file2.path);
     });
     this.renderContextMemory();
   }
@@ -113361,14 +124435,14 @@ var FileContextManager = class {
     const openFile = () => {
       void (async () => {
         const file2 = this.app.vault.getAbstractFileByPath(filePath);
-        if (!(file2 instanceof import_obsidian39.TFile)) {
-          new import_obsidian39.Notice(`Could not open file: ${filePath}`);
+        if (!(file2 instanceof import_obsidian43.TFile)) {
+          new import_obsidian43.Notice(`Could not open file: ${filePath}`);
           return;
         }
         try {
           await this.app.workspace.getLeaf().openFile(file2);
         } catch (error48) {
-          new import_obsidian39.Notice(`Failed to open file: ${error48 instanceof Error ? error48.message : String(error48)}`);
+          new import_obsidian43.Notice(`Failed to open file: ${error48 instanceof Error ? error48.message : String(error48)}`);
         }
       })();
     };
@@ -113481,8 +124555,8 @@ var FileContextManager = class {
 };
 
 // src/features/chat/ui/ImageContext.ts
-var import_obsidian40 = require("obsidian");
-var path24 = __toESM(require("path"));
+var import_obsidian44 = require("obsidian");
+var path34 = __toESM(require("path"));
 var MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 var IMAGE_EXTENSIONS2 = {
   ".jpg": "image/jpeg",
@@ -113638,12 +124712,12 @@ var ImageContextManager = class {
     return file2.type.startsWith("image/") && this.getMediaType(file2.name) !== null;
   }
   getMediaType(filename) {
-    const ext = path24.extname(filename).toLowerCase();
+    const ext = path34.extname(filename).toLowerCase();
     return IMAGE_EXTENSIONS2[ext] || null;
   }
   async addImageFromFile(file2, source) {
     if (!this.enabled) {
-      new import_obsidian40.Notice("Image attachments are not supported by this provider.");
+      new import_obsidian44.Notice("Image attachments are not supported by this provider.");
       return false;
     }
     if (file2.size > MAX_IMAGE_SIZE) {
@@ -113756,7 +124830,7 @@ var ImageContextManager = class {
   }
   truncateName(name, maxLen) {
     if (name.length <= maxLen) return name;
-    const ext = path24.extname(name);
+    const ext = path34.extname(name);
     const base2 = name.slice(0, name.length - ext.length);
     const truncatedBase = base2.slice(0, maxLen - ext.length - 3);
     return `${truncatedBase}...${ext}`;
@@ -113775,7 +124849,7 @@ var ImageContextManager = class {
         userMessage = `${message} (Permission denied)`;
       }
     }
-    new import_obsidian40.Notice(userMessage);
+    new import_obsidian44.Notice(userMessage);
   }
 };
 
@@ -113837,13 +124911,13 @@ function createInputResizeHandle({
 }
 
 // src/features/chat/ui/InputToolbar.ts
-var import_obsidian41 = require("obsidian");
-var os12 = __toESM(require("os"));
-var path25 = __toESM(require("path"));
+var import_obsidian45 = require("obsidian");
+var os16 = __toESM(require("os"));
+var path35 = __toESM(require("path"));
 init_path();
 function runToolbarAction(action, failureMessage) {
   void action().catch(() => {
-    new import_obsidian41.Notice(failureMessage);
+    new import_obsidian45.Notice(failureMessage);
   });
 }
 function formatModelFallbackLabel2(model) {
@@ -114057,7 +125131,7 @@ var ModelSelector = class {
     const labelEl = this.buttonEl.createSpan({ cls: "grimoire-model-label" });
     labelEl.setText(modelInfo ? formatModelButtonLabel(modelInfo.label) : formatModelFallbackLabel2(currentModel));
     const chevronEl = this.buttonEl.createSpan({ cls: "grimoire-model-chevron" });
-    (0, import_obsidian41.setIcon)(chevronEl, "chevron-up");
+    (0, import_obsidian45.setIcon)(chevronEl, "chevron-up");
   }
   renderOptions() {
     var _a7, _b4, _c3, _d3, _e3, _f3, _g2, _h2;
@@ -114267,7 +125341,7 @@ var ModelSelector = class {
     if (!this.dropdownEl) return;
     const searchEl = this.dropdownEl.createDiv({ cls: "grimoire-model-search" });
     const iconEl = searchEl.createSpan({ cls: "grimoire-model-search-icon" });
-    (0, import_obsidian41.setIcon)(iconEl, "search");
+    (0, import_obsidian45.setIcon)(iconEl, "search");
     this.searchInputEl = searchEl.createEl("input", {
       cls: "grimoire-model-search-input",
       attr: {
@@ -114356,7 +125430,7 @@ ${model.description}`);
           this.pendingModel = null;
         } catch (e3) {
           this.pendingModel = previousPendingModel;
-          new import_obsidian41.Notice("Failed to change model");
+          new import_obsidian45.Notice("Failed to change model");
         }
         this.updateDisplay();
         this.renderOptions();
@@ -114772,7 +125846,7 @@ var ServiceTierToggle = class {
     this.container.empty();
     this.buttonEl = this.container.createDiv({ cls: "grimoire-service-tier-button" });
     this.iconEl = this.buttonEl.createSpan({ cls: "grimoire-service-tier-icon" });
-    (0, import_obsidian41.setIcon)(this.iconEl, "zap");
+    (0, import_obsidian45.setIcon)(this.iconEl, "zap");
     this.updateDisplay();
     this.buttonEl.addEventListener("click", () => {
       runToolbarAction(() => this.toggle(), "Failed to change service tier");
@@ -114851,28 +125925,28 @@ var ExternalContextSelector = class {
     this.renderDropdown();
     if (invalidPaths.length > 0) {
       const pathNames = invalidPaths.map((p) => this.shortenPath(p)).join(", ");
-      new import_obsidian41.Notice(`Removed ${invalidPaths.length} invalid external context path(s): ${pathNames}`, 5e3);
+      new import_obsidian45.Notice(`Removed ${invalidPaths.length} invalid external context path(s): ${pathNames}`, 5e3);
       (_a7 = this.onPersistenceChangeCallback) == null ? void 0 : _a7.call(this, [...this.persistentPaths]);
     }
   }
-  togglePersistence(path26) {
+  togglePersistence(path36) {
     var _a7;
-    if (this.persistentPaths.has(path26)) {
-      this.persistentPaths.delete(path26);
+    if (this.persistentPaths.has(path36)) {
+      this.persistentPaths.delete(path36);
     } else {
-      if (!isValidDirectoryPath(path26)) {
-        new import_obsidian41.Notice(`Cannot persist "${this.shortenPath(path26)}" - directory no longer exists`, 4e3);
+      if (!isValidDirectoryPath(path36)) {
+        new import_obsidian45.Notice(`Cannot persist "${this.shortenPath(path36)}" - directory no longer exists`, 4e3);
         return;
       }
-      this.persistentPaths.add(path26);
+      this.persistentPaths.add(path36);
     }
     (_a7 = this.onPersistenceChangeCallback) == null ? void 0 : _a7.call(this, [...this.persistentPaths]);
     this.renderDropdown();
   }
   mergePersistentPaths() {
     const pathSet = new Set(this.externalContextPaths);
-    for (const path26 of this.persistentPaths) {
-      pathSet.add(path26);
+    for (const path36 of this.persistentPaths) {
+      pathSet.add(path36);
     }
     this.externalContextPaths = [...pathSet];
   }
@@ -114919,7 +125993,7 @@ var ExternalContextSelector = class {
     }
     const expandedPath = expandHomePath(cleanPath);
     const normalizedPath = normalizePathForFilesystem(expandedPath);
-    if (!path25.isAbsolute(normalizedPath)) {
+    if (!path35.isAbsolute(normalizedPath)) {
       return { success: false, error: "Path must be absolute. Usage: /add-dir /absolute/path" };
     }
     const validation = validateDirectoryPath(normalizedPath);
@@ -114957,7 +126031,7 @@ var ExternalContextSelector = class {
     this.container.empty();
     const iconWrapper = this.container.createDiv({ cls: "grimoire-external-context-icon-wrapper" });
     this.iconEl = iconWrapper.createDiv({ cls: "grimoire-external-context-icon" });
-    (0, import_obsidian41.setIcon)(this.iconEl, "folder");
+    (0, import_obsidian45.setIcon)(this.iconEl, "folder");
     this.badgeEl = iconWrapper.createDiv({ cls: "grimoire-external-context-badge" });
     this.updateDisplay();
     iconWrapper.addEventListener("click", (e) => {
@@ -115014,12 +126088,12 @@ var ExternalContextSelector = class {
       if (!result.canceled && result.filePaths.length > 0) {
         const selectedPath = result.filePaths[0];
         if (isDuplicatePath(selectedPath, this.externalContextPaths)) {
-          new import_obsidian41.Notice("This folder is already added as an external context.", 3e3);
+          new import_obsidian45.Notice("This folder is already added as an external context.", 3e3);
           return;
         }
         const conflict = findConflictingPath(selectedPath, this.externalContextPaths);
         if (conflict) {
-          new import_obsidian41.Notice(this.formatConflictMessage(selectedPath, conflict), 5e3);
+          new import_obsidian45.Notice(this.formatConflictMessage(selectedPath, conflict), 5e3);
           return;
         }
         this.externalContextPaths = [...this.externalContextPaths, selectedPath];
@@ -115028,7 +126102,7 @@ var ExternalContextSelector = class {
         this.renderDropdown();
       }
     } catch (e) {
-      new import_obsidian41.Notice("Unable to open folder picker.", 5e3);
+      new import_obsidian45.Notice("Unable to open folder picker.", 5e3);
     }
   }
   /** Formats a conflict error message for display. */
@@ -115058,14 +126132,14 @@ var ExternalContextSelector = class {
         if (isPersistent) {
           lockBtn.addClass("locked");
         }
-        (0, import_obsidian41.setIcon)(lockBtn, isPersistent ? "lock" : "unlock");
+        (0, import_obsidian45.setIcon)(lockBtn, isPersistent ? "lock" : "unlock");
         lockBtn.setAttribute("title", isPersistent ? "Persistent (click to make session-only)" : "Session-only (click to persist)");
         lockBtn.addEventListener("click", (e) => {
           e.stopPropagation();
           this.togglePersistence(pathStr);
         });
         const removeBtn = itemEl.createSpan({ cls: "grimoire-external-context-remove" });
-        (0, import_obsidian41.setIcon)(removeBtn, "x");
+        (0, import_obsidian45.setIcon)(removeBtn, "x");
         removeBtn.setAttribute("title", "Remove path");
         removeBtn.addEventListener("click", (e) => {
           e.stopPropagation();
@@ -115077,7 +126151,7 @@ var ExternalContextSelector = class {
   /** Shorten path for display (replace home dir with ~) */
   shortenPath(fullPath) {
     try {
-      const homeDir = os12.homedir();
+      const homeDir = os16.homedir();
       const normalize3 = (value) => value.replace(/\\/g, "/");
       const normalizedFull = normalize3(fullPath);
       const normalizedHome = normalize3(homeDir);
@@ -115392,7 +126466,7 @@ var OrchestratorToggle = class {
     this.container.empty();
     this.buttonEl = this.container.createDiv({ cls: "grimoire-orchestrator-button" });
     this.iconEl = this.buttonEl.createSpan({ cls: "grimoire-orchestrator-icon" });
-    (0, import_obsidian41.setIcon)(this.iconEl, "git-fork");
+    (0, import_obsidian45.setIcon)(this.iconEl, "git-fork");
     this.updateDisplay();
     this.buttonEl.addEventListener("click", () => {
       runToolbarAction(() => this.toggle(), t("chat.orchestrator.toggleFailed"));
@@ -115612,7 +126686,7 @@ var InstructionModeManager = class {
 };
 
 // src/features/chat/ui/NavigationSidebar.ts
-var import_obsidian42 = require("obsidian");
+var import_obsidian46 = require("obsidian");
 var NavigationSidebar = class {
   constructor(parentEl, messagesEl) {
     this.parentEl = parentEl;
@@ -115631,7 +126705,7 @@ var NavigationSidebar = class {
   }
   createButton(cls, icon, label) {
     const btn = this.container.createDiv({ cls: `grimoire-nav-btn ${cls}` });
-    (0, import_obsidian42.setIcon)(btn, icon);
+    (0, import_obsidian46.setIcon)(btn, icon);
     btn.setAttribute("aria-label", label);
     return btn;
   }
@@ -115853,7 +126927,7 @@ var RelevantNotesView = class {
 };
 
 // src/features/chat/ui/StatusPanel.ts
-var import_obsidian43 = require("obsidian");
+var import_obsidian47 = require("obsidian");
 var MAX_BASH_OUTPUTS = 50;
 var StatusPanel = class {
   constructor() {
@@ -116020,7 +127094,7 @@ var StatusPanel = class {
     const ownerDocument = (_a7 = this.todoHeaderEl.ownerDocument) != null ? _a7 : window.document;
     const icon = ownerDocument.createElement("span");
     icon.className = "grimoire-status-panel-icon";
-    (0, import_obsidian43.setIcon)(icon, getToolIcon(TOOL_TODO_WRITE));
+    (0, import_obsidian47.setIcon)(icon, getToolIcon(TOOL_TODO_WRITE));
     this.todoHeaderEl.appendChild(icon);
     const label = ownerDocument.createElement("span");
     label.className = "grimoire-status-panel-label";
@@ -116030,7 +127104,7 @@ var StatusPanel = class {
       if (completedCount === totalCount && totalCount > 0) {
         const status = ownerDocument.createElement("span");
         status.className = "grimoire-status-panel-status status-completed";
-        (0, import_obsidian43.setIcon)(status, "check");
+        (0, import_obsidian47.setIcon)(status, "check");
         this.todoHeaderEl.appendChild(status);
       }
       if (currentTask) {
@@ -116139,7 +127213,7 @@ var StatusPanel = class {
     const headerIconEl = ownerDocument.createElement("span");
     headerIconEl.className = "grimoire-tool-icon";
     headerIconEl.setAttribute("aria-hidden", "true");
-    (0, import_obsidian43.setIcon)(headerIconEl, "terminal");
+    (0, import_obsidian47.setIcon)(headerIconEl, "terminal");
     this.bashHeaderEl.appendChild(headerIconEl);
     const latest = Array.from(this.currentBashOutputs.values()).at(-1);
     const headerLabelEl = ownerDocument.createElement("span");
@@ -116159,8 +127233,8 @@ var StatusPanel = class {
     if (!this.isBashExpanded && latest) {
       summaryStatusEl.classList.add(`status-${latest.status}`);
       summaryStatusEl.setAttribute("aria-label", t("chat.bangBash.statusLabel", { status: latest.status }));
-      if (latest.status === "completed") (0, import_obsidian43.setIcon)(summaryStatusEl, "check");
-      if (latest.status === "error") (0, import_obsidian43.setIcon)(summaryStatusEl, "x");
+      if (latest.status === "completed") (0, import_obsidian47.setIcon)(summaryStatusEl, "check");
+      if (latest.status === "error") (0, import_obsidian47.setIcon)(summaryStatusEl, "x");
     } else {
       summaryStatusEl.classList.add("grimoire-hidden");
     }
@@ -116198,7 +127272,7 @@ var StatusPanel = class {
     const entryIconEl = ownerDocument.createElement("span");
     entryIconEl.className = "grimoire-tool-icon";
     entryIconEl.setAttribute("aria-hidden", "true");
-    (0, import_obsidian43.setIcon)(entryIconEl, "dollar-sign");
+    (0, import_obsidian47.setIcon)(entryIconEl, "dollar-sign");
     entryHeaderEl.appendChild(entryIconEl);
     const entryLabelEl = ownerDocument.createElement("span");
     entryLabelEl.className = "grimoire-tool-label";
@@ -116208,8 +127282,8 @@ var StatusPanel = class {
     entryStatusEl.className = "grimoire-tool-status";
     entryStatusEl.classList.add(`status-${info.status}`);
     entryStatusEl.setAttribute("aria-label", t("chat.bangBash.statusLabel", { status: info.status }));
-    if (info.status === "completed") (0, import_obsidian43.setIcon)(entryStatusEl, "check");
-    if (info.status === "error") (0, import_obsidian43.setIcon)(entryStatusEl, "x");
+    if (info.status === "completed") (0, import_obsidian47.setIcon)(entryStatusEl, "check");
+    if (info.status === "error") (0, import_obsidian47.setIcon)(entryStatusEl, "x");
     entryHeaderEl.appendChild(entryStatusEl);
     entryEl.appendChild(entryHeaderEl);
     const contentEl = ownerDocument.createElement("div");
@@ -116261,7 +127335,7 @@ ${output}` : `$ ${latest.command}`;
     try {
       await navigator.clipboard.writeText(text);
     } catch (e) {
-      new import_obsidian43.Notice(t("chat.bangBash.copyFailed"));
+      new import_obsidian47.Notice(t("chat.bangBash.copyFailed"));
     }
   }
   appendActionButton(parent, name, ariaLabel, icon, action) {
@@ -116271,7 +127345,7 @@ ${output}` : `$ ${latest.command}`;
     el2.setAttribute("role", "button");
     el2.setAttribute("tabindex", "0");
     el2.setAttribute("aria-label", ariaLabel);
-    (0, import_obsidian43.setIcon)(el2, icon);
+    (0, import_obsidian47.setIcon)(el2, icon);
     el2.addEventListener("click", (e) => {
       e.stopPropagation();
       action();
@@ -116519,10 +127593,10 @@ function appendScrollResumeIcon(buttonEl) {
   svg.setAttribute("width", "18");
   svg.setAttribute("height", "18");
   svg.setAttribute("fill", "currentColor");
-  const path26 = ownerDocument.createElementNS(SVG_NS3, "path");
-  path26.setAttribute("d", SCROLL_RESUME_ICON_PATH);
-  path26.setAttribute("fill", "currentColor");
-  svg.appendChild(path26);
+  const path36 = ownerDocument.createElementNS(SVG_NS3, "path");
+  path36.setAttribute("d", SCROLL_RESUME_ICON_PATH);
+  path36.setAttribute("fill", "currentColor");
+  svg.appendChild(path36);
   buttonEl.appendChild(svg);
 }
 function resolveBlankTabModel(plugin, providerId) {
@@ -116573,7 +127647,7 @@ function shouldSendMessageFromEnterKey(e, settings11) {
   if (settings11.requireCommandOrControlEnterToSend !== true) {
     return true;
   }
-  if (import_obsidian44.Platform.isMacOS) {
+  if (import_obsidian48.Platform.isMacOS) {
     return e.metaKey === true && !e.ctrlKey && !e.altKey;
   }
   return e.ctrlKey === true && !e.metaKey && !e.altKey;
@@ -117431,13 +128505,13 @@ function initializeContextManagers(tab, plugin) {
   tab.ui.fileContextManager.setMcpManager(getProviderMcpManager(getTabProviderId(tab, plugin)));
   const markVaultSearchDirty = (file2) => {
     var _a7;
-    if (file2 instanceof import_obsidian44.TFile) {
+    if (file2 instanceof import_obsidian48.TFile) {
       (_a7 = tab.services.vaultTextIndex) == null ? void 0 : _a7.markDirty(file2.path);
     }
   };
   const markVaultSearchRenameDirty = (file2, oldPath) => {
     var _a7, _b4;
-    if (file2 instanceof import_obsidian44.TFile) {
+    if (file2 instanceof import_obsidian48.TFile) {
       (_a7 = tab.services.vaultTextIndex) == null ? void 0 : _a7.markDirty(oldPath);
       (_b4 = tab.services.vaultTextIndex) == null ? void 0 : _b4.markDirty(file2.path);
     }
@@ -117495,7 +128569,7 @@ async function updateRelevantNotes(tab, plugin) {
     view.render(notes, currentSources);
   } catch (error48) {
     view.render([], currentSources);
-    new import_obsidian44.Notice(`Relevant notes failed: ${error48 instanceof Error ? error48.message : String(error48)}`);
+    new import_obsidian48.Notice(`Relevant notes failed: ${error48 instanceof Error ? error48.message : String(error48)}`);
   }
 }
 function getCurrentSourceRows(tab) {
@@ -117527,20 +128601,20 @@ function getCurrentSourceRows(tab) {
   }
   return sources;
 }
-function getPathTitle(path26) {
-  return path26.replace(/\\/g, "/").split("/").pop() || path26;
+function getPathTitle(path36) {
+  return path36.replace(/\\/g, "/").split("/").pop() || path36;
 }
-function openRelevantVaultPath(plugin, path26) {
-  const file2 = plugin.app.vault.getAbstractFileByPath(path26);
-  if (!(file2 instanceof import_obsidian44.TFile)) {
-    new import_obsidian44.Notice(`Could not open file: ${path26}`);
+function openRelevantVaultPath(plugin, path36) {
+  const file2 = plugin.app.vault.getAbstractFileByPath(path36);
+  if (!(file2 instanceof import_obsidian48.TFile)) {
+    new import_obsidian48.Notice(`Could not open file: ${path36}`);
     return;
   }
   void (async () => {
     try {
       await plugin.app.workspace.getLeaf().openFile(file2);
     } catch (error48) {
-      new import_obsidian44.Notice(`Failed to open file: ${error48 instanceof Error ? error48.message : String(error48)}`);
+      new import_obsidian48.Notice(`Failed to open file: ${error48 instanceof Error ? error48.message : String(error48)}`);
     }
   })();
 }
@@ -117706,7 +128780,7 @@ function initializeInputToolbar(tab, plugin, getProviderCatalogConfig, onProvide
       const boundProvider = tab.providerId;
       const modelProvider = getProviderForModel(model, plugin.settings);
       if (modelProvider !== boundProvider) {
-        new import_obsidian44.Notice("Cannot switch provider on a bound session. Start a new tab instead.");
+        new import_obsidian48.Notice("Cannot switch provider on a bound session. Start a new tab instead.");
         (_i3 = tab.ui.modelSelector) == null ? void 0 : _i3.updateDisplay();
         (_j2 = tab.ui.planUsageBadge) == null ? void 0 : _j2.updateDisplay();
         return;
@@ -117856,7 +128930,7 @@ function initializeInputToolbar(tab, plugin, getProviderCatalogConfig, onProvide
     cls: "grimoire-stop-button grimoire-hidden",
     attr: { type: "button", "aria-label": "Stop response", title: "Stop response" }
   });
-  (0, import_obsidian44.setIcon)(dom.stopButtonEl, "square");
+  (0, import_obsidian48.setIcon)(dom.stopButtonEl, "square");
   dom.sendButtonEl = sendActionsEl.createEl("button", {
     cls: "grimoire-send-button",
     text: "Send",
@@ -117876,7 +128950,7 @@ function initializeInputToolbar(tab, plugin, getProviderCatalogConfig, onProvide
   tab.ui.projectWorkspaceSelector = toolbarComponents.projectWorkspaceSelector;
   tab.ui.relevantNotesView = new RelevantNotesView(
     dom.sourceCardsEl,
-    (path26) => openRelevantVaultPath(plugin, path26),
+    (path36) => openRelevantVaultPath(plugin, path36),
     {
       filtersEl: dom.sourceFiltersEl,
       shownCountEl: dom.sourceShownCountEl
@@ -117981,7 +129055,7 @@ function resolveForkSource(tab, plugin) {
   const conversation = tab.conversationId ? plugin.getConversationSync(tab.conversationId) : null;
   const sourceSessionId = tab.service ? tab.service.resolveSessionIdForFork(conversation != null ? conversation : null) : ProviderRegistry.getConversationHistoryService((_a7 = conversation == null ? void 0 : conversation.providerId) != null ? _a7 : tab.providerId).resolveSessionIdForConversation(conversation);
   if (!sourceSessionId) {
-    new import_obsidian44.Notice(t("chat.fork.failed", { error: t("chat.fork.errorNoSession") }));
+    new import_obsidian48.Notice(t("chat.fork.failed", { error: t("chat.fork.errorNoSession") }));
     return null;
   }
   return {
@@ -117995,26 +129069,26 @@ function resolveForkSource(tab, plugin) {
 async function handleForkRequest(tab, plugin, userMessageId, forkRequestCallback) {
   const { state } = tab;
   if (!getTabCapabilities(tab, plugin).supportsFork) {
-    new import_obsidian44.Notice("Fork is not supported by this provider.");
+    new import_obsidian48.Notice("Fork is not supported by this provider.");
     return;
   }
   if (state.isStreaming) {
-    new import_obsidian44.Notice(t("chat.fork.unavailableStreaming"));
+    new import_obsidian48.Notice(t("chat.fork.unavailableStreaming"));
     return;
   }
   const msgs = state.messages;
   const userIdx = msgs.findIndex((m) => m.id === userMessageId);
   if (userIdx === -1) {
-    new import_obsidian44.Notice(t("chat.fork.failed", { error: t("chat.fork.errorMessageNotFound") }));
+    new import_obsidian48.Notice(t("chat.fork.failed", { error: t("chat.fork.errorMessageNotFound") }));
     return;
   }
   if (!msgs[userIdx].userMessageId) {
-    new import_obsidian44.Notice(t("chat.fork.unavailableNoUuid"));
+    new import_obsidian48.Notice(t("chat.fork.unavailableNoUuid"));
     return;
   }
   const rewindCtx = findRewindContext(msgs, userIdx);
   if (!rewindCtx.hasResponse || !rewindCtx.prevAssistantUuid) {
-    new import_obsidian44.Notice(t("chat.fork.unavailableNoResponse"));
+    new import_obsidian48.Notice(t("chat.fork.unavailableNoResponse"));
     return;
   }
   const source = resolveForkSource(tab, plugin);
@@ -118033,16 +129107,16 @@ async function handleForkRequest(tab, plugin, userMessageId, forkRequestCallback
 async function handleForkAll(tab, plugin, forkRequestCallback) {
   const { state } = tab;
   if (!getTabCapabilities(tab, plugin).supportsFork) {
-    new import_obsidian44.Notice("Fork is not supported by this provider.");
+    new import_obsidian48.Notice("Fork is not supported by this provider.");
     return;
   }
   if (state.isStreaming) {
-    new import_obsidian44.Notice(t("chat.fork.unavailableStreaming"));
+    new import_obsidian48.Notice(t("chat.fork.unavailableStreaming"));
     return;
   }
   const msgs = state.messages;
   if (msgs.length === 0) {
-    new import_obsidian44.Notice(t("chat.fork.commandNoMessages"));
+    new import_obsidian48.Notice(t("chat.fork.commandNoMessages"));
     return;
   }
   let lastAssistantUuid;
@@ -118053,7 +129127,7 @@ async function handleForkAll(tab, plugin, forkRequestCallback) {
     }
   }
   if (!lastAssistantUuid) {
-    new import_obsidian44.Notice(t("chat.fork.commandNoAssistantUuid"));
+    new import_obsidian48.Notice(t("chat.fork.commandNoAssistantUuid"));
     return;
   }
   const source = resolveForkSource(tab, plugin);
@@ -118323,7 +129397,7 @@ function initializeTabControllers(tab, plugin, component, arg4, arg5, arg6, arg7
         applyProviderUIGating(tab, plugin);
         return true;
       } catch (error48) {
-        new import_obsidian44.Notice(error48 instanceof Error ? error48.message : "Failed to initialize chat service");
+        new import_obsidian48.Notice(error48 instanceof Error ? error48.message : "Failed to initialize chat service");
         return false;
       }
     },
@@ -118825,20 +129899,20 @@ var TabBar = class {
 };
 
 // src/features/chat/tabs/TabManager.ts
-var import_obsidian46 = require("obsidian");
+var import_obsidian50 = require("obsidian");
 
 // src/shared/modals/ForkTargetModal.ts
-var import_obsidian45 = require("obsidian");
+var import_obsidian49 = require("obsidian");
 function chooseForkTarget(app) {
-  return new Promise((resolve7) => {
-    new ForkTargetModal(app, resolve7).open();
+  return new Promise((resolve9) => {
+    new ForkTargetModal(app, resolve9).open();
   });
 }
-var ForkTargetModal = class extends import_obsidian45.Modal {
-  constructor(app, resolve7) {
+var ForkTargetModal = class extends import_obsidian49.Modal {
+  constructor(app, resolve9) {
     super(app);
     this.resolved = false;
-    this.resolve = resolve7;
+    this.resolve = resolve9;
   }
   onOpen() {
     this.setTitle(t("chat.fork.chooseTarget"));
@@ -119210,10 +130284,10 @@ var TabManager = class {
       this.maybePrimeProviderRuntime(tab);
     }
   }
-  *filterTabsByProvider(providerIds, resolve7) {
+  *filterTabsByProvider(providerIds, resolve9) {
     const filter = providerIds ? new Set(Array.isArray(providerIds) ? providerIds : [providerIds]) : null;
     for (const tab of this.tabs.values()) {
-      if (filter && !filter.has(resolve7(tab))) {
+      if (filter && !filter.has(resolve9(tab))) {
         continue;
       }
       yield tab;
@@ -119229,17 +130303,17 @@ var TabManager = class {
       const tab = await this.forkToNewTab(context);
       if (!tab) {
         const maxTabs = this.getMaxTabs();
-        new import_obsidian46.Notice(t("chat.fork.maxTabsReached", { count: String(maxTabs) }));
+        new import_obsidian50.Notice(t("chat.fork.maxTabsReached", { count: String(maxTabs) }));
         return;
       }
-      new import_obsidian46.Notice(t("chat.fork.notice"));
+      new import_obsidian50.Notice(t("chat.fork.notice"));
     } else {
       const success2 = await this.forkInCurrentTab(context);
       if (!success2) {
-        new import_obsidian46.Notice(t("chat.fork.failed", { error: t("chat.fork.errorNoActiveTab") }));
+        new import_obsidian50.Notice(t("chat.fork.failed", { error: t("chat.fork.errorNoActiveTab") }));
         return;
       }
-      new import_obsidian46.Notice(t("chat.fork.noticeCurrentTab"));
+      new import_obsidian50.Notice(t("chat.fork.noticeCurrentTab"));
     }
   }
   async forkToNewTab(context) {
@@ -119721,13 +130795,13 @@ function appendHistoryHeaderIcon(container) {
   svg.setAttribute("stroke-linejoin", "round");
   svg.setAttribute("aria-hidden", "true");
   for (const pathData of HISTORY_ICON_PATHS) {
-    const path26 = container.ownerDocument.createElementNS(SVG_NS4, "path");
-    path26.setAttribute("d", pathData);
-    svg.appendChild(path26);
+    const path36 = container.ownerDocument.createElementNS(SVG_NS4, "path");
+    path36.setAttribute("d", pathData);
+    svg.appendChild(path36);
   }
   container.appendChild(svg);
 }
-var GrimoireView = class extends import_obsidian47.ItemView {
+var GrimoireView = class extends import_obsidian51.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     // Tab management
@@ -120005,7 +131079,7 @@ var GrimoireView = class extends import_obsidian47.ItemView {
         void this.handleTabClose(tabId);
       },
       onNewTab: () => {
-        void this.createNewTab().catch(() => new import_obsidian47.Notice("Failed to create tab"));
+        void this.createNewTab().catch(() => new import_obsidian51.Notice("Failed to create tab"));
       }
     });
     fragment.appendChild(this.tabBarContainerEl);
@@ -120018,7 +131092,7 @@ var GrimoireView = class extends import_obsidian47.ItemView {
     this.newTabButtonEl.setText("+");
     this.newTabButtonEl.setAttribute("aria-label", "New tab");
     this.newTabButtonEl.addEventListener("click", () => {
-      void this.createNewTab().catch(() => new import_obsidian47.Notice("Failed to create tab"));
+      void this.createNewTab().catch(() => new import_obsidian51.Notice("Failed to create tab"));
     });
     this.historyButtonEl = this.headerActionsContent.createDiv({ cls: "grimoire-header-btn grimoire-history-btn" });
     this.historyButtonEl.setAttribute("role", "button");
@@ -120087,7 +131161,7 @@ var GrimoireView = class extends import_obsidian47.ItemView {
     var _a7;
     const switched = (_a7 = this.tabManager) == null ? void 0 : _a7.switchToTab(tabId);
     if (switched) {
-      void switched.catch(() => new import_obsidian47.Notice("Failed to switch tab"));
+      void switched.catch(() => new import_obsidian51.Notice("Failed to switch tab"));
     }
   }
   async handleTabClose(tabId) {
@@ -120098,7 +131172,7 @@ var GrimoireView = class extends import_obsidian47.ItemView {
       await ((_c3 = this.tabManager) == null ? void 0 : _c3.closeTab(tabId, force));
       this.updateTabBarVisibility();
     } catch (e) {
-      new import_obsidian47.Notice("Failed to close tab");
+      new import_obsidian51.Notice("Failed to close tab");
     }
   }
   async createNewTab() {
@@ -120106,7 +131180,7 @@ var GrimoireView = class extends import_obsidian47.ItemView {
     const tab = await ((_a7 = this.tabManager) == null ? void 0 : _a7.createTab());
     if (!tab) {
       const maxTabs = normalizeMaxTabs(this.plugin.settings.maxTabs);
-      new import_obsidian47.Notice(`Maximum ${maxTabs} tabs allowed`);
+      new import_obsidian51.Notice(`Maximum ${maxTabs} tabs allowed`);
       this.updateTabBarVisibility();
       return;
     }
@@ -120340,7 +131414,7 @@ var GrimoireView = class extends import_obsidian47.ItemView {
         }
       }
     });
-    this.scope = new import_obsidian47.Scope(this.app.scope);
+    this.scope = new import_obsidian51.Scope(this.app.scope);
     this.scope.register([], "Escape", (e) => {
       var _a7, _b4;
       if (e.isComposing) return;
@@ -120433,7 +131507,7 @@ var GrimoireView = class extends import_obsidian47.ItemView {
 };
 
 // src/features/inline-edit/ui/InlineEditModal.ts
-var import_obsidian48 = require("obsidian");
+var import_obsidian52 = require("obsidian");
 init_path();
 var showInlineEdit = StateEffect.define();
 var showDiff = StateEffect.define();
@@ -120620,10 +131694,10 @@ var InlineEditModal = class {
       editorView = getEditorView(editor);
     }
     if (!editorView) {
-      new import_obsidian48.Notice("Inline edit unavailable: could not access the active editor. Try reopening the note.");
+      new import_obsidian52.Notice("Inline edit unavailable: could not access the active editor. Try reopening the note.");
       return { decision: "reject" };
     }
-    return new Promise((resolve7) => {
+    return new Promise((resolve9) => {
       this.controller = new InlineEditController(
         this.app,
         this.plugin,
@@ -120632,7 +131706,7 @@ var InlineEditModal = class {
         this.editContext,
         this.notePath,
         this.getExternalContexts,
-        resolve7
+        resolve9
       );
       activeController = this.controller;
       this.controller.show();
@@ -120640,14 +131714,14 @@ var InlineEditModal = class {
   }
 };
 var InlineEditController = class {
-  constructor(app, plugin, editorView, editor, editContext, notePath, getExternalContexts, resolve7) {
+  constructor(app, plugin, editorView, editor, editContext, notePath, getExternalContexts, resolve9) {
     this.app = app;
     this.plugin = plugin;
     this.editorView = editorView;
     this.editor = editor;
     this.notePath = notePath;
     this.getExternalContexts = getExternalContexts;
-    this.resolve = resolve7;
+    this.resolve = resolve9;
     this.inputEl = null;
     this.spinnerEl = null;
     this.agentReplyEl = null;
@@ -120674,7 +131748,7 @@ var InlineEditController = class {
     this.resolvedProviderId = providerId;
     this.mentionDataProvider = new VaultMentionDataProvider(this.app, {
       onFileLoadError: () => {
-        new import_obsidian48.Notice("Failed to load vault files. Vault @-mentions may be unavailable.");
+        new import_obsidian52.Notice("Failed to load vault files. Vault @-mentions may be unavailable.");
       }
     });
     this.mentionDataProvider.initializeInBackground();
@@ -121028,7 +132102,7 @@ var InlineEditController = class {
       const vaultPath = getVaultPath(this.app);
       return normalizePathForVault(rawPath, vaultPath);
     } catch (e) {
-      new import_obsidian48.Notice("Failed to attach file: invalid path");
+      new import_obsidian52.Notice("Failed to attach file: invalid path");
       return null;
     }
   }
@@ -121079,7 +132153,7 @@ var InlineEditController = class {
 };
 
 // src/features/settings/GrimoireSettings.ts
-var import_obsidian50 = require("obsidian");
+var import_obsidian54 = require("obsidian");
 init_env();
 
 // src/features/settings/keyboardNavigation.ts
@@ -121338,7 +132412,7 @@ function renderProjectWorkspaceSettings(container, context) {
 }
 
 // src/features/settings/ui/AdvancedSection.ts
-var import_obsidian49 = require("obsidian");
+var import_obsidian53 = require("obsidian");
 function setOpenState(toggle, wrap, open) {
   toggle.toggleClass("is-open", open);
   wrap.toggleClass("is-open", open);
@@ -121357,7 +132431,7 @@ function renderAdvancedSection(container, opts) {
     cls: `grimoire-adv-toggle${open ? " is-open" : ""}`
   });
   const chevron = toggle.createSpan({ cls: "grimoire-adv-chevron" });
-  (0, import_obsidian49.setIcon)(chevron, "chevron-right");
+  (0, import_obsidian53.setIcon)(chevron, "chevron-right");
   const copy = toggle.createSpan({ cls: "grimoire-adv-copy" });
   copy.createSpan({ cls: "grimoire-adv-title", text: "Advanced settings" });
   copy.createSpan({ cls: "grimoire-adv-summary", text: opts.summary });
@@ -121382,7 +132456,7 @@ function renderAdvancedSection(container, opts) {
 
 // src/features/settings/GrimoireSettings.ts
 function formatHotkey(hotkey) {
-  const isMac = import_obsidian50.Platform.isMacOS;
+  const isMac = import_obsidian54.Platform.isMacOS;
   const modMap = isMac ? { Mod: "\u2318", Ctrl: "\u2303", Alt: "\u2325", Shift: "\u21E7", Meta: "\u2318" } : { Mod: "Ctrl", Ctrl: "Ctrl", Alt: "Alt", Shift: "Shift", Meta: "Win" };
   const mods = hotkey.modifiers.map((modifier) => modMap[modifier] || modifier);
   const key = hotkey.key.length === 1 ? hotkey.key.toUpperCase() : hotkey.key;
@@ -121466,9 +132540,17 @@ var PROVIDER_SETTING_COPY = {
   opencode: {
     desc: "Open-source, multi-vendor. Exposes the widest model catalog.",
     name: "OpenCode"
+  },
+  mimocode: {
+    desc: "Xiaomi's fork of OpenCode with persistent memory and context management.",
+    name: "MiMo Code"
+  },
+  kimicode: {
+    desc: "MoonshotAI's multi-provider agent CLI. Supports Kimi, OpenAI, Anthropic, Gemini.",
+    name: "Kimi Code"
   }
 };
-var GrimoireSettingTab = class extends import_obsidian50.PluginSettingTab {
+var GrimoireSettingTab = class extends import_obsidian54.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     this.activeTab = "general";
@@ -121578,7 +132660,7 @@ var GrimoireSettingTab = class extends import_obsidian50.PluginSettingTab {
     });
   }
   renderGeneralTab(container) {
-    new import_obsidian50.Setting(container).setName(t("settings.language.name")).setDesc(t("settings.language.desc")).addDropdown((dropdown) => {
+    new import_obsidian54.Setting(container).setName(t("settings.language.name")).setDesc(t("settings.language.desc")).addDropdown((dropdown) => {
       const locales = getAvailableLocales();
       for (const locale of locales) {
         dropdown.addOption(locale, getLocaleDisplayName(locale));
@@ -121595,16 +132677,16 @@ var GrimoireSettingTab = class extends import_obsidian50.PluginSettingTab {
       });
     });
     this.renderProviderEnableSettings(container);
-    new import_obsidian50.Setting(container).setName(t("settings.display")).setHeading();
-    new import_obsidian50.Setting(container).setName(t("settings.theme.name")).setDesc(t("settings.theme.followsObsidian"));
-    new import_obsidian50.Setting(container).setName(t("settings.chatViewPlacement.name")).setDesc(t("settings.chatViewPlacement.desc")).addDropdown((dropdown) => {
+    new import_obsidian54.Setting(container).setName(t("settings.display")).setHeading();
+    new import_obsidian54.Setting(container).setName(t("settings.theme.name")).setDesc(t("settings.theme.followsObsidian"));
+    new import_obsidian54.Setting(container).setName(t("settings.chatViewPlacement.name")).setDesc(t("settings.chatViewPlacement.desc")).addDropdown((dropdown) => {
       dropdown.addOption("right-sidebar", t("settings.chatViewPlacement.rightSidebar")).addOption("left-sidebar", t("settings.chatViewPlacement.leftSidebar")).addOption("main-tab", t("settings.chatViewPlacement.mainTab")).setValue(this.plugin.settings.chatViewPlacement).onChange(async (value) => {
         this.plugin.settings.chatViewPlacement = value;
         await this.plugin.saveSettings();
       });
     });
     this.renderMaxTabsSetting(container);
-    new import_obsidian50.Setting(container).setName(t("settings.enableAutoScroll.name")).setDesc(t("settings.enableAutoScroll.desc")).addToggle(
+    new import_obsidian54.Setting(container).setName(t("settings.enableAutoScroll.name")).setDesc(t("settings.enableAutoScroll.desc")).addToggle(
       (toggle) => {
         var _a7;
         return toggle.setValue((_a7 = this.plugin.settings.enableAutoScroll) != null ? _a7 : true).onChange(async (value) => {
@@ -121613,16 +132695,16 @@ var GrimoireSettingTab = class extends import_obsidian50.PluginSettingTab {
         });
       }
     );
-    new import_obsidian50.Setting(container).setName(t("settings.conversations")).setHeading();
-    new import_obsidian50.Setting(container).setName(t("settings.autoTitle.name")).setDesc(t("settings.autoTitle.desc")).addToggle(
+    new import_obsidian54.Setting(container).setName(t("settings.conversations")).setHeading();
+    new import_obsidian54.Setting(container).setName(t("settings.autoTitle.name")).setDesc(t("settings.autoTitle.desc")).addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.enableAutoTitleGeneration).onChange(async (value) => {
         this.plugin.settings.enableAutoTitleGeneration = value;
         await this.plugin.saveSettings();
         this.renderSettings();
       })
     );
-    new import_obsidian50.Setting(container).setName(t("settings.content")).setHeading();
-    new import_obsidian50.Setting(container).setName(t("settings.userName.name")).setDesc(t("settings.userName.desc")).addText((text) => {
+    new import_obsidian54.Setting(container).setName(t("settings.content")).setHeading();
+    new import_obsidian54.Setting(container).setName(t("settings.userName.name")).setDesc(t("settings.userName.desc")).addText((text) => {
       text.setPlaceholder(t("settings.userName.name")).setValue(this.plugin.settings.userName).onChange(async (value) => {
         this.plugin.settings.userName = value;
         await this.plugin.saveSettings();
@@ -121635,8 +132717,8 @@ var GrimoireSettingTab = class extends import_obsidian50.PluginSettingTab {
       count: 11,
       summary: "Prompts, hotkeys, diagnostics, environment variables, and more"
     });
-    new import_obsidian50.Setting(advancedContainer).setName(t("settings.display")).setHeading();
-    new import_obsidian50.Setting(advancedContainer).setName(t("settings.deferMathRenderingDuringStreaming.name")).setDesc(t("settings.deferMathRenderingDuringStreaming.desc")).addToggle(
+    new import_obsidian54.Setting(advancedContainer).setName(t("settings.display")).setHeading();
+    new import_obsidian54.Setting(advancedContainer).setName(t("settings.deferMathRenderingDuringStreaming.name")).setDesc(t("settings.deferMathRenderingDuringStreaming.desc")).addToggle(
       (toggle) => {
         var _a7;
         return toggle.setValue((_a7 = this.plugin.settings.deferMathRenderingDuringStreaming) != null ? _a7 : true).onChange(async (value) => {
@@ -121645,9 +132727,9 @@ var GrimoireSettingTab = class extends import_obsidian50.PluginSettingTab {
         });
       }
     );
-    new import_obsidian50.Setting(advancedContainer).setName(t("settings.conversations")).setHeading();
+    new import_obsidian54.Setting(advancedContainer).setName(t("settings.conversations")).setHeading();
     if (this.plugin.settings.enableAutoTitleGeneration) {
-      new import_obsidian50.Setting(advancedContainer).setName(t("settings.titleModel.name")).setDesc(t("settings.titleModel.desc")).addDropdown((dropdown) => {
+      new import_obsidian54.Setting(advancedContainer).setName(t("settings.titleModel.name")).setDesc(t("settings.titleModel.desc")).addDropdown((dropdown) => {
         dropdown.addOption("", t("settings.titleModel.auto"));
         const settingsBag = this.plugin.settings;
         const seenValues = /* @__PURE__ */ new Set();
@@ -121666,8 +132748,8 @@ var GrimoireSettingTab = class extends import_obsidian50.PluginSettingTab {
         });
       });
     }
-    new import_obsidian50.Setting(advancedContainer).setName(t("settings.content")).setHeading();
-    new import_obsidian50.Setting(advancedContainer).setName(t("settings.systemPrompt.name")).setDesc(t("settings.systemPrompt.desc")).addTextArea((text) => {
+    new import_obsidian54.Setting(advancedContainer).setName(t("settings.content")).setHeading();
+    new import_obsidian54.Setting(advancedContainer).setName(t("settings.systemPrompt.name")).setDesc(t("settings.systemPrompt.desc")).addTextArea((text) => {
       text.setPlaceholder(t("settings.systemPrompt.name")).setValue(this.plugin.settings.systemPrompt).onChange(async (value) => {
         this.plugin.settings.systemPrompt = value;
         await this.plugin.saveSettings();
@@ -121678,7 +132760,7 @@ var GrimoireSettingTab = class extends import_obsidian50.PluginSettingTab {
         void this.restartServiceForPromptChange();
       });
     });
-    new import_obsidian50.Setting(advancedContainer).setName(t("settings.excludedTags.name")).setDesc(t("settings.excludedTags.desc")).addTextArea((text) => {
+    new import_obsidian54.Setting(advancedContainer).setName(t("settings.excludedTags.name")).setDesc(t("settings.excludedTags.desc")).addTextArea((text) => {
       text.setPlaceholder("System\nprivate\ndraft").setValue(this.plugin.settings.excludedTags.join("\n")).onChange(async (value) => {
         this.plugin.settings.excludedTags = value.split(/\r?\n/).map((entry) => entry.trim().replace(/^#/, "")).filter((entry) => entry.length > 0);
         await this.plugin.saveSettings();
@@ -121686,7 +132768,7 @@ var GrimoireSettingTab = class extends import_obsidian50.PluginSettingTab {
       text.inputEl.rows = 4;
       text.inputEl.cols = 30;
     });
-    new import_obsidian50.Setting(advancedContainer).setName(t("settings.mediaFolder.name")).setDesc(t("settings.mediaFolder.desc")).addText((text) => {
+    new import_obsidian54.Setting(advancedContainer).setName(t("settings.mediaFolder.name")).setDesc(t("settings.mediaFolder.desc")).addText((text) => {
       text.setPlaceholder("Attachments").setValue(this.plugin.settings.mediaFolder).onChange(async (value) => {
         this.plugin.settings.mediaFolder = value.trim();
         await this.plugin.saveSettings();
@@ -121697,15 +132779,15 @@ var GrimoireSettingTab = class extends import_obsidian50.PluginSettingTab {
       });
     });
     renderProjectWorkspaceSettings(advancedContainer, { plugin: this.plugin });
-    new import_obsidian50.Setting(advancedContainer).setName(t("settings.input")).setHeading();
-    new import_obsidian50.Setting(advancedContainer).setName(t("settings.requireCommandOrControlEnterToSend.name")).setDesc(t("settings.requireCommandOrControlEnterToSend.desc")).addToggle((toggle) => {
+    new import_obsidian54.Setting(advancedContainer).setName(t("settings.input")).setHeading();
+    new import_obsidian54.Setting(advancedContainer).setName(t("settings.requireCommandOrControlEnterToSend.name")).setDesc(t("settings.requireCommandOrControlEnterToSend.desc")).addToggle((toggle) => {
       var _a7;
       toggle.setValue((_a7 = this.plugin.settings.requireCommandOrControlEnterToSend) != null ? _a7 : false).onChange(async (value) => {
         this.plugin.settings.requireCommandOrControlEnterToSend = value;
         await this.plugin.saveSettings();
       });
     });
-    new import_obsidian50.Setting(advancedContainer).setName(t("settings.navMappings.name")).setDesc(t("settings.navMappings.desc")).addTextArea((text) => {
+    new import_obsidian54.Setting(advancedContainer).setName(t("settings.navMappings.name")).setDesc(t("settings.navMappings.desc")).addTextArea((text) => {
       let pendingValue = buildNavMappingText(this.plugin.settings.keyboardNavigation);
       let saveTimeout = null;
       const commitValue = async (showError) => {
@@ -121716,7 +132798,7 @@ var GrimoireSettingTab = class extends import_obsidian50.PluginSettingTab {
         const result = parseNavMappings(pendingValue);
         if (!result.settings) {
           if (showError) {
-            new import_obsidian50.Notice(`${t("common.error")}: ${result.error}`);
+            new import_obsidian54.Notice(`${t("common.error")}: ${result.error}`);
             pendingValue = buildNavMappingText(this.plugin.settings.keyboardNavigation);
             text.setValue(pendingValue);
           }
@@ -121746,15 +132828,15 @@ var GrimoireSettingTab = class extends import_obsidian50.PluginSettingTab {
         void commitValue(true);
       });
     });
-    new import_obsidian50.Setting(advancedContainer).setName(t("settings.hotkeys")).setHeading();
+    new import_obsidian54.Setting(advancedContainer).setName(t("settings.hotkeys")).setHeading();
     const hotkeyGrid = advancedContainer.createDiv({ cls: "grimoire-hotkey-grid" });
     addHotkeySettingRow(hotkeyGrid, this.app, "grimoire:inline-edit", "settings.inlineEditHotkey");
     addHotkeySettingRow(hotkeyGrid, this.app, "grimoire:open-view", "settings.openChatHotkey");
     addHotkeySettingRow(hotkeyGrid, this.app, "grimoire:new-session", "settings.newSessionHotkey");
     addHotkeySettingRow(hotkeyGrid, this.app, "grimoire:new-tab", "settings.newTabHotkey");
     addHotkeySettingRow(hotkeyGrid, this.app, "grimoire:close-current-tab", "settings.closeTabHotkey");
-    new import_obsidian50.Setting(advancedContainer).setName(t("settings.diagnostics")).setHeading();
-    new import_obsidian50.Setting(advancedContainer).setName(t("settings.usageIndicators.name")).setDesc(t("settings.usageIndicators.desc")).addToggle((toggle) => {
+    new import_obsidian54.Setting(advancedContainer).setName(t("settings.diagnostics")).setHeading();
+    new import_obsidian54.Setting(advancedContainer).setName(t("settings.usageIndicators.name")).setDesc(t("settings.usageIndicators.desc")).addToggle((toggle) => {
       toggle.setValue(this.plugin.settings.usageIndicatorsEnabled !== false).onChange(async (value) => {
         var _a7, _b4, _c3, _d3;
         this.plugin.settings.usageIndicatorsEnabled = value;
@@ -121764,7 +132846,7 @@ var GrimoireSettingTab = class extends import_obsidian50.PluginSettingTab {
         }
       });
     });
-    new import_obsidian50.Setting(advancedContainer).setName(t("settings.debugLogging.name")).setDesc(t("settings.debugLogging.desc")).addToggle((toggle) => {
+    new import_obsidian54.Setting(advancedContainer).setName(t("settings.debugLogging.name")).setDesc(t("settings.debugLogging.desc")).addToggle((toggle) => {
       var _a7;
       toggle.setValue((_a7 = this.plugin.settings.debugLoggingEnabled) != null ? _a7 : false).onChange(async (value) => {
         this.plugin.settings.debugLoggingEnabled = value;
@@ -121788,26 +132870,32 @@ var GrimoireSettingTab = class extends import_obsidian50.PluginSettingTab {
     }
   }
   renderProviderEnableSettings(container) {
-    new import_obsidian50.Setting(container).setName("Providers").setHeading();
+    new import_obsidian54.Setting(container).setName("Providers").setHeading();
     const desc = container.createDiv({ cls: "grimoire-provider-settings-desc" });
     desc.createEl("p", {
       cls: "setting-item-description",
       text: "Which CLI back-ends Grimoire can talk to. Each runs as a local agent; only enabled providers appear in the model selector."
     });
+    this.renderProviderEnableRow(container, "codex", getCodexProviderSettings(this.plugin.settings).enabled, async (enabled) => {
+      await this.updateProviderEnabled("codex", enabled);
+    });
     this.renderProviderEnableRow(container, "claude", getClaudeProviderSettings(this.plugin.settings).enabled, async (enabled) => {
       await this.updateProviderEnabled("claude", enabled);
     });
-    this.renderProviderEnableRow(container, "codex", getCodexProviderSettings(this.plugin.settings).enabled, async (enabled) => {
-      await this.updateProviderEnabled("codex", enabled);
+    this.renderProviderEnableRow(container, "opencode", getOpencodeProviderSettings(this.plugin.settings).enabled, async (enabled) => {
+      await this.updateProviderEnabled("opencode", enabled);
+    });
+    this.renderProviderEnableRow(container, "mimocode", getMimocodeProviderSettings(this.plugin.settings).enabled, async (enabled) => {
+      await this.updateProviderEnabled("mimocode", enabled);
+    });
+    this.renderProviderEnableRow(container, "kimicode", getKimicodeProviderSettings(this.plugin.settings).enabled, async (enabled) => {
+      await this.updateProviderEnabled("kimicode", enabled);
     });
     this.renderProviderEnableRow(container, "antigravity", getAntigravityProviderSettings(this.plugin.settings).enabled, async (enabled) => {
       await this.updateProviderEnabled("antigravity", enabled);
     });
     this.renderProviderEnableRow(container, "gemini", getGeminiProviderSettings(this.plugin.settings).enabled, async (enabled) => {
       await this.updateProviderEnabled("gemini", enabled);
-    });
-    this.renderProviderEnableRow(container, "opencode", getOpencodeProviderSettings(this.plugin.settings).enabled, async (enabled) => {
-      await this.updateProviderEnabled("opencode", enabled);
     });
   }
   async updateProviderEnabled(providerId, enabled) {
@@ -121822,6 +132910,10 @@ var GrimoireSettingTab = class extends import_obsidian50.PluginSettingTab {
       updateGeminiProviderSettings(this.plugin.settings, { enabled });
     } else if (providerId === "opencode") {
       updateOpencodeProviderSettings(this.plugin.settings, { enabled });
+    } else if (providerId === "mimocode") {
+      updateMimocodeProviderSettings(this.plugin.settings, { enabled });
+    } else if (providerId === "kimicode") {
+      updateKimicodeProviderSettings(this.plugin.settings, { enabled });
     }
     if (ProviderSettingsCoordinator.normalizeProviderSelection(this.plugin.settings)) {
       ProviderSettingsCoordinator.projectActiveProviderState(this.plugin.settings);
@@ -121845,7 +132937,7 @@ var GrimoireSettingTab = class extends import_obsidian50.PluginSettingTab {
         settings: this.plugin.settings
       });
     } catch (error48) {
-      new import_obsidian50.Notice(error48 instanceof Error ? error48.message : "Could not load provider models.");
+      new import_obsidian54.Notice(error48 instanceof Error ? error48.message : "Could not load provider models.");
     }
   }
   renderProviderEnableRow(container, providerId, enabled, onChange) {
@@ -121854,7 +132946,7 @@ var GrimoireSettingTab = class extends import_obsidian50.PluginSettingTab {
       desc: `${ProviderRegistry.getProviderDisplayName(providerId)} provider.`,
       name: ProviderRegistry.getProviderDisplayName(providerId)
     };
-    const setting = new import_obsidian50.Setting(container).setName(copy.name).setDesc(copy.desc);
+    const setting = new import_obsidian54.Setting(container).setName(copy.name).setDesc(copy.desc);
     setting.settingEl.addClass("grimoire-provider-row");
     setting.settingEl.addClass(`grimoire-provider-row--${providerId}`);
     setting.settingEl.toggleClass("is-enabled", enabled);
@@ -121865,7 +132957,7 @@ var GrimoireSettingTab = class extends import_obsidian50.PluginSettingTab {
     });
   }
   renderMaxTabsSetting(container) {
-    const maxTabsSetting = new import_obsidian50.Setting(container).setName(t("settings.maxTabs.name")).setDesc(t("settings.maxTabs.desc"));
+    const maxTabsSetting = new import_obsidian54.Setting(container).setName(t("settings.maxTabs.name")).setDesc(t("settings.maxTabs.desc"));
     maxTabsSetting.addSlider((slider) => {
       const initialValue = normalizeMaxTabs(this.plugin.settings.maxTabs);
       const valueEl = maxTabsSetting.controlEl.createSpan({
@@ -121886,7 +132978,7 @@ var GrimoireSettingTab = class extends import_obsidian50.PluginSettingTab {
     });
   }
   renderHiddenProviderCommandSetting(container, providerId, copy) {
-    new import_obsidian50.Setting(container).setName(copy.name).setDesc(copy.desc).addTextArea((text) => {
+    new import_obsidian54.Setting(container).setName(copy.name).setDesc(copy.desc).addTextArea((text) => {
       text.setPlaceholder(copy.placeholder).setValue(getHiddenProviderCommands(this.plugin.settings, providerId).join("\n")).onChange(async (value) => {
         var _a7;
         this.plugin.settings.hiddenProviderCommands = {
@@ -122041,7 +133133,7 @@ function formatHistoryModelFallbackLabel(model) {
   }
   return trimmed.replace(/[-_]+/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
-var GrimoirePlugin = class extends import_obsidian51.Plugin {
+var GrimoirePlugin = class extends import_obsidian55.Plugin {
   constructor() {
     super(...arguments);
     this.conversations = [];
@@ -122060,7 +133152,7 @@ var GrimoirePlugin = class extends import_obsidian51.Plugin {
         level: "info",
         scope: "plugin"
       });
-      (0, import_obsidian51.addIcon)(GRIMOIRE_APP_ICON_ID, GRIMOIRE_APP_ICON_SVG);
+      (0, import_obsidian55.addIcon)(GRIMOIRE_APP_ICON_ID, GRIMOIRE_APP_ICON_SVG);
       await this.writeDebugLog({
         event: "icon.registered",
         level: "info",
@@ -122095,9 +133187,9 @@ var GrimoirePlugin = class extends import_obsidian51.Plugin {
         name: "Inline edit",
         editorCallback: async (editor, ctx) => {
           var _a7;
-          const view = ctx instanceof import_obsidian51.MarkdownView ? ctx : this.app.workspace.getActiveViewOfType(import_obsidian51.MarkdownView);
+          const view = ctx instanceof import_obsidian55.MarkdownView ? ctx : this.app.workspace.getActiveViewOfType(import_obsidian55.MarkdownView);
           if (!view) {
-            new import_obsidian51.Notice("Inline edit unavailable: could not access the active Markdown view.");
+            new import_obsidian55.Notice("Inline edit unavailable: could not access the active Markdown view.");
             return;
           }
           const selectedText = editor.getSelection();
@@ -122129,7 +133221,7 @@ var GrimoirePlugin = class extends import_obsidian51.Plugin {
           );
           const result = await modal.openAndWait();
           if (result.decision === "accept" && result.editedText !== void 0) {
-            new import_obsidian51.Notice(editContext.mode === "cursor" ? "Inserted" : "Edit applied");
+            new import_obsidian55.Notice(editContext.mode === "cursor" ? "Inserted" : "Edit applied");
           }
         }
       });
@@ -122539,7 +133631,7 @@ var GrimoirePlugin = class extends import_obsidian51.Plugin {
         }
       }
       if (failedTabs > 0) {
-        new import_obsidian51.Notice(`Environment changes applied, but ${failedTabs} affected tab(s) failed to restart.`);
+        new import_obsidian55.Notice(`Environment changes applied, but ${failedTabs} affected tab(s) failed to restart.`);
       }
     }
     for (const openView of this.getAllViews()) {
@@ -122547,7 +133639,7 @@ var GrimoirePlugin = class extends import_obsidian51.Plugin {
       openView.refreshModelSelector();
     }
     const noticeText = changed ? "Environment variables applied. Sessions will be rebuilt on next message." : "Environment variables applied.";
-    new import_obsidian51.Notice(noticeText);
+    new import_obsidian55.Notice(noticeText);
   }
   /** Returns the runtime environment variables (fixed at plugin load). */
   getActiveEnvironmentVariables(providerId = ProviderRegistry.resolveSettingsProviderId(
@@ -122786,8 +133878,8 @@ var GrimoirePlugin = class extends import_obsidian51.Plugin {
     if (conversation.currentNote) {
       sources.add(conversation.currentNote);
     }
-    for (const path26 of (_a7 = conversation.externalContextPaths) != null ? _a7 : []) {
-      sources.add(path26);
+    for (const path36 of (_a7 = conversation.externalContextPaths) != null ? _a7 : []) {
+      sources.add(path36);
     }
     for (const message of conversation.messages) {
       const context = message.vaultSearchContext;

@@ -4214,6 +4214,14 @@ body.grimoire-dragging-ns {
   color: var(--grimoire-provider-opencode, #e0b341);
 }
 
+.grimoire-model-group-section--mimocode .grimoire-model-group-provider-icon {
+  color: var(--grimoire-provider-mimocode, #FF6A00);
+}
+
+.grimoire-model-group-section--kimicode .grimoire-model-group-provider-icon {
+  color: var(--grimoire-provider-kimicode, #7C3AED);
+}
+
 .grimoire-model-group-provider-icon * {
   display: none;
 }
@@ -7981,6 +7989,8 @@ code .grimoire-file-link:hover {
   --gs-dot-antigravity: #5b8def;
   --gs-dot-gemini: #669df6;
   --gs-dot-opencode: #e0b341;
+  --gs-dot-mimocode: #FF6A00;
+  --gs-dot-kimicode: #7C3AED;
 }
 
 /* ── Layout: centered single column, like the prototype window ── */
@@ -8299,6 +8309,14 @@ code .grimoire-file-link:hover {
 
 .grimoire-provider-row--opencode {
   --gs-provider-dot: var(--gs-dot-opencode);
+}
+
+.grimoire-provider-row--mimocode {
+  --gs-provider-dot: var(--gs-dot-mimocode);
+}
+
+.grimoire-provider-row--kimicode {
+  --gs-provider-dot: var(--gs-dot-kimicode);
 }
 
 /* ── Provider-disabled notice → .note-card ── */
@@ -9832,6 +9850,792 @@ code .grimoire-file-link:hover {
 }
 
 .grimoire-opencode-model-picker-empty {
+  padding: 26px 16px;
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 12.5px;
+}
+
+
+/* ============================================
+   settings/mimocode-model-picker.css
+   ============================================ */
+/* OpenCode model picker — styled to match the settings redesign
+   prototype's .oc-* model catalog (search, bordered list, mono ids). */
+
+.grimoire-mimocode-model-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.grimoire-mimocode-model-picker-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+.grimoire-mimocode-model-picker-summary-value {
+  color: var(--text-normal);
+  font-weight: var(--font-medium);
+}
+
+/* Selected models block */
+.grimoire-mimocode-model-picker-selected {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--gs-r2, 9px);
+  background: color-mix(in srgb, var(--background-secondary) 70%, transparent);
+}
+
+.grimoire-mimocode-model-picker-selected-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.grimoire-mimocode-model-picker-selected-label {
+  font-family: var(--font-monospace);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.grimoire-mimocode-model-picker-selected-clear {
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 550;
+  color: var(--text-muted);
+  background: var(--background-modifier-form-field);
+  border: none;
+  box-shadow: inset 0 0 0 1px var(--background-modifier-border-hover);
+  border-radius: var(--gs-r1, 6px);
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+
+.grimoire-mimocode-model-picker-selected-clear:hover {
+  background: rgba(var(--grimoire-brand-rgb), 0.14);
+  color: var(--text-normal);
+}
+
+.grimoire-mimocode-model-picker-selected-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.grimoire-mimocode-model-picker-selected-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 11px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--gs-r1, 6px);
+}
+
+.grimoire-mimocode-model-picker-selected-row--unavailable {
+  border-style: dashed;
+}
+
+.grimoire-mimocode-model-picker-selected-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.grimoire-mimocode-model-picker-selected-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.grimoire-mimocode-model-picker-selected-badge {
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: var(--gs-pill, 999px);
+  background: rgba(var(--grimoire-brand-rgb), 0.13);
+  color: var(--grimoire-brand);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.grimoire-mimocode-model-picker-selected-name {
+  color: var(--text-normal);
+  font-weight: var(--font-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-mimocode-model-picker-selected-id {
+  font-size: 11.5px;
+  color: var(--text-faint);
+  font-family: var(--font-monospace);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-mimocode-model-picker-selected-unavailable {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.grimoire-mimocode-model-picker-selected-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.grimoire-mimocode-model-picker-selected-alias {
+  width: 180px;
+  height: 30px;
+  padding: 0 10px;
+  border: none;
+  box-shadow: inset 0 0 0 1px var(--background-modifier-border-hover);
+  border-radius: var(--gs-r1, 6px);
+  background: var(--background-modifier-form-field);
+  color: var(--text-normal);
+  font-size: 12.5px;
+}
+
+.grimoire-mimocode-model-picker-selected-alias:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 1px rgba(var(--grimoire-brand-rgb), 0.55);
+}
+
+.grimoire-mimocode-model-picker-selected-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: var(--gs-r1, 6px);
+  color: var(--text-faint);
+  cursor: pointer;
+  line-height: 1;
+  font-size: 16px;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+
+.grimoire-mimocode-model-picker-selected-remove:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+/* Catalog (collapsible) */
+.grimoire-mimocode-model-picker-catalog {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--gs-r2, 9px);
+  background: color-mix(in srgb, var(--background-secondary) 70%, transparent);
+}
+
+.grimoire-mimocode-model-picker-catalog-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.grimoire-mimocode-model-picker-catalog-summary::-webkit-details-marker {
+  display: none;
+}
+
+.grimoire-mimocode-model-picker-catalog-caret {
+  display: inline-flex;
+  width: 18px;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1;
+  transition: transform 0.18s ease;
+}
+
+.grimoire-mimocode-model-picker-catalog[open] .grimoire-mimocode-model-picker-catalog-caret {
+  transform: rotate(90deg);
+  color: rgb(var(--grimoire-brand-rgb));
+}
+
+.grimoire-mimocode-model-picker-catalog-title {
+  color: var(--text-normal);
+  font-weight: var(--font-medium);
+  font-size: 13px;
+}
+
+.grimoire-mimocode-model-picker-catalog-count {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+
+/* Search + provider filter row → .oc-head */
+.grimoire-mimocode-model-picker-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.grimoire-mimocode-model-picker-search {
+  flex: 1 1 220px;
+  min-width: 180px;
+  height: 34px;
+  padding: 0 12px;
+  border: none;
+  box-shadow: inset 0 0 0 1px var(--background-modifier-border-hover);
+  border-radius: var(--gs-r1, 6px);
+  background: var(--background-modifier-form-field);
+  color: var(--text-normal);
+  font-size: 13px;
+}
+
+.grimoire-mimocode-model-picker-search::placeholder {
+  color: var(--text-faint);
+}
+
+.grimoire-mimocode-model-picker-search:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 1px rgba(var(--grimoire-brand-rgb), 0.55);
+}
+
+.grimoire-mimocode-model-picker-provider {
+  height: 34px;
+  padding: 0 30px 0 12px;
+  border: none;
+  box-shadow: inset 0 0 0 1px var(--background-modifier-border-hover);
+  border-radius: var(--gs-r1, 6px);
+  background-color: var(--background-modifier-form-field);
+  color: var(--text-normal);
+  font-size: 13px;
+  cursor: pointer;
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-faint) 50%),
+    linear-gradient(135deg, var(--text-faint) 50%, transparent 50%);
+  background-position: calc(100% - 15px) 15px, calc(100% - 10px) 15px;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.grimoire-mimocode-model-picker-provider:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 1px rgba(var(--grimoire-brand-rgb), 0.55);
+}
+
+/* Model list → .oc-list / .oc-item */
+.grimoire-mimocode-model-picker-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--gs-r2, 9px);
+  background: var(--background-primary);
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.grimoire-mimocode-model-picker-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--background-modifier-border);
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.grimoire-mimocode-model-picker-row:first-child {
+  border-top: none;
+}
+
+.grimoire-mimocode-model-picker-row:hover {
+  background: var(--background-modifier-hover);
+}
+
+.grimoire-mimocode-model-picker-row--selected {
+  background: rgba(var(--grimoire-brand-rgb), 0.08);
+}
+
+.grimoire-mimocode-model-picker-row input[type="checkbox"] {
+  margin-top: 2px;
+  accent-color: rgb(var(--grimoire-brand-rgb));
+}
+
+.grimoire-mimocode-model-picker-row-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.grimoire-mimocode-model-picker-row-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.grimoire-mimocode-model-picker-row-name {
+  color: var(--text-normal);
+  font-family: var(--font-monospace);
+  font-weight: 580;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-mimocode-model-picker-row-badge {
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: var(--gs-pill, 999px);
+  background: rgba(var(--grimoire-brand-rgb), 0.13);
+  color: var(--grimoire-brand);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.grimoire-mimocode-model-picker-row-badge--unavailable {
+  background: var(--background-modifier-error);
+  color: var(--text-on-accent);
+}
+
+.grimoire-mimocode-model-picker-row-meta {
+  font-size: 11.5px;
+  color: var(--text-faint);
+  font-family: var(--font-monospace);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-mimocode-model-picker-row-desc {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.grimoire-mimocode-model-picker-empty {
+  padding: 26px 16px;
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 12.5px;
+}
+
+
+/* ============================================
+   settings/kimicode-model-picker.css
+   ============================================ */
+/* OpenCode model picker — styled to match the settings redesign
+   prototype's .oc-* model catalog (search, bordered list, mono ids). */
+
+.grimoire-kimicode-model-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.grimoire-kimicode-model-picker-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+.grimoire-kimicode-model-picker-summary-value {
+  color: var(--text-normal);
+  font-weight: var(--font-medium);
+}
+
+/* Selected models block */
+.grimoire-kimicode-model-picker-selected {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--gs-r2, 9px);
+  background: color-mix(in srgb, var(--background-secondary) 70%, transparent);
+}
+
+.grimoire-kimicode-model-picker-selected-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.grimoire-kimicode-model-picker-selected-label {
+  font-family: var(--font-monospace);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.grimoire-kimicode-model-picker-selected-clear {
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 550;
+  color: var(--text-muted);
+  background: var(--background-modifier-form-field);
+  border: none;
+  box-shadow: inset 0 0 0 1px var(--background-modifier-border-hover);
+  border-radius: var(--gs-r1, 6px);
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+
+.grimoire-kimicode-model-picker-selected-clear:hover {
+  background: rgba(var(--grimoire-brand-rgb), 0.14);
+  color: var(--text-normal);
+}
+
+.grimoire-kimicode-model-picker-selected-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.grimoire-kimicode-model-picker-selected-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 11px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--gs-r1, 6px);
+}
+
+.grimoire-kimicode-model-picker-selected-row--unavailable {
+  border-style: dashed;
+}
+
+.grimoire-kimicode-model-picker-selected-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.grimoire-kimicode-model-picker-selected-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.grimoire-kimicode-model-picker-selected-badge {
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: var(--gs-pill, 999px);
+  background: rgba(var(--grimoire-brand-rgb), 0.13);
+  color: var(--grimoire-brand);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.grimoire-kimicode-model-picker-selected-name {
+  color: var(--text-normal);
+  font-weight: var(--font-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-kimicode-model-picker-selected-id {
+  font-size: 11.5px;
+  color: var(--text-faint);
+  font-family: var(--font-monospace);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-kimicode-model-picker-selected-unavailable {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.grimoire-kimicode-model-picker-selected-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.grimoire-kimicode-model-picker-selected-alias {
+  width: 180px;
+  height: 30px;
+  padding: 0 10px;
+  border: none;
+  box-shadow: inset 0 0 0 1px var(--background-modifier-border-hover);
+  border-radius: var(--gs-r1, 6px);
+  background: var(--background-modifier-form-field);
+  color: var(--text-normal);
+  font-size: 12.5px;
+}
+
+.grimoire-kimicode-model-picker-selected-alias:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 1px rgba(var(--grimoire-brand-rgb), 0.55);
+}
+
+.grimoire-kimicode-model-picker-selected-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: var(--gs-r1, 6px);
+  color: var(--text-faint);
+  cursor: pointer;
+  line-height: 1;
+  font-size: 16px;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+
+.grimoire-kimicode-model-picker-selected-remove:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+/* Catalog (collapsible) */
+.grimoire-kimicode-model-picker-catalog {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--gs-r2, 9px);
+  background: color-mix(in srgb, var(--background-secondary) 70%, transparent);
+}
+
+.grimoire-kimicode-model-picker-catalog-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.grimoire-kimicode-model-picker-catalog-summary::-webkit-details-marker {
+  display: none;
+}
+
+.grimoire-kimicode-model-picker-catalog-caret {
+  display: inline-flex;
+  width: 18px;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1;
+  transition: transform 0.18s ease;
+}
+
+.grimoire-kimicode-model-picker-catalog[open] .grimoire-kimicode-model-picker-catalog-caret {
+  transform: rotate(90deg);
+  color: rgb(var(--grimoire-brand-rgb));
+}
+
+.grimoire-kimicode-model-picker-catalog-title {
+  color: var(--text-normal);
+  font-weight: var(--font-medium);
+  font-size: 13px;
+}
+
+.grimoire-kimicode-model-picker-catalog-count {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+
+/* Search + provider filter row → .oc-head */
+.grimoire-kimicode-model-picker-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.grimoire-kimicode-model-picker-search {
+  flex: 1 1 220px;
+  min-width: 180px;
+  height: 34px;
+  padding: 0 12px;
+  border: none;
+  box-shadow: inset 0 0 0 1px var(--background-modifier-border-hover);
+  border-radius: var(--gs-r1, 6px);
+  background: var(--background-modifier-form-field);
+  color: var(--text-normal);
+  font-size: 13px;
+}
+
+.grimoire-kimicode-model-picker-search::placeholder {
+  color: var(--text-faint);
+}
+
+.grimoire-kimicode-model-picker-search:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 1px rgba(var(--grimoire-brand-rgb), 0.55);
+}
+
+.grimoire-kimicode-model-picker-provider {
+  height: 34px;
+  padding: 0 30px 0 12px;
+  border: none;
+  box-shadow: inset 0 0 0 1px var(--background-modifier-border-hover);
+  border-radius: var(--gs-r1, 6px);
+  background-color: var(--background-modifier-form-field);
+  color: var(--text-normal);
+  font-size: 13px;
+  cursor: pointer;
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-faint) 50%),
+    linear-gradient(135deg, var(--text-faint) 50%, transparent 50%);
+  background-position: calc(100% - 15px) 15px, calc(100% - 10px) 15px;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.grimoire-kimicode-model-picker-provider:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 1px rgba(var(--grimoire-brand-rgb), 0.55);
+}
+
+/* Model list → .oc-list / .oc-item */
+.grimoire-kimicode-model-picker-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--gs-r2, 9px);
+  background: var(--background-primary);
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.grimoire-kimicode-model-picker-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--background-modifier-border);
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.grimoire-kimicode-model-picker-row:first-child {
+  border-top: none;
+}
+
+.grimoire-kimicode-model-picker-row:hover {
+  background: var(--background-modifier-hover);
+}
+
+.grimoire-kimicode-model-picker-row--selected {
+  background: rgba(var(--grimoire-brand-rgb), 0.08);
+}
+
+.grimoire-kimicode-model-picker-row input[type="checkbox"] {
+  margin-top: 2px;
+  accent-color: rgb(var(--grimoire-brand-rgb));
+}
+
+.grimoire-kimicode-model-picker-row-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.grimoire-kimicode-model-picker-row-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.grimoire-kimicode-model-picker-row-name {
+  color: var(--text-normal);
+  font-family: var(--font-monospace);
+  font-weight: 580;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-kimicode-model-picker-row-badge {
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: var(--gs-pill, 999px);
+  background: rgba(var(--grimoire-brand-rgb), 0.13);
+  color: var(--grimoire-brand);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.grimoire-kimicode-model-picker-row-badge--unavailable {
+  background: var(--background-modifier-error);
+  color: var(--text-on-accent);
+}
+
+.grimoire-kimicode-model-picker-row-meta {
+  font-size: 11.5px;
+  color: var(--text-faint);
+  font-family: var(--font-monospace);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-kimicode-model-picker-row-desc {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.grimoire-kimicode-model-picker-empty {
   padding: 26px 16px;
   text-align: center;
   color: var(--text-faint);

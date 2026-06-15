@@ -40,7 +40,7 @@ function createMockPlugin(settings: Record<string, unknown> = {}) {
       ...settings,
     },
     manifest: { version: '0.0.0-test' },
-    getResolvedProviderCliPath: jest.fn().mockReturnValue('/usr/local/bin/kimicode'),
+    getResolvedProviderCliPath: jest.fn().mockReturnValue('/usr/local/bin/kimi'),
     app: {
       vault: {
         adapter: {
@@ -157,6 +157,10 @@ describe('KimicodeAuxQueryRunner', () => {
       systemPromptKey: 'Use this custom system prompt.',
       systemPromptText: 'Use this custom system prompt.',
     }));
+    expect(MockAcpSubprocess).toHaveBeenCalledWith(expect.objectContaining({
+      args: ['acp'],
+      command: '/usr/local/bin/kimi',
+    }));
     expect(mockConnection.newSession).toHaveBeenCalledWith({
       cwd: '/tmp/grimoire-test-vault',
       mcpServers: [],
@@ -177,7 +181,7 @@ describe('KimicodeAuxQueryRunner', () => {
     expect(onTextChunk).toHaveBeenNthCalledWith(2, 'Fix title now');
   });
 
-  it('falls back to kimicode from PATH when no CLI path is configured', async () => {
+  it('falls back to kimi from PATH when no CLI path is configured', async () => {
     const plugin = createMockPlugin();
     plugin.getResolvedProviderCliPath.mockReturnValue(null);
     const runner = new KimicodeAuxQueryRunner(plugin, {
@@ -190,7 +194,7 @@ describe('KimicodeAuxQueryRunner', () => {
     }, 'Generate a title')).resolves.toBe('Fix title now');
 
     expect(MockAcpSubprocess).toHaveBeenCalledWith(expect.objectContaining({
-      command: 'kimicode',
+      command: 'kimi',
     }));
   });
 

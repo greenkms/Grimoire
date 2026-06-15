@@ -207,7 +207,7 @@ MiMoCode（小米）是 OpenCode 的分支，具有持久记忆、智能上下�
 
 ```bash
 curl -fsSL https://mimo.xiaomi.com/install | bash
-mimocode
+mimo
 ```
 
 - [MiMoCode GitHub](https://github.com/XiaomiMiMo/MiMo-Code)

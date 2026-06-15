@@ -209,7 +209,7 @@ MiMoCode (Xiaomi) — форк OpenCode с персистентной памят
 
 ```bash
 curl -fsSL https://mimo.xiaomi.com/install | bash
-mimocode
+mimo
 ```
 
 Homebrew, npm, bun и package-manager installs тоже подходят. Настройте provider credentials в MiMoCode, затем включите его в Grimoire.

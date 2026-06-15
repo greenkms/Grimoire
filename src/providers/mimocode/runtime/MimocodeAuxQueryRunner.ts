@@ -166,7 +166,7 @@ export class MimocodeAuxQueryRunner implements AuxQueryRunner {
   }
 
   private async ensureReady(cwd: string, systemPrompt: string): Promise<void> {
-    const resolvedCliPath = this.plugin.getResolvedProviderCliPath('mimocode') ?? 'mimocode';
+    const resolvedCliPath = this.plugin.getResolvedProviderCliPath('mimocode') ?? 'mimo';
 
     const settings = this.plugin.settings as unknown as Record<string, unknown>;
     const runtimeEnv = buildMimocodeRuntimeEnv(settings, resolvedCliPath);

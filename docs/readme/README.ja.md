@@ -207,7 +207,7 @@ MiMoCode（小米）はOpenCodeのフォークで、永続メモリ、インテ�
 
 ```bash
 curl -fsSL https://mimo.xiaomi.com/install | bash
-mimocode
+mimo
 ```
 
 Homebrew、npm、bun、package-manager installs も使えます。MiMoCode 側で provider credentials を設定し、その後 Grimoire で有効化します。

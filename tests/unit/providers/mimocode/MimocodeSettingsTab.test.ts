@@ -436,16 +436,18 @@ describe('MimocodeSettingsTab', () => {
   });
 
   it('stores the CLI path per host and resets active runtime state across all views', async () => {
-    mockedExistsSync.mockImplementation((filePath: fs.PathLike) => String(filePath) === '/custom/mimocode');
+    mockedExistsSync.mockImplementation((filePath: fs.PathLike) => String(filePath) === '/custom/mimo');
     const plugin = createPlugin();
 
     mimocodeSettingsTabRenderer.render(createContainer(), createContext(plugin));
 
     const cliPathSetting = findSetting('CLI path');
-    await cliPathSetting.textComponents[0].onChangeCallback?.('/custom/mimocode');
+    expect(cliPathSetting.desc).toBe('Optional absolute path to the MiMoCode CLI for this computer. Leave empty to use `mimo` from PATH.');
+    expect(cliPathSetting.textComponents[0].placeholder).toBe('/usr/local/bin/mimo');
+    await cliPathSetting.textComponents[0].onChangeCallback?.('/custom/mimo');
 
     expect(plugin.settings.providerConfigs.mimocode.cliPathsByHost).toEqual({
-      'host-a': '/custom/mimocode',
+      'host-a': '/custom/mimo',
     });
     expect(mockSaveSettings).toHaveBeenCalledTimes(1);
     expect(mockCliResolverReset).toHaveBeenCalledTimes(1);

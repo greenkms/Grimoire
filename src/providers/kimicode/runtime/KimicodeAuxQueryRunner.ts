@@ -166,7 +166,7 @@ export class KimicodeAuxQueryRunner implements AuxQueryRunner {
   }
 
   private async ensureReady(cwd: string, systemPrompt: string): Promise<void> {
-    const resolvedCliPath = this.plugin.getResolvedProviderCliPath('kimicode') ?? 'kimicode';
+    const resolvedCliPath = this.plugin.getResolvedProviderCliPath('kimicode') ?? 'kimi';
 
     const settings = this.plugin.settings as unknown as Record<string, unknown>;
     const runtimeEnv = buildKimicodeRuntimeEnv(settings, resolvedCliPath);
@@ -254,7 +254,7 @@ export class KimicodeAuxQueryRunner implements AuxQueryRunner {
     };
 
     this.process = new AcpSubprocess({
-      args: ['acp', `--cwd=${params.cwd}`],
+      args: ['acp'],
       command: params.command,
       cwd: params.cwd,
       env: processEnv,

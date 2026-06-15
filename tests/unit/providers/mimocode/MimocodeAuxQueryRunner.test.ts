@@ -40,7 +40,7 @@ function createMockPlugin(settings: Record<string, unknown> = {}) {
       ...settings,
     },
     manifest: { version: '0.0.0-test' },
-    getResolvedProviderCliPath: jest.fn().mockReturnValue('/usr/local/bin/mimocode'),
+    getResolvedProviderCliPath: jest.fn().mockReturnValue('/usr/local/bin/mimo'),
     app: {
       vault: {
         adapter: {
@@ -177,7 +177,7 @@ describe('MimocodeAuxQueryRunner', () => {
     expect(onTextChunk).toHaveBeenNthCalledWith(2, 'Fix title now');
   });
 
-  it('falls back to mimocode from PATH when no CLI path is configured', async () => {
+  it('falls back to mimo from PATH when no CLI path is configured', async () => {
     const plugin = createMockPlugin();
     plugin.getResolvedProviderCliPath.mockReturnValue(null);
     const runner = new MimocodeAuxQueryRunner(plugin, {
@@ -190,7 +190,7 @@ describe('MimocodeAuxQueryRunner', () => {
     }, 'Generate a title')).resolves.toBe('Fix title now');
 
     expect(MockAcpSubprocess).toHaveBeenCalledWith(expect.objectContaining({
-      command: 'mimocode',
+      command: 'mimo',
     }));
   });
 

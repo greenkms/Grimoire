@@ -51,7 +51,7 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
     const cliPathSetting = new Setting(container)
       .setName('CLI path')
-      .setDesc('Optional absolute path to the Kimi Code CLI for this computer. Leave empty to use `kimicode` from PATH.');
+      .setDesc('Optional absolute path to the Kimi Code CLI for this computer. Leave empty to use `kimi` from PATH.');
 
     const validationEl = container.createDiv({
       cls: 'grimoire-cli-path-validation grimoire-setting-validation grimoire-setting-validation-error grimoire-hidden',
@@ -137,8 +137,8 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
     cliPathSetting.addText((text) => {
       text
         .setPlaceholder(process.platform === 'win32'
-          ? 'C:\\Users\\you\\AppData\\Roaming\\npm\\kimicode.cmd'
-          : '/usr/local/bin/kimicode')
+          ? 'C:\\Users\\you\\AppData\\Roaming\\npm\\kimi.cmd'
+          : '/usr/local/bin/kimi')
         .setValue(currentValue)
         .onChange(async (value) => {
           await persistCliPath(value);

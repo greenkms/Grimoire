@@ -436,16 +436,18 @@ describe('KimicodeSettingsTab', () => {
   });
 
   it('stores the CLI path per host and resets active runtime state across all views', async () => {
-    mockedExistsSync.mockImplementation((filePath: fs.PathLike) => String(filePath) === '/custom/kimicode');
+    mockedExistsSync.mockImplementation((filePath: fs.PathLike) => String(filePath) === '/custom/kimi');
     const plugin = createPlugin();
 
     kimicodeSettingsTabRenderer.render(createContainer(), createContext(plugin));
 
     const cliPathSetting = findSetting('CLI path');
-    await cliPathSetting.textComponents[0].onChangeCallback?.('/custom/kimicode');
+    expect(cliPathSetting.desc).toBe('Optional absolute path to the Kimi Code CLI for this computer. Leave empty to use `kimi` from PATH.');
+    expect(cliPathSetting.textComponents[0].placeholder).toBe('/usr/local/bin/kimi');
+    await cliPathSetting.textComponents[0].onChangeCallback?.('/custom/kimi');
 
     expect(plugin.settings.providerConfigs.kimicode.cliPathsByHost).toEqual({
-      'host-a': '/custom/kimicode',
+      'host-a': '/custom/kimi',
     });
     expect(mockSaveSettings).toHaveBeenCalledTimes(1);
     expect(mockCliResolverReset).toHaveBeenCalledTimes(1);

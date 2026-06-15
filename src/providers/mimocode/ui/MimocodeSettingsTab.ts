@@ -51,7 +51,7 @@ export const mimocodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
     const cliPathSetting = new Setting(container)
       .setName('CLI path')
-      .setDesc('Optional absolute path to the MiMoCode CLI for this computer. Leave empty to use `mimocode` from PATH.');
+      .setDesc('Optional absolute path to the MiMoCode CLI for this computer. Leave empty to use `mimo` from PATH.');
 
     const validationEl = container.createDiv({
       cls: 'grimoire-cli-path-validation grimoire-setting-validation grimoire-setting-validation-error grimoire-hidden',
@@ -137,8 +137,8 @@ export const mimocodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
     cliPathSetting.addText((text) => {
       text
         .setPlaceholder(process.platform === 'win32'
-          ? 'C:\\Users\\you\\AppData\\Roaming\\npm\\mimocode.cmd'
-          : '/usr/local/bin/mimocode')
+          ? 'C:\\Users\\you\\AppData\\Roaming\\npm\\mimo.cmd'
+          : '/usr/local/bin/mimo')
         .setValue(currentValue)
         .onChange(async (value) => {
           await persistCliPath(value);

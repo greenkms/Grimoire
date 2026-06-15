@@ -207,7 +207,7 @@ MiMoCode (Xiaomi) is a fork of OpenCode with persistent memory, intelligent cont
 
 ```bash
 curl -fsSL https://mimo.xiaomi.com/install | bash
-mimocode
+mimo
 ```
 
 - [MiMoCode GitHub](https://github.com/XiaomiMiMo/MiMo-Code)
