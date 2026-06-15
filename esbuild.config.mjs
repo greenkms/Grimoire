@@ -174,6 +174,8 @@ const context = await esbuild.context({
   bundle: true,
   plugins: [patchCodexSdkImportMeta, patchClaudeSdkImportMeta, patchRendererUnsafeUnref, copyToObsidian],
   external: [
+    '@codemirror/state',
+    '@codemirror/view',
     'obsidian',
     'electron',
     ...builtinModules,

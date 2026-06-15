@@ -89,6 +89,62 @@ const obsidianStub = {
   setIcon: () => undefined,
 };
 
+class CodeMirrorRangeSetBuilder {
+  add() {}
+  finish() {
+    return {
+      map: () => this.finish(),
+    };
+  }
+}
+
+const codeMirrorStateStub = {
+  RangeSetBuilder: CodeMirrorRangeSetBuilder,
+  StateEffect: {
+    appendConfig: {
+      of: (value) => ({ value }),
+    },
+    define: () => {
+      const effect = {
+        of: (value) => ({ value, is: (candidate) => candidate === effect }),
+      };
+      return effect;
+    },
+  },
+  StateField: {
+    define: (spec) => spec,
+  },
+};
+
+class CodeMirrorWidgetType {}
+
+const codeMirrorDecorationNone = {
+  map: () => codeMirrorDecorationNone,
+};
+
+function codeMirrorRangeDecoration() {
+  return {
+    range: () => ({}),
+  };
+}
+
+const codeMirrorViewStub = {
+  Decoration: {
+    line: codeMirrorRangeDecoration,
+    mark: codeMirrorRangeDecoration,
+    none: codeMirrorDecorationNone,
+    replace: codeMirrorRangeDecoration,
+    set: () => codeMirrorDecorationNone,
+    widget: codeMirrorRangeDecoration,
+  },
+  EditorView: {
+    decorations: {
+      from: (field) => field,
+    },
+  },
+  WidgetType: CodeMirrorWidgetType,
+};
+
 function createChildProcessStub() {
   const child = new EventEmitter();
   child.stderr = new EventEmitter();
@@ -296,6 +352,12 @@ async function withIsolatedReleaseBundle(bundlePath, callback) {
     if (request === 'obsidian') {
       return obsidianStub;
     }
+    if (request === '@codemirror/state') {
+      return codeMirrorStateStub;
+    }
+    if (request === '@codemirror/view') {
+      return codeMirrorViewStub;
+    }
     if (request === 'electron') {
       return {};
     }
@@ -325,6 +387,12 @@ function verifyReleaseBundleLoads(bundlePath, { log = true } = {}) {
   Module._load = (request, parent, isMain) => {
     if (request === 'obsidian') {
       return obsidianStub;
+    }
+    if (request === '@codemirror/state') {
+      return codeMirrorStateStub;
+    }
+    if (request === '@codemirror/view') {
+      return codeMirrorViewStub;
     }
     if (request === 'electron') {
       return {};

@@ -1,7 +1,23 @@
-const { copyFileSync, existsSync, mkdirSync, rmSync } = require('fs');
+const { copyFileSync, existsSync, mkdirSync, rmSync, statSync } = require('fs');
 const path = require('path');
 
 const RELEASE_FILES = ['main.js', 'manifest.json', 'styles.css'];
+const MAIN_JS_SYNC_STANDARD_LIMIT_BYTES = 5_000_000;
+
+function formatBytes(value) {
+  return value.toLocaleString('en-US');
+}
+
+function assertMainJsWithinSyncLimit(rootDir) {
+  const mainPath = path.join(rootDir, 'main.js');
+  const size = statSync(mainPath).size;
+  if (size > MAIN_JS_SYNC_STANDARD_LIMIT_BYTES) {
+    throw new Error(
+      `main.js release asset is ${formatBytes(size)} bytes, exceeding the ` +
+      `Obsidian Sync Standard ${formatBytes(MAIN_JS_SYNC_STANDARD_LIMIT_BYTES)} byte limit.`,
+    );
+  }
+}
 
 function createReleaseBundle({
   rootDir = process.cwd(),
@@ -13,6 +29,7 @@ function createReleaseBundle({
   if (missingFiles.length > 0) {
     throw new Error(`Missing release artifact(s): ${missingFiles.join(', ')}`);
   }
+  assertMainJsWithinSyncLimit(rootDir);
 
   rmSync(outputDir, { recursive: true, force: true });
   mkdirSync(outputDir, { recursive: true });
