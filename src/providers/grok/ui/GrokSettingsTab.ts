@@ -25,7 +25,7 @@ import {
 import { GrokAgentSettings } from './GrokAgentSettings';
 
 const ALL_PROVIDERS_KEY = 'all';
-const GROK_METADATA_WARMUP_DB = ':memory:';
+
 
 interface EnrichedModel {
   description: string;
@@ -248,7 +248,7 @@ export const grokSettingsTabRenderer: ProviderSettingsTabRenderer = {
       const runtime = new GrokChatRuntime(context.plugin);
       try {
         runtime.syncConversationState({
-          providerState: { databasePath: GROK_METADATA_WARMUP_DB },
+          providerState: {},
           sessionId: null,
         });
         const loaded = await runtime.warmModelMetadata(encodeGrokModelId(rawId));
@@ -545,7 +545,7 @@ export const grokSettingsTabRenderer: ProviderSettingsTabRenderer = {
       const runtime = new GrokChatRuntime(context.plugin);
       try {
         runtime.syncConversationState({
-          providerState: { databasePath: GROK_METADATA_WARMUP_DB },
+          providerState: {},
           sessionId: null,
         });
         const loaded = await runtime.ensureReady({ allowSessionCreation: true });

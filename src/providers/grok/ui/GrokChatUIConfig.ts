@@ -31,7 +31,7 @@ const GROK_FALLBACK_THINKING_OPTIONS: ProviderReasoningOption[] = [
 ];
 const GROK_FALLBACK_THINKING_DEFAULT = 'high';
 const DEFAULT_CONTEXT_WINDOW = 200_000;
-const GROK_METADATA_WARMUP_DB = ':memory:';
+
 const GROK_PERMISSION_MODE_TOGGLE: ProviderPermissionModeToggleConfig = {
   inactiveValue: 'normal',
   inactiveLabel: 'Safe',
@@ -186,7 +186,7 @@ export const grokChatUIConfig: ProviderChatUIConfig = {
     const runtime = new GrokChatRuntime(context.plugin);
     try {
       runtime.syncConversationState({
-        providerState: { databasePath: GROK_METADATA_WARMUP_DB },
+        providerState: {},
         sessionId: null,
       });
       await runtime.warmModelMetadata(model);

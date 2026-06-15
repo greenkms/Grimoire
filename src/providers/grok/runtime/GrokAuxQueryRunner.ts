@@ -17,12 +17,11 @@ import {
   resolveWorkspacePath,
 } from '../../acp';
 import { decodeGrokModelId } from '../models';
+import type { GrokPermissionMode } from '../modes';
 import { grokChatUIConfig } from '../ui/GrokChatUIConfig';
-import {
-  type GrokManagedAgentConfig,
-  prepareGrokLaunchArtifacts,
-} from './GrokLaunchArtifacts';
+import { prepareGrokLaunchArtifacts } from './GrokLaunchArtifacts';
 import { buildGrokRuntimeEnv } from './GrokRuntimeEnvironment';
+import { normalizeGrokAcpSessionModels } from './normalizeGrokAcpSessionState';
 
 type GrokAuxAgentProfile = 'passive' | 'readonly';
 type GrokAuxArtifactPurpose = 'inline' | 'instructions' | 'title-gen';
@@ -32,11 +31,6 @@ interface GrokAuxQueryRunnerOptions {
   artifactPurpose: GrokAuxArtifactPurpose;
   allowReadTextFile?: boolean;
 }
-
-const GROK_AUX_AGENT_IDS: Record<GrokAuxAgentProfile, string> = {
-  passive: 'grimoire-aux-passive',
-  readonly: 'grimoire-aux-readonly',
-};
 
 export class GrokAuxQueryRunner implements AuxQueryRunner {
   private availableModelIds = new Set<string>();
@@ -162,14 +156,11 @@ export class GrokAuxQueryRunner implements AuxQueryRunner {
     const resolvedCliPath = this.plugin.getResolvedProviderCliPath('grok') ?? 'grok';
 
     const settings = this.plugin.settings as unknown as Record<string, unknown>;
-    const auxAgentId = GROK_AUX_AGENT_IDS[this.options.agentProfile];
     const artifacts = await prepareGrokLaunchArtifacts({
       artifactsSubdir: `grok/auxiliary/${this.options.artifactPurpose}`,
-      defaultAgentId: auxAgentId,
-      managedAgents: [buildGrokAuxAgentConfig(this.options.agentProfile)],
+      permissionMode: resolveGrokAuxPermissionMode(this.options.agentProfile),
       systemPromptKey: systemPrompt,
       systemPromptText: systemPrompt,
-      userName: typeof settings.userName === 'string' ? settings.userName : undefined,
       workspaceRoot: cwd,
     });
     const runtimeEnv = buildGrokRuntimeEnv(settings, resolvedCliPath, artifacts.grokHomePath);
@@ -212,13 +203,7 @@ export class GrokAuxQueryRunner implements AuxQueryRunner {
       });
       this.syncSessionModelState({
         configOptions: response.configOptions ?? null,
-        models: response.models ?? null,
-      });
-      await this.connection.setConfigOption({
-        configId: 'mode',
-        sessionId: response.sessionId,
-        type: 'select',
-        value: GROK_AUX_AGENT_IDS[this.options.agentProfile],
+        models: normalizeGrokAcpSessionModels(response.models ?? null),
       });
       this.sessionId = response.sessionId;
       this.sessionCwds.set(response.sessionId, cwd);
@@ -357,11 +342,8 @@ export class GrokAuxQueryRunner implements AuxQueryRunner {
   }
 }
 
-function buildGrokAuxAgentConfig(profile: GrokAuxAgentProfile): GrokManagedAgentConfig {
-  return {
-    id: GROK_AUX_AGENT_IDS[profile],
-    permissionMode: profile === 'readonly' ? 'ask' : 'plan',
-  };
+function resolveGrokAuxPermissionMode(profile: GrokAuxAgentProfile): GrokPermissionMode {
+  return profile === 'readonly' ? 'ask' : 'plan';
 }
 
 function selectPermissionOption(

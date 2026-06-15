@@ -1,7 +1,17 @@
 import {
   createGrokToolStreamAdapter,
   normalizeGrokToolInput,
+  normalizeGrokToolName,
 } from '../../../../src/providers/grok/normalization/grokToolNormalization';
+
+describe('normalizeGrokToolName', () => {
+  it('maps PascalCase Grok Build tool names onto Grimoire tool names', () => {
+    expect(normalizeGrokToolName('Shell')).toBe('Bash');
+    expect(normalizeGrokToolName('StrReplace')).toBe('Edit');
+    expect(normalizeGrokToolName('Grep')).toBe('Grep');
+    expect(normalizeGrokToolName('Read')).toBe('Read');
+  });
+});
 
 describe('normalizeGrokToolInput', () => {
   it('maps websearch payloads to the WebSearch renderer shape', () => {

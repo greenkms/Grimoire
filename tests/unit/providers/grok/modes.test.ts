@@ -10,6 +10,7 @@ import {
   GROK_LEGACY_YOLO_MODE_ID,
   GROK_SAFE_MODE_ID,
   resolveGrokModeForPermissionMode,
+  resolveGrokPermissionModeForSettings,
   resolvePermissionModeForManagedGrokMode,
 } from '../../../../src/providers/grok/modes';
 import { grokChatUIConfig } from '../../../../src/providers/grok/ui/GrokChatUIConfig';
@@ -58,6 +59,12 @@ describe('Grok Build mode settings', () => {
     expect(resolveGrokModeForPermissionMode('full_access')).toBe(GROK_FULL_ACCESS_MODE_ID);
     expect(resolveGrokModeForPermissionMode('normal')).toBe(GROK_SAFE_MODE_ID);
     expect(resolveGrokModeForPermissionMode('plan')).toBe('plan');
+  });
+
+  it('maps shared permission modes onto Grok managed_config permission_mode values', () => {
+    expect(resolveGrokPermissionModeForSettings('full_access')).toBe('always-approve');
+    expect(resolveGrokPermissionModeForSettings('normal')).toBe('ask');
+    expect(resolveGrokPermissionModeForSettings('plan')).toBe('plan');
   });
 
   it('maps managed Grok Build modes back to shared permission modes', () => {

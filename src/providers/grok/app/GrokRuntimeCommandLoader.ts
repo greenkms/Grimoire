@@ -5,7 +5,7 @@ import type {
 import { GrokChatRuntime } from '../runtime/GrokChatRuntime';
 import { getGrokProviderSettings } from '../settings';
 
-const GROK_METADATA_WARMUP_DB = ':memory:';
+
 
 export class GrokRuntimeCommandLoader implements ProviderRuntimeCommandLoader {
   isAvailable(settings: Record<string, unknown>): boolean {
@@ -45,7 +45,7 @@ export class GrokRuntimeCommandLoader implements ProviderRuntimeCommandLoader {
         // Blank-tab warmup uses an isolated in-memory session to fetch metadata
         // without binding a persisted Grok session to the tab.
         runtime.syncConversationState({
-          providerState: { databasePath: GROK_METADATA_WARMUP_DB },
+          providerState: {},
           sessionId: null,
         });
       }

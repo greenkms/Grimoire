@@ -35,7 +35,7 @@ describe('GrokRuntimeCommandLoader', () => {
     })).resolves.toEqual(commands);
 
     expect(syncSpy).toHaveBeenCalledWith({
-      providerState: { databasePath: ':memory:' },
+      providerState: {},
       sessionId: null,
     });
     expect(ensureReadySpy).toHaveBeenCalledWith({ allowSessionCreation: true });

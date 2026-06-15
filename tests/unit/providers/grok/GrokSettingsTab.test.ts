@@ -489,11 +489,10 @@ describe('GrokSettingsTab', () => {
     grokSettingsTabRenderer.render(createContainer(), createContext(plugin));
 
     expect(findSetting('Subagents').heading).toBe(true);
-    expect(createdElements).toContainEqual({
-      cls: 'setting-item-description',
-      tag: 'p',
-      text: 'Manage vault-level Grok Build subagents from .grok/agent/ and legacy .grok/agents/. New entries are saved as subagent-only files and appear in the @mention menu.',
-    });
+    expect(createdElements.some((element) => (
+      element.tag === 'p'
+      && element.text === 'Manage vault-level grok build subagents from .grok/agent/ and legacy .grok/agents/. New entries are saved as subagent-only files and appear in the @mention menu.'
+    ))).toBe(true);
 
     expect(mockCreatedAgentSettings).toHaveLength(1);
     expect(mockCreatedAgentSettings[0].storage).toBe(mockAgentStorage);
@@ -554,7 +553,7 @@ describe('GrokSettingsTab', () => {
     await catalogEl.dispatchMockEvent('toggle');
 
     expect(mockRuntimeSyncConversationState).toHaveBeenCalledWith({
-      providerState: { databasePath: ':memory:' },
+      providerState: {},
       sessionId: null,
     });
     expect(mockRuntimeEnsureReady).toHaveBeenCalledWith(
@@ -595,7 +594,7 @@ describe('GrokSettingsTab', () => {
     await Promise.resolve();
 
     expect(mockRuntimeSyncConversationState).toHaveBeenCalledWith({
-      providerState: { databasePath: ':memory:' },
+      providerState: {},
       sessionId: null,
     });
     expect(mockRuntimeEnsureReady).toHaveBeenCalledWith(

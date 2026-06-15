@@ -65,7 +65,7 @@ export const grokSettingsReconciler: ProviderSettingsReconciler = {
       }
 
       const state = getGrokState(conversation.providerState);
-      if (!conversation.sessionId && !state.databasePath) {
+      if (!conversation.sessionId && !state.sessionDirPath && !state.workspacePath) {
         continue;
       }
 

@@ -1,4 +1,51 @@
-import { mapGrokMessages } from '../../../../src/providers/grok/history/GrokHistoryStore';
+import {
+  mapGrokMessages,
+  parseGrokChatHistoryJsonl,
+} from '../../../../src/providers/grok/history/GrokHistoryStore';
+
+describe('parseGrokChatHistoryJsonl', () => {
+  it('maps Grok Build JSONL history with PascalCase tools into Grimoire chat messages', () => {
+    const messages = parseGrokChatHistoryJsonl([
+      '{"type":"system","content":"ignored"}',
+      '{"type":"user","content":[{"type":"text","text":"Summarize this"}]}',
+      '{"type":"reasoning","summary":[{"type":"summary_text","text":"Thinking..."}]}',
+      '{"type":"assistant","content":"Checking files.","tool_calls":[{"id":"tool-1","name":"Read","arguments":"{\\"file_path\\":\\"notes/today.md\\"}"}]}',
+      '{"type":"tool_result","tool_call_id":"tool-1","content":"read ok"}',
+      '{"type":"assistant","content":"Done."}',
+    ].join('\n'));
+
+    expect(messages).toEqual([
+      {
+        assistantMessageId: undefined,
+        content: 'Summarize this',
+        id: 'grok-user-1',
+        role: 'user',
+        timestamp: 1_000,
+        userMessageId: 'grok-user-1',
+      },
+      {
+        assistantMessageId: 'grok-assistant-2',
+        content: 'Checking files.Done.',
+        contentBlocks: [
+          { content: 'Thinking...', type: 'thinking' },
+          { content: 'Checking files.', type: 'text' },
+          { toolId: 'tool-1', type: 'tool_use' },
+          { content: 'Done.', type: 'text' },
+        ],
+        id: 'grok-assistant-2',
+        role: 'assistant',
+        timestamp: 2_000,
+        toolCalls: [{
+          id: 'tool-1',
+          input: { file_path: 'notes/today.md' },
+          name: 'Read',
+          result: 'read ok',
+          status: 'completed',
+        }],
+      },
+    ]);
+  });
+});
 
 describe('mapGrokMessages', () => {
   it('maps stored Grok Build messages into Grimoire chat messages', () => {

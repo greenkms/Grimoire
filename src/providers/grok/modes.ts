@@ -142,6 +142,20 @@ export function resolveGrokModeForPermissionMode(
   return managedModes[0]?.id ?? '';
 }
 
+export type GrokPermissionMode = 'always-approve' | 'ask' | 'plan';
+
+export function resolveGrokPermissionModeForSettings(
+  permissionMode: unknown,
+): GrokPermissionMode {
+  if (permissionMode === 'plan') {
+    return 'plan';
+  }
+  if (coercePermissionMode(permissionMode) === 'full_access') {
+    return 'always-approve';
+  }
+  return 'ask';
+}
+
 export function resolvePermissionModeForManagedGrokMode(
   modeId: unknown,
 ): 'normal' | 'plan' | 'full_access' | null {

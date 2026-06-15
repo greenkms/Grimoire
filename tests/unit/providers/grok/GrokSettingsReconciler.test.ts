@@ -71,7 +71,10 @@ describe('grokSettingsReconciler.reconcileModelWithEnvironment', () => {
         id: 'conv-grok',
         messages: [],
         providerId: 'grok',
-        providerState: { databasePath: '/old/grok.db' },
+        providerState: {
+          sessionDirPath: '/old/grok/session-1',
+          workspacePath: '/vault',
+        },
         sessionId: 'session-1',
       },
       {

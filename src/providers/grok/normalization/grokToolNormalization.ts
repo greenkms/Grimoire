@@ -17,13 +17,16 @@ import type { SDKToolUseResult } from '../../../core/types/diff';
 import { AcpToolStreamAdapter } from '../../acp';
 
 const TOOL_NAME_MAP: Record<string, string> = {
+  askuserquestion: TOOL_ASK_USER_QUESTION,
   bash: TOOL_BASH,
   edit: TOOL_EDIT,
   glob: TOOL_GLOB,
   grep: TOOL_GREP,
   question: TOOL_ASK_USER_QUESTION,
   read: TOOL_READ,
+  shell: TOOL_BASH,
   skill: TOOL_SKILL,
+  strreplace: TOOL_EDIT,
   task: TOOL_TASK,
   todowrite: TOOL_TODO_WRITE,
   webfetch: TOOL_WEB_FETCH,

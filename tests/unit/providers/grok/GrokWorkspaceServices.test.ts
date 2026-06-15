@@ -43,7 +43,7 @@ describe('createGrokWorkspaceServices', () => {
 
     expect(changed).toBe(true);
     expect(syncConversationStateSpy).toHaveBeenCalledWith({
-      providerState: { databasePath: ':memory:' },
+      providerState: {},
       sessionId: null,
     });
     expect(ensureReadySpy).toHaveBeenCalledWith({ allowSessionCreation: true });

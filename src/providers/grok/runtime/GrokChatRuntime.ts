@@ -90,6 +90,7 @@ import {
   isManagedGrokModeId,
   normalizeGrokAvailableModes,
   resolveGrokModeForPermissionMode,
+  resolveGrokPermissionModeForSettings,
   resolvePermissionModeForManagedGrokMode,
 } from '../modes';
 import { createGrokToolStreamAdapter } from '../normalization/grokToolNormalization';
@@ -97,7 +98,9 @@ import { getGrokProviderSettings, updateGrokProviderSettings } from '../settings
 import { getGrokState, type GrokProviderState } from '../types';
 import { buildGrokPromptBlocks, buildGrokPromptText } from './buildGrokPrompt';
 import { prepareGrokLaunchArtifacts } from './GrokLaunchArtifacts';
+import { resolveGrokSessionDirectory } from './GrokPaths';
 import { buildGrokRuntimeEnv } from './GrokRuntimeEnvironment';
+import { normalizeGrokAcpSessionModels } from './normalizeGrokAcpSessionState';
 
 interface ActiveTurn {
   queue: StreamChunkQueue;
@@ -152,7 +155,8 @@ export class GrokChatRuntime implements ChatRuntime {
   private approvalCallback: ApprovalCallback | null = null;
   private connection: AcpClientConnection | null = null;
   private contextUsage: AcpUsageUpdate | null = null;
-  private currentDatabasePath: string | null = null;
+  private currentSessionDirPath: string | null = null;
+  private currentWorkspacePath: string | null = null;
   private currentLaunchKey: string | null = null;
   private currentSessionEffortConfigId: string | null = null;
   private currentSessionEffortValue: string | null = null;
@@ -223,13 +227,20 @@ export class GrokChatRuntime implements ChatRuntime {
     }
     this.sessionId = nextSessionId;
     const state = getGrokState(conversation?.providerState);
-    if (state.databasePath) {
-      this.currentDatabasePath = state.databasePath;
-      return;
+    if (state.sessionDirPath) {
+      this.currentSessionDirPath = state.sessionDirPath;
+    }
+    if (state.workspacePath) {
+      this.currentWorkspacePath = state.workspacePath;
     }
 
     if (!nextSessionId || nextSessionId !== previousSessionId) {
-      this.currentDatabasePath = null;
+      if (!state.sessionDirPath) {
+        this.currentSessionDirPath = null;
+      }
+      if (!state.workspacePath) {
+        this.currentWorkspacePath = null;
+      }
     }
   }
 
@@ -286,7 +297,11 @@ export class GrokChatRuntime implements ChatRuntime {
     const targetSessionId = this.sessionId;
     const resolvedCliPath = this.plugin.getResolvedProviderCliPath('grok') ?? 'grok';
     const promptSettings = this.getSystemPromptSettings(cwd);
+    const permissionMode = resolveGrokPermissionModeForSettings(
+      (this.plugin.settings as Record<string, unknown>).permissionMode,
+    );
     const artifacts = await prepareGrokLaunchArtifacts({
+      permissionMode,
       settings: promptSettings,
       workspaceRoot: cwd,
     });
@@ -296,11 +311,12 @@ export class GrokChatRuntime implements ChatRuntime {
     );
 
     const nextLaunchKey = JSON.stringify({
+      artifactKey: artifacts.launchKey,
       command: resolvedCliPath,
       envText: getRuntimeEnvironmentText(this.plugin.settings, 'grok'),
       grokHomePath: artifacts.grokHomePath,
+      permissionMode,
       promptKey: computeSystemPromptKey(promptSettings),
-      artifactKey: artifacts.launchKey,
     });
 
     const shouldRestart = !this.process
@@ -586,8 +602,11 @@ export class GrokChatRuntime implements ChatRuntime {
       ? getGrokState(params.conversation.providerState)
       : null;
     const providerState: GrokProviderState = {
-      ...(this.currentDatabasePath || existingState?.databasePath
-        ? { databasePath: this.currentDatabasePath ?? existingState?.databasePath }
+      ...(this.currentSessionDirPath || existingState?.sessionDirPath
+        ? { sessionDirPath: this.currentSessionDirPath ?? existingState?.sessionDirPath }
+        : {}),
+      ...(this.currentWorkspacePath || existingState?.workspacePath
+        ? { workspacePath: this.currentWorkspacePath ?? existingState?.workspacePath }
         : {}),
     };
     const updates: Partial<Conversation> = {
@@ -819,26 +838,14 @@ export class GrokChatRuntime implements ChatRuntime {
     return availableModes[0]?.id || null;
   }
 
-  private async applySelectedMode(sessionId: string): Promise<void> {
-    if (!this.connection) {
-      return;
-    }
-
+  private async applySelectedMode(_sessionId: string): Promise<void> {
     const selectedModeId = this.resolveSelectedModeId();
     if (!selectedModeId || selectedModeId === this.currentSessionModeId) {
       return;
     }
 
-    const response = await this.connection.setConfigOption({
-      configId: 'mode',
-      sessionId,
-      type: 'select',
-      value: selectedModeId,
-    });
     this.currentSessionModeId = selectedModeId;
-    await this.syncSessionModeState({
-      configOptions: response.configOptions,
-    });
+    this.emitPermissionModeSync(selectedModeId);
   }
 
   private async applySelectedModel(
@@ -911,7 +918,10 @@ export class GrokChatRuntime implements ChatRuntime {
     currentRawModelId?: string | null;
     seedActiveSelection?: boolean;
   } = {}): Promise<void> {
-    const acpState = extractAcpSessionModelState(params);
+    const acpState = extractAcpSessionModelState({
+      ...params,
+      models: normalizeGrokAcpSessionModels(params.models),
+    });
     const forcedCurrentRawModelId = typeof options.currentRawModelId === 'string'
       ? options.currentRawModelId.trim()
       : '';
@@ -1137,9 +1147,10 @@ export class GrokChatRuntime implements ChatRuntime {
       this.loadedSessionId = response.sessionId;
       this.sessionId = response.sessionId;
       this.sessionCwds.set(response.sessionId, cwd);
+      this.updateSessionPaths(response.sessionId, cwd);
       await this.syncSessionModelState({
         configOptions: response.configOptions ?? null,
-        models: response.models ?? null,
+        models: normalizeGrokAcpSessionModels(response.models ?? null),
       });
       await this.syncSessionModeState({
         configOptions: response.configOptions ?? null,
@@ -1167,9 +1178,10 @@ export class GrokChatRuntime implements ChatRuntime {
       this.loadedSessionId = response.sessionId;
       this.sessionId = response.sessionId;
       this.sessionCwds.set(response.sessionId, cwd);
+      this.updateSessionPaths(response.sessionId, cwd);
       await this.syncSessionModelState({
         configOptions: response.configOptions ?? null,
-        models: response.models ?? null,
+        models: normalizeGrokAcpSessionModels(response.models ?? null),
       });
       await this.syncSessionModeState({
         configOptions: response.configOptions ?? null,
@@ -1276,7 +1288,8 @@ export class GrokChatRuntime implements ChatRuntime {
     }
 
     const cost = await loadGrokSessionCost(sessionId, {
-      databasePath: this.currentDatabasePath ?? undefined,
+      ...(this.currentSessionDirPath ? { sessionDirPath: this.currentSessionDirPath } : {}),
+      ...(this.currentWorkspacePath ? { workspacePath: this.currentWorkspacePath } : {}),
     });
     if (grokPlanUsageStore.recordSessionTotalCost(sessionId, cost)) {
       this.refreshModelSelectors();
@@ -1411,8 +1424,19 @@ export class GrokChatRuntime implements ChatRuntime {
       || (error instanceof Error && error.name === 'JsonRpcTransportClosedError');
   }
 
+  private updateSessionPaths(sessionId: string, cwd: string): void {
+    const sessionDirPath = resolveGrokSessionDirectory(
+      sessionId,
+      cwd,
+      this.currentSessionDirPath,
+    );
+    this.currentWorkspacePath = cwd;
+    this.currentSessionDirPath = sessionDirPath;
+  }
+
   private clearActiveSession(): void {
-    this.currentDatabasePath = null;
+    this.currentSessionDirPath = null;
+    this.currentWorkspacePath = null;
     this.sessionId = null;
     this.loadedSessionId = null;
     this.currentSessionModelId = null;

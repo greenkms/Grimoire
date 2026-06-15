@@ -25,8 +25,6 @@ export interface GrokWorkspaceServices extends ProviderWorkspaceServices {
   modelCatalog: ProviderModelCatalog;
 }
 
-const GROK_METADATA_WARMUP_DB = ':memory:';
-
 const grokTabWarmupPolicy: ProviderTabWarmupPolicy = {
   resolveMode() {
     return 'commands';
@@ -76,7 +74,7 @@ function createGrokModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
       const runtime = new GrokChatRuntime(plugin);
       try {
         runtime.syncConversationState({
-          providerState: { databasePath: GROK_METADATA_WARMUP_DB },
+          providerState: {},
           sessionId: null,
         });
         const loaded = await runtime.ensureReady({ allowSessionCreation: true });

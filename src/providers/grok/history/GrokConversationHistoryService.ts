@@ -8,7 +8,7 @@ export class GrokConversationHistoryService implements ProviderConversationHisto
 
   async hydrateConversationHistory(
     conversation: Conversation,
-    _vaultPath: string | null,
+    vaultPath: string | null,
   ): Promise<void> {
     const sessionId = conversation.sessionId;
     if (!sessionId) {
@@ -17,7 +17,11 @@ export class GrokConversationHistoryService implements ProviderConversationHisto
     }
 
     const state = getGrokState(conversation.providerState);
-    const hydrationKey = `${sessionId}::${state.databasePath ?? ''}`;
+    const hydrationKey = [
+      sessionId,
+      state.sessionDirPath ?? '',
+      state.workspacePath ?? vaultPath ?? '',
+    ].join('::');
     if (
       conversation.messages.length > 0
       && this.hydratedKeys.get(conversation.id) === hydrationKey
@@ -25,7 +29,11 @@ export class GrokConversationHistoryService implements ProviderConversationHisto
       return;
     }
 
-    const messages = await loadGrokSessionMessages(sessionId, state);
+    const messages = await loadGrokSessionMessages(
+      sessionId,
+      state,
+      vaultPath ?? state.workspacePath ?? null,
+    );
     if (messages.length === 0) {
       this.hydratedKeys.delete(conversation.id);
       return;
@@ -63,7 +71,8 @@ export class GrokConversationHistoryService implements ProviderConversationHisto
   ): Record<string, unknown> | undefined {
     const state = getGrokState(conversation.providerState);
     const providerState: GrokProviderState = {
-      ...(state.databasePath ? { databasePath: state.databasePath } : {}),
+      ...(state.sessionDirPath ? { sessionDirPath: state.sessionDirPath } : {}),
+      ...(state.workspacePath ? { workspacePath: state.workspacePath } : {}),
     };
 
     return Object.keys(providerState).length > 0

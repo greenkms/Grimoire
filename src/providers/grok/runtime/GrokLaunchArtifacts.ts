@@ -7,11 +7,7 @@ import {
   computeSystemPromptKey,
   type SystemPromptSettings,
 } from '../../../core/prompt/mainAgent';
-import {
-  GROK_FULL_ACCESS_MODE_ID,
-  GROK_PLAN_MODE_ID,
-  GROK_SAFE_MODE_ID,
-} from '../modes';
+import type { GrokPermissionMode } from '../modes';
 
 export interface GrokLaunchArtifacts {
   configContent: string;
@@ -21,25 +17,12 @@ export interface GrokLaunchArtifacts {
   systemPromptPath: string;
 }
 
-export interface GrokManagedAgentConfig {
-  permissionMode?: 'always-approve' | 'ask' | 'plan';
-  id: string;
-}
-
-const DEFAULT_GROK_MANAGED_AGENT_CONFIGS: readonly GrokManagedAgentConfig[] = [
-  { id: GROK_FULL_ACCESS_MODE_ID, permissionMode: 'always-approve' },
-  { id: GROK_SAFE_MODE_ID, permissionMode: 'ask' },
-  { id: GROK_PLAN_MODE_ID, permissionMode: 'plan' },
-];
-
 export interface PrepareGrokLaunchArtifactsParams {
   artifactsSubdir?: string;
-  defaultAgentId?: string;
-  managedAgents?: readonly GrokManagedAgentConfig[];
+  permissionMode?: GrokPermissionMode;
   settings?: SystemPromptSettings;
   systemPromptKey?: string;
   systemPromptText?: string;
-  userName?: string;
   workspaceRoot: string;
 }
 
@@ -61,10 +44,7 @@ export async function prepareGrokLaunchArtifacts(
       ? params.systemPromptText
       : computeSystemPromptKey(requireSettings(params)));
   const configContent = buildGrokManagedConfigToml({
-    defaultAgentId: params.defaultAgentId,
-    managedAgents: params.managedAgents,
-    systemPromptPath,
-    userName: params.userName ?? params.settings?.userName,
+    permissionMode: params.permissionMode,
   });
 
   await fs.mkdir(grokHomePath, { recursive: true });
@@ -81,47 +61,20 @@ export async function prepareGrokLaunchArtifacts(
 }
 
 interface BuildGrokManagedConfigTomlParams {
-  defaultAgentId?: string;
-  managedAgents?: readonly GrokManagedAgentConfig[];
-  systemPromptPath: string;
-  userName?: string;
+  permissionMode?: GrokPermissionMode;
 }
 
 export function buildGrokManagedConfigToml(
-  params: BuildGrokManagedConfigTomlParams,
+  params: BuildGrokManagedConfigTomlParams = {},
 ): string {
-  const lines: string[] = [
+  const permissionMode = params.permissionMode ?? 'ask';
+  const lines = [
     '# Grimoire-managed Grok Build configuration',
     '',
-    `[instructions]`,
-    `path = ${tomlString(params.systemPromptPath)}`,
+    '[ui]',
+    `permission_mode = "${permissionMode}"`,
     '',
   ];
-
-  const trimmedUserName = params.userName?.trim();
-  if (trimmedUserName) {
-    lines.push(`username = ${tomlString(trimmedUserName)}`, '');
-  }
-
-  const managedAgents = params.managedAgents?.length
-    ? params.managedAgents
-    : DEFAULT_GROK_MANAGED_AGENT_CONFIGS;
-  for (const agentConfig of managedAgents) {
-    lines.push(`[agent.${agentConfig.id}]`);
-    if (agentConfig.permissionMode === 'always-approve') {
-      lines.push('permission_mode = "always-approve"');
-    } else if (agentConfig.permissionMode === 'plan') {
-      lines.push('permission_mode = "plan"');
-    } else {
-      lines.push('permission_mode = "ask"');
-    }
-    lines.push('');
-  }
-
-  const trimmedDefaultAgentId = params.defaultAgentId?.trim();
-  if (trimmedDefaultAgentId) {
-    lines.push('[agents]', `default = ${tomlString(trimmedDefaultAgentId)}`, '');
-  }
 
   return `${lines.join('\n').trimEnd()}\n`;
 }
@@ -151,8 +104,4 @@ function requireSettings(
   }
 
   throw new Error('prepareGrokLaunchArtifacts requires settings when no systemPromptText is provided');
-}
-
-function tomlString(value: string): string {
-  return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
 }

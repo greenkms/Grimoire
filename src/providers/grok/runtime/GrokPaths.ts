@@ -2,17 +2,12 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 
-const DEFAULT_DATABASE_NAME = 'grok.db';
-const DATABASE_NAME_PATTERN = /^grok(?:-[a-z0-9._-]+)?\.db$/i;
+const GROK_SESSIONS_DIR = 'sessions';
+const GROK_CHAT_HISTORY_FILE = 'chat_history.jsonl';
 
-export function resolveGrokDataDir(
+export function resolveGrokNativeDataDir(
   env: NodeJS.ProcessEnv = process.env,
 ): string {
-  const grokHome = env.GROK_HOME?.trim();
-  if (grokHome) {
-    return grokHome;
-  }
-
   const home = env.HOME || os.homedir();
   if (process.platform === 'win32') {
     const userProfile = env.USERPROFILE || home;
@@ -22,87 +17,96 @@ export function resolveGrokDataDir(
   return path.join(home, '.grok');
 }
 
-export function resolveGrokDatabasePath(
+export function resolveGrokDataDir(
   env: NodeJS.ProcessEnv = process.env,
-): string | null {
-  const override = env.GROK_DB?.trim();
-  if (override) {
-    if (override === ':memory:' || path.isAbsolute(override)) {
-      return override;
-    }
-    return path.join(resolveGrokDataDir(env), override);
+): string {
+  const grokHome = env.GROK_HOME?.trim();
+  if (grokHome) {
+    return grokHome;
   }
 
-  const candidates = getGrokDatabasePathCandidates(env);
-  for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) {
-      return candidate;
-    }
-  }
-
-  return candidates[0] ?? null;
+  return resolveGrokNativeDataDir(env);
 }
 
-export function resolveExistingGrokDatabasePath(
-  preferredPath?: string | null,
-  env: NodeJS.ProcessEnv = process.env,
-): string | null {
-  const preferred = preferredPath?.trim();
-  if (preferred) {
-    if (preferred === ':memory:') {
-      return preferred;
-    }
-    if (fs.existsSync(preferred)) {
-      return preferred;
-    }
-  }
-
-  const resolved = resolveGrokDatabasePath(env);
-  if (resolved && (resolved === ':memory:' || fs.existsSync(resolved))) {
-    return resolved;
-  }
-
-  return preferred ?? resolved;
+export function encodeGrokWorkspaceKey(workspacePath: string): string {
+  return encodeURIComponent(path.resolve(workspacePath));
 }
 
-function getGrokDatabasePathCandidates(
+export function resolveGrokSessionsRoot(
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  return path.join(resolveGrokNativeDataDir(env), GROK_SESSIONS_DIR);
+}
+
+export function resolveGrokSessionDirectory(
+  sessionId: string,
+  workspacePath?: string | null,
+  preferredSessionDirPath?: string | null,
+  env: NodeJS.ProcessEnv = process.env,
+): string | null {
+  const trimmedSessionId = sessionId.trim();
+  if (!trimmedSessionId) {
+    return null;
+  }
+
+  const preferred = preferredSessionDirPath?.trim();
+  if (preferred && fs.existsSync(path.join(preferred, GROK_CHAT_HISTORY_FILE))) {
+    return preferred;
+  }
+
+  const trimmedWorkspace = workspacePath?.trim();
+  if (trimmedWorkspace) {
+    const workspaceSessionDir = path.join(
+      resolveGrokSessionsRoot(env),
+      encodeGrokWorkspaceKey(trimmedWorkspace),
+      trimmedSessionId,
+    );
+    if (fs.existsSync(path.join(workspaceSessionDir, GROK_CHAT_HISTORY_FILE))) {
+      return workspaceSessionDir;
+    }
+  }
+
+  return findGrokSessionDirectoryById(trimmedSessionId, env);
+}
+
+export function resolveGrokChatHistoryPath(
+  sessionId: string,
+  workspacePath?: string | null,
+  preferredSessionDirPath?: string | null,
+  env: NodeJS.ProcessEnv = process.env,
+): string | null {
+  const sessionDir = resolveGrokSessionDirectory(
+    sessionId,
+    workspacePath,
+    preferredSessionDirPath,
+    env,
+  );
+  if (!sessionDir) {
+    return null;
+  }
+
+  const historyPath = path.join(sessionDir, GROK_CHAT_HISTORY_FILE);
+  return fs.existsSync(historyPath) ? historyPath : null;
+}
+
+function findGrokSessionDirectoryById(
+  sessionId: string,
   env: NodeJS.ProcessEnv,
-): string[] {
-  const candidates: string[] = [];
-  const seen = new Set<string>();
-  const dataDirs = [resolveGrokDataDir(env)];
+): string | null {
+  const sessionsRoot = resolveGrokSessionsRoot(env);
+  let workspaceEntries: string[] = [];
+  try {
+    workspaceEntries = fs.readdirSync(sessionsRoot);
+  } catch {
+    return null;
+  }
 
-  for (const dataDir of dataDirs) {
-    pushCandidate(candidates, seen, path.join(dataDir, DEFAULT_DATABASE_NAME));
-    try {
-      const matches = fs.readdirSync(dataDir)
-        .filter((entry) => DATABASE_NAME_PATTERN.test(entry))
-        .sort((left, right) => {
-          if (left === DEFAULT_DATABASE_NAME) return -1;
-          if (right === DEFAULT_DATABASE_NAME) return 1;
-          return left.localeCompare(right);
-        });
-
-      for (const entry of matches) {
-        pushCandidate(candidates, seen, path.join(dataDir, entry));
-      }
-    } catch {
-      // Ignore missing dirs and unreadable locations.
+  for (const workspaceEntry of workspaceEntries) {
+    const sessionDir = path.join(sessionsRoot, workspaceEntry, sessionId);
+    if (fs.existsSync(path.join(sessionDir, GROK_CHAT_HISTORY_FILE))) {
+      return sessionDir;
     }
   }
 
-  return candidates;
-}
-
-function pushCandidate(
-  candidates: string[],
-  seen: Set<string>,
-  candidate: string,
-): void {
-  if (seen.has(candidate)) {
-    return;
-  }
-
-  seen.add(candidate);
-  candidates.push(candidate);
+  return null;
 }

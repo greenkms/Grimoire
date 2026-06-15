@@ -152,20 +152,13 @@ describe('GrokAuxQueryRunner', () => {
 
     expect(mockPrepareGrokLaunchArtifacts).toHaveBeenCalledWith(expect.objectContaining({
       artifactsSubdir: 'grok/auxiliary/title-gen',
-      defaultAgentId: 'grimoire-aux-passive',
-      managedAgents: [expect.objectContaining({ id: 'grimoire-aux-passive' })],
+      permissionMode: 'plan',
       systemPromptKey: 'Use this custom system prompt.',
       systemPromptText: 'Use this custom system prompt.',
     }));
     expect(mockConnection.newSession).toHaveBeenCalledWith({
       cwd: '/tmp/grimoire-test-vault',
       mcpServers: [],
-    });
-    expect(mockConnection.setConfigOption).toHaveBeenCalledWith({
-      configId: 'mode',
-      sessionId: 'session-1',
-      type: 'select',
-      value: 'grimoire-aux-passive',
     });
     expect(mockConnection.setConfigOption).toHaveBeenCalledWith({
       configId: 'model',
@@ -255,12 +248,6 @@ describe('GrokAuxQueryRunner', () => {
       sessionId: 'session-1',
       type: 'select',
       value: 'openai/gpt-5.4',
-    });
-    expect(mockConnection.setConfigOption).toHaveBeenCalledWith({
-      configId: 'mode',
-      sessionId: 'session-1',
-      type: 'select',
-      value: 'grimoire-aux-passive',
     });
   });
 

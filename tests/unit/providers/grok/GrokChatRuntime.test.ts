@@ -208,7 +208,10 @@ describe('GrokChatRuntime', () => {
     });
     const runtime = new GrokChatRuntime(plugin);
     runtime.syncConversationState({
-      providerState: { databasePath: '/persisted/grok.db' },
+      providerState: {
+        sessionDirPath: '/persisted/grok/session-1',
+        workspacePath: '/vault',
+      },
       sessionId: 'session-1',
     });
 
@@ -245,7 +248,10 @@ describe('GrokChatRuntime', () => {
     });
     const runtime = new GrokChatRuntime(plugin);
     runtime.syncConversationState({
-      providerState: { databasePath: '/persisted/grok.db' },
+      providerState: {
+        sessionDirPath: '/persisted/grok/session-1',
+        workspacePath: '/vault',
+      },
       sessionId: 'session-1',
     });
     runtime.syncConversationState({

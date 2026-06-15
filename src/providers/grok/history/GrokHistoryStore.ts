@@ -1,18 +1,16 @@
-import { spawnSync } from 'node:child_process';
-import * as fs from 'node:fs';
+import * as fs from 'node:fs/promises';
 
 import { extractResolvedAnswersFromResultText } from '../../../core/tools/toolInput';
 import { isWriteEditTool, TOOL_ASK_USER_QUESTION } from '../../../core/tools/toolNames';
 import type { ChatMessage, ContentBlock, ToolCallInfo } from '../../../core/types';
 import { extractUserQuery } from '../../../utils/context';
 import { extractDiffData } from '../../../utils/diff';
-import { loadNodeSqliteModule, type NodeSqliteModule } from '../../acp/history/sqliteModule';
 import {
   normalizeGrokToolInput,
   normalizeGrokToolName,
   normalizeGrokToolUseResult,
 } from '../normalization/grokToolNormalization';
-import { resolveExistingGrokDatabasePath } from '../runtime/GrokPaths';
+import { resolveGrokChatHistoryPath } from '../runtime/GrokPaths';
 import type { GrokProviderState } from '../types';
 
 type StoredRow = Record<string, unknown>;
@@ -22,62 +20,193 @@ interface StoredMessage {
   parts: StoredRow[];
 }
 
+interface GrokJsonlEvent {
+  content?: unknown;
+  summary?: unknown;
+  tool_call_id?: unknown;
+  tool_calls?: unknown;
+  type?: unknown;
+}
+
+interface AssistantDraft {
+  assistantMessageId: string;
+  content: string;
+  contentBlocks: ContentBlock[];
+  id: string;
+  timestamp: number;
+  toolCalls: ToolCallInfo[];
+}
+
 export async function loadGrokSessionMessages(
   sessionId: string,
   providerState?: GrokProviderState,
+  workspacePath?: string | null,
 ): Promise<ChatMessage[]> {
-  const databasePath = resolveExistingGrokDatabasePath(providerState?.databasePath);
-  if (!databasePath || databasePath === ':memory:' || !fs.existsSync(databasePath)) {
-    return [];
-  }
-
-  const rows = await loadGrokSessionRows(databasePath, sessionId);
-  if (!rows) {
-    return [];
-  }
-
-  return mapGrokMessages(
-    hydrateStoredMessages(rows.messageRows, rows.partRows),
+  const historyPath = resolveGrokChatHistoryPath(
+    sessionId,
+    workspacePath ?? providerState?.workspacePath ?? null,
+    providerState?.sessionDirPath ?? null,
   );
+  if (!historyPath) {
+    return [];
+  }
+
+  try {
+    const rawHistory = await fs.readFile(historyPath, 'utf8');
+    return parseGrokChatHistoryJsonl(rawHistory);
+  } catch {
+    return [];
+  }
+}
+
+export function parseGrokChatHistoryJsonl(rawHistory: string): ChatMessage[] {
+  const events = rawHistory
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .flatMap((line) => {
+      try {
+        const parsed = JSON.parse(line) as GrokJsonlEvent;
+        return isPlainObject(parsed) ? [parsed] : [];
+      } catch {
+        return [];
+      }
+    });
+
+  const messages: ChatMessage[] = [];
+  let assistantDraft: AssistantDraft | null = null;
+  let sequence = 0;
+
+  const flushAssistant = (): void => {
+    if (!assistantDraft) {
+      return;
+    }
+
+    const content = assistantDraft.content.trim();
+    messages.push({
+      assistantMessageId: assistantDraft.assistantMessageId,
+      content,
+      contentBlocks: assistantDraft.contentBlocks.length > 0 ? assistantDraft.contentBlocks : undefined,
+      id: assistantDraft.id,
+      role: 'assistant',
+      timestamp: assistantDraft.timestamp,
+      toolCalls: assistantDraft.toolCalls.length > 0 ? assistantDraft.toolCalls : undefined,
+    });
+    assistantDraft = null;
+  };
+
+  const ensureAssistantDraft = (): AssistantDraft => {
+    if (!assistantDraft) {
+      sequence += 1;
+      assistantDraft = {
+        assistantMessageId: `grok-assistant-${sequence}`,
+        content: '',
+        contentBlocks: [],
+        id: `grok-assistant-${sequence}`,
+        timestamp: sequence * 1_000,
+        toolCalls: [],
+      };
+    }
+    return assistantDraft;
+  };
+
+  for (const event of events) {
+    const type = getString(event.type);
+    if (!type || type === 'system') {
+      continue;
+    }
+
+    if (type === 'user') {
+      flushAssistant();
+      sequence += 1;
+      const promptText = extractGrokUserPrompt(event.content);
+      if (!promptText) {
+        continue;
+      }
+
+      messages.push({
+        assistantMessageId: undefined,
+        content: promptText,
+        id: `grok-user-${sequence}`,
+        role: 'user',
+        timestamp: sequence * 1_000,
+        userMessageId: `grok-user-${sequence}`,
+      });
+      continue;
+    }
+
+    if (type === 'reasoning') {
+      const draft = ensureAssistantDraft();
+      const thinkingText = extractGrokReasoningText(event.summary);
+      if (thinkingText) {
+        draft.contentBlocks.push({
+          content: thinkingText,
+          type: 'thinking',
+        });
+      }
+      continue;
+    }
+
+    if (type === 'assistant') {
+      const draft = ensureAssistantDraft();
+      const text = getString(event.content);
+      if (text) {
+        draft.content += text;
+        draft.contentBlocks.push({
+          content: text,
+          type: 'text',
+        });
+      }
+
+      for (const toolCall of normalizeGrokJsonlToolCalls(event.tool_calls)) {
+        draft.toolCalls.push(toolCall);
+        draft.contentBlocks.push({
+          toolId: toolCall.id,
+          type: 'tool_use',
+        });
+      }
+      continue;
+    }
+
+    if (type === 'tool_result') {
+      const draft = ensureAssistantDraft();
+      const toolCallId = getString(event.tool_call_id);
+      if (!toolCallId) {
+        continue;
+      }
+
+      const resultText = stringifyGrokToolResultContent(event.content);
+      const toolCall = draft.toolCalls.find((entry) => entry.id === toolCallId);
+      if (!toolCall) {
+        continue;
+      }
+
+      toolCall.result = resultText;
+      toolCall.status = 'completed';
+      const toolUseResult = normalizeGrokToolUseResult(toolCall.name, toolCall.input, {
+        output: resultText,
+      });
+      if (toolCall.name === TOOL_ASK_USER_QUESTION) {
+        toolCall.resolvedAnswers = toolUseResult?.answers as ToolCallInfo['resolvedAnswers']
+          ?? extractResolvedAnswersFromResultText(resultText);
+      }
+      if (isWriteEditTool(toolCall.name)) {
+        const diffData = extractDiffData(toolUseResult, toolCall);
+        if (diffData) {
+          toolCall.diffData = diffData;
+        }
+      }
+    }
+  }
+
+  flushAssistant();
+  return mergeAdjacentAssistantMessages(messages);
 }
 
 export function mapGrokMessages(messages: StoredMessage[]): ChatMessage[] {
   return mergeAdjacentAssistantMessages(messages
     .map((message) => mapStoredMessage(message))
     .filter((message): message is ChatMessage => message !== null));
-}
-
-function hydrateStoredMessages(
-  messageRows: StoredRow[],
-  partRows: StoredRow[],
-): StoredMessage[] {
-  const partsByMessage = new Map<string, StoredRow[]>();
-
-  for (const row of partRows) {
-    const messageId = getString(row.message_id);
-    const id = getString(row.id);
-    const data = parseJsonObject(row.data);
-    if (!messageId || !id || !data) {
-      continue;
-    }
-
-    const parts = partsByMessage.get(messageId) ?? [];
-    parts.push({ ...data, id });
-    partsByMessage.set(messageId, parts);
-  }
-
-  return messageRows.flatMap((row) => {
-    const id = getString(row.id);
-    const data = parseJsonObject(row.data);
-    if (!id || !data) {
-      return [];
-    }
-
-    return [{
-      info: { ...data, id, time_created: row.time_created },
-      parts: partsByMessage.get(id) ?? [],
-    }];
-  });
 }
 
 function mapStoredMessage(message: StoredMessage): ChatMessage | null {
@@ -125,6 +254,104 @@ function mapStoredMessage(message: StoredMessage): ChatMessage | null {
   };
 }
 
+function extractGrokUserPrompt(content: unknown): string {
+  if (typeof content === 'string') {
+    return extractVisibleUserPrompt(extractUserQuery(content));
+  }
+
+  if (!Array.isArray(content)) {
+    return '';
+  }
+
+  const text = content
+    .flatMap((entry) => {
+      if (!isPlainObject(entry) || getString(entry.type) !== 'text') {
+        return [];
+      }
+      const value = getString(entry.text);
+      return value ? [value] : [];
+    })
+    .join('\n');
+
+  return extractVisibleUserPrompt(extractUserQuery(text));
+}
+
+function extractGrokReasoningText(summary: unknown): string {
+  if (!Array.isArray(summary)) {
+    return '';
+  }
+
+  return summary
+    .flatMap((entry) => {
+      if (!isPlainObject(entry) || getString(entry.type) !== 'summary_text') {
+        return [];
+      }
+      const text = getString(entry.text)?.trim();
+      return text ? [text] : [];
+    })
+    .join('\n');
+}
+
+function normalizeGrokJsonlToolCalls(value: unknown): ToolCallInfo[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((entry) => {
+    if (!isPlainObject(entry)) {
+      return [];
+    }
+
+    const id = getString(entry.id);
+    const rawName = getString(entry.name);
+    if (!id || !rawName) {
+      return [];
+    }
+
+    const input = parseGrokToolArguments(entry.arguments);
+    const name = normalizeGrokToolName(rawName);
+    return [{
+      id,
+      input: normalizeGrokToolInput(rawName, input),
+      name,
+      status: 'running' as const,
+    }];
+  });
+}
+
+function parseGrokToolArguments(value: unknown): Record<string, unknown> {
+  if (isPlainObject(value)) {
+    return value;
+  }
+
+  if (typeof value !== 'string') {
+    return {};
+  }
+
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    return isPlainObject(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function stringifyGrokToolResultContent(value: unknown): string {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (value === undefined || value === null) {
+    return '';
+  }
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return '';
+  }
+}
+
 function extractVisibleUserPrompt(rawPrompt: string): string {
   const promptText = extractUserQuery(rawPrompt);
   const roleMarkerPattern = /(^|\n)(User|Assistant):[ \t]*/g;
@@ -151,7 +378,7 @@ function extractVisibleUserPrompt(rawPrompt: string): string {
       .trim();
   }
 
-  return promptText;
+  return promptText.trim();
 }
 
 function mergeAdjacentAssistantMessages(messages: ChatMessage[]): ChatMessage[] {
@@ -335,19 +562,6 @@ function mapToolStatus(status: string | null): ToolCallInfo['status'] | null {
   }
 }
 
-function parseJsonObject(value: unknown): StoredRow | null {
-  if (typeof value !== 'string') {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(value) as unknown;
-    return isPlainObject(parsed) ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
@@ -380,98 +594,4 @@ function getNestedNumber(
     current = current[key];
   }
   return getNumber(current);
-}
-
-interface StoredSessionRows {
-  messageRows: StoredRow[];
-  partRows: StoredRow[];
-}
-
-async function loadGrokSessionRows(
-  databasePath: string,
-  sessionId: string,
-): Promise<StoredSessionRows | null> {
-  const viaNodeSqlite = await loadSessionRowsWithNodeSqlite(databasePath, sessionId);
-  if (viaNodeSqlite) {
-    return viaNodeSqlite;
-  }
-
-  return loadSessionRowsWithSqliteCli(databasePath, sessionId);
-}
-
-async function loadSessionRowsWithNodeSqlite(
-  databasePath: string,
-  sessionId: string,
-): Promise<StoredSessionRows | null> {
-  const sqlite = loadNodeSqliteModule<StoredRow>();
-  if (!sqlite) {
-    return null;
-  }
-
-  let db: InstanceType<NodeSqliteModule<StoredRow>['DatabaseSync']> | null = null;
-  try {
-    db = new sqlite.DatabaseSync(databasePath, { readonly: true });
-    const messageRows = db.prepare(
-      'select id, time_created, data from message where session_id = ? order by time_created asc, id asc',
-    ).all(sessionId);
-    const partRows = db.prepare(
-      'select id, message_id, data from part where session_id = ? order by message_id asc, id asc',
-    ).all(sessionId);
-    return { messageRows, partRows };
-  } catch {
-    return null;
-  } finally {
-    db?.close();
-  }
-}
-
-function loadSessionRowsWithSqliteCli(
-  databasePath: string,
-  sessionId: string,
-): StoredSessionRows | null {
-  const escapedSessionId = escapeSqlLiteral(sessionId);
-  const messageRows = runSqlite3JsonQuery(
-    databasePath,
-    `select id, time_created, data from message where session_id = '${escapedSessionId}' order by time_created asc, id asc;`,
-  );
-  const partRows = runSqlite3JsonQuery(
-    databasePath,
-    `select id, message_id, data from part where session_id = '${escapedSessionId}' order by message_id asc, id asc;`,
-  );
-
-  if (!messageRows || !partRows) {
-    return null;
-  }
-
-  return { messageRows, partRows };
-}
-
-function runSqlite3JsonQuery(
-  databasePath: string,
-  sql: string,
-): StoredRow[] | null {
-  const result = spawnSync(
-    'sqlite3',
-    ['-json', databasePath, sql],
-    {
-      encoding: 'utf8',
-    },
-  );
-
-  if (result.error || result.status !== 0) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(result.stdout || '[]') as unknown;
-    return Array.isArray(parsed)
-      ? parsed.filter((row): row is StoredRow => isPlainObject(row))
-      : null;
-  } catch {
-    return null;
-  }
-}
-
-function escapeSqlLiteral(value: string): string {
-  return value.replaceAll('\'', '\'\'');
 }
