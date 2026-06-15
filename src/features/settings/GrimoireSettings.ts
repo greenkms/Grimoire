@@ -23,6 +23,8 @@ import { getAntigravityProviderSettings, updateAntigravityProviderSettings } fro
 import { getClaudeProviderSettings, updateClaudeProviderSettings } from '../../providers/claude/settings';
 import { getCodexProviderSettings, updateCodexProviderSettings } from '../../providers/codex/settings';
 import { getGeminiProviderSettings, updateGeminiProviderSettings } from '../../providers/gemini/settings';
+import { getKimicodeProviderSettings, updateKimicodeProviderSettings } from '../../providers/kimicode/settings';
+import { getMimocodeProviderSettings, updateMimocodeProviderSettings } from '../../providers/mimocode/settings';
 import { getOpencodeProviderSettings, updateOpencodeProviderSettings } from '../../providers/opencode/settings';
 import { formatContextLimit, parseContextLimit, parseEnvironmentVariables } from '../../utils/env';
 import { buildNavMappingText, parseNavMappings } from './keyboardNavigation';
@@ -658,6 +660,12 @@ export class GrimoireSettingTab extends PluginSettingTab {
     this.renderProviderEnableRow(container, 'opencode', getOpencodeProviderSettings(this.plugin.settings).enabled, async (enabled) => {
       await this.updateProviderEnabled('opencode', enabled);
     });
+    this.renderProviderEnableRow(container, 'mimocode', getMimocodeProviderSettings(this.plugin.settings).enabled, async (enabled) => {
+      await this.updateProviderEnabled('mimocode', enabled);
+    });
+    this.renderProviderEnableRow(container, 'kimicode', getKimicodeProviderSettings(this.plugin.settings).enabled, async (enabled) => {
+      await this.updateProviderEnabled('kimicode', enabled);
+    });
   }
 
   private async updateProviderEnabled(providerId: ProviderId, enabled: boolean): Promise<void> {
@@ -672,6 +680,10 @@ export class GrimoireSettingTab extends PluginSettingTab {
       updateGeminiProviderSettings(this.plugin.settings, { enabled });
     } else if (providerId === 'opencode') {
       updateOpencodeProviderSettings(this.plugin.settings, { enabled });
+    } else if (providerId === 'mimocode') {
+      updateMimocodeProviderSettings(this.plugin.settings, { enabled });
+    } else if (providerId === 'kimicode') {
+      updateKimicodeProviderSettings(this.plugin.settings, { enabled });
     }
 
     if (ProviderSettingsCoordinator.normalizeProviderSelection(this.plugin.settings)) {
