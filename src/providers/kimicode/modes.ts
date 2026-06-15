@@ -7,26 +7,26 @@ export interface KimicodeMode {
 }
 
 export const KIMICODE_BUILD_MODE_ID = 'build';
-export const KIMICODE_FULL_ACCESS_MODE_ID = 'grimoire-full-access';
+export const KIMICODE_FULL_ACCESS_MODE_ID = 'auto';
 export const KIMICODE_LEGACY_YOLO_MODE_ID = 'grimoire-yolo';
-export const KIMICODE_SAFE_MODE_ID = 'grimoire-safe';
+export const KIMICODE_SAFE_MODE_ID = 'default';
 export const KIMICODE_PLAN_MODE_ID = 'plan';
 
 export const KIMICODE_FALLBACK_MODES: ReadonlyArray<KimicodeMode> = Object.freeze([
   {
-    description: 'Auto-approves tool actions.',
-    id: KIMICODE_FULL_ACCESS_MODE_ID,
-    name: 'auto-approve',
-  },
-  {
-    description: 'Safe mode. Asks before shell commands and file edits.',
+    description: 'Manual approvals; tools execute normally.',
     id: KIMICODE_SAFE_MODE_ID,
-    name: 'safe',
+    name: 'Default',
   },
   {
-    description: 'Plan mode. Disallows all edit tools.',
+    description: 'Read-only planning; no tool execution.',
     id: KIMICODE_PLAN_MODE_ID,
-    name: KIMICODE_PLAN_MODE_ID,
+    name: 'Plan',
+  },
+  {
+    description: 'Auto-approve safe operations.',
+    id: KIMICODE_FULL_ACCESS_MODE_ID,
+    name: 'Auto',
   },
 ]);
 
