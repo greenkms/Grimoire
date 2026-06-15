@@ -358,7 +358,7 @@ describe('Kimi Code settings normalization', () => {
           selectedMode: 'compaction',
         },
       },
-    }).selectedMode).toBe('grimoire-full-access');
+    }).selectedMode).toBe('auto');
   });
 
   it('normalizes the legacy build alias back to the managed full-access mode', () => {
@@ -369,7 +369,7 @@ describe('Kimi Code settings normalization', () => {
           selectedMode: 'build',
         },
       },
-    }).selectedMode).toBe('grimoire-full-access');
+    }).selectedMode).toBe('auto');
   });
 
   it('preserves legacy cliPath when no host-scoped path exists', () => {

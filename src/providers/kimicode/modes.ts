@@ -14,6 +14,11 @@ export const KIMICODE_PLAN_MODE_ID = 'plan';
 
 export const KIMICODE_FALLBACK_MODES: ReadonlyArray<KimicodeMode> = Object.freeze([
   {
+    description: 'Auto-approve safe operations.',
+    id: KIMICODE_FULL_ACCESS_MODE_ID,
+    name: 'Auto',
+  },
+  {
     description: 'Manual approvals; tools execute normally.',
     id: KIMICODE_SAFE_MODE_ID,
     name: 'Default',
@@ -22,11 +27,6 @@ export const KIMICODE_FALLBACK_MODES: ReadonlyArray<KimicodeMode> = Object.freez
     description: 'Read-only planning; no tool execution.',
     id: KIMICODE_PLAN_MODE_ID,
     name: 'Plan',
-  },
-  {
-    description: 'Auto-approve safe operations.',
-    id: KIMICODE_FULL_ACCESS_MODE_ID,
-    name: 'Auto',
   },
 ]);
 
