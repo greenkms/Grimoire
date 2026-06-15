@@ -1,4 +1,4 @@
-/* Grimoire 1.0.14 */
+/* Grimoire 1.0.15 */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
