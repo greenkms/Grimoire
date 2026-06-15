@@ -27,32 +27,32 @@
   <sub>Chat with local CLI agents from the same Obsidian workspace where your notes live.</sub>
 </p>
 
-Grimoire brings agentic CLI assistants into Obsidian. Claude Code, Codex, Antigravity CLI, Gemini CLI (Legacy), and OpenCode all live in one side panel, where they read your notes, edit files, run commands, call tools, and keep session history against your real vault. Nothing routes through a Grimoire server. There's no telemetry, no hosted backend, and no proxy sitting in the middle.
+Grimoire brings agentic CLI assistants into Obsidian. Claude Code, Codex, Antigravity CLI, Gemini CLI (Legacy), OpenCode, MiMoCode, and Kimi Code all live in one side panel, where they read your notes, edit files, run commands, call tools, and keep session history against your real vault. Nothing routes through a Grimoire server. There's no telemetry, no hosted backend, and no proxy sitting in the middle.
 
 It's built for people who already work in Obsidian and want AI help that behaves like part of the vault: local context, local files, a provider you pick on purpose, and usage you can actually see.
 
 ## Why Grimoire
 
 - Use the CLI agents you already trust, right inside your notes.
-- Switch providers from the composer. Claude Code, Codex, Antigravity CLI, legacy Gemini CLI, and OpenCode share one model picker.
+- Switch providers from the composer. Claude Code, Codex, Antigravity CLI, legacy Gemini CLI, OpenCode, MiMoCode, and Kimi Code share one model picker.
 - Ground every turn in your vault. Mention notes, folders, and MCP tools instead of pasting paths by hand.
 - See cost and limits next to the model selector, where you're making the decision anyway.
 - Stay local-first. Grimoire doesn't collect telemetry, proxy prompts, or run a backend.
 
 ## What each provider can do
 
-| Capability | Claude Code | Codex | Antigravity CLI | Gemini CLI (Legacy) | OpenCode |
-| --- | --- | --- | --- | --- | --- |
-| Local persistent runtime | Yes | Yes | No | Yes | Yes |
-| Native history hydration | Yes | Yes | No | Yes | Yes |
-| Plan mode | Yes | Yes | No | Yes | Yes |
-| Image attachments | Yes | Yes | No | Yes | Yes |
-| Instruction mode | Yes | Yes | No | Yes | Yes |
-| Reasoning effort controls | Yes | Yes | Yes | Yes | Yes |
-| Rewind | Yes | No | No | No | No |
-| Fork | Yes | Yes | No | No | No |
-| Provider slash commands | Yes | No | No | No | Yes |
-| Grimoire-managed MCP UI | Yes | No | No | No | No |
+| Capability | Claude Code | Codex | Antigravity CLI | Gemini CLI (Legacy) | OpenCode | MiMoCode | Kimi Code |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Local persistent runtime | Yes | Yes | No | Yes | Yes | Yes | Yes |
+| Native history hydration | Yes | Yes | No | Yes | Yes | Yes | Yes |
+| Plan mode | Yes | Yes | No | Yes | Yes | Yes | Yes |
+| Image attachments | Yes | Yes | No | Yes | Yes | Yes | Yes |
+| Instruction mode | Yes | Yes | No | Yes | Yes | Yes | Yes |
+| Reasoning effort controls | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
+| Rewind | Yes | No | No | No | No | No | No |
+| Fork | Yes | Yes | No | No | No | No | No |
+| Provider slash commands | Yes | No | No | No | Yes | Yes | Yes |
+| Grimoire-managed MCP UI | Yes | No | No | No | No | No | No |
 
 ## Installation
 
@@ -110,7 +110,7 @@ Enable the providers you want under Settings, Grimoire, Providers, and they'll a
 
 ### Recommended providers
 
-For the best Grimoire experience, start with Claude Code, Codex, or OpenCode. These providers currently expose the strongest runtime surfaces for vault-native work: persistent sessions, history hydration, plan-oriented workflows, tool activity, and rich model controls.
+For the best Grimoire experience, start with Claude Code, Codex, OpenCode, MiMoCode, or Kimi Code. These providers currently expose the strongest runtime surfaces for vault-native work: persistent sessions, history hydration, plan-oriented workflows, tool activity, and rich model controls.
 
 Antigravity CLI and Gemini CLI (Legacy) remain available, especially for Google accounts and compatibility cases, but they are more limited inside Grimoire today because their current CLI surfaces expose less session, tool, approval, and streaming metadata.
 
@@ -200,6 +200,28 @@ Homebrew, npm, bun, and package-manager installs work too. Configure your provid
 - [OpenCode config docs](https://opencode.ai/docs/config)
 
 Inside Grimoire, OpenCode runs over ACP with Grimoire-managed launch artifacts, plus persistent runtime, native history, plan mode, image input, provider commands, and reasoning effort. It reports monthly spend when cost metadata is available.
+
+### MiMoCode
+
+MiMoCode (Xiaomi) is a fork of OpenCode with persistent memory, intelligent context management, and subagent orchestration.
+
+```bash
+curl -fsSL https://mimo.xiaomi.com/install | bash
+mimocode
+```
+
+- [MiMoCode GitHub](https://github.com/XiaomiMiMo/MiMo-Code)
+
+### Kimi Code
+
+Kimi Code CLI (MoonshotAI) is a multi-provider terminal agent supporting Kimi, OpenAI, Anthropic, Gemini, and Vertex AI models.
+
+```bash
+curl -fsSL https://code.kimi.com/kimi-code/install.sh | bash
+kimi
+```
+
+- [Kimi Code GitHub](https://github.com/MoonshotAI/kimi-code)
 
 ## Your first chat
 

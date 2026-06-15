@@ -27,7 +27,7 @@
   <sub>ノートがある同じ Obsidian workspace で、ローカル CLI エージェントと会話できます。</sub>
 </p>
 
-Grimoire は agentic CLI アシスタントを Obsidian に組み込みます。Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode がひとつのサイドパネルに入り、ノートを読み、ファイルを編集し、コマンドを実行し、ツールを呼び出し、実際の vault に紐づいた session history を保持します。Grimoire のサーバーは介在しません。Telemetry も hosted backend も、あなたと provider の間に入る proxy もありません。
+Grimoire は agentic CLI アシスタントを Obsidian に組み込みます。Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode、MiMoCode、Kimi Code がひとつのサイドパネルに入り、ノートを読み、ファイルを編集し、コマンドを実行し、ツールを呼び出し、実際の vault に紐づいた session history を保持します。Grimoire のサーバーは介在しません。Telemetry も hosted backend も、あなたと provider の間に入る proxy もありません。
 
 Grimoire は、すでに Obsidian で作業している人のために作られています。ローカル context、ローカル files、意図して選ぶ provider、そして UI 上で確認できる usage と cost を重視しています。
 
@@ -36,25 +36,25 @@ Grimoire は、すでに Obsidian で作業している人のために作られ�
 ## Grimoire を使う理由
 
 - すでに信頼している CLI エージェントを、ノートの中で直接使えます。
-- Composer から provider を切り替えられます。Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode は同じ model picker を共有します。
+- Composer から provider を切り替えられます。Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode、MiMoCode、Kimi Code は同じ model picker を共有します。
 - すべての turn を vault context に grounded できます。ノート、フォルダ、MCP tools を mention でき、手で path を貼る必要がありません。
 - Model selector のすぐ横で cost と limits を確認できます。
 - Local-first のまま使えます。Grimoire は telemetry を集めず、prompts を proxy せず、backend を実行しません。
 
 ## 各 provider ができること
 
-| Capability | Claude Code | Codex | Antigravity CLI | Gemini CLI (Legacy) | OpenCode |
-| --- | --- | --- | --- | --- | --- |
-| Local persistent runtime | Yes | Yes | No | Yes | Yes |
-| Native history hydration | Yes | Yes | No | Yes | Yes |
-| Plan mode | Yes | Yes | No | Yes | Yes |
-| Image attachments | Yes | Yes | No | Yes | Yes |
-| Instruction mode | Yes | Yes | No | Yes | Yes |
-| Reasoning effort controls | Yes | Yes | Yes | Yes | Yes |
-| Rewind | Yes | No | No | No | No |
-| Fork | Yes | Yes | No | No | No |
-| Provider slash commands | Yes | No | No | No | Yes |
-| Grimoire-managed MCP UI | Yes | No | No | No | No |
+| Capability | Claude Code | Codex | Antigravity CLI | Gemini CLI (Legacy) | OpenCode | MiMoCode | Kimi Code |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Local persistent runtime | Yes | Yes | No | Yes | Yes | Yes | Yes |
+| Native history hydration | Yes | Yes | No | Yes | Yes | Yes | Yes |
+| Plan mode | Yes | Yes | No | Yes | Yes | Yes | Yes |
+| Image attachments | Yes | Yes | No | Yes | Yes | Yes | Yes |
+| Instruction mode | Yes | Yes | No | Yes | Yes | Yes | Yes |
+| Reasoning effort controls | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
+| Rewind | Yes | No | No | No | No | No | No |
+| Fork | Yes | Yes | No | No | No | No | No |
+| Provider slash commands | Yes | No | No | No | Yes | Yes | No |
+| Grimoire-managed MCP UI | Yes | No | No | No | No | No | No |
 
 ## インストール
 
@@ -112,7 +112,7 @@ Settings, Grimoire, Providers で使いたい providers を有効化すると、
 
 ### 推奨 providers
 
-Grimoire で最高の体験を得るには、まず Claude Code、Codex、OpenCode から始めるのがおすすめです。これらの providers は現在、vault-native な作業に必要な runtime surface が最も強く、persistent sessions、history hydration、plan-oriented workflows、tool activity、豊富な model controls を扱えます。
+Grimoire で最高の体験を得るには、まず Claude Code、Codex、OpenCode、MiMoCode、Kimi Code から始めるのがおすすめです。これらの providers は現在、vault-native な作業に必要な runtime surface が最も強く、persistent sessions、history hydration、plan-oriented workflows、tool activity、豊富な model controls を扱えます。
 
 Antigravity CLI と Gemini CLI (Legacy) も引き続き利用できます。特に Google accounts や compatibility cases では役立ちますが、現時点の Grimoire ではより制限があります。現在の CLI surfaces から得られる session、tool、approval、streaming metadata が少ないためです。
 
@@ -200,6 +200,36 @@ Homebrew、npm、bun、package-manager installs も使えます。OpenCode 側�
 - [OpenCode config docs](https://opencode.ai/docs/config)
 
 Grimoire 内では、OpenCode は ACP で動作し、Grimoire-managed launch artifacts、persistent runtime、native history、plan mode、image input、provider commands、reasoning effort をサポートします。Cost metadata が利用できる場合は monthly spend を表示します。
+
+### MiMoCode
+
+MiMoCode（小米）はOpenCodeのフォークで、永続メモリ、インテリジェントなコンテキスト管理、サブエージェントオーケストレーションを備えています。
+
+```bash
+curl -fsSL https://mimo.xiaomi.com/install | bash
+mimocode
+```
+
+Homebrew、npm、bun、package-manager installs も使えます。MiMoCode 側で provider credentials を設定し、その後 Grimoire で有効化します。
+
+- [MiMoCode GitHub](https://github.com/XiaomiMiMo/MiMo-Code)
+
+Grimoire 内では、MiMoCode は ACP で動作し、persistent runtime、native history、plan mode、image input、provider commands、reasoning effort をサポートします。
+
+### Kimi Code
+
+Kimi Code CLI（MoonshotAI）は、Kimi、OpenAI、Anthropic、Gemini、Vertex AIモデルをサポートするマルチプロバイダー端末エージェントです。
+
+```bash
+curl -fsSL https://code.kimi.com/kimi-code/install.sh | bash
+kimi
+```
+
+Kimi Code 側で provider credentials を設定し、その後 Grimoire で有効化します。
+
+- [Kimi Code GitHub](https://github.com/MoonshotAI/kimi-code)
+
+Grimoire 内では、Kimi Code は ACP で動作し、persistent runtime、native history、plan mode、image input、provider commands、reasoning effort をサポートします。
 
 ## 最初のチャット
 

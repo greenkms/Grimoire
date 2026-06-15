@@ -27,7 +27,7 @@
   <sub>Общайтесь с локальными CLI-агентами прямо в том же Obsidian workspace, где живут ваши заметки.</sub>
 </p>
 
-Grimoire встраивает agentic CLI-ассистентов в Obsidian. Claude Code, Codex, Antigravity CLI, Gemini CLI (Legacy) и OpenCode живут в одной боковой панели: читают заметки, редактируют файлы, запускают команды, вызывают инструменты и сохраняют историю сессий рядом с вашим настоящим vault. Всё работает без сервера Grimoire: нет telemetry, hosted backend и proxy между вами и провайдером.
+Grimoire встраивает agentic CLI-ассистентов в Obsidian. Claude Code, Codex, Antigravity CLI, Gemini CLI (Legacy), OpenCode, MiMoCode и Kimi Code живут в одной боковой панели: читают заметки, редактируют файлы, запускают команды, вызывают инструменты и сохраняют историю сессий рядом с вашим настоящим vault. Всё работает без сервера Grimoire: нет telemetry, hosted backend и proxy между вами и провайдером.
 
 Grimoire сделан для тех, кто уже работает в Obsidian и хочет, чтобы AI-помощник ощущался частью vault: локальный контекст, локальные файлы, осознанный выбор провайдера и usage/cost прямо в интерфейсе.
 
@@ -36,25 +36,25 @@ Grimoire сделан для тех, кто уже работает в Obsidian 
 ## Зачем Grimoire
 
 - Используйте CLI-агентов, которым уже доверяете, прямо внутри заметок.
-- Переключайте провайдеров из composer. Claude Code, Codex, Antigravity CLI, Gemini CLI (Legacy) и OpenCode используют один model picker.
+- Переключайте провайдеров из composer. Claude Code, Codex, Antigravity CLI, Gemini CLI (Legacy), OpenCode, MiMoCode и Kimi Code используют один model picker.
 - Привязывайте каждый turn к vault-контексту. Упоминайте заметки, папки и MCP tools без ручного копирования путей.
 - Видьте cost и limits рядом с выбором модели, именно там, где принимается решение.
 - Оставайтесь local-first. Grimoire не собирает telemetry, не проксирует prompts и не запускает backend.
 
 ## Что умеют провайдеры
 
-| Возможность | Claude Code | Codex | Antigravity CLI | Gemini CLI (Legacy) | OpenCode |
-| --- | --- | --- | --- | --- | --- |
-| Локальный persistent runtime | Да | Да | Нет | Да | Да |
-| Нативное восстановление истории | Да | Да | Нет | Да | Да |
-| Plan mode | Да | Да | Нет | Да | Да |
-| Image attachments | Да | Да | Нет | Да | Да |
-| Instruction mode | Да | Да | Нет | Да | Да |
-| Reasoning effort controls | Да | Да | Да | Да | Да |
-| Rewind | Да | Нет | Нет | Нет | Нет |
-| Fork | Да | Да | Нет | Нет | Нет |
-| Provider slash commands | Да | Нет | Нет | Нет | Да |
-| Grimoire-managed MCP UI | Да | Нет | Нет | Нет | Нет |
+| Возможность | Claude Code | Codex | Antigravity CLI | Gemini CLI (Legacy) | OpenCode | MiMoCode | Kimi Code |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Локальный persistent runtime | Да | Да | Нет | Да | Да | Да | Да |
+| Нативное восстановление истории | Да | Да | Нет | Да | Да | Да | Да |
+| Plan mode | Да | Да | Нет | Да | Да | Да | Да |
+| Image attachments | Да | Да | Нет | Да | Да | Да | Да |
+| Instruction mode | Да | Да | Нет | Да | Да | Да | Да |
+| Reasoning effort controls | Да | Да | Да | Да | Да | Да | Да |
+| Rewind | Да | Нет | Нет | Нет | Нет | Нет | Нет |
+| Fork | Да | Да | Нет | Нет | Нет | Нет | Нет |
+| Provider slash commands | Да | Нет | Нет | Нет | Да | Да | Нет |
+| Grimoire-managed MCP UI | Да | Нет | Нет | Нет | Нет | Нет | Нет |
 
 ## Установка
 
@@ -112,7 +112,7 @@ cp dist/grimoire/main.js dist/grimoire/manifest.json dist/grimoire/styles.css \
 
 ### Рекомендуемые провайдеры
 
-Для лучшего опыта в Grimoire начните с Claude Code, Codex или OpenCode. Сейчас эти провайдеры дают самый сильный runtime surface для vault-native работы: persistent sessions, history hydration, plan-oriented workflows, tool activity и богатые model controls.
+Для лучшего опыта в Grimoire начните с Claude Code, Codex, OpenCode, MiMoCode или Kimi Code. Сейчас эти провайдеры дают самый сильный runtime surface для vault-native работы: persistent sessions, history hydration, plan-oriented workflows, tool activity и богатые model controls.
 
 Antigravity CLI и Gemini CLI (Legacy) остаются доступными, особенно для Google accounts и compatibility-сценариев, но сегодня внутри Grimoire они более ограничены: их текущие CLI surfaces отдают меньше session, tool, approval и streaming metadata.
 
@@ -202,6 +202,36 @@ Homebrew, npm, bun и package-manager installs тоже подходят. Нас
 - [OpenCode config docs](https://opencode.ai/docs/config)
 
 Внутри Grimoire OpenCode работает через ACP с Grimoire-managed launch artifacts, persistent runtime, native history, plan mode, image input, provider commands и reasoning effort. Он показывает monthly spend, когда cost metadata доступна.
+
+### MiMoCode
+
+MiMoCode (Xiaomi) — форк OpenCode с персистентной памятью, интеллектуальным управлением контекстом и оркестрацией субагентов.
+
+```bash
+curl -fsSL https://mimo.xiaomi.com/install | bash
+mimocode
+```
+
+Homebrew, npm, bun и package-manager installs тоже подходят. Настройте provider credentials в MiMoCode, затем включите его в Grimoire.
+
+- [MiMoCode GitHub](https://github.com/XiaomiMiMo/MiMo-Code)
+
+Внутри Grimoire MiMoCode работает через ACP с persistent runtime, native history, plan mode, image input, provider commands и reasoning effort.
+
+### Kimi Code
+
+Kimi Code CLI (MoonshotAI) — мульти-провайдерный терминальный агент, поддерживающий модели Kimi, OpenAI, Anthropic, Gemini и Vertex AI.
+
+```bash
+curl -fsSL https://code.kimi.com/kimi-code/install.sh | bash
+kimi
+```
+
+Настройте provider credentials в Kimi Code, затем включите его в Grimoire.
+
+- [Kimi Code GitHub](https://github.com/MoonshotAI/kimi-code)
+
+Внутри Grimoire Kimi Code работает через ACP с persistent runtime, native history, plan mode, image input, provider commands и reasoning effort.
 
 ## Первый чат
 

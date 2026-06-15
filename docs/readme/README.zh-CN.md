@@ -27,7 +27,7 @@
   <sub>在笔记所在的同一个 Obsidian workspace 中，与本地 CLI 代理对话。</sub>
 </p>
 
-Grimoire 将 agentic CLI 助手带入 Obsidian。Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy) 和 OpenCode 都在同一个侧边栏中运行：读取笔记、编辑文件、执行命令、调用工具，并把会话历史保存在真实的 vault 上下文中。Grimoire 不经过自家服务器：没有 telemetry、没有 hosted backend，也没有夹在你和 provider 之间的 proxy。
+Grimoire 将 agentic CLI 助手带入 Obsidian。Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode、MiMoCode、Kimi Code 都在同一个侧边栏中运行：读取笔记、编辑文件、执行命令、调用工具，并把会话历史保存在真实的 vault 上下文中。Grimoire 不经过自家服务器：没有 telemetry、没有 hosted backend，也没有夹在你和 provider 之间的 proxy。
 
 它面向已经在 Obsidian 中工作的人：你可以使用本地上下文、本地文件、明确选择的 provider，并在界面里直接看到 usage 和 cost。
 
@@ -36,25 +36,25 @@ Grimoire 将 agentic CLI 助手带入 Obsidian。Claude Code、Codex、Antigravi
 ## 为什么选择 Grimoire
 
 - 在笔记里直接使用你已经信任的 CLI 代理。
-- 从 composer 切换 provider。Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy) 和 OpenCode 共用一个 model picker。
+- 从 composer 切换 provider。Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode、MiMoCode、Kimi Code 共用一个 model picker。
 - 让每一次 turn 都基于 vault 上下文。可以 mention 笔记、文件夹和 MCP tools，不需要手动复制路径。
 - 在选择模型的位置直接看到 cost 和 limits。
 - 保持 local-first。Grimoire 不收集 telemetry，不 proxy prompts，也不运行 backend。
 
 ## 各 provider 能做什么
 
-| 能力 | Claude Code | Codex | Antigravity CLI | Gemini CLI (Legacy) | OpenCode |
-| --- | --- | --- | --- | --- | --- |
-| 本地 persistent runtime | 是 | 是 | 否 | 是 | 是 |
-| 原生 history hydration | 是 | 是 | 否 | 是 | 是 |
-| Plan mode | 是 | 是 | 否 | 是 | 是 |
-| Image attachments | 是 | 是 | 否 | 是 | 是 |
-| Instruction mode | 是 | 是 | 否 | 是 | 是 |
-| Reasoning effort controls | 是 | 是 | 是 | 是 | 是 |
-| Rewind | 是 | 否 | 否 | 否 | 否 |
-| Fork | 是 | 是 | 否 | 否 | 否 |
-| Provider slash commands | 是 | 否 | 否 | 否 | 是 |
-| Grimoire-managed MCP UI | 是 | 否 | 否 | 否 | 否 |
+| 能力 | Claude Code | Codex | Antigravity CLI | Gemini CLI (Legacy) | OpenCode | MiMoCode | Kimi Code |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 本地 persistent runtime | 是 | 是 | 否 | 是 | 是 | 是 | 是 |
+| 原生 history hydration | 是 | 是 | 否 | 是 | 是 | 是 | 是 |
+| Plan mode | 是 | 是 | 否 | 是 | 是 | 是 | 是 |
+| Image attachments | 是 | 是 | 否 | 是 | 是 | 是 | 是 |
+| Instruction mode | 是 | 是 | 否 | 是 | 是 | 是 | 是 |
+| Reasoning effort controls | 是 | 是 | 是 | 是 | 是 | 是 | 是 |
+| Rewind | 是 | 否 | 否 | 否 | 否 | 否 | 否 |
+| Fork | 是 | 是 | 否 | 否 | 否 | 否 | 否 |
+| Provider slash commands | 是 | 否 | 否 | 否 | 是 | 是 | 是 |
+| Grimoire-managed MCP UI | 是 | 否 | 否 | 否 | 否 | 否 | 否 |
 
 ## 安装
 
@@ -112,7 +112,7 @@ cp dist/grimoire/main.js dist/grimoire/manifest.json dist/grimoire/styles.css \
 
 ### 推荐 providers
 
-为了获得最好的 Grimoire 体验，建议先从 Claude Code、Codex 或 OpenCode 开始。这些 providers 目前为 vault-native 工作提供最强的 runtime surface：persistent sessions、history hydration、plan-oriented workflows、tool activity，以及更丰富的 model controls。
+为了获得最好的 Grimoire 体验，建议先从 Claude Code、Codex、OpenCode、MiMoCode 或 Kimi Code 开始。这些 providers 目前为 vault-native 工作提供最强的 runtime surface：persistent sessions、history hydration、plan-oriented workflows、tool activity，以及更丰富的 model controls。
 
 Antigravity CLI 和 Gemini CLI (Legacy) 仍然可用，尤其适合 Google accounts 和 compatibility 场景，但它们现在在 Grimoire 中更受限制，因为当前 CLI surfaces 暴露的 session、tool、approval 和 streaming metadata 更少。
 
@@ -200,6 +200,28 @@ Homebrew、npm、bun 和 package-manager installs 也可以。先在 OpenCode �
 - [OpenCode config docs](https://opencode.ai/docs/config)
 
 在 Grimoire 中，OpenCode 通过 ACP 运行，使用 Grimoire-managed launch artifacts，并支持 persistent runtime、native history、plan mode、image input、provider commands 和 reasoning effort。当 cost metadata 可用时，它会显示 monthly spend。
+
+### MiMoCode
+
+MiMoCode（小米）是 OpenCode 的分支，具有持久记忆、智能上下文管理和子代理编排功能。
+
+```bash
+curl -fsSL https://mimo.xiaomi.com/install | bash
+mimocode
+```
+
+- [MiMoCode GitHub](https://github.com/XiaomiMiMo/MiMo-Code)
+
+### Kimi Code
+
+Kimi Code CLI（月之暗面）是一个多模型终端代理，支持 Kimi、OpenAI、Anthropic、Gemini 和 Vertex AI 模型。
+
+```bash
+curl -fsSL https://code.kimi.com/kimi-code/install.sh | bash
+kimi
+```
+
+- [Kimi Code GitHub](https://github.com/MoonshotAI/kimi-code)
 
 ## 第一次聊天
 
