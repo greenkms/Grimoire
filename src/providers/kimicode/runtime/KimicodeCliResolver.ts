@@ -1,9 +1,13 @@
 import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 
 import { getRuntimeEnvironmentText } from '../../../core/providers/providerEnvironment';
 import { getHostnameKey } from '../../../utils/env';
 import { expandHomePath } from '../../../utils/path';
 import { getKimicodeProviderSettings } from '../settings';
+
+const KIMI_CODE_DEFAULT_BIN = path.join(os.homedir(), '.kimi-code', 'bin', 'kimi');
 
 export class KimicodeCliResolver {
   private readonly cachedHostname = getHostnameKey();
@@ -44,7 +48,9 @@ export class KimicodeCliResolver {
     _envText: string,
   ): string | null {
     const hostnamePath = (hostnamePaths?.[this.cachedHostname] ?? '').trim();
-    return resolveConfiguredCliPath(hostnamePath) ?? resolveConfiguredCliPath(legacyPath.trim());
+    return resolveConfiguredCliPath(hostnamePath)
+      ?? resolveConfiguredCliPath(legacyPath.trim())
+      ?? resolveConfiguredCliPath(KIMI_CODE_DEFAULT_BIN);
   }
 
   reset(): void {
