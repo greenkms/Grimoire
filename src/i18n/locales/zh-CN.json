@@ -487,6 +487,94 @@
       "untitled": "未命名工作区",
       "new": "新工作区",
       "changeFailed": "切换项目工作区失败"
+    },
+    "providers": {
+      "grok": {
+        "desc": "xAI 的 agentic coding CLI，支持 plan mode、subagents、skills 和 MCP。"
+      }
+    },
+    "grok": {
+      "cliPath": {
+        "desc": "此电脑上 Grok Build CLI 的可选绝对路径。留空则使用 PATH 中的 `grok`。"
+      },
+      "visibleModels": {
+        "name": "可见模型",
+        "desc": "选择哪些 Grok Build 模型显示在聊天选择器中。可按 provider 或类型筛选。当前 session model 即使未在此选择也会保持固定。"
+      },
+      "modelPicker": {
+        "browseModels": "浏览模型",
+        "searchPlaceholder": "按模型、provider 或 ID 筛选...",
+        "visibleLabel": "可见：",
+        "summaryDiscovered": "共发现 {total} 个 - {count} 个 {providerWord}",
+        "providerSingular": "provider",
+        "providerPlural": "providers",
+        "noDiscovered": "尚未发现模型",
+        "loadingModels": "正在加载模型...",
+        "availableCount": "{count} 个可用",
+        "selectedCount": "已选择 ({count})",
+        "clearSelected": "清除所有已选模型",
+        "notReported": "Grok Build 当前未报告",
+        "aliasLabel": "{model} 的别名",
+        "aliasTitle": "显示在模型选择器中的自定义标签。留空则使用默认值。",
+        "removeModel": "移除 {model}",
+        "allProviders": "所有 providers ({count})",
+        "noMatch": "没有模型匹配当前筛选。",
+        "loadingCatalog": "正在加载 Grok Build 模型目录...",
+        "loadFailed": "无法加载 Grok Build 模型目录。请检查 CLI 路径和登录状态，然后重新展开此部分。",
+        "startToLoad": "先启动一次 Grok Build 以加载模型目录。随后 Grimoire 将允许你选择可见模型。",
+        "unavailable": "不可用",
+        "unavailableTitle": "配置的模型当前未由 Grok Build 报告"
+      },
+      "advanced": {
+        "summary": "隐藏命令、subagents、环境和 context overrides"
+      },
+      "commands": {
+        "desc": "Grok Build 可以自动检测 .claude/commands/ 中的 vault-level Claude slash commands，以及 .claude/skills/、.codex/skills/ 和 .agents/skills/ 中的 skills。请在 Claude 或 Codex 设置标签页管理这些条目。此设置只会从 Grok Build 下拉菜单中隐藏条目。"
+      },
+      "hiddenCommands": {
+        "desc": "从下拉菜单中隐藏特定 Grok Build commands 和 skills。输入不带开头 slash 的名称，每行一个。"
+      },
+      "subagents": {
+        "desc": "管理 .grok/agent/ 和 legacy .grok/agents/ 中的 vault-level Grok Build subagents。新条目会保存为 subagent-only 文件，并显示在 @mention 菜单中。",
+        "title": "Grok Build Subagents",
+        "noAgents": "vault 中没有 Grok Build subagents。点击 + 创建一个。",
+        "modalTitleEdit": "编辑 Grok Subagent",
+        "modalTitleAdd": "添加 Grok Subagent",
+        "nameDesc": "Grok Build agent 名称。嵌套 agents 使用 slash 分隔的 segments。",
+        "descriptionDesc": "Grok Build 何时应使用此 subagent",
+        "modelDesc": "provider/model 格式的模型覆盖",
+        "variant": "Variant",
+        "variantDesc": "模型 variant 覆盖",
+        "temperature": "Temperature",
+        "temperatureDesc": "可选 sampling temperature",
+        "topP": "Top p",
+        "topPDesc": "可选 nucleus sampling 值",
+        "color": "Color",
+        "colorDesc": "十六进制颜色或 theme token",
+        "steps": "Steps",
+        "stepsDesc": "强制 text-only output 前的最大 agentic iterations",
+        "hideFromMention": "从 @mention 隐藏",
+        "hideFromMentionDesc": "从 @ autocomplete 菜单中隐藏此 subagent",
+        "disableAgent": "禁用 agent",
+        "disableAgentDesc": "禁用 agent 但不删除文件",
+        "enabledTools": "Enabled tools (JSON)",
+        "enabledToolsDesc": "可选 deprecated tools map，例如 {\"write\":false,\"edit\":false}",
+        "permission": "Permission (JSON)",
+        "permissionDesc": "可选 permission config，例如 {\"edit\":\"deny\",\"bash\":\"allow\"}",
+        "options": "Options (JSON)",
+        "optionsDesc": "可选 custom agent options",
+        "promptDesc": "用作 agent prompt 的 Markdown body",
+        "promptPlaceholder": "仔细审查代码变更，并指出正确性问题、回归和缺失覆盖。",
+        "deleteFailed": "删除 subagent 失败",
+        "invalidNumber": "{label} 必须是有效数字",
+        "invalidPositiveInteger": "{label} 必须是正整数",
+        "invalidJson": "{label} 必须是有效 JSON",
+        "invalidJsonObject": "{label} 必须是 JSON object",
+        "invalidBooleanMap": "{label} 必须将 tool names 映射到 boolean values"
+      },
+      "environment": {
+        "desc": "传递给 Grok 的额外环境变量。默认启用 `GROK_ENABLE_EXA=1`。"
+      }
     }
   }
 }

@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 
+import { setLocale, t } from '@/i18n/i18n';
 import { GROK_DEFAULT_ENVIRONMENT_VARIABLES } from '@/providers/grok/settings';
 import { grokSettingsTabRenderer } from '@/providers/grok/ui/GrokSettingsTab';
 
@@ -433,6 +434,7 @@ describe('GrokSettingsTab', () => {
     mockRuntimeWarmModelMetadata.mockResolvedValue(false);
     mockedExistsSync.mockReturnValue(false);
     mockedStatSync.mockReturnValue({ isFile: () => true } as fs.Stats);
+    setLocale('en');
   });
 
   it('stores the CLI path per host and resets active runtime state across all views', async () => {
@@ -441,8 +443,8 @@ describe('GrokSettingsTab', () => {
 
     grokSettingsTabRenderer.render(createContainer(), createContext(plugin));
 
-    const cliPathSetting = findSetting('CLI path');
-    expect(cliPathSetting.desc).toBe('Optional absolute path to the Grok Build CLI for this computer. Leave empty to use `grok` from PATH.');
+    const cliPathSetting = findSetting(t('settings.cliPath.name'));
+    expect(cliPathSetting.desc).toBe(t('settings.grok.cliPath.desc'));
     expect(cliPathSetting.textComponents[0].placeholder).toBe('/usr/local/bin/grok');
     await cliPathSetting.textComponents[0].onChangeCallback?.('/custom/grok');
 
@@ -466,20 +468,20 @@ describe('GrokSettingsTab', () => {
 
     grokSettingsTabRenderer.render(createContainer(), context);
 
-    expect(findSetting('Commands and skills').heading).toBe(true);
+    expect(findSetting(t('settings.slashCommands.name')).heading).toBe(true);
     expect(context.renderHiddenProviderCommandSetting).toHaveBeenCalledWith(
       expect.anything(),
       'grok',
       expect.objectContaining({
-        name: 'Hidden Commands and Skills',
-        desc: 'Hide specific Grok Build commands and skills from the dropdown. Enter names without the leading slash, one per line.',
+        name: t('settings.hiddenSlashCommands.name'),
+        desc: t('settings.grok.hiddenCommands.desc'),
       }),
     );
 
     expect(createdElements).toContainEqual({
       cls: 'setting-item-description',
       tag: 'p',
-      text: 'Grok Build can auto-detect vault-level Claude slash commands from .claude/commands/ and skills from .claude/skills/, .codex/skills/, and .agents/skills/. Manage those entries in the Claude or Codex settings tab. This setting only hides entries from the Grok Build dropdown.',
+      text: t('settings.grok.commands.desc'),
     });
   });
 
@@ -488,10 +490,10 @@ describe('GrokSettingsTab', () => {
 
     grokSettingsTabRenderer.render(createContainer(), createContext(plugin));
 
-    expect(findSetting('Subagents').heading).toBe(true);
+    expect(findSetting(t('settings.subagents.name')).heading).toBe(true);
     expect(createdElements.some((element) => (
       element.tag === 'p'
-      && element.text === 'Manage vault-level grok build subagents from .grok/agent/ and legacy .grok/agents/. New entries are saved as subagent-only files and appear in the @mention menu.'
+      && element.text === t('settings.grok.subagents.desc')
     ))).toBe(true);
 
     expect(mockCreatedAgentSettings).toHaveLength(1);

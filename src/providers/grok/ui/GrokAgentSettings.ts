@@ -1,6 +1,7 @@
 import type { App } from 'obsidian';
 import { Modal, Notice, setIcon, Setting } from 'obsidian';
 
+import { t } from '../../../i18n/i18n';
 import { confirmDelete } from '../../../shared/modals/ConfirmModal';
 import type { GrokAgentStorage } from '../storage/GrokAgentStorage';
 import type { GrokAgentDefinition } from '../types/agent';
@@ -66,7 +67,7 @@ class GrokAgentModal extends Modal {
   }
 
   onOpen() {
-    this.setTitle(this.existing ? 'Edit Grok Subagent' : 'Add Grok Subagent');
+    this.setTitle(this.existing ? t('settings.grok.subagents.modalTitleEdit') : t('settings.grok.subagents.modalTitleAdd'));
     this.modalEl.addClass('grimoire-sp-modal');
 
     const { contentEl } = this;
@@ -86,8 +87,8 @@ class GrokAgentModal extends Modal {
     let optionsInput!: HTMLTextAreaElement;
 
     new Setting(contentEl)
-      .setName('Name')
-      .setDesc('Grok build agent name. Use slash-separated segments for nested agents.')
+      .setName(t('settings.subagents.modal.name'))
+      .setDesc(t('settings.grok.subagents.nameDesc'))
       .addText((text) => {
         nameInput = text.inputEl;
         text.setValue(this.existing?.name ?? '')
@@ -95,8 +96,8 @@ class GrokAgentModal extends Modal {
       });
 
     new Setting(contentEl)
-      .setName('Description')
-      .setDesc('When grok build should use this subagent')
+      .setName(t('settings.subagents.modal.description'))
+      .setDesc(t('settings.grok.subagents.descriptionDesc'))
       .addText((text) => {
         descriptionInput = text.inputEl;
         text.setValue(this.existing?.description ?? '')
@@ -105,7 +106,7 @@ class GrokAgentModal extends Modal {
 
     const details = contentEl.createEl('details', { cls: 'grimoire-sp-advanced-section' });
     details.createEl('summary', {
-      text: 'Advanced options',
+      text: t('settings.subagents.modal.advancedOptions'),
       cls: 'grimoire-sp-advanced-summary',
     });
     if (
@@ -125,8 +126,8 @@ class GrokAgentModal extends Modal {
     }
 
     new Setting(details)
-      .setName('Model')
-      .setDesc('Model override in provider/model format')
+      .setName(t('settings.subagents.modal.model'))
+      .setDesc(t('settings.grok.subagents.modelDesc'))
       .addText((text) => {
         modelInput = text.inputEl;
         text.setValue(this.existing?.model ?? '')
@@ -134,8 +135,8 @@ class GrokAgentModal extends Modal {
       });
 
     new Setting(details)
-      .setName('Variant')
-      .setDesc('Model variant override')
+      .setName(t('settings.grok.subagents.variant'))
+      .setDesc(t('settings.grok.subagents.variantDesc'))
       .addText((text) => {
         variantInput = text.inputEl;
         text.setValue(this.existing?.variant ?? '')
@@ -143,8 +144,8 @@ class GrokAgentModal extends Modal {
       });
 
     new Setting(details)
-      .setName('Temperature')
-      .setDesc('Optional sampling temperature')
+      .setName(t('settings.grok.subagents.temperature'))
+      .setDesc(t('settings.grok.subagents.temperatureDesc'))
       .addText((text) => {
         temperatureInput = text.inputEl;
         text.setValue(this.existing?.temperature !== undefined ? String(this.existing.temperature) : '')
@@ -152,8 +153,8 @@ class GrokAgentModal extends Modal {
       });
 
     new Setting(details)
-      .setName('Top p')
-      .setDesc('Optional nucleus sampling value')
+      .setName(t('settings.grok.subagents.topP'))
+      .setDesc(t('settings.grok.subagents.topPDesc'))
       .addText((text) => {
         topPInput = text.inputEl;
         text.setValue(this.existing?.topP !== undefined ? String(this.existing.topP) : '')
@@ -161,8 +162,8 @@ class GrokAgentModal extends Modal {
       });
 
     new Setting(details)
-      .setName('Color')
-      .setDesc('Hex color or theme token')
+      .setName(t('settings.grok.subagents.color'))
+      .setDesc(t('settings.grok.subagents.colorDesc'))
       .addText((text) => {
         colorInput = text.inputEl;
         text.setValue(this.existing?.color ?? '')
@@ -170,8 +171,8 @@ class GrokAgentModal extends Modal {
       });
 
     new Setting(details)
-      .setName('Steps')
-      .setDesc('Maximum agentic iterations before forcing text-only output')
+      .setName(t('settings.grok.subagents.steps'))
+      .setDesc(t('settings.grok.subagents.stepsDesc'))
       .addText((text) => {
         stepsInput = text.inputEl;
         text.setValue(this.existing?.steps !== undefined ? String(this.existing.steps) : '')
@@ -179,8 +180,8 @@ class GrokAgentModal extends Modal {
       });
 
     new Setting(details)
-      .setName('Hide from @mention')
-      .setDesc('Hide this subagent from the @ autocomplete menu')
+      .setName(t('settings.grok.subagents.hideFromMention'))
+      .setDesc(t('settings.grok.subagents.hideFromMentionDesc'))
       .addToggle((toggle) => {
         toggle.setValue(hiddenValue).onChange((value) => {
           hiddenValue = value;
@@ -188,8 +189,8 @@ class GrokAgentModal extends Modal {
       });
 
     new Setting(details)
-      .setName('Disable agent')
-      .setDesc('Disable the agent without deleting the file')
+      .setName(t('settings.grok.subagents.disableAgent'))
+      .setDesc(t('settings.grok.subagents.disableAgentDesc'))
       .addToggle((toggle) => {
         toggle.setValue(disableValue).onChange((value) => {
           disableValue = value;
@@ -197,8 +198,8 @@ class GrokAgentModal extends Modal {
       });
 
     new Setting(details)
-      .setName('Enabled tools (JSON)')
-      .setDesc('Optional deprecated tools map, e.g. {"write":false,"edit":false}')
+      .setName(t('settings.grok.subagents.enabledTools'))
+      .setDesc(t('settings.grok.subagents.enabledToolsDesc'))
       .addTextArea((text) => {
         toolsInput = text.inputEl;
         text.setValue(this.existing?.tools ? JSON.stringify(this.existing.tools, null, 2) : '')
@@ -206,8 +207,8 @@ class GrokAgentModal extends Modal {
       });
 
     new Setting(details)
-      .setName('Permission (JSON)')
-      .setDesc('Optional permission config, e.g. {"edit":"deny","bash":"allow"}')
+      .setName(t('settings.grok.subagents.permission'))
+      .setDesc(t('settings.grok.subagents.permissionDesc'))
       .addTextArea((text) => {
         permissionInput = text.inputEl;
         text.setValue(this.existing?.permission !== undefined ? JSON.stringify(this.existing.permission, null, 2) : '')
@@ -215,8 +216,8 @@ class GrokAgentModal extends Modal {
       });
 
     new Setting(details)
-      .setName('Options (JSON)')
-      .setDesc('Optional custom agent options')
+      .setName(t('settings.grok.subagents.options'))
+      .setDesc(t('settings.grok.subagents.optionsDesc'))
       .addTextArea((text) => {
         optionsInput = text.inputEl;
         text.setValue(this.existing?.options ? JSON.stringify(this.existing.options, null, 2) : '')
@@ -224,14 +225,14 @@ class GrokAgentModal extends Modal {
       });
 
     new Setting(contentEl)
-      .setName('Prompt')
-      .setDesc('Markdown body used as the agent prompt');
+      .setName(t('settings.subagents.modal.prompt'))
+      .setDesc(t('settings.grok.subagents.promptDesc'));
 
     const promptArea = contentEl.createEl('textarea', {
       cls: 'grimoire-sp-content-area',
       attr: {
         rows: '10',
-        placeholder: 'Review code changes carefully and call out correctness, regressions, and missing coverage.',
+        placeholder: t('settings.grok.subagents.promptPlaceholder'),
       },
     });
     promptArea.value = this.existing?.prompt ?? '';
@@ -239,13 +240,13 @@ class GrokAgentModal extends Modal {
     const buttonContainer = contentEl.createDiv({ cls: 'grimoire-sp-modal-buttons' });
 
     const cancelBtn = buttonContainer.createEl('button', {
-      text: 'Cancel',
+      text: t('common.cancel'),
       cls: 'grimoire-cancel-btn',
     });
     cancelBtn.addEventListener('click', () => this.close());
 
     const saveBtn = buttonContainer.createEl('button', {
-      text: 'Save',
+      text: t('common.save'),
       cls: 'grimoire-save-btn',
     });
     saveBtn.addEventListener('click', () => {
@@ -259,13 +260,13 @@ class GrokAgentModal extends Modal {
 
       const description = descriptionInput.value.trim();
       if (!description) {
-        new Notice('Description is required');
+        new Notice(t('settings.subagents.descriptionRequired'));
         return;
       }
 
       const prompt = promptArea.value;
       if (!prompt.trim()) {
-        new Notice('Prompt is required');
+        new Notice(t('settings.subagents.promptRequired'));
         return;
       }
 
@@ -275,41 +276,41 @@ class GrokAgentModal extends Modal {
         this.existing?.persistenceKey,
       );
       if (duplicate) {
-        new Notice(`A subagent named "${name}" already exists`);
+        new Notice(t('settings.subagents.duplicateName', { name }));
         return;
       }
 
-      const temperature = parseOptionalNumber(temperatureInput.value, 'Temperature');
+      const temperature = parseOptionalNumber(temperatureInput.value, t('settings.grok.subagents.temperature'));
       if (temperature.error) {
         new Notice(temperature.error);
         return;
       }
 
-      const topP = parseOptionalNumber(topPInput.value, 'Top P');
+      const topP = parseOptionalNumber(topPInput.value, t('settings.grok.subagents.topP'));
       if (topP.error) {
         new Notice(topP.error);
         return;
       }
 
-      const steps = parseOptionalPositiveInteger(stepsInput.value, 'Steps');
+      const steps = parseOptionalPositiveInteger(stepsInput.value, t('settings.grok.subagents.steps'));
       if (steps.error) {
         new Notice(steps.error);
         return;
       }
 
-      const tools = parseOptionalJsonObjectOfBooleans(toolsInput.value, 'Enabled Tools');
+      const tools = parseOptionalJsonObjectOfBooleans(toolsInput.value, t('settings.grok.subagents.enabledTools'));
       if (tools.error) {
         new Notice(tools.error);
         return;
       }
 
-      const permission = parseOptionalJson(permissionInput.value, 'Permission');
+      const permission = parseOptionalJson(permissionInput.value, t('settings.grok.subagents.permission'));
       if (permission.error) {
         new Notice(permission.error);
         return;
       }
 
-      const options = parseOptionalJsonObject(optionsInput.value, 'Options');
+      const options = parseOptionalJsonObject(optionsInput.value, t('settings.grok.subagents.options'));
       if (options.error) {
         new Notice(options.error);
         return;
@@ -339,7 +340,7 @@ class GrokAgentModal extends Modal {
         await this.onSave(agent);
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
-        new Notice(`Failed to save subagent: ${message}`);
+        new Notice(t('settings.subagents.saveFailed', { message }));
         return;
       }
       this.close();
@@ -384,27 +385,27 @@ export class GrokAgentSettings {
     const visibleAgents = this.agents.filter((agent) => agent.mode === 'subagent');
 
     const headerEl = this.containerEl.createDiv({ cls: 'grimoire-sp-header' });
-    headerEl.createSpan({ text: 'Grok Build Subagents', cls: 'grimoire-sp-label' });
+    headerEl.createSpan({ text: t('settings.grok.subagents.title'), cls: 'grimoire-sp-label' });
 
     const actionsEl = headerEl.createDiv({ cls: 'grimoire-sp-header-actions' });
 
     const refreshBtn = actionsEl.createEl('button', {
       cls: 'grimoire-settings-action-btn',
-      attr: { 'aria-label': 'Refresh' },
+      attr: { 'aria-label': t('common.refresh') },
     });
     setIcon(refreshBtn, 'refresh-cw');
     refreshBtn.addEventListener('click', () => { void this.render(); });
 
     const addBtn = actionsEl.createEl('button', {
       cls: 'grimoire-settings-action-btn',
-      attr: { 'aria-label': 'Add' },
+      attr: { 'aria-label': t('common.add') },
     });
     setIcon(addBtn, 'plus');
     addBtn.addEventListener('click', () => this.openModal(null));
 
     if (visibleAgents.length === 0) {
       const emptyEl = this.containerEl.createDiv({ cls: 'grimoire-sp-empty-state' });
-      emptyEl.setText('No grok build subagents in vault. Click + to create one.');
+      emptyEl.setText(t('settings.grok.subagents.noAgents'));
       return;
     }
 
@@ -440,14 +441,14 @@ export class GrokAgentSettings {
 
     const editBtn = actionsEl.createEl('button', {
       cls: 'grimoire-settings-action-btn',
-      attr: { 'aria-label': 'Edit' },
+      attr: { 'aria-label': t('common.edit') },
     });
     setIcon(editBtn, 'pencil');
     editBtn.addEventListener('click', () => this.openModal(agent));
 
     const deleteBtn = actionsEl.createEl('button', {
       cls: 'grimoire-settings-action-btn grimoire-settings-delete-btn',
-      attr: { 'aria-label': 'Delete' },
+      attr: { 'aria-label': t('common.delete') },
     });
     setIcon(deleteBtn, 'trash-2');
     deleteBtn.addEventListener('click', () => {
@@ -455,16 +456,16 @@ export class GrokAgentSettings {
       if (!this.app) return;
       const confirmed = await confirmDelete(
         this.app,
-        `Delete subagent "${agent.name}"?`,
+        t('settings.subagents.deleteConfirm', { name: agent.name }),
       );
       if (!confirmed) return;
       try {
         await this.storage.delete(agent);
         await this.render();
         await this.onChanged?.();
-        new Notice(`Subagent "${agent.name}" deleted`);
+        new Notice(t('settings.subagents.deleted', { name: agent.name }));
       } catch {
-        new Notice('Failed to delete subagent');
+        new Notice(t('settings.grok.subagents.deleteFailed'));
       }
       })();
     });
@@ -483,8 +484,8 @@ export class GrokAgentSettings {
         await this.onChanged?.();
         new Notice(
           existing
-            ? `Subagent "${agent.name}" updated`
-            : `Subagent "${agent.name}" created`,
+            ? t('settings.subagents.updated', { name: agent.name })
+            : t('settings.subagents.created', { name: agent.name }),
         );
       },
     );
@@ -503,7 +504,7 @@ function parseOptionalNumber(
 
   const parsed = Number(trimmed);
   if (!Number.isFinite(parsed)) {
-    return { error: `${label} must be a valid number` };
+    return { error: t('settings.grok.subagents.invalidNumber', { label }) };
   }
 
   return { value: parsed };
@@ -520,7 +521,7 @@ function parseOptionalPositiveInteger(
 
   const parsed = Number(trimmed);
   if (!Number.isInteger(parsed) || parsed <= 0) {
-    return { error: `${label} must be a positive integer` };
+    return { error: t('settings.grok.subagents.invalidPositiveInteger', { label }) };
   }
 
   return { value: parsed };
@@ -538,7 +539,7 @@ function parseOptionalJson(
   try {
     return { value: JSON.parse(trimmed) };
   } catch {
-    return { error: `${label} must be valid JSON` };
+    return { error: t('settings.grok.subagents.invalidJson', { label }) };
   }
 }
 
@@ -552,7 +553,7 @@ function parseOptionalJsonObject(
   }
 
   if (!isJsonObject(parsed.value)) {
-    return { error: `${label} must be a JSON object` };
+    return { error: t('settings.grok.subagents.invalidJsonObject', { label }) };
   }
 
   return { value: parsed.value };
@@ -568,7 +569,7 @@ function parseOptionalJsonObjectOfBooleans(
   }
 
   if (!Object.values(parsed.value).every((entry) => typeof entry === 'boolean')) {
-    return { error: `${label} must map tool names to boolean values` };
+    return { error: t('settings.grok.subagents.invalidBooleanMap', { label }) };
   }
 
   return { value: parsed.value as Record<string, boolean> };

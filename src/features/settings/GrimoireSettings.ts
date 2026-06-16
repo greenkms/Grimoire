@@ -138,7 +138,7 @@ function isHtmlElement(element: Element | null): element is HTMLElement {
   return 'classList' in element;
 }
 
-const PROVIDER_SETTING_COPY: Record<ProviderId, { desc: string; name: string }> = {
+const PROVIDER_SETTING_COPY: Record<ProviderId, { desc?: string; descKey?: TranslationKey; name: string }> = {
   claude: {
     desc: 'Anthropic\'s agentic CLI. Recommended default.',
     name: 'Claude Code',
@@ -168,7 +168,7 @@ const PROVIDER_SETTING_COPY: Record<ProviderId, { desc: string; name: string }> 
     name: 'Kimi Code',
   },
   grok: {
-    desc: 'xAI\'s agentic coding CLI with plan mode, subagents, skills, and MCP.',
+    descKey: 'settings.providers.grok.desc',
     name: 'Grok Build',
   },
 };
@@ -729,7 +729,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
     };
     const setting = new Setting(container)
       .setName(copy.name)
-      .setDesc(copy.desc);
+      .setDesc(copy.descKey ? t(copy.descKey) : copy.desc ?? '');
 
     setting.settingEl.addClass('grimoire-provider-row');
     setting.settingEl.addClass(`grimoire-provider-row--${providerId}`);

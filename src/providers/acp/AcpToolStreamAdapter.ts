@@ -45,7 +45,8 @@ export class AcpToolStreamAdapter {
   }
 
   normalizeToolCallUpdate(toolCallUpdate: AcpToolCallUpdate, chunks: StreamChunk[]): StreamChunk[] {
-    const state = this.updateToolState(this.toolStates.get(toolCallUpdate.toolCallId), {
+    const previousState = this.toolStates.get(toolCallUpdate.toolCallId);
+    const state = this.updateToolState(previousState, {
       kind: toolCallUpdate.kind,
       locations: toolCallUpdate.locations,
       rawInput: toolCallUpdate.rawInput,
@@ -54,7 +55,10 @@ export class AcpToolStreamAdapter {
     this.toolStates.set(toolCallUpdate.toolCallId, state);
 
     const result: StreamChunk[] = [];
-    if (toolCallUpdate.rawInput !== undefined) {
+    if (
+      toolCallUpdate.rawInput !== undefined
+      || !sameRecord(state.input, previousState?.input ?? {})
+    ) {
       result.push({
         id: toolCallUpdate.toolCallId,
         input: state.input,
@@ -190,4 +194,17 @@ function firstTrimmedString(...values: unknown[]): string | undefined {
   }
 
   return undefined;
+}
+
+function sameRecord(
+  left: Record<string, unknown>,
+  right: Record<string, unknown>,
+): boolean {
+  const leftKeys = Object.keys(left);
+  const rightKeys = Object.keys(right);
+  if (leftKeys.length !== rightKeys.length) {
+    return false;
+  }
+
+  return leftKeys.every((key) => Object.is(left[key], right[key]));
 }

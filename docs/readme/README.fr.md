@@ -292,7 +292,7 @@ Lancez "Grimoire: Inline edit" sur une sélection. Un prompt s'ouvre près du te
 
 ### Commands
 
-Les built-in commands couvrent les workflows Grimoire comme image generation et resume. Les providers qui exposent leurs propres commands, comme Claude Code slash commands et OpenCode runtime commands, les affichent via provider-owned catalogs. Masquez celles que vous n'utilisez pas dans settings.
+Les built-in commands couvrent les workflows Grimoire comme image generation et resume. Les providers qui exposent leurs propres commands, comme Claude Code slash commands, OpenCode runtime commands et Grok Build runtime commands, les affichent via provider-owned catalogs. Masquez celles que vous n'utilisez pas dans settings.
 
 ### Image generation
 

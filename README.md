@@ -288,7 +288,7 @@ When a provider asks for structured user input, Grimoire pauses the turn and ren
 
 ### Commands
 
-Built-in commands cover Grimoire workflows like image generation and resume. Providers that expose their own commands, such as Claude Code slash commands and OpenCode runtime commands, surface them through provider-owned catalogs. Hide the ones you don't use from the dropdown in settings.
+Built-in commands cover Grimoire workflows like image generation and resume. Providers that expose their own commands, such as Claude Code slash commands, OpenCode runtime commands, and Grok Build runtime commands, surface them through provider-owned catalogs. Hide the ones you don't use from the dropdown in settings.
 
 ### Image generation
 

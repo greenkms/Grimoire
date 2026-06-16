@@ -487,6 +487,94 @@
       "untitled": "Безымянная рабочая область",
       "new": "Новая рабочая область",
       "changeFailed": "Не удалось изменить проектную рабочую область"
+    },
+    "providers": {
+      "grok": {
+        "desc": "Agentic coding CLI от xAI с plan mode, subagents, skills и MCP."
+      }
+    },
+    "grok": {
+      "cliPath": {
+        "desc": "Необязательный абсолютный путь к Grok Build CLI на этом компьютере. Оставьте пустым, чтобы использовать `grok` из PATH."
+      },
+      "visibleModels": {
+        "name": "Видимые модели",
+        "desc": "Выберите, какие модели Grok Build показывать в selector чата. Можно фильтровать по provider или типу. Модель текущей session остается закрепленной, даже если она здесь не выбрана."
+      },
+      "modelPicker": {
+        "browseModels": "Просмотреть модели",
+        "searchPlaceholder": "Фильтр по модели, provider или ID...",
+        "visibleLabel": "Видимые:",
+        "summaryDiscovered": "из {total} найденных - {count} {providerWord}",
+        "providerSingular": "provider",
+        "providerPlural": "providers",
+        "noDiscovered": "Модели пока не найдены",
+        "loadingModels": "Загрузка моделей...",
+        "availableCount": "Доступно: {count}",
+        "selectedCount": "Выбрано ({count})",
+        "clearSelected": "Очистить все выбранные модели",
+        "notReported": "Сейчас не сообщается Grok Build",
+        "aliasLabel": "Псевдоним для {model}",
+        "aliasTitle": "Пользовательская метка в model selector. Оставьте пустым, чтобы использовать значение по умолчанию.",
+        "removeModel": "Удалить {model}",
+        "allProviders": "Все providers ({count})",
+        "noMatch": "Нет моделей, подходящих под фильтр.",
+        "loadingCatalog": "Загрузка каталога моделей Grok Build...",
+        "loadFailed": "Не удалось загрузить каталог моделей Grok Build. Проверьте путь к CLI и состояние входа, затем разверните этот раздел снова.",
+        "startToLoad": "Запустите Grok Build один раз, чтобы загрузить каталог моделей. После этого Grimoire позволит выбрать видимые модели.",
+        "unavailable": "Недоступно",
+        "unavailableTitle": "Настроенная модель сейчас не сообщается Grok Build"
+      },
+      "advanced": {
+        "summary": "Скрытые команды, subagents, environment и context overrides"
+      },
+      "commands": {
+        "desc": "Grok Build может автоматически находить vault-level Claude slash commands из .claude/commands/ и skills из .claude/skills/, .codex/skills/ и .agents/skills/. Управляйте этими записями во вкладках Claude или Codex. Эта настройка только скрывает записи из dropdown Grok Build."
+      },
+      "hiddenCommands": {
+        "desc": "Скрыть отдельные команды и skills Grok Build из dropdown. Вводите имена без начального slash, по одному на строку."
+      },
+      "subagents": {
+        "desc": "Управляйте vault-level Grok Build subagents из .grok/agent/ и legacy .grok/agents/. Новые записи сохраняются как subagent-only файлы и появляются в меню @mention.",
+        "title": "Subagents Grok Build",
+        "noAgents": "В vault нет subagents Grok Build. Нажмите +, чтобы создать.",
+        "modalTitleEdit": "Редактировать Grok subagent",
+        "modalTitleAdd": "Добавить Grok subagent",
+        "nameDesc": "Имя agent Grok Build. Для вложенных agents используйте сегменты через slash.",
+        "descriptionDesc": "Когда Grok Build должен использовать этот subagent",
+        "modelDesc": "Переопределение модели в формате provider/model",
+        "variant": "Variant",
+        "variantDesc": "Переопределение variant модели",
+        "temperature": "Temperature",
+        "temperatureDesc": "Необязательная sampling temperature",
+        "topP": "Top p",
+        "topPDesc": "Необязательное значение nucleus sampling",
+        "color": "Color",
+        "colorDesc": "Hex color или theme token",
+        "steps": "Steps",
+        "stepsDesc": "Максимум agentic iterations перед принудительным text-only output",
+        "hideFromMention": "Скрыть из @mention",
+        "hideFromMentionDesc": "Скрыть этот subagent из меню @ autocomplete",
+        "disableAgent": "Отключить agent",
+        "disableAgentDesc": "Отключить agent, не удаляя файл",
+        "enabledTools": "Enabled tools (JSON)",
+        "enabledToolsDesc": "Необязательная deprecated tools map, например {\"write\":false,\"edit\":false}",
+        "permission": "Permission (JSON)",
+        "permissionDesc": "Необязательная permission config, например {\"edit\":\"deny\",\"bash\":\"allow\"}",
+        "options": "Options (JSON)",
+        "optionsDesc": "Необязательные custom agent options",
+        "promptDesc": "Markdown body, используемый как agent prompt",
+        "promptPlaceholder": "Внимательно проверь изменения кода и укажи проблемы корректности, регрессии и недостающее покрытие.",
+        "deleteFailed": "Не удалось удалить subagent",
+        "invalidNumber": "{label} должен быть корректным числом",
+        "invalidPositiveInteger": "{label} должен быть положительным целым числом",
+        "invalidJson": "{label} должен быть корректным JSON",
+        "invalidJsonObject": "{label} должен быть JSON object",
+        "invalidBooleanMap": "{label} должен сопоставлять tool names с boolean values"
+      },
+      "environment": {
+        "desc": "Дополнительные environment variables, передаваемые Grok. `GROK_ENABLE_EXA=1` включен по умолчанию."
+      }
     }
   }
 }

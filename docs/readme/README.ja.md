@@ -292,7 +292,7 @@ Composer から vault notes と folders を直接 mention できます。Current
 
 ### Commands
 
-Built-in commands は image generation や resume などの Grimoire workflows をカバーします。Claude Code slash commands や OpenCode runtime commands のように provider が独自 commands を公開する場合は、provider-owned catalogs 経由で表示されます。使わない commands は settings で隠せます。
+Built-in commands は image generation や resume などの Grimoire workflows をカバーします。Claude Code slash commands、OpenCode runtime commands、Grok Build runtime commands のように provider が独自 commands を公開する場合は、provider-owned catalogs 経由で表示されます。使わない commands は settings で隠せます。
 
 ### Image generation
 

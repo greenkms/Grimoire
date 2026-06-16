@@ -487,6 +487,94 @@
       "untitled": "제목 없는 작업공간",
       "new": "새 작업공간",
       "changeFailed": "프로젝트 작업공간 변경 실패"
+    },
+    "providers": {
+      "grok": {
+        "desc": "plan mode, subagents, skills, MCP를 지원하는 xAI의 agentic coding CLI입니다."
+      }
+    },
+    "grok": {
+      "cliPath": {
+        "desc": "이 컴퓨터에서 사용할 Grok Build CLI의 선택적 절대 경로입니다. 비워 두면 PATH의 `grok`을 사용합니다."
+      },
+      "visibleModels": {
+        "name": "표시할 모델",
+        "desc": "채팅 선택기에 표시할 Grok Build 모델을 고릅니다. provider나 type으로 필터링할 수 있습니다. 현재 session model은 여기에서 선택되지 않아도 고정됩니다."
+      },
+      "modelPicker": {
+        "browseModels": "모델 찾아보기",
+        "searchPlaceholder": "모델, provider 또는 ID로 필터...",
+        "visibleLabel": "표시:",
+        "summaryDiscovered": "총 {total}개 중 {count}개 {providerWord}",
+        "providerSingular": "provider",
+        "providerPlural": "providers",
+        "noDiscovered": "아직 감지된 모델이 없습니다",
+        "loadingModels": "모델을 불러오는 중...",
+        "availableCount": "{count}개 사용 가능",
+        "selectedCount": "선택됨 ({count})",
+        "clearSelected": "선택한 모델 모두 지우기",
+        "notReported": "현재 Grok Build에서 보고되지 않음",
+        "aliasLabel": "{model} 별칭",
+        "aliasTitle": "모델 선택기에 표시할 사용자 지정 라벨입니다. 비워 두면 기본값을 사용합니다.",
+        "removeModel": "{model} 제거",
+        "allProviders": "모든 providers ({count})",
+        "noMatch": "필터와 일치하는 모델이 없습니다.",
+        "loadingCatalog": "Grok Build 모델 카탈로그를 불러오는 중...",
+        "loadFailed": "Grok Build 모델 카탈로그를 불러오지 못했습니다. CLI 경로와 로그인 상태를 확인한 뒤 이 섹션을 다시 펼치세요.",
+        "startToLoad": "Grok Build를 한 번 시작하면 모델 카탈로그가 로드됩니다. 이후 Grimoire에서 표시할 모델을 고를 수 있습니다.",
+        "unavailable": "사용 불가",
+        "unavailableTitle": "설정된 모델이 현재 Grok Build에서 보고되지 않습니다"
+      },
+      "advanced": {
+        "summary": "숨긴 명령, subagents, 환경, context overrides"
+      },
+      "commands": {
+        "desc": "Grok Build는 .claude/commands/의 vault-level Claude slash commands와 .claude/skills/, .codex/skills/, .agents/skills/의 skills를 자동 감지할 수 있습니다. 해당 항목은 Claude 또는 Codex settings tab에서 관리하세요. 이 설정은 Grok Build dropdown에서만 항목을 숨깁니다."
+      },
+      "hiddenCommands": {
+        "desc": "Grok Build dropdown에서 특정 commands와 skills를 숨깁니다. 앞의 slash 없이 한 줄에 하나씩 입력하세요."
+      },
+      "subagents": {
+        "desc": ".grok/agent/와 legacy .grok/agents/의 vault-level Grok Build subagents를 관리합니다. 새 항목은 subagent-only files로 저장되고 @mention menu에 표시됩니다.",
+        "title": "Grok Build Subagents",
+        "noAgents": "vault에 Grok Build subagents가 없습니다. +를 눌러 하나 만드세요.",
+        "modalTitleEdit": "Grok Subagent 편집",
+        "modalTitleAdd": "Grok Subagent 추가",
+        "nameDesc": "Grok Build agent name입니다. 중첩 agents에는 slash-separated segments를 사용하세요.",
+        "descriptionDesc": "Grok Build가 이 subagent를 사용해야 하는 경우",
+        "modelDesc": "provider/model 형식의 model override",
+        "variant": "Variant",
+        "variantDesc": "Model variant override",
+        "temperature": "Temperature",
+        "temperatureDesc": "선택적 sampling temperature",
+        "topP": "Top p",
+        "topPDesc": "선택적 nucleus sampling value",
+        "color": "Color",
+        "colorDesc": "Hex color 또는 theme token",
+        "steps": "Steps",
+        "stepsDesc": "text-only output을 강제하기 전 최대 agentic iterations",
+        "hideFromMention": "@mention에서 숨기기",
+        "hideFromMentionDesc": "이 subagent를 @ autocomplete menu에서 숨깁니다",
+        "disableAgent": "Agent 비활성화",
+        "disableAgentDesc": "파일을 삭제하지 않고 agent를 비활성화합니다",
+        "enabledTools": "Enabled tools (JSON)",
+        "enabledToolsDesc": "선택적 deprecated tools map, 예: {\"write\":false,\"edit\":false}",
+        "permission": "Permission (JSON)",
+        "permissionDesc": "선택적 permission config, 예: {\"edit\":\"deny\",\"bash\":\"allow\"}",
+        "options": "Options (JSON)",
+        "optionsDesc": "선택적 custom agent options",
+        "promptDesc": "agent prompt로 사용할 Markdown body",
+        "promptPlaceholder": "코드 변경을 꼼꼼히 검토하고 correctness, regressions, missing coverage를 짚어 주세요.",
+        "deleteFailed": "subagent 삭제 실패",
+        "invalidNumber": "{label}은 유효한 숫자여야 합니다",
+        "invalidPositiveInteger": "{label}은 양의 정수여야 합니다",
+        "invalidJson": "{label}은 유효한 JSON이어야 합니다",
+        "invalidJsonObject": "{label}은 JSON object여야 합니다",
+        "invalidBooleanMap": "{label}은 tool names를 boolean values에 매핑해야 합니다"
+      },
+      "environment": {
+        "desc": "Grok에 전달되는 추가 environment variables입니다. `GROK_ENABLE_EXA=1`은 기본으로 활성화됩니다."
+      }
     }
   }
 }

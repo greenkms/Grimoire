@@ -284,7 +284,7 @@ Model selector 旁邊的 badge 會持續顯示目前 provider 的 usage；model 
 
 ### Commands
 
-Built-in commands 覆蓋 Grimoire workflows，例如 image generation 和 resume。Provider 暴露的自有 commands，例如 Claude Code slash commands 和 OpenCode runtime commands，會透過 provider-owned catalogs 顯示。你可以在 settings 中隱藏不使用的 commands。
+Built-in commands 覆蓋 Grimoire workflows，例如 image generation 和 resume。Provider 暴露的自有 commands，例如 Claude Code slash commands、OpenCode runtime commands 和 Grok Build runtime commands，會透過 provider-owned catalogs 顯示。你可以在 settings 中隱藏不使用的 commands。
 
 ### Image generation
 

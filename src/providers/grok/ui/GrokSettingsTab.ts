@@ -4,6 +4,7 @@ import { Setting } from 'obsidian';
 import type { ProviderSettingsTabRenderer } from '../../../core/providers/types';
 import { renderEnvironmentSettingsSection } from '../../../features/settings/ui/EnvironmentSettingsSection';
 import { renderProviderDisabledNotice } from '../../../features/settings/ui/ProviderDisabledNotice';
+import { t } from '../../../i18n/i18n';
 import { getHostnameKey } from '../../../utils/env';
 import { expandHomePath } from '../../../utils/path';
 import { maybeGetGrokWorkspaceServices } from '../app/GrokWorkspaceServices';
@@ -47,11 +48,11 @@ export const grokSettingsTabRenderer: ProviderSettingsTabRenderer = {
       renderProviderDisabledNotice(container, 'Grok');
     }
 
-    new Setting(container).setName('Setup').setHeading();
+    new Setting(container).setName(t('settings.setup')).setHeading();
 
     const cliPathSetting = new Setting(container)
-      .setName('CLI path')
-      .setDesc('Optional absolute path to the Grok Build CLI for this computer. Leave empty to use `grok` from PATH.');
+      .setName(t('settings.cliPath.name'))
+      .setDesc(t('settings.grok.cliPath.desc'));
 
     const validationEl = container.createDiv({
       cls: 'grimoire-cli-path-validation grimoire-setting-validation grimoire-setting-validation-error grimoire-hidden',
@@ -65,12 +66,12 @@ export const grokSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
       const expandedPath = expandHomePath(trimmed);
       if (!fs.existsSync(expandedPath)) {
-        return 'Path does not exist';
+        return t('settings.cliPath.validation.notExist');
       }
 
       const stat = fs.statSync(expandedPath);
       if (!stat.isFile()) {
-        return 'Path must point to a file';
+        return t('settings.cliPath.validation.isDirectory');
       }
 
       return null;
@@ -150,11 +151,11 @@ export const grokSettingsTabRenderer: ProviderSettingsTabRenderer = {
       updateCliPathValidation(currentValue, text.inputEl);
     });
 
-    new Setting(container).setName('Models').setHeading();
+    new Setting(container).setName(t('settings.models')).setHeading();
 
     new Setting(container)
-      .setName('Visible models')
-      .setDesc('Choose which grok build models appear in the chat selector. Filter by provider or type to search. The current session model stays pinned even if it is not selected here.');
+      .setName(t('settings.grok.visibleModels.name'))
+      .setDesc(t('settings.grok.visibleModels.desc'));
 
     const pickerEl = container.createDiv({ cls: 'grimoire-grok-model-picker' });
 
@@ -174,7 +175,7 @@ export const grokSettingsTabRenderer: ProviderSettingsTabRenderer = {
     });
     catalogSummaryEl.createSpan({
       cls: 'grimoire-grok-model-picker-catalog-title',
-      text: 'Browse models',
+      text: t('settings.grok.modelPicker.browseModels'),
     });
     const catalogSummaryCountEl = catalogSummaryEl.createSpan({
       cls: 'grimoire-grok-model-picker-catalog-count',
@@ -186,7 +187,7 @@ export const grokSettingsTabRenderer: ProviderSettingsTabRenderer = {
       cls: 'grimoire-grok-model-picker-search',
       type: 'search',
     });
-    searchInput.placeholder = 'Filter by model, provider, or ID…';
+    searchInput.placeholder = t('settings.grok.modelPicker.searchPlaceholder');
     searchInput.addEventListener('input', () => {
       searchQuery = searchInput.value.trim().toLowerCase();
       renderList();
@@ -274,22 +275,28 @@ export const grokSettingsTabRenderer: ProviderSettingsTabRenderer = {
       const current = getGrokProviderSettings(settingsBag);
       const enriched = getEnrichedModels();
       const providerCount = new Set(enriched.map((model) => model.providerKey)).size;
-      const providerWord = providerCount === 1 ? 'provider' : 'providers';
+      const providerWord = t(providerCount === 1
+        ? 'settings.grok.modelPicker.providerSingular'
+        : 'settings.grok.modelPicker.providerPlural');
 
-      summaryEl.createSpan({ text: 'Visible: ' });
+      summaryEl.createSpan({ text: `${t('settings.grok.modelPicker.visibleLabel')} ` });
       summaryEl.createSpan({
         cls: 'grimoire-grok-model-picker-summary-value',
         text: String(current.visibleModels.length),
       });
       summaryEl.createSpan({
-        text: ` of ${current.discoveredModels.length} discovered • ${providerCount} ${providerWord}`,
+        text: ` ${t('settings.grok.modelPicker.summaryDiscovered', {
+          count: providerCount,
+          providerWord,
+          total: current.discoveredModels.length,
+        })}`,
       });
 
-      let catalogSummary = 'No models discovered yet';
+      let catalogSummary = t('settings.grok.modelPicker.noDiscovered');
       if (loadingModelCatalog) {
-        catalogSummary = 'Loading models...';
+        catalogSummary = t('settings.grok.modelPicker.loadingModels');
       } else if (current.discoveredModels.length > 0) {
-        catalogSummary = `${current.discoveredModels.length} available`;
+        catalogSummary = t('settings.grok.modelPicker.availableCount', { count: current.discoveredModels.length });
       }
       catalogSummaryCountEl.setText(catalogSummary);
     };
@@ -310,13 +317,13 @@ export const grokSettingsTabRenderer: ProviderSettingsTabRenderer = {
       const headerEl = selectedEl.createDiv({ cls: 'grimoire-grok-model-picker-selected-header' });
       headerEl.createEl('span', {
         cls: 'grimoire-grok-model-picker-selected-label',
-        text: `Selected (${current.visibleModels.length})`,
+        text: t('settings.grok.modelPicker.selectedCount', { count: current.visibleModels.length }),
       });
       const clearAllBtn = headerEl.createEl('button', {
         cls: 'grimoire-grok-model-picker-selected-clear',
-        text: 'Clear all',
+        text: t('common.clearAll'),
       });
-      clearAllBtn.setAttribute('aria-label', 'Clear all selected models');
+      clearAllBtn.setAttribute('aria-label', t('settings.grok.modelPicker.clearSelected'));
       clearAllBtn.addEventListener('click', () => {
         void persistVisibleModels([]);
       });
@@ -355,7 +362,7 @@ export const grokSettingsTabRenderer: ProviderSettingsTabRenderer = {
         if (enriched && !enriched.isAvailable) {
           infoEl.createEl('div', {
             cls: 'grimoire-grok-model-picker-selected-unavailable',
-            text: 'Not currently reported by grok build',
+            text: t('settings.grok.modelPicker.notReported'),
           });
         }
 
@@ -371,8 +378,8 @@ export const grokSettingsTabRenderer: ProviderSettingsTabRenderer = {
         });
         aliasInput.placeholder = defaultLabel;
         aliasInput.value = current.modelAliases[rawId] ?? '';
-        aliasInput.setAttribute('aria-label', `Alias for ${defaultLabel}`);
-        aliasInput.title = 'Custom label shown in the model selector. Leave empty to use the default.';
+        aliasInput.setAttribute('aria-label', t('settings.grok.modelPicker.aliasLabel', { model: defaultLabel }));
+        aliasInput.title = t('settings.grok.modelPicker.aliasTitle');
 
         const commitAlias = (): void => {
           const latest = getGrokProviderSettings(settingsBag);
@@ -408,7 +415,7 @@ export const grokSettingsTabRenderer: ProviderSettingsTabRenderer = {
           cls: 'grimoire-grok-model-picker-selected-remove',
           text: '×',
         });
-        removeBtn.setAttribute('aria-label', `Remove ${defaultLabel}`);
+        removeBtn.setAttribute('aria-label', t('settings.grok.modelPicker.removeModel', { model: defaultLabel }));
         removeBtn.addEventListener('click', () => {
           void persistVisibleModels(current.visibleModels.filter((entry) => entry !== rawId));
         });
@@ -429,7 +436,7 @@ export const grokSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
       providerSelectEl.empty();
       providerSelectEl.createEl('option', {
-        text: `All providers (${enriched.length})`,
+        text: t('settings.grok.modelPicker.allProviders', { count: enriched.length }),
         value: ALL_PROVIDERS_KEY,
       });
 
@@ -457,13 +464,13 @@ export const grokSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
       if (filtered.length === 0) {
         const emptyEl = listEl.createDiv({ cls: 'grimoire-grok-model-picker-empty' });
-        let emptyText = 'No models match your filter.';
+        let emptyText = t('settings.grok.modelPicker.noMatch');
         if (loadingModelCatalog) {
-          emptyText = 'Loading Grok Build model catalog...';
+          emptyText = t('settings.grok.modelPicker.loadingCatalog');
         } else if (modelCatalogLoadFailed) {
-          emptyText = 'Could not load the Grok Build model catalog. Check the CLI path and login state, then expand this section again.';
+          emptyText = t('settings.grok.modelPicker.loadFailed');
         } else if (enriched.length === 0) {
-          emptyText = 'Start Grok Build once to load its model catalog. Grimoire will then let you pick visible models.';
+          emptyText = t('settings.grok.modelPicker.startToLoad');
         }
         emptyEl.setText(emptyText);
         return;
@@ -505,8 +512,8 @@ export const grokSettingsTabRenderer: ProviderSettingsTabRenderer = {
         });
         if (!model.isAvailable) {
           badgeEl.classList.add('grimoire-grok-model-picker-row-badge--unavailable');
-          badgeEl.setText('Unavailable');
-          badgeEl.title = 'Configured model not currently reported by grok build';
+          badgeEl.setText(t('settings.grok.modelPicker.unavailable'));
+          badgeEl.title = t('settings.grok.modelPicker.unavailableTitle');
         }
 
         textEl.createDiv({
@@ -573,30 +580,30 @@ export const grokSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
     const advancedContainer = context.renderAdvancedSection(container, {
       count: 4,
-      summary: 'Hidden commands, subagents, environment, and context overrides',
+      summary: t('settings.grok.advanced.summary'),
     });
 
-    new Setting(advancedContainer).setName('Commands and skills').setHeading();
+    new Setting(advancedContainer).setName(t('settings.slashCommands.name')).setHeading();
 
     const commandsDesc = advancedContainer.createDiv({ cls: 'grimoire-sp-settings-desc' });
     commandsDesc.createEl('p', {
       cls: 'setting-item-description',
-      text: 'Grok Build can auto-detect vault-level Claude slash commands from .claude/commands/ and skills from .claude/skills/, .codex/skills/, and .agents/skills/. Manage those entries in the Claude or Codex settings tab. This setting only hides entries from the Grok Build dropdown.',
+      text: t('settings.grok.commands.desc'),
     });
 
     context.renderHiddenProviderCommandSetting(advancedContainer, 'grok', {
-      name: 'Hidden Commands and Skills',
-      desc: 'Hide specific Grok Build commands and skills from the dropdown. Enter names without the leading slash, one per line.',
+      name: t('settings.hiddenSlashCommands.name'),
+      desc: t('settings.grok.hiddenCommands.desc'),
       placeholder: 'compact\nreview\nfix',
     });
 
     if (grokWorkspace?.agentStorage) {
-      new Setting(advancedContainer).setName('Subagents').setHeading();
+      new Setting(advancedContainer).setName(t('settings.subagents.name')).setHeading();
 
       const subagentsDesc = advancedContainer.createDiv({ cls: 'grimoire-sp-settings-desc' });
       subagentsDesc.createEl('p', {
         cls: 'setting-item-description',
-        text: 'Manage vault-level grok build subagents from .grok/agent/ and legacy .grok/agents/. New entries are saved as subagent-only files and appear in the @mention menu.',
+        text: t('settings.grok.subagents.desc'),
       });
 
       const subagentsContainer = advancedContainer.createDiv({ cls: 'grimoire-slash-commands-container' });
@@ -615,9 +622,9 @@ export const grokSettingsTabRenderer: ProviderSettingsTabRenderer = {
       container: advancedContainer,
       plugin: context.plugin,
       scope: 'provider:grok',
-      heading: 'Environment',
-      name: 'Environment Variables',
-      desc: 'Extra environment variables passed to Grok. `GROK_ENABLE_EXA=1` is enabled by default.',
+      heading: t('settings.environment'),
+      name: t('settings.customVariables.name'),
+      desc: t('settings.grok.environment.desc'),
       placeholder: `${GROK_DEFAULT_ENVIRONMENT_VARIABLES}\nGROK_AUTH_PATH=~/.grok/auth.json`,
       renderCustomContextLimits: (target) => context.renderCustomContextLimits(target, 'grok'),
     });

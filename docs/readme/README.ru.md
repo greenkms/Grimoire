@@ -294,7 +294,7 @@ Badge рядом с model selector показывает usage активного
 
 ### Commands
 
-Built-in commands покрывают workflows Grimoire, включая image generation и resume. Providers, которые отдают свои commands, например Claude Code slash commands и OpenCode runtime commands, показывают их через provider-owned catalogs. Ненужные команды можно скрыть в settings.
+Built-in commands покрывают workflows Grimoire, включая image generation и resume. Providers, которые отдают свои commands, например Claude Code slash commands, OpenCode runtime commands и Grok Build runtime commands, показывают их через provider-owned catalogs. Ненужные команды можно скрыть в settings.
 
 ### Image generation
 

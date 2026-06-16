@@ -487,6 +487,94 @@
       "untitled": "Espacio de trabajo sin título",
       "new": "Nuevo espacio de trabajo",
       "changeFailed": "No se pudo cambiar el espacio de trabajo"
+    },
+    "providers": {
+      "grok": {
+        "desc": "CLI agentic de programación de xAI con modo plan, subagentes, skills y MCP."
+      }
+    },
+    "grok": {
+      "cliPath": {
+        "desc": "Ruta absoluta opcional a la CLI de Grok Build en este equipo. Déjala vacía para usar `grok` desde PATH."
+      },
+      "visibleModels": {
+        "name": "Modelos visibles",
+        "desc": "Elige qué modelos de Grok Build aparecen en el selector del chat. Filtra por proveedor o tipo. El modelo de la sesión actual queda fijado aunque no esté seleccionado aquí."
+      },
+      "modelPicker": {
+        "browseModels": "Explorar modelos",
+        "searchPlaceholder": "Filtrar por modelo, proveedor o ID...",
+        "visibleLabel": "Visibles:",
+        "summaryDiscovered": "de {total} detectados - {count} {providerWord}",
+        "providerSingular": "proveedor",
+        "providerPlural": "proveedores",
+        "noDiscovered": "Aún no se detectaron modelos",
+        "loadingModels": "Cargando modelos...",
+        "availableCount": "{count} disponibles",
+        "selectedCount": "Seleccionados ({count})",
+        "clearSelected": "Borrar todos los modelos seleccionados",
+        "notReported": "Grok Build no lo informa actualmente",
+        "aliasLabel": "Alias para {model}",
+        "aliasTitle": "Etiqueta personalizada en el selector de modelos. Déjala vacía para usar la predeterminada.",
+        "removeModel": "Quitar {model}",
+        "allProviders": "Todos los proveedores ({count})",
+        "noMatch": "Ningún modelo coincide con tu filtro.",
+        "loadingCatalog": "Cargando catálogo de modelos de Grok Build...",
+        "loadFailed": "No se pudo cargar el catálogo de modelos de Grok Build. Revisa la ruta de la CLI y el inicio de sesión, y vuelve a abrir esta sección.",
+        "startToLoad": "Inicia Grok Build una vez para cargar su catálogo de modelos. Después Grimoire te dejará elegir modelos visibles.",
+        "unavailable": "No disponible",
+        "unavailableTitle": "El modelo configurado no lo informa Grok Build actualmente"
+      },
+      "advanced": {
+        "summary": "Comandos ocultos, subagentes, entorno y overrides de contexto"
+      },
+      "commands": {
+        "desc": "Grok Build puede detectar automáticamente comandos slash de Claude en .claude/commands/ y skills en .claude/skills/, .codex/skills/ y .agents/skills/. Administra esas entradas en las pestañas de Claude o Codex. Esta opción solo oculta entradas del menú de Grok Build."
+      },
+      "hiddenCommands": {
+        "desc": "Oculta comandos y skills específicos de Grok Build en el menú. Escribe nombres sin la barra inicial, uno por línea."
+      },
+      "subagents": {
+        "desc": "Administra subagentes de Grok Build del vault desde .grok/agent/ y el legado .grok/agents/. Las entradas nuevas se guardan como archivos solo de subagente y aparecen en el menú @mention.",
+        "title": "Subagentes de Grok Build",
+        "noAgents": "No hay subagentes de Grok Build en el vault. Haz clic en + para crear uno.",
+        "modalTitleEdit": "Editar subagente de Grok",
+        "modalTitleAdd": "Agregar subagente de Grok",
+        "nameDesc": "Nombre del agente de Grok Build. Usa segmentos separados por barras para agentes anidados.",
+        "descriptionDesc": "Cuándo Grok Build debe usar este subagente",
+        "modelDesc": "Override de modelo en formato proveedor/modelo",
+        "variant": "Variante",
+        "variantDesc": "Override de variante del modelo",
+        "temperature": "Temperatura",
+        "temperatureDesc": "Temperatura de muestreo opcional",
+        "topP": "Top p",
+        "topPDesc": "Valor opcional de muestreo nucleus",
+        "color": "Color",
+        "colorDesc": "Color hexadecimal o token del tema",
+        "steps": "Pasos",
+        "stepsDesc": "Iteraciones agentic máximas antes de forzar salida de solo texto",
+        "hideFromMention": "Ocultar de @mention",
+        "hideFromMentionDesc": "Oculta este subagente del menú de autocompletado @",
+        "disableAgent": "Desactivar agente",
+        "disableAgentDesc": "Desactiva el agente sin borrar el archivo",
+        "enabledTools": "Herramientas habilitadas (JSON)",
+        "enabledToolsDesc": "Mapa de herramientas obsoleto opcional, p. ej. {\"write\":false,\"edit\":false}",
+        "permission": "Permisos (JSON)",
+        "permissionDesc": "Configuración de permisos opcional, p. ej. {\"edit\":\"deny\",\"bash\":\"allow\"}",
+        "options": "Opciones (JSON)",
+        "optionsDesc": "Opciones personalizadas opcionales del agente",
+        "promptDesc": "Cuerpo Markdown usado como prompt del agente",
+        "promptPlaceholder": "Revisa los cambios de código con cuidado y señala corrección, regresiones y cobertura faltante.",
+        "deleteFailed": "No se pudo eliminar el subagente",
+        "invalidNumber": "{label} debe ser un número válido",
+        "invalidPositiveInteger": "{label} debe ser un entero positivo",
+        "invalidJson": "{label} debe ser JSON válido",
+        "invalidJsonObject": "{label} debe ser un objeto JSON",
+        "invalidBooleanMap": "{label} debe mapear nombres de herramientas a valores booleanos"
+      },
+      "environment": {
+        "desc": "Variables de entorno adicionales pasadas a Grok. `GROK_ENABLE_EXA=1` está habilitado de forma predeterminada."
+      }
     }
   }
 }

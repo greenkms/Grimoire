@@ -1,6 +1,7 @@
 import { ProviderRegistry } from '@/core/providers/ProviderRegistry';
 import { ProviderSettingsCoordinator } from '@/core/providers/ProviderSettingsCoordinator';
 import { JsonRpcTransportClosedError } from '@/providers/acp';
+import '@/providers';
 import { grokPlanUsageStore } from '@/providers/grok/app/GrokPlanUsageStore';
 import {
   GROK_BUILD_MODE_ID,
