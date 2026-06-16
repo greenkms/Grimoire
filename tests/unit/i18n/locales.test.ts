@@ -112,6 +112,19 @@ const localizedKeys = [
   'settings.enableBangBash.validation.noNode',
   'settings.requireCommandOrControlEnterToSend.name',
   'settings.requireCommandOrControlEnterToSend.desc',
+  'settings.providers.grok.desc',
+  'settings.grok.cliPath.desc',
+  'settings.grok.visibleModels.name',
+  'settings.grok.visibleModels.desc',
+  'settings.grok.modelPicker.browseModels',
+  'settings.grok.modelPicker.searchPlaceholder',
+  'settings.grok.modelPicker.notReported',
+  'settings.grok.modelPicker.loadingCatalog',
+  'settings.grok.commands.desc',
+  'settings.grok.hiddenCommands.desc',
+  'settings.grok.subagents.desc',
+  'settings.grok.subagents.noAgents',
+  'settings.grok.environment.desc',
 ] as const;
 
 const staleBangBashDesc =

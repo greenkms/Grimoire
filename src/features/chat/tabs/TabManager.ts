@@ -25,6 +25,7 @@ import {
   initializeTabControllers,
   initializeTabService,
   initializeTabUI,
+  refreshRuntimeContextUI,
   setupServiceCallbacks,
   wireTabInputEvents,
 } from './Tab';
@@ -317,6 +318,7 @@ export class TabManager implements TabManagerInterface {
       // Activate new tab
       this.activeTabId = tabId;
       activateTab(tab);
+      refreshRuntimeContextUI(tab, this.plugin);
 
       // Load conversation if not already loaded
       if (tab.conversationId && tab.state.messages.length === 0) {

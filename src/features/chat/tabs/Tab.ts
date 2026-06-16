@@ -498,6 +498,28 @@ function refreshPlanUsageUI(tab: TabData): void {
   tab.ui.modelSelector?.renderOptions();
 }
 
+export function refreshRuntimeContextUI(tab: TabData, plugin: GrimoirePlugin): void {
+  if (!tab.ui.runtimeContextActivity || !tab.state) {
+    return;
+  }
+
+  const providerId = getTabProviderId(tab, plugin);
+  tab.ui.runtimeContextActivity.hydrateFromMessages(providerId, tab.state.messages);
+  recordProviderLaunchArtifacts(tab, plugin);
+}
+
+function recordProviderLaunchArtifacts(tab: TabData, plugin: GrimoirePlugin): void {
+  const providerId = getTabProviderId(tab, plugin);
+  if (providerId !== 'grok') {
+    return;
+  }
+
+  tab.ui.runtimeContextActivity?.recordPreloadedFile(
+    providerId,
+    '.grimoire/grok/system.md',
+  );
+}
+
 function syncSlashCommandDropdownForProvider(
   tab: TabData,
   plugin: GrimoirePlugin,
@@ -2374,6 +2396,10 @@ export function initializeTabControllers(
       getOrchestratorMode: () => tab.orchestratorMode,
       dismissPendingInlinePrompts: () => tab.controllers.inputController?.dismissPendingApproval(),
       clearRuntimeContextActivity: () => tab.ui.runtimeContextActivity?.clear(),
+      hydrateRuntimeContextFromMessages: (providerId, messages) => {
+        tab.ui.runtimeContextActivity?.hydrateFromMessages(providerId, messages);
+        recordProviderLaunchArtifacts(tab, plugin);
+      },
       ensureServiceForConversation: async (conversation) => {
         const nextProviderId = getTabProviderId(tab, plugin, conversation);
         const providerChanged = tab.providerId !== nextProviderId;
@@ -2423,8 +2449,14 @@ export function initializeTabControllers(
         applyProviderUIGating(tab, plugin);
         syncSlashCommandDropdownForProvider(tab, plugin, getProviderCatalogConfig);
       },
-      onConversationLoaded: () => ui.slashCommandDropdown?.resetSdkSkillsCache(),
-      onConversationSwitched: () => ui.slashCommandDropdown?.resetSdkSkillsCache(),
+      onConversationLoaded: () => {
+        ui.slashCommandDropdown?.resetSdkSkillsCache();
+        refreshRuntimeContextUI(tab, plugin);
+      },
+      onConversationSwitched: () => {
+        ui.slashCommandDropdown?.resetSdkSkillsCache();
+        refreshRuntimeContextUI(tab, plugin);
+      },
     }
   );
 

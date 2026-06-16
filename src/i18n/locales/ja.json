@@ -487,6 +487,94 @@
       "untitled": "無題のワークスペース",
       "new": "新しいワークスペース",
       "changeFailed": "プロジェクトワークスペースの変更に失敗しました"
+    },
+    "providers": {
+      "grok": {
+        "desc": "plan mode、subagents、skills、MCP に対応した xAI の agentic coding CLI。"
+      }
+    },
+    "grok": {
+      "cliPath": {
+        "desc": "このコンピューターで使う Grok Build CLI の任意の絶対パスです。空のままなら PATH 上の `grok` を使います。"
+      },
+      "visibleModels": {
+        "name": "表示するモデル",
+        "desc": "チャットのセレクターに表示する Grok Build モデルを選びます。provider や type で絞り込めます。現在の session model は、ここで選ばれていなくても固定表示されます。"
+      },
+      "modelPicker": {
+        "browseModels": "モデルを参照",
+        "searchPlaceholder": "モデル、provider、ID で絞り込み...",
+        "visibleLabel": "表示:",
+        "summaryDiscovered": "{total} 件中 {count} {providerWord}",
+        "providerSingular": "provider",
+        "providerPlural": "providers",
+        "noDiscovered": "まだモデルが検出されていません",
+        "loadingModels": "モデルを読み込み中...",
+        "availableCount": "{count} 件利用可能",
+        "selectedCount": "選択済み ({count})",
+        "clearSelected": "選択したモデルをすべてクリア",
+        "notReported": "現在 Grok Build から報告されていません",
+        "aliasLabel": "{model} のエイリアス",
+        "aliasTitle": "モデルセレクターに表示するカスタムラベルです。空なら既定値を使います。",
+        "removeModel": "{model} を削除",
+        "allProviders": "すべての providers ({count})",
+        "noMatch": "フィルターに一致するモデルはありません。",
+        "loadingCatalog": "Grok Build のモデルカタログを読み込み中...",
+        "loadFailed": "Grok Build のモデルカタログを読み込めませんでした。CLI path とログイン状態を確認してから、このセクションをもう一度開いてください。",
+        "startToLoad": "Grok Build を一度起動するとモデルカタログが読み込まれます。その後、Grimoire で表示モデルを選べます。",
+        "unavailable": "利用不可",
+        "unavailableTitle": "設定済みモデルは現在 Grok Build から報告されていません"
+      },
+      "advanced": {
+        "summary": "非表示コマンド、subagents、環境、context overrides"
+      },
+      "commands": {
+        "desc": "Grok Build は .claude/commands/ の vault-level Claude slash commands と、.claude/skills/、.codex/skills/、.agents/skills/ の skills を自動検出できます。これらの項目は Claude または Codex settings tab で管理してください。この設定は Grok Build dropdown から項目を隠すだけです。"
+      },
+      "hiddenCommands": {
+        "desc": "Grok Build dropdown から特定の commands と skills を隠します。先頭の slash なしで、1 行に 1 つずつ入力します。"
+      },
+      "subagents": {
+        "desc": ".grok/agent/ と legacy .grok/agents/ にある vault-level Grok Build subagents を管理します。新しい項目は subagent-only files として保存され、@mention menu に表示されます。",
+        "title": "Grok Build Subagents",
+        "noAgents": "vault に Grok Build subagents はありません。+ をクリックして作成します。",
+        "modalTitleEdit": "Grok Subagent を編集",
+        "modalTitleAdd": "Grok Subagent を追加",
+        "nameDesc": "Grok Build agent name です。ネストした agents には slash 区切りの segments を使います。",
+        "descriptionDesc": "Grok Build がこの subagent を使うタイミング",
+        "modelDesc": "provider/model 形式の model override",
+        "variant": "Variant",
+        "variantDesc": "Model variant override",
+        "temperature": "Temperature",
+        "temperatureDesc": "任意の sampling temperature",
+        "topP": "Top p",
+        "topPDesc": "任意の nucleus sampling value",
+        "color": "Color",
+        "colorDesc": "Hex color または theme token",
+        "steps": "Steps",
+        "stepsDesc": "text-only output を強制するまでの最大 agentic iterations",
+        "hideFromMention": "@mention から隠す",
+        "hideFromMentionDesc": "この subagent を @ autocomplete menu から隠します",
+        "disableAgent": "Agent を無効化",
+        "disableAgentDesc": "ファイルを削除せずに agent を無効化します",
+        "enabledTools": "Enabled tools (JSON)",
+        "enabledToolsDesc": "任意の deprecated tools map。例: {\"write\":false,\"edit\":false}",
+        "permission": "Permission (JSON)",
+        "permissionDesc": "任意の permission config。例: {\"edit\":\"deny\",\"bash\":\"allow\"}",
+        "options": "Options (JSON)",
+        "optionsDesc": "任意の custom agent options",
+        "promptDesc": "agent prompt として使う Markdown body",
+        "promptPlaceholder": "コード変更を注意深くレビューし、正しさ、regressions、不足している coverage を指摘してください。",
+        "deleteFailed": "subagent の削除に失敗しました",
+        "invalidNumber": "{label} は有効な数値である必要があります",
+        "invalidPositiveInteger": "{label} は正の整数である必要があります",
+        "invalidJson": "{label} は有効な JSON である必要があります",
+        "invalidJsonObject": "{label} は JSON object である必要があります",
+        "invalidBooleanMap": "{label} は tool names を boolean values に対応させる必要があります"
+      },
+      "environment": {
+        "desc": "Grok に渡す追加の environment variables です。`GROK_ENABLE_EXA=1` は既定で有効です。"
+      }
     }
   }
 }

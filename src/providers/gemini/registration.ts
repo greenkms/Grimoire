@@ -13,7 +13,7 @@ import { getGeminiProviderSettings } from './settings';
 import { geminiChatUIConfig } from './ui/GeminiChatUIConfig';
 
 export const geminiProviderRegistration: ProviderRegistration = {
-  blankTabOrder: 12,
+  blankTabOrder: 80,
   capabilities: GEMINI_PROVIDER_CAPABILITIES,
   chatUIConfig: geminiChatUIConfig,
   createInlineEditService: () => new GeminiInlineEditService(),

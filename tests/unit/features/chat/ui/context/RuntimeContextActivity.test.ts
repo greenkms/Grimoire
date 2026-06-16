@@ -1,5 +1,8 @@
+import { createMockEl } from '@test/helpers/mockElement';
+
 import {
   RuntimeContextActivityState,
+  RuntimeContextActivityView,
   extractRuntimeContextLoadEvent,
 } from '@/features/chat/ui/context/RuntimeContextActivity';
 
@@ -92,6 +95,52 @@ describe('RuntimeContextActivity', () => {
     });
 
     expect(event).toBeNull();
+  });
+
+  it('extracts Grok Read tool calls with filePath input', () => {
+    const event = extractRuntimeContextLoadEvent({
+      providerId: 'grok',
+      toolCall: {
+        id: 'tool-grok-1',
+        name: 'Read',
+        input: { filePath: 'Geography/Indian Ocean.md' },
+        status: 'completed',
+      },
+    });
+
+    expect(event).toMatchObject({
+      id: 'tool-grok-1',
+      path: 'Geography/Indian Ocean.md',
+      providerId: 'grok',
+      method: 'read note',
+      status: 'loaded',
+    });
+  });
+
+  it('hydrates loaded files from persisted assistant tool calls', () => {
+    const view = new RuntimeContextActivityView(createMockEl());
+    view.hydrateFromMessages('grok', [
+      {
+        id: 'assistant-1',
+        role: 'assistant',
+        content: '',
+        timestamp: 1,
+        toolCalls: [{
+          id: 'tool-grok-1',
+          name: 'Read',
+          input: { file_path: '.grimoire/grok/system.md' },
+          status: 'completed',
+        }],
+      },
+    ]);
+
+    expect(view.getEntries()).toEqual([{
+      id: 'tool-grok-1',
+      path: '.grimoire/grok/system.md',
+      providerId: 'grok',
+      method: 'read note',
+      status: 'loaded',
+    }]);
   });
 
   it('deduplicates by path and keeps the latest status', () => {

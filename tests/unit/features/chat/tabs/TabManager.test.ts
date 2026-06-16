@@ -35,6 +35,7 @@ jest.mock('@/features/chat/tabs/Tab', () => ({
   setupServiceCallbacks: (...args: any[]) => mockSetupServiceCallbacks(...args),
   wireTabInputEvents: (...args: any[]) => mockWireTabInputEvents(...args),
   getTabTitle: (...args: any[]) => mockGetTabTitle(...args),
+  refreshRuntimeContextUI: jest.fn(),
 }));
 
 const mockChooseForkTarget = jest.fn();

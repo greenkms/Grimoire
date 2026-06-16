@@ -826,6 +826,27 @@ describe('PlanUsageBadge', () => {
       .toBe('47% used · resets 3:20p · weekly 71%');
   });
 
+  it('renders non-5-hour quota windows inline next to the model selector', () => {
+    callbacks.getProviderUsage.mockReturnValue({
+      plan: 'SuperGrok',
+      note: 'Free credits · resets Jul 1',
+      windows: [
+        { label: 'Credits', pct: 6, reset: 'Jul 1' },
+      ],
+    });
+
+    badge.updateDisplay();
+
+    const container = parentEl.querySelector('.grimoire-plan-usage-badge');
+    expect(container?.hasClass('grimoire-hidden')).toBe(false);
+    expect(parentEl.querySelector('.grimoire-plan-usage-badge-label')?.textContent).toBe('Credits');
+    expect(parentEl.querySelector('.grimoire-plan-usage-badge-fill')?.style.width).toBe('6%');
+    expect(parentEl.querySelector('.grimoire-plan-usage-badge-value')?.textContent).toBe('6%');
+    expect(container?.getAttribute('aria-label')).toBe('SuperGrok Credits limit: 6% used, resets Jul 1');
+    expect(parentEl.querySelector('.grimoire-plan-usage-badge-tip-primary')?.textContent).toBe('SuperGrok · Credits limit');
+    expect(parentEl.querySelector('.grimoire-plan-usage-badge-tip-secondary')?.textContent).toBe('6% used · resets Jul 1');
+  });
+
   it('falls back to spend instead of rendering reset-only quota windows', () => {
     callbacks.getProviderUsage.mockReturnValue({
       plan: 'Claude Code',

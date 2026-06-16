@@ -282,4 +282,6 @@ export type TranslationKey =
 
   // Settings - Language
   | 'settings.language.name'
-  | 'settings.language.desc';
+  | 'settings.language.desc'
+  | `settings.providers.${string}`
+  | `settings.grok.${string}`;

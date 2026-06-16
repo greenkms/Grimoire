@@ -90,10 +90,17 @@ describe('ProviderRegistry', () => {
     expect(caps.supportsFork).toBe(false);
   });
 
-  it('lists registered provider ids', () => {
-    const ids = ProviderRegistry.getRegisteredProviderIds();
-    expect(ids).toContain('claude');
-    expect(ids).toContain('codex');
+  it('lists registered provider ids in settings tab order', () => {
+    expect(ProviderRegistry.getRegisteredProviderIds()).toEqual([
+      'claude',
+      'codex',
+      'opencode',
+      'grok',
+      'mimocode',
+      'kimicode',
+      'antigravity',
+      'gemini',
+    ]);
   });
 
   it('filters enabled provider ids using registration metadata', () => {
@@ -114,14 +121,24 @@ describe('ProviderRegistry', () => {
         claude: { enabled: true },
         codex: { enabled: true },
       },
-    })).toEqual(['codex', 'claude']);
+    })).toEqual(['claude', 'codex']);
     expect(ProviderRegistry.getEnabledProviderIds({
       providerConfigs: {
         claude: { enabled: true },
         codex: { enabled: true },
         opencode: { enabled: true },
+        grok: { enabled: true },
+        antigravity: { enabled: true },
+        gemini: { enabled: true },
       },
-    })).toEqual(['opencode', 'codex', 'claude']);
+    })).toEqual([
+      'claude',
+      'codex',
+      'opencode',
+      'grok',
+      'antigravity',
+      'gemini',
+    ]);
   });
 
   it('returns the display name from provider registration metadata', () => {

@@ -13,7 +13,7 @@ import { codexChatUIConfig } from './ui/CodexChatUIConfig';
 
 export const codexProviderRegistration: ProviderRegistration = {
   displayName: 'Codex',
-  blankTabOrder: 15,
+  blankTabOrder: 20,
   isEnabled: (settings) => getCodexProviderSettings(settings).enabled,
   capabilities: CODEX_PROVIDER_CAPABILITIES,
   environmentKeyPatterns: [/^OPENAI_/i, /^CODEX_/i],

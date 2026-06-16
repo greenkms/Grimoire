@@ -223,6 +223,59 @@ describe('AcpClientConnection', () => {
     ]);
   });
 
+  it('handles Grok ask_user_question server requests through the delegate', async () => {
+    const askUserQuestion = jest.fn().mockResolvedValue({
+      annotations: {},
+      answers: { 'Pick one': 'notes' },
+      outcome: 'accepted',
+    });
+    const harness = createConnectionHarness((transport) => new AcpClientConnection({
+      delegate: { askUserQuestion },
+      transport,
+    }));
+
+    try {
+      harness.transport.start();
+      harness.sendInbound({
+        id: 9,
+        jsonrpc: '2.0',
+        method: '_x.ai/ask_user_question',
+        params: {
+          questions: [{
+            multiSelect: false,
+            options: [{ label: 'notes' }],
+            question: 'Pick one',
+          }],
+          sessionId: 'session-1',
+          toolCallId: 'call-1',
+        },
+      });
+
+      await expect(harness.nextOutbound()).resolves.toEqual({
+        id: 9,
+        jsonrpc: '2.0',
+        result: {
+          annotations: {},
+          answers: { 'Pick one': 'notes' },
+          outcome: 'accepted',
+        },
+      });
+      expect(askUserQuestion).toHaveBeenCalledWith({
+        questions: [{
+          multiSelect: false,
+          options: [{ label: 'notes' }],
+          question: 'Pick one',
+        }],
+        sessionId: 'session-1',
+        toolCallId: 'call-1',
+      });
+    } finally {
+      harness.connection.dispose();
+      harness.transport.dispose();
+      harness.close();
+    }
+  });
+
   it('sends cancel notifications to all known aliases when no working method is cached', async () => {
     const harness = createConnectionHarness((transport) => new AcpClientConnection({ transport }));
 

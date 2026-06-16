@@ -19,13 +19,14 @@ import {
 import { getAvailableLocales, getLocaleDisplayName, setLocale, t } from '../../i18n/i18n';
 import type { Locale, TranslationKey } from '../../i18n/types';
 import type GrimoirePlugin from '../../main';
-import { getAntigravityProviderSettings, updateAntigravityProviderSettings } from '../../providers/antigravity/settings';
-import { getClaudeProviderSettings, updateClaudeProviderSettings } from '../../providers/claude/settings';
-import { getCodexProviderSettings, updateCodexProviderSettings } from '../../providers/codex/settings';
-import { getGeminiProviderSettings, updateGeminiProviderSettings } from '../../providers/gemini/settings';
-import { getKimicodeProviderSettings, updateKimicodeProviderSettings } from '../../providers/kimicode/settings';
-import { getMimocodeProviderSettings, updateMimocodeProviderSettings } from '../../providers/mimocode/settings';
-import { getOpencodeProviderSettings, updateOpencodeProviderSettings } from '../../providers/opencode/settings';
+import { updateAntigravityProviderSettings } from '../../providers/antigravity/settings';
+import { updateClaudeProviderSettings } from '../../providers/claude/settings';
+import { updateCodexProviderSettings } from '../../providers/codex/settings';
+import { updateGeminiProviderSettings } from '../../providers/gemini/settings';
+import { updateGrokProviderSettings } from '../../providers/grok/settings';
+import { updateKimicodeProviderSettings } from '../../providers/kimicode/settings';
+import { updateMimocodeProviderSettings } from '../../providers/mimocode/settings';
+import { updateOpencodeProviderSettings } from '../../providers/opencode/settings';
 import { formatContextLimit, parseContextLimit, parseEnvironmentVariables } from '../../utils/env';
 import { buildNavMappingText, parseNavMappings } from './keyboardNavigation';
 import { renderProjectWorkspaceSettings } from './ProjectWorkspaceSettings';
@@ -137,7 +138,7 @@ function isHtmlElement(element: Element | null): element is HTMLElement {
   return 'classList' in element;
 }
 
-const PROVIDER_SETTING_COPY: Record<ProviderId, { desc: string; name: string }> = {
+const PROVIDER_SETTING_COPY: Record<ProviderId, { desc?: string; descKey?: TranslationKey; name: string }> = {
   claude: {
     desc: 'Anthropic\'s agentic CLI. Recommended default.',
     name: 'Claude Code',
@@ -165,6 +166,10 @@ const PROVIDER_SETTING_COPY: Record<ProviderId, { desc: string; name: string }> 
   kimicode: {
     desc: 'MoonshotAI\'s multi-provider agent CLI. Supports Kimi, OpenAI, Anthropic, Gemini.',
     name: 'Kimi Code',
+  },
+  grok: {
+    descKey: 'settings.providers.grok.desc',
+    name: 'Grok Build',
   },
 };
 
@@ -653,27 +658,16 @@ export class GrimoireSettingTab extends PluginSettingTab {
       text: 'Which CLI back-ends Grimoire can talk to. Each runs as a local agent; only enabled providers appear in the model selector.',
     });
 
-    this.renderProviderEnableRow(container, 'codex', getCodexProviderSettings(this.plugin.settings).enabled, async (enabled) => {
-      await this.updateProviderEnabled('codex', enabled);
-    });
-    this.renderProviderEnableRow(container, 'claude', getClaudeProviderSettings(this.plugin.settings).enabled, async (enabled) => {
-      await this.updateProviderEnabled('claude', enabled);
-    });
-    this.renderProviderEnableRow(container, 'opencode', getOpencodeProviderSettings(this.plugin.settings).enabled, async (enabled) => {
-      await this.updateProviderEnabled('opencode', enabled);
-    });
-    this.renderProviderEnableRow(container, 'mimocode', getMimocodeProviderSettings(this.plugin.settings).enabled, async (enabled) => {
-      await this.updateProviderEnabled('mimocode', enabled);
-    });
-    this.renderProviderEnableRow(container, 'kimicode', getKimicodeProviderSettings(this.plugin.settings).enabled, async (enabled) => {
-      await this.updateProviderEnabled('kimicode', enabled);
-    });
-    this.renderProviderEnableRow(container, 'antigravity', getAntigravityProviderSettings(this.plugin.settings).enabled, async (enabled) => {
-      await this.updateProviderEnabled('antigravity', enabled);
-    });
-    this.renderProviderEnableRow(container, 'gemini', getGeminiProviderSettings(this.plugin.settings).enabled, async (enabled) => {
-      await this.updateProviderEnabled('gemini', enabled);
-    });
+    for (const providerId of ProviderRegistry.getRegisteredProviderIds()) {
+      this.renderProviderEnableRow(
+        container,
+        providerId,
+        ProviderRegistry.isEnabled(providerId, this.plugin.settings),
+        async (enabled) => {
+          await this.updateProviderEnabled(providerId, enabled);
+        },
+      );
+    }
   }
 
   private async updateProviderEnabled(providerId: ProviderId, enabled: boolean): Promise<void> {
@@ -692,6 +686,8 @@ export class GrimoireSettingTab extends PluginSettingTab {
       updateMimocodeProviderSettings(this.plugin.settings, { enabled });
     } else if (providerId === 'kimicode') {
       updateKimicodeProviderSettings(this.plugin.settings, { enabled });
+    } else if (providerId === 'grok') {
+      updateGrokProviderSettings(this.plugin.settings, { enabled });
     }
 
     if (ProviderSettingsCoordinator.normalizeProviderSelection(this.plugin.settings)) {
@@ -733,7 +729,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
     };
     const setting = new Setting(container)
       .setName(copy.name)
-      .setDesc(copy.desc);
+      .setDesc(copy.descKey ? t(copy.descKey) : copy.desc ?? '');
 
     setting.settingEl.addClass('grimoire-provider-row');
     setting.settingEl.addClass(`grimoire-provider-row--${providerId}`);
