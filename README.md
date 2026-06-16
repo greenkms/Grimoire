@@ -41,17 +41,17 @@ It's built for people who already work in Obsidian and want AI help that behaves
 
 ## What each provider can do
 
-| Capability | Claude Code | Codex | Antigravity CLI | Gemini CLI (Legacy) | OpenCode | MiMoCode | Kimi Code | Grok Build |
+| Capability | Claude Code | Codex | OpenCode | Grok Build | MiMoCode | Kimi Code | Antigravity CLI | Gemini CLI (Legacy) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Local persistent runtime | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes |
-| Native history hydration | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes |
-| Plan mode | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes |
-| Image attachments | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes |
-| Instruction mode | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes |
+| Local persistent runtime | Yes | Yes | Yes | Yes | Yes | Yes | No | Yes |
+| Native history hydration | Yes | Yes | Yes | Yes | Yes | Yes | No | Yes |
+| Plan mode | Yes | Yes | Yes | Yes | Yes | Yes | No | Yes |
+| Image attachments | Yes | Yes | Yes | Yes | Yes | Yes | No | Yes |
+| Instruction mode | Yes | Yes | Yes | Yes | Yes | Yes | No | Yes |
 | Reasoning effort controls | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
-| Rewind | Yes | No | No | No | No | No | No | Yes |
-| Fork | Yes | Yes | No | No | No | No | No | Yes |
-| Provider slash commands | Yes | No | No | No | Yes | Yes | Yes | Yes |
+| Rewind | Yes | No | No | Yes | No | No | No | No |
+| Fork | Yes | Yes | No | Yes | No | No | No | No |
+| Provider slash commands | Yes | No | Yes | Yes | Yes | Yes | No | No |
 | Grimoire-managed MCP UI | Yes | No | No | No | No | No | No | No |
 
 ## Installation

@@ -43,17 +43,17 @@ Grimoire 将 agentic CLI 助手带入 Obsidian。Claude Code、Codex、Antigravi
 
 ## 各 provider 能做什么
 
-| 能力 | Claude Code | Codex | Antigravity CLI | Gemini CLI (Legacy) | OpenCode | MiMoCode | Kimi Code | Grok Build |
+| 能力 | Claude Code | Codex | OpenCode | Grok Build | MiMoCode | Kimi Code | Antigravity CLI | Gemini CLI (Legacy) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 本地 persistent runtime | 是 | 是 | 否 | 是 | 是 | 是 | 是 | 是 |
-| 原生 history hydration | 是 | 是 | 否 | 是 | 是 | 是 | 是 | 是 |
-| Plan mode | 是 | 是 | 否 | 是 | 是 | 是 | 是 | 是 |
-| Image attachments | 是 | 是 | 否 | 是 | 是 | 是 | 是 | 是 |
-| Instruction mode | 是 | 是 | 否 | 是 | 是 | 是 | 是 | 是 |
+| 本地 persistent runtime | 是 | 是 | 是 | 是 | 是 | 是 | 否 | 是 |
+| 原生 history hydration | 是 | 是 | 是 | 是 | 是 | 是 | 否 | 是 |
+| Plan mode | 是 | 是 | 是 | 是 | 是 | 是 | 否 | 是 |
+| Image attachments | 是 | 是 | 是 | 是 | 是 | 是 | 否 | 是 |
+| Instruction mode | 是 | 是 | 是 | 是 | 是 | 是 | 否 | 是 |
 | Reasoning effort controls | 是 | 是 | 是 | 是 | 是 | 是 | 是 | 是 |
-| Rewind | 是 | 否 | 否 | 否 | 否 | 否 | 否 | 是 |
-| Fork | 是 | 是 | 否 | 否 | 否 | 否 | 否 | 是 |
-| Provider slash commands | 是 | 否 | 否 | 否 | 是 | 是 | 是 | 是 |
+| Rewind | 是 | 否 | 否 | 是 | 否 | 否 | 否 | 否 |
+| Fork | 是 | 是 | 否 | 是 | 否 | 否 | 否 | 否 |
+| Provider slash commands | 是 | 否 | 是 | 是 | 是 | 是 | 否 | 否 |
 | Grimoire-managed MCP UI | 是 | 否 | 否 | 否 | 否 | 否 | 否 | 否 |
 
 ## 安装

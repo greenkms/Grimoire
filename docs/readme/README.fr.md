@@ -43,17 +43,17 @@ Grimoire est conçu pour les personnes qui travaillent déjà dans Obsidian et v
 
 ## Ce que chaque provider peut faire
 
-| Capability | Claude Code | Codex | Antigravity CLI | Gemini CLI (Legacy) | OpenCode | MiMoCode | Kimi Code | Grok Build |
+| Capability | Claude Code | Codex | OpenCode | Grok Build | MiMoCode | Kimi Code | Antigravity CLI | Gemini CLI (Legacy) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Local persistent runtime | Oui | Oui | Non | Oui | Oui | Oui | Oui | Oui |
-| Native history hydration | Oui | Oui | Non | Oui | Oui | Oui | Oui | Oui |
-| Plan mode | Oui | Oui | Non | Oui | Oui | Oui | Oui | Oui |
-| Image attachments | Oui | Oui | Non | Oui | Oui | Oui | Oui | Oui |
-| Instruction mode | Oui | Oui | Non | Oui | Oui | Oui | Oui | Oui |
+| Local persistent runtime | Oui | Oui | Oui | Oui | Oui | Oui | Non | Oui |
+| Native history hydration | Oui | Oui | Oui | Oui | Oui | Oui | Non | Oui |
+| Plan mode | Oui | Oui | Oui | Oui | Oui | Oui | Non | Oui |
+| Image attachments | Oui | Oui | Oui | Oui | Oui | Oui | Non | Oui |
+| Instruction mode | Oui | Oui | Oui | Oui | Oui | Oui | Non | Oui |
 | Reasoning effort controls | Oui | Oui | Oui | Oui | Oui | Oui | Oui | Oui |
-| Rewind | Oui | Non | Non | Non | Non | Non | Non | Oui |
-| Fork | Oui | Oui | Non | Non | Non | Non | Non | Oui |
-| Provider slash commands | Oui | Non | Non | Non | Oui | Oui | Oui | Oui |
+| Rewind | Oui | Non | Non | Oui | Non | Non | Non | Non |
+| Fork | Oui | Oui | Non | Oui | Non | Non | Non | Non |
+| Provider slash commands | Oui | Non | Oui | Oui | Oui | Oui | Non | Non |
 | Grimoire-managed MCP UI | Oui | Non | Non | Non | Non | Non | Non | Non |
 
 ## Installation

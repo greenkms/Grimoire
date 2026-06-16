@@ -43,17 +43,17 @@ Grimoire сделан для тех, кто уже работает в Obsidian 
 
 ## Что умеют провайдеры
 
-| Возможность | Claude Code | Codex | Antigravity CLI | Gemini CLI (Legacy) | OpenCode | MiMoCode | Kimi Code | Grok Build |
+| Возможность | Claude Code | Codex | OpenCode | Grok Build | MiMoCode | Kimi Code | Antigravity CLI | Gemini CLI (Legacy) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Локальный persistent runtime | Да | Да | Нет | Да | Да | Да | Да | Да |
-| Нативное восстановление истории | Да | Да | Нет | Да | Да | Да | Да | Да |
-| Plan mode | Да | Да | Нет | Да | Да | Да | Да | Да |
-| Image attachments | Да | Да | Нет | Да | Да | Да | Да | Да |
-| Instruction mode | Да | Да | Нет | Да | Да | Да | Да | Да |
+| Локальный persistent runtime | Да | Да | Да | Да | Да | Да | Нет | Да |
+| Нативное восстановление истории | Да | Да | Да | Да | Да | Да | Нет | Да |
+| Plan mode | Да | Да | Да | Да | Да | Да | Нет | Да |
+| Image attachments | Да | Да | Да | Да | Да | Да | Нет | Да |
+| Instruction mode | Да | Да | Да | Да | Да | Да | Нет | Да |
 | Reasoning effort controls | Да | Да | Да | Да | Да | Да | Да | Да |
-| Rewind | Да | Нет | Нет | Нет | Нет | Нет | Нет | Да |
-| Fork | Да | Да | Нет | Нет | Нет | Нет | Нет | Да |
-| Provider slash commands | Да | Нет | Нет | Нет | Да | Да | Да | Да |
+| Rewind | Да | Нет | Нет | Да | Нет | Нет | Нет | Нет |
+| Fork | Да | Да | Нет | Да | Нет | Нет | Нет | Нет |
+| Provider slash commands | Да | Нет | Да | Да | Да | Да | Нет | Нет |
 | Grimoire-managed MCP UI | Да | Нет | Нет | Нет | Нет | Нет | Нет | Нет |
 
 ## Установка
