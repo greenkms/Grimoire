@@ -22,6 +22,7 @@ Repository documentation and user-facing product copy should be in English unles
 - `src/providers/acp/` - Shared ACP transport and normalization helpers.
 
 Read the nested `AGENTS.md` in a provider directory before changing provider-specific runtime, storage, history, settings, or UI behavior.
+OpenCode and MiMoCode intentionally mirror each other closely; when changing launch, ACP runtime, workspace, storage, history, settings, or UI behavior in one provider, check and usually apply the same change to the other provider unless the CLIs intentionally differ.
 
 ## Architecture Rules
 

@@ -1,4 +1,5 @@
 import { type ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
+import * as path from 'node:path';
 import type { Readable, Writable } from 'node:stream';
 
 const KILL_TIMEOUT_MS = 3_000;
@@ -49,7 +50,7 @@ export class AcpSubprocess {
     const proc = spawn(this.launchSpec.command, this.launchSpec.args, {
       cwd: this.launchSpec.cwd,
       env: this.launchSpec.env,
-      shell: isWin32(),
+      shell: shouldUseShell(this.launchSpec.command),
       stdio: 'pipe',
       windowsHide: true,
     });
@@ -137,6 +138,19 @@ export class AcpSubprocess {
 
 function isWin32(): boolean {
   return process.platform === 'win32';
+}
+
+function shouldUseShell(command: string): boolean {
+  if (!isWin32()) {
+    return false;
+  }
+
+  const lowerBasename = path.win32.basename(command).toLowerCase();
+  if (lowerBasename.endsWith('.cmd') || lowerBasename.endsWith('.bat')) {
+    return true;
+  }
+
+  return !path.win32.isAbsolute(command);
 }
 
 function formatExit(code: number | null, signal: string | null): string {
