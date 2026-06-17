@@ -9,9 +9,9 @@ const lockfile = JSON.parse(readFileSync(lockfilePath, "utf8"));
 const advisories = [
   {
     packageName: "hono",
-    vulnerableRange: "<4.12.21",
-    advisory: "GHSA-26pp-8wgv-hjvm / GHSA-r5rp-j6wh-rvv4 / GHSA-xf4j-xp2r-rqqx / GHSA-wmmm-f939-6g9c / GHSA-458j-xx4x-4375 / GHSA-xpcf-pg52-r92g / GHSA-qp7p-654g-cw7p / GHSA-hm8q-7f3q-5f36 / GHSA-p77w-8qqv-26rm / GHSA-9vqf-7f2p-gf9v / GHSA-69xw-7hcm-h432 / GHSA-xrhx-7g5j-rcj5 / GHSA-3hrh-pfw6-9m5x / GHSA-f577-qrjj-4474 / GHSA-2gcr-mfcq-wcc3",
-    isVulnerable: (version) => lessThan(version, "4.12.21"),
+    vulnerableRange: "<4.12.25",
+    advisory: "GHSA-26pp-8wgv-hjvm / GHSA-r5rp-j6wh-rvv4 / GHSA-xf4j-xp2r-rqqx / GHSA-wmmm-f939-6g9c / GHSA-458j-xx4x-4375 / GHSA-xpcf-pg52-r92g / GHSA-qp7p-654g-cw7p / GHSA-hm8q-7f3q-5f36 / GHSA-p77w-8qqv-26rm / GHSA-9vqf-7f2p-gf9v / GHSA-69xw-7hcm-h432 / GHSA-xrhx-7g5j-rcj5 / GHSA-3hrh-pfw6-9m5x / GHSA-f577-qrjj-4474 / GHSA-2gcr-mfcq-wcc3 / GHSA-wwfh-h76j-fc44 / GHSA-j6c9-x7qj-28xf / GHSA-88fw-hqm2-52qc / GHSA-rv63-4mwf-qqc2 / GHSA-wgpf-jwqj-8h8p",
+    isVulnerable: (version) => lessThan(version, "4.12.25"),
   },
   {
     packageName: "@hono/node-server",

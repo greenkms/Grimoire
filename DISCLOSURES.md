@@ -118,7 +118,7 @@ These advisories do not affect Grimoire:
 
 | Package | Source | In `main.js` | Locked version | Advisory range | Status |
 |---|---|---|---|---|---|
-| `hono` | MCP SDK | No (tree-shaken) | 4.12.24 | `<4.12.21` | Above range |
+| `hono` | MCP SDK | No (tree-shaken) | 4.12.25 | `<4.12.25` | Above range |
 | `@hono/node-server` | MCP SDK | No (tree-shaken) | 1.19.14 | `<1.19.13` | Above range |
 | `fast-uri` | MCP SDK (AJV) | Yes | 3.1.2 | `<=3.1.1` | Above range |
 | `ip-address` | MCP SDK (Express) | No (tree-shaken) | 10.2.0 | `<=10.1.0` | Above range |
