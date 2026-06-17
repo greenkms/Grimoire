@@ -66,6 +66,50 @@ describe('AcpSubprocess', () => {
     }));
   });
 
+  it('does not route absolute Windows executables through the shell', () => {
+    Object.defineProperty(process, 'platform', { value: 'win32' });
+    const mockProc = createMockProcess();
+    spawnMock.mockReturnValue(mockProc);
+
+    new AcpSubprocess({
+      ...createLaunchSpec(),
+      command: 'C:\\Tools\\opencode.exe',
+    }).start();
+
+    expect(spawnMock).toHaveBeenCalledWith('C:\\Tools\\opencode.exe', ['acp'], expect.objectContaining({
+      shell: false,
+      windowsHide: true,
+    }));
+  });
+
+  it('keeps a hostile workspace path out of the .cmd command line and routes it via the cwd option', () => {
+    Object.defineProperty(process, 'platform', { value: 'win32' });
+    const mockProc = createMockProcess();
+    spawnMock.mockReturnValue(mockProc);
+    const hostileCwd = 'C:\\Users\\Name\\OneDrive - 公司\\Vault 中文 (test)';
+
+    new AcpSubprocess({
+      args: ['acp'],
+      command: 'opencode.cmd',
+      cwd: hostileCwd,
+      env: { PATH: 'C:\\bin' },
+    }).start();
+
+    expect(spawnMock).toHaveBeenCalledTimes(1);
+    const [command, args, options] = spawnMock.mock.calls[0];
+    expect(command).toBe('opencode.cmd');
+    // The workspace path must never be appended to the args that cmd.exe would
+    // tokenize; only the literal 'acp' subcommand is passed through.
+    expect(args).toEqual(['acp']);
+    expect(args.join(' ')).not.toContain(hostileCwd);
+    expect(options).toEqual(expect.objectContaining({
+      cwd: hostileCwd,
+      shell: true,
+      stdio: 'pipe',
+      windowsHide: true,
+    }));
+  });
+
   it('does not enable shell support when spawning ACP commands on non-Windows platforms', () => {
     Object.defineProperty(process, 'platform', { value: 'linux' });
     const mockProc = createMockProcess();

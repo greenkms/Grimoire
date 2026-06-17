@@ -194,6 +194,29 @@ describe('OpencodeAuxQueryRunner', () => {
     }));
   });
 
+  it('does not pass the workspace path through auxiliary OpenCode CLI arguments', async () => {
+    const plugin = createMockPlugin();
+    const vaultPath = 'C:\\Users\\Name\\OneDrive - 公司\\Vault 中文 (test)';
+    plugin.app.vault.adapter.basePath = vaultPath;
+    const runner = new OpencodeAuxQueryRunner(plugin, {
+      agentProfile: 'passive',
+      artifactPurpose: 'title-gen',
+    });
+
+    await expect(runner.query({
+      systemPrompt: 'Use this custom system prompt.',
+    }, 'Generate a title')).resolves.toBe('Fix title now');
+
+    expect(MockAcpSubprocess).toHaveBeenCalledWith(expect.objectContaining({
+      args: ['acp'],
+      cwd: vaultPath,
+    }));
+    expect(mockConnection.newSession).toHaveBeenCalledWith({
+      cwd: vaultPath,
+      mcpServers: [],
+    });
+  });
+
   it('restarts the auxiliary ACP subprocess when the cached transport closed', async () => {
     const firstTransport = {
       dispose: jest.fn(),
@@ -348,8 +371,8 @@ describe('OpencodeAuxQueryRunner', () => {
     expect(() => (runner as any).resolveSessionPath('session-1', '/tmp/outside.md')).toThrow(
       'OpenCode aux read access is limited to the current workspace.',
     );
-    expect((runner as any).resolveSessionPath('session-1', '/tmp/grimoire-test-vault/notes/today.md')).toBe(
-      '/tmp/grimoire-test-vault/notes/today.md',
+    expect((runner as any).resolveSessionPath('session-1', '/tmp/grimoire-test-vault/notes/today.md').replace(/\\/g, '/')).toMatch(
+      /\/tmp\/grimoire-test-vault\/notes\/today\.md$/,
     );
   });
 });
