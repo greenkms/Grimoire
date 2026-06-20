@@ -76,6 +76,7 @@ npm run build:release
 `npm run build:release` refreshes generated `main.js`, root `styles.css`, and `dist/grimoire`. Generated release artifacts must match source output after the build.
 
 When bumping the plugin version, update `package.json`, `package-lock.json`, `manifest.json`, and `versions.json` together. `versions.json` maps each released plugin version to the minimum supported Obsidian app version and must include the new release before tagging or publishing.
+Obsidian plugin updates require the GitHub release tag to match `manifest.json.version` exactly, without a leading `v` prefix. For example, version `1.0.21` must be tagged and released as `1.0.21`, not `v1.0.21`.
 
 Before a public release, Obsidian community plugin submission, or release meant for external review, also run:
 
