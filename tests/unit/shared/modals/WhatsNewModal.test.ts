@@ -74,6 +74,11 @@ function collectText(el: MockElement): string {
   ].filter(Boolean).join(' ');
 }
 
+async function flushPromises(): Promise<void> {
+  await Promise.resolve();
+  await Promise.resolve();
+}
+
 beforeEach(() => {
   lastModalInstance = null;
   createdButtons = [];
@@ -137,6 +142,41 @@ describe('showWhatsNewModal', () => {
 
     await expect(promise).resolves.toBeUndefined();
     expect(onDismiss).not.toHaveBeenCalled();
+    expect(lastModalInstance.contentEl.children).toHaveLength(0);
+  });
+
+  it('waits for pending onDismiss before resolving when closed during primary dismissal', async () => {
+    let resolveDismiss!: () => void;
+    const onDismiss = jest.fn(() => new Promise<void>(resolve => {
+      resolveDismiss = resolve;
+    }));
+    const promise = showWhatsNewModal({ app: mockApp, release, onDismiss });
+    let resolved = false;
+    promise.then(() => {
+      resolved = true;
+    });
+
+    const clickPromise = createdButtons[0]._onClick();
+    lastModalInstance.close();
+
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    await flushPromises();
+    expect(resolved).toBe(false);
+
+    resolveDismiss();
+    await clickPromise;
+    await expect(promise).resolves.toBeUndefined();
+    expect(lastModalInstance.contentEl.children).toHaveLength(0);
+  });
+
+  it('closes and resolves when onDismiss rejects', async () => {
+    const onDismiss = jest.fn().mockRejectedValue(new Error('settings write failed'));
+    const promise = showWhatsNewModal({ app: mockApp, release, onDismiss });
+
+    await expect(createdButtons[0]._onClick()).resolves.toBeUndefined();
+    await expect(promise).resolves.toBeUndefined();
+
+    expect(onDismiss).toHaveBeenCalledTimes(1);
     expect(lastModalInstance.contentEl.children).toHaveLength(0);
   });
 });

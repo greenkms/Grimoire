@@ -19,6 +19,7 @@ class WhatsNewModal extends Modal {
   private readonly resolve: () => void;
   private readonly onDismiss?: () => void | Promise<void>;
   private primaryActionStarted = false;
+  private primaryActionFinished = false;
   private resolved = false;
 
   constructor(
@@ -63,8 +64,11 @@ class WhatsNewModal extends Modal {
   }
 
   onClose() {
-    this.complete();
     this.contentEl.empty();
+    if (this.primaryActionStarted && !this.primaryActionFinished) {
+      return;
+    }
+    this.complete();
   }
 
   private async dismiss(): Promise<void> {
@@ -73,8 +77,15 @@ class WhatsNewModal extends Modal {
     }
 
     this.primaryActionStarted = true;
-    await this.onDismiss?.();
-    this.close();
+    try {
+      await this.onDismiss?.();
+    } catch {
+      // Dismiss persistence failure should not block closing the plugin UI.
+    } finally {
+      this.primaryActionFinished = true;
+      this.close();
+      this.complete();
+    }
   }
 
   private complete(): void {
