@@ -114,7 +114,7 @@ Settings, Grimoire, Providers で使いたい providers を有効化すると、
 
 Grimoire で最高の体験を得るには、まず Claude Code、Codex、OpenCode、MiMoCode、Kimi Code、Grok Build から始めるのがおすすめです。これらの providers は現在、vault-native な作業に必要な runtime surface が最も強く、persistent sessions、history hydration、plan-oriented workflows、tool activity、豊富な model controls を扱えます。
 
-Antigravity CLI と Gemini CLI (Legacy) も引き続き利用できます。特に Google accounts や compatibility cases では役立ちますが、現時点の Grimoire ではより制限があります。現在の CLI surfaces から得られる session、tool、approval、streaming metadata が少ないためです。
+Antigravity CLI と Gemini CLI (Legacy) も Google accounts や compatibility cases 向けに引き続き利用できますが、現時点では Grimoire の primary provider としては推奨していません。Grimoire は best-effort でこれらをサポートし、現在の CLI が許す fallback は実装していますが、ACP と runtime surfaces には技術的な制限があります。sessions、approvals、streaming、tool/edit metadata、model discovery、usage reporting は、推奨 providers と比べて不完全または不安定です。
 
 ### Claude Code
 
@@ -161,7 +161,7 @@ Grimoire 内では、Codex は app-server protocol で動作し、native history
 
 ### Antigravity CLI
 
-Antigravity CLI は consumer Gemini CLI 向けに Google が推奨する後継です。Google の multi-model agent CLI として選択でき、Gemini、Claude、GPT-OSS、そしてあなたの Antigravity account で利用できる他の model families を扱えます。
+Antigravity CLI は consumer Gemini CLI 向けの Google の後継で、あなたの Antigravity account で利用できる Gemini、Claude、GPT-OSS、その他の model families を扱えます。Grimoire 内では、推奨 default ではなく compatibility provider として扱ってください。
 
 ```bash
 agy
@@ -172,19 +172,19 @@ Google 公式の Antigravity CLI をインストールし、ローカルで認�
 - [Antigravity CLI](https://antigravity.google/product/antigravity-cli)
 - [Gemini CLI migration guide](https://goo.gle/gemini-cli-migration)
 
-Grimoire 内では、Antigravity は推奨 Google provider です。`agy --print` で実行され、`agy models` から model selection もできます。Antigravity が互換性のある runtime surface を公開するまで、persistent sessions、native history、images、plan mode、auxiliary workflows は無効のままです。
+Grimoire 内では、Antigravity は `agy --print` で実行され、`agy models` から model selection もできます。これは best-effort integration です。`agy` は現時点で Grimoire に十分強い ACP-compatible runtime を公開していません。Antigravity が安定した runtime surfaces を公開するまで、persistent sessions、native history、images、plan mode、streaming、approval-safe file edits、reliable usage reporting、auxiliary workflows は無効または制限されたままです。
 
 Windows note: current Windows `agy` builds can finish successfully while returning empty stdout for `agy models` and `agy --print`. Grimoire uses best-effort recovery from Antigravity logs, transcripts, settings, and a seeded Pro AI model list, but Windows Antigravity support may be less reliable than macOS or Linux. If your account shows additional models in Antigravity, add their exact labels under Antigravity settings > Custom models.
 
 ### Gemini CLI (Legacy)
 
-Gemini CLI は、Google が Gemini CLI requests を継続提供する Gemini Code Assist Standard、Enterprise、Google Cloud、paid API-key users 向けの legacy provider として残ります。Consumer Google AI Pro、Ultra、free-tier accounts は June 18, 2026 以降 Antigravity を使ってください。
+Gemini CLI は、Google が Gemini CLI requests を継続提供する Gemini Code Assist Standard、Enterprise、Google Cloud、paid API-key users 向けの legacy compatibility provider として残ります。ACP support が弱く、いくつかの Grimoire workflows をその上で信頼性高く実装できないため、新しい Grimoire setup では推奨しません。Consumer Google AI Pro、Ultra、free-tier accounts は June 18, 2026 以降、上記の Antigravity 制限を理解したうえで Antigravity を使ってください。
 
 ```bash
 gemini
 ```
 
-Gemini CLI は、account tier がまだサポートされている場合だけ有効化してください。Grimoire は `gemini --acp` で起動し、active note、editor/browser/canvas selection、vault search、project workspace context を ACP prompt に追加し、推奨 Google provider と混同しないよう legacy と表示します。
+Gemini CLI は、account tier がまだサポートされていて、その legacy Google path が必要な場合だけ有効化してください。Grimoire は `gemini --acp` で起動し、active note、editor/browser/canvas selection、vault search、project workspace context を ACP prompt に追加し、推奨 provider に見えないよう legacy と表示します。可能なら Codex、Claude Code、OpenCode、MiMoCode、Kimi Code、Grok Build を優先してください。
 
 ### OpenCode
 
@@ -263,7 +263,7 @@ Grimoire 内では、Grok Build は `grok agent stdio` 経由の ACP で動作�
 
 ### Model selector
 
-ひとつの picker が provider ごとに grouped され、label 順に並びます：Antigravity、Claude Code、Codex、Gemini CLI (Legacy)、Grok Build、OpenCode。Search は labels、descriptions、groups、model IDs を横断します。Catalogs は lazily に load され、collapse した groups を記憶します。Settings で custom aliases と context-window overrides を追加できます。Claude の 1M variants は base models の置き換えではなく、追加 options です。
+ひとつの picker が provider ごとに grouped され、label 順に並びます：Antigravity、Claude Code、Codex、Gemini CLI (Legacy)、Grok Build、OpenCode、MiMoCode、Kimi Code。Search は labels、descriptions、groups、model IDs を横断します。Catalogs は lazily に load され、collapse した groups を記憶します。Settings で custom aliases と context-window overrides を追加できます。Claude の 1M variants は base models の置き換えではなく、追加 options です。
 
 <p align="center">
   <img src="../../assets/readme/model-selector-usage.png" alt="Provider groups、model search、plan usage を表示する Grimoire model selector" width="100%">
@@ -277,8 +277,8 @@ Model selector の横の badge が active provider の usage を表示します�
 | --- | --- |
 | Claude Code | SDK rate-limit events、任意の `.grimoire/claude/statusline-usage.json`、SDK result cost metadata |
 | Codex | Account rate-limit notifications、利用可能な場合は `account/rateLimits/read` |
-| Antigravity CLI | `agy --print` からはまだ取得不可 |
-| Gemini CLI (Legacy) | Gemini CLI が返す場合の ACP cost metadata |
+| Antigravity CLI | `agy --print` からはまだ信頼性高く取得不可 |
+| Gemini CLI (Legacy) | Gemini CLI が返す場合の ACP cost metadata。legacy provider のみ |
 | OpenCode | ACP と session cost metadata から集計した monthly spend |
 | MiMoCode | ACP と session cost metadata から集計した monthly spend |
 | Kimi Code | ACP と session cost metadata から集計した monthly spend |

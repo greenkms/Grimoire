@@ -114,7 +114,7 @@ cp dist/grimoire/main.js dist/grimoire/manifest.json dist/grimoire/styles.css \
 
 Для лучшего опыта в Grimoire начните с Claude Code, Codex, OpenCode, MiMoCode, Kimi Code или Grok Build. Сейчас эти провайдеры дают самый сильный runtime surface для vault-native работы: persistent sessions, history hydration, plan-oriented workflows, tool activity и богатые model controls.
 
-Antigravity CLI и Gemini CLI (Legacy) остаются доступными, особенно для Google accounts и compatibility-сценариев, но сегодня внутри Grimoire они более ограничены: их текущие CLI surfaces отдают меньше session, tool, approval и streaming metadata.
+Antigravity CLI и Gemini CLI (Legacy) остаются доступными для Google accounts и compatibility-сценариев, но сегодня мы не рекомендуем их как основные провайдеры Grimoire. Grimoire поддерживает их в режиме best-effort, и мы реализовали все fallback'и, которые позволяют текущие CLI, но их ACP и runtime surfaces технически ограничены: sessions, approvals, streaming, tool/edit metadata, model discovery и usage reporting неполные или ненадежные по сравнению с рекомендуемыми провайдерами.
 
 ### Claude Code
 
@@ -161,7 +161,7 @@ codex
 
 ### Antigravity CLI
 
-Antigravity CLI — рекомендуемая Google замена для consumer-сценариев Gemini CLI. Выбирайте его как новый Google provider для multi-model agent CLI: Gemini, Claude, GPT-OSS и других семейств моделей, доступных вашему Antigravity account.
+Antigravity CLI — замена Google для consumer-сценариев Gemini CLI, с доступом к Gemini, Claude, GPT-OSS и другим семействам моделей вашего Antigravity account. Внутри Grimoire относитесь к нему как к compatibility provider, а не как к рекомендуемому варианту по умолчанию.
 
 ```bash
 agy
@@ -172,7 +172,7 @@ agy
 - [Antigravity CLI](https://antigravity.google/product/antigravity-cli)
 - [Gemini CLI migration guide](https://goo.gle/gemini-cli-migration)
 
-Внутри Grimoire Antigravity — рекомендуемый Google provider. Он работает через `agy --print`, с optional model selection из `agy models`; Grimoire добавляет в print prompt активную заметку, editor/browser/canvas context, vault search и project workspace context. Persistent sessions, native history, images, plan mode, streaming и auxiliary workflows остаются выключенными, пока Antigravity не предоставит совместимый runtime surface.
+Внутри Grimoire Antigravity работает через `agy --print`, с optional model selection из `agy models`; Grimoire добавляет в print prompt активную заметку, editor/browser/canvas context, vault search и project workspace context. Это best-effort integration, потому что `agy` пока не предоставляет Grimoire сильный ACP-compatible runtime. Persistent sessions, native history, images, plan mode, streaming, approval-safe file edits, reliable usage reporting и auxiliary workflows остаются выключенными или ограниченными, пока Antigravity не предоставит стабильные runtime surfaces.
 
 `agy --print` не предоставляет Grimoire hooks для подтверждения file edits. Поэтому ради безопасности Antigravity в общем Safe/normal mode заблокирован в Grimoire; переключайте Antigravity toolbar в Auto-approve только если готовы, что AGY может редактировать файлы без Grimoire prompts.
 
@@ -180,13 +180,13 @@ Windows note: current Windows `agy` builds can finish successfully while returni
 
 ### Gemini CLI (Legacy)
 
-Gemini CLI остается legacy provider для Gemini Code Assist Standard, Enterprise, Google Cloud и paid API-key users, где Google продолжает обслуживать Gemini CLI requests. Consumer Google AI Pro, Ultra и free-tier accounts после June 18, 2026 должны использовать Antigravity.
+Gemini CLI остается legacy compatibility provider для Gemini Code Assist Standard, Enterprise, Google Cloud и paid API-key users, где Google продолжает обслуживать Gemini CLI requests. Мы не рекомендуем его для новых Grimoire setups: его ACP support слабый, и несколько Grimoire workflows нельзя надежно реализовать поверх него. Consumer Google AI Pro, Ultra и free-tier accounts после June 18, 2026 должны использовать Antigravity, учитывая ограничения Antigravity выше.
 
 ```bash
 gemini
 ```
 
-Включайте Gemini CLI только если ваш account tier еще поддерживается. Grimoire запускает его через `gemini --acp`, добавляет в ACP prompt активную заметку, editor/browser/canvas selection, vault search и project workspace context, и помечает как legacy, чтобы не путать с рекомендуемым Google provider.
+Включайте Gemini CLI только если ваш account tier еще поддерживается и вам нужен именно этот legacy Google path. Grimoire запускает его через `gemini --acp`, добавляет в ACP prompt активную заметку, editor/browser/canvas selection, vault search и project workspace context, и помечает как legacy, чтобы он не выглядел рекомендуемым provider. По возможности используйте Codex, Claude Code, OpenCode, MiMoCode, Kimi Code или Grok Build.
 
 ### OpenCode
 
@@ -265,7 +265,7 @@ grok
 
 ### Model selector
 
-Один picker, сгруппированный по провайдерам и отсортированный по label: Antigravity, Claude Code, Codex, Gemini CLI (Legacy), Grok Build, OpenCode. Search работает по labels, descriptions, groups и model IDs. Catalogs загружаются lazily и запоминают, какие groups вы свернули. В settings можно добавить custom aliases и context-window overrides. Claude 1M variants — дополнительные options, а не замена базовых моделей.
+Один picker, сгруппированный по провайдерам и отсортированный по label: Antigravity, Claude Code, Codex, Gemini CLI (Legacy), Grok Build, OpenCode, MiMoCode и Kimi Code. Search работает по labels, descriptions, groups и model IDs. Catalogs загружаются lazily и запоминают, какие groups вы свернули. В settings можно добавить custom aliases и context-window overrides. Claude 1M variants — дополнительные options, а не замена базовых моделей.
 
 <p align="center">
   <img src="../../assets/readme/model-selector-usage.png" alt="Model selector Grimoire с provider groups, search и plan usage" width="100%">
@@ -279,8 +279,8 @@ Badge рядом с model selector показывает usage активного
 | --- | --- |
 | Claude Code | SDK rate-limit events, optional `.grimoire/claude/statusline-usage.json` и SDK result cost metadata |
 | Codex | Account rate-limit notifications и `account/rateLimits/read`, когда доступно |
-| Antigravity CLI | Пока недоступно из `agy --print` |
-| Gemini CLI (Legacy) | ACP cost metadata, если Gemini CLI её отдаёт |
+| Antigravity CLI | Пока ненадежно доступно из `agy --print` |
+| Gemini CLI (Legacy) | ACP cost metadata, если Gemini CLI её отдаёт; только legacy provider |
 | OpenCode | Monthly spend, агрегированный из ACP и session cost metadata |
 | MiMoCode | Monthly spend, агрегированный из ACP и session cost metadata |
 | Kimi Code | Monthly spend, агрегированный из ACP и session cost metadata |

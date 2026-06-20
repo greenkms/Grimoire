@@ -114,7 +114,7 @@ cp dist/grimoire/main.js dist/grimoire/manifest.json dist/grimoire/styles.css \
 
 為了獲得最好的 Grimoire 體驗，建議先從 Claude Code、Codex、OpenCode、MiMoCode、Kimi Code 或 Grok Build 開始。這些 providers 目前為 vault-native 工作提供最強的 runtime surface：persistent sessions、history hydration、plan-oriented workflows、tool activity，以及更豐富的 model controls。
 
-Antigravity CLI 和 Gemini CLI (Legacy) 仍然可用，尤其適合 Google accounts 和 compatibility 場景，但它們現在在 Grimoire 中更受限制，因為目前 CLI surfaces 暴露的 session、tool、approval 和 streaming metadata 較少。
+Antigravity CLI 和 Gemini CLI (Legacy) 仍然可用於 Google accounts 和 compatibility 場景，但目前不建議作為 Grimoire 的主要 provider。Grimoire 以 best-effort 方式支援它們，並已實作目前 CLI 能提供的 fallback，但它們的 ACP 和 runtime surfaces 有技術限制：sessions、approvals、streaming、tool/edit metadata、model discovery 和 usage reporting 相比推薦 providers 並不完整，也不夠可靠。
 
 ### Claude Code
 
@@ -161,7 +161,7 @@ codex
 
 ### Antigravity CLI
 
-Antigravity CLI 是 Google 推薦用於 consumer Gemini CLI 場景的替代工具。選擇它即可使用 Google 的 multi-model agent CLI，包括 Gemini、Claude、GPT-OSS，以及你的 Antigravity account 可存取的其他模型系列。
+Antigravity CLI 是 Google 面向 consumer Gemini CLI 場景的替代工具，可存取你的 Antigravity account 中可用的 Gemini、Claude、GPT-OSS 和其他模型系列。在 Grimoire 中，請把它視為 compatibility provider，而不是推薦預設選擇。
 
 ```bash
 agy
@@ -172,19 +172,19 @@ agy
 - [Antigravity CLI](https://antigravity.google/product/antigravity-cli)
 - [Gemini CLI migration guide](https://goo.gle/gemini-cli-migration)
 
-在 Grimoire 中，Antigravity 是推薦的 Google provider。它透過 `agy --print` 執行，並可從 `agy models` 選擇模型。在 Antigravity 暴露相容的 runtime surface 之前，persistent sessions、native history、images、plan mode 和 auxiliary workflows 都保持關閉。
+在 Grimoire 中，Antigravity 透過 `agy --print` 執行，並可從 `agy models` 選擇模型。這是 best-effort integration，因為 `agy` 目前沒有向 Grimoire 暴露足夠強的 ACP-compatible runtime。在 Antigravity 提供穩定 runtime surfaces 之前，persistent sessions、native history、images、plan mode、streaming、approval-safe file edits、reliable usage reporting 和 auxiliary workflows 都會保持關閉或受限。
 
 Windows note: current Windows `agy` builds can finish successfully while returning empty stdout for `agy models` and `agy --print`. Grimoire uses best-effort recovery from Antigravity logs, transcripts, settings, and a seeded Pro AI model list, but Windows Antigravity support may be less reliable than macOS or Linux. If your account shows additional models in Antigravity, add their exact labels under Antigravity settings > Custom models.
 
 ### Gemini CLI (Legacy)
 
-Gemini CLI 作為 legacy provider 保留給 Gemini Code Assist Standard、Enterprise、Google Cloud 和 paid API-key users，前提是 Google 仍繼續服務 Gemini CLI requests。Consumer Google AI Pro、Ultra 和 free-tier accounts 在 June 18, 2026 之後應使用 Antigravity。
+Gemini CLI 作為 legacy compatibility provider 保留給 Gemini Code Assist Standard、Enterprise、Google Cloud 和 paid API-key users，前提是 Google 仍繼續服務 Gemini CLI requests。不建議在新的 Grimoire setup 中使用它，因為它的 ACP support 較弱，許多 Grimoire workflows 無法可靠地基於它實作。Consumer Google AI Pro、Ultra 和 free-tier accounts 在 June 18, 2026 之後應使用 Antigravity，並注意上面的 Antigravity 限制。
 
 ```bash
 gemini
 ```
 
-只有當你的 account tier 仍受支援時才啟用 Gemini CLI。Grimoire 透過 `gemini --acp` 執行它，將 active note、editor/browser/canvas selection、vault search 和 project workspace context 加入 ACP prompt，並標記為 legacy，避免和推薦的 Google provider 混淆。
+只有當你的 account tier 仍受支援，且你確實需要這個 legacy Google path 時，才啟用 Gemini CLI。Grimoire 透過 `gemini --acp` 執行它，將 active note、editor/browser/canvas selection、vault search 和 project workspace context 加入 ACP prompt，並標記為 legacy，避免看起來像推薦 provider。盡量優先使用 Codex、Claude Code、OpenCode、MiMoCode、Kimi Code 或 Grok Build。
 
 ### OpenCode
 
@@ -255,7 +255,7 @@ grok
 
 ### Model selector
 
-一個 picker，按 provider 分組，並按 label 排序：Antigravity、Claude Code、Codex、Gemini CLI (Legacy)、Grok Build、OpenCode。Search 會匹配 labels、descriptions、groups 和 model IDs。Catalogs 會 lazy load，並記住你摺疊過的 groups。你可以在 settings 中新增 custom aliases 和 context-window overrides。Claude 的 1M variants 是額外 options，不會替代 base models。
+一個 picker，按 provider 分組，並按 label 排序：Antigravity、Claude Code、Codex、Gemini CLI (Legacy)、Grok Build、OpenCode、MiMoCode 和 Kimi Code。Search 會匹配 labels、descriptions、groups 和 model IDs。Catalogs 會 lazy load，並記住你摺疊過的 groups。你可以在 settings 中新增 custom aliases 和 context-window overrides。Claude 的 1M variants 是額外 options，不會替代 base models。
 
 <p align="center">
   <img src="../../assets/readme/model-selector-usage.png" alt="Grimoire model selector 顯示 provider groups、model search 和 plan usage" width="100%">
@@ -269,8 +269,8 @@ Model selector 旁邊的 badge 會持續顯示目前 provider 的 usage；model 
 | --- | --- |
 | Claude Code | SDK rate-limit events、可選的 `.grimoire/claude/statusline-usage.json` 和 SDK result cost metadata |
 | Codex | Account rate-limit notifications，以及可用時的 `account/rateLimits/read` |
-| Antigravity CLI | `agy --print` 目前尚未提供 |
-| Gemini CLI (Legacy) | Gemini CLI 回傳時的 ACP cost metadata |
+| Antigravity CLI | `agy --print` 目前尚無法可靠提供 |
+| Gemini CLI (Legacy) | Gemini CLI 回傳時的 ACP cost metadata；僅 legacy provider |
 | OpenCode | 從 ACP 和 session cost metadata 聚合的 monthly spend |
 | MiMoCode | 從 ACP 和 session cost metadata 聚合的 monthly spend |
 | Kimi Code | 從 ACP 和 session cost metadata 聚合的 monthly spend |

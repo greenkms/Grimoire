@@ -114,7 +114,7 @@ Activez les providers voulus dans Settings, Grimoire, Providers, et ils apparaî
 
 Pour la meilleure expérience Grimoire, commencez avec Claude Code, Codex, OpenCode, MiMoCode, Kimi Code ou Grok Build. Ces providers exposent aujourd'hui les runtime surfaces les plus solides pour le travail vault-native : persistent sessions, history hydration, plan-oriented workflows, tool activity et model controls riches.
 
-Antigravity CLI et Gemini CLI (Legacy) restent disponibles, surtout pour les Google accounts et les cas de compatibility, mais ils sont plus limités dans Grimoire aujourd'hui parce que leurs CLI surfaces actuelles exposent moins de session, tool, approval et streaming metadata.
+Antigravity CLI et Gemini CLI (Legacy) restent disponibles pour les Google accounts et les cas de compatibility, mais ils ne sont pas recommandés comme providers principaux de Grimoire aujourd'hui. Grimoire les prend en charge en best-effort et nous avons implémenté les fallbacks que leurs CLIs actuels permettent, mais leurs ACP et runtime surfaces ont des limites techniques : sessions, approvals, streaming, tool/edit metadata, model discovery et usage reporting sont incomplets ou peu fiables par rapport aux providers recommandés.
 
 ### Claude Code
 
@@ -161,7 +161,7 @@ Dans Grimoire, Codex tourne sur son app-server protocol avec native history, for
 
 ### Antigravity CLI
 
-Antigravity CLI est le remplacement officiel de Gemini CLI par Google. Choisissez-le comme multi-model agent CLI de Google, avec Gemini, Claude, GPT-OSS et les autres familles de modèles accessibles à votre Antigravity account.
+Antigravity CLI est le remplacement de Gemini CLI par Google pour les usages consumer, avec accès à Gemini, Claude, GPT-OSS et aux autres familles de modèles disponibles sur votre Antigravity account. Dans Grimoire, traitez-le comme un compatibility provider plutôt que comme le choix recommandé par défaut.
 
 ```bash
 agy
@@ -172,19 +172,19 @@ Installez la CLI Antigravity officielle de Google, authentifiez-la localement, p
 - [Antigravity CLI](https://antigravity.google/product/antigravity-cli)
 - [Gemini CLI migration guide](https://goo.gle/gemini-cli-migration)
 
-Dans Grimoire, Antigravity est le Google provider recommandé. Il fonctionne via `agy --print`, avec une model selection optionnelle depuis `agy models`. Persistent sessions, native history, images, plan mode et auxiliary workflows restent désactivés jusqu'à ce qu'Antigravity expose une runtime surface compatible.
+Dans Grimoire, Antigravity fonctionne via `agy --print`, avec une model selection optionnelle depuis `agy models`. C'est une intégration best-effort parce que `agy` n'expose pas encore à Grimoire un runtime ACP-compatible solide. Persistent sessions, native history, images, plan mode, streaming, approval-safe file edits, reliable usage reporting et auxiliary workflows restent désactivés ou limités jusqu'à ce qu'Antigravity expose des runtime surfaces stables.
 
 Windows note: current Windows `agy` builds can finish successfully while returning empty stdout for `agy models` and `agy --print`. Grimoire uses best-effort recovery from Antigravity logs, transcripts, settings, and a seeded Pro AI model list, but Windows Antigravity support may be less reliable than macOS or Linux. If your account shows additional models in Antigravity, add their exact labels under Antigravity settings > Custom models.
 
 ### Gemini CLI (Legacy)
 
-Gemini CLI reste un legacy provider pour Gemini Code Assist Standard, Enterprise, Google Cloud et les paid API-key users lorsque Google continue de servir Gemini CLI requests. Les comptes consumer Google AI Pro, Ultra et free-tier doivent utiliser Antigravity apres le June 18, 2026.
+Gemini CLI reste un legacy compatibility provider pour Gemini Code Assist Standard, Enterprise, Google Cloud et les paid API-key users lorsque Google continue de servir Gemini CLI requests. Il n'est pas recommandé pour les nouveaux setups Grimoire parce que son ACP support est faible et que plusieurs Grimoire workflows ne peuvent pas être implémentés de manière fiable au-dessus de lui. Les comptes consumer Google AI Pro, Ultra et free-tier doivent utiliser Antigravity apres le June 18, 2026, en gardant en tête les limites Antigravity ci-dessus.
 
 ```bash
 gemini
 ```
 
-Activez Gemini CLI uniquement si votre account tier est encore pris en charge. Grimoire le lance via `gemini --acp`, ajoute active note, editor/browser/canvas selection, vault search et project workspace context au ACP prompt, et le marque comme legacy pour eviter toute confusion avec le Google provider recommande.
+Activez Gemini CLI uniquement si votre account tier est encore pris en charge et que vous avez spécifiquement besoin de ce legacy Google path. Grimoire le lance via `gemini --acp`, ajoute active note, editor/browser/canvas selection, vault search et project workspace context au ACP prompt, et le marque comme legacy pour qu'il ne ressemble pas à un provider recommandé. Préférez Codex, Claude Code, OpenCode, MiMoCode, Kimi Code ou Grok Build lorsque c'est possible.
 
 ### OpenCode
 
@@ -263,7 +263,7 @@ Un panneau latéral concentré avec plusieurs tabs. Chaque tab garde son draft, 
 
 ### Model selector
 
-Un picker unique, groupé par provider et trié par label : Antigravity, Claude Code, Codex, Gemini CLI (Legacy), Grok Build, OpenCode. Search traverse labels, descriptions, groups et model IDs. Les catalogs chargent lazily et mémorisent les groups que vous avez repliés. Ajoutez custom aliases et context-window overrides dans settings. Les variants 1M de Claude sont des options supplémentaires, pas des remplacements des base models.
+Un picker unique, groupé par provider et trié par label : Antigravity, Claude Code, Codex, Gemini CLI (Legacy), Grok Build, OpenCode, MiMoCode et Kimi Code. Search traverse labels, descriptions, groups et model IDs. Les catalogs chargent lazily et mémorisent les groups que vous avez repliés. Ajoutez custom aliases et context-window overrides dans settings. Les variants 1M de Claude sont des options supplémentaires, pas des remplacements des base models.
 
 <p align="center">
   <img src="../../assets/readme/model-selector-usage.png" alt="Model selector Grimoire avec provider groups, search et plan usage" width="100%">
@@ -277,8 +277,8 @@ Un badge près du model selector garde l'usage du provider actif visible. Le mod
 | --- | --- |
 | Claude Code | SDK rate-limit events, `.grimoire/claude/statusline-usage.json` optionnel et SDK result cost metadata |
 | Codex | Account rate-limit notifications et `account/rateLimits/read` quand disponible |
-| Antigravity CLI | Pas encore disponible depuis `agy --print` |
-| Gemini CLI (Legacy) | ACP cost metadata quand Gemini CLI le signale |
+| Antigravity CLI | Pas encore disponible de manière fiable depuis `agy --print` |
+| Gemini CLI (Legacy) | ACP cost metadata quand Gemini CLI le signale ; legacy provider uniquement |
 | OpenCode | Monthly spend agrégé depuis ACP et session cost metadata |
 | MiMoCode | Monthly spend agrégé depuis ACP et session cost metadata |
 | Kimi Code | Monthly spend agrégé depuis ACP et session cost metadata |
