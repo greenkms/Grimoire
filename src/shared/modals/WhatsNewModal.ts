@@ -6,11 +6,18 @@ export interface ShowWhatsNewModalOptions {
   app: App;
   release: ChangelogRelease;
   onDismiss?: () => void | Promise<void>;
+  onClose?: () => void | Promise<void>;
 }
 
 export function showWhatsNewModal(options: ShowWhatsNewModalOptions): Promise<void> {
   return new Promise(resolve => {
-    new WhatsNewModal(options.app, options.release, resolve, options.onDismiss).open();
+    new WhatsNewModal(
+      options.app,
+      options.release,
+      resolve,
+      options.onDismiss,
+      options.onClose,
+    ).open();
   });
 }
 
@@ -18,8 +25,10 @@ class WhatsNewModal extends Modal {
   private readonly release: ChangelogRelease;
   private readonly resolve: () => void;
   private readonly onDismiss?: () => void | Promise<void>;
+  private readonly onCloseCallback?: () => void | Promise<void>;
   private primaryActionStarted = false;
   private primaryActionFinished = false;
+  private closeCallbackStarted = false;
   private resolved = false;
 
   constructor(
@@ -27,11 +36,13 @@ class WhatsNewModal extends Modal {
     release: ChangelogRelease,
     resolve: () => void,
     onDismiss?: () => void | Promise<void>,
+    onCloseCallback?: () => void | Promise<void>,
   ) {
     super(app);
     this.release = release;
     this.resolve = resolve;
     this.onDismiss = onDismiss;
+    this.onCloseCallback = onCloseCallback;
   }
 
   onOpen() {
@@ -68,7 +79,11 @@ class WhatsNewModal extends Modal {
     if (this.primaryActionStarted && !this.primaryActionFinished) {
       return;
     }
-    this.complete();
+    if (this.primaryActionStarted) {
+      this.complete();
+      return;
+    }
+    void this.completeNonPrimaryClose();
   }
 
   private async dismiss(): Promise<void> {
@@ -95,5 +110,20 @@ class WhatsNewModal extends Modal {
 
     this.resolved = true;
     this.resolve();
+  }
+
+  private async completeNonPrimaryClose(): Promise<void> {
+    if (this.closeCallbackStarted) {
+      return;
+    }
+
+    this.closeCallbackStarted = true;
+    try {
+      await this.onCloseCallback?.();
+    } catch {
+      // Close acknowledgement persistence failure should not block modal cleanup.
+    } finally {
+      this.complete();
+    }
   }
 }

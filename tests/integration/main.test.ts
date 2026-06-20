@@ -115,6 +115,7 @@ describe('GrimoirePlugin', () => {
           version: '0.1.0',
         }),
         onDismiss: expect.any(Function),
+        onClose: expect.any(Function),
       });
 
       const modalOptions = (showWhatsNewModal as jest.Mock).mock.calls[0][0];
@@ -127,6 +128,19 @@ describe('GrimoirePlugin', () => {
       expect(writeCall).toBeDefined();
       const content = JSON.parse(writeCall[1]);
       expect(content.lastSeenChangelogVersion).toBe('0.1.0');
+
+      plugin.settings.lastSeenChangelogVersion = '0.0.9';
+      mockApp.vault.adapter.write.mockClear();
+
+      await modalOptions.onClose();
+
+      expect(plugin.settings.lastSeenChangelogVersion).toBe('0.1.0');
+      const closeWriteCall = (mockApp.vault.adapter.write as jest.Mock).mock.calls.find(
+        ([path]) => path === '.grimoire/grimoire-settings.json',
+      );
+      expect(closeWriteCall).toBeDefined();
+      const closeContent = JSON.parse(closeWriteCall[1]);
+      expect(closeContent.lastSeenChangelogVersion).toBe('0.1.0');
     });
 
     it("does not show what's new when current version has already been seen", async () => {

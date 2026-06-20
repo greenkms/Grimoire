@@ -145,6 +145,42 @@ describe('showWhatsNewModal', () => {
     expect(lastModalInstance.contentEl.children).toHaveLength(0);
   });
 
+  it('calls onClose once and waits before resolving when closed without primary action', async () => {
+    const onDismiss = jest.fn();
+    let resolveClose!: () => void;
+    const onClose = jest.fn(() => new Promise<void>(resolve => {
+      resolveClose = resolve;
+    }));
+    const promise = showWhatsNewModal({ app: mockApp, release, onDismiss, onClose });
+    let resolved = false;
+    promise.then(() => {
+      resolved = true;
+    });
+
+    lastModalInstance.close();
+    lastModalInstance.close();
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onDismiss).not.toHaveBeenCalled();
+    await flushPromises();
+    expect(resolved).toBe(false);
+
+    resolveClose();
+    await expect(promise).resolves.toBeUndefined();
+    expect(lastModalInstance.contentEl.children).toHaveLength(0);
+  });
+
+  it('resolves when non-primary onClose rejects', async () => {
+    const onClose = jest.fn().mockRejectedValue(new Error('settings write failed'));
+    const promise = showWhatsNewModal({ app: mockApp, release, onClose });
+
+    lastModalInstance.close();
+
+    await expect(promise).resolves.toBeUndefined();
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(lastModalInstance.contentEl.children).toHaveLength(0);
+  });
+
   it('waits for pending onDismiss before resolving when closed during primary dismissal', async () => {
     let resolveDismiss!: () => void;
     const onDismiss = jest.fn(() => new Promise<void>(resolve => {

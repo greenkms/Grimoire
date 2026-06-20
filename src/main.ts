@@ -320,13 +320,16 @@ export default class GrimoirePlugin extends Plugin {
       return;
     }
 
+    const persistSeenVersion = async () => {
+      this.settings.lastSeenChangelogVersion = currentVersion;
+      await this.saveSettings();
+    };
+
     void showWhatsNewModal({
       app: this.app,
       release,
-      onDismiss: async () => {
-        this.settings.lastSeenChangelogVersion = currentVersion;
-        await this.saveSettings();
-      },
+      onDismiss: persistSeenVersion,
+      onClose: persistSeenVersion,
     });
   }
 
