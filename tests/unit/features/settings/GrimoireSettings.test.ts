@@ -1,11 +1,22 @@
 import '@/providers';
 
 import { createMockEl } from '@test/helpers/mockElement';
+import { Notice } from 'obsidian';
 
+import { readBundledChangelog } from '@/app/changelog/source';
 import { DEFAULT_GRIMOIRE_SETTINGS } from '@/app/settings/defaultSettings';
 import { ProviderRegistry } from '@/core/providers/ProviderRegistry';
 import { GrimoireSettingTab } from '@/features/settings/GrimoireSettings';
 import { setLocale } from '@/i18n/i18n';
+import { showWhatsNewModal } from '@/shared/modals/WhatsNewModal';
+
+jest.mock('@/shared/modals/WhatsNewModal', () => ({
+  showWhatsNewModal: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('@/app/changelog/source', () => ({
+  readBundledChangelog: jest.fn().mockResolvedValue('# Changelog\n\n## 9.8.7\n\n### Added\n\n- Manual release note.'),
+}));
 
 function collectText(el: any): string {
   return [
@@ -30,8 +41,18 @@ function createSettingsPlugin(overrides: Record<string, any> = {}): any {
   };
 }
 
+function createSettingsApp(): any {
+  return {
+    hotkeyManager: {},
+    vault: {
+      adapter: {},
+    },
+  };
+}
+
 describe('GrimoireSettingTab general tab settings', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     setLocale('en');
   });
 
@@ -48,16 +69,57 @@ describe('GrimoireSettingTab general tab settings', () => {
     expect(container.querySelector('.grimoire-theme-card')).toBeNull();
   });
 
-  it('renders the plugin version in settings', () => {
+  it('renders the plugin version and permanent what\'s new action in settings', () => {
     const plugin = createSettingsPlugin();
-    const app: any = { hotkeyManager: {} };
+    const app = createSettingsApp();
     const tab = new GrimoireSettingTab(app, plugin);
     (tab as any).containerEl = createMockEl('div');
 
     tab.display();
 
     const versionEl = (tab as any).containerEl.querySelector('.grimoire-settings-version');
-    expect(versionEl?.textContent).toBe('Grimoire v9.8.7-test');
+    expect(collectText(versionEl)).toContain('Grimoire v9.8.7-test');
+    expect(versionEl?.querySelector('.grimoire-settings-whats-new')?.textContent).toBe('What\'s new');
+  });
+
+  it('opens bundled release notes for the current version from the what\'s new action', async () => {
+    const plugin = createSettingsPlugin();
+    const app = createSettingsApp();
+    const tab = new GrimoireSettingTab(app, plugin);
+    (tab as any).containerEl = createMockEl('div');
+
+    tab.display();
+
+    const button = (tab as any).containerEl.querySelector('.grimoire-settings-whats-new');
+    button?.dispatchEvent('click');
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(readBundledChangelog).toHaveBeenCalledWith(app.vault.adapter, plugin.manifest);
+    expect(showWhatsNewModal).toHaveBeenCalledWith({
+      app,
+      release: expect.objectContaining({
+        version: '9.8.7',
+      }),
+    });
+  });
+
+  it('shows a notice when no bundled release notes match the current version', async () => {
+    (readBundledChangelog as jest.Mock).mockResolvedValueOnce('# Changelog\n\n## 1.2.3\n\n- Older release.');
+    const plugin = createSettingsPlugin();
+    const app = createSettingsApp();
+    const tab = new GrimoireSettingTab(app, plugin);
+    (tab as any).containerEl = createMockEl('div');
+
+    tab.display();
+
+    const button = (tab as any).containerEl.querySelector('.grimoire-settings-whats-new');
+    button?.dispatchEvent('click');
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(showWhatsNewModal).not.toHaveBeenCalled();
+    expect(Notice).toHaveBeenCalledWith('No release notes are bundled for this Grimoire version.');
   });
 
   it('renders the maximum chat tabs control in General and removes tab bar placement', () => {
