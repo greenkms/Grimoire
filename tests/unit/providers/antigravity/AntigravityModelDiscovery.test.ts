@@ -42,6 +42,14 @@ function createMockChildProcess(): any {
   return proc;
 }
 
+function getSpawnedAgyArgs(): string[] {
+  const [, args] = mockedSpawn.mock.calls[0] as [string, string[]];
+  if (args[0] === '-lc' && args[1] === 'exec "$0" "$@"') {
+    return args.slice(3);
+  }
+  return args;
+}
+
 describe('AntigravityModelDiscovery', () => {
   afterEach(() => {
     jest.restoreAllMocks();
@@ -82,11 +90,12 @@ describe('AntigravityModelDiscovery', () => {
       ]);
       expect(logFileArgIndex).toBeGreaterThanOrEqual(0);
       expect(logFilePath).toBeTruthy();
-      expect(mockedSpawn).toHaveBeenCalledWith('agy', expect.arrayContaining([
+      expect(getSpawnedAgyArgs()).toEqual(expect.arrayContaining([
         '--log-file',
         logFilePath,
         'models',
-      ]), expect.objectContaining({
+      ]));
+      expect(mockedSpawn.mock.calls[0][2]).toEqual(expect.objectContaining({
         stdio: ['ignore', 'pipe', 'pipe'],
       }));
       expect(plugin.recordDebugLog).toHaveBeenCalledWith(expect.objectContaining({

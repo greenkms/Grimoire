@@ -16,7 +16,7 @@
 ## Boundaries
 
 - Keep Antigravity-specific runtime behavior in `src/providers/antigravity/`.
-- Treat Antigravity as Grimoire's recommended Google provider. `src/providers/gemini/` may coexist only as a legacy Gemini CLI compatibility provider for tiers Google still supports.
+- Treat Antigravity as a best-effort Google compatibility provider, not a recommended default provider, until `agy` exposes a stronger Grimoire-compatible runtime surface. `src/providers/gemini/` may coexist only as a legacy Gemini CLI compatibility provider for tiers Google still supports.
 - Do not assume Antigravity is Gemini-only. Its model catalog may include Gemini, Claude, GPT-OSS, and other model families.
 - Prefer live CLI output over guessed schemas when expanding support.
 
