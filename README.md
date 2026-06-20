@@ -172,6 +172,8 @@ Install the official Antigravity CLI from Google, authenticate it locally, then 
 
 Inside Grimoire, Antigravity is the recommended Google provider. It runs through `agy --print` with optional model selection from `agy models`, and Grimoire folds the active note plus editor, browser, canvas, vault-search, and project-workspace context into that print prompt. Persistent sessions, native history, images, plan mode, streaming, and auxiliary workflows stay disabled until Antigravity exposes a compatible runtime surface for them.
 
+Known Windows limitation: current Windows `agy` builds can finish successfully while returning empty stdout for `agy models` and `agy --print`. Grimoire uses best-effort recovery from Antigravity logs, transcripts, settings, and a seeded Pro AI model list, but Windows Antigravity support may be less reliable than macOS or Linux until the upstream CLI exposes stable output. If your account shows additional models in Antigravity, add their exact labels under Antigravity settings > Custom models.
+
 `agy --print` does not expose Grimoire file-edit approval hooks. For safety, Antigravity's shared Safe/normal mode is blocked in Grimoire; switch the Antigravity toolbar toggle to Auto-approve only when you are comfortable with AGY editing files without Grimoire prompts.
 
 ### Gemini CLI (Legacy)

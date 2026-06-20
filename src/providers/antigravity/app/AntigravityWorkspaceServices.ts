@@ -7,7 +7,10 @@ import type {
   ProviderWorkspaceServices,
 } from '../../../core/providers/types';
 import type GrimoirePlugin from '../../../main';
-import { ANTIGRAVITY_SYNTHETIC_MODEL_ID } from '../models';
+import {
+  ANTIGRAVITY_FALLBACK_DISCOVERED_MODELS,
+  ANTIGRAVITY_SYNTHETIC_MODEL_ID,
+} from '../models';
 import { AntigravityCliResolver } from '../runtime/AntigravityCliResolver';
 import { discoverAntigravityModels } from '../runtime/AntigravityModelDiscovery';
 import type { AntigravityDiscoveredModel } from '../settings';
@@ -92,8 +95,27 @@ function createAntigravityModelCatalog(plugin: GrimoirePlugin): ProviderModelCat
       });
 
       refreshPromise = (async () => {
-        const discoveredModels = await discoverAntigravityModels(plugin);
+        const cliDiscoveredModels = await discoverAntigravityModels(plugin);
         const settingsBeforeUpdate = getAntigravityProviderSettings(settings);
+        if (cliDiscoveredModels.length === 0 && settingsBeforeUpdate.discoveredModels.length > 0) {
+          lastRefreshAt = Date.now();
+          lastRefreshCacheKey = buildAntigravityModelCatalogCacheKey(settingsBeforeUpdate);
+          plugin.recordDebugLog?.({
+            data: {
+              modelCount: settingsBeforeUpdate.discoveredModels.length,
+              providerId: 'antigravity',
+            },
+            event: 'modelCatalog.refresh.preserved',
+            level: 'warn',
+            scope: 'provider.antigravity',
+          });
+          return false;
+        }
+        const usingFallbackModels = cliDiscoveredModels.length === 0;
+        const discoveredModels = usingFallbackModels
+          ? ANTIGRAVITY_FALLBACK_DISCOVERED_MODELS.map((model) => ({ ...model }))
+          : cliDiscoveredModels;
+
         updateAntigravityProviderSettings(settings, {
           discoveredModels,
           visibleModels: shouldKeepCurrentVisibleModels(settingsBeforeUpdate.visibleModels, discoveredModels)
@@ -110,9 +132,10 @@ function createAntigravityModelCatalog(plugin: GrimoirePlugin): ProviderModelCat
             changed,
             modelCount: discoveredModels.length,
             providerId: 'antigravity',
+            ...(usingFallbackModels ? { reason: 'empty_cli_output' } : {}),
           },
-          event: discoveredModels.length > 0 ? 'modelCatalog.refresh.succeeded' : 'modelCatalog.refresh.empty',
-          level: discoveredModels.length > 0 ? 'info' : 'warn',
+          event: usingFallbackModels ? 'modelCatalog.refresh.fallback' : 'modelCatalog.refresh.succeeded',
+          level: usingFallbackModels ? 'warn' : 'info',
           scope: 'provider.antigravity',
         });
         return changed;

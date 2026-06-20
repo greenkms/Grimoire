@@ -1,4 +1,7 @@
 import { type ChildProcess, spawn } from 'node:child_process';
+import { promises as fs } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 import type { ProviderCapabilities } from '../../../core/providers/types';
 import type { ChatRuntime } from '../../../core/runtime/ChatRuntime';
@@ -54,6 +57,7 @@ interface AntigravityPrintSpec {
 }
 
 export interface AntigravityPrintArgsSpec {
+  logFilePath?: string;
   model: string | null;
   permissionMode: string;
   prompt: string;
@@ -145,6 +149,11 @@ export class AntigravityChatRuntime implements ChatRuntime {
       const trimmed = output.trim();
       if (trimmed) {
         yield { content: trimmed, type: 'text' };
+      } else {
+        yield {
+          type: 'error',
+          content: 'Antigravity CLI finished without output. Check Antigravity authentication or run agy --print from a terminal to confirm the CLI returns responses.',
+        };
       }
       yield { type: 'done' };
     } catch (error) {
@@ -242,7 +251,11 @@ export class AntigravityChatRuntime implements ChatRuntime {
   }
 
   private runPrint(spec: AntigravityPrintSpec): Promise<string> {
-    const args = buildAntigravityPrintArgs(spec);
+    const printLogFilePath = createAntigravityPrintLogPath();
+    const args = buildAntigravityPrintArgs({
+      ...spec,
+      logFilePath: printLogFilePath,
+    });
     this.plugin.recordDebugLog?.({
       data: {
         argsSummary: summarizeAntigravityPrintArgs(args),
@@ -400,26 +413,46 @@ export class AntigravityChatRuntime implements ChatRuntime {
       });
       proc.on('exit', (code, signal) => {
         settle(() => {
-          const status = signal ? `signal ${signal}` : `code ${code ?? 'unknown'}`;
-          this.plugin.recordDebugLog?.({
-            data: {
-              durationMs: Date.now() - startedAt,
-              providerId: this.providerId,
-              status,
-              stderrBytes: stderr.length,
-              stderrPreview: summarizeCliText(stderr),
-              stdoutBytes: stdout.length,
-            },
-            event: code === 0 ? 'print.exit' : 'print.failed',
-            level: code === 0 ? 'info' : 'error',
-            scope: 'provider.antigravity',
-          });
-          if (code === 0) {
-            resolve(stdout);
-            return;
-          }
+          void (async () => {
+            const status = signal ? `signal ${signal}` : `code ${code ?? 'unknown'}`;
+            this.plugin.recordDebugLog?.({
+              data: {
+                durationMs: Date.now() - startedAt,
+                providerId: this.providerId,
+                status,
+                stderrBytes: stderr.length,
+                stderrPreview: summarizeCliText(stderr),
+                stdoutBytes: stdout.length,
+              },
+              event: code === 0 ? 'print.exit' : 'print.failed',
+              level: code === 0 ? 'info' : 'error',
+              scope: 'provider.antigravity',
+            });
+            try {
+              if (code === 0) {
+                const transcriptOutput = stdout
+                  ? ''
+                  : await recoverAntigravityPrintOutputFromTranscript(printLogFilePath, spec.runtimeEnv);
+                if (transcriptOutput) {
+                  this.plugin.recordDebugLog?.({
+                    data: {
+                      providerId: this.providerId,
+                      transcriptBytes: transcriptOutput.length,
+                    },
+                    event: 'print.transcriptRecovered',
+                    level: 'info',
+                    scope: 'provider.antigravity',
+                  });
+                }
+                resolve(stdout || transcriptOutput);
+                return;
+              }
 
-          reject(new Error(formatAntigravityExitError(code, signal, stderr)));
+              reject(new Error(formatAntigravityExitError(code, signal, stderr)));
+            } finally {
+              await fs.unlink(printLogFilePath).catch(() => undefined);
+            }
+          })().catch(reject);
         });
       });
       proc.on('close', (code, signal) => {
@@ -481,6 +514,9 @@ export function buildAntigravityPrintArgs(spec: AntigravityPrintArgsSpec): strin
     args.push('--dangerously-skip-permissions');
   } else {
     args.push('--sandbox');
+  }
+  if (spec.logFilePath) {
+    args.push('--log-file', spec.logFilePath);
   }
   if (spec.model) {
     args.push('--model', spec.model);
@@ -550,6 +586,86 @@ function formatAntigravityHistoryMessage(message: ChatMessage): string {
   }
 
   return `${role}: ${content}`;
+}
+
+function createAntigravityPrintLogPath(): string {
+  const suffix = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return path.join(os.tmpdir(), `grimoire-antigravity-print-${suffix}.log`);
+}
+
+async function recoverAntigravityPrintOutputFromTranscript(
+  logFilePath: string,
+  runtimeEnv: NodeJS.ProcessEnv,
+): Promise<string> {
+  const logText = await fs.readFile(logFilePath, 'utf-8').catch(() => '');
+  if (!logText) {
+    return '';
+  }
+
+  const conversationId = extractAntigravityConversationId(logText);
+  if (!conversationId) {
+    return '';
+  }
+
+  const appDataDir = extractAntigravityAppDataDir(logText)
+    ?? getDefaultAntigravityAppDataDir(runtimeEnv);
+  if (!appDataDir) {
+    return '';
+  }
+
+  const transcriptPaths = [
+    path.join(appDataDir, 'brain', conversationId, '.system_generated', 'logs', 'transcript.jsonl'),
+    path.join(appDataDir, 'brain', conversationId, '.system_generated', 'logs', 'transcript_full.jsonl'),
+  ];
+  for (const transcriptPath of transcriptPaths) {
+    const transcriptText = await fs.readFile(transcriptPath, 'utf-8').catch(() => '');
+    const content = extractLastAntigravityModelContent(transcriptText);
+    if (content) {
+      return content;
+    }
+  }
+  return '';
+}
+
+function extractAntigravityConversationId(logText: string): string | null {
+  const match = logText.match(/\b(?:conversation=|Created conversation )([0-9a-f-]{36})\b/i);
+  return match?.[1] ?? null;
+}
+
+function extractAntigravityAppDataDir(logText: string): string | null {
+  const match = logText.match(/CLI app data directory:\s*(.+)$/mi);
+  return match?.[1]?.trim() || null;
+}
+
+function getDefaultAntigravityAppDataDir(runtimeEnv: NodeJS.ProcessEnv): string | null {
+  const home = runtimeEnv.USERPROFILE
+    ?? (runtimeEnv.HOMEDRIVE && runtimeEnv.HOMEPATH ? `${runtimeEnv.HOMEDRIVE}${runtimeEnv.HOMEPATH}` : undefined)
+    ?? runtimeEnv.HOME;
+  return home ? path.join(home, '.gemini', 'antigravity-cli') : null;
+}
+
+function extractLastAntigravityModelContent(transcriptText: string): string {
+  let lastContent = '';
+  for (const line of transcriptText.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      continue;
+    }
+    try {
+      const record = JSON.parse(trimmed) as Record<string, unknown>;
+      if (
+        record.source === 'MODEL'
+        && record.status === 'DONE'
+        && typeof record.content === 'string'
+        && record.content.trim()
+      ) {
+        lastContent = record.content;
+      }
+    } catch {
+      // Ignore malformed transcript lines from partial writes.
+    }
+  }
+  return lastContent;
 }
 
 function appendLimited(current: string, chunk: Buffer | string): string {

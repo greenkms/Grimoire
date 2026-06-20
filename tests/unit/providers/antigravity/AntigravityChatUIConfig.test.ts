@@ -52,13 +52,37 @@ describe('antigravityChatUIConfig', () => {
     ]);
   });
 
+  it('appends custom Antigravity models from settings and deduplicates them', () => {
+    const settings: Record<string, unknown> = {};
+    updateAntigravityProviderSettings(settings, {
+      customModels: 'Claude Opus 4.6 (Thinking)\nGemini 3.5 Flash (Medium)\nClaude Opus 4.6 (Thinking)',
+      discoveredModels: [
+        { label: 'Gemini 3.5 Flash (Medium)', rawId: 'Gemini 3.5 Flash (Medium)' },
+      ],
+      visibleModels: ['Gemini 3.5 Flash (Medium)'],
+    });
+
+    expect(antigravityChatUIConfig.getModelOptions(settings)).toEqual([
+      {
+        description: 'Antigravity CLI model',
+        label: 'Gemini 3.5 Flash (Medium)',
+        value: 'antigravity:Gemini 3.5 Flash (Medium)',
+      },
+      {
+        description: 'Custom Antigravity CLI model',
+        label: 'Claude Opus 4.6 (Thinking)',
+        value: 'antigravity:Claude Opus 4.6 (Thinking)',
+      },
+    ]);
+  });
+
   it('exposes blocked/auto-approve and multiple thinking options for the shared toolbar', () => {
     const settings: Record<string, unknown> = {};
 
     expect(antigravityChatUIConfig.getPermissionModeToggle?.()).toEqual({
       inactiveValue: 'normal',
       inactiveLabel: 'Blocked',
-      inactiveDescription: 'Safe approvals are unavailable for agy --print',
+      inactiveDescription: 'Safe approvals are unavailable for agy --print; Windows uses best-effort CLI fallbacks',
       activeValue: 'full_access',
       activeLabel: 'Auto-approve',
       activeDescription: 'Antigravity may edit files without Grimoire prompts',

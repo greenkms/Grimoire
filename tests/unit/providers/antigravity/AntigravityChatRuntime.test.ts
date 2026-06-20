@@ -1,3 +1,10 @@
+import { spawn } from 'node:child_process';
+import { EventEmitter } from 'node:events';
+import { promises as fs } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { PassThrough } from 'node:stream';
+
 import type { PreparedChatTurn } from '@/core/runtime/types';
 import type { StreamChunk } from '@/core/types';
 import {
@@ -5,6 +12,12 @@ import {
   buildAntigravityPrintArgs,
 } from '@/providers/antigravity/runtime/AntigravityChatRuntime';
 import { updateAntigravityProviderSettings } from '@/providers/antigravity/settings';
+
+jest.mock('node:child_process', () => ({
+  spawn: jest.fn(),
+}));
+
+const mockedSpawn = spawn as jest.Mock;
 
 function createMockPlugin(overrides: Record<string, unknown> = {}): any {
   const settings: Record<string, unknown> = { permissionMode: 'full_access' };
@@ -34,9 +47,22 @@ async function collect(generator: AsyncGenerator<StreamChunk>): Promise<StreamCh
   return chunks;
 }
 
+function createMockChildProcess(): any {
+  const proc = new EventEmitter() as any;
+  proc.stdout = new PassThrough();
+  proc.stderr = new PassThrough();
+  proc.stdin = null;
+  proc.kill = jest.fn();
+  proc.pid = 1234;
+  proc.exitCode = null;
+  proc.signalCode = null;
+  return proc;
+}
+
 describe('AntigravityChatRuntime', () => {
   afterEach(() => {
     jest.restoreAllMocks();
+    mockedSpawn.mockReset();
   });
 
   it('does not start when the provider is disabled', async () => {
@@ -69,6 +95,19 @@ describe('AntigravityChatRuntime', () => {
     const chunks = await collect(runtime.query(runtime.prepareTurn({ text: 'Hello' }) as PreparedChatTurn));
 
     expect(chunks[0]).toEqual({ content: 'Starting Antigravity...', type: 'status' });
+  });
+
+  it('reports an empty agy print response instead of finishing silently', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    jest.spyOn(runtime as any, 'runPrint').mockResolvedValue('');
+
+    const chunks = await collect(runtime.query(runtime.prepareTurn({ text: 'Hello' }) as PreparedChatTurn));
+
+    expect(chunks).toContainEqual({
+      type: 'error',
+      content: expect.stringContaining('Antigravity CLI finished without output'),
+    });
+    expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
   });
 
   it('includes Grimoire note and selection context in the persisted and print prompts', async () => {
@@ -152,6 +191,71 @@ describe('AntigravityChatRuntime', () => {
       content: expect.stringContaining('Antigravity safe mode is unavailable'),
     });
     expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
+  });
+
+  it('recovers agy print output from the Antigravity transcript when Windows stdout is empty', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const proc = createMockChildProcess();
+    mockedSpawn.mockReturnValue(proc);
+    const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'grimoire-antigravity-test-'));
+    const conversationId = '28b04652-35c4-46ca-8231-3e9f904bb0dd';
+    const appDataDir = path.join(tempRoot, 'antigravity-cli');
+    const transcriptDir = path.join(
+      appDataDir,
+      'brain',
+      conversationId,
+      '.system_generated',
+      'logs',
+    );
+
+    try {
+      const result = (runtime as any).runPrint({
+        command: 'agy',
+        cwd: '/tmp/grimoire-antigravity-test-vault',
+        model: null,
+        permissionMode: 'full_access',
+        prompt: 'Hello from transcript',
+        runtimeEnv: process.env,
+      });
+      const spawnArgs = mockedSpawn.mock.calls[0][1] as string[];
+      const logFileArgIndex = spawnArgs.indexOf('--log-file');
+      expect(logFileArgIndex).toBeGreaterThanOrEqual(0);
+      const logFilePath = spawnArgs[logFileArgIndex + 1];
+      expect(logFilePath).toBeTruthy();
+      await fs.mkdir(transcriptDir, { recursive: true });
+      await fs.writeFile(logFilePath, [
+        `I0620 common.go:156] CLI app data directory: ${appDataDir}`,
+        `I0620 printmode.go:156] Print mode: conversation=${conversationId}, sending message`,
+      ].join('\n'));
+      await fs.writeFile(path.join(transcriptDir, 'transcript.jsonl'), [
+        JSON.stringify({
+          content: '<USER_REQUEST>\nHello from transcript\n</USER_REQUEST>',
+          source: 'USER_EXPLICIT',
+          status: 'DONE',
+          type: 'USER_INPUT',
+        }),
+        JSON.stringify({
+          content: 'Recovered from transcript.\n',
+          source: 'MODEL',
+          status: 'DONE',
+          type: 'PLANNER_RESPONSE',
+        }),
+      ].join('\n'));
+      proc.emit('exit', 0, null);
+
+      await expect(result).resolves.toBe('Recovered from transcript.\n');
+      expect(mockedSpawn).toHaveBeenCalledWith('agy', expect.arrayContaining([
+        '--dangerously-skip-permissions',
+        '--log-file',
+        logFilePath,
+        '--print',
+        'Hello from transcript',
+      ]), expect.objectContaining({
+        stdio: ['ignore', 'pipe', 'pipe'],
+      }));
+    } finally {
+      await fs.rm(tempRoot, { force: true, recursive: true });
+    }
   });
 
   it('maps permission modes to agy print flags', () => {

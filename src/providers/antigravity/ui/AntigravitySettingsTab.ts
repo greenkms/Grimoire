@@ -24,6 +24,10 @@ export const antigravitySettingsTabRenderer: ProviderSettingsTabRenderer = {
 
     new Setting(container).setName(t('settings.setup')).setHeading();
 
+    new Setting(container)
+      .setName('Windows CLI limitations')
+      .setDesc('On Windows, current agy builds can finish successfully while returning empty stdout for model discovery and print responses. Grimoire uses transcript, settings, and fallback recovery where possible, but antigravity may be less reliable on Windows than on macOS or Linux.');
+
     const cliPathSetting = new Setting(container)
       .setName('Antigravity CLI path')
       .setDesc('Custom path to the local agy command. Leave empty to auto-detect it.');
@@ -92,8 +96,42 @@ export const antigravitySettingsTabRenderer: ProviderSettingsTabRenderer = {
       updateCliPathValidation(currentValue, text.inputEl);
     });
 
+    new Setting(container).setName(t('settings.models')).setHeading();
+
+    new Setting(container)
+      .setName('Custom models')
+      .setDesc('Add antigravity model labels to the picker, one per line. Use the exact labels shown in the agy model switcher when Windows discovery is incomplete.')
+      .addTextArea((text) => {
+        let pendingCustomModels = antigravitySettings.customModels;
+        let savedCustomModels = antigravitySettings.customModels;
+
+        const commitCustomModels = async (): Promise<void> => {
+          if (pendingCustomModels === savedCustomModels) {
+            return;
+          }
+
+          updateAntigravityProviderSettings(settingsBag, { customModels: pendingCustomModels });
+          savedCustomModels = getAntigravityProviderSettings(settingsBag).customModels;
+          text.setValue(savedCustomModels);
+          await context.plugin.saveSettings();
+          context.refreshModelSelectors();
+        };
+
+        text
+          .setPlaceholder('Gemini 3.5 Flash (Low)\nClaude Opus 4.6 (Thinking)')
+          .setValue(antigravitySettings.customModels)
+          .onChange((value) => {
+            pendingCustomModels = value;
+          });
+        text.inputEl.rows = 5;
+        text.inputEl.cols = 40;
+        text.inputEl.addEventListener('blur', () => {
+          void commitCustomModels();
+        });
+      });
+
     const advancedContainer = context.renderAdvancedSection(container, {
-      count: 2,
+      count: 3,
       summary: 'Environment variables and context overrides',
     });
 

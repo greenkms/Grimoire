@@ -122,6 +122,96 @@ describe('Antigravity provider registration', () => {
     }));
   });
 
+  it('keeps the previous Antigravity model catalog when agy models returns empty output', async () => {
+    (discoverAntigravityModels as jest.Mock).mockResolvedValue([]);
+    const recordDebugLog = jest.fn();
+    const settings: Record<string, unknown> = {};
+    updateAntigravityProviderSettings(settings, {
+      discoveredModels: [
+        { label: 'Gemini 3.5 Flash (Medium)', rawId: 'Gemini 3.5 Flash (Medium)' },
+        { label: 'GPT-OSS 120B (Medium)', rawId: 'GPT-OSS 120B (Medium)' },
+      ],
+      enabled: true,
+      environmentVariables: 'OLD_ENV=1',
+      visibleModels: ['GPT-OSS 120B (Medium)'],
+    });
+    const services = await antigravityWorkspaceRegistration.initialize({
+      homeAdapter: {} as any,
+      plugin: { recordDebugLog, settings } as any,
+      storage: {} as any,
+      vaultAdapter: {} as any,
+    });
+    updateAntigravityProviderSettings(settings, {
+      environmentVariables: 'NEW_ENV=1',
+    });
+
+    await services.modelCatalog.refreshModels({ plugin: {} as any, settings });
+
+    expect(getAntigravityProviderSettings(settings).discoveredModels).toEqual([
+      { label: 'Gemini 3.5 Flash (Medium)', rawId: 'Gemini 3.5 Flash (Medium)' },
+      { label: 'GPT-OSS 120B (Medium)', rawId: 'GPT-OSS 120B (Medium)' },
+    ]);
+    expect(getAntigravityProviderSettings(settings).visibleModels).toEqual(['GPT-OSS 120B (Medium)']);
+    expect(recordDebugLog).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        modelCount: 2,
+        providerId: 'antigravity',
+      }),
+      event: 'modelCatalog.refresh.preserved',
+      level: 'warn',
+      scope: 'provider.antigravity',
+    }));
+  });
+
+  it('seeds fallback Antigravity models when agy models is empty on first refresh', async () => {
+    (discoverAntigravityModels as jest.Mock).mockResolvedValue([]);
+    const recordDebugLog = jest.fn();
+    const settings: Record<string, unknown> = {};
+    updateAntigravityProviderSettings(settings, {
+      enabled: true,
+      visibleModels: ['antigravity'],
+    });
+    const services = await antigravityWorkspaceRegistration.initialize({
+      homeAdapter: {} as any,
+      plugin: { recordDebugLog } as any,
+      storage: {} as any,
+      vaultAdapter: {} as any,
+    });
+
+    await services.modelCatalog.refreshModels({ plugin: {} as any, settings });
+
+    expect(getAntigravityProviderSettings(settings).discoveredModels).toEqual([
+      { description: 'Antigravity fallback model', label: 'Gemini 3.5 Flash (Medium)', rawId: 'Gemini 3.5 Flash (Medium)' },
+      { description: 'Antigravity fallback model', label: 'Gemini 3.5 Flash (High)', rawId: 'Gemini 3.5 Flash (High)' },
+      { description: 'Antigravity fallback model', label: 'Gemini 3.5 Flash (Low)', rawId: 'Gemini 3.5 Flash (Low)' },
+      { description: 'Antigravity fallback model', label: 'Gemini 3.1 Pro (Low)', rawId: 'Gemini 3.1 Pro (Low)' },
+      { description: 'Antigravity fallback model', label: 'Gemini 3.1 Pro (High)', rawId: 'Gemini 3.1 Pro (High)' },
+      { description: 'Antigravity fallback model', label: 'Claude Sonnet 4.6 (Thinking)', rawId: 'Claude Sonnet 4.6 (Thinking)' },
+      { description: 'Antigravity fallback model', label: 'Claude Opus 4.6 (Thinking)', rawId: 'Claude Opus 4.6 (Thinking)' },
+      { description: 'Antigravity fallback model', label: 'GPT-OSS 120B (Medium)', rawId: 'GPT-OSS 120B (Medium)' },
+    ]);
+    expect(getAntigravityProviderSettings(settings).visibleModels).toEqual([
+      'Gemini 3.5 Flash (Medium)',
+      'Gemini 3.5 Flash (High)',
+      'Gemini 3.5 Flash (Low)',
+      'Gemini 3.1 Pro (Low)',
+      'Gemini 3.1 Pro (High)',
+      'Claude Sonnet 4.6 (Thinking)',
+      'Claude Opus 4.6 (Thinking)',
+      'GPT-OSS 120B (Medium)',
+    ]);
+    expect(recordDebugLog).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        modelCount: 8,
+        providerId: 'antigravity',
+        reason: 'empty_cli_output',
+      }),
+      event: 'modelCatalog.refresh.fallback',
+      level: 'warn',
+      scope: 'provider.antigravity',
+    }));
+  });
+
   it('logs Antigravity model catalog refresh failures before rethrowing', async () => {
     const error = new Error('agy models failed');
     (discoverAntigravityModels as jest.Mock).mockRejectedValue(error);

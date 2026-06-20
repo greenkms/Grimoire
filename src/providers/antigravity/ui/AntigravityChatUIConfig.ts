@@ -31,7 +31,7 @@ const DEFAULT_CONTEXT_WINDOW = 1_000_000;
 const ANTIGRAVITY_PERMISSION_MODE_TOGGLE: ProviderPermissionModeToggleConfig = {
   inactiveValue: 'normal',
   inactiveLabel: 'Blocked',
-  inactiveDescription: 'Safe approvals are unavailable for agy --print',
+  inactiveDescription: 'Safe approvals are unavailable for agy --print; Windows uses best-effort CLI fallbacks',
   activeValue: 'full_access',
   activeLabel: 'Auto-approve',
   activeDescription: 'Antigravity may edit files without Grimoire prompts',
@@ -47,17 +47,48 @@ function getAntigravityModelOptions(settings: Record<string, unknown>): Provider
     ? antigravitySettings.visibleModels
     : antigravitySettings.discoveredModels.map((model) => model.rawId);
 
+  const optionRawIds = mergeAntigravityModelIds(visibleModels, parseAntigravityCustomModels(antigravitySettings.customModels));
+  const customModelIds = new Set(parseAntigravityCustomModels(antigravitySettings.customModels));
   const options: ProviderUIOption[] = [];
-  for (const rawId of visibleModels) {
+  for (const rawId of optionRawIds) {
     const discovered = discoveredModels.get(rawId);
     options.push({
-      description: discovered?.description ?? 'Antigravity CLI model',
+      description: discovered
+        ? discovered.description ?? 'Antigravity CLI model'
+        : customModelIds.has(rawId) ? 'Custom Antigravity CLI model' : 'Antigravity CLI model',
       label: antigravitySettings.modelAliases[rawId] ?? discovered?.label ?? rawId,
       value: encodeAntigravityModelId(rawId),
     });
   }
 
   return options.length > 0 ? options : [...ANTIGRAVITY_MODELS];
+}
+
+function parseAntigravityCustomModels(value: string): string[] {
+  const normalized: string[] = [];
+  const seen = new Set<string>();
+  for (const line of value.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || seen.has(trimmed)) {
+      continue;
+    }
+    seen.add(trimmed);
+    normalized.push(trimmed);
+  }
+  return normalized;
+}
+
+function mergeAntigravityModelIds(primary: string[], extra: string[]): string[] {
+  const merged: string[] = [];
+  const seen = new Set<string>();
+  for (const rawId of [...primary, ...extra]) {
+    if (!rawId || seen.has(rawId)) {
+      continue;
+    }
+    seen.add(rawId);
+    merged.push(rawId);
+  }
+  return merged;
 }
 
 export const antigravityChatUIConfig: ProviderChatUIConfig = {

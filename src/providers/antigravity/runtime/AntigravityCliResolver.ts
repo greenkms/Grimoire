@@ -67,7 +67,9 @@ export class AntigravityCliResolver {
 
 function resolveCommonAgyPath(): string | null {
   const home = process.env.HOME;
+  const localAppData = process.env.LOCALAPPDATA;
   const candidates = [
+    localAppData ? path.join(localAppData, 'agy', 'bin', 'agy.exe') : '',
     home ? path.join(home, '.local/bin/agy') : '',
     home ? path.join(home, '.antigravity/antigravity/bin/agy') : '',
     '/opt/homebrew/bin/agy',
@@ -107,15 +109,32 @@ function resolveExecutableFromPath(command: string, pathText: string | undefined
       continue;
     }
 
-    const candidate = path.join(directory, command);
-    try {
-      if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
-        return candidate;
+    for (const executableName of getExecutableNames(command)) {
+      const candidate = path.join(directory, executableName);
+      try {
+        if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
+          return candidate;
+        }
+      } catch {
+        continue;
       }
-    } catch {
-      continue;
     }
   }
 
   return null;
+}
+
+function getExecutableNames(command: string): string[] {
+  if (process.platform !== 'win32' || path.extname(command)) {
+    return [command];
+  }
+
+  const extensions = (process.env.PATHEXT || '.EXE;.CMD;.BAT;.COM')
+    .split(';')
+    .map((extension) => extension.trim().toLowerCase())
+    .filter(Boolean);
+  return [
+    command,
+    ...extensions.map((extension) => `${command}${extension}`),
+  ];
 }

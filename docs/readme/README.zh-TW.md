@@ -174,6 +174,8 @@ agy
 
 在 Grimoire 中，Antigravity 是推薦的 Google provider。它透過 `agy --print` 執行，並可從 `agy models` 選擇模型。在 Antigravity 暴露相容的 runtime surface 之前，persistent sessions、native history、images、plan mode 和 auxiliary workflows 都保持關閉。
 
+Windows note: current Windows `agy` builds can finish successfully while returning empty stdout for `agy models` and `agy --print`. Grimoire uses best-effort recovery from Antigravity logs, transcripts, settings, and a seeded Pro AI model list, but Windows Antigravity support may be less reliable than macOS or Linux. If your account shows additional models in Antigravity, add their exact labels under Antigravity settings > Custom models.
+
 ### Gemini CLI (Legacy)
 
 Gemini CLI 作為 legacy provider 保留給 Gemini Code Assist Standard、Enterprise、Google Cloud 和 paid API-key users，前提是 Google 仍繼續服務 Gemini CLI requests。Consumer Google AI Pro、Ultra 和 free-tier accounts 在 June 18, 2026 之後應使用 Antigravity。

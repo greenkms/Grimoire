@@ -11,6 +11,15 @@ export function buildAntigravityProcessLaunch(
   runtimeEnv: NodeJS.ProcessEnv,
 ): AntigravityProcessLaunch {
   if (process.platform === 'win32') {
+    if (canLaunchDirectlyOnWindows(command)) {
+      return {
+        args,
+        command,
+        launchMode: 'direct',
+        shell: false,
+      };
+    }
+
     return {
       args,
       command,
@@ -35,6 +44,11 @@ export function buildAntigravityProcessLaunch(
     launchMode: 'shellLogin',
     shell: false,
   };
+}
+
+function canLaunchDirectlyOnWindows(command: string): boolean {
+  const lowerCommand = command.toLowerCase();
+  return lowerCommand.endsWith('.exe');
 }
 
 function resolveUserShell(runtimeEnv: NodeJS.ProcessEnv): string | null {

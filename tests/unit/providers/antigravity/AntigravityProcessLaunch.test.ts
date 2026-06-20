@@ -31,4 +31,25 @@ describe('buildAntigravityProcessLaunch', () => {
       shell: false,
     });
   });
+
+  it('launches a resolved Windows agy.exe directly instead of through cmd.exe', () => {
+    if (process.platform !== 'win32') {
+      return;
+    }
+
+    const launch = buildAntigravityProcessLaunch('C:\\Users\\test\\AppData\\Local\\agy\\bin\\agy.exe', [
+      '--print',
+      'hello',
+    ], {});
+
+    expect(launch).toEqual({
+      args: [
+        '--print',
+        'hello',
+      ],
+      command: 'C:\\Users\\test\\AppData\\Local\\agy\\bin\\agy.exe',
+      launchMode: 'direct',
+      shell: false,
+    });
+  });
 });

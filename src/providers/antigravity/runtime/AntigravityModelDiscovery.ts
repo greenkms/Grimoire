@@ -1,7 +1,11 @@
 import { type ChildProcess, spawn } from 'node:child_process';
+import { promises as fs } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 import type GrimoirePlugin from '../../../main';
 import { getVaultPath } from '../../../utils/path';
+import { ANTIGRAVITY_FALLBACK_DISCOVERED_MODELS } from '../models';
 import type { AntigravityDiscoveredModel } from '../settings';
 import { buildAntigravityProcessLaunch } from './AntigravityProcessLaunch';
 import { buildAntigravityRuntimeEnv } from './AntigravityRuntimeEnvironment';
@@ -39,7 +43,9 @@ export async function discoverAntigravityModels(plugin: GrimoirePlugin): Promise
     plugin,
     runtimeEnv: buildAntigravityRuntimeEnv(plugin.settings, command),
   });
-  const models = parseAntigravityModels(output);
+  const models = output
+    ? parseAntigravityModels(output)
+    : [];
 
   plugin.recordDebugLog?.({
     data: {
@@ -79,6 +85,7 @@ function runAgyModels(spec: {
   runtimeEnv: NodeJS.ProcessEnv;
 }): Promise<string> {
   return new Promise((resolve, reject) => {
+    const modelLogFilePath = createAntigravityModelsLogPath();
     const previousProcess = getActiveModelsProcess();
     if (previousProcess && !previousProcess.killed) {
       previousProcess.kill('SIGTERM');
@@ -91,7 +98,7 @@ function runAgyModels(spec: {
         scope: 'provider.antigravity',
       });
     }
-    const launch = buildAntigravityProcessLaunch(spec.command, ['models'], spec.runtimeEnv);
+    const launch = buildAntigravityProcessLaunch(spec.command, ['--log-file', modelLogFilePath, 'models'], spec.runtimeEnv);
     spec.plugin.recordDebugLog?.({
       data: {
         launchMode: launch.launchMode,
@@ -229,26 +236,46 @@ function runAgyModels(spec: {
     });
     proc.on('exit', (code, signal) => {
       settle(() => {
-        const status = signal ? `signal ${signal}` : `code ${code ?? 'unknown'}`;
-        spec.plugin.recordDebugLog?.({
-          data: {
-            durationMs: Date.now() - startedAt,
-            providerId: 'antigravity',
-            status,
-            stderrBytes: stderr.length,
-            stderrPreview: summarizeCliText(stderr),
-            stdoutBytes: stdout.length,
-          },
-          event: code === 0 ? 'models.exit' : 'models.failed',
-          level: code === 0 ? 'debug' : 'error',
-          scope: 'provider.antigravity',
-        });
-        if (code === 0) {
-          resolve(stdout);
-          return;
-        }
-        const details = stderr.trim();
-        reject(new Error(details ? `Antigravity model discovery failed (${status})\n\n${details}` : `Antigravity model discovery failed (${status})`));
+        void (async () => {
+          const status = signal ? `signal ${signal}` : `code ${code ?? 'unknown'}`;
+          spec.plugin.recordDebugLog?.({
+            data: {
+              durationMs: Date.now() - startedAt,
+              providerId: 'antigravity',
+              status,
+              stderrBytes: stderr.length,
+              stderrPreview: summarizeCliText(stderr),
+              stdoutBytes: stdout.length,
+            },
+            event: code === 0 ? 'models.exit' : 'models.failed',
+            level: code === 0 ? 'debug' : 'error',
+            scope: 'provider.antigravity',
+          });
+          try {
+            if (code === 0) {
+              const recoveredOutput = stdout
+                ? ''
+                : await recoverAntigravityModelsFromSettings(modelLogFilePath, spec.runtimeEnv);
+              if (recoveredOutput) {
+                spec.plugin.recordDebugLog?.({
+                  data: {
+                    modelCount: parseAntigravityModels(recoveredOutput).length,
+                    providerId: 'antigravity',
+                  },
+                  event: 'models.settingsRecovered',
+                  level: 'info',
+                  scope: 'provider.antigravity',
+                });
+              }
+              resolve(stdout || recoveredOutput);
+              return;
+            }
+            const details = stderr.trim();
+            reject(new Error(details ? `Antigravity model discovery failed (${status})\n\n${details}` : `Antigravity model discovery failed (${status})`));
+          } finally {
+            await fs.unlink(modelLogFilePath).catch(() => undefined);
+          }
+        })().catch(reject);
       });
     });
     proc.on('close', (code, signal) => {
@@ -269,6 +296,69 @@ function runAgyModels(spec: {
       });
     });
   });
+}
+
+function createAntigravityModelsLogPath(): string {
+  const suffix = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return path.join(os.tmpdir(), `grimoire-antigravity-models-${suffix}.log`);
+}
+
+async function recoverAntigravityModelsFromSettings(
+  logFilePath: string,
+  runtimeEnv: NodeJS.ProcessEnv,
+): Promise<string> {
+  const logText = await fs.readFile(logFilePath, 'utf-8').catch(() => '');
+  const appDataDir = extractAntigravityAppDataDir(logText)
+    ?? getDefaultAntigravityAppDataDir(runtimeEnv);
+  if (!appDataDir) {
+    return formatAntigravityModelsOutput(ANTIGRAVITY_FALLBACK_DISCOVERED_MODELS);
+  }
+
+  const settingsText = await fs.readFile(path.join(appDataDir, 'settings.json'), 'utf-8').catch(() => '');
+  const selectedModel = extractSelectedAntigravityModel(settingsText);
+  return formatAntigravityModelsOutput([
+    ...(selectedModel ? [{ label: selectedModel, rawId: selectedModel }] : []),
+    ...ANTIGRAVITY_FALLBACK_DISCOVERED_MODELS,
+  ]);
+}
+
+function extractSelectedAntigravityModel(settingsText: string): string | null {
+  if (!settingsText.trim()) {
+    return null;
+  }
+  try {
+    const settings = JSON.parse(settingsText) as Record<string, unknown>;
+    return typeof settings.model === 'string' && settings.model.trim()
+      ? settings.model.trim()
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function formatAntigravityModelsOutput(models: ReadonlyArray<AntigravityDiscoveredModel>): string {
+  const lines: string[] = [];
+  const seen = new Set<string>();
+  for (const model of models) {
+    if (!model.rawId || seen.has(model.rawId)) {
+      continue;
+    }
+    seen.add(model.rawId);
+    lines.push(model.rawId);
+  }
+  return lines.join('\n');
+}
+
+function extractAntigravityAppDataDir(logText: string): string | null {
+  const match = logText.match(/CLI app data directory:\s*(.+)$/mi);
+  return match?.[1]?.trim() || null;
+}
+
+function getDefaultAntigravityAppDataDir(runtimeEnv: NodeJS.ProcessEnv): string | null {
+  const home = runtimeEnv.USERPROFILE
+    ?? (runtimeEnv.HOMEDRIVE && runtimeEnv.HOMEPATH ? `${runtimeEnv.HOMEDRIVE}${runtimeEnv.HOMEPATH}` : undefined)
+    ?? runtimeEnv.HOME;
+  return home ? path.join(home, '.gemini', 'antigravity-cli') : null;
 }
 
 function getActiveModelsProcess(): ChildProcess | null {

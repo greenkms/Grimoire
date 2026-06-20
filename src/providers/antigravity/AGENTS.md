@@ -8,6 +8,8 @@
 - `AntigravityChatRuntime` supports single-turn print-mode requests, cancellation, and model selection through `agy --model`.
 - `agy --print` does not expose Grimoire file-edit approval hooks. Keep shared `normal` permission mode fail-closed for Antigravity; only launch AGY in explicit auto-approve/full-access mode unless a real approval-capable runtime is confirmed.
 - Model discovery comes from `agy models` and is stored in provider settings for the UI.
+- On Windows, observed `agy` 1.0.10 can return exit code 0 with empty stdout for both `agy models` and `agy --print` even when the request succeeds. Preserve the Windows fallback paths that recover print output from Antigravity transcripts and model options from Antigravity settings plus the seeded Pro AI model list.
+- Antigravity settings expose custom model labels so users can add account-specific models when Windows model discovery is incomplete.
 - Antigravity CLI 1.0.7 does not expose Gemini CLI's `--acp` flag; do not route it through `src/providers/acp/` unless a real ACP-compatible runtime is confirmed.
 - Auxiliary workflows such as title generation, instruction refinement, and inline edit are unsupported until an Antigravity auxiliary runner exists.
 

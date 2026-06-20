@@ -16,6 +16,7 @@ export interface AntigravityDiscoveredModel {
 export interface PersistedAntigravityProviderSettings {
   cliPath: string;
   cliPathsByHost: HostnameCliPaths;
+  customModels: string;
   enabled: boolean;
   environmentHash: string;
   environmentVariables: string;
@@ -30,6 +31,7 @@ export interface AntigravityProviderSettings extends PersistedAntigravityProvide
 export const DEFAULT_ANTIGRAVITY_PROVIDER_SETTINGS: Readonly<PersistedAntigravityProviderSettings> = Object.freeze({
   cliPath: '',
   cliPathsByHost: {},
+  customModels: '',
   enabled: false,
   environmentHash: '',
   environmentVariables: '',
@@ -73,6 +75,25 @@ export function normalizeAntigravityVisibleModels(value: unknown): string[] {
   }
 
   return normalized;
+}
+
+function normalizeAntigravityCustomModels(value: unknown): string {
+  if (typeof value !== 'string') {
+    return '';
+  }
+
+  const normalized: string[] = [];
+  const seen = new Set<string>();
+  for (const line of value.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || seen.has(trimmed)) {
+      continue;
+    }
+
+    seen.add(trimmed);
+    normalized.push(trimmed);
+  }
+  return normalized.join('\n');
 }
 
 export function normalizeAntigravityModelAliases(value: unknown): Record<string, string> {
@@ -136,6 +157,9 @@ export function getAntigravityProviderSettings(settings: Record<string, unknown>
     cliPath: (config.cliPath as string | undefined)
       ?? DEFAULT_ANTIGRAVITY_PROVIDER_SETTINGS.cliPath,
     cliPathsByHost,
+    customModels: normalizeAntigravityCustomModels(
+      config.customModels ?? DEFAULT_ANTIGRAVITY_PROVIDER_SETTINGS.customModels,
+    ),
     discoveredModels: normalizeAntigravityDiscoveredModels(config.discoveredModels),
     enabled: (config.enabled as boolean | undefined)
       ?? DEFAULT_ANTIGRAVITY_PROVIDER_SETTINGS.enabled,
@@ -157,6 +181,9 @@ export function updateAntigravityProviderSettings(
   const hostnameKey = getHostnameKey();
   const nextVisibleModels = normalizeAntigravityVisibleModels(
     updates.visibleModels ?? current.visibleModels,
+  );
+  const nextCustomModels = normalizeAntigravityCustomModels(
+    updates.customModels ?? current.customModels,
   );
   const nextCliPathsByHost = 'cliPathsByHost' in updates
     ? normalizeHostnameCliPaths(updates.cliPathsByHost)
@@ -189,6 +216,7 @@ export function updateAntigravityProviderSettings(
     ...updates,
     cliPath: nextCliPath,
     cliPathsByHost: nextCliPathsByHost,
+    customModels: nextCustomModels,
     discoveredModels: normalizeAntigravityDiscoveredModels(updates.discoveredModels ?? current.discoveredModels),
     modelAliases: nextModelAliases,
     visibleModels: nextVisibleModels,
@@ -197,6 +225,7 @@ export function updateAntigravityProviderSettings(
   setProviderConfig(settings, 'antigravity', {
     cliPath: next.cliPath,
     cliPathsByHost: next.cliPathsByHost,
+    customModels: next.customModels,
     discoveredModels: next.discoveredModels,
     enabled: next.enabled,
     environmentHash: next.environmentHash,
