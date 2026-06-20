@@ -68,9 +68,15 @@
   cursor: pointer;
 }
 
-.grimoire-settings-whats-new:hover {
+.grimoire-settings-whats-new:hover,
+.grimoire-settings-whats-new:focus-visible {
   background: var(--background-modifier-hover);
   color: var(--text-normal);
+}
+
+.grimoire-settings-whats-new:focus-visible {
+  outline: 2px solid rgba(var(--grimoire-brand-rgb), 0.45);
+  outline-offset: 2px;
 }
 
 .grimoire-settings-tab {
