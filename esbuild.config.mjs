@@ -155,7 +155,7 @@ const copyToObsidian = {
         mkdirSync(OBSIDIAN_PLUGIN_PATH, { recursive: true });
       }
 
-      const files = ['main.js', 'manifest.json', 'styles.css'];
+      const files = ['main.js', 'manifest.json', 'styles.css', 'CHANGELOG.md'];
       for (const file of files) {
         if (existsSync(file)) {
           copyFileSync(file, path.join(OBSIDIAN_PLUGIN_PATH, file));
