@@ -7,6 +7,9 @@ import './providers';
 import type { Editor, WorkspaceLeaf } from 'obsidian';
 import { addIcon, MarkdownView, Notice, Plugin } from 'obsidian';
 
+import { shouldShowWhatsNew } from './app/changelog/display';
+import { parseChangelogRelease } from './app/changelog/parser';
+import { readBundledChangelog } from './app/changelog/source';
 import { DEFAULT_GRIMOIRE_SETTINGS } from './app/settings/defaultSettings';
 import { SharedStorageService } from './app/storage/SharedStorageService';
 import {
@@ -56,6 +59,7 @@ import {
 import { CCSettingsStorage } from './providers/claude/storage/CCSettingsStorage';
 import { OPENCODE_PLAN_MODE_ID, OPENCODE_SAFE_MODE_ID } from './providers/opencode/modes';
 import { GRIMOIRE_APP_ICON_ID, GRIMOIRE_APP_ICON_SVG } from './shared/appIcon';
+import { showWhatsNewModal } from './shared/modals/WhatsNewModal';
 import { buildCursorContext } from './utils/editor';
 import { revealWorkspaceLeaf } from './utils/obsidianCompat';
 import { getVaultPath } from './utils/path';
@@ -268,6 +272,7 @@ export default class GrimoirePlugin extends Plugin {
         level: 'info',
         scope: 'plugin.onload',
       });
+      await this.maybeShowWhatsNew();
     } catch (error) {
       await this.writeDebugLog({
         event: 'onload.failed',
@@ -294,6 +299,35 @@ export default class GrimoirePlugin extends Plugin {
 
   recordDebugLog(event: DebugLogEvent): void {
     void this.writeDebugLog(event);
+  }
+
+  private async maybeShowWhatsNew(): Promise<void> {
+    const currentVersion = this.manifest.version?.trim() ?? '';
+    if (!shouldShowWhatsNew({
+      currentVersion,
+      lastSeenVersion: this.settings.lastSeenChangelogVersion,
+    })) {
+      return;
+    }
+
+    const markdown = await readBundledChangelog(this.app.vault.adapter, this.manifest);
+    if (!markdown) {
+      return;
+    }
+
+    const release = parseChangelogRelease(markdown, currentVersion);
+    if (!release) {
+      return;
+    }
+
+    void showWhatsNewModal({
+      app: this.app,
+      release,
+      onDismiss: async () => {
+        this.settings.lastSeenChangelogVersion = currentVersion;
+        await this.saveSettings();
+      },
+    });
   }
 
   private async persistOpenTabStates(): Promise<void> {

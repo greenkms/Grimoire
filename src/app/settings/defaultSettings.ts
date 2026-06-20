@@ -56,6 +56,7 @@ export const DEFAULT_GRIMOIRE_SETTINGS: GrimoireSettings = {
   savedProviderPermissionMode: {},
 
   lastCustomModel: '',
+  lastSeenChangelogVersion: '',
 
   maxTabs: 5,
   tabBarPosition: 'header',

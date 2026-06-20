@@ -189,6 +189,9 @@ export interface GrimoireSettings {
   // State (provider-specific, round-tripped opaquely)
   lastCustomModel?: string;
 
+  // Changelog state
+  lastSeenChangelogVersion: string;
+
   // UI preferences
   maxTabs: number;
   tabBarPosition: TabBarPosition;
