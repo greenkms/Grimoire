@@ -1762,6 +1762,34 @@ describe('McpServerSelector - toggle and badges', () => {
   });
 });
 
+describe('ExternalContextSelector', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('opens a picker that allows selecting files as well as directories', async () => {
+    const remote = {
+      dialog: {
+        showOpenDialog: jest.fn().mockResolvedValue({ canceled: true, filePaths: [] }),
+      },
+    };
+    jest.isolateModules(() => {
+      jest.doMock('electron', () => ({ remote }), { virtual: true });
+      const { ExternalContextSelector } = require('@/features/chat/ui/InputToolbar');
+      const parentEl = createMockEl();
+      new ExternalContextSelector(parentEl);
+
+      parentEl.querySelector('.grimoire-external-context-icon-wrapper')?.click();
+    });
+
+    await Promise.resolve();
+
+    expect(remote.dialog.showOpenDialog).toHaveBeenCalledWith(expect.objectContaining({
+      properties: ['openFile', 'openDirectory'],
+    }));
+  });
+});
+
 describe('OrchestratorToggle', () => {
   let parentEl: any;
   let callbacks: ReturnType<typeof createMockCallbacks>;

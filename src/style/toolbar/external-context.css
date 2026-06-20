@@ -141,12 +141,16 @@
   line-height: 1;
 }
 
-.grimoire-container--chat-window .grimoire-external-context-icon-wrapper::before {
-  content: "Files";
-}
-
 .grimoire-container--chat-window .grimoire-external-context-icon {
   display: none;
+}
+
+.grimoire-container--chat-window .grimoire-external-context-label {
+  display: inline-block;
+  max-width: 112px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .grimoire-container--chat-window .grimoire-external-context-icon-wrapper:hover {

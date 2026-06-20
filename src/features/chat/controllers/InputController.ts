@@ -39,6 +39,7 @@ import type { BrowserSelectionContext } from '../../../utils/browser';
 import type { CanvasSelectionContext } from '../../../utils/canvas';
 import { formatDurationMmSs } from '../../../utils/date';
 import type { EditorSelectionContext } from '../../../utils/editor';
+import { splitContextPaths } from '../../../utils/externalContext';
 import { appendMarkdownSnippet } from '../../../utils/markdown';
 import { COMPLETION_FLAVOR_WORDS } from '../constants';
 import { buildImageGenerationPrompt } from '../imageGeneration';
@@ -133,7 +134,7 @@ type TurnSubmission = {
   turnRequest: ChatTurnRequest;
 };
 
-function mergeExternalContextPaths(...pathLists: Array<string[] | undefined>): string[] | undefined {
+function mergeExternalContextPaths(...pathLists: Array<string[] | undefined>): string[] {
   const merged: string[] = [];
   const seen = new Set<string>();
   for (const paths of pathLists) {
@@ -145,7 +146,7 @@ function mergeExternalContextPaths(...pathLists: Array<string[] | undefined>): s
       merged.push(path);
     }
   }
-  return merged.length > 0 ? merged : undefined;
+  return merged;
 }
 
 function normalizeWorkspaceSetting(value: string | undefined): string | undefined {
@@ -873,6 +874,9 @@ export class InputController {
       externalContextPaths,
       activeProjectWorkspace?.externalContextPaths,
     );
+    const splitExternalContexts = mergedExternalContextPaths.length === 0
+      ? { directories: [], files: [] }
+      : splitContextPaths(mergedExternalContextPaths);
 
     const buildSubmission = (
       resolvedVaultSearchContext: ChatTurnRequest['vaultSearchContext'] | undefined,
@@ -885,7 +889,8 @@ export class InputController {
         editorSelection: editorContext,
         browserSelection: browserContext,
         canvasSelection: canvasContext,
-        externalContextPaths: mergedExternalContextPaths,
+        externalContextPaths: splitExternalContexts.directories,
+        contextFiles: splitExternalContexts.files.length > 0 ? splitExternalContexts.files : undefined,
         enabledMcpServers: enabledMcpServers && enabledMcpServers.size > 0
           ? enabledMcpServers
           : undefined,

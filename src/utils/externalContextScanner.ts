@@ -62,12 +62,40 @@ class ExternalContextScanner {
         continue;
       }
 
-      const files = this.scanDirectory(expandedPath, expandedPath, 0);
+      const files = this.scanPath(expandedPath);
       this.cache.set(expandedPath, { files, timestamp: now });
       allFiles.push(...files);
     }
 
     return allFiles;
+  }
+
+  private scanPath(contextPath: string): ExternalContextFile[] {
+    try {
+      if (!fs.existsSync(contextPath)) return [];
+
+      const stat = fs.statSync(contextPath);
+      if (stat.isFile()) {
+        return [this.buildFileEntry(contextPath, contextPath, stat)];
+      }
+      if (stat.isDirectory()) {
+        return this.scanDirectory(contextPath, contextPath, 0);
+      }
+    } catch {
+      // Inaccessible path
+    }
+
+    return [];
+  }
+
+  private buildFileEntry(filePath: string, contextRoot: string, fileStat: fs.Stats): ExternalContextFile {
+    return {
+      path: filePath,
+      name: path.basename(filePath),
+      relativePath: contextRoot === filePath ? path.basename(filePath) : path.relative(contextRoot, filePath),
+      contextRoot,
+      mtime: fileStat.mtimeMs,
+    };
   }
 
   private scanDirectory(
@@ -101,13 +129,7 @@ class ExternalContextScanner {
         } else if (entry.isFile()) {
           try {
             const fileStat = fs.statSync(fullPath);
-            files.push({
-              path: fullPath,
-              name: entry.name,
-              relativePath: path.relative(contextRoot, fullPath),
-              contextRoot,
-              mtime: fileStat.mtimeMs,
-            });
+            files.push(this.buildFileEntry(fullPath, contextRoot, fileStat));
           } catch {
             // Inaccessible file
           }

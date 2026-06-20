@@ -44,6 +44,20 @@ describe('encodeCodexTurn', () => {
     expect(result.persistedContent).toBe('Fix this');
   });
 
+  it('should include selected context files in prompt only', () => {
+    const request: ChatTurnRequest = {
+      text: 'Fix this',
+      contextFiles: ['/external/brief.pdf'],
+    } as any;
+    const result = encodeCodexTurn(request);
+
+    expect(result.prompt).toContain('<context_files>');
+    expect(result.prompt).toContain('The user selected these files as active context.');
+    expect(result.prompt).toContain('Inspect the relevant selected files before answering broad or deictic requests.');
+    expect(result.prompt).toContain('/external/brief.pdf');
+    expect(result.persistedContent).toBe('Fix this');
+  });
+
   it('should include editor selection context', () => {
     const request: ChatTurnRequest = {
       text: 'Explain this',

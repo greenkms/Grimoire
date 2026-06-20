@@ -1,6 +1,9 @@
 import '@/providers';
 
 import { createMockEl } from '@test/helpers/mockElement';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { Notice } from 'obsidian';
 
 import { InputController, type InputControllerDeps } from '@/features/chat/controllers/InputController';
@@ -2493,6 +2496,37 @@ describe('InputController - Message Queue', () => {
 
       const prepareTurnCall = ((deps as any).mockAgentService.prepareTurn as jest.Mock).mock.calls[0];
       expect(prepareTurnCall[0].externalContextPaths).toEqual(externalPaths);
+    });
+
+    it('should pass selected files as context files and expose their parent directories', async () => {
+      const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'grimoire-selected-file-'));
+      const selectedFile = path.join(tempDir, 'brief.pdf');
+      fs.writeFileSync(selectedFile, 'pdf content');
+
+      try {
+        deps = createSendableDeps({
+          getExternalContextSelector: () => ({
+            getExternalContexts: () => [selectedFile],
+            addExternalContext: jest.fn(),
+          }),
+        });
+
+        ((deps as any).mockAgentService.query as jest.Mock).mockReturnValue(
+          createMockStream([{ type: 'done' }])
+        );
+
+        inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+        inputEl.value = 'test message';
+        controller = new InputController(deps);
+
+        await controller.sendMessage();
+
+        const prepareTurnCall = ((deps as any).mockAgentService.prepareTurn as jest.Mock).mock.calls[0];
+        expect(prepareTurnCall[0].externalContextPaths).toEqual([tempDir]);
+        expect(prepareTurnCall[0].contextFiles).toEqual([selectedFile]);
+      } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      }
     });
   });
 

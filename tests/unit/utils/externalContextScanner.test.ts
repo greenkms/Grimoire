@@ -37,6 +37,22 @@ describe('externalContextScanner', () => {
       expect(files.map((f: ExternalContextFile) => f.name).sort()).toEqual(['file1.txt', 'file2.md', 'file3.ts']);
     });
 
+    it('should include a selected individual file path', () => {
+      const selectedFilePath = path.join(tempDir, 'brief.pdf');
+      fs.writeFileSync(selectedFilePath, 'pdf content');
+
+      const files = externalContextScanner.scanPaths([selectedFilePath]);
+
+      expect(files).toHaveLength(1);
+      expect(files[0]).toMatchObject({
+        path: selectedFilePath,
+        name: 'brief.pdf',
+        relativePath: 'brief.pdf',
+        contextRoot: selectedFilePath,
+      });
+      expect(files[0].mtime).toBeGreaterThan(0);
+    });
+
     it('should include file metadata', () => {
       const files = externalContextScanner.scanPaths([tempDir]);
       const file1 = files.find((f: ExternalContextFile) => f.name === 'file1.txt');

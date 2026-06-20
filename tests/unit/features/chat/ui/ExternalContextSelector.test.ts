@@ -233,6 +233,47 @@ describe('ExternalContextSelector', () => {
       expect(selector.getExternalContexts()).toEqual([]);
       expect(selector.getPersistentPaths()).toEqual(['/persistent/path']);
     });
+
+    it('should keep the Files label when an external file chip shows the selected file', () => {
+      selector.setExternalContexts(['/vault/docs/brief.pdf']);
+
+      const label = parentEl.querySelector('.grimoire-external-context-label');
+      expect(label?.textContent).toBe('Files');
+      expect(label?.getAttribute('title')).toBe('/vault/docs/brief.pdf');
+    });
+  });
+
+  describe('native picker', () => {
+    it('should notify the chat when an individual file is selected', async () => {
+      const selectedFile = '/vault/docs/brief.pdf';
+      const onExternalContextFileSelect = jest.fn();
+      const remote = {
+        dialog: {
+          showOpenDialog: jest.fn().mockResolvedValue({ canceled: false, filePaths: [selectedFile] }),
+        },
+      };
+      (fs.statSync as jest.Mock).mockReturnValue({
+        isDirectory: () => false,
+        isFile: () => true,
+      });
+
+      jest.isolateModules(() => {
+        jest.doMock('electron', () => ({ remote }), { virtual: true });
+        const { ExternalContextSelector } = require('@/features/chat/ui/InputToolbar');
+        const localParentEl = createMockEl();
+        const localCallbacks = {
+          ...createMockCallbacks(),
+          onExternalContextFileSelect,
+        };
+        new ExternalContextSelector(localParentEl, localCallbacks);
+
+        localParentEl.querySelector('.grimoire-external-context-icon-wrapper')?.click();
+      });
+
+      await Promise.resolve();
+
+      expect(onExternalContextFileSelect).toHaveBeenCalledWith(selectedFile);
+    });
   });
 
   describe('addExternalContext', () => {
@@ -318,14 +359,33 @@ describe('ExternalContextSelector', () => {
       expect(result).toMatchObject({ error: expect.stringContaining('Permission denied') });
     });
 
-    it('should reject paths that exist but are not directories', () => {
-      (fs.statSync as jest.Mock).mockReturnValue({ isDirectory: () => false });
+    it('should add absolute file paths and call onChange', () => {
+      (fs.statSync as jest.Mock).mockReturnValue({
+        isDirectory: () => false,
+        isFile: () => true,
+      });
+      const onChange = jest.fn();
+      selector.setOnChange(onChange);
 
       const absolutePath = path.resolve('some', 'file.txt');
       const result = selector.addExternalContext(absolutePath);
 
+      expect(result).toEqual({ success: true, normalizedPath: absolutePath });
+      expect(selector.getExternalContexts()).toEqual([absolutePath]);
+      expect(onChange).toHaveBeenCalledWith([absolutePath]);
+    });
+
+    it('should reject paths that exist but are not files or directories', () => {
+      (fs.statSync as jest.Mock).mockReturnValue({
+        isDirectory: () => false,
+        isFile: () => false,
+      });
+
+      const absolutePath = path.resolve('some', 'socket');
+      const result = selector.addExternalContext(absolutePath);
+
       expect(result.success).toBe(false);
-      expect(result).toMatchObject({ error: expect.stringContaining('Path exists but is not a directory') });
+      expect(result).toMatchObject({ error: expect.stringContaining('Path exists but is not a file or directory') });
     });
 
     it('should accept double-quoted absolute paths', () => {

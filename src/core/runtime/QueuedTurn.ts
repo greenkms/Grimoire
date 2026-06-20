@@ -17,6 +17,9 @@ export function cloneChatTurnRequest(request: ChatTurnRequest): ChatTurnRequest 
     externalContextPaths: request.externalContextPaths
       ? [...request.externalContextPaths]
       : undefined,
+    contextFiles: request.contextFiles
+      ? [...request.contextFiles]
+      : undefined,
     vaultSearchContext: cloneVaultSearchContext(request.vaultSearchContext),
     projectWorkspaceContext: cloneProjectWorkspaceContext(request.projectWorkspaceContext),
     enabledMcpServers: request.enabledMcpServers
@@ -55,6 +58,10 @@ export function mergeQueuedChatTurns(
       externalContextPaths: mergeStringLists(
         existingRequest.externalContextPaths,
         incomingRequest.externalContextPaths,
+      ),
+      contextFiles: mergeStringLists(
+        existingRequest.contextFiles,
+        incomingRequest.contextFiles,
       ),
       enabledMcpServers: mergeSets(
         existingRequest.enabledMcpServers,

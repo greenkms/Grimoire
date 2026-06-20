@@ -22,7 +22,7 @@ import type {
 } from '../../../core/types';
 import { t } from '../../../i18n/i18n';
 import { appendCheckIcon, appendMcpIcon, createProviderIconSvg } from '../../../shared/icons';
-import { filterValidPaths, findConflictingPath, isDuplicatePath, isValidDirectoryPath, validateDirectoryPath } from '../../../utils/externalContext';
+import { filterValidPaths, findConflictingPath, isDuplicatePath, isValidContextPath, validateContextPath } from '../../../utils/externalContext';
 import { expandHomePath, normalizePathForFilesystem } from '../../../utils/path';
 
 interface ElectronOpenDialogResult {
@@ -220,6 +220,7 @@ export interface ToolbarCallbacks {
   getProjectWorkspaces?: () => ProjectWorkspace[];
   getActiveProjectWorkspaceId?: () => string;
   onProjectWorkspaceChange?: (workspaceId: string) => Promise<void>;
+  onExternalContextFileSelect?: (filePath: string) => void;
 }
 
 export class ModelSelector {
@@ -1263,6 +1264,7 @@ export type AddExternalContextResult =
 export class ExternalContextSelector {
   private container: HTMLElement;
   private iconEl: HTMLElement | null = null;
+  private labelEl: HTMLElement | null = null;
   private badgeEl: HTMLElement | null = null;
   private dropdownEl: HTMLElement | null = null;
   private callbacks: ToolbarCallbacks;
@@ -1324,8 +1326,8 @@ export class ExternalContextSelector {
       this.persistentPaths.delete(path);
     } else {
       // Validate path still exists before persisting
-      if (!isValidDirectoryPath(path)) {
-        new Notice(`Cannot persist "${this.shortenPath(path)}" - directory no longer exists`, 4000);
+      if (!isValidContextPath(path)) {
+        new Notice(`Cannot persist "${this.shortenPath(path)}" - path no longer exists`, 4000);
         return;
       }
       this.persistentPaths.add(path);
@@ -1396,8 +1398,8 @@ export class ExternalContextSelector {
       return { success: false, error: 'Path must be absolute. Usage: /add-dir /absolute/path' };
     }
 
-    // Validate path exists and is a directory with specific error messages
-    const validation = validateDirectoryPath(normalizedPath);
+    // Validate path exists and is a file or directory with specific error messages
+    const validation = validateContextPath(normalizedPath);
     if (!validation.valid) {
       return { success: false, error: `${validation.error}: ${pathInput}` };
     }
@@ -1446,6 +1448,7 @@ export class ExternalContextSelector {
 
     this.iconEl = iconWrapper.createDiv({ cls: 'grimoire-external-context-icon' });
     setIcon(this.iconEl, 'folder');
+    this.labelEl = iconWrapper.createSpan({ cls: 'grimoire-external-context-label' });
 
     this.badgeEl = iconWrapper.createDiv({ cls: 'grimoire-external-context-badge' });
 
@@ -1507,7 +1510,7 @@ export class ExternalContextSelector {
         throw new Error('Electron remote API is unavailable');
       }
       const result = await remote.dialog.showOpenDialog({
-        properties: ['openDirectory'],
+        properties: ['openFile', 'openDirectory'],
         title: 'Select External Context',
       });
 
@@ -1528,6 +1531,9 @@ export class ExternalContextSelector {
         }
 
         this.externalContextPaths = [...this.externalContextPaths, selectedPath];
+        if (validateContextPath(selectedPath).type === 'file') {
+          this.callbacks.onExternalContextFileSelect?.(selectedPath);
+        }
         this.onChangeCallback?.(this.externalContextPaths);
         this.updateDisplay();
         this.renderDropdown();
@@ -1620,13 +1626,20 @@ export class ExternalContextSelector {
   }
 
   updateDisplay() {
-    if (!this.iconEl || !this.badgeEl) return;
+    if (!this.iconEl || !this.labelEl || !this.badgeEl) return;
 
     const count = this.externalContextPaths.length;
+    const firstPath = this.externalContextPaths[0] ?? '';
 
     if (count > 0) {
       this.iconEl.addClass('active');
-      this.iconEl.setAttribute('title', `${count} external context${count > 1 ? 's' : ''} (click to add more)`);
+      const title = count === 1
+        ? firstPath
+        : `${count} external contexts (click to add more)`;
+      this.labelEl.setText('Files');
+      this.labelEl.setAttribute('title', title);
+      this.iconEl.setAttribute('title', title);
+      this.container.setAttribute('title', title);
 
       // Show badge only when more than 1 path
       if (count > 1) {
@@ -1638,6 +1651,9 @@ export class ExternalContextSelector {
     } else {
       this.iconEl.removeClass('active');
       this.iconEl.setAttribute('title', 'Add external contexts (click)');
+      this.labelEl.setText('Files');
+      this.labelEl.setAttribute('title', 'Add external contexts (click)');
+      this.container.setAttribute('title', 'Add external contexts (click)');
       this.badgeEl.removeClass('visible');
     }
   }

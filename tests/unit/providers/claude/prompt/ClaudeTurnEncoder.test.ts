@@ -86,6 +86,19 @@ describe('encodeClaudeTurn', () => {
     expect(result.prompt).toContain('<vault_search query="roadmap">');
   });
 
+  it('should append selected context files to persisted content and prompt', () => {
+    const request: ChatTurnRequest = {
+      text: 'review this',
+      contextFiles: ['/external/brief.pdf'],
+    } as any;
+    const result = encodeClaudeTurn(request, mcpManager);
+
+    expect(result.persistedContent).toContain('<context_files>');
+    expect(result.persistedContent).toContain('/external/brief.pdf');
+    expect(result.prompt).toContain('<context_files>');
+    expect(result.prompt).toContain('/external/brief.pdf');
+  });
+
   it('should append editor selection context', () => {
     const request: ChatTurnRequest = {
       text: 'explain this',

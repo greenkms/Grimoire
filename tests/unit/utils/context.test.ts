@@ -255,19 +255,25 @@ describe('extractUserQuery', () => {
 });
 
 describe('appendContextFiles', () => {
-  it('appends context files in XML format', () => {
+  it('appends context files as active selected context in XML format', () => {
     const result = appendContextFiles('Query', ['file1.md', 'file2.md']);
-    expect(result).toBe('Query\n\n<context_files>\nfile1.md, file2.md\n</context_files>');
+    expect(result).toContain('<context_files>');
+    expect(result).toContain('The user selected these files as active context.');
+    expect(result).toContain('Inspect the relevant selected files before answering broad or deictic requests.');
+    expect(result).toContain('- file1.md');
+    expect(result).toContain('- file2.md');
+    expect(result).toContain('</context_files>');
   });
 
   it('handles single file', () => {
     const result = appendContextFiles('Query', ['single.md']);
-    expect(result).toBe('Query\n\n<context_files>\nsingle.md\n</context_files>');
+    expect(result).toContain('- single.md');
   });
 
   it('handles empty file array', () => {
     const result = appendContextFiles('Query', []);
-    expect(result).toBe('Query\n\n<context_files>\n\n</context_files>');
+    expect(result).toContain('<context_files>');
+    expect(result).toContain('</context_files>');
   });
 });
 

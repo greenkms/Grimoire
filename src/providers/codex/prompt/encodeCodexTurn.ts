@@ -1,5 +1,5 @@
 import type { ChatTurnRequest, PreparedChatTurn } from '../../../core/runtime/types';
-import { appendProjectWorkspaceContext, appendVaultSearchContext } from '../../../utils/context';
+import { appendContextFiles, appendProjectWorkspaceContext, appendVaultSearchContext } from '../../../utils/context';
 
 function isCompactCommand(text: string): boolean {
   return /^\/compact(\s|$)/i.test(text);
@@ -27,6 +27,10 @@ export function encodeCodexTurn(request: ChatTurnRequest): PreparedChatTurn {
 
   if (request.vaultSearchContext) {
     sections.push(`\n${appendVaultSearchContext('', request.vaultSearchContext).trim()}`);
+  }
+
+  if (request.contextFiles && request.contextFiles.length > 0) {
+    sections.push(`\n${appendContextFiles('', request.contextFiles).trim()}`);
   }
 
   if (request.projectWorkspaceContext) {

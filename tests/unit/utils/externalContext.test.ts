@@ -7,6 +7,7 @@ import {
   isDuplicatePath,
   isValidDirectoryPath,
   normalizePathForComparison,
+  validateContextPath,
   validateDirectoryPath,
 } from '@/utils/externalContext';
 
@@ -227,6 +228,30 @@ describe('externalContext utilities', () => {
       expect(result.valid).toBe(false);
       expect(result.error).toContain('Cannot access path');
       expect(result.error).toContain('Something went wrong');
+    });
+  });
+
+  describe('validateContextPath', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should return valid for existing files', () => {
+      (fs.statSync as jest.Mock).mockReturnValue({
+        isDirectory: () => false,
+        isFile: () => true,
+      });
+
+      expect(validateContextPath('/path/to/document.pdf')).toEqual({ valid: true, type: 'file' });
+    });
+
+    it('should return valid for existing directories', () => {
+      (fs.statSync as jest.Mock).mockReturnValue({
+        isDirectory: () => true,
+        isFile: () => false,
+      });
+
+      expect(validateContextPath('/path/to/folder')).toEqual({ valid: true, type: 'directory' });
     });
   });
 

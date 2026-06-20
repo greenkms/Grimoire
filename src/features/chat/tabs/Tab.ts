@@ -40,9 +40,11 @@ import { t } from '../../../i18n/i18n';
 import type GrimoirePlugin from '../../../main';
 import { SlashCommandDropdown } from '../../../shared/components/SlashCommandDropdown';
 import { getEnhancedPath } from '../../../utils/env';
+import { validateContextPath } from '../../../utils/externalContext';
 import { getVaultPath } from '../../../utils/path';
 import { BrowserSelectionController } from '../controllers/BrowserSelectionController';
 import { CanvasSelectionController } from '../controllers/CanvasSelectionController';
+import { updateContextRowHasContent } from '../controllers/contextRowVisibility';
 import { ConversationController } from '../controllers/ConversationController';
 import { InputController } from '../controllers/InputController';
 import { NavigationController } from '../controllers/NavigationController';
@@ -75,6 +77,70 @@ const AUTO_SCROLL_BOTTOM_THRESHOLD_PX = 20;
 const AUTO_SCROLL_REENABLE_DELAY_MS = 150;
 const SCROLL_RESUME_ICON_PATH = 'M12 17 6 11l1.4-1.4 4.6 4.6 4.6-4.6L18 11l-6 6Zm0-6L6 5l1.4-1.4 4.6 4.6 4.6-4.6L18 5l-6 6Z';
 const SVG_NS = 'http://www.w3.org/2000/svg';
+
+function getBasename(filePath: string): string {
+  const normalizedPath = filePath.replace(/\\/g, '/');
+  return normalizedPath.split('/').pop() || filePath;
+}
+
+function getOrCreateExternalFileIndicator(tab: TabData): HTMLElement {
+  const existing = tab.dom.contextRowEl.querySelector('.grimoire-external-file-indicator');
+  if (existing) {
+    return existing as HTMLElement;
+  }
+  return tab.dom.contextRowEl.createDiv({ cls: 'grimoire-external-file-indicator grimoire-hidden' });
+}
+
+function isExternalFilePath(contextPath: string): boolean {
+  return validateContextPath(contextPath).type === 'file';
+}
+
+function getSelectedExternalFilePaths(tab: TabData): string[] {
+  return (tab.ui.externalContextSelector?.getExternalContexts() ?? []).filter(isExternalFilePath);
+}
+
+function renderExternalFileChips(tab: TabData, selectedFilePath?: string): void {
+  const indicatorEl = getOrCreateExternalFileIndicator(tab);
+  const filePaths = getSelectedExternalFilePaths(tab);
+  const selectedPaths = selectedFilePath && !filePaths.includes(selectedFilePath)
+    ? [...filePaths, selectedFilePath]
+    : filePaths;
+
+  indicatorEl.empty();
+
+  if (selectedPaths.length === 0) {
+    indicatorEl.removeClass('grimoire-visible-flex');
+    indicatorEl.addClass('grimoire-hidden');
+    updateContextRowHasContent(tab.dom.contextRowEl);
+    return;
+  }
+
+  indicatorEl.addClass('grimoire-visible-flex');
+  indicatorEl.removeClass('grimoire-hidden');
+
+  for (const filePath of selectedPaths) {
+    const chipEl = indicatorEl.createSpan({ cls: 'grimoire-external-file-chip' });
+    chipEl.setAttribute('title', filePath);
+    const iconEl = chipEl.createSpan({ cls: 'grimoire-external-file-chip-icon' });
+    setIcon(iconEl, 'file');
+    chipEl.createSpan({
+      cls: 'grimoire-external-file-chip-name',
+      text: getBasename(filePath),
+    });
+    const removeEl = chipEl.createSpan({
+      cls: 'grimoire-external-file-chip-remove',
+      text: '\u00D7',
+      attr: { 'aria-label': 'Remove external file' },
+    });
+    removeEl.addEventListener('click', (event) => {
+      event.stopPropagation();
+      tab.ui.externalContextSelector?.removePath(filePath);
+      renderExternalFileChips(tab);
+    });
+  }
+
+  updateContextRowHasContent(tab.dom.contextRowEl);
+}
 
 type TabProviderSettings = Record<string, unknown> & {
   model: string;
@@ -695,6 +761,17 @@ function syncContextSummary(tab: TabData, plugin: GrimoirePlugin): void {
     currentPath ? 'active' : 'idle',
     Boolean(currentPath),
   );
+
+  const selectedExternalFiles = getSelectedExternalFilePaths(tab);
+  if (selectedExternalFiles.length > 0) {
+    appendContextSummaryRow(
+      contextSummaryEl,
+      selectedExternalFiles.length === 1 ? 'Selected file' : 'Selected files',
+      selectedExternalFiles.map(getBasename).join(', '),
+      'files',
+      true,
+    );
+  }
 
   appendContextSummaryRow(
     contextSummaryEl,
@@ -1923,6 +2000,12 @@ function initializeInputToolbar(
       await plugin.saveSettings();
       tab.ui.projectWorkspaceSelector?.updateDisplay();
     },
+    onExternalContextFileSelect: (filePath: string) => {
+      dom.inputEl.focus();
+      tab.ui.fileContextManager?.hideMentionDropdown();
+      renderExternalFileChips(tab, filePath);
+      autoResizeTextarea(dom.inputEl);
+    },
     onOrchestratorModeChange: async () => {
       tab.orchestratorMode = !tab.orchestratorMode;
       tab.ui.orchestratorToggle?.updateDisplay();
@@ -1986,12 +2069,15 @@ function initializeInputToolbar(
   // Wire external context changes
   tab.ui.externalContextSelector.setOnChange(() => {
     tab.ui.fileContextManager?.preScanExternalContexts();
+    renderExternalFileChips(tab);
+    syncContextSummary(tab, plugin);
   });
 
   // Initialize persistent paths
   tab.ui.externalContextSelector.setPersistentPaths(
     plugin.settings.persistentExternalContextPaths || []
   );
+  renderExternalFileChips(tab);
 
   // Wire persistence changes
   tab.ui.externalContextSelector.setOnPersistenceChange((paths) => {

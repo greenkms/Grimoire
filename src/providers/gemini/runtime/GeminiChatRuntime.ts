@@ -30,7 +30,7 @@ import type {
 import type GrimoirePlugin from '../../../main';
 import { appendBrowserContext } from '../../../utils/browser';
 import { appendCanvasContext } from '../../../utils/canvas';
-import { appendCurrentNote, appendProjectWorkspaceContext, appendVaultSearchContext } from '../../../utils/context';
+import { appendContextFiles, appendCurrentNote, appendProjectWorkspaceContext, appendVaultSearchContext } from '../../../utils/context';
 import { appendEditorContext } from '../../../utils/editor';
 import { getVaultPath } from '../../../utils/path';
 import {
@@ -744,6 +744,10 @@ function buildGeminiPromptText(request: ChatTurnRequest): string {
 
   if (request.vaultSearchContext) {
     prompt = appendVaultSearchContext(prompt, request.vaultSearchContext);
+  }
+
+  if (request.contextFiles && request.contextFiles.length > 0) {
+    prompt = appendContextFiles(prompt, request.contextFiles);
   }
 
   if (request.projectWorkspaceContext) {

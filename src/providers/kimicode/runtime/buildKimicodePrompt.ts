@@ -3,7 +3,7 @@ import type { ChatTurnRequest } from '../../../core/runtime/types';
 import type { ChatMessage } from '../../../core/types';
 import { appendBrowserContext } from '../../../utils/browser';
 import { appendCanvasContext } from '../../../utils/canvas';
-import { appendCurrentNote, appendProjectWorkspaceContext, appendVaultSearchContext } from '../../../utils/context';
+import { appendContextFiles, appendCurrentNote, appendProjectWorkspaceContext, appendVaultSearchContext } from '../../../utils/context';
 import { appendEditorContext } from '../../../utils/editor';
 import { buildContextFromHistory, buildPromptWithHistoryContext } from '../../../utils/session';
 import type { AcpContentBlock } from '../../acp';
@@ -25,6 +25,10 @@ export function buildKimicodePromptText(
 
   if (request.vaultSearchContext) {
     prompt = appendVaultSearchContext(prompt, request.vaultSearchContext);
+  }
+
+  if (request.contextFiles && request.contextFiles.length > 0) {
+    prompt = appendContextFiles(prompt, request.contextFiles);
   }
 
   if (request.projectWorkspaceContext) {

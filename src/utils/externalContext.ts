@@ -5,6 +5,7 @@
  */
 
 import * as fs from 'fs';
+import * as path from 'path';
 
 import { normalizePathForComparison as normalizePathForComparisonImpl } from './path';
 
@@ -133,11 +134,68 @@ export function isValidDirectoryPath(p: string): boolean {
   return validateDirectoryPath(p).valid;
 }
 
+export interface ContextPathValidationResult {
+  valid: boolean;
+  type?: 'directory' | 'file';
+  error?: string;
+}
+
+export function validateContextPath(p: string): ContextPathValidationResult {
+  try {
+    const stats = fs.statSync(p);
+    if (stats.isDirectory()) {
+      return { valid: true, type: 'directory' };
+    }
+    if (stats.isFile()) {
+      return { valid: true, type: 'file' };
+    }
+    return { valid: false, error: 'Path exists but is not a file or directory' };
+  } catch (err) {
+    const error = err as NodeJS.ErrnoException;
+    if (error.code === 'ENOENT') {
+      return { valid: false, error: 'Path does not exist' };
+    }
+    if (error.code === 'EACCES') {
+      return { valid: false, error: 'Permission denied' };
+    }
+    return { valid: false, error: `Cannot access path: ${error.message}` };
+  }
+}
+
+export function isValidContextPath(p: string): boolean {
+  return validateContextPath(p).valid;
+}
+
 export function filterValidPaths(paths: string[]): string[] {
-  return paths.filter(isValidDirectoryPath);
+  return paths.filter(isValidContextPath);
 }
 
 export function isDuplicatePath(newPath: string, existingPaths: string[]): boolean {
   const normalizedNew = normalizePathForComparison(newPath);
   return existingPaths.some(existing => normalizePathForComparison(existing) === normalizedNew);
+}
+
+export interface SplitContextPathsResult {
+  directories: string[];
+  files: string[];
+}
+
+export function splitContextPaths(paths: string[]): SplitContextPathsResult {
+  const directories: string[] = [];
+  const files: string[] = [];
+
+  for (const contextPath of paths) {
+    const validation = validateContextPath(contextPath);
+    if (validation.type === 'file') {
+      files.push(contextPath);
+      directories.push(path.dirname(contextPath));
+    } else {
+      directories.push(contextPath);
+    }
+  }
+
+  return {
+    directories: [...new Set(directories)],
+    files: [...new Set(files)],
+  };
 }

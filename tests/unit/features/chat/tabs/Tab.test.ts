@@ -1,5 +1,9 @@
 import '@/providers';
 
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+
 import { createMockEl } from '@test/helpers/mockElement';
 import { Notice, Platform, setIcon } from 'obsidian';
 
@@ -181,6 +185,7 @@ const createMockExternalContextSelector = () => ({
   setOnChange: jest.fn(),
   setPersistentPaths: jest.fn(),
   setOnPersistenceChange: jest.fn(),
+  removePath: jest.fn(),
 });
 
 const createMockMcpServerSelector = () => ({
@@ -1990,6 +1995,36 @@ describe('Tab - UI Initialization', () => {
       expect(badges).toEqual(['idle', 'model', 'auto']);
     });
 
+    it('renders selected external files in the context summary', () => {
+      const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'grimoire-context-summary-'));
+      const selectedFile = path.join(tempDir, 'calfor.log');
+      fs.writeFileSync(selectedFile, 'log content');
+
+      try {
+        const options = createMockOptions();
+        const tab = createTab(options);
+
+        initializeTabUI(tab, options.plugin);
+
+        mockExternalContextSelector.getExternalContexts.mockReturnValue([selectedFile]);
+        const onChange = mockExternalContextSelector.setOnChange.mock.calls[0][0];
+        onChange();
+
+        const titles = Array.from(tab.dom.contextSummaryEl.querySelectorAll('.grimoire-context-summary-title'))
+          .map(title => title.textContent);
+        const details = Array.from(tab.dom.contextSummaryEl.querySelectorAll('.grimoire-context-summary-detail'))
+          .map(detail => detail.textContent);
+        const badges = Array.from(tab.dom.contextSummaryEl.querySelectorAll('.grimoire-context-summary-badge'))
+          .map(badge => badge.textContent);
+
+        expect(titles).toContain('Selected file');
+        expect(details).toContain('calfor.log');
+        expect(badges).toContain('files');
+      } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      }
+    });
+
     it('should create bang-bash mode from provider UI config', () => {
       const getEnhancedPathSpy = jest
         .spyOn(envUtils, 'getEnhancedPath')
@@ -2756,6 +2791,50 @@ describe('Tab - UI Callback Wiring', () => {
 
       expect(plugin.settings.persistentExternalContextPaths).toEqual(['/new/path1', '/new/path2']);
       expect(saveSettings).toHaveBeenCalled();
+    });
+
+    it('should show selected external files as chips without inserting path text into the composer', () => {
+      const options = createMockOptions();
+      const tab = createTab(options);
+
+      initializeTabUI(tab, options.plugin);
+
+      const toolbarModule = jest.requireMock('@/features/chat/ui/InputToolbar') as {
+        createInputToolbar: jest.Mock;
+      };
+      const toolbarCallbacks = toolbarModule.createInputToolbar.mock.calls.at(-1)?.[1];
+
+      tab.dom.inputEl.value = 'Summarize';
+      toolbarCallbacks.onExternalContextFileSelect('/vault/docs/brief.pdf');
+
+      expect(tab.dom.inputEl.value).toBe('Summarize');
+      expect(tab.ui.fileContextManager?.hideMentionDropdown).toHaveBeenCalled();
+      expect(tab.ui.fileContextManager?.handleInputChange).not.toHaveBeenCalled();
+
+      const chip = tab.dom.contextRowEl.querySelector('.grimoire-external-file-chip');
+      expect(chip).not.toBeNull();
+      expect(chip?.querySelector('.grimoire-external-file-chip-name')?.textContent).toBe('brief.pdf');
+      expect(chip?.getAttribute('title')).toBe('/vault/docs/brief.pdf');
+      expect(tab.dom.contextRowEl.hasClass('has-content')).toBe(true);
+    });
+
+    it('should remove selected external file chips through the Files selector', () => {
+      const options = createMockOptions();
+      const tab = createTab(options);
+
+      initializeTabUI(tab, options.plugin);
+
+      const toolbarModule = jest.requireMock('@/features/chat/ui/InputToolbar') as {
+        createInputToolbar: jest.Mock;
+      };
+      const toolbarCallbacks = toolbarModule.createInputToolbar.mock.calls.at(-1)?.[1];
+
+      toolbarCallbacks.onExternalContextFileSelect('/vault/docs/brief.pdf');
+      const removeButton = tab.dom.contextRowEl.querySelector('.grimoire-external-file-chip-remove') as HTMLElement | null;
+
+      removeButton?.click();
+
+      expect(mockExternalContextSelector.removePath).toHaveBeenCalledWith('/vault/docs/brief.pdf');
     });
 
     it('should wire onUsageChanged callback to update context meter', () => {

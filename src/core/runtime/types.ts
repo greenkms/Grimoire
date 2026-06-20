@@ -60,6 +60,7 @@ export interface ChatTurnRequest {
   browserSelection?: BrowserSelectionContext | null;
   canvasSelection?: CanvasSelectionContext | null;
   externalContextPaths?: string[];
+  contextFiles?: string[];
   vaultSearchContext?: VaultSearchTurnContext;
   projectWorkspaceContext?: ProjectWorkspaceTurnContext;
   enabledMcpServers?: Set<string>;

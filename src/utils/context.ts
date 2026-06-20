@@ -97,7 +97,16 @@ export function extractUserQuery(prompt: string): string {
 }
 
 function formatContextFilesLine(files: string[]): string {
-  return `<context_files>\n${files.join(', ')}\n</context_files>`;
+  const fileLines = files.map(file => `- ${file}`).join('\n');
+  return [
+    '<context_files>',
+    'The user selected these files as active context.',
+    'Inspect the relevant selected files before answering broad or deictic requests.',
+    'Do not ignore these files just because the user did not name them explicitly in the message.',
+    '',
+    fileLines,
+    '</context_files>',
+  ].join('\n');
 }
 
 export function appendContextFiles(prompt: string, files: string[]): string {

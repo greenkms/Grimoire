@@ -38,6 +38,16 @@ describe('buildOpencodePromptText', () => {
     expect(prompt).not.toContain('/tmp/project');
   });
 
+  it('appends selected context files to the OpenCode prompt', () => {
+    const prompt = buildOpencodePromptText({
+      contextFiles: ['/external/brief.pdf'],
+      text: 'Summarize this',
+    } as any);
+
+    expect(prompt).toContain('<context_files>');
+    expect(prompt).toContain('/external/brief.pdf');
+  });
+
   it('appends vault search context to the prompt', () => {
     const prompt = buildOpencodePromptText({
       text: 'Summarize this',
