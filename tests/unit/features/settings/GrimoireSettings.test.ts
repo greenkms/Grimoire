@@ -15,6 +15,7 @@ jest.mock('@/shared/modals/WhatsNewModal', () => ({
 }));
 
 jest.mock('@/app/changelog/source', () => ({
+  GRIMOIRE_CHANGELOG_URL: 'https://github.com/sandsaber/Grimoire/blob/main/CHANGELOG.md',
   readBundledChangelog: jest.fn().mockResolvedValue('# Changelog\n\n## 9.8.7\n\n### Added\n\n- Manual release note.'),
 }));
 
@@ -98,6 +99,7 @@ describe('GrimoireSettingTab general tab settings', () => {
     expect(readBundledChangelog).toHaveBeenCalledWith(app.vault.adapter, plugin.manifest);
     expect(showWhatsNewModal).toHaveBeenCalledWith({
       app,
+      fullChangelogUrl: 'https://github.com/sandsaber/Grimoire/blob/main/CHANGELOG.md',
       release: expect.objectContaining({
         version: '9.8.7',
       }),

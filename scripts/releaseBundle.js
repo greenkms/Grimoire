@@ -1,7 +1,7 @@
 const { copyFileSync, existsSync, mkdirSync, rmSync, statSync } = require('fs');
 const path = require('path');
 
-const RELEASE_FILES = ['main.js', 'manifest.json', 'styles.css', 'CHANGELOG.md'];
+const RELEASE_FILES = ['main.js', 'manifest.json', 'styles.css'];
 const MAIN_JS_SYNC_STANDARD_LIMIT_BYTES = 5_000_000;
 
 function formatBytes(value) {

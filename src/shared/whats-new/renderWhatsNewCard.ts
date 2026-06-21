@@ -3,6 +3,7 @@ import type { ChangelogRelease } from '../../app/changelog/types';
 export interface RenderWhatsNewCardOptions {
   release: ChangelogRelease;
   onDismiss: () => void | Promise<void>;
+  fullChangelogUrl?: string;
 }
 
 export function renderWhatsNewCard(
@@ -13,7 +14,7 @@ export function renderWhatsNewCard(
     return;
   }
 
-  const { release, onDismiss } = options;
+  const { release, onDismiss, fullChangelogUrl } = options;
   const cardEl = containerEl.createDiv({ cls: 'grimoire-whats-new-card' });
   const headerEl = cardEl.createDiv({ cls: 'grimoire-whats-new-card-header' });
   const titleBlockEl = headerEl.createDiv({ cls: 'grimoire-whats-new-card-title-block' });
@@ -25,6 +26,18 @@ export function renderWhatsNewCard(
     cls: 'grimoire-whats-new-card-summary',
     text: release.date ? `Released ${release.date}` : 'Latest release notes',
   });
+
+  if (fullChangelogUrl) {
+    headerEl.createEl('a', {
+      cls: 'grimoire-whats-new-card-link',
+      text: 'Full changelog',
+      attr: {
+        href: fullChangelogUrl,
+        rel: 'noopener',
+        target: '_blank',
+      },
+    });
+  }
 
   const dismissButton = headerEl.createEl('button', {
     cls: 'grimoire-whats-new-card-dismiss',

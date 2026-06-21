@@ -7,6 +7,22 @@ type ManifestLike = {
   dir?: string;
 };
 
+declare const GRIMOIRE_CHANGELOG_MARKDOWN: string | undefined;
+
+export const GRIMOIRE_CHANGELOG_URL = 'https://github.com/sandsaber/Grimoire/blob/main/CHANGELOG.md';
+
+export function getEmbeddedChangelogMarkdown(): string | null {
+  try {
+    if (typeof GRIMOIRE_CHANGELOG_MARKDOWN === 'string' && GRIMOIRE_CHANGELOG_MARKDOWN.trim()) {
+      return GRIMOIRE_CHANGELOG_MARKDOWN;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
 export function getBundledChangelogPath(manifest: ManifestLike | null | undefined): string {
   const dir = manifest?.dir?.trim();
   if (dir) {
@@ -20,7 +36,13 @@ export function getBundledChangelogPath(manifest: ManifestLike | null | undefine
 export async function readBundledChangelog(
   adapter: ReadableAdapter,
   manifest: ManifestLike | null | undefined,
+  options: { embeddedMarkdown?: string | null } = {},
 ): Promise<string | null> {
+  const embeddedMarkdown = options.embeddedMarkdown ?? getEmbeddedChangelogMarkdown();
+  if (embeddedMarkdown?.trim()) {
+    return embeddedMarkdown;
+  }
+
   try {
     return await adapter.read(getBundledChangelogPath(manifest));
   } catch {

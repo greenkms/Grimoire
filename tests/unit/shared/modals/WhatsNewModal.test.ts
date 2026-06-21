@@ -102,7 +102,11 @@ describe('showWhatsNewModal', () => {
   };
 
   it('renders release title, summary, categories, and items', () => {
-    showWhatsNewModal({ app: mockApp, release });
+    showWhatsNewModal({
+      app: mockApp,
+      release,
+      fullChangelogUrl: 'https://github.com/sandsaber/Grimoire/blob/main/CHANGELOG.md',
+    });
 
     expect(lastModalInstance).toBeTruthy();
     expect(lastModalInstance.setTitle).toHaveBeenCalledWith('What\'s New in Grimoire v1.0.23');
@@ -113,6 +117,10 @@ describe('showWhatsNewModal', () => {
     expect(collectText(lastModalInstance.contentEl)).toContain('Changelog parsing support.');
     expect(collectText(lastModalInstance.contentEl)).toContain('Fixed');
     expect(collectText(lastModalInstance.contentEl)).toContain('Startup notification timing.');
+    const link = lastModalInstance.contentEl.querySelector('.grimoire-whats-new-link');
+    expect(link?.textContent).toBe('Full changelog');
+    expect(link?.getAttribute('href')).toBe('https://github.com/sandsaber/Grimoire/blob/main/CHANGELOG.md');
+    expect(link?.getAttribute('target')).toBe('_blank');
     expect(createdButtons).toHaveLength(1);
     expect(createdButtons[0].setButtonText).toHaveBeenCalledWith('Got it');
     expect(createdButtons[0].setCta).toHaveBeenCalled();

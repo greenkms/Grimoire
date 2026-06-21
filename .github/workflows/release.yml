@@ -73,7 +73,6 @@ jobs:
           test -s dist/grimoire/main.js
           test -s dist/grimoire/manifest.json
           test -s dist/grimoire/styles.css
-          test -s dist/grimoire/CHANGELOG.md
 
       - name: Attest release assets
         uses: actions/attest@v4
@@ -82,7 +81,6 @@ jobs:
             dist/grimoire/main.js
             dist/grimoire/manifest.json
             dist/grimoire/styles.css
-            dist/grimoire/CHANGELOG.md
 
       - name: Generate release notes
         run: |
@@ -129,14 +127,12 @@ jobs:
               dist/grimoire/main.js \
               dist/grimoire/manifest.json \
               dist/grimoire/styles.css \
-              dist/grimoire/CHANGELOG.md \
               --clobber
           else
             gh release create "${tag}" \
               dist/grimoire/main.js \
               dist/grimoire/manifest.json \
               dist/grimoire/styles.css \
-              dist/grimoire/CHANGELOG.md \
               --title "${title}" \
               --target "${GITHUB_SHA}" \
               --notes-file RELEASE_NOTES.md \

@@ -46,3 +46,16 @@
   font-size: 13px;
   line-height: 1.45;
 }
+
+.grimoire-whats-new-link {
+  display: inline-flex;
+  margin-bottom: 12px;
+  color: var(--text-accent);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.grimoire-whats-new-link:hover {
+  text-decoration: underline;
+}

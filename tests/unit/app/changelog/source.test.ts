@@ -23,4 +23,17 @@ describe('changelog source', () => {
     await expect(readBundledChangelog(adapter as any, { id: 'grimoire' })).resolves.toBe('# Changelog');
     await expect(readBundledChangelog(adapter as any, { id: 'grimoire' })).resolves.toBeNull();
   });
+
+  it('prefers embedded changelog markdown over adapter reads', async () => {
+    const adapter = {
+      read: jest.fn().mockResolvedValue('# File changelog'),
+    };
+
+    await expect(readBundledChangelog(
+      adapter as any,
+      { id: 'grimoire' },
+      { embeddedMarkdown: '# Embedded changelog' },
+    )).resolves.toBe('# Embedded changelog');
+    expect(adapter.read).not.toHaveBeenCalled();
+  });
 });

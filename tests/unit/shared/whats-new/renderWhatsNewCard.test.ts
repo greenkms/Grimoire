@@ -31,12 +31,17 @@ describe('renderWhatsNewCard', () => {
     renderWhatsNewCard(container as unknown as HTMLElement, {
       release,
       onDismiss,
+      fullChangelogUrl: 'https://github.com/sandsaber/Grimoire/blob/main/CHANGELOG.md',
     });
 
     expect(collectText(container)).toContain('What\'s New in Grimoire v1.0.0');
     expect(collectText(container)).toContain('Released 2026-06-21');
     expect(collectText(container)).toContain('Inline release card.');
     expect(collectText(container)).toContain('Small fix.');
+    const link = container.querySelector('.grimoire-whats-new-card-link');
+    expect(link?.textContent).toBe('Full changelog');
+    expect(link?.getAttribute('href')).toBe('https://github.com/sandsaber/Grimoire/blob/main/CHANGELOG.md');
+    expect(link?.getAttribute('target')).toBe('_blank');
 
     const dismissButton = container.querySelector('.grimoire-whats-new-card-dismiss');
     dismissButton?.click();

@@ -2,7 +2,7 @@ import type { App } from 'obsidian';
 import { Notice, Platform, PluginSettingTab, Setting } from 'obsidian';
 
 import { parseChangelogRelease } from '../../app/changelog/parser';
-import { readBundledChangelog } from '../../app/changelog/source';
+import { GRIMOIRE_CHANGELOG_URL, readBundledChangelog } from '../../app/changelog/source';
 import { formatGrimoireVersion } from '../../app/version';
 import {
   getHiddenProviderCommands,
@@ -285,6 +285,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
 
     await showWhatsNewModal({
       app: this.app,
+      fullChangelogUrl: GRIMOIRE_CHANGELOG_URL,
       release,
     });
   }

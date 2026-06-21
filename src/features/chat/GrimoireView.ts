@@ -1,6 +1,7 @@
 import type { EventRef, WorkspaceLeaf } from 'obsidian';
 import { ItemView, Notice, Scope } from 'obsidian';
 
+import { GRIMOIRE_CHANGELOG_URL } from '../../app/changelog/source';
 import { getHiddenProviderCommandSet } from '../../core/providers/commands/hiddenCommands';
 import { ProviderRegistry } from '../../core/providers/ProviderRegistry';
 import { ProviderSettingsCoordinator } from '../../core/providers/ProviderSettingsCoordinator';
@@ -413,6 +414,7 @@ export class GrimoireView extends ItemView {
     }
 
     renderWhatsNewCard(containerEl, {
+      fullChangelogUrl: GRIMOIRE_CHANGELOG_URL,
       release,
       onDismiss: () => this.plugin.acknowledgePendingWhatsNew?.(),
     });

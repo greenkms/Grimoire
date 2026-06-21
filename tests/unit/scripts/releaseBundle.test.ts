@@ -9,7 +9,7 @@ import {
 } from '../../../scripts/verifyReleaseLoad.js';
 
 describe('release bundle helpers', () => {
-  it('copies installable Obsidian plugin files into a clean release folder', () => {
+  it('copies only Obsidian-supported plugin files into a clean release folder', () => {
     const rootDir = mkdtempSync(join(tmpdir(), 'grimoire-release-'));
     const outputDir = join(rootDir, 'dist', 'grimoire');
 
@@ -27,10 +27,9 @@ describe('release bundle helpers', () => {
 
       expect(result).toEqual({
         outputDir,
-        files: ['main.js', 'manifest.json', 'styles.css', 'CHANGELOG.md'],
+        files: ['main.js', 'manifest.json', 'styles.css'],
       });
       expect(readdirSync(outputDir).sort()).toEqual([
-        'CHANGELOG.md',
         'main.js',
         'manifest.json',
         'styles.css',
@@ -38,7 +37,6 @@ describe('release bundle helpers', () => {
       expect(readFileSync(join(outputDir, 'main.js'), 'utf8')).toBe('main bundle');
       expect(readFileSync(join(outputDir, 'manifest.json'), 'utf8')).toBe('{"id":"grimoire"}');
       expect(readFileSync(join(outputDir, 'styles.css'), 'utf8')).toBe('plugin styles');
-      expect(readFileSync(join(outputDir, 'CHANGELOG.md'), 'utf8')).toBe('# Changelog');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }

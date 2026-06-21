@@ -5,6 +5,7 @@ import type { ChangelogRelease } from '../../app/changelog/types';
 export interface ShowWhatsNewModalOptions {
   app: App;
   release: ChangelogRelease;
+  fullChangelogUrl?: string;
   onDismiss?: () => void | Promise<void>;
   onClose?: () => void | Promise<void>;
 }
@@ -15,6 +16,7 @@ export function showWhatsNewModal(options: ShowWhatsNewModalOptions): Promise<vo
       options.app,
       options.release,
       resolve,
+      options.fullChangelogUrl,
       options.onDismiss,
       options.onClose,
     ).open();
@@ -24,6 +26,7 @@ export function showWhatsNewModal(options: ShowWhatsNewModalOptions): Promise<vo
 class WhatsNewModal extends Modal {
   private readonly release: ChangelogRelease;
   private readonly resolve: () => void;
+  private readonly fullChangelogUrl?: string;
   private readonly onDismiss?: () => void | Promise<void>;
   private readonly onCloseCallback?: () => void | Promise<void>;
   private primaryActionStarted = false;
@@ -35,12 +38,14 @@ class WhatsNewModal extends Modal {
     app: App,
     release: ChangelogRelease,
     resolve: () => void,
+    fullChangelogUrl?: string,
     onDismiss?: () => void | Promise<void>,
     onCloseCallback?: () => void | Promise<void>,
   ) {
     super(app);
     this.release = release;
     this.resolve = resolve;
+    this.fullChangelogUrl = fullChangelogUrl;
     this.onDismiss = onDismiss;
     this.onCloseCallback = onCloseCallback;
   }
@@ -63,6 +68,18 @@ class WhatsNewModal extends Modal {
       for (const item of category.items) {
         itemsEl.createEl('li', { text: item });
       }
+    }
+
+    if (this.fullChangelogUrl) {
+      this.contentEl.createEl('a', {
+        cls: 'grimoire-whats-new-link',
+        text: 'Full changelog',
+        attr: {
+          href: this.fullChangelogUrl,
+          rel: 'noopener',
+          target: '_blank',
+        },
+      });
     }
 
     new Setting(this.contentEl)
