@@ -171,6 +171,99 @@ describe('GrimoireView tab controls', () => {
     expect(contentEl.querySelector('.grimoire-session-strip')).not.toBeNull();
   });
 
+  it('renders pending what is new release inside the chat window and acknowledges dismissal', async () => {
+    const containerEl = createMockEl();
+    const contentEl = createMockEl();
+    const view = Object.create(GrimoireView.prototype) as any;
+    const acknowledgePendingWhatsNew = jest.fn().mockResolvedValue(undefined);
+
+    containerEl.ownerDocument.createDocumentFragment = jest.fn(() => createMockEl('fragment'));
+    view.containerEl = containerEl;
+    view.contentEl = contentEl;
+    view.plugin = {
+      settings: {},
+      app: {
+        vault: { on: jest.fn() },
+        workspace: { on: jest.fn() },
+      },
+      findConversationAcrossViews: jest.fn(),
+      getPendingWhatsNewRelease: jest.fn().mockReturnValue({
+        version: '1.0.0',
+        date: '2026-06-21',
+        categories: [
+          { title: 'Added', items: ['Inline release card.'] },
+        ],
+      }),
+      acknowledgePendingWhatsNew,
+      saveSettings: jest.fn().mockResolvedValue(undefined),
+    };
+    view.registerDomEvent = jest.fn();
+    view.registerEvent = jest.fn();
+    view.restoreOrCreateTabs = jest.fn().mockResolvedValue(undefined);
+    view.syncProviderBrandColor = jest.fn();
+    view.wireEventHandlers = jest.fn();
+
+    await view.onOpen();
+
+    expect(contentEl.querySelector('.grimoire-whats-new-host')).not.toBeNull();
+    expect(contentEl.querySelector('.grimoire-whats-new-card-title')?.textContent)
+      .toBe('What\'s New in Grimoire v1.0.0');
+    expect(contentEl.querySelector('.grimoire-whats-new-card-item')?.textContent)
+      .toContain('Inline release card.');
+
+    contentEl.querySelector('.grimoire-whats-new-card-dismiss')?.click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(acknowledgePendingWhatsNew).toHaveBeenCalledTimes(1);
+    expect(contentEl.querySelector('.grimoire-whats-new-card')).toBeNull();
+  });
+
+  it('can render pending what is new release after the chat window is already open', async () => {
+    const containerEl = createMockEl();
+    const contentEl = createMockEl();
+    const view = Object.create(GrimoireView.prototype) as any;
+    const getPendingWhatsNewRelease = jest.fn().mockReturnValue(null);
+
+    containerEl.ownerDocument.createDocumentFragment = jest.fn(() => createMockEl('fragment'));
+    view.containerEl = containerEl;
+    view.contentEl = contentEl;
+    view.plugin = {
+      settings: {},
+      app: {
+        vault: { on: jest.fn() },
+        workspace: { on: jest.fn() },
+      },
+      findConversationAcrossViews: jest.fn(),
+      getPendingWhatsNewRelease,
+      acknowledgePendingWhatsNew: jest.fn().mockResolvedValue(undefined),
+      saveSettings: jest.fn().mockResolvedValue(undefined),
+    };
+    view.registerDomEvent = jest.fn();
+    view.registerEvent = jest.fn();
+    view.restoreOrCreateTabs = jest.fn().mockResolvedValue(undefined);
+    view.syncProviderBrandColor = jest.fn();
+    view.wireEventHandlers = jest.fn();
+
+    await view.onOpen();
+
+    expect(contentEl.querySelector('.grimoire-whats-new-card')).toBeNull();
+
+    getPendingWhatsNewRelease.mockReturnValue({
+      version: '1.0.0',
+      categories: [
+        { title: 'Fixed', items: ['Refresh opened Grimoire windows.'] },
+      ],
+    });
+
+    view.showPendingWhatsNew();
+
+    expect(contentEl.querySelector('.grimoire-whats-new-card-title')?.textContent)
+      .toBe('What\'s New in Grimoire v1.0.0');
+    expect(contentEl.querySelector('.grimoire-whats-new-card-item')?.textContent)
+      .toContain('Refresh opened Grimoire windows.');
+  });
+
   it('persists tab state when blank tab draft settings change', async () => {
     const containerEl = createMockEl();
     const contentEl = createMockEl();

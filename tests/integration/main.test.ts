@@ -5,9 +5,13 @@ import { VIEW_TYPE_GRIMOIRE } from '@/core/types';
 import * as sdkSession from '@/providers/claude/history/ClaudeHistoryStore';
 import { DEFAULT_SETTINGS } from '@/providers/claude/types/settings';
 import { DEFAULT_CODEX_PRIMARY_MODEL } from '@/providers/codex/types/models';
+import { showWhatsNewModal } from '@/shared/modals/WhatsNewModal';
 
 // Mock fs for ClaudeChatRuntime
 jest.mock('fs');
+jest.mock('@/shared/modals/WhatsNewModal', () => ({
+  showWhatsNewModal: jest.fn().mockResolvedValue(undefined),
+}));
 
 // Now import the plugin after mocking
 import GrimoirePlugin from '@/main';
@@ -81,6 +85,104 @@ describe('GrimoirePlugin', () => {
       expect(plugin.settings).toBeDefined();
       expect(plugin.settings.permissionMode).toBe(DEFAULT_SETTINGS.permissionMode);
       expect(plugin.settings.hiddenProviderCommands).toEqual(DEFAULT_SETTINGS.hiddenProviderCommands);
+    });
+
+    it("queues what's new once when installed version has not been seen", async () => {
+      mockApp.vault.adapter.exists.mockImplementation(async (path: string) => (
+        path === '.grimoire/grimoire-settings.json'
+      ));
+      mockApp.vault.adapter.read.mockImplementation(async (path: string) => {
+        if (path === '.grimoire/grimoire-settings.json') {
+          return JSON.stringify({ lastSeenChangelogVersion: '0.0.9' });
+        }
+        if (path === '.obsidian/plugins/grimoire/CHANGELOG.md') {
+          return [
+            '# Changelog',
+            '',
+            '## 0.1.0 - 2026-06-21',
+            '### Added',
+            '- Automatic release notes on plugin load',
+          ].join('\n');
+        }
+        return '';
+      });
+
+      await plugin.onload();
+
+      expect(showWhatsNewModal).not.toHaveBeenCalled();
+      expect(plugin.getPendingWhatsNewRelease()).toEqual(expect.objectContaining({
+        version: '0.1.0',
+      }));
+
+      await plugin.acknowledgePendingWhatsNew();
+
+      expect(plugin.settings.lastSeenChangelogVersion).toBe('0.1.0');
+      const writeCall = (mockApp.vault.adapter.write as jest.Mock).mock.calls.find(
+        ([path]) => path === '.grimoire/grimoire-settings.json',
+      );
+      expect(writeCall).toBeDefined();
+      const content = JSON.parse(writeCall[1]);
+      expect(content.lastSeenChangelogVersion).toBe('0.1.0');
+
+      plugin.settings.lastSeenChangelogVersion = '0.0.9';
+      mockApp.vault.adapter.write.mockClear();
+
+      await plugin.acknowledgePendingWhatsNew();
+
+      expect(plugin.settings.lastSeenChangelogVersion).toBe('0.0.9');
+      expect(mockApp.vault.adapter.write).not.toHaveBeenCalled();
+    });
+
+    it("does not show what's new when current version has already been seen", async () => {
+      mockApp.vault.adapter.exists.mockImplementation(async (path: string) => (
+        path === '.grimoire/grimoire-settings.json'
+      ));
+      mockApp.vault.adapter.read.mockImplementation(async (path: string) => {
+        if (path === '.grimoire/grimoire-settings.json') {
+          return JSON.stringify({ lastSeenChangelogVersion: '0.1.0' });
+        }
+        if (path === '.obsidian/plugins/grimoire/CHANGELOG.md') {
+          return [
+            '# Changelog',
+            '',
+            '## 0.1.0 - 2026-06-21',
+            '### Added',
+            '- Automatic release notes on plugin load',
+          ].join('\n');
+        }
+        return '';
+      });
+
+      await plugin.onload();
+
+      expect(showWhatsNewModal).not.toHaveBeenCalled();
+      expect(plugin.getPendingWhatsNewRelease()).toBeNull();
+    });
+
+    it('skips automatic card when current release is missing from changelog', async () => {
+      mockApp.vault.adapter.exists.mockImplementation(async (path: string) => (
+        path === '.grimoire/grimoire-settings.json'
+      ));
+      mockApp.vault.adapter.read.mockImplementation(async (path: string) => {
+        if (path === '.grimoire/grimoire-settings.json') {
+          return JSON.stringify({ lastSeenChangelogVersion: '0.0.9' });
+        }
+        if (path === '.obsidian/plugins/grimoire/CHANGELOG.md') {
+          return [
+            '# Changelog',
+            '',
+            '## 0.0.9 - 2026-06-20',
+            '### Added',
+            '- Previous release notes',
+          ].join('\n');
+        }
+        return '';
+      });
+
+      await plugin.onload();
+
+      expect(showWhatsNewModal).not.toHaveBeenCalled();
+      expect(plugin.getPendingWhatsNewRelease()).toBeNull();
     });
 
     // Note: With multi-tab, agentService is per-tab via TabManager, not on plugin

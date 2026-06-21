@@ -7,6 +7,10 @@ import './providers';
 import type { Editor, WorkspaceLeaf } from 'obsidian';
 import { addIcon, MarkdownView, Notice, Plugin } from 'obsidian';
 
+import { shouldShowWhatsNew } from './app/changelog/display';
+import { parseChangelogRelease } from './app/changelog/parser';
+import { readBundledChangelog } from './app/changelog/source';
+import type { ChangelogRelease } from './app/changelog/types';
 import { DEFAULT_GRIMOIRE_SETTINGS } from './app/settings/defaultSettings';
 import { SharedStorageService } from './app/storage/SharedStorageService';
 import {
@@ -87,6 +91,8 @@ export default class GrimoirePlugin extends Plugin {
   private conversations: Conversation[] = [];
   private debugLogService: DebugLogService | null = null;
   private lastKnownTabManagerState: AppTabManagerState | null = null;
+  private pendingWhatsNewRelease: ChangelogRelease | null = null;
+  private pendingWhatsNewVersion = '';
 
   async onload() {
     try {
@@ -268,6 +274,7 @@ export default class GrimoirePlugin extends Plugin {
         level: 'info',
         scope: 'plugin.onload',
       });
+      await this.maybeShowWhatsNew();
     } catch (error) {
       await this.writeDebugLog({
         event: 'onload.failed',
@@ -294,6 +301,48 @@ export default class GrimoirePlugin extends Plugin {
 
   recordDebugLog(event: DebugLogEvent): void {
     void this.writeDebugLog(event);
+  }
+
+  getPendingWhatsNewRelease(): ChangelogRelease | null {
+    return this.pendingWhatsNewRelease;
+  }
+
+  async acknowledgePendingWhatsNew(): Promise<void> {
+    if (!this.pendingWhatsNewRelease || !this.pendingWhatsNewVersion) {
+      return;
+    }
+
+    const version = this.pendingWhatsNewVersion;
+    this.pendingWhatsNewRelease = null;
+    this.pendingWhatsNewVersion = '';
+    this.settings.lastSeenChangelogVersion = version;
+    await this.saveSettings();
+  }
+
+  private async maybeShowWhatsNew(): Promise<void> {
+    const currentVersion = this.manifest.version?.trim() ?? '';
+    if (!shouldShowWhatsNew({
+      currentVersion,
+      lastSeenVersion: this.settings.lastSeenChangelogVersion,
+    })) {
+      return;
+    }
+
+    const markdown = await readBundledChangelog(this.app.vault.adapter, this.manifest);
+    if (!markdown) {
+      return;
+    }
+
+    const release = parseChangelogRelease(markdown, currentVersion);
+    if (!release) {
+      return;
+    }
+
+    this.pendingWhatsNewRelease = release;
+    this.pendingWhatsNewVersion = currentVersion;
+    for (const view of this.getAllViews()) {
+      view.showPendingWhatsNew();
+    }
   }
 
   private async persistOpenTabStates(): Promise<void> {

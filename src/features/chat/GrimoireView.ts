@@ -9,6 +9,7 @@ import { VIEW_TYPE_GRIMOIRE } from '../../core/types';
 import type GrimoirePlugin from '../../main';
 import { GRIMOIRE_APP_ICON_ID } from '../../shared/appIcon';
 import { createProviderIconSvg } from '../../shared/icons';
+import { renderWhatsNewCard } from '../../shared/whats-new/renderWhatsNewCard';
 import {
   cancelScheduledAnimationFrame,
   scheduleAnimationFrame,
@@ -105,6 +106,7 @@ export class GrimoireView extends ItemView {
   private tabContentEl: HTMLElement | null = null;
   private navRowContent: HTMLElement | null = null;
   private orchestratorService: OrchestratorService | null = null;
+  private whatsNewHostEl: HTMLElement | null = null;
 
   // DOM Elements
   private viewContainerEl: HTMLElement | null = null;
@@ -281,6 +283,8 @@ export class GrimoireView extends ItemView {
       this.tabContentEl = shellEl.createDiv({
         cls: 'grimoire-tab-content-container grimoire-tab-content-container--chat-window',
       });
+      this.whatsNewHostEl = this.tabContentEl.createDiv({ cls: 'grimoire-whats-new-host' });
+      this.showPendingWhatsNew();
       this.historyDropdown = this.buildHistorySheet(shellEl);
       this.orchestratorService = new OrchestratorService({
         sendToTab: (tabId, message) => {
@@ -390,11 +394,29 @@ export class GrimoireView extends ItemView {
     this.tabBar?.destroy();
     this.tabBar = null;
     this.scope = null;
+    this.whatsNewHostEl = null;
   }
 
   // ============================================
   // UI Building
   // ============================================
+
+  showPendingWhatsNew(): void {
+    const containerEl = this.whatsNewHostEl;
+    if (!containerEl) {
+      return;
+    }
+
+    const release = this.plugin.getPendingWhatsNewRelease?.();
+    if (!release) {
+      return;
+    }
+
+    renderWhatsNewCard(containerEl, {
+      release,
+      onDismiss: () => this.plugin.acknowledgePendingWhatsNew?.(),
+    });
+  }
 
   private buildHeader(header: HTMLElement) {
     this.headerEl = header;

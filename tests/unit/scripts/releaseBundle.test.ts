@@ -17,6 +17,7 @@ describe('release bundle helpers', () => {
       writeFileSync(join(rootDir, 'main.js'), 'main bundle');
       writeFileSync(join(rootDir, 'manifest.json'), '{"id":"grimoire"}');
       writeFileSync(join(rootDir, 'styles.css'), 'plugin styles');
+      writeFileSync(join(rootDir, 'CHANGELOG.md'), '# Changelog');
       writeFileSync(join(rootDir, 'README.md'), 'not part of the release bundle');
 
       mkdirSync(outputDir, { recursive: true });
@@ -26,9 +27,10 @@ describe('release bundle helpers', () => {
 
       expect(result).toEqual({
         outputDir,
-        files: ['main.js', 'manifest.json', 'styles.css'],
+        files: ['main.js', 'manifest.json', 'styles.css', 'CHANGELOG.md'],
       });
       expect(readdirSync(outputDir).sort()).toEqual([
+        'CHANGELOG.md',
         'main.js',
         'manifest.json',
         'styles.css',
@@ -36,6 +38,7 @@ describe('release bundle helpers', () => {
       expect(readFileSync(join(outputDir, 'main.js'), 'utf8')).toBe('main bundle');
       expect(readFileSync(join(outputDir, 'manifest.json'), 'utf8')).toBe('{"id":"grimoire"}');
       expect(readFileSync(join(outputDir, 'styles.css'), 'utf8')).toBe('plugin styles');
+      expect(readFileSync(join(outputDir, 'CHANGELOG.md'), 'utf8')).toBe('# Changelog');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -49,6 +52,7 @@ describe('release bundle helpers', () => {
       writeFileSync(join(rootDir, 'main.js'), 'x'.repeat(5_000_001));
       writeFileSync(join(rootDir, 'manifest.json'), '{"id":"grimoire"}');
       writeFileSync(join(rootDir, 'styles.css'), 'plugin styles');
+      writeFileSync(join(rootDir, 'CHANGELOG.md'), '# Changelog');
 
       expect(() => createReleaseBundle({ rootDir, outputDir })).toThrow(
         /main\.js release asset is 5,000,001 bytes/,

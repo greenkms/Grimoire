@@ -1,6 +1,8 @@
 import type { App } from 'obsidian';
 import { Notice, Platform, PluginSettingTab, Setting } from 'obsidian';
 
+import { parseChangelogRelease } from '../../app/changelog/parser';
+import { readBundledChangelog } from '../../app/changelog/source';
 import { formatGrimoireVersion } from '../../app/version';
 import {
   getHiddenProviderCommands,
@@ -27,6 +29,7 @@ import { updateGrokProviderSettings } from '../../providers/grok/settings';
 import { updateKimicodeProviderSettings } from '../../providers/kimicode/settings';
 import { updateMimocodeProviderSettings } from '../../providers/mimocode/settings';
 import { updateOpencodeProviderSettings } from '../../providers/opencode/settings';
+import { showWhatsNewModal } from '../../shared/modals/WhatsNewModal';
 import { formatContextLimit, parseContextLimit, parseEnvironmentVariables } from '../../utils/env';
 import { buildNavMappingText, parseNavMappings } from './keyboardNavigation';
 import { renderProjectWorkspaceSettings } from './ProjectWorkspaceSettings';
@@ -200,9 +203,14 @@ export class GrimoireSettingTab extends PluginSettingTab {
     }
 
     const tabBar = containerEl.createDiv({ cls: 'grimoire-settings-tabs' });
-    containerEl.createDiv({
-      cls: 'grimoire-settings-version',
-      text: formatGrimoireVersion(this.plugin.manifest),
+    const versionEl = containerEl.createDiv({ cls: 'grimoire-settings-version' });
+    versionEl.createSpan({ text: formatGrimoireVersion(this.plugin.manifest) });
+    const whatsNewButton = versionEl.createEl('button', {
+      cls: 'grimoire-settings-whats-new',
+      text: 'What\'s new',
+    });
+    whatsNewButton.addEventListener('click', () => {
+      void this.openCurrentChangelog();
     });
     const tabButtons = new Map<SettingsTabId, HTMLButtonElement>();
     const tabContents = new Map<SettingsTabId, HTMLDivElement>();
@@ -263,6 +271,22 @@ export class GrimoireSettingTab extends PluginSettingTab {
     }
 
     this.markTextareaRows(containerEl);
+  }
+
+  private async openCurrentChangelog(): Promise<void> {
+    const version = this.plugin.manifest.version?.trim() ?? '';
+    const normalizedVersion = version.replace(/-.*$/, '');
+    const markdown = await readBundledChangelog(this.app.vault.adapter, this.plugin.manifest);
+    const release = markdown ? parseChangelogRelease(markdown, normalizedVersion) : null;
+    if (!release) {
+      new Notice('No release notes are bundled for this Grimoire version.');
+      return;
+    }
+
+    await showWhatsNewModal({
+      app: this.app,
+      release,
+    });
   }
 
   private markTextareaRows(containerEl: HTMLElement): void {
