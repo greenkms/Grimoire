@@ -87,7 +87,7 @@ describe('GrimoirePlugin', () => {
       expect(plugin.settings.hiddenProviderCommands).toEqual(DEFAULT_SETTINGS.hiddenProviderCommands);
     });
 
-    it("shows what's new once when installed version has not been seen", async () => {
+    it("queues what's new once when installed version has not been seen", async () => {
       mockApp.vault.adapter.exists.mockImplementation(async (path: string) => (
         path === '.grimoire/grimoire-settings.json'
       ));
@@ -109,17 +109,12 @@ describe('GrimoirePlugin', () => {
 
       await plugin.onload();
 
-      expect(showWhatsNewModal).toHaveBeenCalledWith({
-        app: mockApp,
-        release: expect.objectContaining({
-          version: '0.1.0',
-        }),
-        onDismiss: expect.any(Function),
-        onClose: expect.any(Function),
-      });
+      expect(showWhatsNewModal).not.toHaveBeenCalled();
+      expect(plugin.getPendingWhatsNewRelease()).toEqual(expect.objectContaining({
+        version: '0.1.0',
+      }));
 
-      const modalOptions = (showWhatsNewModal as jest.Mock).mock.calls[0][0];
-      await modalOptions.onDismiss();
+      await plugin.acknowledgePendingWhatsNew();
 
       expect(plugin.settings.lastSeenChangelogVersion).toBe('0.1.0');
       const writeCall = (mockApp.vault.adapter.write as jest.Mock).mock.calls.find(
@@ -132,15 +127,10 @@ describe('GrimoirePlugin', () => {
       plugin.settings.lastSeenChangelogVersion = '0.0.9';
       mockApp.vault.adapter.write.mockClear();
 
-      await modalOptions.onClose();
+      await plugin.acknowledgePendingWhatsNew();
 
-      expect(plugin.settings.lastSeenChangelogVersion).toBe('0.1.0');
-      const closeWriteCall = (mockApp.vault.adapter.write as jest.Mock).mock.calls.find(
-        ([path]) => path === '.grimoire/grimoire-settings.json',
-      );
-      expect(closeWriteCall).toBeDefined();
-      const closeContent = JSON.parse(closeWriteCall[1]);
-      expect(closeContent.lastSeenChangelogVersion).toBe('0.1.0');
+      expect(plugin.settings.lastSeenChangelogVersion).toBe('0.0.9');
+      expect(mockApp.vault.adapter.write).not.toHaveBeenCalled();
     });
 
     it("does not show what's new when current version has already been seen", async () => {
@@ -166,9 +156,10 @@ describe('GrimoirePlugin', () => {
       await plugin.onload();
 
       expect(showWhatsNewModal).not.toHaveBeenCalled();
+      expect(plugin.getPendingWhatsNewRelease()).toBeNull();
     });
 
-    it('skips automatic modal when current release is missing from changelog', async () => {
+    it('skips automatic card when current release is missing from changelog', async () => {
       mockApp.vault.adapter.exists.mockImplementation(async (path: string) => (
         path === '.grimoire/grimoire-settings.json'
       ));
@@ -191,6 +182,7 @@ describe('GrimoirePlugin', () => {
       await plugin.onload();
 
       expect(showWhatsNewModal).not.toHaveBeenCalled();
+      expect(plugin.getPendingWhatsNewRelease()).toBeNull();
     });
 
     // Note: With multi-tab, agentService is per-tab via TabManager, not on plugin

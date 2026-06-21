@@ -10,6 +10,7 @@ import { addIcon, MarkdownView, Notice, Plugin } from 'obsidian';
 import { shouldShowWhatsNew } from './app/changelog/display';
 import { parseChangelogRelease } from './app/changelog/parser';
 import { readBundledChangelog } from './app/changelog/source';
+import type { ChangelogRelease } from './app/changelog/types';
 import { DEFAULT_GRIMOIRE_SETTINGS } from './app/settings/defaultSettings';
 import { SharedStorageService } from './app/storage/SharedStorageService';
 import {
@@ -59,7 +60,6 @@ import {
 import { CCSettingsStorage } from './providers/claude/storage/CCSettingsStorage';
 import { OPENCODE_PLAN_MODE_ID, OPENCODE_SAFE_MODE_ID } from './providers/opencode/modes';
 import { GRIMOIRE_APP_ICON_ID, GRIMOIRE_APP_ICON_SVG } from './shared/appIcon';
-import { showWhatsNewModal } from './shared/modals/WhatsNewModal';
 import { buildCursorContext } from './utils/editor';
 import { revealWorkspaceLeaf } from './utils/obsidianCompat';
 import { getVaultPath } from './utils/path';
@@ -91,6 +91,8 @@ export default class GrimoirePlugin extends Plugin {
   private conversations: Conversation[] = [];
   private debugLogService: DebugLogService | null = null;
   private lastKnownTabManagerState: AppTabManagerState | null = null;
+  private pendingWhatsNewRelease: ChangelogRelease | null = null;
+  private pendingWhatsNewVersion = '';
 
   async onload() {
     try {
@@ -301,6 +303,22 @@ export default class GrimoirePlugin extends Plugin {
     void this.writeDebugLog(event);
   }
 
+  getPendingWhatsNewRelease(): ChangelogRelease | null {
+    return this.pendingWhatsNewRelease;
+  }
+
+  async acknowledgePendingWhatsNew(): Promise<void> {
+    if (!this.pendingWhatsNewRelease || !this.pendingWhatsNewVersion) {
+      return;
+    }
+
+    const version = this.pendingWhatsNewVersion;
+    this.pendingWhatsNewRelease = null;
+    this.pendingWhatsNewVersion = '';
+    this.settings.lastSeenChangelogVersion = version;
+    await this.saveSettings();
+  }
+
   private async maybeShowWhatsNew(): Promise<void> {
     const currentVersion = this.manifest.version?.trim() ?? '';
     if (!shouldShowWhatsNew({
@@ -320,17 +338,11 @@ export default class GrimoirePlugin extends Plugin {
       return;
     }
 
-    const persistSeenVersion = async () => {
-      this.settings.lastSeenChangelogVersion = currentVersion;
-      await this.saveSettings();
-    };
-
-    void showWhatsNewModal({
-      app: this.app,
-      release,
-      onDismiss: persistSeenVersion,
-      onClose: persistSeenVersion,
-    });
+    this.pendingWhatsNewRelease = release;
+    this.pendingWhatsNewVersion = currentVersion;
+    for (const view of this.getAllViews()) {
+      view.showPendingWhatsNew();
+    }
   }
 
   private async persistOpenTabStates(): Promise<void> {

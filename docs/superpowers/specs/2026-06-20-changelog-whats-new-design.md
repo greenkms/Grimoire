@@ -19,10 +19,10 @@ Relying only on GitHub release notes or repository history means many users will
 Use three connected surfaces:
 
 1. `CHANGELOG.md` in the repository root as the source of truth.
-2. A compact in-app `What's New` modal shown once after the installed version changes.
-3. A persistent `What's new` button or link beside the version in Settings.
+2. A compact in-window `What's New` card shown once inside the Grimoire chat panel after the installed version changes.
+3. A persistent `What's new` button or link beside the version in Settings that opens the manual modal.
 
-The recommended behavior is option 2 from the brainstorm: automatic one-time update disclosure plus manual access. There should be no toast spam and no marketing-style release page.
+The recommended behavior is option 2 from the brainstorm, refined after implementation feedback: automatic one-time update disclosure should stay inside Grimoire's own window, while Settings keeps a manual modal for deliberate access. There should be no toast spam and no marketing-style release page.
 
 ## Changelog Format
 
@@ -58,20 +58,19 @@ The in-app surface should ignore unknown categories until there is a product rea
 
 On plugin load, compare the current manifest version with `settings.lastSeenChangelogVersion`.
 
-Show the modal when all of these are true:
+Queue the in-window card when all of these are true:
 
 - the current version is known
 - `lastSeenChangelogVersion` is missing or older than the current version
 - the current version has a parsable changelog section
 
-When the user closes the modal with `Got it`, persist `lastSeenChangelogVersion` as the current manifest version.
+Do not open a global Obsidian modal automatically. The queued card should render inside the active Grimoire chat panel the next time a Grimoire view opens or refreshes. When the user closes the card with `Got it` or the close icon, persist `lastSeenChangelogVersion` as the current manifest version.
 
-The modal should show:
+The in-window card should show:
 
 - title: `What's New in Grimoire vX.Y.Z`
 - short grouped sections for `Added`, `Improved`, and `Fixed`
 - only the current version's user-facing bullets
-- a quiet action to open the full changelog, if supported in the current Obsidian environment
 
 The Settings version row should remain visible and gain a permanent `What's new` action. Clicking it opens the same modal for the current version. If the current version has no parsed section, show a fallback modal with a short explanation and, where possible, an action to open `CHANGELOG.md`.
 
@@ -86,7 +85,7 @@ Add a small provider-neutral changelog module under app or shared code. It shoul
 - extract supported category lists
 - return a view model for a requested version
 
-The plugin runtime should own the one-time show decision because it has access to settings, manifest version, and save behavior. The modal itself should stay UI-only and receive a parsed release view model.
+The plugin runtime should own the one-time show decision because it has access to settings, manifest version, and save behavior. The queued automatic disclosure should be exposed to `GrimoireView` as a small view model and acknowledgement callback. The manual Settings modal should stay UI-only and receive a parsed release view model.
 
 ## Bundling
 
@@ -100,12 +99,12 @@ The changelog feature should fail quietly.
 
 If the changelog cannot be read, parsed, or matched to the current version:
 
-- do not show the automatic modal
+- do not queue the automatic in-window card
 - keep plugin load successful
 - keep Settings usable
 - let the Settings action show a compact fallback instead of throwing
 
-Persist `lastSeenChangelogVersion` only after the user dismisses a successfully rendered current-version modal. Do not mark a version as seen when the automatic display is skipped due to missing data.
+Persist `lastSeenChangelogVersion` only after the user dismisses a successfully rendered current-version card. Do not mark a version as seen when the automatic display is skipped due to missing data.
 
 ## Testing
 
@@ -115,7 +114,8 @@ Add focused tests for:
 - ignoring unknown categories
 - returning no release when a version is absent
 - deciding whether the one-time modal should be shown
-- persisting `lastSeenChangelogVersion` only after dismissal
+- queuing the one-time in-window card instead of opening the automatic modal
+- persisting `lastSeenChangelogVersion` only after card dismissal
 - rendering the Settings `What's new` action
 
 Existing settings and plugin-load tests should be updated only where the new setting or modal decision affects behavior.
@@ -126,7 +126,7 @@ Do not add a notification center or historical release inbox in the first implem
 
 Do not localize changelog content in the first implementation. Repository documentation and release copy stay in English unless a later task explicitly targets localized release notes.
 
-Do not show a toast after update. The modal is the disclosure surface; Settings is the permanent access point.
+Do not show a toast after update. The in-window card is the automatic disclosure surface; Settings is the permanent modal access point.
 
 ## Follow-Ups
 
