@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.24 - 2026-06-21
+
+### Fixed
+
+- Bundled What's New release notes into the plugin so Obsidian auto-updates can show them without downloading extra files.
+- Removed the unsupported `CHANGELOG.md` release asset from the Obsidian release package.
+
+### Improved
+
+- Added a direct Full changelog link from What's New surfaces to the repository changelog.
+
 ## 1.0.23 - 2026-06-21
 
 ### Added

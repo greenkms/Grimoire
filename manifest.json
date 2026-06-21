@@ -1,7 +1,7 @@
 {
   "id": "grimoire",
   "name": "Grimoire",
-  "version": "1.0.23",
+  "version": "1.0.24",
   "minAppVersion": "1.7.2",
   "description": "Run Claude Code, Codex, Antigravity CLI, Gemini CLI, and OpenCode as local AI agents in your vault, with chat, inline editing, and tools.",
   "author": "Michael Makarov",
