@@ -282,6 +282,15 @@ Ein badge neben dem model selector hält die usage des aktiven provider sichtbar
 | Kimi Code | Monthly spend aggregiert aus ACP und session cost metadata |
 | Grok Build | SuperGrok credit windows aus grok.com billing bei OAuth auth; monthly API spend aus session cost metadata |
 
+### Plan mode
+
+Wenn der aktive provider Plan mode unterstützt, kannst du ihn auf zwei Arten einschalten:
+
+- Klicke auf das permission control im composer, bis es zu Plan wechselt: `Safe -> Auto-approve -> Plan`.
+- Drücke `Shift+Tab`, um Plan mode schnell zu aktivieren, oder drücke es erneut, um Plan mode zu verlassen.
+
+Plan mode bittet den provider, zuerst zu planen, bevor Änderungen starten. Im composer nutzt er dasselbe permission control wie Safe und Auto-approve, sodass der aktive Modus während der Arbeit sichtbar bleibt.
+
 ### Context und mentions
 
 Erwähne vault notes und folders direkt aus dem composer, ziehe current oder linked note heran und füge persistent external context paths in settings hinzu. Füge Bilder per paste oder drop hinzu, wenn der provider image input unterstützt. MCP servers lassen sich dort mentionen, wo die provider integration es unterstützt. Der Context tab zeigt die gebundene note, model, permission mode, angepinnte files, launch artifacts wie `.grimoire/grok/system.md` und files, die der agent während der session geladen hat.

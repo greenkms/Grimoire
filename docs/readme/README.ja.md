@@ -284,6 +284,15 @@ Model selector の横の badge が active provider の usage を表示します�
 | Kimi Code | ACP と session cost metadata から集計した monthly spend |
 | Grok Build | OAuth auth が利用できる場合の grok.com billing からの SuperGrok credit windows；session cost metadata からの monthly API spend |
 
+### Plan mode
+
+Active provider が Plan mode をサポートしている場合、次の 2 通りで有効にできます。
+
+- Composer の permission control をクリックし、Plan まで切り替えます: `Safe -> Auto-approve -> Plan`。
+- `Shift+Tab` を押すとすばやく Plan mode に入り、もう一度押すと Plan mode から戻ります。
+
+Plan mode では、provider が変更を始める前にまず計画します。Composer では Safe と Auto-approve と同じ permission control を使うため、作業中も active mode が見えたままになります。
+
 ### Context と mentions
 
 Composer から vault notes と folders を直接 mention できます。Current note や linked note を取り込み、settings で persistent external context paths を追加できます。Provider が image input を受け付ける場合は、画像を貼り付けたり drop したりできます。Provider integration が対応する場合は MCP servers も mention できます。Context tab には、bound note、model、permission mode、pinned files、`.grimoire/grok/system.md` のような launch artifacts、および session 中に agent が読み込んだ files が表示されます。

@@ -286,6 +286,15 @@ Badge рядом с model selector показывает usage активного
 | Kimi Code | Monthly spend, агрегированный из ACP и session cost metadata |
 | Grok Build | SuperGrok credit windows из grok.com billing при OAuth auth; monthly API spend из session cost metadata |
 
+### Plan mode
+
+Когда active provider поддерживает Plan mode, его можно включить двумя способами:
+
+- Нажимайте permission control в composer, пока он не переключится на Plan: `Safe -> Auto-approve -> Plan`.
+- Нажмите `Shift+Tab`, чтобы быстро войти в Plan mode, или нажмите ещё раз, чтобы выйти.
+
+Plan mode просит provider сначала составить план, прежде чем начинать изменения. В composer он использует тот же permission control, что Safe и Auto-approve, поэтому active mode остаётся видимым во время работы.
+
 ### Context и mentions
 
 Упоминайте vault notes и folders прямо из composer, подтягивайте current или linked note, добавляйте persistent external context paths в settings. Вставляйте или перетаскивайте изображения, если provider поддерживает image input. Упоминайте MCP servers там, где provider integration это поддерживает. Вкладка Context показывает привязанную заметку, model, permission mode, закреплённые файлы, launch artifacts вроде `.grimoire/grok/system.md` и файлы, которые agent загрузил во время session.

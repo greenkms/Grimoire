@@ -276,6 +276,15 @@ Model selector 旁邊的 badge 會持續顯示目前 provider 的 usage；model 
 | Kimi Code | 從 ACP 和 session cost metadata 聚合的 monthly spend |
 | Grok Build | OAuth auth 可用時來自 grok.com billing 的 SuperGrok credit windows；來自 session cost metadata 的 monthly API spend |
 
+### Plan mode
+
+當 active provider 支援 Plan mode 時，可以用兩種方式開啟：
+
+- 點擊 composer 裡的 permission control，直到它切換到 Plan：`Safe -> Auto-approve -> Plan`。
+- 按 `Shift+Tab` 快速進入 Plan mode，再按一次即可退出。
+
+Plan mode 會要求 provider 先制定計畫，再開始進行變更。在 composer 中，它使用與 Safe 和 Auto-approve 相同的 permission control，因此工作時 active mode 會一直可見。
+
 ### Context 和 mentions
 
 可以直接在 composer 中 mention vault notes 和 folders，拉入 current 或 linked note，並在 settings 中新增 persistent external context paths。Provider 支援 image input 時，可以貼上或拖放圖片。支援的 provider integrations 中也可以 mention MCP servers。Context 分頁會顯示綁定的筆記、model、permission mode、固定檔案、`.grimoire/grok/system.md` 等 launch artifacts，以及 agent 在 session 期間載入的檔案。
