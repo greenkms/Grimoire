@@ -248,7 +248,7 @@ Dentro de Grimoire, Grok Build corre sobre ACP via `grok agent stdio` con Grimoi
 ## Tu primer chat
 
 1. Elige un provider y un model en el composer.
-2. Configura reasoning effort y permission mode.
+2. Configura reasoning effort y elige Safe, Auto-approve o Plan en el permission control.
 3. Menciona las notas, carpetas o context que quieras incluir en scope.
 4. Envía el turn.
 5. Observa tool calls, usage y output en el panel.
@@ -290,6 +290,10 @@ Menciona vault notes y folders directamente desde el composer, trae la current o
 
 Ejecuta "Grimoire: Inline edit" sobre una selección. Un prompt se abre junto al texto, el edit vuelve como diff para accept o reject, y pasa por el provider-backed inline edit service. Maneja reemplazo de una selection e inserción de nuevo texto.
 
+### Clarifying questions
+
+Cuando un provider pide structured user input, Grimoire pausa el turn y muestra la pregunta sobre el composer. Claude Code expone esto como `AskUserQuestion`; Codex app-server expone una superficie experimental `request_user_input` / `requestUserInput`. Grimoire normaliza esos mecanismos provider-specific en el mismo inline question UI. Las respuestas single-select, multi-select y freeform vuelven al provider run para que el agent continúe sin otro chat message.
+
 ### Commands
 
 Built-in commands cubren workflows de Grimoire como image generation y resume. Providers que exponen sus propios commands, como Claude Code slash commands, OpenCode runtime commands y Grok Build runtime commands, los muestran mediante provider-owned catalogs. Oculta los que no uses desde settings.
@@ -300,7 +304,7 @@ Pega o arrastra imágenes para adjuntarlas. El command built-in `/image [prompt]
 
 ### Safety y permissions
 
-Permission modes pertenecen al provider, así que Grimoire los muestra mediante shared composer controls en vez de reinventarlos. Safe mode y permission prompts permanecen visibles mientras trabajas. Bang-bash mode solo aparece cuando un enabled provider lo ofrece. Trata configured MCP servers, shell access y API keys como sensitive, porque lo son.
+Permission modes pertenecen al provider, así que Grimoire los muestra mediante shared composer controls en vez de reinventarlos. El permission control recorre Safe, Auto-approve y Plan cuando el active provider soporta plan mode; `Shift+Tab` sigue siendo el shortcut rápido para entrar o salir de Plan. Safe mode y permission prompts permanecen visibles mientras trabajas. Bang-bash mode solo aparece cuando un enabled provider lo ofrece. Trata configured MCP servers, shell access y API keys como sensitive, porque lo son.
 
 ### Debug logging
 

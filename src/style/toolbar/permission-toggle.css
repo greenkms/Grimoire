@@ -14,11 +14,6 @@
   min-width: 28px;
 }
 
-.grimoire-permission-label.plan-active {
-  color: rgb(92, 148, 140);
-  font-weight: 600;
-}
-
 .grimoire-toggle-switch {
   width: 32px;
   height: 18px;
@@ -55,6 +50,15 @@
   background: var(--grimoire-brand);
 }
 
+.grimoire-toggle-switch.plan-active {
+  background: var(--background-modifier-border);
+}
+
+.grimoire-toggle-switch.plan-active::after {
+  transform: translateX(7px);
+  background: var(--text-muted);
+}
+
 .grimoire-container--chat-window .grimoire-permission-toggle {
   flex: 0 0 auto;
   gap: 0;
@@ -70,9 +74,9 @@
   height: 24px;
   min-width: 0;
   overflow: hidden;
-  padding: 0 7px;
+  padding: 0 9px;
   border: 0;
-  border-radius: var(--grimoire-radius-1);
+  border-radius: var(--grimoire-radius-2);
   background: var(--grimoire-accent-soft);
   color: var(--grimoire-accent-text);
   font-family: var(--font-monospace);

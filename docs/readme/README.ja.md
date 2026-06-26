@@ -250,7 +250,7 @@ Grimoire 内では、Grok Build は `grok agent stdio` 経由の ACP で動作�
 ## 最初のチャット
 
 1. Composer で provider と model を選びます。
-2. Reasoning effort と permission mode を設定します。
+2. Reasoning effort を設定し、permission control で Safe、Auto-approve、Plan のいずれかを選びます。
 3. Scope に入れたい notes、folders、context を mention します。
 4. Turn を送信します。
 5. Panel に表示される tool calls、usage、output を確認します。
@@ -292,6 +292,10 @@ Composer から vault notes と folders を直接 mention できます。Current
 
 選択範囲に対して "Grimoire: Inline edit" を実行します。Prompt がテキストの横に開き、edit は accept/reject できる diff として返り、provider-backed inline edit service を通じて実行されます。Selection の置換と新しい text の挿入の両方に対応しています。
 
+### Clarifying questions
+
+Provider が structured user input を求めると、Grimoire は turn を一時停止し、composer の上に質問を表示します。Claude Code ではこれを `AskUserQuestion` として公開し、Codex app-server では experimental な `request_user_input` / `requestUserInput` surface として公開します。Grimoire はこれらの provider-specific mechanisms を同じ inline question UI に normalize します。Single-select、multi-select、freeform answers は provider run に戻されるため、agent は別の chat message なしで続行できます。
+
 ### Commands
 
 Built-in commands は image generation や resume などの Grimoire workflows をカバーします。Claude Code slash commands、OpenCode runtime commands、Grok Build runtime commands のように provider が独自 commands を公開する場合は、provider-owned catalogs 経由で表示されます。使わない commands は settings で隠せます。
@@ -302,7 +306,7 @@ Built-in commands は image generation や resume などの Grimoire workflows �
 
 ### Safety と permissions
 
-Permission modes は provider に属するため、Grimoire はそれらを再実装せず、shared composer controls として表示します。Safe mode と permission prompts は作業中も見える状態を保ちます。Bang-bash mode は、enabled provider が提供する場合にのみ表示されます。Configured MCP servers、shell access、API keys は sensitive data として扱ってください。実際に sensitive だからです。
+Permission modes は provider に属するため、Grimoire はそれらを再実装せず、shared composer controls として表示します。Active provider が plan mode をサポートする場合、permission control は Safe、Auto-approve、Plan を順に切り替えます。`Shift+Tab` は Plan に入る、または Plan から戻るための quick shortcut のままです。Safe mode と permission prompts は作業中も見える状態を保ちます。Bang-bash mode は、enabled provider が提供する場合にのみ表示されます。Configured MCP servers、shell access、API keys は sensitive data として扱ってください。実際に sensitive だからです。
 
 ### Debug logging
 

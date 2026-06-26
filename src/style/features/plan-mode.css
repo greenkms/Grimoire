@@ -94,10 +94,3 @@
 .grimoire-plan-permissions-list li {
   margin: 0;
 }
-
-/* ── Plan mode input border ──────────────────────── */
-
-.grimoire-input-wrapper.grimoire-input-plan-mode {
-  border-color: var(--color-cyan, var(--interactive-accent));
-  box-shadow: 0 0 0 1px var(--color-cyan, var(--interactive-accent));
-}

@@ -144,7 +144,7 @@ function createMockUIConfig() {
       activeValue: 'full_access',
       activeLabel: 'Auto-approve',
       planValue: 'plan',
-      planLabel: 'PLAN',
+      planLabel: 'Plan',
     }),
     getServiceTierToggle: jest.fn().mockImplementation((settings: Record<string, unknown>) =>
       settings.model === DEFAULT_CODEX_PRIMARY_MODEL
@@ -1222,7 +1222,7 @@ describe('PermissionToggle', () => {
     expect(label?.textContent).toBe('Auto-approve');
   });
 
-  it('should show PLAN label and hide toggle in plan mode', () => {
+  it('should show Plan label and active plan state in plan mode', () => {
     callbacks.getSettings.mockReturnValue({
       model: 'sonnet',
       thinkingBudget: 'low',
@@ -1235,11 +1235,12 @@ describe('PermissionToggle', () => {
     new PermissionToggle(parentEl2, callbacks);
 
     const label = parentEl2.querySelector('.grimoire-permission-label');
-    expect(label?.textContent).toBe('PLAN');
+    expect(label?.textContent).toBe('Plan');
     expect(label?.hasClass('plan-active')).toBe(true);
 
     const toggle = parentEl2.querySelector('.grimoire-toggle-switch');
-    expect(toggle?.style.display).toBe('none');
+    expect(toggle?.style.display).not.toBe('none');
+    expect(toggle?.hasClass('plan-active')).toBe(true);
   });
 
   it('should add active class when in full access mode', () => {
@@ -1273,11 +1274,52 @@ describe('PermissionToggle', () => {
     expect(callbacks.onPermissionModeChange).toHaveBeenCalledWith('full_access');
   });
 
-  it('should toggle from full access to normal on click', async () => {
+  it('should toggle from full access to plan on click when the provider supports plan mode', async () => {
     callbacks.getSettings.mockReturnValue({
       model: 'sonnet',
       thinkingBudget: 'low',
       permissionMode: 'full_access',
+    });
+    const parentEl2 = createMockEl();
+    new PermissionToggle(parentEl2, callbacks);
+
+    const toggle = parentEl2.querySelector('.grimoire-toggle-switch');
+    await toggle?.dispatchEvent('click');
+    expect(callbacks.onPermissionModeChange).toHaveBeenCalledWith('plan');
+  });
+
+  it('should toggle from plan to normal on click when the provider supports plan mode', async () => {
+    callbacks.getSettings.mockReturnValue({
+      model: 'sonnet',
+      thinkingBudget: 'low',
+      permissionMode: 'plan',
+    });
+    const parentEl2 = createMockEl();
+    new PermissionToggle(parentEl2, callbacks);
+
+    const toggle = parentEl2.querySelector('.grimoire-toggle-switch');
+    await toggle?.dispatchEvent('click');
+    expect(callbacks.onPermissionModeChange).toHaveBeenCalledWith('normal');
+  });
+
+  it('should toggle from full access to normal on click when the provider does not support plan mode', async () => {
+    callbacks.getSettings.mockReturnValue({
+      model: 'sonnet',
+      thinkingBudget: 'low',
+      permissionMode: 'full_access',
+    });
+    callbacks.getCapabilities.mockReturnValue({
+      providerId: 'antigravity',
+      supportsPersistentRuntime: false,
+      supportsNativeHistory: false,
+      supportsPlanMode: false,
+      supportsRewind: false,
+      supportsFork: false,
+      supportsProviderCommands: false,
+      supportsImageAttachments: false,
+      supportsInstructionMode: false,
+      supportsMcpTools: false,
+      reasoningControl: 'effort',
     });
     const parentEl2 = createMockEl();
     new PermissionToggle(parentEl2, callbacks);

@@ -242,7 +242,7 @@ grok
 ## 第一次聊天
 
 1. 在 composer 中選擇 provider 和 model。
-2. 設定 reasoning effort 和 permission mode。
+2. 設定 reasoning effort，並在 permission control 中選擇 Safe、Auto-approve 或 Plan。
 3. Mention 你希望納入 scope 的筆記、資料夾或 context。
 4. 傳送 turn。
 5. 在面板裡查看 tool calls、usage 和輸出。
@@ -284,6 +284,10 @@ Model selector 旁邊的 badge 會持續顯示目前 provider 的 usage；model 
 
 對選取文字執行 "Grimoire: Inline edit"。Prompt 會在文字旁開啟，edit 會以 diff 回傳，你可以 accept 或 reject，並且會透過 provider-backed inline edit service 執行。它既支援替換 selection，也支援插入新文字。
 
+### Clarifying questions
+
+當 provider 要求 structured user input 時，Grimoire 會暫停 turn，並在 composer 上方顯示問題。Claude Code 將它暴露為 `AskUserQuestion`；Codex app-server 將它暴露為實驗性的 `request_user_input` / `requestUserInput` surface。Grimoire 會把這些 provider-specific mechanisms 正規化到同一個 inline question UI。Single-select、multi-select 和 freeform answers 會回傳給 provider run，讓 agent 不需要另一條 chat message 就能繼續。
+
 ### Commands
 
 Built-in commands 覆蓋 Grimoire workflows，例如 image generation 和 resume。Provider 暴露的自有 commands，例如 Claude Code slash commands、OpenCode runtime commands 和 Grok Build runtime commands，會透過 provider-owned catalogs 顯示。你可以在 settings 中隱藏不使用的 commands。
@@ -294,7 +298,7 @@ Built-in commands 覆蓋 Grimoire workflows，例如 image generation 和 resume
 
 ### Safety 和 permissions
 
-Permission modes 屬於 provider，因此 Grimoire 透過 shared composer controls 顯示它們，而不是重新實作一套。Safe mode 和 permission prompts 在工作時保持可見。Bang-bash mode 只會在 enabled provider 提供時顯示。Configured MCP servers、shell access 和 API keys 都應該被視為 sensitive，因為它們確實 sensitive。
+Permission modes 屬於 provider，因此 Grimoire 透過 shared composer controls 顯示它們，而不是重新實作一套。當 active provider 支援 plan mode 時，permission control 會在 Safe、Auto-approve 和 Plan 之間循環；`Shift+Tab` 仍然是進入或退出 Plan 的快捷鍵。Safe mode 和 permission prompts 在工作時保持可見。Bang-bash mode 只會在 enabled provider 提供時顯示。Configured MCP servers、shell access 和 API keys 都應該被視為 sensitive，因為它們確實 sensitive。
 
 ### Debug logging
 

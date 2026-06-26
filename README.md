@@ -242,7 +242,7 @@ Inside Grimoire, Grok Build runs over ACP via `grok agent stdio` with Grimoire-m
 ## Your first chat
 
 1. Pick a provider and model in the composer.
-2. Set reasoning effort and a permission mode.
+2. Set reasoning effort and choose Safe, Auto-approve, or Plan in the permission control.
 3. Mention any notes, folders, or context you want in scope.
 4. Send the turn.
 5. Watch tool calls, usage, and output land in the panel.
@@ -286,7 +286,7 @@ Run "Grimoire: Inline edit" on a selection. A prompt opens next to the text, the
 
 ### Clarifying questions
 
-When a provider asks for structured user input, Grimoire pauses the turn and renders the question over the composer. Single-select, multi-select, and freeform answers resolve back into the provider run, so the agent can continue without a separate chat message.
+When a provider asks for structured user input, Grimoire pauses the turn and renders the question over the composer. Claude Code exposes this as `AskUserQuestion`; Codex app-server exposes an experimental `request_user_input` / `requestUserInput` surface. Grimoire normalizes those provider-specific mechanisms into the same inline question UI. Single-select, multi-select, and freeform answers resolve back into the provider run, so the agent can continue without a separate chat message.
 
 ### Commands
 
@@ -298,7 +298,7 @@ Paste or drop images to attach them. The built-in `/image [prompt]` command does
 
 ### Safety and permissions
 
-Permission modes belong to the provider, so Grimoire surfaces them through shared composer controls instead of reinventing them. Safe mode and permission prompts stay visible while you work. Bang-bash mode only shows up when an enabled provider offers it. Treat configured MCP servers, shell access, and API keys as sensitive, because they are.
+Permission modes belong to the provider, so Grimoire surfaces them through shared composer controls instead of reinventing them. The permission control cycles through Safe, Auto-approve, and Plan when the active provider supports plan mode; `Shift+Tab` is the quick shortcut for entering or leaving Plan. Safe mode and permission prompts stay visible while you work. Bang-bash mode only shows up when an enabled provider offers it. Treat configured MCP servers, shell access, and API keys as sensitive, because they are.
 
 ### Debug logging
 

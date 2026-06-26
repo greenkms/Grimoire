@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.0.25 - 2026-06-26
+
+### Improved
+
+- Added Plan mode to the shared permission control so supported providers can cycle through Safe, Auto-approve, and Plan from the composer.
+- Documented both ways to enter or leave Plan mode: the permission control and the `Shift+Tab` shortcut.
+- Documented how Claude Code `AskUserQuestion` and Codex `request_user_input` appear in Grimoire's shared inline question UI.
+
+### Fixed
+
+- Normalized the Plan permission label across Claude and Codex.
+- Removed the Plan-only composer border so Plan mode uses the same inactive composer styling as Safe and Auto-approve.
+
 ## 1.0.24 - 2026-06-21
 
 ### Fixed

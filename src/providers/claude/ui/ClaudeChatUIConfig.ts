@@ -24,7 +24,7 @@ const CLAUDE_PERMISSION_MODE_TOGGLE: ProviderPermissionModeToggleConfig = {
   activeValue: 'full_access',
   activeLabel: 'Auto-approve',
   planValue: 'plan',
-  planLabel: 'PLAN',
+  planLabel: 'Plan',
 };
 
 export const claudeChatUIConfig: ProviderChatUIConfig = {

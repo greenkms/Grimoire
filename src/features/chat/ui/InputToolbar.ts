@@ -1159,13 +1159,16 @@ export class PermissionToggle {
     const canShowPlan = Boolean(planValue) && capabilities.supportsPlanMode;
 
     if (canShowPlan && planValue && mode === planValue) {
-      this.toggleEl.addClass('grimoire-hidden');
+      this.toggleEl.removeClass('grimoire-hidden');
+      this.toggleEl.removeClass('active');
+      this.toggleEl.addClass('plan-active');
       this.labelEl.setText(planLabel);
       this.labelEl.addClass('plan-active');
       this.labelEl.setAttribute('role', 'button');
       this.labelEl.setAttribute('aria-pressed', 'true');
     } else {
       this.toggleEl.removeClass('grimoire-hidden');
+      this.toggleEl.removeClass('plan-active');
       this.labelEl.removeClass('plan-active');
       if (mode === toggleConfig.activeValue) {
         this.toggleEl.addClass('active');
@@ -1184,9 +1187,22 @@ export class PermissionToggle {
     if (!toggleConfig) return;
 
     const current = this.callbacks.getSettings().permissionMode;
-    const newMode = current === toggleConfig.activeValue
-      ? toggleConfig.inactiveValue
-      : toggleConfig.activeValue;
+    const capabilities = this.callbacks.getCapabilities();
+    const planValue = toggleConfig.planValue;
+    const canCyclePlan = Boolean(planValue) && capabilities.supportsPlanMode;
+    const newMode = canCyclePlan && planValue
+      ? (
+        current === toggleConfig.inactiveValue
+          ? toggleConfig.activeValue
+          : current === toggleConfig.activeValue
+            ? planValue
+            : toggleConfig.inactiveValue
+      )
+      : (
+        current === toggleConfig.activeValue
+          ? toggleConfig.inactiveValue
+          : toggleConfig.activeValue
+      );
     await this.callbacks.onPermissionModeChange(newMode);
     this.updateDisplay();
   }
