@@ -617,6 +617,14 @@ describe('Tab - Creation', () => {
       expect(tab.dom.inputEl).toBeDefined();
     });
 
+    it('does not add a character limit to the chat input', () => {
+      const options = createMockOptions();
+      const tab = createTab(options);
+
+      expect(tab.dom.inputEl.getAttribute('maxlength')).toBeNull();
+      expect(tab.dom.inputEl.getAttribute('maxLength')).toBeNull();
+    });
+
     it('creates the final chat-window view structure while preserving runtime handles', () => {
       const options = createMockOptions();
       const tab = createTab(options);
@@ -2286,6 +2294,7 @@ describe('Tab - Event Handler Behavior', () => {
     tab.ui.fileContextManager = mockFileContextManager as any;
     tab.controllers.inputController = mockInputController as any;
     tab.controllers.selectionController = mockSelectionController as any;
+    tab.dom.sendButtonEl = createMockEl('button') as any;
     tab.dom.stopButtonEl = createMockEl('button') as any;
 
     wireTabInputEvents(tab, options.plugin);
@@ -2493,12 +2502,30 @@ describe('Tab - Event Handler Behavior', () => {
       expect(mockInputController.sendMessage).not.toHaveBeenCalled();
     });
 
-    it('should require Command+Enter on macOS when the send shortcut setting is enabled', () => {
+    it('should reserve Shift+Enter for textarea newlines before dropdown handlers', () => {
+      mockInstructionModeManager.handleTriggerKey.mockReturnValue(false);
+      mockInstructionModeManager.handleKeydown.mockReturnValue(false);
+      mockInputController.handleResumeKeydown.mockReturnValue(true);
+      mockSlashCommandDropdown.handleKeydown.mockReturnValue(true);
+      mockFileContextManager.handleMentionKeydown.mockReturnValue(true);
+      const { fireKeydown } = setupKeydownTab();
+
+      const event = { key: 'Enter', shiftKey: true, isComposing: false, preventDefault: jest.fn() };
+      fireKeydown(event);
+
+      expect(event.preventDefault).not.toHaveBeenCalled();
+      expect(mockInputController.handleResumeKeydown).not.toHaveBeenCalled();
+      expect(mockSlashCommandDropdown.handleKeydown).not.toHaveBeenCalled();
+      expect(mockFileContextManager.handleMentionKeydown).not.toHaveBeenCalled();
+      expect(mockInputController.sendMessage).not.toHaveBeenCalled();
+    });
+
+    it('should require the send button when the manual send setting is enabled', () => {
       mockInstructionModeManager.handleTriggerKey.mockReturnValue(false);
       mockInstructionModeManager.handleKeydown.mockReturnValue(false);
       mockSlashCommandDropdown.handleKeydown.mockReturnValue(false);
       mockFileContextManager.handleMentionKeydown.mockReturnValue(false);
-      const { options, fireKeydown } = setupKeydownTab();
+      const { tab, options, fireKeydown } = setupKeydownTab();
       Platform.isMacOS = true;
       options.plugin.settings.requireCommandOrControlEnterToSend = true;
 
@@ -2508,27 +2535,11 @@ describe('Tab - Event Handler Behavior', () => {
       expect(enterEvent.preventDefault).not.toHaveBeenCalled();
       expect(mockInputController.sendMessage).not.toHaveBeenCalled();
 
-      const controlEnterEvent = { key: 'Enter', shiftKey: false, ctrlKey: true, metaKey: false, isComposing: false, preventDefault: jest.fn() };
-      fireKeydown(controlEnterEvent);
+      const macControlEnterEvent = { key: 'Enter', shiftKey: false, ctrlKey: true, metaKey: false, isComposing: false, preventDefault: jest.fn() };
+      fireKeydown(macControlEnterEvent);
 
-      expect(controlEnterEvent.preventDefault).not.toHaveBeenCalled();
+      expect(macControlEnterEvent.preventDefault).not.toHaveBeenCalled();
       expect(mockInputController.sendMessage).not.toHaveBeenCalled();
-
-      const commandEnterEvent = { key: 'Enter', shiftKey: false, ctrlKey: false, metaKey: true, isComposing: false, preventDefault: jest.fn() };
-      fireKeydown(commandEnterEvent);
-
-      expect(commandEnterEvent.preventDefault).toHaveBeenCalled();
-      expect(mockInputController.sendMessage).toHaveBeenCalled();
-    });
-
-    it('should require Ctrl+Enter off macOS when the send shortcut setting is enabled', () => {
-      mockInstructionModeManager.handleTriggerKey.mockReturnValue(false);
-      mockInstructionModeManager.handleKeydown.mockReturnValue(false);
-      mockSlashCommandDropdown.handleKeydown.mockReturnValue(false);
-      mockFileContextManager.handleMentionKeydown.mockReturnValue(false);
-      const { options, fireKeydown } = setupKeydownTab();
-      Platform.isMacOS = false;
-      options.plugin.settings.requireCommandOrControlEnterToSend = true;
 
       const commandEnterEvent = { key: 'Enter', shiftKey: false, ctrlKey: false, metaKey: true, isComposing: false, preventDefault: jest.fn() };
       fireKeydown(commandEnterEvent);
@@ -2536,11 +2547,17 @@ describe('Tab - Event Handler Behavior', () => {
       expect(commandEnterEvent.preventDefault).not.toHaveBeenCalled();
       expect(mockInputController.sendMessage).not.toHaveBeenCalled();
 
-      const controlEnterEvent = { key: 'Enter', shiftKey: false, ctrlKey: true, metaKey: false, isComposing: false, preventDefault: jest.fn() };
-      fireKeydown(controlEnterEvent);
+      Platform.isMacOS = false;
 
-      expect(controlEnterEvent.preventDefault).toHaveBeenCalled();
-      expect(mockInputController.sendMessage).toHaveBeenCalled();
+      const nonMacControlEnterEvent = { key: 'Enter', shiftKey: false, ctrlKey: true, metaKey: false, isComposing: false, preventDefault: jest.fn() };
+      fireKeydown(nonMacControlEnterEvent);
+
+      expect(nonMacControlEnterEvent.preventDefault).not.toHaveBeenCalled();
+      expect(mockInputController.sendMessage).not.toHaveBeenCalled();
+
+      tab.dom.sendButtonEl?.click();
+
+      expect(mockInputController.sendMessage).toHaveBeenCalledTimes(1);
     });
 
     it('should not send message on Enter when isComposing (IME)', () => {

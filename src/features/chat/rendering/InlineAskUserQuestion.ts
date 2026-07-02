@@ -35,10 +35,13 @@ export class InlineAskUserQuestion {
   private formEl!: HTMLElement;
   private bodyEl!: HTMLElement;
   private submitBtn!: HTMLButtonElement;
+  private collapseBtn!: HTMLButtonElement;
+  private collapseIconEl!: HTMLElement;
 
   private focusedBlockIdx = 0;
   private focusedOptIdx = 0;
   private isFreeformFocused = false;
+  private isCollapsed = false;
 
   private boundKeyDown: (e: KeyboardEvent) => void;
   private abortHandler: (() => void) | null = null;
@@ -124,6 +127,21 @@ export class InlineAskUserQuestion {
     const pill = head.createDiv({ cls: 'grimoire-ask-tool-pill' });
     setIcon(pill.createSpan(), 'message-circle');
     pill.createSpan({ text: 'ask_user' });
+
+    this.collapseBtn = head.createEl('button', {
+      cls: 'grimoire-ask-collapse-toggle',
+      attr: { type: 'button' },
+    });
+    this.collapseIconEl = this.collapseBtn.createSpan({ cls: 'grimoire-ask-collapse-icon' });
+    this.collapseBtn.addEventListener('click', () => {
+      this.setCollapsed(!this.isCollapsed);
+    });
+    this.collapseBtn.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+        event.stopPropagation();
+      }
+    });
+    this.refreshCollapseToggle();
   }
 
   private renderBody(): void {
@@ -261,6 +279,36 @@ export class InlineAskUserQuestion {
     }
   }
 
+  private setCollapsed(isCollapsed: boolean): void {
+    if (this.isCollapsed === isCollapsed) return;
+
+    this.isCollapsed = isCollapsed;
+    this.rootEl.classList.toggle('is-collapsed', isCollapsed);
+
+    if (isCollapsed && this.isFreeformFocused) {
+      this.isFreeformFocused = false;
+      (this.rootEl.ownerDocument.activeElement as HTMLElement | null)?.blur();
+      this.rootEl.focus();
+    }
+
+    this.updateFocusVisuals();
+    this.refreshCollapseToggle();
+  }
+
+  private refreshCollapseToggle(): void {
+    if (!this.collapseBtn) return;
+
+    const label = this.isCollapsed ? 'Expand question' : 'Collapse question';
+    this.collapseBtn.setAttribute('aria-label', label);
+    this.collapseBtn.setAttribute('title', label);
+    this.collapseBtn.setAttribute('aria-expanded', String(!this.isCollapsed));
+
+    if (this.collapseIconEl) {
+      this.collapseIconEl.empty();
+      setIcon(this.collapseIconEl, this.isCollapsed ? 'chevron-up' : 'chevron-down');
+    }
+  }
+
   private selectOption(blockIdx: number, optIdx: number): void {
     const q = this.questions[blockIdx];
     const option = q.options[optIdx];
@@ -312,7 +360,7 @@ export class InlineAskUserQuestion {
       for (let o = 0; o < this.optRows[b].length; o++) {
         this.optRows[b][o].toggleClass(
           'is-focused',
-          b === this.focusedBlockIdx && o === this.focusedOptIdx && !this.isFreeformFocused,
+          b === this.focusedBlockIdx && o === this.focusedOptIdx && !this.isFreeformFocused && !this.isCollapsed,
         );
       }
     }
@@ -362,6 +410,15 @@ export class InlineAskUserQuestion {
         this.isFreeformFocused = false;
         if (this.isValid()) this.handleSubmit();
         return;
+      }
+      return;
+    }
+
+    if (this.isCollapsed) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        this.handleResolve(null);
       }
       return;
     }

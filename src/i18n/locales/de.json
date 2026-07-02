@@ -255,8 +255,8 @@
       "desc": "Eine Zuordnung pro Zeile. Format: \"map <Taste> <Aktion>\" (Aktionen: scrollUp, scrollDown, focusInput)."
     },
     "requireCommandOrControlEnterToSend": {
-      "name": "Command/Ctrl+Enter zum Senden erfordern",
-      "desc": "Wenn aktiviert, fügt Enter einen Zeilenumbruch ein. Command+Enter sendet unter macOS; Ctrl+Enter sendet unter Windows und Linux."
+      "name": "Nur per Schaltfläche senden",
+      "desc": "Wenn aktiviert, fügen Enter und Command/Ctrl+Enter Zeilenumbrüche ein, statt zu senden. Verwenden Sie zum Senden die Send-Schaltfläche."
     },
     "theme": {
       "name": "Theme",

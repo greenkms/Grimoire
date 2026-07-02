@@ -255,8 +255,8 @@
       "desc": "Un mapeo por línea. Formato: \"map <tecla> <acción>\" (acciones: scrollUp, scrollDown, focusInput)."
     },
     "requireCommandOrControlEnterToSend": {
-      "name": "Requerir Command/Ctrl+Enter para enviar",
-      "desc": "Cuando está activado, Enter inserta un salto de línea. Command+Enter envía en macOS; Ctrl+Enter envía en Windows y Linux."
+      "name": "Enviar solo con el botón",
+      "desc": "Cuando está activado, Enter y Command/Ctrl+Enter insertan saltos de línea en lugar de enviar. Usa el botón Send para enviar."
     },
     "theme": {
       "name": "Tema",

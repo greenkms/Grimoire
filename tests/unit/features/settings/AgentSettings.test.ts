@@ -2,7 +2,7 @@ import { createMockEl } from '@test/helpers/mockElement';
 import { Notice } from 'obsidian';
 
 import type { AgentDefinition } from '@/core/types';
-import { AgentSettings } from '@/providers/claude/ui/AgentSettings';
+import { AgentSettings, CLAUDE_AGENT_MODEL_OPTIONS } from '@/providers/claude/ui/AgentSettings';
 
 function createAgent(name: string, filePath?: string): AgentDefinition {
   return {
@@ -78,5 +78,18 @@ describe('AgentSettings save orchestration', () => {
     await (settings as any).openAgentModal(existing);
 
     expect(Notice).toHaveBeenCalledWith('Failed to load subagent "existing-agent": permission denied');
+  });
+
+  it('offers current Claude Code aliases for subagent model overrides', () => {
+    expect(CLAUDE_AGENT_MODEL_OPTIONS.map(option => option.value)).toEqual([
+      'inherit',
+      'best',
+      'fable',
+      'opus',
+      'opusplan',
+      'sonnet',
+      'haiku',
+    ]);
+    expect(CLAUDE_AGENT_MODEL_OPTIONS.find(option => option.value === 'sonnet')?.label).toBe('Sonnet 5');
   });
 });

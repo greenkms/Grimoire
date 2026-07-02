@@ -685,22 +685,22 @@ describe('types.ts', () => {
     describe('filterVisibleModelOptions', () => {
       it('should hide 1M variants when toggles are disabled', () => {
         const models = filterVisibleModelOptions(DEFAULT_CLAUDE_MODELS, false, false).map((model) => model.value);
-        expect(models).toEqual(['opus', 'claude-opus-4-7', 'sonnet', 'haiku']);
+        expect(models).toEqual(['best', 'fable', 'opus', 'opusplan', 'sonnet', 'haiku']);
       });
 
       it('should append 1M variants when toggles are enabled', () => {
         const models = filterVisibleModelOptions(DEFAULT_CLAUDE_MODELS, true, true).map((model) => model.value);
-        expect(models).toEqual(['opus', 'opus[1m]', 'claude-opus-4-7', 'sonnet', 'sonnet[1m]', 'haiku']);
+        expect(models).toEqual(['best', 'fable', 'opus', 'opus[1m]', 'opusplan', 'sonnet', 'sonnet[1m]', 'haiku']);
       });
 
       it('should append only opus 1M when enableOpus1M is true and enableSonnet1M is false', () => {
         const models = filterVisibleModelOptions(DEFAULT_CLAUDE_MODELS, true, false).map((model) => model.value);
-        expect(models).toEqual(['opus', 'opus[1m]', 'claude-opus-4-7', 'sonnet', 'haiku']);
+        expect(models).toEqual(['best', 'fable', 'opus', 'opus[1m]', 'opusplan', 'sonnet', 'haiku']);
       });
 
       it('should append only sonnet 1M when enableSonnet1M is true and enableOpus1M is false', () => {
         const models = filterVisibleModelOptions(DEFAULT_CLAUDE_MODELS, false, true).map((model) => model.value);
-        expect(models).toEqual(['opus', 'claude-opus-4-7', 'sonnet', 'sonnet[1m]', 'haiku']);
+        expect(models).toEqual(['best', 'fable', 'opus', 'opusplan', 'sonnet', 'sonnet[1m]', 'haiku']);
       });
     });
 

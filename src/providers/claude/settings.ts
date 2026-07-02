@@ -29,6 +29,13 @@ export interface ClaudeProviderSettings {
   environmentHash: string;
   respectProjectSettings: boolean;
   projectSettingsSnapshot: ClaudeCodeProjectSettingsSnapshot;
+  discoveredModels: ClaudeDiscoveredModel[];
+}
+
+export interface ClaudeDiscoveredModel {
+  id: string;
+  displayName: string;
+  maxInputTokens?: number;
 }
 
 export interface ClaudeCodeProjectSettingsSnapshot {
@@ -58,6 +65,7 @@ export const DEFAULT_CLAUDE_PROVIDER_SETTINGS: Readonly<ClaudeProviderSettings> 
   environmentHash: '',
   respectProjectSettings: true,
   projectSettingsSnapshot: DEFAULT_CLAUDE_CODE_PROJECT_SETTINGS_SNAPSHOT,
+  discoveredModels: [],
 });
 
 function normalizeHostnameCliPaths(value: unknown): HostnameCliPaths {
@@ -92,6 +100,45 @@ function normalizeStringMap(value: unknown): Record<string, string> {
     }
   }
   return result;
+}
+
+export function normalizeClaudeDiscoveredModels(value: unknown): ClaudeDiscoveredModel[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const models: ClaudeDiscoveredModel[] = [];
+  const seen = new Set<string>();
+  for (const entry of value) {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      continue;
+    }
+
+    const record = entry as Record<string, unknown>;
+    const id = typeof record.id === 'string' ? record.id.trim() : '';
+    if (!id || seen.has(id)) {
+      continue;
+    }
+
+    const displayName = typeof record.displayName === 'string'
+      ? record.displayName.trim()
+      : typeof record.display_name === 'string'
+        ? record.display_name.trim()
+        : '';
+    const rawMaxInputTokens = record.maxInputTokens ?? record.max_input_tokens;
+    const maxInputTokens = typeof rawMaxInputTokens === 'number' && isFinite(rawMaxInputTokens) && rawMaxInputTokens > 0
+      ? rawMaxInputTokens
+      : undefined;
+
+    seen.add(id);
+    models.push({
+      id,
+      displayName: displayName || id,
+      ...(maxInputTokens !== undefined ? { maxInputTokens } : {}),
+    });
+  }
+
+  return models;
 }
 
 function computeClaudeCodeProjectSettingsHash(
@@ -207,6 +254,7 @@ export function getClaudeProviderSettings(
     projectSettingsSnapshot: normalizeClaudeCodeProjectSettingsSnapshot(
       config.projectSettingsSnapshot,
     ),
+    discoveredModels: normalizeClaudeDiscoveredModels(config.discoveredModels),
   };
 }
 

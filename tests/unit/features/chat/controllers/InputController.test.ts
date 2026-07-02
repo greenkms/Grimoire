@@ -994,6 +994,28 @@ describe('InputController - Message Queue', () => {
       expect(deps.state.isStreaming).toBe(false);
     });
 
+    it('should send long chat input without truncating it', async () => {
+      deps = createSendableDeps();
+      const longMessage = 'long-chat-input '.repeat(1500);
+      (deps as any).mockAgentService.prepareTurn = jest.fn().mockImplementation((request: any) => ({
+        request,
+        prompt: request.text,
+        isCompact: false,
+      }));
+      (deps as any).mockAgentService.query = jest.fn().mockImplementation(() => createMockStream([{ type: 'done' }]));
+
+      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl.value = longMessage;
+      controller = new InputController(deps);
+
+      await controller.sendMessage();
+
+      const userMessage = deps.state.messages.find(message => message.role === 'user');
+      const queryArg = ((deps as any).mockAgentService.query as jest.Mock).mock.calls[0]?.[0];
+      expect(userMessage?.displayContent).toBe(longMessage.trim());
+      expect(queryArg.prompt).toBe(longMessage.trim());
+    });
+
     it('should persist replay-safe user content instead of transport-only prompt', async () => {
       deps = createSendableDeps();
       (deps as any).mockAgentService.prepareTurn = jest.fn().mockReturnValue({

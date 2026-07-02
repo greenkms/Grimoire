@@ -170,6 +170,21 @@ describe('GrimoireSettingTab general tab settings', () => {
     expect(advancedText).toContain('Usage indicators');
     expect(advancedText).toContain('Show plan usage and API spend indicators');
   });
+
+  it('renders the manual send button setting inside General advanced settings', () => {
+    const plugin = createSettingsPlugin({ requireCommandOrControlEnterToSend: false });
+    const app: any = { hotkeyManager: {} };
+    const tab = new GrimoireSettingTab(app, plugin);
+    const container = createMockEl('div') as any;
+    (tab as any).containerEl = createMockEl('div');
+
+    (tab as any).renderGeneralTab(container);
+
+    const advancedText = collectText(container.querySelector('.grimoire-adv-body'));
+    expect(advancedText).toContain('Send only with button');
+    expect(advancedText).toContain('Use the Send button to submit');
+    expect(advancedText).not.toContain('Require Command/Ctrl+Enter to send');
+  });
 });
 
 describe('GrimoireSettingTab provider tabs', () => {

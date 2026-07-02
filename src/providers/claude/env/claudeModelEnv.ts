@@ -2,6 +2,7 @@ import { formatCustomModelLabel } from '../modelLabels';
 
 const CUSTOM_MODEL_ENV_KEYS = [
   'ANTHROPIC_MODEL',
+  'ANTHROPIC_DEFAULT_FABLE_MODEL',
   'ANTHROPIC_DEFAULT_OPUS_MODEL',
   'ANTHROPIC_DEFAULT_SONNET_MODEL',
   'ANTHROPIC_DEFAULT_HAIKU_MODEL',
@@ -34,7 +35,7 @@ export function getModelsFromEnvironment(
   }
 
   const models: { value: string; label: string; description: string }[] = [];
-  const typePriority = { 'model': 4, 'haiku': 3, 'sonnet': 2, 'opus': 1 };
+  const typePriority = { 'model': 5, 'fable': 4, 'haiku': 3, 'sonnet': 2, 'opus': 1 };
 
   const sortedEntries = Array.from(modelMap.entries()).sort(([, aInfo], [, bInfo]) => {
     const aPriority = Math.max(...aInfo.types.map(t => typePriority[t as keyof typeof typePriority] || 0));
@@ -61,6 +62,9 @@ export function getModelsFromEnvironment(
 export function getCurrentModelFromEnvironment(envVars: Record<string, string>): string | null {
   if (envVars.ANTHROPIC_MODEL) {
     return envVars.ANTHROPIC_MODEL;
+  }
+  if (envVars.ANTHROPIC_DEFAULT_FABLE_MODEL) {
+    return envVars.ANTHROPIC_DEFAULT_FABLE_MODEL;
   }
   if (envVars.ANTHROPIC_DEFAULT_HAIKU_MODEL) {
     return envVars.ANTHROPIC_DEFAULT_HAIKU_MODEL;

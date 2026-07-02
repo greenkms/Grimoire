@@ -6,11 +6,13 @@
 export type ClaudeModel = string;
 
 export const DEFAULT_CLAUDE_MODELS: { value: ClaudeModel; label: string; description: string }[] = [
-  { value: 'opus', label: 'Opus 4.8', description: 'Most capable' },
-  { value: 'opus[1m]', label: 'Opus 4.8 · 1M', description: 'Most capable (1M context window)' },
-  { value: 'claude-opus-4-7', label: 'Opus 4.7', description: 'Deep reasoning profile' },
-  { value: 'sonnet', label: 'Sonnet 4.6', description: 'Balanced performance' },
-  { value: 'sonnet[1m]', label: 'Sonnet 4.6 · 1M', description: 'Balanced performance (1M context window)' },
+  { value: 'best', label: 'Best', description: 'Fable 5 when available, otherwise latest Opus' },
+  { value: 'fable', label: 'Fable 5', description: 'Hardest and longest-running tasks' },
+  { value: 'opus', label: 'Opus 4.8', description: 'Complex reasoning' },
+  { value: 'opus[1m]', label: 'Opus 4.8 · 1M', description: 'Complex reasoning (1M context window)' },
+  { value: 'opusplan', label: 'Opus Plan', description: 'Opus for planning, Sonnet for execution' },
+  { value: 'sonnet', label: 'Sonnet 5', description: 'Daily coding' },
+  { value: 'sonnet[1m]', label: 'Sonnet 5 · 1M', description: 'Daily coding (1M context window)' },
   { value: 'haiku', label: 'Haiku 4.5', description: 'Fast and efficient' },
 ];
 
@@ -27,12 +29,19 @@ export const EFFORT_LEVELS: { value: EffortLevel; label: string }[] = [
 
 /** Default effort level per model tier. */
 export const DEFAULT_EFFORT_LEVEL: Record<string, EffortLevel> = {
+  'best': 'high',
+  'fable': 'high',
   'haiku': 'high',
   'sonnet': 'high',
   'sonnet[1m]': 'high',
   'opus': 'high',
   'opus[1m]': 'high',
+  'opusplan': 'high',
   'claude-opus-4-7': 'xhigh',
+  'claude-opus-4-8': 'xhigh',
+  'claude-fable-5': 'high',
+  'claude-sonnet-5': 'high',
+  'claude-haiku-4-5': 'high',
 };
 
 const ONE_M_SUFFIX = '[1m]';
@@ -86,6 +95,7 @@ export function isDefaultClaudeModel(model: string): boolean {
  */
 export function supportsXHighEffort(model: string): boolean {
   const normalized = normalizeModelId(model);
+  if (normalized === 'opusplan') return true;
   if (isBuiltInFamilyVariant(normalized, 'opus')) return true;
   return /claude-opus-(4-[7-9]|[5-9])/.test(normalized);
 }

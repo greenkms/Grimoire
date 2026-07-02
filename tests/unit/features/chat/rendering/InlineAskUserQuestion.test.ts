@@ -83,6 +83,10 @@ function getSkipBtn(container: any): any {
   return container.querySelector('.grimoire-ask-btn--skip');
 }
 
+function getCollapseBtn(container: any): any {
+  return container.querySelector('.grimoire-ask-collapse-toggle');
+}
+
 describe('InlineAskUserQuestion', () => {
   describe('parseQuestions', () => {
     it('resolves null when input has no questions', () => {
@@ -331,6 +335,15 @@ describe('InlineAskUserQuestion', () => {
       expect(spans[spans.length - 1]?.textContent).toBe('ask_user');
     });
 
+    it('renders a collapse toggle in the header', () => {
+      const input = makeInput([{ question: 'Q', options: ['A'] }]);
+      const { container } = renderWidget(input);
+      const toggle = getCollapseBtn(container);
+      expect(toggle).not.toBeNull();
+      expect(toggle?.getAttribute('aria-expanded')).toBe('true');
+      expect(toggle?.getAttribute('aria-label')).toBe('Collapse question');
+    });
+
     it('renders glyph with SVG icon', () => {
       const input = makeInput([{ question: 'Q', options: ['A'] }]);
       const { container } = renderWidget(input);
@@ -543,6 +556,70 @@ describe('InlineAskUserQuestion', () => {
       rows[0]?.click();
 
       expect(ta.value).toBe('');
+    });
+  });
+
+  describe('collapse toggle', () => {
+    it('collapses and expands without resolving the question', () => {
+      const input = makeInput([{ question: 'Pick one', options: ['A', 'B'] }]);
+      const { container, resolve } = renderWidget(input);
+      const root = findRoot(container);
+      const toggle = getCollapseBtn(container);
+
+      toggle?.click();
+
+      expect(root?.hasClass('is-collapsed')).toBe(true);
+      expect(toggle?.getAttribute('aria-expanded')).toBe('false');
+      expect(toggle?.getAttribute('aria-label')).toBe('Expand question');
+      expect(resolve).not.toHaveBeenCalled();
+
+      toggle?.click();
+
+      expect(root?.hasClass('is-collapsed')).toBe(false);
+      expect(toggle?.getAttribute('aria-expanded')).toBe('true');
+      expect(toggle?.getAttribute('aria-label')).toBe('Collapse question');
+      expect(resolve).not.toHaveBeenCalled();
+    });
+
+    it('preserves selected answers while collapsed', () => {
+      const input = makeInput([{ question: 'Pick one', options: ['A', 'B'] }]);
+      const { container, resolve } = renderWidget(input);
+      const rows = getOptRows(container, 0);
+      const toggle = getCollapseBtn(container);
+
+      rows[1]?.click();
+      toggle?.click();
+      toggle?.click();
+      getSubmitBtn(container)?.click();
+
+      expect(rows[1]?.hasClass('is-selected')).toBe(true);
+      expect(resolve).toHaveBeenCalledWith({ 'Pick one': 'B' });
+    });
+
+    it('does not select hidden answers from keyboard while collapsed', () => {
+      const input = makeInput([{ question: 'Pick one', options: ['A', 'B'] }]);
+      const { container, resolve } = renderWidget(input);
+      const root = findRoot(container);
+
+      getCollapseBtn(container)?.click();
+      fireKeyDown(root, 'Enter');
+
+      expect(getOptRows(container, 0)[0]?.hasClass('is-selected')).toBe(false);
+      expect(resolve).not.toHaveBeenCalled();
+    });
+
+    it('only traps activation keys on the collapse toggle', () => {
+      const input = makeInput([{ question: 'Pick one', options: ['A', 'B'] }]);
+      const { container } = renderWidget(input);
+      const toggle = getCollapseBtn(container);
+      const enterEvent = { type: 'keydown', key: 'Enter', stopPropagation: jest.fn() };
+      const escapeEvent = { type: 'keydown', key: 'Escape', stopPropagation: jest.fn() };
+
+      toggle?.dispatchEvent(enterEvent);
+      toggle?.dispatchEvent(escapeEvent);
+
+      expect(enterEvent.stopPropagation).toHaveBeenCalledTimes(1);
+      expect(escapeEvent.stopPropagation).not.toHaveBeenCalled();
     });
   });
 

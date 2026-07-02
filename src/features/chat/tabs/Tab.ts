@@ -1,5 +1,5 @@
 import type { Component } from 'obsidian';
-import { Notice, Platform, setIcon, TFile } from 'obsidian';
+import { Notice, setIcon, TFile } from 'obsidian';
 
 import { formatGrimoireVersion } from '../../../app/version';
 import { ProjectWorkspaceStore } from '../../../core/context/ProjectWorkspaceStore';
@@ -425,15 +425,7 @@ function shouldSendMessageFromEnterKey(
     return false;
   }
 
-  if (settings.requireCommandOrControlEnterToSend !== true) {
-    return true;
-  }
-
-  if (Platform.isMacOS) {
-    return e.metaKey === true && !e.ctrlKey && !e.altKey;
-  }
-
-  return e.ctrlKey === true && !e.metaKey && !e.altKey;
+  return settings.requireCommandOrControlEnterToSend !== true;
 }
 
 type ProviderCatalogInfo = {
@@ -2719,6 +2711,10 @@ export function wireTabInputEvents(tab: TabData, plugin: GrimoirePlugin): void {
     }
 
     if (getTabCapabilities(tab, plugin).supportsInstructionMode && ui.instructionModeManager?.handleKeydown(e)) {
+      return;
+    }
+
+    if (e.key === 'Enter' && e.shiftKey && !e.isComposing) {
       return;
     }
 

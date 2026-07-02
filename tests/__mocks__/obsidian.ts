@@ -1,6 +1,7 @@
 // Mock for Obsidian API
 
 export const addIcon = jest.fn();
+export const requestUrl = jest.fn();
 
 export class Plugin {
   app: any;

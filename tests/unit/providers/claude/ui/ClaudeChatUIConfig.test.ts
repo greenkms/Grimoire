@@ -98,8 +98,10 @@ describe('claudeChatUIConfig', () => {
       });
 
       expect(options.map(option => option.value)).toEqual([
+        'best',
+        'fable',
         'opus',
-        'claude-opus-4-7',
+        'opusplan',
         'sonnet',
         'haiku',
         'claude-opus-4-6',
@@ -129,12 +131,68 @@ describe('claudeChatUIConfig', () => {
       });
 
       expect(options.map(option => option.value)).toEqual([
+        'best',
+        'fable',
         'opus',
-        'claude-opus-4-7',
+        'opusplan',
         'sonnet',
         'haiku',
         'claude-opus-4-6',
       ]);
+    });
+
+    it('uses current Claude Code aliases as the static fallback model list', () => {
+      const options = claudeChatUIConfig.getModelOptions({});
+
+      expect(options.map(option => option.value)).toEqual([
+        'best',
+        'fable',
+        'opus',
+        'opusplan',
+        'sonnet',
+        'haiku',
+      ]);
+      expect(options.find(option => option.value === 'sonnet')).toEqual({
+        value: 'sonnet',
+        label: 'Sonnet 5',
+        description: 'Daily coding',
+      });
+    });
+
+    it('prepends discovered Anthropic API models before static fallback aliases', () => {
+      const options = claudeChatUIConfig.getModelOptions({
+        providerConfigs: {
+          claude: {
+            discoveredModels: [
+              {
+                id: 'claude-fable-5',
+                displayName: 'Claude Fable 5',
+                maxInputTokens: 1_000_000,
+              },
+              {
+                id: 'claude-sonnet-5',
+                displayName: 'Claude Sonnet 5',
+                maxInputTokens: 1_000_000,
+              },
+            ],
+          },
+        },
+      });
+
+      expect(options.slice(0, 2)).toEqual([
+        {
+          value: 'claude-fable-5',
+          label: 'Claude Fable 5',
+          description: 'Anthropic API model · 1M context',
+        },
+        {
+          value: 'claude-sonnet-5',
+          label: 'Claude Sonnet 5',
+          description: 'Anthropic API model · 1M context',
+        },
+      ]);
+      expect(options.map(option => option.value)).toContain('fable');
+      expect(options.map(option => option.value)).toContain('sonnet');
     });
 
     it('formats dated settings-defined custom models with shortened date tags', () => {
@@ -277,15 +335,15 @@ describe('claudeChatUIConfig', () => {
       expect(settings.effortLevel).toBe('xhigh');
     });
 
-    it('uses xhigh as the default for the built-in Opus 4.7 option', () => {
+    it('uses high as the default for the built-in Opus alias', () => {
       const settings: Record<string, unknown> = {
-        effortLevel: 'high',
+        effortLevel: 'xhigh',
         providerConfigs: {},
       };
 
-      claudeChatUIConfig.applyModelDefaults('claude-opus-4-7', settings);
+      claudeChatUIConfig.applyModelDefaults('opus', settings);
 
-      expect(settings.effortLevel).toBe('xhigh');
+      expect(settings.effortLevel).toBe('high');
     });
   });
 });

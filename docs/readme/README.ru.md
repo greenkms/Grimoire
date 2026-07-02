@@ -133,6 +133,8 @@ claude
 
 **Respect Claude Code settings** включён по умолчанию. Grimoire читает Claude Code user settings (`~/.claude/settings.json`) и vault settings (`.claude/settings.json`) для `model` и `env`, а затем использует эти значения в Claude model selector и runtime environment. Это позволяет использовать в Grimoire кастомные Claude Code модели через Anthropic-compatible gateways, например MiniMax, Z.ai и другие. Project settings перекрывают user settings, а явные Grimoire environment settings перекрывают оба источника.
 
+Если в эффективном Claude environment есть `ANTHROPIC_API_KEY`, Grimoire может обновить Anthropic model catalog и добавить найденные модели в picker. Без API key или при неудачном refresh picker продолжает работать через Claude Code aliases вроде `Best`, `Fable 5`, `Opus Plan` и 1M variants, плюс модели из `.claude` и custom Grimoire settings.
+
 ```json
 {
   "env": {
@@ -263,6 +265,8 @@ grok
 
 Фокусная боковая панель с несколькими tabs. У каждой tab свой draft, provider, model, context и runtime. Закройте и снова откройте Obsidian — сессии восстановятся, а provider, model и reasoning effort сохранятся на каждом ответе. Rewind и fork появляются, когда активный provider их поддерживает. Auto-scroll останавливается, когда вы прокручиваете историю вручную.
 
+По умолчанию `Enter` отправляет turn, а `Shift+Enter` вставляет новую строку. Если нужна только ручная отправка, включите **Send only with button** в settings; тогда composer ждёт кнопку отправки и не submit'ит с клавиатуры.
+
 ### Model selector
 
 Один picker, сгруппированный по провайдерам и отсортированный по label: Antigravity, Claude Code, Codex, Gemini CLI (Legacy), Grok Build, OpenCode, MiMoCode и Kimi Code. Search работает по labels, descriptions, groups и model IDs. Catalogs загружаются lazily и запоминают, какие groups вы свернули. В settings можно добавить custom aliases и context-window overrides. Claude 1M variants — дополнительные options, а не замена базовых моделей.
@@ -306,6 +310,8 @@ Plan mode просит provider сначала составить план, пр
 ### Clarifying questions
 
 Когда provider запрашивает structured user input, Grimoire ставит turn на паузу и показывает вопрос над composer. Claude Code называет это `AskUserQuestion`; Codex app-server отдаёт экспериментальную поверхность `request_user_input` / `requestUserInput`. Grimoire нормализует эти provider-specific механизмы в один inline question UI. Single-select, multi-select и freeform answers возвращаются в provider run, чтобы agent продолжил без отдельного chat message.
+
+Если вопрос перекрывает текст чата, который нужно перечитать, нажмите chevron в header вопроса: панель свернётся в компактную полоску. Выбранные и freeform answers сохраняются до разворачивания или отправки вопроса.
 
 ### Commands
 

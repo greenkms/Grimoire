@@ -255,8 +255,8 @@
       "desc": "한 줄에 하나의 매핑. 형식: \"map <키> <동작>\" (동작: scrollUp, scrollDown, focusInput)."
     },
     "requireCommandOrControlEnterToSend": {
-      "name": "Command/Ctrl+Enter로 보내기 필수",
-      "desc": "활성화하면 Enter는 줄바꿈을 삽입합니다. macOS에서는 Command+Enter, Windows와 Linux에서는 Ctrl+Enter로 보냅니다."
+      "name": "버튼으로만 보내기",
+      "desc": "활성화하면 Enter와 Command/Ctrl+Enter는 보내지 않고 줄바꿈을 삽입합니다. 보내려면 Send 버튼을 사용하세요."
     },
     "theme": {
       "name": "테마",

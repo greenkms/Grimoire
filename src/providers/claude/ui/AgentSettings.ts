@@ -10,10 +10,13 @@ import { t } from '../../../i18n/i18n';
 import { confirmDelete } from '../../../shared/modals/ConfirmModal';
 import { validateAgentName } from '../../../utils/agent';
 
-const MODEL_OPTIONS = [
+export const CLAUDE_AGENT_MODEL_OPTIONS = [
   { value: 'inherit', label: 'Inherit' },
+  { value: 'best', label: 'Best' },
+  { value: 'fable', label: 'Fable 5' },
   { value: 'opus', label: 'Opus 4.8' },
-  { value: 'sonnet', label: 'Sonnet 4.6' },
+  { value: 'opusplan', label: 'Opus Plan' },
+  { value: 'sonnet', label: 'Sonnet 5' },
   { value: 'haiku', label: 'Haiku 4.5' },
 ] as const;
 
@@ -85,7 +88,7 @@ class AgentModal extends Modal {
       .setName(t('settings.subagents.modal.model'))
       .setDesc(t('settings.subagents.modal.modelDesc'))
       .addDropdown(dropdown => {
-        for (const opt of MODEL_OPTIONS) {
+        for (const opt of CLAUDE_AGENT_MODEL_OPTIONS) {
           dropdown.addOption(opt.value, opt.label);
         }
         dropdown

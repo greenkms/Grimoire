@@ -255,8 +255,8 @@
       "desc": "По одному сопоставлению в строке. Формат: \"map <ключ> <действие>\" (действия: scrollUp, scrollDown, focusInput)."
     },
     "requireCommandOrControlEnterToSend": {
-      "name": "Требовать Command/Ctrl+Enter для отправки",
-      "desc": "Если включено, Enter вставляет новую строку. Command+Enter отправляет на macOS; Ctrl+Enter отправляет на Windows и Linux."
+      "name": "Отправлять только кнопкой",
+      "desc": "Если включено, Enter и Command/Ctrl+Enter вставляют перенос строки, а не отправляют сообщение. Для отправки используйте кнопку Send."
     },
     "theme": {
       "name": "Тема",

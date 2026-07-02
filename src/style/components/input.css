@@ -510,7 +510,7 @@ body.grimoire-dragging-ns {
 
 .grimoire-container--chat-window .grimoire-input {
   min-height: var(--grimoire-textarea-min-height, 46px);
-  max-height: var(--grimoire-textarea-max-height, 120px);
+  max-height: var(--grimoire-textarea-max-height, none);
   padding: 3px 2px;
   border-radius: 0;
   font-size: 13px;

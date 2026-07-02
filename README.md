@@ -131,6 +131,8 @@ Inside Grimoire, Claude Code reads and preserves your `.claude/` files, runs on 
 
 **Respect Claude Code settings** is enabled by default. Grimoire reads Claude Code user settings (`~/.claude/settings.json`) and vault settings (`.claude/settings.json`) for `model` and `env`, then uses those values in the Claude model selector and runtime environment. This lets Claude Code custom models work in Grimoire too, including Anthropic-compatible gateways such as MiniMax, Z.ai, and others. Project settings override user settings, and explicit Grimoire environment settings override both.
 
+If the effective Claude environment includes `ANTHROPIC_API_KEY`, Grimoire can refresh Anthropic's model catalog and merge discovered models into the picker. Without an API key, or if the refresh fails, the picker keeps working from Claude Code aliases such as `Best`, `Fable 5`, `Opus Plan`, and 1M variants, plus your `.claude` and custom Grimoire models.
+
 ```json
 {
   "env": {
@@ -253,6 +255,8 @@ Inside Grimoire, Grok Build runs over ACP via `grok agent stdio` with Grimoire-m
 
 A focused side panel with multiple tabs. Each tab keeps its own draft, provider, model, context, and runtime. Close and reopen Obsidian and your sessions come back, with the provider, model, and reasoning effort preserved on every response. Rewind and fork appear when the active provider supports them. Auto-scroll backs off the moment you scroll away to read something.
 
+By default, `Enter` sends the turn and `Shift+Enter` inserts a new line. If you prefer deliberate sends, turn on **Send only with button** in settings; then the composer waits for the send button and keyboard submission stays disabled.
+
 ### Model selector
 
 One picker, grouped by provider and sorted by label: Antigravity, Claude Code, Codex, Gemini CLI (Legacy), Grok Build, OpenCode, MiMoCode, and Kimi Code. Search runs across labels, descriptions, groups, and model IDs without resizing the menu while you filter. Catalogs load lazily and remember which groups you collapsed. Add custom aliases and context-window overrides in settings. Claude's 1M variants are extra options, not replacements for the base models.
@@ -296,6 +300,8 @@ Run "Grimoire: Inline edit" on a selection. A prompt opens next to the text, the
 ### Clarifying questions
 
 When a provider asks for structured user input, Grimoire pauses the turn and renders the question over the composer. Claude Code exposes this as `AskUserQuestion`; Codex app-server exposes an experimental `request_user_input` / `requestUserInput` surface. Grimoire normalizes those provider-specific mechanisms into the same inline question UI. Single-select, multi-select, and freeform answers resolve back into the provider run, so the agent can continue without a separate chat message.
+
+If the question covers chat text you need to reread, use the chevron in the question header to collapse it into a compact bar. Your selected and freeform answers stay in place until you expand or submit the question.
 
 ### Commands
 

@@ -2,6 +2,7 @@ import type { ProviderUIOption } from '../../core/providers/types';
 import { getCurrentModelFromEnvironment, getModelsFromEnvironment } from './env/claudeModelEnv';
 import { formatCustomModelLabel } from './modelLabels';
 import {
+  type ClaudeDiscoveredModel,
   getClaudeEffectiveEnvironmentVariables,
   getClaudeProviderSettings,
 } from './settings';
@@ -44,6 +45,27 @@ function normalizeCustomModelAliases(value: unknown): Record<string, string> {
   return aliases;
 }
 
+function formatDiscoveredModelDescription(model: ClaudeDiscoveredModel): string {
+  if (model.maxInputTokens && model.maxInputTokens >= 1_000_000) {
+    return 'Anthropic API model · 1M context';
+  }
+
+  return 'Anthropic API model';
+}
+
+function appendModelOption(
+  models: ProviderUIOption[],
+  seenValues: Set<string>,
+  option: ProviderUIOption,
+): void {
+  if (seenValues.has(option.value)) {
+    return;
+  }
+
+  seenValues.add(option.value);
+  models.push(option);
+}
+
 export function getClaudeModelOptions(settings: Record<string, unknown>): ProviderUIOption[] {
   const customModelAliases = normalizeCustomModelAliases(settings.customModelAliases);
   const customModels = getModelsFromEnvironment(
@@ -55,13 +77,25 @@ export function getClaudeModelOptions(settings: Record<string, unknown>): Provid
   }
 
   const claudeSettings = getClaudeProviderSettings(settings);
-  const models = filterVisibleModelOptions(
-    [...DEFAULT_CLAUDE_MODELS],
+  const models: ProviderUIOption[] = [];
+  const seenValues = new Set<string>();
+
+  for (const model of claudeSettings.discoveredModels) {
+    appendModelOption(models, seenValues, {
+      value: model.id,
+      label: customModelAliases[model.id] ?? model.displayName,
+      description: formatDiscoveredModelDescription(model),
+    });
+  }
+
+  for (const model of filterVisibleModelOptions(
+    DEFAULT_CLAUDE_MODELS,
     claudeSettings.enableOpus1M,
     claudeSettings.enableSonnet1M,
-  );
+  )) {
+    appendModelOption(models, seenValues, model);
+  }
 
-  const seenValues = new Set(models.map(model => model.value));
   for (const modelId of parseConfiguredCustomModelIds(claudeSettings.customModels)) {
     if (seenValues.has(modelId)) {
       continue;

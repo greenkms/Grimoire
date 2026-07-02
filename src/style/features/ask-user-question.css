@@ -103,6 +103,56 @@
   height: 13px;
 }
 
+.grimoire-ask-collapse-toggle {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--grimoire-radius-1);
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition:
+    background 0.13s ease,
+    color 0.13s ease,
+    transform 0.06s ease;
+}
+
+.grimoire-ask-collapse-toggle:hover,
+.grimoire-ask-collapse-toggle:focus-visible {
+  background: var(--grimoire-raise-2);
+  color: var(--text-muted);
+}
+
+.grimoire-ask-collapse-toggle:active {
+  transform: translateY(1px);
+}
+
+.grimoire-ask-collapse-toggle svg,
+.grimoire-ask-collapse-toggle .svg-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.grimoire-ask-anchor.is-collapsed .grimoire-ask-form {
+  grid-template-rows: auto;
+  max-height: none;
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.38),
+    inset 0 0 0 1px var(--grimoire-accent-line);
+}
+
+.grimoire-ask-anchor.is-collapsed .grimoire-ask-head {
+  border-bottom: 0;
+}
+
+.grimoire-ask-anchor.is-collapsed .grimoire-ask-body,
+.grimoire-ask-anchor.is-collapsed .grimoire-ask-actions {
+  display: none;
+}
+
 /* ── Body (scrollable question stack) ── */
 
 .grimoire-ask-body {

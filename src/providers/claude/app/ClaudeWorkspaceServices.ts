@@ -19,9 +19,9 @@ import { ClaudeCommandCatalog } from '../commands/ClaudeCommandCatalog';
 import { probeRuntimeCommands } from '../commands/probeRuntimeCommands';
 import { PluginManager } from '../plugins/PluginManager';
 import { ClaudeCliResolver } from '../runtime/ClaudeCliResolver';
-import { getClaudeProviderSettings } from '../settings';
 import { StorageService } from '../storage/StorageService';
 import { claudeSettingsTabRenderer } from '../ui/ClaudeSettingsTab';
+import { createClaudeModelCatalog } from './ClaudeModelCatalog';
 import { claudePlanUsageStore } from './ClaudePlanUsageStore';
 
 export interface ClaudeWorkspaceServices extends ProviderWorkspaceServices {
@@ -36,15 +36,6 @@ export interface ClaudeWorkspaceServices extends ProviderWorkspaceServices {
   agentMentionProvider: AppAgentManager;
   modelCatalog: ProviderModelCatalog;
 }
-
-const claudeModelCatalog: ProviderModelCatalog = {
-  isAvailable(settings) {
-    return getClaudeProviderSettings(settings).enabled;
-  },
-  async refreshModels() {
-    return false;
-  },
-};
 
 export async function createClaudeWorkspaceServices(
   plugin: GrimoirePlugin,
@@ -83,7 +74,7 @@ export async function createClaudeWorkspaceServices(
     agentManager,
     commandCatalog,
     agentMentionProvider: agentManager,
-    modelCatalog: claudeModelCatalog,
+    modelCatalog: createClaudeModelCatalog(plugin),
     usageProvider: claudePlanUsageStore,
     settingsTabRenderer: claudeSettingsTabRenderer,
     refreshAgentMentions: async () => {
