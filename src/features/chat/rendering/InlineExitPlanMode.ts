@@ -1,6 +1,9 @@
 import * as fs from 'fs';
+import { setIcon } from 'obsidian';
 import * as nodePath from 'path';
 
+import { getToolIcon } from '../../../core/tools/toolIcons';
+import { TOOL_ENTER_PLAN_MODE } from '../../../core/tools/toolNames';
 import type { ExitPlanModeDecision } from '../../../core/types/tools';
 import type { RenderContentFn } from './MessageRenderer';
 
@@ -21,7 +24,10 @@ export class InlineExitPlanMode {
   private focusedIndex = 0;
   private items: HTMLElement[] = [];
   private feedbackInput!: HTMLInputElement;
+  private collapseBtn!: HTMLButtonElement;
+  private collapseIconEl!: HTMLElement;
   private isInputFocused = false;
+  private isCollapsed = false;
   private boundKeyDown: (e: KeyboardEvent) => void;
   private abortHandler: (() => void) | null = null;
 
@@ -45,8 +51,7 @@ export class InlineExitPlanMode {
   render(): void {
     this.rootEl = this.containerEl.createDiv({ cls: 'grimoire-plan-approval-inline' });
 
-    const titleEl = this.rootEl.createDiv({ cls: 'grimoire-plan-inline-title' });
-    titleEl.setText('Plan complete');
+    this.renderHeader();
 
     this.planContent = this.readPlanContent();
     if (this.planContent) {
@@ -59,7 +64,7 @@ export class InlineExitPlanMode {
     } else if (this.planReadError) {
       this.rootEl.createDiv({
         cls: 'grimoire-plan-content-preview grimoire-plan-read-error',
-        text: `Could not read plan file: ${this.planReadError}. "Approve (new session)" will not include plan details.`,
+        text: `Could not read plan file: ${this.planReadError}.`,
       });
     }
 
@@ -75,27 +80,13 @@ export class InlineExitPlanMode {
 
     const actionsEl = this.rootEl.createDiv({ cls: 'grimoire-ask-list' });
 
-    const newSessionRow = actionsEl.createDiv({ cls: 'grimoire-ask-item' });
-    newSessionRow.addClass('is-focused');
-    newSessionRow.createSpan({ text: '\u203A', cls: 'grimoire-ask-cursor' });
-    newSessionRow.createSpan({ text: '1. ', cls: 'grimoire-ask-item-num' });
-    newSessionRow.createSpan({ text: 'Approve (new session)', cls: 'grimoire-ask-item-label' });
-    newSessionRow.addEventListener('click', () => {
-      this.focusedIndex = 0;
-      this.updateFocus();
-      this.handleResolve({
-        type: 'approve-new-session',
-        planContent: this.extractPlanContent(),
-      });
-    });
-    this.items.push(newSessionRow);
-
     const approveRow = actionsEl.createDiv({ cls: 'grimoire-ask-item' });
-    approveRow.createSpan({ text: '\u00A0', cls: 'grimoire-ask-cursor' });
-    approveRow.createSpan({ text: '2. ', cls: 'grimoire-ask-item-num' });
+    approveRow.addClass('is-focused');
+    approveRow.createSpan({ text: '\u203A', cls: 'grimoire-ask-cursor' });
+    approveRow.createSpan({ text: '1', cls: 'grimoire-ask-item-num' });
     approveRow.createSpan({ text: 'Approve (current session)', cls: 'grimoire-ask-item-label' });
     approveRow.addEventListener('click', () => {
-      this.focusedIndex = 1;
+      this.focusedIndex = 0;
       this.updateFocus();
       this.handleResolve({ type: 'approve' });
     });
@@ -103,7 +94,7 @@ export class InlineExitPlanMode {
 
     const feedbackRow = actionsEl.createDiv({ cls: 'grimoire-ask-item grimoire-ask-custom-item' });
     feedbackRow.createSpan({ text: '\u00A0', cls: 'grimoire-ask-cursor' });
-    feedbackRow.createSpan({ text: '3. ', cls: 'grimoire-ask-item-num' });
+    feedbackRow.createSpan({ text: '2', cls: 'grimoire-ask-item-num' });
     this.feedbackInput = feedbackRow.createEl('input', {
       type: 'text',
       cls: 'grimoire-ask-custom-text',
@@ -112,7 +103,7 @@ export class InlineExitPlanMode {
     this.feedbackInput.addEventListener('focus', () => { this.isInputFocused = true; });
     this.feedbackInput.addEventListener('blur', () => { this.isInputFocused = false; });
     feedbackRow.addEventListener('click', () => {
-      this.focusedIndex = 2;
+      this.focusedIndex = 1;
       this.updateFocus();
     });
     this.items.push(feedbackRow);
@@ -137,6 +128,68 @@ export class InlineExitPlanMode {
     this.handleResolve(null);
   }
 
+  private renderHeader(): void {
+    const head = this.rootEl.createDiv({ cls: 'grimoire-plan-inline-title' });
+
+    const glyph = head.createDiv({ cls: 'grimoire-plan-glyph' });
+    setIcon(glyph, getToolIcon(TOOL_ENTER_PLAN_MODE));
+
+    const titleBlock = head.createDiv({ cls: 'grimoire-plan-title-block' });
+    titleBlock.createDiv({ text: 'Plan complete', cls: 'grimoire-plan-title' });
+    titleBlock.createDiv({
+      text: 'Review the plan before proceeding',
+      cls: 'grimoire-plan-subtitle',
+    });
+
+    const pill = head.createDiv({ cls: 'grimoire-plan-tool-pill' });
+    setIcon(pill.createSpan(), getToolIcon(TOOL_ENTER_PLAN_MODE));
+    pill.createSpan({ text: 'plan', cls: 'grimoire-plan-tool-label' });
+
+    this.collapseBtn = head.createEl('button', {
+      cls: 'grimoire-plan-collapse-toggle',
+      attr: { type: 'button' },
+    });
+    this.collapseIconEl = this.collapseBtn.createSpan({ cls: 'grimoire-plan-collapse-icon' });
+    this.collapseBtn.addEventListener('click', () => {
+      this.setCollapsed(!this.isCollapsed);
+    });
+    this.collapseBtn.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+        event.stopPropagation();
+      }
+    });
+    this.refreshCollapseToggle();
+  }
+
+  private setCollapsed(isCollapsed: boolean): void {
+    if (this.isCollapsed === isCollapsed) return;
+
+    this.isCollapsed = isCollapsed;
+    this.rootEl.classList.toggle('is-collapsed', isCollapsed);
+
+    if (isCollapsed && this.isInputFocused) {
+      this.isInputFocused = false;
+      this.feedbackInput.blur();
+      this.rootEl.focus();
+    }
+
+    this.refreshCollapseToggle();
+  }
+
+  private refreshCollapseToggle(): void {
+    if (!this.collapseBtn) return;
+
+    const label = this.isCollapsed ? 'Expand plan' : 'Collapse plan';
+    this.collapseBtn.setAttribute('aria-label', label);
+    this.collapseBtn.setAttribute('title', label);
+    this.collapseBtn.setAttribute('aria-expanded', String(!this.isCollapsed));
+
+    if (this.collapseIconEl) {
+      this.collapseIconEl.empty();
+      setIcon(this.collapseIconEl, this.isCollapsed ? 'chevron-up' : 'chevron-down');
+    }
+  }
+
   private readPlanContent(): string | null {
     const planFilePath = this.input.planFilePath as string | undefined;
     if (!planFilePath) return null;
@@ -154,13 +207,6 @@ export class InlineExitPlanMode {
       this.planReadError = err instanceof Error ? err.message : 'unknown error';
       return null;
     }
-  }
-
-  private extractPlanContent(): string {
-    if (this.planContent) {
-      return `Implement this plan:\n\n${this.planContent}`;
-    }
-    return 'Implement the approved plan.';
   }
 
   private handleKeyDown(e: KeyboardEvent): void {
@@ -182,6 +228,15 @@ export class InlineExitPlanMode {
       return;
     }
 
+    if (this.isCollapsed) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        this.handleResolve(null);
+      }
+      return;
+    }
+
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
@@ -199,13 +254,8 @@ export class InlineExitPlanMode {
         e.preventDefault();
         e.stopPropagation();
         if (this.focusedIndex === 0) {
-          this.handleResolve({
-            type: 'approve-new-session',
-            planContent: this.extractPlanContent(),
-          });
-        } else if (this.focusedIndex === 1) {
           this.handleResolve({ type: 'approve' });
-        } else if (this.focusedIndex === 2) {
+        } else if (this.focusedIndex === 1) {
           this.feedbackInput.focus();
         }
         break;

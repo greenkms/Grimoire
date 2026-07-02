@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.26 - 2026-07-02
+
+### Improved
+
+- Redesigned the Plan complete approval surface with a collapsible card, rendered plan preview, permission summary, and keyboard-friendly approval rows.
+- Kept plan approval in the current provider session so Claude Code exits Plan mode cleanly without starting a separate Grimoire session.
+- Documented the new Plan complete approval behavior across the README set.
+
+### Fixed
+
+- Removed the unsupported Approve (new session) path from ExitPlanMode and the related pending new-session state.
+
 ## 1.0.25 - 2026-06-26
 
 ### Improved

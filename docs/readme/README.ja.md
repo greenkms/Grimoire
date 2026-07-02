@@ -293,6 +293,8 @@ Active provider が Plan mode をサポートしている場合、次の 2 通�
 
 Plan mode では、provider が変更を始める前にまず計画します。Composer では Safe と Auto-approve と同じ permission control を使うため、作業中も active mode が見えたままになります。
 
+Provider の計画が完了すると、Grimoire はレンダリング済みの計画、要求された permissions、キーボードで扱いやすい行を備えた折りたたみ可能な Plan complete カードを表示します。Approve は同じ session で続行し、feedback を入力すると provider が計画を見直せるように Plan mode を維持します。
+
 ### Context と mentions
 
 Composer から vault notes と folders を直接 mention できます。Current note や linked note を取り込み、settings で persistent external context paths を追加できます。Provider が image input を受け付ける場合は、画像を貼り付けたり drop したりできます。Provider integration が対応する場合は MCP servers も mention できます。Context tab には、bound note、model、permission mode、pinned files、`.grimoire/grok/system.md` のような launch artifacts、および session 中に agent が読み込んだ files が表示されます。

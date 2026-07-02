@@ -381,7 +381,7 @@ export class StreamController {
       }
     }
 
-    // Track Write to provider plan directory for plan mode (used by approve-new-session)
+    // Track Write to provider plan directory for the ExitPlanMode preview.
     if (chunk.name === TOOL_WRITE) {
       this.capturePlanFilePath(chunk.input);
     }

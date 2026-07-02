@@ -285,6 +285,8 @@ Model selector 旁边的 badge 会持续显示当前 provider 的 usage；model 
 
 Plan mode 会要求 provider 先制定计划，再开始进行更改。在 composer 中，它使用与 Safe 和 Auto-approve 相同的 permission control，因此工作时 active mode 会一直可见。
 
+当 provider 完成计划后，Grimoire 会显示可折叠的 Plan complete 卡片，其中包含渲染后的计划、请求的 permissions，以及适合键盘操作的行。Approve 会在同一个 session 中继续；输入 feedback 会保持 Plan mode，让 provider 可以修改计划。
+
 ### Context 和 mentions
 
 可以直接在 composer 中 mention vault notes 和 folders，拉入 current 或 linked note，并在 settings 中添加 persistent external context paths。Provider 支持 image input 时，可以粘贴或拖放图片。支持的 provider integrations 中也可以 mention MCP servers。Context 标签页会显示绑定的笔记、model、permission mode、固定文件、`.grimoire/grok/system.md` 等 launch artifacts，以及 agent 在 session 期间加载的文件。

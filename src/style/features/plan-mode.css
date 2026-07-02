@@ -1,30 +1,178 @@
-/* Plan Mode - inline cards for EnterPlanMode / ExitPlanMode */
+/* Plan Mode - inline ExitPlanMode / approval cards */
 
 .grimoire-plan-approval-inline {
+  overflow: hidden;
+  border-radius: var(--grimoire-radius-3);
+  outline: none;
+  background: color-mix(in srgb, var(--grimoire-panel-2) 97%, #000);
+  box-shadow:
+    0 22px 64px rgba(0, 0, 0, 0.52),
+    inset 0 0 0 1px var(--grimoire-accent-line);
+  color: var(--text-normal);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  max-height: 80vh;
   font-family: var(--font-monospace);
   font-size: 12px;
-  outline: none;
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  .grimoire-plan-approval-inline {
+    animation: grimoire-plan-rise 0.26s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+}
+
+@keyframes grimoire-plan-rise {
+  from {
+    transform: translateY(16px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.grimoire-plan-approval-inline.is-collapsed {
+  grid-template-rows: auto;
+  max-height: none;
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.38),
+    inset 0 0 0 1px var(--grimoire-accent-line);
+}
+
+.grimoire-plan-approval-inline.is-collapsed .grimoire-plan-inline-title {
+  border-bottom: 0;
+}
+
+.grimoire-plan-approval-inline.is-collapsed .grimoire-plan-content-preview,
+.grimoire-plan-approval-inline.is-collapsed .grimoire-plan-permissions,
+.grimoire-plan-approval-inline.is-collapsed .grimoire-ask-list,
+.grimoire-plan-approval-inline.is-collapsed .grimoire-ask-hints {
+  display: none;
+}
+
+/* Header */
 
 .grimoire-plan-inline-title {
-  font-weight: 700;
-  color: var(--text-muted);
-  padding: 6px 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  padding: 12px 13px 11px;
+  border-bottom: 1px solid var(--grimoire-line);
 }
 
-/* ── Plan content preview ────────────────────────── */
+.grimoire-plan-glyph {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: var(--grimoire-radius-1);
+  background: var(--grimoire-accent-soft);
+  color: var(--grimoire-accent-text);
+  box-shadow: inset 0 0 0 1px var(--grimoire-accent-line);
+}
+
+.grimoire-plan-glyph svg,
+.grimoire-plan-glyph .svg-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.grimoire-plan-title-block {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.grimoire-plan-title {
+  color: var(--text-normal);
+  font-size: 13px;
+  font-weight: 620;
+  line-height: 1.2;
+}
+
+.grimoire-plan-subtitle {
+  overflow: hidden;
+  color: var(--grimoire-workbench-faint);
+  font-size: 11px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-plan-tool-pill {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  margin-left: auto;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--grimoire-raise-2);
+  color: var(--grimoire-workbench-muted);
+  font-family: var(--font-monospace);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.grimoire-plan-tool-pill svg,
+.grimoire-plan-tool-pill .svg-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.grimoire-plan-collapse-toggle {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--grimoire-radius-1);
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition:
+    background 0.13s ease,
+    color 0.13s ease,
+    transform 0.06s ease;
+}
+
+.grimoire-plan-collapse-toggle:hover,
+.grimoire-plan-collapse-toggle:focus-visible {
+  background: var(--grimoire-raise-2);
+  color: var(--text-muted);
+}
+
+.grimoire-plan-collapse-toggle:active {
+  transform: translateY(1px);
+}
+
+.grimoire-plan-collapse-toggle svg,
+.grimoire-plan-collapse-toggle .svg-icon {
+  width: 15px;
+  height: 15px;
+}
+
+/* Plan content preview */
 
 .grimoire-plan-content-preview {
   max-height: 300px;
   overflow-y: auto;
-  margin: 6px 10px 8px;
-  padding: 8px 10px;
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 4px;
-  background: var(--background-primary);
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--text-normal);
+  margin: 13px 13px 8px;
+  padding: 10px 12px;
+  border-radius: var(--grimoire-radius-2);
+  background: var(--grimoire-raise);
+  box-shadow: inset 0 0 0 1px var(--grimoire-line);
+  color: var(--text-muted);
+  font-family: var(--font-interface);
+  font-size: 12.5px;
+  line-height: 1.55;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
 }
 
 .grimoire-plan-content-preview::-webkit-scrollbar {
@@ -32,12 +180,12 @@
 }
 
 .grimoire-plan-content-preview::-webkit-scrollbar-thumb {
-  background: var(--background-modifier-border);
   border-radius: 2px;
+  background: var(--grimoire-line-2);
 }
 
 .grimoire-plan-content-preview p {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
 }
 
 .grimoire-plan-content-preview p:last-child {
@@ -48,49 +196,190 @@
 .grimoire-plan-content-preview h2,
 .grimoire-plan-content-preview h3,
 .grimoire-plan-content-preview h4 {
-  margin: 8px 0 4px;
-  font-size: 13px;
+  margin: 10px 0 6px;
+  color: var(--text-normal);
+  font-size: 12.5px;
+  font-weight: 640;
+  line-height: 1.35;
+}
+
+.grimoire-plan-content-preview h1:first-child,
+.grimoire-plan-content-preview h2:first-child,
+.grimoire-plan-content-preview h3:first-child,
+.grimoire-plan-content-preview h4:first-child {
+  margin-top: 0;
 }
 
 .grimoire-plan-content-preview ul,
 .grimoire-plan-content-preview ol {
-  margin: 2px 0 6px;
+  display: grid;
+  gap: 7px;
+  margin: 3px 0 8px;
   padding-left: 18px;
 }
 
 .grimoire-plan-content-preview li {
   margin: 0;
+  color: var(--text-muted);
 }
 
 .grimoire-plan-content-preview code {
+  color: var(--text-faint);
+  font-family: var(--font-monospace);
   font-size: 11px;
+  font-weight: 500;
+}
+
+.grimoire-plan-content-preview a,
+.grimoire-plan-content-preview .internal-link {
+  color: var(--grimoire-accent-text);
 }
 
 .grimoire-plan-content-text {
   white-space: pre-wrap;
   word-break: break-word;
   font-family: var(--font-monospace);
+  font-size: 11.5px;
+  line-height: 1.55;
 }
 
-/* ── Permissions list ──────────────────────────── */
+.grimoire-plan-read-error {
+  color: var(--text-faint);
+}
+
+/* Permissions list */
 
 .grimoire-plan-permissions {
-  padding: 4px 10px 8px;
+  display: grid;
+  gap: 6px;
+  padding: 0 13px 10px;
 }
 
 .grimoire-plan-permissions-label {
-  color: var(--text-muted);
-  font-weight: 600;
-  margin-bottom: 4px;
+  color: var(--grimoire-workbench-faint);
+  font-family: var(--font-monospace);
+  font-size: 10.5px;
+  font-weight: 650;
 }
 
 .grimoire-plan-permissions-list {
+  display: grid;
+  gap: 5px;
   margin: 0;
   padding-left: 18px;
-  color: var(--text-normal);
+  color: var(--text-muted);
   line-height: 1.5;
 }
 
 .grimoire-plan-permissions-list li {
   margin: 0;
+}
+
+/* Keyboard approval rows */
+
+.grimoire-plan-approval-inline .grimoire-ask-list {
+  display: grid;
+  gap: 3px;
+  padding: 8px 9px;
+  border-top: 1px solid var(--grimoire-line);
+}
+
+.grimoire-plan-approval-inline .grimoire-ask-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  min-height: 38px;
+  padding: 9px 11px;
+  border-radius: var(--grimoire-radius-2);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px transparent;
+  color: var(--text-normal);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 0.12s ease,
+    box-shadow 0.12s ease,
+    color 0.12s ease;
+}
+
+.grimoire-plan-approval-inline .grimoire-ask-item:hover {
+  background: var(--grimoire-raise);
+}
+
+.grimoire-plan-approval-inline .grimoire-ask-item.is-focused {
+  background: var(--grimoire-accent-soft);
+  box-shadow: inset 0 0 0 1px var(--grimoire-accent-line);
+}
+
+.grimoire-plan-approval-inline .grimoire-ask-cursor {
+  width: 8px;
+  flex: 0 0 auto;
+  color: var(--grimoire-accent-text);
+  font-family: var(--font-monospace);
+  font-size: 14px;
+  line-height: 1;
+}
+
+.grimoire-plan-approval-inline .grimoire-ask-item-num {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 5px;
+  background: var(--grimoire-raise-2);
+  color: var(--text-faint);
+  font-family: var(--font-monospace);
+  font-size: 10.5px;
+  font-weight: 650;
+  line-height: 1;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+
+.grimoire-plan-approval-inline .grimoire-ask-item.is-focused .grimoire-ask-item-num {
+  background: var(--grimoire-brand);
+  color: var(--text-on-accent);
+}
+
+.grimoire-plan-approval-inline .grimoire-ask-item-label {
+  flex: 1 1 auto;
+  color: var(--text-normal);
+  font-family: var(--font-interface);
+  font-size: 12.5px;
+  font-weight: 560;
+  line-height: 1.25;
+}
+
+.grimoire-plan-approval-inline .grimoire-ask-custom-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 26px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-normal);
+  font-family: var(--font-interface);
+  font-size: 12.5px;
+  line-height: 1;
+}
+
+.grimoire-plan-approval-inline .grimoire-ask-custom-text::placeholder {
+  color: var(--text-faint);
+}
+
+.grimoire-plan-approval-inline .grimoire-ask-hints {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  padding: 9px 13px 11px;
+  border-top: 1px solid var(--grimoire-line);
+  color: var(--text-faint);
+  font-family: var(--font-monospace);
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1.4;
 }

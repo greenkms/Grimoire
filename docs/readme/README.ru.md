@@ -299,6 +299,8 @@ Badge рядом с model selector показывает usage активного
 
 Plan mode просит provider сначала составить план, прежде чем начинать изменения. В composer он использует тот же permission control, что Safe и Auto-approve, поэтому active mode остаётся видимым во время работы.
 
+Когда provider завершает планирование, Grimoire показывает сворачиваемую карточку Plan complete с отрендеренным планом, запрошенными permissions и keyboard-friendly строками. Approve продолжает работу в той же session; feedback оставляет Plan mode активным, чтобы provider мог пересобрать план.
+
 ### Context и mentions
 
 Упоминайте vault notes и folders прямо из composer, подтягивайте current или linked note, добавляйте persistent external context paths в settings. Вставляйте или перетаскивайте изображения, если provider поддерживает image input. Упоминайте MCP servers там, где provider integration это поддерживает. Вкладка Context показывает привязанную заметку, model, permission mode, закреплённые файлы, launch artifacts вроде `.grimoire/grok/system.md` и файлы, которые agent загрузил во время session.

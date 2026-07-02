@@ -2957,10 +2957,6 @@ export function setupServiceCallbacks(tab: TabData, plugin: GrimoirePlugin): voi
             tab.state.prePlanPermissionMode = null;
             updatePlanModeUI(tab, plugin, restoreMode);
           }
-          if (decision.type === 'approve-new-session') {
-            tab.state.pendingNewSessionPlan = decision.planContent;
-            tab.state.cancelRequested = true;
-          }
         }
         return decision;
       }

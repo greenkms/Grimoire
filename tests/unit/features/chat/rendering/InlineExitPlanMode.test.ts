@@ -31,7 +31,7 @@ function findItems(root: any): any[] {
 }
 
 describe('InlineExitPlanMode', () => {
-  it('resolves with approve-new-session and includes plan content when readable', () => {
+  it('renders readable plan content and resolves with current-session approval by default', () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'grimoire-'));
     const plansDir = path.join(tmpDir, '.claude', 'plans');
     fs.mkdirSync(plansDir, { recursive: true });
@@ -65,11 +65,24 @@ describe('InlineExitPlanMode', () => {
     fireKeyDown(root, 'Enter');
 
     expect(resolve).toHaveBeenCalledTimes(1);
-    expect(resolve).toHaveBeenCalledWith({
-      type: 'approve-new-session',
-      planContent: 'Implement this plan:\n\nStep 1\nStep 2',
-    });
+    expect(resolve).toHaveBeenCalledWith({ type: 'approve' });
     expect(root.getEventListenerCount('keydown')).toBe(0);
+  });
+
+  it('does not render a new-session approval option', () => {
+    const container = createMockEl();
+    const resolve = jest.fn();
+
+    const widget = new InlineExitPlanMode(container, {}, resolve);
+    widget.render();
+
+    const root = findRoot(container);
+    const labels = root
+      .querySelectorAll('grimoire-ask-item-label')
+      .map((label: any) => label.textContent);
+
+    expect(labels).toEqual(['Approve (current session)']);
+    expect(labels).not.toContain('Approve (new session)');
   });
 
   it('shows a read error when plan file cannot be read', () => {
@@ -92,10 +105,7 @@ describe('InlineExitPlanMode', () => {
     expect(container.querySelector('.grimoire-plan-read-error')).toBeTruthy();
 
     fireKeyDown(root, 'Enter');
-    expect(resolve).toHaveBeenCalledWith({
-      type: 'approve-new-session',
-      planContent: 'Implement the approved plan.',
-    });
+    expect(resolve).toHaveBeenCalledWith({ type: 'approve' });
   });
 
   it('rejects plan file paths outside .claude/plans/', () => {
@@ -118,13 +128,10 @@ describe('InlineExitPlanMode', () => {
     expect(container.querySelector('.grimoire-plan-read-error')).toBeTruthy();
 
     fireKeyDown(root, 'Enter');
-    expect(resolve).toHaveBeenCalledWith({
-      type: 'approve-new-session',
-      planContent: 'Implement the approved plan.',
-    });
+    expect(resolve).toHaveBeenCalledWith({ type: 'approve' });
   });
 
-  it('supports keyboard navigation for approve/current-session', () => {
+  it('supports keyboard navigation for feedback', () => {
     const container = createMockEl();
     const resolve = jest.fn();
 
@@ -137,7 +144,65 @@ describe('InlineExitPlanMode', () => {
     fireKeyDown(root, 'ArrowDown');
     fireKeyDown(root, 'Enter');
 
-    expect(resolve).toHaveBeenCalledWith({ type: 'approve' });
+    expect(resolve).not.toHaveBeenCalled();
+    expect((widget as any).isInputFocused).toBe(true);
+  });
+
+  it('renders plan header chrome with a collapse toggle', () => {
+    const container = createMockEl();
+    const resolve = jest.fn();
+
+    const widget = new InlineExitPlanMode(container, {}, resolve);
+    widget.render();
+
+    expect(container.querySelector('.grimoire-plan-glyph')).toBeTruthy();
+    expect(container.querySelector('.grimoire-plan-title')).toBeTruthy();
+    expect(container.querySelector('.grimoire-plan-tool-label')?.textContent).toBe('plan');
+
+    const collapseToggle = container.querySelector('.grimoire-plan-collapse-toggle');
+    expect(collapseToggle).toBeTruthy();
+    expect(collapseToggle?.getAttribute('aria-label')).toBe('Collapse plan');
+    expect(collapseToggle?.getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('collapses and expands without resolving the plan decision', () => {
+    const container = createMockEl();
+    const resolve = jest.fn();
+
+    const widget = new InlineExitPlanMode(container, {}, resolve);
+    widget.render();
+
+    const root = findRoot(container);
+    const collapseToggle = container.querySelector('.grimoire-plan-collapse-toggle');
+
+    collapseToggle?.click();
+
+    expect(root.hasClass('is-collapsed')).toBe(true);
+    expect(collapseToggle?.getAttribute('aria-label')).toBe('Expand plan');
+    expect(collapseToggle?.getAttribute('aria-expanded')).toBe('false');
+    expect(resolve).not.toHaveBeenCalled();
+
+    collapseToggle?.click();
+
+    expect(root.hasClass('is-collapsed')).toBe(false);
+    expect(collapseToggle?.getAttribute('aria-label')).toBe('Collapse plan');
+    expect(collapseToggle?.getAttribute('aria-expanded')).toBe('true');
+    expect(resolve).not.toHaveBeenCalled();
+  });
+
+  it('still resolves null on Escape while collapsed', () => {
+    const container = createMockEl();
+    const resolve = jest.fn();
+
+    const widget = new InlineExitPlanMode(container, {}, resolve);
+    widget.render();
+
+    const root = findRoot(container);
+    container.querySelector('.grimoire-plan-collapse-toggle')?.click();
+
+    fireKeyDown(root, 'Escape');
+
+    expect(resolve).toHaveBeenCalledWith(null);
   });
 
   it('supports feedback flow and Escape when input is focused', () => {
@@ -151,11 +216,10 @@ describe('InlineExitPlanMode', () => {
     expect(root).toBeTruthy();
 
     fireKeyDown(root, 'ArrowDown');
-    fireKeyDown(root, 'ArrowDown');
     fireKeyDown(root, 'Enter');
 
     const items = findItems(root);
-    const feedbackRow = items[2];
+    const feedbackRow = items[1];
     const feedbackInput = feedbackRow.querySelector('grimoire-ask-custom-text');
 
     expect(resolve).not.toHaveBeenCalled();

@@ -29,7 +29,7 @@ import type {
   ChatTurnRequest,
 } from '../../../core/runtime/types';
 import { isTrustedReadOnlyMcpTool } from '../../../core/tools/mcpTrust';
-import { TOOL_BASH, TOOL_EXIT_PLAN_MODE } from '../../../core/tools/toolNames';
+import { TOOL_BASH } from '../../../core/tools/toolNames';
 import type { ApprovalDecision, ChatMessage, ExitPlanModeDecision, StreamChunk } from '../../../core/types';
 import { t } from '../../../i18n/i18n';
 import type GrimoirePlugin from '../../../main';
@@ -48,7 +48,7 @@ import { InlineExitPlanMode } from '../rendering/InlineExitPlanMode';
 import { InlinePermissionRequest } from '../rendering/InlinePermissionRequest';
 import { InlinePlanApproval,type PlanApprovalDecision } from '../rendering/InlinePlanApproval';
 import type { MessageRenderer } from '../rendering/MessageRenderer';
-import { getToolSummary, updateToolCallResult } from '../rendering/ToolCallRenderer';
+import { getToolSummary } from '../rendering/ToolCallRenderer';
 import type { SubagentManager } from '../services/SubagentManager';
 import type { ChatState } from '../state/ChatState';
 import type { QueuedMessage } from '../state/types';
@@ -564,7 +564,7 @@ export class InputController {
       // Skip remaining cleanup if stream was invalidated (tab closed or conversation switched)
       if (!wasInvalidated && state.streamGeneration === streamGeneration) {
         const didCancelThisTurn = wasInterrupted || state.cancelRequested;
-        if (didCancelThisTurn && !state.pendingNewSessionPlan) {
+        if (didCancelThisTurn) {
           await streamController.appendText('\n\n<span class="grimoire-interrupted">Interrupted</span> <span class="grimoire-interrupted-hint">· What should Grimoire do instead?</span>');
         }
         streamController.hideThinkingIndicator();
@@ -607,19 +607,6 @@ export class InputController {
         }
         this.syncScrollToBottomAfterRenderUpdates();
 
-        // approve-new-session: the tool_result chunk is dropped because cancelRequested
-        // was set before the stream loop could process it — manually set the result so
-        // the saved conversation renders correctly when revisited
-        if (state.pendingNewSessionPlan && finalAssistantMsg.toolCalls) {
-          for (const tc of finalAssistantMsg.toolCalls) {
-            if (tc.name === TOOL_EXIT_PLAN_MODE && !tc.result) {
-              tc.status = 'completed';
-              tc.result = 'User approved the plan and started a new session.';
-              updateToolCallResult(tc.id, tc, state.toolCallElements);
-            }
-          }
-        }
-
         // Provider-agnostic post-plan approval: show UI and await decision before save/auto-send
         let planAutoSendContent: string | null = null;
         let planApprovalInvalidated = false;
@@ -652,24 +639,12 @@ export class InputController {
           const userMsgIndex = state.messages.indexOf(userMsg);
           renderer.refreshActionButtons(userMsg, state.messages, userMsgIndex >= 0 ? userMsgIndex : undefined);
 
-          // Auto-implement takes precedence over both approve-new-session and queued input
+          // Auto-implement takes precedence over queued input
           if (planAutoSendContent) {
             this.deps.getInputEl().value = planAutoSendContent;
             this.sendMessage().catch(() => {});
           } else {
-            // approve-new-session: create fresh conversation and send plan content
-            // Must be inside the invalidation guard — if the tab was closed or
-            // conversation switched, we must not create a new session on stale state.
-            const planContent = state.pendingNewSessionPlan;
-            if (planContent) {
-              state.pendingNewSessionPlan = null;
-              await conversationController.createNew();
-              this.deps.getInputEl().value = planContent;
-              this.sendMessage().catch(() => {
-                // sendMessage() handles its own errors internally; this prevents
-                // unhandled rejection if an unexpected error slips through.
-              });
-            } else if (shouldProcessQueuedMessage) {
+            if (shouldProcessQueuedMessage) {
               this.processQueuedMessage();
             }
           }

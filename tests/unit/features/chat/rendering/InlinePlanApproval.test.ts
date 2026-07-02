@@ -70,6 +70,25 @@ describe('InlinePlanApproval', () => {
 
       expect(resolve).toHaveBeenCalledWith({ type: 'revise', text: 'Add error handling' });
     });
+
+    it('collapses and expands without resolving a decision', () => {
+      const { container, resolve } = createApproval();
+      const rootEl = container.querySelector('.grimoire-plan-approval-inline');
+      const collapseToggle = container.querySelector('.grimoire-plan-collapse-toggle');
+
+      expect(collapseToggle).toBeTruthy();
+      expect(collapseToggle?.getAttribute('aria-label')).toBe('Collapse plan');
+
+      collapseToggle?.click();
+      expect(rootEl?.hasClass('is-collapsed')).toBe(true);
+      expect(collapseToggle?.getAttribute('aria-label')).toBe('Expand plan');
+      expect(resolve).not.toHaveBeenCalled();
+
+      collapseToggle?.click();
+      expect(rootEl?.hasClass('is-collapsed')).toBe(false);
+      expect(collapseToggle?.getAttribute('aria-label')).toBe('Collapse plan');
+      expect(resolve).not.toHaveBeenCalled();
+    });
   });
 
   describe('keyboard navigation', () => {

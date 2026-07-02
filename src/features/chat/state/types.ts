@@ -100,9 +100,6 @@ export interface ChatStateData {
   responseStartTime: number | null;
   flavorTimerInterval: number | null;
 
-  // Pending plan content for approve-new-session (auto-sends in new session after stream ends)
-  pendingNewSessionPlan: string | null;
-
   // Plan file path captured from Write tool calls to provider plan directory during plan mode
   planFilePath: string | null;
 

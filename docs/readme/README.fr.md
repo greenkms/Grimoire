@@ -293,6 +293,8 @@ Quand le provider actif prend en charge Plan mode, vous pouvez l'activer de deux
 
 Plan mode demande au provider de planifier avant de commencer les changements. Dans le composer, il utilise le même permission control que Safe et Auto-approve, donc le mode actif reste visible pendant le travail.
 
+Quand un provider termine la planification, Grimoire affiche une carte Plan complete repliable avec le plan rendu, les permissions demandées et des lignes faciles à piloter au clavier. Approve continue dans la même session ; feedback garde Plan mode actif pour que le provider puisse revoir le plan.
+
 ### Context et mentions
 
 Mentionnez des vault notes et folders directement depuis le composer, ajoutez la current ou linked note, et configurez des persistent external context paths dans settings. Collez ou déposez des images quand le provider accepte image input. Mentionnez des MCP servers là où l'integration provider le permet. L'onglet Context affiche la note liée, le model, le permission mode, les fichiers épinglés, les launch artifacts comme `.grimoire/grok/system.md`, et les fichiers que l'agent a chargés pendant la session.
