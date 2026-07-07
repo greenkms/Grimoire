@@ -570,6 +570,29 @@ describe('ModelSelector', () => {
     expect(labels).toEqual(['Opus 4.8', 'Opus 4.7']);
   });
 
+  it('matches model search words across label and provider group', () => {
+    const groupedModels = [
+      { value: 'sonnet', label: 'Sonnet 5', description: 'Daily coding', group: 'Claude Code' },
+      {
+        value: 'antigravity:Claude Sonnet 4.6 (Thinking)',
+        label: 'Claude Sonnet 4.6 (Thinking)',
+        group: 'Antigravity',
+      },
+    ];
+    const uiConfig = createMockUIConfig();
+    uiConfig.getModelOptions.mockReturnValue(groupedModels);
+    callbacks.getUIConfig.mockReturnValue(uiConfig);
+    selector.renderOptions();
+
+    const input = parentEl.querySelector('.grimoire-model-search-input') as any;
+    input!.value = 'claude sonnet';
+    input!.dispatchEvent('input');
+
+    const labels = (Array.from(parentEl.querySelectorAll('.grimoire-model-option-label')) as any[])
+      .map(el => el.textContent);
+    expect(labels).toEqual(['Claude Sonnet 4.6 (Thinking)', 'Sonnet 5']);
+  });
+
   it('should bound long model names inside a copy wrapper', () => {
     const uiConfig = createMockUIConfig();
     const longModel = 'minimax-token-plan/minimax-m2.7-highspeed';

@@ -650,6 +650,7 @@ export class ModelSelector {
     if (!query) {
       return models;
     }
+    const terms = query.split(/\s+/).filter(Boolean);
 
     return models.filter((model) => {
       const haystack = [
@@ -658,7 +659,7 @@ export class ModelSelector {
         model.group,
         model.value,
       ].filter(Boolean).join(' ').toLowerCase();
-      return haystack.includes(query);
+      return terms.every(term => haystack.includes(term));
     });
   }
 

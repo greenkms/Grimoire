@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.27 - 2026-07-07
+
+### Fixed
+
+- Fixed model picker search so multi-word queries such as `claude sonnet` match across provider names and model labels.
+- Kept Claude Code's `Sonnet 5` alias discoverable when Antigravity also exposes older Claude Sonnet models.
+
 ## 1.0.26 - 2026-07-02
 
 ### Improved
