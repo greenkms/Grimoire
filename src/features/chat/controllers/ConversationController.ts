@@ -1,5 +1,6 @@
 import { Menu, Notice, setIcon } from 'obsidian';
 
+import { ProviderRegistry } from '../../../core/providers/ProviderRegistry';
 import type { ProviderId, TitleGenerationService } from '../../../core/providers/types';
 import type { ChatRuntime } from '../../../core/runtime/ChatRuntime';
 import type { ChatRewindMode } from '../../../core/runtime/types';
@@ -22,6 +23,18 @@ function runConversationAction(action: () => Promise<void>, failureMessage: stri
   void action().catch(() => {
     new Notice(failureMessage);
   });
+}
+
+function hasStartedConversation(conversation: Conversation): boolean {
+  if (conversation.messages.length > 0) {
+    return true;
+  }
+  try {
+    const historyService = ProviderRegistry.getConversationHistoryService(conversation.providerId);
+    return !!historyService.resolveSessionIdForConversation?.(conversation);
+  } catch {
+    return !!conversation.sessionId;
+  }
 }
 
 export interface ConversationCallbacks {
@@ -505,25 +518,26 @@ export class ConversationController {
     this.deps.hydrateRuntimeContextFromMessages?.(conversation.providerId, state.messages);
 
     const hasMessages = state.messages.length > 0;
+    const hasStartedSession = hasMessages || hasStartedConversation(conversation);
 
-    // Determine external context paths for this session
-    // Empty session: use persistent paths; session with messages: use saved paths
-    const externalContextPaths = hasMessages
+    // Determine external context paths for this session.
+    // Brand-new sessions use persistent paths; restored provider sessions use saved paths.
+    const externalContextPaths = hasStartedSession
       ? conversation.externalContextPaths || []
       : plugin.settings.persistentExternalContextPaths || [];
 
     this.getAgentService()?.syncConversationState(conversation, externalContextPaths);
 
     const fileCtx = this.deps.getFileContextManager();
-    fileCtx?.resetForLoadedConversation(hasMessages);
+    fileCtx?.resetForLoadedConversation(hasStartedSession);
 
     if (conversation.currentNote) {
       fileCtx?.setCurrentNote(conversation.currentNote);
-    } else if (!hasMessages && options?.autoAttachFile) {
+    } else if (!hasStartedSession && options?.autoAttachFile) {
       fileCtx?.autoAttachActiveFile();
     }
 
-    this.restoreExternalContextPaths(conversation.externalContextPaths, !hasMessages);
+    this.restoreExternalContextPaths(conversation.externalContextPaths, !hasStartedSession);
 
     const mcpServerSelector = this.deps.getMcpServerSelector();
     if (conversation.enabledMcpServers && conversation.enabledMcpServers.length > 0) {

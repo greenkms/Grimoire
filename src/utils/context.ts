@@ -20,8 +20,15 @@ const CURRENT_NOTE_SUFFIX_REGEX = /\n\n<current_note>\n[\s\S]*?<\/current_note>$
  */
 export const XML_CONTEXT_PATTERN = /\n\n<(?:current_note|editor_selection|editor_cursor|context_files|canvas_selection|browser_selection|vault_search|project_workspace)[\s>]/;
 
+const CURRENT_NOTE_DEFAULT_TARGET_HINT = 'Default target: If the user asks to edit, rewrite, update, or apply instructions without naming another target file, use this note as the target file.';
+
 export function formatCurrentNote(notePath: string): string {
-  return `<current_note>\n${notePath}\n</current_note>`;
+  return [
+    '<current_note>',
+    notePath,
+    CURRENT_NOTE_DEFAULT_TARGET_HINT,
+    '</current_note>',
+  ].join('\n');
 }
 
 export function appendCurrentNote(prompt: string, notePath: string): string {

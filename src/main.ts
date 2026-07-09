@@ -16,6 +16,7 @@ import { SharedStorageService } from './app/storage/SharedStorageService';
 import {
   applyAssistantResponseMetadataToMessages,
   applyVaultSearchContextsToMessages,
+  clonePersistedMessages,
   collectAssistantResponseMetadata,
   collectVaultSearchContexts,
 } from './core/bootstrap/SessionStorage';
@@ -503,7 +504,7 @@ export default class GrimoirePlugin extends Plugin {
         lastResponseAt: meta.lastResponseAt,
         sessionId: resumeSessionId,
         providerState: meta.providerState,
-        messages: [],
+        messages: clonePersistedMessages(meta.messages),
         currentNote: meta.currentNote,
         externalContextPaths: meta.externalContextPaths,
         enabledMcpServers: meta.enabledMcpServers,

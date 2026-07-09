@@ -689,11 +689,10 @@ describe('SessionStorage', () => {
       expect(metadata.usage).toEqual(usage);
       expect(metadata.titleGenerationStatus).toBe('success');
 
-      // Should not include messages
-      expect(metadata).not.toHaveProperty('messages');
+      expect(metadata.messages).toEqual(conversation.messages);
     });
 
-    it('persists vault search source metadata without storing full messages', () => {
+    it('persists vault search source metadata alongside fallback messages', () => {
       const conversation: Conversation = {
         id: 'conv-vault-search',
         providerId: 'claude' as ProviderId,
@@ -731,7 +730,7 @@ describe('SessionStorage', () => {
 
       const metadata = storage.toSessionMetadata(conversation);
 
-      expect(metadata).not.toHaveProperty('messages');
+      expect(metadata.messages).toEqual(conversation.messages);
       expect(metadata.vaultSearchContexts).toEqual([
         {
           userMessageIndex: 0,
@@ -748,7 +747,7 @@ describe('SessionStorage', () => {
       ]);
     });
 
-    it('persists assistant response metadata without storing full messages', () => {
+    it('persists assistant response metadata alongside fallback messages', () => {
       const conversation: Conversation = {
         id: 'conv-assistant-meta',
         providerId: 'claude' as ProviderId,
@@ -778,7 +777,7 @@ describe('SessionStorage', () => {
 
       const metadata = storage.toSessionMetadata(conversation);
 
-      expect(metadata).not.toHaveProperty('messages');
+      expect(metadata.messages).toEqual(conversation.messages);
       expect(metadata.assistantResponseMetadata).toEqual([
         {
           assistantMessageIndex: 0,

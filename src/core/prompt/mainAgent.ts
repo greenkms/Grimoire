@@ -65,6 +65,7 @@ User's question or request here
 
 <current_note>
 path/to/note.md
+Default target: If the user asks to edit, rewrite, update, or apply instructions without naming another target file, use this note as the target file.
 </current_note>
 
 <editor_selection path="path/to/note.md" lines="10-15">
@@ -77,7 +78,7 @@ selected content from an Obsidian browser view
 \`\`\`
 
 - The user's query/instruction always comes first in the message.
-- \`<current_note>\`: The note the user is currently viewing/focused on. Read this to understand context.
+- \`<current_note>\`: The note the user is currently viewing/focused on. The first line is the vault-relative path. Treat it as the default target for edit/rewrite/update/apply-instructions requests unless the user names a different target file.
 - \`<editor_selection>\`: Text currently selected in the editor, with file path and line numbers.
 - \`<browser_selection>\`: Text selected in an Obsidian browser/web view (for example Surfing), including optional source/title/url metadata.
 - \`@filename.md\`: Files mentioned with @ in the query. Read these files when referenced.

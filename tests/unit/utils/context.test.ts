@@ -12,13 +12,23 @@ import {
 describe('formatCurrentNote', () => {
   it('formats note path in XML tags', () => {
     expect(formatCurrentNote('notes/test.md')).toBe(
-      '<current_note>\nnotes/test.md\n</current_note>'
+      [
+        '<current_note>',
+        'notes/test.md',
+        'Default target: If the user asks to edit, rewrite, update, or apply instructions without naming another target file, use this note as the target file.',
+        '</current_note>',
+      ].join('\n')
     );
   });
 
   it('handles paths with special characters', () => {
     expect(formatCurrentNote('notes/my file (1).md')).toBe(
-      '<current_note>\nnotes/my file (1).md\n</current_note>'
+      [
+        '<current_note>',
+        'notes/my file (1).md',
+        'Default target: If the user asks to edit, rewrite, update, or apply instructions without naming another target file, use this note as the target file.',
+        '</current_note>',
+      ].join('\n')
     );
   });
 });
@@ -27,7 +37,14 @@ describe('appendCurrentNote', () => {
   it('appends current note to prompt with double newline separator', () => {
     const result = appendCurrentNote('Hello', 'notes/test.md');
     expect(result).toBe(
-      'Hello\n\n<current_note>\nnotes/test.md\n</current_note>'
+      [
+        'Hello',
+        '',
+        '<current_note>',
+        'notes/test.md',
+        'Default target: If the user asks to edit, rewrite, update, or apply instructions without naming another target file, use this note as the target file.',
+        '</current_note>',
+      ].join('\n')
     );
   });
 

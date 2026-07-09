@@ -129,6 +129,21 @@ export class TabManager implements TabManagerInterface {
       .length;
   }
 
+  private hasStartedConversation(conversation: Conversation | null | undefined): conversation is Conversation {
+    if (!conversation) {
+      return false;
+    }
+    if (conversation.messages.length > 0) {
+      return true;
+    }
+    try {
+      const historyService = ProviderRegistry.getConversationHistoryService(conversation.providerId);
+      return !!historyService.resolveSessionIdForConversation?.(conversation);
+    } catch {
+      return !!conversation.sessionId;
+    }
+  }
+
   constructor(
     plugin: GrimoirePlugin,
     containerEl: HTMLElement,
@@ -333,8 +348,8 @@ export class TabManager implements TabManagerInterface {
         // Passive sync is only safe once local tab state has been persisted.
         const conversation = this.plugin.getConversationSync(tab.conversationId);
         if (conversation) {
-          const hasMessages = conversation.messages.length > 0;
-          const externalContextPaths = hasMessages
+          const hasStartedSession = this.hasStartedConversation(conversation);
+          const externalContextPaths = hasStartedSession
             ? conversation.externalContextPaths || []
             : (this.plugin.settings.persistentExternalContextPaths || []);
 
@@ -966,7 +981,7 @@ export class TabManager implements TabManagerInterface {
     const conversation = tab.conversationId
       ? await this.plugin.getConversationById(tab.conversationId)
       : null;
-    const hasConversationContext = (conversation?.messages.length ?? 0) > 0;
+    const hasConversationContext = this.hasStartedConversation(conversation);
     const externalContextPaths = tab.ui.externalContextSelector?.getExternalContexts()
       ?? (hasConversationContext
         ? conversation?.externalContextPaths ?? []

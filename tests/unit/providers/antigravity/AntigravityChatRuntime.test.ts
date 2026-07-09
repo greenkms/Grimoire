@@ -133,6 +133,7 @@ describe('AntigravityChatRuntime', () => {
         canvasPath: 'board.canvas',
         nodeIds: ['node-1', 'node-2'],
       },
+      contextFiles: ['notes/instructions.md'],
       currentNotePath: 'notes/today.md',
       editorSelection: {
         mode: 'selection',
@@ -146,6 +147,8 @@ describe('AntigravityChatRuntime', () => {
 
     expect(turn.persistedContent).toContain('<current_note>');
     expect(turn.persistedContent).toContain('notes/today.md');
+    expect(turn.persistedContent).toContain('<context_files>');
+    expect(turn.persistedContent).toContain('notes/instructions.md');
     expect(turn.persistedContent).toContain('<editor_selection path="notes/today.md" lines="4-5">');
     expect(turn.persistedContent).toContain('Selected text');
     expect(turn.persistedContent).toContain('<browser_selection source="browser:https://example.com" title="Example" url="https://example.com">');
@@ -158,6 +161,7 @@ describe('AntigravityChatRuntime', () => {
     }));
     const prompt = (runPrint.mock.calls[0][0] as { prompt: string }).prompt;
     expect(prompt).toContain('<editor_selection path="notes/today.md" lines="4-5">');
+    expect(prompt).toContain('notes/instructions.md');
     expect(prompt).toContain('<browser_selection source="browser:https://example.com" title="Example" url="https://example.com">');
     expect(prompt).toContain('<canvas_selection path="board.canvas">');
   });

@@ -3,6 +3,7 @@ import * as os from 'os';
 import * as path from 'path';
 
 import type { ChatMessage, ContentBlock, ToolCallInfo } from '../../../core/types';
+import { extractContentBeforeXmlContext } from '../../../utils/context';
 import { sanitizeCodexAssistantText } from '../normalization/codexAssistantTextSanitizer';
 import {
   isCodexToolOutputError,
@@ -403,6 +404,11 @@ function isCodexSystemMessage(text: string): boolean {
 
 function extractCodexDisplayContent(text: string): string | undefined {
   if (!text) return undefined;
+
+  const xmlContent = extractContentBeforeXmlContext(text);
+  if (xmlContent !== undefined) {
+    return xmlContent;
+  }
 
   const bracketMatch = text.match(CODEX_BRACKET_CONTEXT_PATTERN);
   if (bracketMatch?.index !== undefined) {

@@ -1,5 +1,8 @@
 import type { ChatTurnRequest, PreparedChatTurn } from '../../../core/runtime/types';
-import { appendContextFiles, appendProjectWorkspaceContext, appendVaultSearchContext } from '../../../utils/context';
+import { appendBrowserContext } from '../../../utils/browser';
+import { appendCanvasContext } from '../../../utils/canvas';
+import { appendContextFiles, appendCurrentNote, appendProjectWorkspaceContext, appendVaultSearchContext } from '../../../utils/context';
+import { appendEditorContext } from '../../../utils/editor';
 
 function isCompactCommand(text: string): boolean {
   return /^\/compact(\s|$)/i.test(text);
@@ -22,7 +25,7 @@ export function encodeCodexTurn(request: ChatTurnRequest): PreparedChatTurn {
   sections.push(request.text);
 
   if (request.currentNotePath) {
-    sections.push(`\n[Current note: ${request.currentNotePath}]`);
+    sections.push(`\n${appendCurrentNote('', request.currentNotePath).trim()}`);
   }
 
   if (request.vaultSearchContext) {
@@ -38,23 +41,17 @@ export function encodeCodexTurn(request: ChatTurnRequest): PreparedChatTurn {
   }
 
   if (request.editorSelection?.selectedText) {
-    sections.push(
-      `\n[Editor selection from ${request.editorSelection.notePath || 'current note'}:\n${request.editorSelection.selectedText}\n]`,
-    );
+    sections.push(`\n${appendEditorContext('', request.editorSelection).trim()}`);
   }
 
   if (request.browserSelection?.selectedText) {
-    sections.push(
-      `\n[Browser selection from ${request.browserSelection.url ?? 'unknown page'}:\n${request.browserSelection.selectedText}\n]`,
-    );
+    sections.push(`\n${appendBrowserContext('', request.browserSelection).trim()}`);
   }
 
   if (request.canvasSelection) {
-    const nodeList = request.canvasSelection.nodeIds.join(', ');
-    if (nodeList) {
-      sections.push(
-        `\n[Canvas selection from ${request.canvasSelection.canvasPath}:\n${nodeList}\n]`,
-      );
+    const formatted = appendCanvasContext('', request.canvasSelection).trim();
+    if (formatted) {
+      sections.push(`\n${formatted}`);
     }
   }
 

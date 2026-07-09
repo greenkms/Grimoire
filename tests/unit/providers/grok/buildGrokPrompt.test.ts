@@ -38,6 +38,18 @@ describe('buildGrokPromptText', () => {
     expect(prompt).not.toContain('/tmp/project');
   });
 
+  it('appends selected context files to the Grok prompt', () => {
+    const prompt = buildGrokPromptText({
+      contextFiles: ['notes/instructions.md'],
+      text: 'Apply these instructions',
+    });
+
+    expect(prompt).toContain('<context_files>');
+    expect(prompt).toContain('The user selected these files as active context.');
+    expect(prompt).toContain('Inspect the relevant selected files before answering broad or deictic requests.');
+    expect(prompt).toContain('notes/instructions.md');
+  });
+
   it('appends vault search context to the prompt', () => {
     const prompt = buildGrokPromptText({
       text: 'Summarize this',

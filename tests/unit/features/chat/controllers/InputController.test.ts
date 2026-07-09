@@ -39,6 +39,7 @@ function createMockFileContextManager() {
   return {
     startSession: jest.fn(),
     getCurrentNotePath: jest.fn().mockReturnValue(null),
+    getAttachedFiles: jest.fn().mockReturnValue(new Set<string>()),
     shouldSendCurrentNote: jest.fn().mockReturnValue(false),
     markCurrentNoteSent: jest.fn(),
     transformContextMentions: jest.fn().mockImplementation((text: string) => text),
@@ -182,6 +183,7 @@ function createMockDeps(overrides: Partial<InputControllerDeps> = {}): InputCont
     getFileContextManager: () => ({
       startSession: jest.fn(),
       getCurrentNotePath: jest.fn().mockReturnValue(null),
+      getAttachedFiles: jest.fn().mockReturnValue(new Set<string>()),
       shouldSendCurrentNote: jest.fn().mockReturnValue(false),
       markCurrentNoteSent: jest.fn(),
       transformContextMentions: jest.fn().mockImplementation((text: string) => text),
@@ -2549,6 +2551,36 @@ describe('InputController - Message Queue', () => {
       } finally {
         fs.rmSync(tempDir, { recursive: true, force: true });
       }
+    });
+
+    it('should pass pinned vault @mention files as context files alongside the current note', async () => {
+      const fileContextManager = {
+        ...createMockFileContextManager(),
+        getCurrentNotePath: jest.fn().mockReturnValue('notes/target.md'),
+        shouldSendCurrentNote: jest.fn().mockReturnValue(true),
+        getAttachedFiles: jest.fn().mockReturnValue(new Set([
+          'notes/instructions.md',
+          'notes/target.md',
+        ])),
+      };
+
+      deps = createSendableDeps({
+        getFileContextManager: () => fileContextManager as any,
+      });
+
+      ((deps as any).mockAgentService.query as jest.Mock).mockReturnValue(
+        createMockStream([{ type: 'done' }])
+      );
+
+      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl.value = 'apply these instructions';
+      controller = new InputController(deps);
+
+      await controller.sendMessage();
+
+      const prepareTurnCall = ((deps as any).mockAgentService.prepareTurn as jest.Mock).mock.calls[0];
+      expect(prepareTurnCall[0].currentNotePath).toBe('notes/target.md');
+      expect(prepareTurnCall[0].contextFiles).toEqual(['notes/instructions.md']);
     });
   });
 

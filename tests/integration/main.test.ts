@@ -1068,6 +1068,53 @@ describe('GrimoirePlugin', () => {
       expect(loaded?.title).toBe('Saved Chat');
     });
 
+    it('should restore persisted messages when native provider history is unavailable', async () => {
+      const timestamp = Date.now();
+      const messages = [
+        { id: 'user-1', role: 'user', content: 'Apply @instructions to the current note', timestamp },
+        { id: 'assistant-1', role: 'assistant', content: 'Done.', timestamp: timestamp + 1 },
+      ];
+      const sessionMeta = JSON.stringify({
+        id: 'conv-antigravity-1',
+        providerId: 'antigravity',
+        title: 'Antigravity Chat',
+        createdAt: timestamp,
+        updatedAt: timestamp + 1,
+        sessionId: 'agy-session',
+        messages,
+      });
+
+      mockApp.vault.adapter.exists.mockImplementation(async (path: string) => {
+        return path === '.grimoire/grimoire-settings.json' ||
+          path === '.grimoire/sessions' ||
+          path === '.grimoire/sessions/conv-antigravity-1.meta.json';
+      });
+      mockApp.vault.adapter.list.mockImplementation(async (path: string) => {
+        if (path === '.grimoire/sessions') {
+          return { files: ['.grimoire/sessions/conv-antigravity-1.meta.json'], folders: [] };
+        }
+        return { files: [], folders: [] };
+      });
+      mockApp.vault.adapter.read.mockImplementation(async (path: string) => {
+        if (path === '.grimoire/sessions/conv-antigravity-1.meta.json') {
+          return sessionMeta;
+        }
+        if (path === '.grimoire/grimoire-settings.json') {
+          return JSON.stringify({});
+        }
+        return '';
+      });
+
+      await plugin.loadSettings();
+
+      const listEntry = plugin.getConversationList().find(meta => meta.id === 'conv-antigravity-1');
+      expect(listEntry?.messageCount).toBe(2);
+      expect(listEntry?.preview).toContain('Apply @instructions');
+
+      const loaded = await plugin.getConversationById('conv-antigravity-1');
+      expect(loaded?.messages).toEqual(messages);
+    });
+
     it('should clear session IDs when provider base URL changes', async () => {
       const timestamp = Date.now();
       const sessionMeta = JSON.stringify({

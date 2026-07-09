@@ -38,6 +38,16 @@ describe('buildKimicodePromptText', () => {
     expect(prompt).not.toContain('/tmp/project');
   });
 
+  it('appends selected context files to the Kimi Code prompt', () => {
+    const prompt = buildKimicodePromptText({
+      contextFiles: ['notes/instructions.md'],
+      text: 'Apply these instructions',
+    });
+
+    expect(prompt).toContain('<context_files>');
+    expect(prompt).toContain('notes/instructions.md');
+  });
+
   it('appends vault search context to the prompt', () => {
     const prompt = buildKimicodePromptText({
       text: 'Summarize this',

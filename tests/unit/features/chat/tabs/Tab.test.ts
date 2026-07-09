@@ -564,6 +564,24 @@ describe('Tab - Creation', () => {
       expect(tab.conversationId).toBe('conv-123');
     });
 
+    it('should bind an empty conversation that has a provider session', () => {
+      const options = createMockOptions({
+        conversation: {
+          id: 'conv-session',
+          providerId: 'claude',
+          title: 'Started Conversation',
+          messages: [],
+          sessionId: 'session-1',
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        },
+      });
+      const tab = createTab(options);
+
+      expect(tab.lifecycleState).toBe('bound_cold');
+      expect(tab.conversationId).toBe('conv-session');
+    });
+
     it('should restore orchestrator mode from the conversation', () => {
       const options = createMockOptions({
         conversation: {

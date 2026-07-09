@@ -32,6 +32,7 @@ describe('systemPrompt', () => {
       expect(prompt).toContain('Grimoire');
       expect(prompt).toContain('## Path Conventions');
       expect(prompt).toContain('# User Message Format');
+      expect(prompt).toContain('Treat it as the default target for edit/rewrite/update/apply-instructions requests unless the user names a different target file.');
     });
 
     it('should omit Claude-specific tool guidance from the shared prompt', () => {

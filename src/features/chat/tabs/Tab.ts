@@ -198,6 +198,21 @@ function getRecordEntry(record: Record<string, unknown>, key: string): Record<st
   return isRecord(value) ? value : null;
 }
 
+function hasStartedConversation(conversation: Conversation | null | undefined): conversation is Conversation {
+  if (!conversation) {
+    return false;
+  }
+  if (conversation.messages.length > 0) {
+    return true;
+  }
+  try {
+    const historyService = ProviderRegistry.getConversationHistoryService(conversation.providerId);
+    return !!historyService.resolveSessionIdForConversation?.(conversation);
+  } catch {
+    return !!conversation.sessionId;
+  }
+}
+
 function cloneSerializableValue(value: unknown, depth = 0): unknown {
   if (depth > 6) {
     return undefined;
@@ -1463,8 +1478,8 @@ export async function initializeTabService(
     // Passive sync: set session state without starting the runtime process.
     // The runtime starts on demand when query() is called.
     if (conversation) {
-      const hasMessages = conversation.messages.length > 0;
-      const externalContextPaths = hasMessages
+      const hasStartedSession = hasStartedConversation(conversation);
+      const externalContextPaths = hasStartedSession
         ? conversation.externalContextPaths || []
         : (plugin.settings.persistentExternalContextPaths || []);
 
@@ -2488,17 +2503,17 @@ export function initializeTabControllers(
         }
 
         // Bind session state only — runtime starts on send
-        tab.conversationId = conversation?.id ?? null;
         tab.orchestratorMode = conversation?.orchestratorMode === true;
         tab.draftModel = null;
         tab.draftSettings = null;
+        const hasStartedSession = hasStartedConversation(conversation);
+        tab.conversationId = conversation?.id ?? null;
         tab.lifecycleState = conversation ? 'bound_cold' : 'blank';
         syncSlashCommandDropdownForProvider(tab, plugin, getProviderCatalogConfig, conversation);
 
         // If the runtime already exists for the right provider, sync it passively
         if (tab.service && tab.service.providerId === nextProviderId && conversation) {
-          const hasMessages = conversation.messages.length > 0;
-          const externalContextPaths = hasMessages
+          const externalContextPaths = hasStartedSession
             ? conversation.externalContextPaths || []
             : (plugin.settings.persistentExternalContextPaths || []);
           tab.service.syncConversationState(conversation, externalContextPaths);

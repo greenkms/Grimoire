@@ -38,6 +38,16 @@ describe('buildMimocodePromptText', () => {
     expect(prompt).not.toContain('/tmp/project');
   });
 
+  it('appends selected context files to the MiMoCode prompt', () => {
+    const prompt = buildMimocodePromptText({
+      contextFiles: ['notes/instructions.md'],
+      text: 'Apply these instructions',
+    });
+
+    expect(prompt).toContain('<context_files>');
+    expect(prompt).toContain('notes/instructions.md');
+  });
+
   it('appends vault search context to the prompt', () => {
     const prompt = buildMimocodePromptText({
       text: 'Summarize this',

@@ -838,6 +838,41 @@ describe('CodexHistoryStore', () => {
       });
     });
 
+    it('should set displayContent stripping XML context from user messages', () => {
+      const content = [
+        JSON.stringify({
+          timestamp: '2026-03-27T00:00:00.000Z',
+          type: 'response_item',
+          payload: {
+            type: 'message',
+            role: 'user',
+            content: [{
+              type: 'input_text',
+              text: 'Fix the bug\n\n<current_note>\nnotes/bug.md\n</current_note>',
+            }],
+          },
+        }),
+        JSON.stringify({
+          timestamp: '2026-03-27T00:00:01.000Z',
+          type: 'response_item',
+          payload: {
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'output_text', text: 'Done.' }],
+          },
+        }),
+      ].join('\n');
+
+      const messages = parseCodexSessionContent(content);
+
+      expect(messages).toHaveLength(2);
+      expect(messages[0]).toMatchObject({
+        role: 'user',
+        content: 'Fix the bug\n\n<current_note>\nnotes/bug.md\n</current_note>',
+        displayContent: 'Fix the bug',
+      });
+    });
+
     it('should set displayContent stripping editor selection context', () => {
       const content = [
         JSON.stringify({

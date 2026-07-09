@@ -20,7 +20,7 @@ describe('encodeCodexTurn', () => {
     };
     const result = encodeCodexTurn(request);
 
-    expect(result.prompt).toContain('[Current note: notes/todo.md]');
+    expect(result.prompt).toContain('<current_note>\nnotes/todo.md\nDefault target:');
     expect(result.persistedContent).toBe('Fix this');
   });
 
@@ -69,11 +69,11 @@ describe('encodeCodexTurn', () => {
     };
     const result = encodeCodexTurn(request);
 
-    expect(result.prompt).toContain('[Editor selection from src/main.ts:');
+    expect(result.prompt).toContain('<editor_selection path="src/main.ts">');
     expect(result.prompt).toContain('const x = 42;');
   });
 
-  it('should use "current note" fallback when editor selection has default notePath', () => {
+  it('should preserve an empty editor selection path as structured XML context', () => {
     const request: ChatTurnRequest = {
       text: 'Explain this',
       editorSelection: {
@@ -84,7 +84,7 @@ describe('encodeCodexTurn', () => {
     };
     const result = encodeCodexTurn(request);
 
-    expect(result.prompt).toContain('[Editor selection from current note:');
+    expect(result.prompt).toContain('<editor_selection path="">');
   });
 
   it('should include browser selection context', () => {
@@ -98,7 +98,7 @@ describe('encodeCodexTurn', () => {
     };
     const result = encodeCodexTurn(request);
 
-    expect(result.prompt).toContain('[Browser selection from https://example.com:');
+    expect(result.prompt).toContain('<browser_selection source="chrome" url="https://example.com">');
     expect(result.prompt).toContain('Article content here');
   });
 
@@ -112,7 +112,7 @@ describe('encodeCodexTurn', () => {
     };
     const result = encodeCodexTurn(request);
 
-    expect(result.prompt).toContain('[Canvas selection from my-canvas.canvas:');
+    expect(result.prompt).toContain('<canvas_selection path="my-canvas.canvas">');
     expect(result.prompt).toContain('node1, node2');
   });
 
@@ -127,10 +127,10 @@ describe('encodeCodexTurn', () => {
     const result = encodeCodexTurn(request);
 
     expect(result.prompt).toContain('Do something');
-    expect(result.prompt).toContain('[Current note: note.md]');
-    expect(result.prompt).toContain('[Editor selection');
-    expect(result.prompt).toContain('[Browser selection');
-    expect(result.prompt).toContain('[Canvas selection');
+    expect(result.prompt).toContain('<current_note>');
+    expect(result.prompt).toContain('<editor_selection');
+    expect(result.prompt).toContain('<browser_selection');
+    expect(result.prompt).toContain('<canvas_selection');
   });
 
   it('should not include empty editor selection', () => {
@@ -193,10 +193,10 @@ describe('encodeCodexTurn', () => {
 
       expect(result.isCompact).toBe(true);
       expect(result.prompt).toBe('/compact');
-      expect(result.prompt).not.toContain('[Current note');
-      expect(result.prompt).not.toContain('[Editor selection');
-      expect(result.prompt).not.toContain('[Browser selection');
-      expect(result.prompt).not.toContain('[Canvas selection');
+      expect(result.prompt).not.toContain('<current_note');
+      expect(result.prompt).not.toContain('<editor_selection');
+      expect(result.prompt).not.toContain('<browser_selection');
+      expect(result.prompt).not.toContain('<canvas_selection');
     });
   });
 });

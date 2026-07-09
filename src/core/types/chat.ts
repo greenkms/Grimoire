@@ -145,7 +145,8 @@ export interface ConversationMeta {
 
 /**
  * Session metadata overlay for provider-native storage.
- * The provider handles message storage; this stores UI-only state.
+ * Providers keep authoritative native history; messages are a display fallback
+ * for providers or environments where native history is unavailable.
  */
 export interface SessionMetadata {
   id: string;
@@ -159,6 +160,8 @@ export interface SessionMetadata {
   sessionId?: string | null;
   /** Opaque provider-owned state bag. */
   providerState?: Record<string, unknown>;
+  /** Display fallback used when provider-native history cannot be hydrated. */
+  messages?: ChatMessage[];
   currentNote?: string;
   externalContextPaths?: string[];
   enabledMcpServers?: string[];

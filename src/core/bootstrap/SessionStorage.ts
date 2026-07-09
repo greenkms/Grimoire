@@ -58,6 +58,32 @@ function cloneAssistantResponseMetadata(
   return Object.keys(clone).length > 0 ? clone : undefined;
 }
 
+function cloneMessagesForMetadata(
+  messages: ChatMessage[] | undefined,
+): ChatMessage[] | undefined {
+  if (!messages || messages.length === 0) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(JSON.stringify(messages)) as ChatMessage[];
+  } catch {
+    return undefined;
+  }
+}
+
+export function clonePersistedMessages(
+  messages: ChatMessage[] | undefined,
+): ChatMessage[] {
+  return cloneMessagesForMetadata(messages) ?? [];
+}
+
+function getMessagePreview(messages: ChatMessage[] | undefined): string {
+  const firstUserMsg = messages?.find(message => message.role === 'user');
+  const content = firstUserMsg?.displayContent || firstUserMsg?.content || '';
+  return content.substring(0, 50) + (content.length > 50 ? '...' : '');
+}
+
 function clonePersistedAssistantResponseMetadata(
   entry: PersistedAssistantResponseMetadata,
 ): PersistedAssistantResponseMetadata | undefined {
@@ -297,20 +323,23 @@ export class SessionStorage {
   async listAllConversations(): Promise<ConversationMeta[]> {
     const nativeMetas = await this.listMetadata();
 
-    const metas: ConversationMeta[] = nativeMetas.map((meta) => ({
-      id: meta.id,
-      providerId: meta.providerId ?? DEFAULT_CHAT_PROVIDER_ID,
-      title: meta.title,
-      createdAt: meta.createdAt,
-      updatedAt: meta.updatedAt,
-      lastResponseAt: meta.lastResponseAt,
-      messageCount: 0,
-      preview: '',
-      modelLabel: meta.usage?.model,
-      sourceCount: countSessionSources(meta),
-      usagePercentage: meta.usage?.percentage,
-      titleGenerationStatus: meta.titleGenerationStatus,
-    }));
+    const metas: ConversationMeta[] = nativeMetas.map((meta) => {
+      const messages = clonePersistedMessages(meta.messages);
+      return {
+        id: meta.id,
+        providerId: meta.providerId ?? DEFAULT_CHAT_PROVIDER_ID,
+        title: meta.title,
+        createdAt: meta.createdAt,
+        updatedAt: meta.updatedAt,
+        lastResponseAt: meta.lastResponseAt,
+        messageCount: messages.length,
+        preview: getMessagePreview(messages),
+        modelLabel: meta.usage?.model,
+        sourceCount: countSessionSources(meta),
+        usagePercentage: meta.usage?.percentage,
+        titleGenerationStatus: meta.titleGenerationStatus,
+      };
+    });
 
     return metas.sort((a, b) =>
       (b.lastResponseAt ?? b.createdAt) - (a.lastResponseAt ?? a.createdAt)
@@ -333,6 +362,7 @@ export class SessionStorage {
       lastResponseAt: conversation.lastResponseAt,
       sessionId: conversation.sessionId,
       providerState: providerState && Object.keys(providerState).length > 0 ? providerState : undefined,
+      messages: cloneMessagesForMetadata(conversation.messages),
       currentNote: conversation.currentNote,
       externalContextPaths: conversation.externalContextPaths,
       enabledMcpServers: conversation.enabledMcpServers,

@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.28 - 2026-07-09
+
+### Fixed
+
+- Restored visible chat history after restarting Obsidian by keeping a Grimoire display fallback when provider-native transcripts are unavailable.
+- Passed pinned vault `@` files into provider prompts so instructions selected with `@instructions.md` are available to Codex, OpenCode, Grok, MiMoCode, Kimi Code, Antigravity, and Gemini turns.
+- Marked the current note chip as the default edit target when users ask to apply instructions without naming another target file.
+- Aligned Codex turn context with Grimoire's shared XML context format and kept appended context out of restored user-message display text.
+
 ## 1.0.27 - 2026-07-07
 
 ### Fixed

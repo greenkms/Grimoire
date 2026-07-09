@@ -149,6 +149,22 @@ function mergeExternalContextPaths(...pathLists: Array<string[] | undefined>): s
   return merged;
 }
 
+function mergeContextFiles(...pathLists: Array<string[] | undefined>): string[] {
+  const merged: string[] = [];
+  const seen = new Set<string>();
+  for (const paths of pathLists) {
+    for (const path of paths ?? []) {
+      const normalized = path.trim();
+      if (!normalized || seen.has(normalized)) {
+        continue;
+      }
+      seen.add(normalized);
+      merged.push(normalized);
+    }
+  }
+  return merged;
+}
+
 function normalizeWorkspaceSetting(value: string | undefined): string | undefined {
   const normalized = value?.trim();
   return normalized ? normalized : undefined;
@@ -852,6 +868,16 @@ export class InputController {
     const splitExternalContexts = mergedExternalContextPaths.length === 0
       ? { directories: [], files: [] }
       : splitContextPaths(mergedExternalContextPaths);
+    const pinnedVaultFiles = Array.from(
+      typeof fileContextManager?.getAttachedFiles === 'function'
+        ? fileContextManager.getAttachedFiles()
+        : [],
+    )
+      .filter(filePath => filePath !== currentNotePath);
+    const contextFiles = mergeContextFiles(
+      pinnedVaultFiles,
+      splitExternalContexts.files,
+    );
 
     const buildSubmission = (
       resolvedVaultSearchContext: ChatTurnRequest['vaultSearchContext'] | undefined,
@@ -865,7 +891,7 @@ export class InputController {
         browserSelection: browserContext,
         canvasSelection: canvasContext,
         externalContextPaths: splitExternalContexts.directories,
-        contextFiles: splitExternalContexts.files.length > 0 ? splitExternalContexts.files : undefined,
+        contextFiles: contextFiles.length > 0 ? contextFiles : undefined,
         enabledMcpServers: enabledMcpServers && enabledMcpServers.size > 0
           ? enabledMcpServers
           : undefined,
