@@ -849,6 +849,7 @@ export class CodexChatRuntime implements ChatRuntime {
         { discoveredModels: models },
       );
       if (changed) {
+        await this.plugin.saveSettings();
         this.refreshModelSelectors();
       }
     } catch {

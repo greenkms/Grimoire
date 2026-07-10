@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.29 - 2026-07-10
+
+### Fixed
+
+- Loaded Codex model options from the signed-in CLI account and kept the last successful catalog, so account-specific GPT-5.6 variants remain available in the picker after restarting Obsidian.
+- Added diagnostic logging for Codex model catalog refreshes instead of silently falling back to the static model list when discovery fails.
+
 ## 1.0.28 - 2026-07-09
 
 ### Fixed

@@ -6,6 +6,10 @@ import {
   getLegacyHostnameKey,
   migrateLegacyHostnameKeyedMap,
 } from '../../utils/env';
+import {
+  type CodexDiscoveredModel,
+  normalizeCodexDiscoveredModels,
+} from './modelDiscoveryState';
 import { CODEX_SPARK_MODEL } from './types/models';
 
 export type CodexReasoningSummary = 'auto' | 'concise' | 'detailed' | 'none';
@@ -25,6 +29,7 @@ export interface CodexProviderSettings {
   cliPath: string;
   cliPathsByHost: HostnameCliPaths;
   customModels: string;
+  discoveredModels: CodexDiscoveredModel[];
   reasoningSummary: CodexReasoningSummary;
   environmentVariables: string;
   environmentHash: string;
@@ -39,6 +44,7 @@ export const DEFAULT_CODEX_PROVIDER_SETTINGS: Readonly<CodexProviderSettings> = 
   cliPath: '',
   cliPathsByHost: {},
   customModels: '',
+  discoveredModels: [],
   reasoningSummary: 'detailed',
   environmentVariables: '',
   environmentHash: '',
@@ -136,6 +142,7 @@ export function getCodexProviderSettings(
     cliPathsByHost,
     customModels: (config.customModels as string | undefined)
       ?? DEFAULT_CODEX_PROVIDER_SETTINGS.customModels,
+    discoveredModels: normalizeCodexDiscoveredModels(config.discoveredModels),
     reasoningSummary: (config.reasoningSummary as CodexReasoningSummary | undefined)
       ?? (settings.codexReasoningSummary as CodexReasoningSummary | undefined)
       ?? DEFAULT_CODEX_PROVIDER_SETTINGS.reasoningSummary,
@@ -218,6 +225,7 @@ export function updateCodexProviderSettings(
     cliPath: next.cliPath,
     cliPathsByHost: next.cliPathsByHost,
     customModels: next.customModels,
+    discoveredModels: next.discoveredModels,
     reasoningSummary: next.reasoningSummary,
     environmentVariables: next.environmentVariables,
     environmentHash: next.environmentHash,

@@ -1,3 +1,5 @@
+import { getProviderConfig, setProviderConfig } from '../../core/providers/providerConfig';
+
 export interface CodexDiscoveredModel {
   description?: string;
   id: string;
@@ -23,7 +25,9 @@ function ensureDiscoveryState(settings: Record<string, unknown>): CodexModelDisc
   }
 
   const next: CodexModelDiscoveryState = {
-    discoveredModels: [],
+    discoveredModels: normalizeCodexDiscoveredModels(
+      getProviderConfig(settings, 'codex').discoveredModels,
+    ),
   };
   Object.defineProperty(bag, CODEX_MODEL_DISCOVERY_STATE, {
     configurable: true,
@@ -96,6 +100,10 @@ export function updateCodexModelDiscoveryState(
   }
 
   state.discoveredModels = cloneDiscoveredModels(nextDiscoveredModels);
+  setProviderConfig(settings, 'codex', {
+    ...getProviderConfig(settings, 'codex'),
+    discoveredModels: cloneDiscoveredModels(nextDiscoveredModels),
+  });
   return true;
 }
 

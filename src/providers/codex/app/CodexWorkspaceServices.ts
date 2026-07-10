@@ -48,11 +48,53 @@ function createCodexModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
       return getCodexProviderSettings(settings).enabled;
     },
     async refreshModels({ settings }) {
-      const models = await modelListingService.listModels();
-      if (models.length === 0) {
-        return false;
+      plugin.recordDebugLog?.({
+        data: { providerId: 'codex' },
+        event: 'modelCatalog.refresh.started',
+        level: 'debug',
+        scope: 'provider.codex',
+      });
+
+      try {
+        const models = await modelListingService.listModels();
+        if (models.length === 0) {
+          plugin.recordDebugLog?.({
+            data: { providerId: 'codex' },
+            event: 'modelCatalog.refresh.empty',
+            level: 'debug',
+            scope: 'provider.codex',
+          });
+          return false;
+        }
+
+        const changed = updateCodexModelDiscoveryState(settings, { discoveredModels: models });
+        if (changed) {
+          await plugin.saveSettings?.();
+        }
+        plugin.recordDebugLog?.({
+          data: {
+            changed,
+            modelCount: models.length,
+            providerId: 'codex',
+          },
+          event: 'modelCatalog.refresh.succeeded',
+          level: 'info',
+          scope: 'provider.codex',
+        });
+        return changed;
+      } catch (error) {
+        plugin.recordDebugLog?.({
+          data: {
+            message: error instanceof Error ? error.message : String(error),
+            providerId: 'codex',
+          },
+          error,
+          event: 'modelCatalog.refresh.failed',
+          level: 'warn',
+          scope: 'provider.codex',
+        });
+        throw error;
       }
-      return updateCodexModelDiscoveryState(settings, { discoveredModels: models });
     },
   };
 }
