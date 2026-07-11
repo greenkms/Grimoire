@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 
 import type { ProviderConversationHistoryService } from '../../../core/providers/types';
-import type { Conversation } from '../../../core/types';
+import type { ChatMessage, Conversation } from '../../../core/types';
 import type { CodexProviderState } from '../types';
 import { getCodexState } from '../types';
 import {
@@ -20,6 +20,38 @@ function readSessionTurns(sessionFilePath: string): CodexParsedTurn[] {
     return [];
   }
   return parseCodexSessionTurns(content);
+}
+
+function getComparableMessageContent(message: ChatMessage): string {
+  return (message.displayContent ?? message.content).trim();
+}
+
+function messagesMatch(first: ChatMessage, second: ChatMessage): boolean {
+  return first.role === second.role
+    && getComparableMessageContent(first) === getComparableMessageContent(second);
+}
+
+/**
+ * A new Codex thread can persist only the replayed suffix used to resume a
+ * Grimoire conversation. Retain the vault's complete stored prefix and append
+ * only provider messages that were not yet persisted.
+ */
+function mergeStoredAndHydratedMessages(
+  stored: ChatMessage[],
+  hydrated: ChatMessage[],
+): ChatMessage[] {
+  if (stored.length === 0) return hydrated;
+
+  const maxOverlap = Math.min(stored.length, hydrated.length);
+  for (let overlap = maxOverlap; overlap > 0; overlap -= 1) {
+    const storedSuffix = stored.slice(-overlap);
+    const hydratedPrefix = hydrated.slice(0, overlap);
+    if (storedSuffix.every((message, index) => messagesMatch(message, hydratedPrefix[index]))) {
+      return [...stored, ...hydrated.slice(overlap)];
+    }
+  }
+
+  return hydrated;
 }
 
 export class CodexConversationHistoryService implements ProviderConversationHistoryService {
@@ -136,7 +168,7 @@ export class CodexConversationHistoryService implements ProviderConversationHist
       return;
     }
 
-    conversation.messages = sdkMessages;
+    conversation.messages = mergeStoredAndHydratedMessages(conversation.messages, sdkMessages);
     this.hydratedConversationPaths.set(conversation.id, hydrationKey);
   }
 

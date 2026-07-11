@@ -52,6 +52,29 @@
   line-height: 1;
 }
 
+.grimoire-history-delete-all {
+  padding: 4px 7px;
+  border: 0;
+  border-radius: var(--grimoire-radius-1);
+  background: transparent;
+  color: var(--text-error);
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.grimoire-history-delete-all:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--text-error) 14%, transparent);
+  color: var(--text-error-hover, var(--text-error));
+}
+
+.grimoire-history-delete-all:disabled {
+  color: var(--text-faint);
+  cursor: default;
+}
+
 .grimoire-history-close {
   display: inline-grid;
   place-items: center;

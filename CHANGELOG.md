@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.0.31 - 2026-07-12
+
+### Added
+
+- Added a translated **Delete all** action to History, with a confirmation dialog before clearing every saved conversation.
+
+### Improved
+
+- Made the Codex plan-usage indicator explicitly show used quota and the time of its last successful refresh.
+
+### Fixed
+
+- Restored complete Grimoire chat history when a Codex replacement session persists only a replayed suffix.
+- Kept Codex replay prompts, selected-file context, and injected plugin instructions out of visible user message bubbles.
+- Correctly marked context files as loaded when a shell command reads the file successfully before a later command segment fails.
+
 ## 1.0.30 - 2026-07-11
 
 ### Fixed

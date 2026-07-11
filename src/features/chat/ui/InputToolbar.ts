@@ -173,6 +173,17 @@ function formatUsagePct(window: ProviderPlanUsageWindow): string {
   return isUsagePctKnown(window) ? `${window.pct}%` : '—';
 }
 
+function formatUsageUpdatedAt(updatedAt: number | undefined): string | null {
+  if (typeof updatedAt !== 'number' || !Number.isFinite(updatedAt)) {
+    return null;
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date(updatedAt));
+}
+
 function isUsageWindowHot(window: ProviderPlanUsageWindow): boolean {
   return isUsagePctKnown(window) && window.pct >= PLAN_USAGE_WARN_THRESHOLD;
 }
@@ -798,7 +809,7 @@ export class PlanUsageBadge {
     if (this.fillEl) {
       this.fillEl.style.width = `${window.pct}%`;
     }
-    this.valueEl?.setText(formatUsagePct(window));
+    this.valueEl?.setText(isUsagePctKnown(window) ? `${window.pct}% used` : '—');
 
     const weeklyWindow = findWeeklyWindow(usage);
     const secondaryParts = [
@@ -807,6 +818,10 @@ export class PlanUsageBadge {
     ];
     if (weeklyWindow) {
       secondaryParts.push(isUsagePctKnown(weeklyWindow) ? `weekly ${weeklyWindow.pct}%` : 'weekly usage unavailable');
+    }
+    const updatedAt = formatUsageUpdatedAt(usage.updatedAt);
+    if (updatedAt) {
+      secondaryParts.push(`updated ${updatedAt}`);
     }
 
     const limitDescription = formatQuotaLimitDescription(window);

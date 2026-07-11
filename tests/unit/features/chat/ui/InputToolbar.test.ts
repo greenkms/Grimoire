@@ -831,6 +831,7 @@ describe('PlanUsageBadge', () => {
   it('renders the active provider 5-hour usage window', () => {
     callbacks.getProviderUsage.mockReturnValue({
       plan: 'Max 20x',
+      updatedAt: new Date(2026, 6, 11, 19, 55).getTime(),
       windows: [
         { label: '5-hr', pct: 47, reset: '3:20p' },
         { label: 'Weekly', pct: 71, reset: 'Mon' },
@@ -843,10 +844,10 @@ describe('PlanUsageBadge', () => {
     expect(container?.hasClass('grimoire-hidden')).toBe(false);
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-label')?.textContent).toBe('5H');
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-fill')?.style.width).toBe('47%');
-    expect(parentEl.querySelector('.grimoire-plan-usage-badge-value')?.textContent).toBe('47%');
+    expect(parentEl.querySelector('.grimoire-plan-usage-badge-value')?.textContent).toBe('47% used');
     expect(container?.getAttribute('aria-label')).toBe('Max 20x 5-hour limit: 47% used, resets 3:20p');
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-tip-secondary')?.textContent)
-      .toBe('47% used · resets 3:20p · weekly 71%');
+      .toContain('47% used · resets 3:20p · weekly 71% · updated ');
   });
 
   it('renders non-5-hour quota windows inline next to the model selector', () => {
@@ -864,7 +865,7 @@ describe('PlanUsageBadge', () => {
     expect(container?.hasClass('grimoire-hidden')).toBe(false);
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-label')?.textContent).toBe('Credits');
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-fill')?.style.width).toBe('6%');
-    expect(parentEl.querySelector('.grimoire-plan-usage-badge-value')?.textContent).toBe('6%');
+    expect(parentEl.querySelector('.grimoire-plan-usage-badge-value')?.textContent).toBe('6% used');
     expect(container?.getAttribute('aria-label')).toBe('SuperGrok Credits limit: 6% used, resets Jul 1');
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-tip-primary')?.textContent).toBe('SuperGrok · Credits limit');
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-tip-secondary')?.textContent).toBe('6% used · resets Jul 1');
@@ -936,7 +937,7 @@ describe('PlanUsageBadge', () => {
     const container = parentEl.querySelector('.grimoire-plan-usage-badge');
     expect(container?.hasClass('grimoire-plan-usage-badge--spend')).toBe(false);
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-label')?.textContent).toBe('5H');
-    expect(parentEl.querySelector('.grimoire-plan-usage-badge-value')?.textContent).toBe('11%');
+    expect(parentEl.querySelector('.grimoire-plan-usage-badge-value')?.textContent).toBe('11% used');
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-tip-primary')?.textContent).toBe('Claude Code · 5-hour limit');
   });
 

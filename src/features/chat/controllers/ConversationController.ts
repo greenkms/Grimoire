@@ -626,6 +626,21 @@ export class ConversationController {
       cls: 'grimoire-history-count',
       text: String(allConversations.length),
     });
+    const deleteAllBtn = dropdownHeader.createEl('button', {
+      cls: 'grimoire-history-delete-all',
+      text: t('chat.history.deleteAll'),
+      attr: {
+        type: 'button',
+        'aria-label': t('chat.history.deleteAllAriaLabel'),
+      },
+    });
+    deleteAllBtn.disabled = allConversations.length === 0;
+    deleteAllBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      void this.deleteAllHistory(allConversations, options).catch(() => {
+        new Notice(t('chat.history.deleteAllFailed'));
+      });
+    });
     dropdownHeader.createSpan({ cls: 'grimoire-history-header-spacer' });
     const closeBtn = dropdownHeader.createEl('button', {
       cls: 'grimoire-history-close',
@@ -686,6 +701,25 @@ export class ConversationController {
     });
 
     renderList();
+  }
+
+  private async deleteAllHistory(
+    conversations: ConversationMeta[],
+    options: HistoryRenderOptions,
+  ): Promise<void> {
+    const { plugin } = this.deps;
+    const confirmed = await confirm(
+      plugin.app,
+      t('chat.history.deleteAllConfirm', { count: conversations.length }),
+      t('chat.history.deleteAll'),
+    );
+    if (!confirmed) return;
+
+    for (const conversation of conversations) {
+      await plugin.deleteConversation(conversation.id);
+    }
+
+    options.onClose?.();
   }
 
   private renderHistoryConversationRow(

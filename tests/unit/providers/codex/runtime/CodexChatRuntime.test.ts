@@ -407,6 +407,7 @@ describe('CodexChatRuntime', () => {
       settings: plugin.settings,
     })).toEqual({
       plan: 'ChatGPT Pro',
+      updatedAt: expect.any(Number),
       windows: [
         { label: '5-hr', pct: 24, reset: '4:05p' },
       ],
@@ -436,6 +437,7 @@ describe('CodexChatRuntime', () => {
       settings: plugin.settings,
     })).resolves.toEqual({
       plan: 'ChatGPT Pro',
+      updatedAt: expect.any(Number),
       windows: [
         { label: '5-hr', pct: 5, reset: '4:05p' },
         { label: 'Weekly', pct: 61, reset: 'Mon' },

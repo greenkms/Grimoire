@@ -38,6 +38,12 @@
       "unavailableStreaming": "流式响应中无法回退",
       "unavailableNoUuid": "无法回退：缺少消息标识符"
     },
+    "history": {
+      "deleteAll": "全部删除",
+      "deleteAllAriaLabel": "删除全部历史记录",
+      "deleteAllConfirm": "要删除全部 {count} 个对话吗？此操作无法撤销。",
+      "deleteAllFailed": "无法删除历史记录"
+    },
     "fork": {
       "ariaLabel": "分叉对话",
       "chooseTarget": "分叉对话",

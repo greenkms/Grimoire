@@ -38,6 +38,12 @@
       "unavailableStreaming": "Impossible de rembobiner pendant le streaming",
       "unavailableNoUuid": "Impossible de rembobiner : identifiants de message manquants"
     },
+    "history": {
+      "deleteAll": "Tout supprimer",
+      "deleteAllAriaLabel": "Supprimer tout l’historique",
+      "deleteAllConfirm": "Supprimer les {count} conversations ? Cette action est irréversible.",
+      "deleteAllFailed": "Impossible de supprimer l’historique"
+    },
     "fork": {
       "ariaLabel": "Bifurquer la conversation",
       "chooseTarget": "Bifurquer la conversation",

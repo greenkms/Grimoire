@@ -23,6 +23,14 @@ function normalizeStatus(status: ToolCallInfo['status']): RuntimeContextLoadStat
   return 'loading';
 }
 
+function didShellReadProduceOutput(toolCall: ToolCallInfo): boolean {
+  if (toolCall.status !== 'error' || !toolCall.result?.trim()) {
+    return false;
+  }
+
+  return !/^(?:cat|sed|nl):/mu.test(toolCall.result);
+}
+
 function getStringInput(input: Record<string, unknown>, ...keys: string[]): string {
   for (const key of keys) {
     const value = input[key];
@@ -91,7 +99,7 @@ export function extractRuntimeContextLoadEvent(
       path,
       providerId,
       method: 'shell',
-      status: normalizeStatus(toolCall.status),
+      status: didShellReadProduceOutput(toolCall) ? 'loaded' : normalizeStatus(toolCall.status),
     };
   }
 

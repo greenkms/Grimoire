@@ -779,6 +779,98 @@ describe('CodexHistoryStore', () => {
       expect(messages[1]).toMatchObject({ role: 'assistant', content: 'Done.' });
     });
 
+    it('skips recommended-plugin instructions prepended to AGENTS.md context', () => {
+      const content = [
+        JSON.stringify({
+          type: 'response_item',
+          payload: {
+            type: 'message',
+            role: 'user',
+            content: [
+              { type: 'input_text', text: '<recommended_plugins>\n- GitHub (github@openai-curated-remote)\n</recommended_plugins>' },
+              { type: 'input_text', text: '# AGENTS.md instructions for /Users/test/project\n\n<INSTRUCTIONS>\nDo good work.\n</INSTRUCTIONS>' },
+              { type: 'input_text', text: '<environment_context>\n  <cwd>/Users/test/project</cwd>\n</environment_context>' },
+            ],
+          },
+        }),
+        JSON.stringify({
+          timestamp: '2026-03-27T00:00:00.000Z',
+          type: 'response_item',
+          payload: {
+            type: 'message',
+            role: 'user',
+            content: [{ type: 'input_text', text: 'Summarize Ocean.md.' }],
+          },
+        }),
+        JSON.stringify({
+          timestamp: '2026-03-27T00:00:01.000Z',
+          type: 'response_item',
+          payload: {
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'output_text', text: 'Summary.' }],
+          },
+        }),
+      ].join('\n');
+
+      const messages = parseCodexSessionContent(content);
+
+      expect(messages).toEqual([
+        expect.objectContaining({ role: 'user', content: 'Summarize Ocean.md.' }),
+        expect.objectContaining({ role: 'assistant', content: 'Summary.' }),
+      ]);
+    });
+
+    it('keeps only the latest prompt from a replayed conversation context', () => {
+      const replayedPrompt = [
+        'User: What is written in Ocean.md?',
+        '',
+        'Assistant: It is an overview of the ocean.',
+        '[Tool exec input: cmd=rg Ocean.md status=completed]',
+        '',
+        'User: Why did you not load @AGENTS.md?',
+        '<context_files>',
+        'The user selected these files as active context.',
+        '- AGENTS.md',
+        '</context_files>',
+      ].join('\n');
+      const content = [
+        JSON.stringify({
+          timestamp: '2026-03-27T00:00:00.000Z',
+          type: 'response_item',
+          payload: {
+            type: 'message',
+            role: 'user',
+            content: [{ type: 'input_text', text: replayedPrompt }],
+          },
+        }),
+        JSON.stringify({
+          timestamp: '2026-03-27T00:00:00.100Z',
+          type: 'event_msg',
+          payload: { type: 'user_message', message: replayedPrompt },
+        }),
+        JSON.stringify({
+          timestamp: '2026-03-27T00:00:01.000Z',
+          type: 'response_item',
+          payload: {
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'output_text', text: 'I will read it now.' }],
+          },
+        }),
+      ].join('\n');
+
+      const messages = parseCodexSessionContent(content);
+
+      expect(messages).toEqual([
+        expect.objectContaining({
+          role: 'user',
+          displayContent: 'Why did you not load @AGENTS.md?',
+        }),
+        expect.objectContaining({ role: 'assistant', content: 'I will read it now.' }),
+      ]);
+    });
+
     it('should skip standalone <environment_context> user message', () => {
       const content = [
         JSON.stringify({

@@ -198,6 +198,8 @@ export interface ProviderPlanUsage {
   windows?: ProviderPlanUsageWindow[];
   spend?: string;
   note?: string;
+  /** Unix epoch milliseconds for the last successfully received usage snapshot. */
+  updatedAt?: number;
 }
 
 export interface ProviderPathIconSvg {

@@ -29,8 +29,11 @@ export class CodexPlanUsageStore implements ProviderPlanUsageProvider {
       return false;
     }
 
-    const changed = JSON.stringify(this.usage) !== JSON.stringify(usage);
-    this.usage = usage;
+    const changed = !hasSameCodexUsage(this.usage, usage);
+    this.usage = {
+      ...usage,
+      updatedAt: Date.now(),
+    };
     return changed;
   }
 
@@ -91,6 +94,11 @@ export class CodexPlanUsageStore implements ProviderPlanUsageProvider {
 }
 
 export const codexPlanUsageStore = new CodexPlanUsageStore();
+
+function hasSameCodexUsage(current: ProviderPlanUsage | null, next: ProviderPlanUsage): boolean {
+  return current?.plan === next.plan
+    && JSON.stringify(current.windows) === JSON.stringify(next.windows);
+}
 
 function summarizeCodexUsage(usage: ProviderPlanUsage | null): Record<string, unknown> {
   if (!usage) {

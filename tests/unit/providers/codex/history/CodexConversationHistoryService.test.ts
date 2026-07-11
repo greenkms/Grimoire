@@ -144,6 +144,75 @@ describe('CodexConversationHistoryService', () => {
     });
   });
 
+  it('preserves stored turns when the Codex transcript contains only a replayed suffix', async () => {
+    const threadId = 'thread-replayed-suffix';
+    const sessionsDir = path.join(tempHome, '.codex', 'sessions', '2026', '03', '27');
+    fs.mkdirSync(sessionsDir, { recursive: true });
+    const transcriptPath = path.join(
+      sessionsDir,
+      `rollout-2026-03-27T00-00-00-${threadId}.jsonl`,
+    );
+
+    fs.writeFileSync(
+      transcriptPath,
+      [
+        JSON.stringify({
+          type: 'response_item',
+          payload: {
+            type: 'message',
+            role: 'user',
+            content: [{
+              type: 'input_text',
+              text: [
+                'User: What is in Ocean.md?',
+                '',
+                'Assistant: It is an overview of the ocean.',
+                '',
+                'User: Why did you not load AGENTS.md?',
+              ].join('\n'),
+            }],
+          },
+        }),
+        JSON.stringify({
+          type: 'response_item',
+          payload: {
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'output_text', text: 'I will read it now.' }],
+          },
+        }),
+      ].join('\n'),
+      'utf-8',
+    );
+
+    const conversation: Conversation = {
+      id: 'conv-replayed-suffix',
+      providerId: 'codex',
+      title: 'Stored history',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      sessionId: threadId,
+      providerState: { threadId, sessionFilePath: transcriptPath },
+      messages: [
+        { id: 'user-1', role: 'user', content: 'What is in Ocean.md?', timestamp: 1 },
+        { id: 'assistant-1', role: 'assistant', content: 'It is an overview of the ocean.', timestamp: 2 },
+        { id: 'user-2', role: 'user', content: 'Why did you not load AGENTS.md?', timestamp: 3 },
+        { id: 'assistant-2', role: 'assistant', content: 'I will read it now.', timestamp: 4 },
+      ],
+    };
+
+    const service = new CodexConversationHistoryService();
+    await service.hydrateConversationHistory(conversation, null);
+
+    expect(conversation.messages).toHaveLength(4);
+    expect(conversation.messages.map(message => message.content)).toEqual([
+      'What is in Ocean.md?',
+      'It is an overview of the ocean.',
+      'Why did you not load AGENTS.md?',
+      'I will read it now.',
+    ]);
+  });
+
   it('hydrates by searching transcriptRootPath when sessionFilePath is missing', async () => {
     const threadId = 'thread-rooted';
     const sessionsDir = path.join(tempHome, 'custom-codex-root', 'sessions', '2026', '03', '27');

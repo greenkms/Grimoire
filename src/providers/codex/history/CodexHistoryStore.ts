@@ -389,6 +389,7 @@ function parseSessionRecord(line: string): ParsedSessionRecord | null {
 }
 
 const CODEX_SYSTEM_MESSAGE_PREFIXES = [
+  '<recommended_plugins>',
   '# AGENTS.md instructions',
   '<environment_context>',
   '<subagent_notification>',
@@ -396,10 +397,28 @@ const CODEX_SYSTEM_MESSAGE_PREFIXES = [
 ];
 
 const CODEX_BRACKET_CONTEXT_PATTERN = /\n\[(?:Current note|Editor selection from|Browser selection from|Canvas selection from)\b/;
+const CODEX_REPLAY_ASSISTANT_BOUNDARY = '\n\nAssistant: ';
+const CODEX_REPLAY_USER_BOUNDARY = '\n\nUser: ';
 
 function isCodexSystemMessage(text: string): boolean {
   const trimmed = text.trimStart();
   return CODEX_SYSTEM_MESSAGE_PREFIXES.some(prefix => trimmed.startsWith(prefix));
+}
+
+/**
+ * Codex persists the full conversation replay sent when Grimoire starts a
+ * fresh thread. Restore only its final, real user prompt: earlier turns are
+ * already represented in Grimoire's conversation metadata.
+ */
+function extractCodexReplayPrompt(text: string): string {
+  const trimmed = text.trimStart();
+  if (!trimmed.startsWith('User: ')) return text;
+
+  const assistantBoundary = trimmed.indexOf(CODEX_REPLAY_ASSISTANT_BOUNDARY);
+  const latestUserBoundary = trimmed.lastIndexOf(CODEX_REPLAY_USER_BOUNDARY);
+  if (assistantBoundary < 0 || latestUserBoundary <= assistantBoundary) return text;
+
+  return trimmed.slice(latestUserBoundary + CODEX_REPLAY_USER_BOUNDARY.length).trim();
 }
 
 function extractCodexDisplayContent(text: string): string | undefined {
@@ -871,7 +890,7 @@ function processPersistedPayload(
   switch (payload.type) {
     case 'message': {
       const messagePayload = payload as PersistedMessagePayload;
-      const text = extractMessageText(messagePayload.content);
+      const text = extractCodexReplayPrompt(extractMessageText(messagePayload.content));
 
       if (messagePayload.role === 'user') {
         if (isCodexSystemMessage(text)) break;
@@ -1026,7 +1045,9 @@ function processEventMsg(
 
     case 'user_message': {
       const turn = ensureTurn(ctx.turns, ctx.turnOrder, nextTurnId(ctx), ctx.currentTurnId, timestamp);
-      const msg = payload.message;
+      const msg = typeof payload.message === 'string'
+        ? extractCodexReplayPrompt(payload.message)
+        : payload.message;
       if (typeof msg === 'string' && msg.trim()) {
         appendUserChunk(turn, msg, timestamp);
       }

@@ -865,6 +865,57 @@ describe('ConversationController', () => {
         expect(onClose).toHaveBeenCalled();
       });
 
+      it('confirms before deleting every conversation from history', async () => {
+        const container = createMockEl();
+        const onClose = jest.fn();
+        (deps.plugin.getConversationList as jest.Mock).mockReturnValue([
+          { id: 'conv-1', providerId: 'claude', title: 'First', createdAt: 1000, messageCount: 1, preview: 'First preview' },
+          { id: 'conv-2', providerId: 'codex', title: 'Second', createdAt: 2000, messageCount: 1, preview: 'Second preview' },
+        ]);
+
+        controller.renderHistoryDropdown(container, {
+          onSelectConversation: jest.fn(),
+          onClose,
+        });
+
+        const deleteAllBtn = container.querySelector('.grimoire-history-delete-all');
+        expect(deleteAllBtn?.textContent).toBe('Delete all');
+
+        const clickHandlers = deleteAllBtn!._eventListeners?.get('click');
+        expect(clickHandlers).toBeDefined();
+        clickHandlers![0]({ stopPropagation: jest.fn() });
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(confirm).toHaveBeenCalledWith(
+          deps.plugin.app,
+          'Delete all 2 conversations? This cannot be undone.',
+          'Delete all',
+        );
+        expect(deps.plugin.deleteConversation).toHaveBeenCalledTimes(2);
+        expect(deps.plugin.deleteConversation).toHaveBeenNthCalledWith(1, 'conv-1');
+        expect(deps.plugin.deleteConversation).toHaveBeenNthCalledWith(2, 'conv-2');
+        expect(onClose).toHaveBeenCalled();
+      });
+
+      it('keeps history intact when deleting all is cancelled', async () => {
+        (confirm as jest.Mock).mockResolvedValueOnce(false);
+        const container = createMockEl();
+        (deps.plugin.getConversationList as jest.Mock).mockReturnValue([
+          { id: 'conv-1', providerId: 'claude', title: 'First', createdAt: 1000, messageCount: 1, preview: 'First preview' },
+        ]);
+
+        controller.renderHistoryDropdown(container, { onSelectConversation: jest.fn() });
+
+        const deleteAllBtn = container.querySelector('.grimoire-history-delete-all');
+        const clickHandlers = deleteAllBtn!._eventListeners?.get('click');
+        clickHandlers![0]({ stopPropagation: jest.fn() });
+        await Promise.resolve();
+
+        expect(deps.plugin.deleteConversation).not.toHaveBeenCalled();
+      });
+
       it('renders model, sources, and usage without noisy zero message counts', () => {
         const container = createMockEl();
 

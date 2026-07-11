@@ -14,11 +14,11 @@ const CURRENT_NOTE_SUFFIX_REGEX = /\n\n<current_note>\n[\s\S]*?<\/current_note>$
 
 /**
  * Pattern to match XML context tags appended to prompts.
- * These tags are always preceded by \n\n separator.
+ * Providers may serialize the separator as one or more newlines.
  * Matches: current_note, editor_selection (with attributes), editor_cursor (with attributes),
  * context_files, canvas_selection, browser_selection, vault_search, project_workspace
  */
-export const XML_CONTEXT_PATTERN = /\n\n<(?:current_note|editor_selection|editor_cursor|context_files|canvas_selection|browser_selection|vault_search|project_workspace)[\s>]/;
+export const XML_CONTEXT_PATTERN = /\n+<(?:current_note|editor_selection|editor_cursor|context_files|canvas_selection|browser_selection|vault_search|project_workspace)[\s>]/;
 
 const CURRENT_NOTE_DEFAULT_TARGET_HINT = 'Default target: If the user asks to edit, rewrite, update, or apply instructions without naming another target file, use this note as the target file.';
 
@@ -65,7 +65,7 @@ export function extractContentBeforeXmlContext(text: string): string | undefined
   }
 
   // Current format: user content before any XML context tags
-  // Context tags are always appended with \n\n separator
+  // Context tags are appended after one or more newlines.
   const xmlMatch = text.match(XML_CONTEXT_PATTERN);
   if (xmlMatch?.index !== undefined) {
     return text.substring(0, xmlMatch.index).trim();

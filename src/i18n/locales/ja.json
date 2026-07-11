@@ -38,6 +38,12 @@
       "unavailableStreaming": "ストリーミング中は巻き戻しできません",
       "unavailableNoUuid": "巻き戻しできません：メッセージ識別子がありません"
     },
+    "history": {
+      "deleteAll": "すべて削除",
+      "deleteAllAriaLabel": "すべての履歴を削除",
+      "deleteAllConfirm": "すべての{count}件の会話を削除しますか？この操作は取り消せません。",
+      "deleteAllFailed": "履歴を削除できませんでした"
+    },
     "fork": {
       "ariaLabel": "会話を分岐",
       "chooseTarget": "会話を分岐",

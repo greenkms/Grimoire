@@ -38,6 +38,7 @@ describe('CodexPlanUsageStore', () => {
       settings: {},
     })).toEqual({
       plan: 'ChatGPT Pro',
+      updatedAt: expect.any(Number),
       windows: [
         { label: '5-hr', pct: 24, reset: '4:05p' },
         { label: 'Weekly', pct: 88, reset: 'Mon' },
@@ -72,11 +73,35 @@ describe('CodexPlanUsageStore', () => {
       settings: {},
     })).toEqual({
       plan: 'ChatGPT Pro',
+      updatedAt: expect.any(Number),
       windows: [
         { label: '5-hr', pct: 5, reset: expect.any(String) },
         { label: 'Weekly', pct: 61, reset: expect.any(String) },
       ],
     });
+  });
+
+  it('records when the rate-limit snapshot was last refreshed', () => {
+    jest.useFakeTimers().setSystemTime(new Date(2026, 6, 11, 19, 55).getTime());
+    try {
+      const store = new CodexPlanUsageStore();
+
+      store.updateFromRateLimits({
+        rateLimits: {
+          primary: { usedPercent: 5, windowDurationMins: 300, resetsAt: '12:55 AM' },
+        },
+      });
+
+      expect(store.getCachedUsage({
+        plugin: {} as any,
+        providerId: 'codex',
+        settings: {},
+      })).toMatchObject({
+        updatedAt: new Date(2026, 6, 11, 19, 55).getTime(),
+      });
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('formats numeric reset timestamps with the user local time format for same-day windows', () => {
@@ -106,6 +131,7 @@ describe('CodexPlanUsageStore', () => {
         settings: {},
       })).toEqual({
         plan: 'ChatGPT Pro',
+        updatedAt: expect.any(Number),
         windows: [
           { label: '5-hr', pct: 9, reset: expectedReset },
         ],
@@ -129,6 +155,7 @@ describe('CodexPlanUsageStore', () => {
       settings: {},
     })).resolves.toEqual({
       plan: 'ChatGPT Pro',
+      updatedAt: expect.any(Number),
       windows: [
         { label: '5-hr', pct: 8, reset: '4:05p' },
       ],
@@ -154,6 +181,7 @@ describe('CodexPlanUsageStore', () => {
       settings: {},
     })).toEqual({
       plan: 'ChatGPT Pro',
+      updatedAt: expect.any(Number),
       windows: [
         { label: '5-hr', pct: 31, reset: '3:20p' },
       ],

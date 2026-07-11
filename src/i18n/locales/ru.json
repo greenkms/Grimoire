@@ -38,6 +38,12 @@
       "unavailableStreaming": "Невозможно откатить во время потоковой передачи",
       "unavailableNoUuid": "Невозможно откатить: отсутствуют идентификаторы сообщений"
     },
+    "history": {
+      "deleteAll": "Удалить всё",
+      "deleteAllAriaLabel": "Удалить всю историю",
+      "deleteAllConfirm": "Удалить все беседы ({count})? Это действие нельзя отменить.",
+      "deleteAllFailed": "Не удалось удалить историю"
+    },
     "fork": {
       "ariaLabel": "Ответвить разговор",
       "chooseTarget": "Ответвить разговор",

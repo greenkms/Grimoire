@@ -122,9 +122,9 @@ describe('XML_CONTEXT_PATTERN', () => {
     expect(XML_CONTEXT_PATTERN.test(text)).toBe(true);
   });
 
-  it('does not match without double newline separator', () => {
+  it('matches with a single newline separator used by persisted provider prompts', () => {
     const text = 'Query\n<current_note>\ntest.md\n</current_note>';
-    expect(XML_CONTEXT_PATTERN.test(text)).toBe(false);
+    expect(XML_CONTEXT_PATTERN.test(text)).toBe(true);
   });
 
   it('does not match other XML tags', () => {
@@ -169,6 +169,11 @@ describe('extractContentBeforeXmlContext', () => {
 
     it('extracts content before context_files tag', () => {
       const prompt = 'Use these files\n\n<context_files>\nfile1.md\n</context_files>';
+      expect(extractContentBeforeXmlContext(prompt)).toBe('Use these files');
+    });
+
+    it('extracts content before context_files with a single newline separator', () => {
+      const prompt = 'Use these files\n<context_files>\nfile1.md\n</context_files>';
       expect(extractContentBeforeXmlContext(prompt)).toBe('Use these files');
     });
 

@@ -83,6 +83,25 @@ describe('RuntimeContextActivity', () => {
     });
   });
 
+  it('keeps a shell-read file loaded when a later chained command fails', () => {
+    const event = extractRuntimeContextLoadEvent({
+      providerId: 'codex',
+      toolCall: {
+        id: 'tool-4b',
+        name: 'Bash',
+        input: { command: "sed -n '1,260p' 'Книги/CLAUDE.md' && git status --short" },
+        status: 'error',
+        result: '# CLAUDE.md -- Книги\n\nИнструкции для работы с книгами.\n\nfatal: not a git repository',
+      },
+    });
+
+    expect(event).toMatchObject({
+      path: 'Книги/CLAUDE.md',
+      method: 'shell',
+      status: 'loaded',
+    });
+  });
+
   it('ignores shell commands that do not clearly read markdown files', () => {
     const event = extractRuntimeContextLoadEvent({
       providerId: 'codex',

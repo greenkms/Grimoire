@@ -38,6 +38,12 @@
       "unavailableStreaming": "Não é possível retroceder durante a transmissão",
       "unavailableNoUuid": "Não é possível retroceder: identificadores de mensagem ausentes"
     },
+    "history": {
+      "deleteAll": "Excluir tudo",
+      "deleteAllAriaLabel": "Excluir todo o histórico",
+      "deleteAllConfirm": "Excluir todas as {count} conversas? Esta ação não pode ser desfeita.",
+      "deleteAllFailed": "Não foi possível excluir o histórico"
+    },
     "fork": {
       "ariaLabel": "Bifurcar conversa",
       "chooseTarget": "Bifurcar conversa",

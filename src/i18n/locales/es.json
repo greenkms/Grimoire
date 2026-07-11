@@ -38,6 +38,12 @@
       "unavailableStreaming": "No se puede rebobinar durante la transmisión",
       "unavailableNoUuid": "No se puede rebobinar: faltan identificadores de mensaje"
     },
+    "history": {
+      "deleteAll": "Eliminar todo",
+      "deleteAllAriaLabel": "Eliminar todo el historial",
+      "deleteAllConfirm": "¿Eliminar las {count} conversaciones? Esta acción no se puede deshacer.",
+      "deleteAllFailed": "No se pudo eliminar el historial"
+    },
     "fork": {
       "ariaLabel": "Bifurcar conversación",
       "chooseTarget": "Bifurcar conversación",

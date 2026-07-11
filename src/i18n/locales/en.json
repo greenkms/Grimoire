@@ -38,6 +38,12 @@
       "unavailableStreaming": "Cannot rewind while streaming",
       "unavailableNoUuid": "Cannot rewind: missing message identifiers"
     },
+    "history": {
+      "deleteAll": "Delete all",
+      "deleteAllAriaLabel": "Delete all history",
+      "deleteAllConfirm": "Delete all {count} conversations? This cannot be undone.",
+      "deleteAllFailed": "Failed to delete history"
+    },
     "fork": {
       "ariaLabel": "Fork conversation",
       "chooseTarget": "Fork conversation",
