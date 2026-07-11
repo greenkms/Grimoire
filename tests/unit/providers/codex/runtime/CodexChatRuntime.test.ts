@@ -601,6 +601,21 @@ describe('CodexChatRuntime', () => {
       expect(chunks).toContainEqual({ type: 'done' });
     });
 
+    it('rebuilds prior conversation context when starting a replacement thread', async () => {
+      const history = [
+        { id: 'user-previous', role: 'user' as const, content: 'Keep the language rich.', timestamp: 1 },
+        { id: 'assistant-previous', role: 'assistant' as const, content: 'I will preserve the prose voice.', timestamp: 2 },
+      ];
+
+      await collectChunks(runtime.query(createTurn('Apply that to DoorTextStyle.'), history));
+
+      const turnStartCall = findCall('turn/start');
+      const textInput = turnStartCall[1].input.find((input: { type: string }) => input.type === 'text');
+      expect(textInput.text).toContain('User: Keep the language rich.');
+      expect(textInput.text).toContain('Assistant: I will preserve the prose voice.');
+      expect(textInput.text).toContain('User: Apply that to DoorTextStyle.');
+    });
+
     it('handles host-native initialize responses that omit codexHome', async () => {
       mockTransportRequest.mockImplementation(async (method: string) => {
         switch (method) {
@@ -889,12 +904,19 @@ describe('CodexChatRuntime', () => {
       setupDefaultRequestMock('thread-001');
 
       // Second query on same thread should skip both start and resume
-      await collectChunks(runtime.query(createTurn('second')));
+      const history = [
+        { id: 'user-previous', role: 'user' as const, content: 'First request', timestamp: 1 },
+        { id: 'assistant-previous', role: 'assistant' as const, content: 'First response', timestamp: 2 },
+      ];
+      await collectChunks(runtime.query(createTurn('second'), history));
 
       const startCall = findCall('thread/start');
       const resumeCall = findCall('thread/resume');
+      const turnStartCall = findCall('turn/start');
+      const textInput = turnStartCall[1].input.find((input: { type: string }) => input.type === 'text');
       expect(startCall).toBeUndefined();
       expect(resumeCall).toBeUndefined();
+      expect(textInput.text).toBe('second');
     });
 
     it('passes orchestrator instructions as per-turn developer instructions when thread is already loaded', async () => {

@@ -33,6 +33,7 @@ import { appendCanvasContext } from '../../../utils/canvas';
 import { appendContextFiles, appendCurrentNote, appendProjectWorkspaceContext, appendVaultSearchContext } from '../../../utils/context';
 import { appendEditorContext } from '../../../utils/editor';
 import { getVaultPath } from '../../../utils/path';
+import { buildContextFromHistory, buildPromptWithHistoryContext } from '../../../utils/session';
 import {
   AcpClientConnection,
   type AcpContentBlock,
@@ -230,9 +231,14 @@ export class GeminiChatRuntime implements ChatRuntime {
 
   async *query(
     turn: PreparedChatTurn,
-    _conversationHistory?: ChatMessage[],
+    conversationHistory?: ChatMessage[],
     queryOptions?: ChatRuntimeQueryOptions,
   ): AsyncGenerator<StreamChunk> {
+    const previousMessages = conversationHistory ?? [];
+    const expectedSessionId = this.sessionId;
+    let shouldBootstrapHistory = previousMessages.length > 0
+      && (!expectedSessionId || this.sessionInvalidated);
+
     if (!(await this.ensureReady())) {
       yield { type: 'error', content: 'Failed to start Gemini. Check the CLI path and login state.' };
       yield { type: 'done' };
@@ -246,6 +252,10 @@ export class GeminiChatRuntime implements ChatRuntime {
     }
 
     const cwd = getVaultPath(this.plugin.app) ?? process.cwd();
+    if (expectedSessionId && !this.sessionId) {
+      shouldBootstrapHistory = previousMessages.length > 0;
+    }
+
     if (!this.sessionId) {
       const sessionId = await this.createSession(cwd);
       if (!sessionId) {
@@ -268,7 +278,11 @@ export class GeminiChatRuntime implements ChatRuntime {
 
     const activeTurn = this.activeTurn;
     const promptPromise = this.connection.prompt({
-      prompt: buildGeminiPromptBlocks(turn.request, queryOptions),
+      prompt: buildGeminiPromptBlocks(
+        turn.request,
+        shouldBootstrapHistory ? previousMessages : [],
+        queryOptions,
+      ),
       sessionId,
     }).then((response) => {
       if (response.userMessageId) {
@@ -722,9 +736,10 @@ export class GeminiChatRuntime implements ChatRuntime {
 
 function buildGeminiPromptBlocks(
   request: ChatTurnRequest,
+  conversationHistory: ChatMessage[] = [],
   queryOptions?: ChatRuntimeQueryOptions,
 ): AcpContentBlock[] {
-  const prompt = buildGeminiPromptText(request);
+  const prompt = buildGeminiPromptText(request, conversationHistory);
   const text = request.orchestratorMode === true || queryOptions?.orchestratorMode === true
     ? applyOrchestratorModeInstructions(prompt)
     : prompt;
@@ -735,7 +750,10 @@ function buildGeminiPromptBlocks(
   return blocks;
 }
 
-function buildGeminiPromptText(request: ChatTurnRequest): string {
+function buildGeminiPromptText(
+  request: ChatTurnRequest,
+  conversationHistory: ChatMessage[] = [],
+): string {
   let prompt = request.text;
 
   if (request.currentNotePath) {
@@ -764,6 +782,16 @@ function buildGeminiPromptText(request: ChatTurnRequest): string {
 
   if (request.canvasSelection) {
     prompt = appendCanvasContext(prompt, request.canvasSelection);
+  }
+
+  if (conversationHistory.length > 0) {
+    const historyContext = buildContextFromHistory(conversationHistory);
+    prompt = buildPromptWithHistoryContext(
+      historyContext,
+      prompt,
+      prompt,
+      conversationHistory,
+    );
   }
 
   return prompt;

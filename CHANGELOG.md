@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.30 - 2026-07-11
+
+### Fixed
+
+- Preserved the visible Grimoire conversation when Codex or Gemini must create a replacement native session, while avoiding duplicate history during normal session continuation.
+- Restored prior conversation context when OpenCode, MiMoCode, Kimi Code, or Grok retries a turn in a newly created ACP session after a transport failure.
+
 ## 1.0.29 - 2026-07-10
 
 ### Fixed

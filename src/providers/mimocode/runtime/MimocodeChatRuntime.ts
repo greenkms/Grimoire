@@ -446,6 +446,9 @@ export class MimocodeChatRuntime implements ChatRuntime {
         if (await this.prepareClosedTransportRetry(error, activeTurn, cwd)) {
           const retrySessionId = this.sessionId;
           if (this.connection && retrySessionId) {
+            if (retrySessionId !== sessionId && previousMessages.length > 0) {
+              shouldBootstrapHistory = true;
+            }
             activeTurn.sessionId = retrySessionId;
             this.currentTurnMetadata = {};
             this.currentTurnSawAcpCost = false;

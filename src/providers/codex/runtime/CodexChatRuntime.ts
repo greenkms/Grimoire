@@ -388,6 +388,16 @@ export class CodexChatRuntime implements ChatRuntime {
         threadTargetPath = startResult.thread.path ?? null;
         threadPath = this.toHostSessionPath(threadTargetPath);
         this.loadedThreadId = threadId;
+
+        if (!turn.isCompact && _conversationHistory && _conversationHistory.length > 0) {
+          const historyContext = buildContextFromHistory(_conversationHistory);
+          if (historyContext.trim()) {
+            turn = {
+              ...turn,
+              prompt: `${historyContext}\n\nUser: ${turn.prompt}`,
+            };
+          }
+        }
       }
 
       // Update session with thread info

@@ -117,6 +117,56 @@ describe('GeminiChatRuntime', () => {
     expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
   });
 
+  it('rebuilds prior conversation context when creating a replacement ACP session', async () => {
+    const runtime = new GeminiChatRuntime(createMockPlugin());
+    const prompt = jest.fn<Promise<object>, [{ prompt: AcpContentBlock[]; sessionId: string }]>(
+      async () => ({}),
+    );
+    const turn = runtime.prepareTurn({ text: 'Apply that to DoorTextStyle.' });
+    const history = [
+      { id: 'user-previous', role: 'user' as const, content: 'Keep the language rich.', timestamp: 1 },
+      { id: 'assistant-previous', role: 'assistant' as const, content: 'I will preserve the prose voice.', timestamp: 2 },
+    ];
+
+    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+    jest.spyOn(runtime as any, 'createSession').mockImplementation(async () => {
+      (runtime as any).sessionId = 'session-replacement';
+      (runtime as any).loadedSessionId = 'session-replacement';
+      return 'session-replacement';
+    });
+    (runtime as any).connection = { prompt };
+
+    await collect(runtime.query(turn, history));
+
+    const promptText = prompt.mock.calls[0]?.[0].prompt[0];
+    expect(promptText).toMatchObject({ type: 'text' });
+    expect(promptText.type === 'text' ? promptText.text : '').toContain('User: Keep the language rich.');
+    expect(promptText.type === 'text' ? promptText.text : '').toContain('Assistant: I will preserve the prose voice.');
+    expect(promptText.type === 'text' ? promptText.text : '').toContain('Apply that to DoorTextStyle.');
+  });
+
+  it('does not duplicate prior conversation context in an already-loaded ACP session', async () => {
+    const runtime = new GeminiChatRuntime(createMockPlugin());
+    const prompt = jest.fn<Promise<object>, [{ prompt: AcpContentBlock[]; sessionId: string }]>(
+      async () => ({}),
+    );
+    const turn = runtime.prepareTurn({ text: 'Continue the edit.' });
+    const history = [
+      { id: 'user-previous', role: 'user' as const, content: 'First request', timestamp: 1 },
+      { id: 'assistant-previous', role: 'assistant' as const, content: 'First response', timestamp: 2 },
+    ];
+
+    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+    (runtime as any).sessionId = 'session-loaded';
+    (runtime as any).loadedSessionId = 'session-loaded';
+    (runtime as any).connection = { prompt };
+
+    await collect(runtime.query(turn, history));
+
+    const promptBlock = prompt.mock.calls[0]?.[0].prompt[0];
+    expect(promptBlock).toEqual({ text: 'Continue the edit.', type: 'text' });
+  });
+
   it('prepares vault search context in the per-turn prompt', () => {
     const runtime = new GeminiChatRuntime(createMockPlugin());
     const turn = runtime.prepareTurn({

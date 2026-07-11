@@ -82,7 +82,11 @@ describe('GrokChatRuntime', () => {
       .mockResolvedValueOnce({});
 
     jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
-    jest.spyOn(runtime as any, 'prepareClosedTransportRetry').mockResolvedValue(true);
+    jest.spyOn(runtime as any, 'prepareClosedTransportRetry').mockImplementation(async () => {
+      (runtime as any).sessionId = 'session-2';
+      (runtime as any).loadedSessionId = 'session-2';
+      return true;
+    });
     (runtime as any).sessionId = 'session-1';
     (runtime as any).loadedSessionId = 'session-1';
     (runtime as any).connection = { prompt };
@@ -91,9 +95,19 @@ describe('GrokChatRuntime', () => {
     (runtime as any).applySelectedEffort = jest.fn().mockResolvedValue(undefined);
     (runtime as any).getActiveDisplayModel = jest.fn().mockReturnValue('grok:test-model');
 
-    const chunks = await collectRuntimeChunks(runtime);
+    const history = [
+      { id: 'user-previous', role: 'user' as const, content: 'Keep the language rich.', timestamp: 1 },
+      { id: 'assistant-previous', role: 'assistant' as const, content: 'I will preserve the prose voice.', timestamp: 2 },
+    ];
+    const chunks: unknown[] = [];
+    for await (const chunk of runtime.query(runtime.prepareTurn({ text: 'Continue the edit.' }), history)) {
+      chunks.push(chunk);
+    }
 
     expect(prompt).toHaveBeenCalledTimes(2);
+    const retryText = prompt.mock.calls[1][0].prompt[0].text;
+    expect(retryText).toContain('User: Keep the language rich.');
+    expect(retryText).toContain('Assistant: I will preserve the prose voice.');
     expect(chunks).toEqual([{ type: 'done' }]);
   });
 
