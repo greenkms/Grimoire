@@ -409,6 +409,38 @@ describe('CodexNotificationRouter', () => {
       expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
     });
 
+    it('completes raw custom tool calls before the turn finishes', () => {
+      router.beginTurn({ isPlanTurn: false });
+
+      router.handleNotification('rawResponseItem/completed', {
+        threadId: 't1',
+        turnId: 'turn1',
+        item: {
+          type: 'custom_tool_call',
+          name: 'exec',
+          call_id: 'call_exec',
+          input: 'await tools.exec_command({ cmd: "cat AGENTS.md" })',
+        },
+      });
+      router.handleNotification('rawResponseItem/completed', {
+        threadId: 't1',
+        turnId: 'turn1',
+        item: {
+          type: 'custom_tool_call_output',
+          call_id: 'call_exec',
+          output: 'Script completed',
+        },
+      });
+
+      expect(chunks).toContainEqual({
+        type: 'tool_result',
+        id: 'call_exec',
+        content: 'Script completed',
+        isError: false,
+      });
+      expect(chunks).not.toContainEqual({ type: 'done' });
+    });
+
     it('does not normalize raw command output a second time when item/completed arrives', () => {
       router.beginTurn({ isPlanTurn: false });
 

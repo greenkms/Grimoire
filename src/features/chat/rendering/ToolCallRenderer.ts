@@ -975,7 +975,7 @@ export function isBlockedToolResult(content: unknown, isError?: boolean): boolea
   if (lower.includes('outside the vault')) return true;
   if (lower.includes('access denied')) return true;
   if (lower.includes('user denied')) return true;
-  if (lower.includes('approval')) return true;
+  if (/\b(?:requires?|needs?) (?:user )?approval\b|\bapproval (?:is )?required\b/u.test(lower)) return true;
   if (isError && lower.includes('deny')) return true;
   return false;
 }

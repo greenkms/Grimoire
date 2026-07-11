@@ -452,10 +452,17 @@ export class CodexNotificationRouter {
       rawOutput,
       this.rawToolInputsByCallId.get(callId),
     );
-    this.rawToolOutputsByCallId.set(callId, {
+    const result = {
       content,
       isError: isCodexToolOutputError(stringifyRawOutput(rawOutput)),
-    });
+    };
+
+    if (item.type === 'custom_tool_call_output') {
+      this.emit({ type: 'tool_result', id: callId, ...result });
+      return;
+    }
+
+    this.rawToolOutputsByCallId.set(callId, result);
   }
 
   private emitMissingRawAgentMessageText(item: Record<string, unknown>): void {

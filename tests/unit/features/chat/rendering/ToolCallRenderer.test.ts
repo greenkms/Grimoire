@@ -894,6 +894,12 @@ describe('ToolCallRenderer', () => {
       expect(isBlockedToolResult('deny permission')).toBe(false);
     });
 
+    it('does not treat ordinary content mentioning approval as blocked', () => {
+      expect(isBlockedToolResult(
+        'Present the design and get user approval before proceeding.',
+      )).toBe(false);
+    });
+
     it('should return false for normal results', () => {
       expect(isBlockedToolResult('File content here')).toBe(false);
     });
