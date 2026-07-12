@@ -928,6 +928,23 @@ describe('StreamController - Text Content', () => {
       expect(renderToolCall).toHaveBeenCalled();
     });
 
+    it('normalizes provider authentication errors before rendering them', async () => {
+      const msg = createTestMessage();
+      deps.state.currentContentEl = createMockEl();
+      deps.getAgentService = jest.fn().mockReturnValue({
+        providerId: 'opencode',
+        getCapabilities: jest.fn().mockReturnValue({ providerId: 'opencode' }),
+      });
+      controller = new StreamController(deps);
+      const appendText = jest.spyOn(controller, 'appendText').mockResolvedValue(undefined);
+
+      await controller.handleStreamChunk({ type: 'error', content: '401 Invalid API Key' }, msg);
+
+      expect(appendText).toHaveBeenCalledWith(
+        '\n\n❌ **Error:** OpenCode authentication failed: invalid or expired credentials. Log in to OpenCode again, then retry.',
+      );
+    });
+
     it('should flush pending tools before Task tool renders', async () => {
       const { renderToolCall } = jest.requireMock('@/features/chat/rendering/ToolCallRenderer');
       const msg = createTestMessage();
@@ -2431,6 +2448,107 @@ describe('StreamController - Text Content', () => {
       // Timer should still be set (interval not cleared by the null check)
       expect(deps.state.flavorTimerInterval).not.toBeNull();
     });
+  });
+});
+
+describe('StreamController - User-facing progress', () => {
+  let controller: StreamController;
+  let deps: StreamControllerDeps;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+    installTestWindow();
+    deps = createMockDeps();
+    controller = new StreamController(deps);
+    deps.state.currentContentEl = createMockEl();
+  });
+
+  afterEach(() => {
+    controller.resetStreamingState();
+    restoreTestWindow();
+    jest.useRealTimers();
+  });
+
+  it('appends summary deltas into one stable persisted progress block', async () => {
+    const msg = createTestMessage();
+
+    await controller.handleStreamChunk({
+      type: 'progress',
+      id: 'item-1:summary:0',
+      content: 'Inspecting ',
+      append: true,
+    }, msg);
+    await controller.handleStreamChunk({
+      type: 'progress',
+      id: 'item-1:summary:0',
+      content: 'the workspace',
+      append: true,
+    }, msg);
+
+    expect(msg.contentBlocks).toEqual([expect.objectContaining({
+      type: 'progress',
+      id: 'item-1:summary:0',
+      content: 'Inspecting the workspace',
+      state: 'running',
+    })]);
+  });
+
+  it('keeps ACP plan items in one progress surface', async () => {
+    const msg = createTestMessage();
+    const items = [
+      { content: 'Inspect files', status: 'completed' as const },
+      { content: 'Run tests', status: 'in_progress' as const },
+    ];
+
+    await controller.handleStreamChunk({
+      type: 'progress',
+      id: 'acp:plan',
+      content: 'Run tests',
+      state: 'running',
+      items,
+    }, msg);
+
+    expect(msg.contentBlocks?.[0]).toEqual(expect.objectContaining({ items }));
+  });
+
+  it('finalizes progress before normal assistant text', async () => {
+    const msg = createTestMessage();
+    await controller.handleStreamChunk({
+      type: 'progress',
+      id: 'phase-1',
+      content: 'Checking results',
+    }, msg);
+
+    jest.advanceTimersByTime(2_000);
+    await controller.handleStreamChunk({
+      type: 'text',
+      content: 'All checks pass.',
+      phase: 'final_answer',
+    }, msg);
+
+    expect(msg.contentBlocks?.[0]).toEqual(expect.objectContaining({
+      type: 'progress',
+      state: 'completed',
+      durationSeconds: 2,
+    }));
+    expect(msg.content).toBe('All checks pass.');
+  });
+
+  it('marks live progress blocked when an interrupted turn is finalized', async () => {
+    const msg = createTestMessage();
+    await controller.handleStreamChunk({
+      type: 'progress',
+      id: 'phase-1',
+      content: 'Applying changes',
+    }, msg);
+
+    await controller.finalizeProgressBlocks(msg, 'blocked');
+
+    expect(msg.contentBlocks?.[0]).toEqual(expect.objectContaining({
+      type: 'progress',
+      state: 'blocked',
+    }));
   });
 });
 

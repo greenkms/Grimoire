@@ -679,6 +679,33 @@ describe('GrokChatRuntime', () => {
     );
   });
 
+  it('normalizes verbose execute permission titles as shell commands', async () => {
+    const runtime = new GrokChatRuntime(createMockPlugin());
+    const approvalCallback = jest.fn().mockResolvedValue('allow');
+    runtime.setApprovalCallback(approvalCallback);
+    const command = 'python3 .grimoire/generate_data.py 2>&1 | tail -5 && wc -l vault-data.js';
+
+    await (runtime as any).handlePermissionRequest({
+      options: [{ kind: 'allow_once', name: 'Allow once', optionId: 'approve-now' }],
+      sessionId: 'session-1',
+      toolCall: {
+        kind: 'execute',
+        rawInput: { command },
+        title: `Execute \`${command}\``,
+        toolCallId: 'tool-execute',
+      },
+    });
+
+    expect(approvalCallback).toHaveBeenCalledWith(
+      'bash',
+      { command },
+      'Grok Build wants to run a shell command.',
+      expect.objectContaining({
+        decisionReason: 'Command execution permission required',
+      }),
+    );
+  });
+
   it('preserves the explicit user model selection when the session reports its current model', async () => {
     const refreshModelSelector = jest.fn();
     const plugin = createMockPlugin({

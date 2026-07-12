@@ -1689,6 +1689,7 @@ describe('Tab - Service Callbacks', () => {
       tab.controllers.streamController = {
         handleStreamChunk,
         appendText: jest.fn().mockResolvedValue(undefined),
+        finalizeProgressBlocks: jest.fn().mockResolvedValue(undefined),
         finalizeCurrentThinkingBlock: jest.fn().mockResolvedValue(undefined),
         finalizeCurrentTextBlock: jest.fn().mockResolvedValue(undefined),
         hideThinkingIndicator: jest.fn(),

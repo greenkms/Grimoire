@@ -1,6 +1,30 @@
 import { mapMimocodeMessages } from '../../../../src/providers/mimocode/history/MimocodeHistoryStore';
 
 describe('mapMimocodeMessages', () => {
+  it('hydrates an error-only assistant row instead of restoring a blank message', () => {
+    expect(mapMimocodeMessages([{
+      info: {
+        id: 'msg-assistant',
+        role: 'assistant',
+        error: {
+          name: 'APIError',
+          data: {
+            message: 'Not supported model mimo-v2.5-pro-ultraspeed',
+            statusCode: 400,
+          },
+        },
+        time: { created: 2_000, completed: 2_500 },
+      },
+      parts: [],
+    }])).toEqual([expect.objectContaining({
+      content: '**Error:** MiMo request failed: Not supported model mimo-v2.5-pro-ultraspeed',
+      contentBlocks: [{
+        content: '**Error:** MiMo request failed: Not supported model mimo-v2.5-pro-ultraspeed',
+        type: 'text',
+      }],
+    })]);
+  });
+
   it('maps stored MiMoCode messages into Grimoire chat messages', () => {
     const messages = mapMimocodeMessages([
       {

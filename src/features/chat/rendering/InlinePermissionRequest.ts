@@ -69,8 +69,13 @@ export class InlinePermissionRequest {
     });
 
     const toolEl = headEl.createSpan({ cls: 'grimoire-permission-tool grimoire-ask-approval-tool' });
+    const command = this.getCommandText();
+    if (command) {
+      toolEl.setAttribute('title', command);
+      toolEl.setAttribute('aria-label', `Command preview: ${command}`);
+    }
     const iconEl = toolEl.createSpan({ cls: 'grimoire-ask-approval-icon' });
-    setToolIcon(iconEl, this.config.toolName);
+    setToolIcon(iconEl, command ? 'bash' : this.config.toolName);
     toolEl.createSpan({
       cls: 'grimoire-permission-tool-label grimoire-ask-approval-tool-name',
       text: this.getToolLabel(),
@@ -110,7 +115,7 @@ export class InlinePermissionRequest {
 
     bodyEl.createDiv({
       cls: 'grimoire-permission-description grimoire-ask-approval-desc',
-      text: this.config.description,
+      text: this.getDescription(),
     });
   }
 
@@ -210,14 +215,20 @@ export class InlinePermissionRequest {
   }
 
   private getToolLabel(): string {
-    if (/^bash$/i.test(this.config.toolName)) {
+    const command = this.getCommandText();
+    if (command) {
+      return buildPermissionCommandSummary(command);
+    }
+
+    const toolName = this.config.toolName.trim() || 'tool';
+    if (/^(?:bash|execute|run)(?:\s|$)/i.test(toolName)) {
       return 'bash';
     }
-    return this.config.toolName;
+    return toolName.length > 28 ? `${toolName.slice(0, 27)}…` : toolName;
   }
 
   private getSubtitle(): string {
-    if (/^bash$/i.test(this.config.toolName)) {
+    if (this.getCommandText() || this.getToolLabel() === 'bash') {
       return 'Grimoire wants to run a shell command';
     }
     return `Grimoire wants to use ${this.getToolLabel()}`;
@@ -226,6 +237,17 @@ export class InlinePermissionRequest {
   private getCommandText(): string {
     const command = this.config.input.command ?? this.config.input.cmd;
     return typeof command === 'string' ? command : '';
+  }
+
+  private getDescription(): string {
+    if (!this.getCommandText()) {
+      return this.config.description;
+    }
+
+    const providerRequest = this.config.description.match(/^(.+?) wants permission to use\b/i);
+    return providerRequest?.[1]
+      ? `${providerRequest[1]} requested permission to run this command.`
+      : this.config.description;
   }
 
   private handleResolve(value: string | null): void {
@@ -237,4 +259,78 @@ export class InlinePermissionRequest {
     this.rootEl?.remove();
     this.config.resolve(value);
   }
+}
+
+export function buildPermissionCommandSummary(command: string): string {
+  const tokens = tokenizeCommandPreview(command);
+  const executableToken = tokens.shift();
+  if (!executableToken) {
+    return 'shell command';
+  }
+
+  const executable = getPathBasename(executableToken) || executableToken;
+  const argumentLabels: string[] = [];
+  let remainingArgumentCount = 0;
+
+  for (const token of tokens) {
+    if (isShellOperator(token)) {
+      break;
+    }
+    if (token.startsWith('-') || isRedirectionToken(token)) {
+      continue;
+    }
+
+    const label = summarizeCommandArgument(token);
+    if (!label || argumentLabels.includes(label)) {
+      continue;
+    }
+    if (argumentLabels.length < 2) {
+      argumentLabels.push(label);
+    } else {
+      remainingArgumentCount += 1;
+    }
+  }
+
+  if (argumentLabels.length === 0) {
+    return truncateCommandSummary(executable, 44);
+  }
+
+  const suffix = remainingArgumentCount > 0 ? ` +${remainingArgumentCount}` : '';
+  return truncateCommandSummary(
+    `${executable} · ${argumentLabels.join(', ')}${suffix}`,
+    64,
+  );
+}
+
+function tokenizeCommandPreview(command: string): string[] {
+  return command
+    .match(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\S+/g)
+    ?.map(token => token.replace(/^(?:"|')|(?:"|')$/g, ''))
+    ?? [];
+}
+
+function summarizeCommandArgument(argument: string): string {
+  const normalized = argument.replace(/[;,]+$/, '').replace(/[\\/]+$/, '');
+  if (!normalized || normalized === '.') {
+    return normalized;
+  }
+
+  return truncateCommandSummary(getPathBasename(normalized) || normalized, 22);
+}
+
+function getPathBasename(value: string): string {
+  const normalized = value.replace(/\\/g, '/').replace(/\/+$/, '');
+  return normalized.slice(normalized.lastIndexOf('/') + 1);
+}
+
+function isShellOperator(token: string): boolean {
+  return token === '&&' || token === '||' || token === '|' || token === ';';
+}
+
+function isRedirectionToken(token: string): boolean {
+  return /^(?:\d*>|\d*>>|\d*<|\d*>&\d+|&>)/.test(token);
+}
+
+function truncateCommandSummary(value: string, maxLength: number): string {
+  return value.length <= maxLength ? value : `${value.slice(0, maxLength - 1)}…`;
 }

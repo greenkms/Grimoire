@@ -36,6 +36,7 @@ export type AcpNormalizedUpdate =
   }
   | {
     plan: AcpPlan;
+    streamChunks: StreamChunk[];
     type: 'plan';
   }
   | {
@@ -93,7 +94,7 @@ export class AcpSessionUpdateNormalizer {
       case 'tool_call_update':
         return this.normalizeToolCallUpdate(update);
       case 'plan':
-        return { plan: update, type: 'plan' };
+        return this.normalizePlan(update);
       case 'available_commands_update':
         return {
           commands: update.availableCommands.map(mapAcpCommandToSlashCommand),
@@ -174,6 +175,25 @@ export class AcpSessionUpdateNormalizer {
     }
 
     return { streamChunks, toolCall, toolState, type: 'tool_call' };
+  }
+
+  private normalizePlan(plan: AcpPlan): Extract<AcpNormalizedUpdate, { type: 'plan' }> {
+    const items = plan.entries.map(({ content, status }) => ({ content, status }));
+    const activeItem = items.find((item) => item.status === 'in_progress')
+      ?? items.find((item) => item.status === 'pending');
+    const isCompleted = items.length > 0 && items.every((item) => item.status === 'completed');
+
+    return {
+      plan,
+      streamChunks: [{
+        content: activeItem?.content ?? (isCompleted ? 'Plan completed' : 'Planning next steps'),
+        id: 'acp:plan',
+        items,
+        state: isCompleted ? 'completed' : 'running',
+        type: 'progress',
+      }],
+      type: 'plan',
+    };
   }
 
   private normalizeToolCallUpdate(

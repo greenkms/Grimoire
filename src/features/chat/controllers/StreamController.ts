@@ -1,5 +1,6 @@
 import { TFile } from 'obsidian';
 
+import { ProviderRegistry } from '../../../core/providers/ProviderRegistry';
 import { ProviderSettingsCoordinator } from '../../../core/providers/ProviderSettingsCoordinator';
 import {
   DEFAULT_CHAT_PROVIDER_ID,
@@ -7,6 +8,7 @@ import {
   type ProviderSubagentLifecycleAdapter,
 } from '../../../core/providers/types';
 import type { ChatRuntime } from '../../../core/runtime/ChatRuntime';
+import { normalizeProviderError } from '../../../core/runtime/providerError';
 import { parseTodoInput } from '../../../core/tools/todo';
 import { extractResolvedAnswers, extractResolvedAnswersFromResultText } from '../../../core/tools/toolInput';
 import {
@@ -22,7 +24,15 @@ import {
   TOOL_WRITE,
 } from '../../../core/tools/toolNames';
 import { extractToolResultContent } from '../../../core/tools/toolResultContent';
-import type { ChatMessage, StreamChunk, SubagentInfo, ToolCallInfo } from '../../../core/types';
+import type {
+  AssistantTextPhase,
+  ChatMessage,
+  ContentBlock,
+  ProgressState,
+  StreamChunk,
+  SubagentInfo,
+  ToolCallInfo,
+} from '../../../core/types';
 import type { SDKToolUseResult } from '../../../core/types/diff';
 import type GrimoirePlugin from '../../../main';
 import {
@@ -37,6 +47,13 @@ import { getVaultPath, normalizePathForVault } from '../../../utils/path';
 import { FLAVOR_TEXTS } from '../constants';
 import type { MessageRenderer, RenderContentOptions } from '../rendering/MessageRenderer';
 import { type OrchestratorPlan, parseOrchestratorPlan } from '../rendering/orchestratorPlanParser';
+import {
+  cleanupProgressBlock,
+  createProgressBlock,
+  finalizeProgressBlock,
+  type ProgressBlockState,
+  updateProgressBlock,
+} from '../rendering/ProgressBlockRenderer';
 import { resolveSubagentLifecycleAdapter } from '../rendering/subagentLifecycleResolution';
 import {
   createSubagentBlock,
@@ -100,6 +117,9 @@ export class StreamController {
   private isThinkingRenderRunning = false;
   private pendingToolOutputFrames = new Map<string, ScheduledAnimationFrame>();
   private pendingScrollFrame: ScheduledAnimationFrame | null = null;
+  private progressBlocks = new Map<string, ProgressBlockState>();
+  private activeProgressId: string | null = null;
+  private currentTextPhase: AssistantTextPhase | undefined;
 
   // Provider lifecycle agent tracking (spawn → wait/close lifecycle)
   private lifecycleSubagentStates = new Map<string, SubagentState>(); // spawn callId → SubagentState
@@ -154,8 +174,21 @@ export class StreamController {
         if (state.currentThinkingState) {
           await this.finalizeCurrentThinkingBlock(msg);
         }
+        await this.finalizeActiveProgress(msg);
+        if (state.currentTextEl && this.currentTextPhase !== chunk.phase) {
+          await this.finalizeCurrentTextBlock(msg);
+        }
         msg.content += chunk.content;
-        await this.appendText(chunk.content);
+        await this.appendText(chunk.content, chunk.phase);
+        break;
+
+      case 'progress':
+        this.flushPendingTools();
+        if (state.currentThinkingState) {
+          await this.finalizeCurrentThinkingBlock(msg);
+        }
+        await this.finalizeCurrentTextBlock(msg);
+        await this.handleProgress(chunk, msg);
         break;
 
       case 'tool_use': {
@@ -220,12 +253,13 @@ export class StreamController {
       case 'error':
         // Flush pending tools before rendering error message
         this.flushPendingTools();
-        await this.appendText(`\n\n❌ **Error:** ${chunk.content}`);
+        await this.appendText(`\n\n❌ **Error:** ${this.normalizeErrorMessage(chunk.content)}`);
         break;
 
       case 'done':
         // Flush any remaining pending tools
         this.flushPendingTools();
+        await this.finalizeProgressBlocks(msg);
         this.handleDone(msg);
         break;
 
@@ -407,6 +441,18 @@ export class StreamController {
       providerId,
     );
     return typeof settings.model === 'string' ? settings.model : undefined;
+  }
+
+  private normalizeErrorMessage(message: string): string {
+    const providerId = this.deps.getAgentService?.()?.providerId;
+    if (!providerId) {
+      return message;
+    }
+
+    return normalizeProviderError(
+      message,
+      ProviderRegistry.getProviderDisplayName(providerId),
+    ).message;
   }
 
   private shouldDeferMathRendering(): boolean {
@@ -769,15 +815,18 @@ export class StreamController {
   // Text Block Management
   // ============================================
 
-  async appendText(text: string): Promise<void> {
+  async appendText(text: string, phase?: AssistantTextPhase): Promise<void> {
     const { state } = this.deps;
     if (!state.currentContentEl) return;
 
     this.hideThinkingIndicator();
 
     if (!state.currentTextEl) {
-      state.currentTextEl = state.currentContentEl.createDiv({ cls: 'grimoire-text-block' });
+      const classes = ['grimoire-text-block'];
+      if (phase) classes.push(`grimoire-text-block--${phase.replace('_', '-')}`);
+      state.currentTextEl = state.currentContentEl.createDiv({ cls: classes.join(' ') });
       state.currentTextContent = '';
+      this.currentTextPhase = phase;
     }
 
     state.currentTextContent += text;
@@ -797,7 +846,11 @@ export class StreamController {
         await renderer.renderContent(state.currentTextEl, state.currentTextContent);
       }
       msg.contentBlocks = msg.contentBlocks || [];
-      msg.contentBlocks.push({ type: 'text', content: state.currentTextContent });
+      msg.contentBlocks.push({
+        type: 'text',
+        content: state.currentTextContent,
+        phase: this.currentTextPhase,
+      });
       // Copy button added here (not during streaming) to match history-loaded messages
       if (state.currentTextEl) {
         renderer.addTextCopyButton(state.currentTextEl, state.currentTextContent);
@@ -805,6 +858,114 @@ export class StreamController {
     }
     state.currentTextEl = null;
     state.currentTextContent = '';
+    this.currentTextPhase = undefined;
+  }
+
+  // ============================================
+  // User-facing Progress Management
+  // ============================================
+
+  private async handleProgress(
+    chunk: Extract<StreamChunk, { type: 'progress' }>,
+    msg: ChatMessage,
+  ): Promise<void> {
+    const { state, renderer } = this.deps;
+    if (!state.currentContentEl) return;
+
+    this.hideThinkingIndicator();
+    if (this.activeProgressId && this.activeProgressId !== chunk.id) {
+      await this.finalizeActiveProgress(msg);
+    }
+
+    const existingState = this.progressBlocks.get(chunk.id);
+    const existingBlock = this.findProgressContentBlock(msg, chunk.id);
+    const content = chunk.append
+      ? `${existingBlock?.content ?? existingState?.content ?? ''}${chunk.content}`
+      : chunk.content;
+    const progressState = chunk.state ?? 'running';
+    const items = chunk.items ?? existingBlock?.items ?? existingState?.items;
+
+    if (existingState) {
+      await updateProgressBlock(
+        existingState,
+        { content, state: progressState, items },
+        (el, markdown, options) => renderer.renderContent(el, markdown, options),
+      );
+    } else {
+      const progress = await createProgressBlock(
+        state.currentContentEl,
+        { content, state: progressState, items },
+        (el, markdown, options) => renderer.renderContent(el, markdown, options),
+      );
+      this.progressBlocks.set(chunk.id, progress);
+    }
+
+    if (existingBlock) {
+      existingBlock.content = content;
+      existingBlock.state = progressState;
+      existingBlock.items = items;
+    } else {
+      msg.contentBlocks = msg.contentBlocks || [];
+      msg.contentBlocks.push({
+        type: 'progress',
+        id: chunk.id,
+        content,
+        state: progressState,
+        items,
+      });
+    }
+
+    this.activeProgressId = progressState === 'running' ? chunk.id : null;
+  }
+
+  private findProgressContentBlock(msg: ChatMessage, id: string): Extract<ContentBlock, { type: 'progress' }> | undefined {
+    return msg.contentBlocks?.find(
+      (block): block is Extract<ContentBlock, { type: 'progress' }> => block.type === 'progress' && block.id === id,
+    );
+  }
+
+  private async finalizeActiveProgress(msg?: ChatMessage, state: Exclude<ProgressState, 'running'> = 'completed'): Promise<void> {
+    if (!this.activeProgressId) return;
+    const id = this.activeProgressId;
+    const progress = this.progressBlocks.get(id);
+    if (progress?.state === 'running') {
+      const durationSeconds = finalizeProgressBlock(progress, state);
+      if (msg) {
+        const block = this.findProgressContentBlock(msg, id);
+        if (block) {
+          block.state = state;
+          block.durationSeconds = durationSeconds;
+        }
+      }
+    }
+    if (progress) {
+      cleanupProgressBlock(progress);
+      this.progressBlocks.delete(id);
+    }
+    this.activeProgressId = null;
+  }
+
+  async finalizeProgressBlocks(
+    msg?: ChatMessage,
+    state: Exclude<ProgressState, 'running'> = 'completed',
+  ): Promise<void> {
+    await this.finalizeActiveProgress(msg, state);
+    for (const [id, progress] of this.progressBlocks) {
+      if (progress.state !== 'running') continue;
+      const durationSeconds = finalizeProgressBlock(progress, state);
+      if (msg) {
+        const block = this.findProgressContentBlock(msg, id);
+        if (block) {
+          block.state = state;
+          block.durationSeconds = durationSeconds;
+        }
+      }
+    }
+    for (const progress of this.progressBlocks.values()) {
+      cleanupProgressBlock(progress);
+    }
+    this.progressBlocks.clear();
+    this.activeProgressId = null;
   }
 
   private scheduleCurrentTextRender(): Promise<void> {
@@ -1656,6 +1817,12 @@ export class StreamController {
     this.cancelPendingToolOutputRenders();
     this.cancelPendingScroll();
     this.hideThinkingIndicator();
+    for (const progress of this.progressBlocks.values()) {
+      cleanupProgressBlock(progress);
+    }
+    this.progressBlocks.clear();
+    this.activeProgressId = null;
+    this.currentTextPhase = undefined;
     state.currentContentEl = null;
     state.currentTextEl = null;
     state.currentTextContent = '';

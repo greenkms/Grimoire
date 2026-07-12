@@ -1470,7 +1470,12 @@ export class GrokChatRuntime implements ChatRuntime {
     }
 
     const input = normalizeApprovalInput(request.toolCall.rawInput);
-    const presentation = buildGrokPermissionPresentation(request.toolCall.title, input, request.toolCall.locations);
+    const presentation = buildGrokPermissionPresentation(
+      request.toolCall.title,
+      request.toolCall.kind,
+      input,
+      request.toolCall.locations,
+    );
     const decision = await this.approvalCallback(
       presentation.toolName,
       input,
@@ -1655,6 +1660,7 @@ function normalizeApprovalInput(rawInput: unknown): Record<string, unknown> {
 
 function buildGrokPermissionPresentation(
   rawTitle: string | null | undefined,
+  rawKind: string | null | undefined,
   input: Record<string, unknown>,
   locations: Array<{ path: string }> | null | undefined,
 ): {
@@ -1663,7 +1669,7 @@ function buildGrokPermissionPresentation(
   description: string;
   toolName: string;
 } {
-  const permissionId = normalizePermissionId(rawTitle);
+  const permissionId = normalizePermissionId(rawTitle, rawKind);
   const blockedPath = extractPermissionPath(input, locations);
 
   switch (permissionId) {
@@ -1785,8 +1791,17 @@ function buildGrokPermissionPresentation(
   }
 }
 
-function normalizePermissionId(value: string | null | undefined): string {
-  return value?.trim().toLowerCase() || 'tool';
+function normalizePermissionId(
+  value: string | null | undefined,
+  rawKind?: string | null,
+): string {
+  const kind = rawKind?.trim().toLowerCase();
+  if (kind === 'execute') return 'bash';
+  if (kind === 'read' || kind === 'edit' || kind === 'search' || kind === 'fetch') return kind;
+
+  const normalized = value?.trim().toLowerCase() || 'tool';
+  if (/^(?:execute|run)(?:\s|$)/u.test(normalized)) return 'bash';
+  return normalized;
 }
 
 function extractPermissionPath(

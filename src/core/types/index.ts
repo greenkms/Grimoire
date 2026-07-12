@@ -1,6 +1,7 @@
 // Chat types
 export {
   type AssistantResponseMetadata,
+  type AssistantTextPhase,
   type ChatMessage,
   type ContentBlock,
   type Conversation,
@@ -10,6 +11,8 @@ export {
   type ImageMediaType,
   type PersistedAssistantResponseMetadata,
   type PersistedVaultSearchContext,
+  type ProgressItem,
+  type ProgressState,
   type SessionMetadata,
   type StreamChunk,
   type UsageInfo,

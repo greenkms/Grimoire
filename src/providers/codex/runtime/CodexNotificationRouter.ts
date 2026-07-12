@@ -1,5 +1,5 @@
 import type { ChatTurnMetadata } from '../../../core/runtime/types';
-import type { StreamChunk, UsageInfo } from '../../../core/types';
+import type { AssistantTextPhase, StreamChunk, UsageInfo } from '../../../core/types';
 import { sanitizeCodexAssistantText } from '../normalization/codexAssistantTextSanitizer';
 import {
   isCodexToolOutputError,
@@ -56,6 +56,7 @@ export class CodexNotificationRouter {
   private startedUserMessageIds = new Set<string>();
   private startedAgentMessageIds = new Set<string>();
   private agentMessageDeltaIds = new Set<string>();
+  private agentMessagePhases = new Map<string, AssistantTextPhase>();
   private streamedAssistantTurnText = '';
   private currentAssistantSegmentId: string | undefined;
   private currentAssistantSegmentText = '';
@@ -122,6 +123,7 @@ export class CodexNotificationRouter {
     this.startedUserMessageIds.clear();
     this.startedAgentMessageIds.clear();
     this.agentMessageDeltaIds.clear();
+    this.agentMessagePhases.clear();
     this.resetAssistantTextTracking();
     this.rawStartedCallIds.clear();
     this.rawToolNamesByCallId.clear();
@@ -137,6 +139,7 @@ export class CodexNotificationRouter {
     this.startedUserMessageIds.clear();
     this.startedAgentMessageIds.clear();
     this.agentMessageDeltaIds.clear();
+    this.agentMessagePhases.clear();
     this.resetAssistantTextTracking();
     this.rawStartedCallIds.clear();
     this.rawToolNamesByCallId.clear();
@@ -200,17 +203,28 @@ export class CodexNotificationRouter {
 
   private onAgentMessageDelta(params: AgentMessageDeltaNotification): void {
     this.agentMessageDeltaIds.add(params.itemId);
+    const phase = normalizeAssistantTextPhase(params.phase)
+      ?? this.agentMessagePhases.get(params.itemId);
+    if (phase) {
+      this.agentMessagePhases.set(params.itemId, phase);
+    }
     const content = sanitizeCodexAssistantText(params.delta);
     if (!content) {
       return;
     }
 
     this.appendAssistantText(content, params.itemId);
-    this.emit({ type: 'text', content });
+    this.emit({ type: 'text', content, ...(phase ? { phase } : {}) });
   }
 
   private onReasoningSummaryDelta(params: ReasoningSummaryTextDeltaNotification): void {
-    this.emit({ type: 'thinking', content: params.delta });
+    this.emit({
+      type: 'progress',
+      id: `${params.itemId}:summary:${params.summaryIndex}`,
+      content: params.delta,
+      state: 'running',
+      append: true,
+    });
   }
 
   private onReasoningTextDelta(params: ReasoningTextDeltaNotification): void {
@@ -366,7 +380,7 @@ export class CodexNotificationRouter {
     }
 
     const text = firstString(payload.text, payload.message);
-    this.emitMissingAssistantTurnText(text);
+    this.emitMissingAssistantTurnText(text, normalizeAssistantTextPhase(payload.phase));
   }
 
   private handleRawFunctionCall(item: Record<string, unknown>): void {
@@ -389,6 +403,11 @@ export class CodexNotificationRouter {
     const rawName = firstString(item.name, item.type);
     const callId = readRawCallId(item);
     if (!callId) {
+      return;
+    }
+
+    if (rawName === 'exec') {
+      this.suppressedRawCallIds.add(callId);
       return;
     }
 
@@ -469,10 +488,18 @@ export class CodexNotificationRouter {
     const text = item.type === 'message'
       ? readAssistantMessageText(item)
       : firstString(item.text, item.message);
-    this.emitMissingAssistantSegmentText(text);
+    this.emitMissingAssistantSegmentText(
+      text,
+      undefined,
+      normalizeAssistantTextPhase(item.phase),
+    );
   }
 
-  private emitMissingAssistantSegmentText(text: string, itemId?: string): void {
+  private emitMissingAssistantSegmentText(
+    text: string,
+    itemId?: string,
+    phase?: AssistantTextPhase,
+  ): void {
     this.claimAssistantSegment(itemId);
     const sanitizedText = sanitizeCodexAssistantText(text, { trimTrailingWhitespace: true });
     const missingText = normalizeAgentMessageCompletionText(
@@ -487,10 +514,10 @@ export class CodexNotificationRouter {
     }
 
     this.streamedAssistantTurnText += missingText;
-    this.emit({ type: 'text', content: missingText });
+    this.emit({ type: 'text', content: missingText, ...(phase ? { phase } : {}) });
   }
 
-  private emitMissingAssistantTurnText(text: string): void {
+  private emitMissingAssistantTurnText(text: string, phase?: AssistantTextPhase): void {
     const sanitizedText = sanitizeCodexAssistantText(text, { trimTrailingWhitespace: true });
     const missingText = normalizeAgentMessageCompletionText(
       sanitizedText,
@@ -502,7 +529,7 @@ export class CodexNotificationRouter {
 
     this.streamedAssistantTurnText += missingText;
     this.currentAssistantSegmentText += missingText;
-    this.emit({ type: 'text', content: missingText });
+    this.emit({ type: 'text', content: missingText, ...(phase ? { phase } : {}) });
   }
 
   private consumeRawToolOutput(callId: string): RawToolResult | undefined {
@@ -734,8 +761,16 @@ export class CodexNotificationRouter {
     }
 
     this.startedAgentMessageIds.add(item.id);
+    const phase = normalizeAssistantTextPhase(item.phase);
+    if (phase) {
+      this.agentMessagePhases.set(item.id, phase);
+    }
     this.claimAssistantSegment(item.id);
-    this.emit({ type: 'assistant_message_start', itemId: item.id });
+    this.emit({
+      type: 'assistant_message_start',
+      itemId: item.id,
+      ...(phase ? { phase } : {}),
+    });
   }
 
   private completeAgentMessage(item: AgentMessageItem): void {
@@ -747,7 +782,10 @@ export class CodexNotificationRouter {
       return;
     }
 
-    this.emitMissingAssistantTurnText(item.text);
+    this.emitMissingAssistantTurnText(
+      item.text,
+      normalizeAssistantTextPhase(item.phase) ?? this.agentMessagePhases.get(item.id),
+    );
   }
 
   private extractUserMessageText(content: UserInput[]): string {
@@ -842,6 +880,10 @@ function firstString(...values: unknown[]): string {
     }
   }
   return '';
+}
+
+function normalizeAssistantTextPhase(value: unknown): AssistantTextPhase | undefined {
+  return value === 'commentary' || value === 'final_answer' ? value : undefined;
 }
 
 function getItemId(item: { id?: string } | Record<string, unknown>): string | undefined {

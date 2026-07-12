@@ -3014,6 +3014,7 @@ function isVisibleAutoTurnChunk(chunk: StreamChunk, hiddenToolIds: Set<string>):
     case 'text':
       return chunk.content.trim().length > 0;
     case 'thinking':
+    case 'progress':
     case 'notice':
     case 'error':
     case 'tool_output':
@@ -3101,6 +3102,7 @@ async function renderAutoTriggeredTurn(tab: TabData, plugin: GrimoirePlugin, res
     }
 
     if (hasVisibleContent) {
+      await tab.controllers.streamController?.finalizeProgressBlocks(assistantMsg);
       await tab.controllers.streamController?.finalizeCurrentThinkingBlock(assistantMsg);
       await tab.controllers.streamController?.finalizeCurrentTextBlock(assistantMsg);
     }

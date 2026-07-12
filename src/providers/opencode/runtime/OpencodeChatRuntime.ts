@@ -100,9 +100,14 @@ import { prepareOpencodeLaunchArtifacts } from './OpencodeLaunchArtifacts';
 import { buildOpencodeRuntimeEnv } from './OpencodeRuntimeEnvironment';
 
 interface ActiveTurn {
+  lifecycleGeneration: number;
   queue: StreamChunkQueue;
   sawOutput: boolean;
   sessionId: string;
+}
+
+interface OpencodeEnsureReadyOptions extends ChatRuntimeEnsureReadyOptions {
+  preserveActiveTurn?: boolean;
 }
 
 class StreamChunkQueue {
@@ -111,6 +116,9 @@ class StreamChunkQueue {
   private readonly waiters: Array<(chunk: StreamChunk | null) => void> = [];
 
   push(chunk: StreamChunk): void {
+    if (this.closed) {
+      return;
+    }
     const waiter = this.waiters.shift();
     if (waiter) {
       waiter(chunk);
@@ -161,6 +169,8 @@ export class OpencodeChatRuntime implements ChatRuntime {
   private currentSessionModeId: string | null = null;
   private currentTurnSawAcpCost = false;
   private currentTurnMetadata: ChatTurnMetadata = {};
+  private cleanupPromise: Promise<void> | null = null;
+  private lifecycleGeneration = 0;
   private loadedSessionId: string | null = null;
   private permissionModeSyncCallback: ((mode: string) => void) | null = null;
   private process: AcpSubprocess | null = null;
@@ -275,7 +285,9 @@ export class OpencodeChatRuntime implements ChatRuntime {
     return true;
   }
 
-  async ensureReady(options?: ChatRuntimeEnsureReadyOptions): Promise<boolean> {
+  async ensureReady(options?: OpencodeEnsureReadyOptions): Promise<boolean> {
+    await this.cleanupPromise;
+    const lifecycleGeneration = this.lifecycleGeneration;
     const settings = getOpencodeProviderSettings(this.plugin.settings);
     if (!settings.enabled) {
       this.setReady(false);
@@ -295,6 +307,9 @@ export class OpencodeChatRuntime implements ChatRuntime {
       settings: promptSettings,
       workspaceRoot: cwd,
     });
+    if (lifecycleGeneration !== this.lifecycleGeneration) {
+      return false;
+    }
     this.currentDatabasePath = artifacts.databasePath;
 
     const nextLaunchKey = JSON.stringify({
@@ -314,13 +329,20 @@ export class OpencodeChatRuntime implements ChatRuntime {
       || this.currentLaunchKey !== nextLaunchKey;
 
     if (shouldRestart) {
-      await this.shutdownProcess();
+      await this.shutdownProcess({ preserveActiveTurn: options?.preserveActiveTurn });
+      if (lifecycleGeneration !== this.lifecycleGeneration) {
+        return false;
+      }
       await this.startProcess({
         command: resolvedCliPath,
         configPath: artifacts.configPath,
         cwd,
         runtimeEnv,
       });
+      if (lifecycleGeneration !== this.lifecycleGeneration) {
+        await this.cleanupPromise;
+        return false;
+      }
       this.currentLaunchKey = nextLaunchKey;
       this.loadedSessionId = null;
     }
@@ -356,7 +378,8 @@ export class OpencodeChatRuntime implements ChatRuntime {
     let shouldBootstrapHistory = previousMessages.length > 0
       && (!expectedSessionId || this.sessionInvalidated);
 
-    if (!(await this.ensureReady())) {
+    const lifecycleGeneration = this.lifecycleGeneration;
+    if (!(await this.ensureReadyForQuery(lifecycleGeneration))) {
       yield { type: 'error', content: 'Failed to start OpenCode. Check the CLI path and login state.' };
       yield { type: 'done' };
       return;
@@ -385,6 +408,7 @@ export class OpencodeChatRuntime implements ChatRuntime {
     const sessionId = this.sessionId!;
     this.activeTurn?.queue.close();
     this.activeTurn = {
+      lifecycleGeneration,
       queue: new StreamChunkQueue(),
       sawOutput: false,
       sessionId,
@@ -413,6 +437,7 @@ export class OpencodeChatRuntime implements ChatRuntime {
     }
 
     const runPrompt = async (promptSessionId: string): Promise<void> => {
+      this.currentTurnMetadata.wasSent = true;
       const response = await this.connection!.prompt({
         prompt: buildOpencodePromptBlocks(
           turn.request,
@@ -436,6 +461,12 @@ export class OpencodeChatRuntime implements ChatRuntime {
       }
 
       await this.refreshFallbackPlanUsageFromSessionCost(promptSessionId);
+      if (!activeTurn.sawOutput && response.stopReason && !/cancel/i.test(response.stopReason)) {
+        activeTurn.queue.push({
+          type: 'error',
+          content: 'OpenCode completed without returning a response. Check provider credentials and logs, then retry.',
+        });
+      }
       activeTurn.queue.push({ type: 'done' });
       activeTurn.queue.close();
     };
@@ -548,8 +579,14 @@ export class OpencodeChatRuntime implements ChatRuntime {
   }
 
   cleanup(): void {
+    this.lifecycleGeneration += 1;
     this.activeTurn?.queue.close();
-    void this.shutdownProcess();
+    const cleanupPromise = this.shutdownProcess().finally(() => {
+      if (this.cleanupPromise === cleanupPromise) {
+        this.cleanupPromise = null;
+      }
+    });
+    this.cleanupPromise = cleanupPromise;
   }
 
   async rewind(
@@ -1239,6 +1276,15 @@ export class OpencodeChatRuntime implements ChatRuntime {
         }
         return;
       }
+      case 'plan': {
+        if (normalized.streamChunks.length > 0) {
+          this.activeTurn.sawOutput = true;
+        }
+        for (const chunk of normalized.streamChunks) {
+          this.activeTurn.queue.push(chunk);
+        }
+        return;
+      }
       case 'tool_call':
       case 'tool_call_update': {
         const streamChunks = normalized.type === 'tool_call'
@@ -1387,6 +1433,9 @@ export class OpencodeChatRuntime implements ChatRuntime {
   }
 
   private formatRuntimeError(error: unknown): string {
+    if (this.isRetryableTransportClose(error)) {
+      return 'OpenCode connection closed unexpectedly. Please retry; Grimoire will reconnect automatically.';
+    }
     const baseMessage = error instanceof Error ? error.message : 'OpenCode request failed';
     const stderr = this.process?.getStderrSnapshot();
     return stderr ? `${baseMessage}\n\n${stderr}` : baseMessage;
@@ -1397,12 +1446,20 @@ export class OpencodeChatRuntime implements ChatRuntime {
     activeTurn: ActiveTurn,
     cwd: string,
   ): Promise<boolean> {
-    if (!this.isRetryableTransportClose(error) || activeTurn.sawOutput) {
+    if (
+      activeTurn.lifecycleGeneration !== this.lifecycleGeneration
+      || !this.isRetryableTransportClose(error)
+      || activeTurn.sawOutput
+    ) {
       return false;
     }
 
     await this.shutdownProcess({ preserveActiveTurn: true });
-    const ready = await this.ensureReady({ force: true, allowSessionCreation: false });
+    const ready = await this.ensureReady({
+      force: true,
+      allowSessionCreation: false,
+      preserveActiveTurn: true,
+    });
     if (!ready || !this.connection) {
       return false;
     }
@@ -1412,6 +1469,33 @@ export class OpencodeChatRuntime implements ChatRuntime {
     }
 
     return true;
+  }
+
+  private async ensureReadyForQuery(lifecycleGeneration: number): Promise<boolean> {
+    try {
+      const ready = await this.ensureReady();
+      return lifecycleGeneration === this.lifecycleGeneration && ready;
+    } catch (error) {
+      if (lifecycleGeneration !== this.lifecycleGeneration) {
+        return false;
+      }
+      if (!this.isRetryableTransportClose(error)) {
+        throw error;
+      }
+    }
+
+    try {
+      const ready = await this.ensureReady({ force: true });
+      return lifecycleGeneration === this.lifecycleGeneration && ready;
+    } catch (error) {
+      if (
+        lifecycleGeneration !== this.lifecycleGeneration
+        || this.isRetryableTransportClose(error)
+      ) {
+        return false;
+      }
+      throw error;
+    }
   }
 
   private isRetryableTransportClose(error: unknown): boolean {

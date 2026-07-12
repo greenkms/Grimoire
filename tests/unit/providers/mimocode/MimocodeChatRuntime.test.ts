@@ -2,6 +2,7 @@ import { ProviderRegistry } from '@/core/providers/ProviderRegistry';
 import { ProviderSettingsCoordinator } from '@/core/providers/ProviderSettingsCoordinator';
 import { JsonRpcTransportClosedError } from '@/providers/acp';
 import { mimocodePlanUsageStore } from '@/providers/mimocode/app/MimocodePlanUsageStore';
+import * as sessionErrorStore from '@/providers/mimocode/history/MimocodeSessionErrorStore';
 import {
   MIMOCODE_BUILD_MODE_ID,
   MIMOCODE_FULL_ACCESS_MODE_ID,
@@ -36,6 +37,100 @@ describe('MimocodeChatRuntime', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  it('surfaces a stored MiMo provider error when ACP ends without output', async () => {
+    const runtime = new MimocodeChatRuntime(createMockPlugin());
+    const prompt = jest.fn().mockResolvedValue({ stopReason: 'end_turn' });
+    jest.spyOn(sessionErrorStore, 'loadLatestMimocodeSessionError').mockResolvedValue({
+      message: 'Invalid API Key: Please provide valid API Key',
+      name: 'APIError',
+      statusCode: 401,
+    });
+    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+    (runtime as any).sessionId = 'session-1';
+    (runtime as any).loadedSessionId = 'session-1';
+    (runtime as any).connection = { prompt };
+    (runtime as any).applySelectedMode = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedModel = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedEffort = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).getActiveDisplayModel = jest.fn().mockReturnValue('mimocode:test-model');
+
+    await expect(collectRuntimeChunks(runtime)).resolves.toEqual([
+      {
+        type: 'error',
+        content: 'MiMo authentication failed: Invalid API Key. Run `mimo auth login` in a terminal, then retry.',
+      },
+      { type: 'done' },
+    ]);
+    expect(runtime.consumeTurnMetadata()).toEqual({ wasSent: true });
+  });
+
+  it('switches an unsupported ultraspeed plan model to the visible base model', async () => {
+    const plugin = createMockPlugin({
+      settings: {
+        model: 'mimocode:xiaomi/mimo-v2.5-pro-ultraspeed',
+        providerConfigs: {
+          mimocode: {
+            visibleModels: [
+              'xiaomi/mimo-v2.5-pro',
+              'xiaomi/mimo-v2.5-pro-ultraspeed',
+            ],
+          },
+        },
+        savedProviderModel: {
+          mimocode: 'mimocode:xiaomi/mimo-v2.5-pro-ultraspeed',
+        },
+      },
+    });
+    const runtime = new MimocodeChatRuntime(plugin);
+    const prompt = jest.fn().mockResolvedValue({
+      stopReason: 'end_turn',
+      userMessageId: 'msg-user',
+    });
+    jest.spyOn(sessionErrorStore, 'loadLatestMimocodeSessionError').mockResolvedValue({
+      message: 'Not supported model mimo-v2.5-pro-ultraspeed',
+      name: 'APIError',
+      statusCode: 400,
+    });
+    jest.spyOn(ProviderSettingsCoordinator, 'getProviderSettingsSnapshot')
+      .mockReturnValue(plugin.settings);
+    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+    (runtime as any).sessionId = 'session-1';
+    (runtime as any).loadedSessionId = 'session-1';
+    (runtime as any).connection = { prompt };
+    (runtime as any).applySelectedMode = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedModel = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedEffort = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).getActiveDisplayModel = jest.fn().mockReturnValue('mimocode:xiaomi/mimo-v2.5-pro-ultraspeed');
+
+    await expect(collectRuntimeChunks(runtime)).resolves.toEqual([
+      {
+        type: 'error',
+        content: 'MiMo does not support the selected model for this plan. Grimoire switched to xiaomi/mimo-v2.5-pro; retry the message.',
+      },
+      { type: 'done' },
+    ]);
+    expect(plugin.settings.model).toBe('mimocode:xiaomi/mimo-v2.5-pro');
+    expect(plugin.settings.savedProviderModel.mimocode).toBe('mimocode:xiaomi/mimo-v2.5-pro');
+    expect((runtime as any).currentSessionModelId).toBeNull();
+    expect(plugin.saveSettings).toHaveBeenCalled();
+  });
+
+  it('does not turn an empty cancelled prompt into a generic MiMo error', async () => {
+    const runtime = new MimocodeChatRuntime(createMockPlugin());
+    const prompt = jest.fn().mockResolvedValue({ stopReason: 'cancelled' });
+    jest.spyOn(sessionErrorStore, 'loadLatestMimocodeSessionError').mockResolvedValue(null);
+    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+    (runtime as any).sessionId = 'session-1';
+    (runtime as any).loadedSessionId = 'session-1';
+    (runtime as any).connection = { prompt };
+    (runtime as any).applySelectedMode = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedModel = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedEffort = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).getActiveDisplayModel = jest.fn().mockReturnValue('mimocode:test-model');
+
+    await expect(collectRuntimeChunks(runtime)).resolves.toEqual([{ type: 'done' }]);
   });
 
   async function collectRuntimeChunks(runtime: MimocodeChatRuntime): Promise<unknown[]> {
@@ -110,6 +205,94 @@ describe('MimocodeChatRuntime', () => {
     expect(chunks).toEqual([{ type: 'done' }]);
   });
 
+  it('recovers when the ACP transport closes during initial readiness', async () => {
+    const runtime = new MimocodeChatRuntime(createMockPlugin());
+    const prompt = jest.fn().mockResolvedValue({});
+    const ensureReady = jest.spyOn(runtime, 'ensureReady')
+      .mockRejectedValueOnce(new JsonRpcTransportClosedError('JSON-RPC input closed'))
+      .mockResolvedValueOnce(true);
+    (runtime as any).sessionId = 'session-1';
+    (runtime as any).loadedSessionId = 'session-1';
+    (runtime as any).connection = { prompt };
+    (runtime as any).applySelectedMode = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedModel = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedEffort = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).getActiveDisplayModel = jest.fn().mockReturnValue('mimocode:test-model');
+
+    await expect(collectRuntimeChunks(runtime)).resolves.toEqual([{ type: 'done' }]);
+
+    expect(ensureReady).toHaveBeenNthCalledWith(1);
+    expect(ensureReady).toHaveBeenNthCalledWith(2, { force: true });
+    expect(prompt).toHaveBeenCalledTimes(1);
+  });
+
+  it('preserves the active turn across a close-before-output restart', async () => {
+    const runtime = new MimocodeChatRuntime(createMockPlugin());
+    const activeTurn = {
+      lifecycleGeneration: 0,
+      queue: { close: jest.fn() },
+      sawOutput: false,
+      sessionId: 'session-1',
+    };
+    (runtime as any).activeTurn = activeTurn;
+    (runtime as any).sessionId = 'session-1';
+    (runtime as any).connection = {};
+    const shutdownProcess = jest.spyOn(runtime as any, 'shutdownProcess').mockResolvedValue(undefined);
+    const ensureReady = jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+
+    await expect((runtime as any).prepareClosedTransportRetry(
+      new JsonRpcTransportClosedError('JSON-RPC input closed'),
+      activeTurn,
+      '/tmp/grimoire-test-vault',
+    )).resolves.toBe(true);
+
+    expect(shutdownProcess).toHaveBeenCalledWith({ preserveActiveTurn: true });
+    expect(ensureReady).toHaveBeenCalledWith({
+      allowSessionCreation: false,
+      force: true,
+      preserveActiveTurn: true,
+    });
+    expect(activeTurn.queue.close).not.toHaveBeenCalled();
+  });
+
+  it('can start cleanly after runtime cleanup without reviving the stale turn', async () => {
+    const runtime = new MimocodeChatRuntime(createMockPlugin({
+      settings: { providerConfigs: { mimocode: { enabled: true } } },
+    }));
+    jest.spyOn(launchArtifacts, 'prepareMimocodeLaunchArtifacts').mockResolvedValue({
+      configPath: '/tmp/grimoire-mimocode-config.json',
+      configContent: '{}\n',
+      databasePath: '/default/mimocode.db',
+      launchKey: 'launch-key',
+      systemPromptPath: '/tmp/grimoire-mimocode-system.md',
+    });
+    const startProcess = jest.spyOn(runtime as any, 'startProcess').mockImplementation(async () => {
+      (runtime as any).ready = true;
+    });
+    const staleTurn = {
+      lifecycleGeneration: 0,
+      queue: { close: jest.fn() },
+      sawOutput: false,
+      sessionId: 'session-old',
+    };
+    (runtime as any).activeTurn = staleTurn;
+
+    runtime.cleanup();
+    await (runtime as any).cleanupPromise;
+
+    await expect((runtime as any).prepareClosedTransportRetry(
+      new JsonRpcTransportClosedError('JSON-RPC input closed'),
+      staleTurn,
+      '/tmp/grimoire-test-vault',
+    )).resolves.toBe(false);
+    expect(staleTurn.queue.close).toHaveBeenCalled();
+    await expect(runtime.ensureReady({ allowSessionCreation: false })).resolves.toBe(true);
+    expect(startProcess).toHaveBeenCalledTimes(1);
+    expect((runtime as any).formatRuntimeError(
+      new JsonRpcTransportClosedError('JSON-RPC input closed'),
+    )).toBe('MiMo connection closed unexpectedly. Please retry; Grimoire will reconnect automatically.');
+  });
+
   it('captures available ACP commands even when no turn is active', async () => {
     const runtime = new MimocodeChatRuntime(createMockPlugin());
     runtime.syncConversationState({ providerState: {}, sessionId: 'session-1' });
@@ -145,6 +328,33 @@ describe('MimocodeChatRuntime', () => {
         source: 'sdk',
       },
     ]);
+  });
+
+  it('forwards ACP plan updates as user-visible progress during an active turn', async () => {
+    const runtime = new MimocodeChatRuntime(createMockPlugin());
+    const push = jest.fn();
+    (runtime as any).sessionId = 'session-1';
+    (runtime as any).activeTurn = {
+      queue: { push },
+      sawOutput: false,
+      sessionId: 'session-1',
+    };
+
+    await (runtime as any).handleSessionNotification({
+      sessionId: 'session-1',
+      update: {
+        entries: [{ content: 'Inspect the workspace', priority: 'high', status: 'in_progress' }],
+        sessionUpdate: 'plan',
+      },
+    });
+
+    expect(push).toHaveBeenCalledWith(expect.objectContaining({
+      content: 'Inspect the workspace',
+      id: 'acp:plan',
+      state: 'running',
+      type: 'progress',
+    }));
+    expect((runtime as any).activeTurn.sawOutput).toBe(true);
   });
 
   it('does not create a session when commands are requested before a session exists', async () => {

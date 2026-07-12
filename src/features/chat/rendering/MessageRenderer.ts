@@ -21,6 +21,7 @@ import { escapeMathDelimitersForStreaming } from '../../../utils/markdownMath';
 import { findRewindContext } from '../rewind';
 import { renderVaultSearchSources } from '../ui/VaultSearchSources';
 import { getAssistantResponseProviderLabel } from '../utils/assistantResponseMetadata';
+import { renderStoredProgressBlock } from './ProgressBlockRenderer';
 import { resolveSubagentLifecycleAdapter } from './subagentLifecycleResolution';
 import {
   renderStoredAsyncSubagent,
@@ -432,6 +433,7 @@ export class MessageRenderer {
     if (msg.contentBlocks && msg.contentBlocks.length > 0) {
       for (const block of msg.contentBlocks) {
         if (block.type === 'thinking' && block.content.trim().length > 0) return true;
+        if (block.type === 'progress' && (block.content.trim().length > 0 || (block.items?.length ?? 0) > 0)) return true;
         if (block.type === 'text' && block.content.trim().length > 0) return true;
         if (block.type === 'context_compacted') return true;
         if (block.type === 'subagent') return true;
@@ -516,13 +518,27 @@ export class MessageRenderer {
             block.durationSeconds,
             (el, md) => this.renderContent(el, md)
           );
+        } else if (block.type === 'progress') {
+          flushPendingToolGroup();
+          renderStoredProgressBlock(
+            contentEl,
+            {
+              content: block.content,
+              state: block.state === 'running' ? 'completed' : block.state,
+              items: block.items,
+              durationSeconds: block.durationSeconds,
+            },
+            (el, md, options) => this.renderContent(el, md, options),
+          );
         } else if (block.type === 'text') {
           flushPendingToolGroup();
           // Skip empty or whitespace-only text blocks to avoid extra gaps
           if (!block.content || !block.content.trim()) {
             continue;
           }
-          const textEl = contentEl.createDiv({ cls: 'grimoire-text-block' });
+          const classes = ['grimoire-text-block'];
+          if (block.phase) classes.push(`grimoire-text-block--${block.phase.replace('_', '-')}`);
+          const textEl = contentEl.createDiv({ cls: classes.join(' ') });
           void this.renderContent(textEl, block.content);
           this.addTextCopyButton(textEl, block.content);
         } else if (block.type === 'tool_use') {

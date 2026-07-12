@@ -498,6 +498,7 @@ export interface AgentMessageDeltaNotification {
   turnId: string;
   itemId: string;
   delta: string;
+  phase?: string;
 }
 
 export interface TokenUsage {

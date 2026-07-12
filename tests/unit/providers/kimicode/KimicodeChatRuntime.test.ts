@@ -38,6 +38,28 @@ describe('KimicodeChatRuntime', () => {
     jest.restoreAllMocks();
   });
 
+  it('surfaces an empty completed ACP response instead of rendering a blank turn', async () => {
+    const runtime = new KimicodeChatRuntime(createMockPlugin());
+    const prompt = jest.fn().mockResolvedValue({ stopReason: 'end_turn' });
+    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+    (runtime as any).sessionId = 'session-1';
+    (runtime as any).loadedSessionId = 'session-1';
+    (runtime as any).connection = { prompt };
+    (runtime as any).applySelectedMode = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedModel = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedEffort = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).getActiveDisplayModel = jest.fn().mockReturnValue('kimicode:test-model');
+
+    await expect(collectRuntimeChunks(runtime)).resolves.toEqual([
+      {
+        type: 'error',
+        content: 'Kimi Code completed without returning a response. Check provider credentials and logs, then retry.',
+      },
+      { type: 'done' },
+    ]);
+    expect(runtime.consumeTurnMetadata()).toEqual({ wasSent: true });
+  });
+
   async function collectRuntimeChunks(runtime: KimicodeChatRuntime): Promise<unknown[]> {
     const chunks: unknown[] = [];
     for await (const chunk of runtime.query(
@@ -110,6 +132,94 @@ describe('KimicodeChatRuntime', () => {
     expect(chunks).toEqual([{ type: 'done' }]);
   });
 
+  it('recovers when the ACP transport closes during initial readiness', async () => {
+    const runtime = new KimicodeChatRuntime(createMockPlugin());
+    const prompt = jest.fn().mockResolvedValue({});
+    const ensureReady = jest.spyOn(runtime, 'ensureReady')
+      .mockRejectedValueOnce(new JsonRpcTransportClosedError('JSON-RPC input closed'))
+      .mockResolvedValueOnce(true);
+    (runtime as any).sessionId = 'session-1';
+    (runtime as any).loadedSessionId = 'session-1';
+    (runtime as any).connection = { prompt };
+    (runtime as any).applySelectedMode = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedModel = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedEffort = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).getActiveDisplayModel = jest.fn().mockReturnValue('kimicode:test-model');
+
+    await expect(collectRuntimeChunks(runtime)).resolves.toEqual([{ type: 'done' }]);
+
+    expect(ensureReady).toHaveBeenNthCalledWith(1);
+    expect(ensureReady).toHaveBeenNthCalledWith(2, { force: true });
+    expect(prompt).toHaveBeenCalledTimes(1);
+  });
+
+  it('preserves the active turn across a close-before-output restart', async () => {
+    const runtime = new KimicodeChatRuntime(createMockPlugin());
+    const activeTurn = {
+      lifecycleGeneration: 0,
+      queue: { close: jest.fn() },
+      sawOutput: false,
+      sessionId: 'session-1',
+    };
+    (runtime as any).activeTurn = activeTurn;
+    (runtime as any).sessionId = 'session-1';
+    (runtime as any).connection = {};
+    const shutdownProcess = jest.spyOn(runtime as any, 'shutdownProcess').mockResolvedValue(undefined);
+    const ensureReady = jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+
+    await expect((runtime as any).prepareClosedTransportRetry(
+      new JsonRpcTransportClosedError('JSON-RPC input closed'),
+      activeTurn,
+      '/tmp/grimoire-test-vault',
+    )).resolves.toBe(true);
+
+    expect(shutdownProcess).toHaveBeenCalledWith({ preserveActiveTurn: true });
+    expect(ensureReady).toHaveBeenCalledWith({
+      allowSessionCreation: false,
+      force: true,
+      preserveActiveTurn: true,
+    });
+    expect(activeTurn.queue.close).not.toHaveBeenCalled();
+  });
+
+  it('can start cleanly after runtime cleanup without reviving the stale turn', async () => {
+    const runtime = new KimicodeChatRuntime(createMockPlugin({
+      settings: { providerConfigs: { kimicode: { enabled: true } } },
+    }));
+    jest.spyOn(launchArtifacts, 'prepareKimicodeLaunchArtifacts').mockResolvedValue({
+      configPath: '/tmp/grimoire-kimicode-config.json',
+      configContent: '{}\n',
+      databasePath: '/default/kimicode.db',
+      launchKey: 'launch-key',
+      systemPromptPath: '/tmp/grimoire-kimicode-system.md',
+    });
+    const startProcess = jest.spyOn(runtime as any, 'startProcess').mockImplementation(async () => {
+      (runtime as any).ready = true;
+    });
+    const staleTurn = {
+      lifecycleGeneration: 0,
+      queue: { close: jest.fn() },
+      sawOutput: false,
+      sessionId: 'session-old',
+    };
+    (runtime as any).activeTurn = staleTurn;
+
+    runtime.cleanup();
+    await (runtime as any).cleanupPromise;
+
+    await expect((runtime as any).prepareClosedTransportRetry(
+      new JsonRpcTransportClosedError('JSON-RPC input closed'),
+      staleTurn,
+      '/tmp/grimoire-test-vault',
+    )).resolves.toBe(false);
+    expect(staleTurn.queue.close).toHaveBeenCalled();
+    await expect(runtime.ensureReady({ allowSessionCreation: false })).resolves.toBe(true);
+    expect(startProcess).toHaveBeenCalledTimes(1);
+    expect((runtime as any).formatRuntimeError(
+      new JsonRpcTransportClosedError('JSON-RPC input closed'),
+    )).toBe('Kimi connection closed unexpectedly. Please retry; Grimoire will reconnect automatically.');
+  });
+
   it('captures available ACP commands even when no turn is active', async () => {
     const runtime = new KimicodeChatRuntime(createMockPlugin());
     runtime.syncConversationState({ providerState: {}, sessionId: 'session-1' });
@@ -145,6 +255,33 @@ describe('KimicodeChatRuntime', () => {
         source: 'sdk',
       },
     ]);
+  });
+
+  it('forwards ACP plan updates as user-visible progress during an active turn', async () => {
+    const runtime = new KimicodeChatRuntime(createMockPlugin());
+    const push = jest.fn();
+    (runtime as any).sessionId = 'session-1';
+    (runtime as any).activeTurn = {
+      queue: { push },
+      sawOutput: false,
+      sessionId: 'session-1',
+    };
+
+    await (runtime as any).handleSessionNotification({
+      sessionId: 'session-1',
+      update: {
+        entries: [{ content: 'Inspect the workspace', priority: 'high', status: 'in_progress' }],
+        sessionUpdate: 'plan',
+      },
+    });
+
+    expect(push).toHaveBeenCalledWith(expect.objectContaining({
+      content: 'Inspect the workspace',
+      id: 'acp:plan',
+      state: 'running',
+      type: 'progress',
+    }));
+    expect((runtime as any).activeTurn.sawOutput).toBe(true);
   });
 
   it('does not create a session when commands are requested before a session exists', async () => {

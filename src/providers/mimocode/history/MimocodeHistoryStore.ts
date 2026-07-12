@@ -14,6 +14,10 @@ import {
 } from '../normalization/mimocodeToolNormalization';
 import { resolveExistingMimocodeDatabasePath } from '../runtime/MimocodePaths';
 import type { MimocodeProviderState } from '../types';
+import {
+  extractMimocodeSessionErrorFromMessage,
+  formatMimocodeSessionError,
+} from './MimocodeSessionErrorStore';
 
 type StoredRow = Record<string, unknown>;
 
@@ -103,7 +107,14 @@ function mapStoredMessage(message: StoredMessage): ChatMessage | null {
     };
   }
 
+  const storedError = extractMimocodeSessionErrorFromMessage(message.info);
   const contentBlocks = buildAssistantContentBlocks(message.parts);
+  if (contentBlocks.length === 0 && storedError) {
+    contentBlocks.push({
+      content: `**Error:** ${formatMimocodeSessionError(storedError)}`,
+      type: 'text',
+    });
+  }
   const toolCalls = buildAssistantToolCalls(message.parts);
   const completedAt = getNestedNumber(message.info, ['time', 'completed']);
   const durationSeconds = completedAt && completedAt >= createdAt

@@ -222,6 +222,24 @@ export function combineMimocodeRawModelSelection(
     : normalizedBaseRawId;
 }
 
+export function resolveMimocodeUnsupportedModelFallback(
+  rawModelId: string,
+  availableRawModelIds: Iterable<string>,
+): string | null {
+  const available = new Set(Array.from(availableRawModelIds, value => value.trim()));
+  const reportedRawId = rawModelId.trim();
+  const normalizedRawId = available.has(reportedRawId)
+    ? reportedRawId
+    : Array.from(available).find(value => value.endsWith(`/${reportedRawId}`)) ?? reportedRawId;
+  const fallbackCandidates = [
+    normalizedRawId.replace(/-ultraspeed$/i, ''),
+  ];
+
+  return fallbackCandidates.find(candidate => (
+    candidate !== normalizedRawId && available.has(candidate)
+  )) ?? null;
+}
+
 export function splitMimocodeModelLabel(label: string): {
   modelLabel: string;
   providerLabel: string;

@@ -27,6 +27,22 @@ describe('CodexNotificationRouter', () => {
       expect(chunks).toEqual([{ type: 'text', content: 'Hello' }]);
     });
 
+    it('preserves commentary phase on agent message deltas', () => {
+      router.handleNotification('item/agentMessage/delta', {
+        threadId: 't1',
+        turnId: 'turn1',
+        itemId: 'msg1',
+        delta: 'I will inspect the provider events first.',
+        phase: 'commentary',
+      });
+
+      expect(chunks).toEqual([{
+        type: 'text',
+        content: 'I will inspect the provider events first.',
+        phase: 'commentary',
+      }]);
+    });
+
     it('does not emit Codex memory citation lines from assistant deltas', () => {
       router.handleNotification('item/agentMessage/delta', {
         threadId: 't1',
@@ -239,7 +255,7 @@ describe('CodexNotificationRouter', () => {
       expect(chunks).toHaveLength(0);
     });
 
-    it('streams reasoning summary deltas as thinking chunks', () => {
+    it('streams reasoning summary deltas as stable appendable progress chunks', () => {
       router.handleNotification('item/reasoning/summaryTextDelta', {
         threadId: 't1',
         turnId: 'turn1',
@@ -256,8 +272,20 @@ describe('CodexNotificationRouter', () => {
       });
 
       expect(chunks).toEqual([
-        { type: 'thinking', content: '**Analyzing' },
-        { type: 'thinking', content: ' the code**' },
+        {
+          type: 'progress',
+          id: 'rs1:summary:0',
+          content: '**Analyzing',
+          state: 'running',
+          append: true,
+        },
+        {
+          type: 'progress',
+          id: 'rs1:summary:0',
+          content: ' the code**',
+          state: 'running',
+          append: true,
+        },
       ]);
     });
 
@@ -409,7 +437,7 @@ describe('CodexNotificationRouter', () => {
       expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
     });
 
-    it('completes raw custom tool calls before the turn finishes', () => {
+    it('suppresses the raw exec wrapper while preserving typed nested tool events', () => {
       router.beginTurn({ isPlanTurn: false });
 
       router.handleNotification('rawResponseItem/completed', {
@@ -422,6 +450,40 @@ describe('CodexNotificationRouter', () => {
           input: 'await tools.exec_command({ cmd: "cat AGENTS.md" })',
         },
       });
+      router.handleNotification('item/started', {
+        threadId: 't1',
+        turnId: 'turn1',
+        item: {
+          type: 'commandExecution',
+          id: 'call_nested',
+          command: 'cat AGENTS.md',
+          cwd: '/workspace',
+          processId: '123',
+          source: 'unifiedExecStartup',
+          status: 'inProgress',
+          commandActions: [{ type: 'unknown', command: 'cat AGENTS.md' }],
+          aggregatedOutput: null,
+          exitCode: null,
+          durationMs: null,
+        },
+      });
+      router.handleNotification('item/completed', {
+        threadId: 't1',
+        turnId: 'turn1',
+        item: {
+          type: 'commandExecution',
+          id: 'call_nested',
+          command: 'cat AGENTS.md',
+          cwd: '/workspace',
+          processId: '123',
+          source: 'unifiedExecStartup',
+          status: 'completed',
+          commandActions: [{ type: 'unknown', command: 'cat AGENTS.md' }],
+          aggregatedOutput: '# Instructions',
+          exitCode: 0,
+          durationMs: 10,
+        },
+      });
       router.handleNotification('rawResponseItem/completed', {
         threadId: 't1',
         turnId: 'turn1',
@@ -432,13 +494,20 @@ describe('CodexNotificationRouter', () => {
         },
       });
 
-      expect(chunks).toContainEqual({
-        type: 'tool_result',
-        id: 'call_exec',
-        content: 'Script completed',
-        isError: false,
-      });
-      expect(chunks).not.toContainEqual({ type: 'done' });
+      expect(chunks).toEqual([
+        {
+          type: 'tool_use',
+          id: 'call_nested',
+          name: 'Bash',
+          input: { command: 'cat AGENTS.md' },
+        },
+        {
+          type: 'tool_result',
+          id: 'call_nested',
+          content: '# Instructions',
+          isError: false,
+        },
+      ]);
     });
 
     it('does not normalize raw command output a second time when item/completed arrives', () => {
@@ -1304,6 +1373,25 @@ describe('CodexNotificationRouter', () => {
 
       expect(chunks).toEqual([
         { type: 'assistant_message_start', itemId: 'a1' },
+      ]);
+    });
+
+    it('preserves normalized agent message phases on boundaries and fallback completion text', () => {
+      router.handleNotification('item/completed', {
+        item: {
+          type: 'agentMessage',
+          id: 'a1',
+          text: 'The implementation is complete.',
+          phase: 'final_answer',
+          memoryCitation: null,
+        },
+        threadId: 't1',
+        turnId: 'turn1',
+      });
+
+      expect(chunks).toEqual([
+        { type: 'assistant_message_start', itemId: 'a1', phase: 'final_answer' },
+        { type: 'text', content: 'The implementation is complete.', phase: 'final_answer' },
       ]);
     });
   });

@@ -160,6 +160,7 @@ function createMockDeps(overrides: Partial<InputControllerDeps> = {}): InputCont
       hideThinkingIndicator: jest.fn(),
       flushPendingToolsForPermission: jest.fn(),
       handleStreamChunk: jest.fn(),
+      finalizeProgressBlocks: jest.fn(),
       finalizeCurrentTextBlock: jest.fn(),
       finalizeCurrentThinkingBlock: jest.fn(),
       appendText: jest.fn(),
@@ -2841,7 +2842,8 @@ describe('InputController - Message Queue', () => {
       const cardEl = composerEl.querySelector('.grimoire-permission-request');
       expect(cardEl).not.toBeNull();
       expect(cardEl?.querySelector('.grimoire-permission-title')?.textContent).toBe('Permission required');
-      expect(cardEl?.querySelector('.grimoire-permission-tool-label')?.textContent).toBe('bash');
+      expect(cardEl?.querySelector('.grimoire-permission-tool-label')?.textContent)
+        .toBe('grep · рыб, vault');
       expect(cardEl?.querySelector('.grimoire-permission-command-code')?.textContent).toContain('grep -ril "рыб"');
 
       const allowButton = composerEl.querySelector('.grimoire-permission-button--allow');

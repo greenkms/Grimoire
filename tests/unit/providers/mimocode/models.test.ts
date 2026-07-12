@@ -10,6 +10,7 @@ import {
   MIMOCODE_DEFAULT_THINKING_LEVEL,
   MIMOCODE_SYNTHETIC_MODEL_ID,
   resolveMimocodeBaseModelRawId,
+  resolveMimocodeUnsupportedModelFallback,
   splitMimocodeModelLabel,
 } from '../../../../src/providers/mimocode/models';
 import { mimocodeChatUIConfig } from '../../../../src/providers/mimocode/ui/MimocodeChatUIConfig';
@@ -99,6 +100,26 @@ describe('MiMoCode base model derivation', () => {
       MIMOCODE_DEFAULT_THINKING_LEVEL,
       discoveredModels,
     )).toBe('anthropic/claude-sonnet-4');
+  });
+});
+
+describe('MiMoCode unsupported model fallback', () => {
+  it('falls back from an unavailable ultraspeed plan model to the visible base model', () => {
+    expect(resolveMimocodeUnsupportedModelFallback(
+      'xiaomi/mimo-v2.5-pro-ultraspeed',
+      ['xiaomi/mimo-v2.5-pro', 'xiaomi/mimo-v2.5-pro-ultraspeed'],
+    )).toBe('xiaomi/mimo-v2.5-pro');
+    expect(resolveMimocodeUnsupportedModelFallback(
+      'mimo-v2.5-pro-ultraspeed',
+      ['xiaomi/mimo-v2.5-pro', 'xiaomi/mimo-v2.5-pro-ultraspeed'],
+    )).toBe('xiaomi/mimo-v2.5-pro');
+  });
+
+  it('does not invent a fallback that is absent from the model catalog', () => {
+    expect(resolveMimocodeUnsupportedModelFallback(
+      'xiaomi/mimo-v2.5-pro-ultraspeed',
+      ['xiaomi/mimo-v2.5-pro-ultraspeed'],
+    )).toBeNull();
   });
 });
 

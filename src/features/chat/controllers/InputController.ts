@@ -17,6 +17,7 @@ import {
   type TitleGenerationService,
 } from '../../../core/providers/types';
 import type { ChatRuntime } from '../../../core/runtime/ChatRuntime';
+import { normalizeProviderError } from '../../../core/runtime/providerError';
 import {
   cloneChatTurnRequest,
   mergeQueuedChatTurns,
@@ -50,6 +51,7 @@ import { InlinePlanApproval,type PlanApprovalDecision } from '../rendering/Inlin
 import type { MessageRenderer } from '../rendering/MessageRenderer';
 import { getToolSummary } from '../rendering/ToolCallRenderer';
 import type { SubagentManager } from '../services/SubagentManager';
+import { TurnFeedbackMetrics } from '../services/TurnFeedbackMetrics';
 import type { ChatState } from '../state/ChatState';
 import type { QueuedMessage } from '../state/types';
 import type { FileContextManager } from '../ui/FileContext';
@@ -469,6 +471,7 @@ export class InputController {
       isCompact ? 'grimoire-thinking--compact' : undefined,
     );
     state.responseStartTime = performance.now();
+    const feedbackMetrics = new TurnFeedbackMetrics(state.responseStartTime);
 
     let wasInterrupted = false;
     let wasInvalidated = false;
@@ -533,6 +536,8 @@ export class InputController {
           break;
         }
 
+        feedbackMetrics.observe(chunk, performance.now());
+
         if (await this.handleProviderMessageBoundaryChunk(chunk)) {
           continue;
         }
@@ -552,7 +557,12 @@ export class InputController {
         level: 'warn',
         scope: 'chat',
       });
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      const rawErrorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const providerId = this.getActiveProviderId();
+      const errorMsg = normalizeProviderError(
+        rawErrorMessage,
+        ProviderRegistry.getProviderDisplayName(providerId),
+      ).message;
       await streamController.appendText(`\n\n**Error:** ${errorMsg}`);
     } finally {
       const finalAssistantMsg = this.activeStreamingAssistantMessage ?? assistantMsg;
@@ -572,6 +582,15 @@ export class InputController {
         event: 'send.finished',
         level: 'debug',
         scope: 'chat',
+      });
+      plugin.recordDebugLog?.({
+        data: {
+          providerId: this.getActiveProviderId(),
+          ...feedbackMetrics.finish(performance.now()),
+        },
+        event: 'turn.feedback_metrics',
+        level: 'debug',
+        scope: 'chat.feedback',
       });
 
       // ALWAYS clear the timer interval, even on stream invalidation (prevents memory leaks)
@@ -610,10 +629,13 @@ export class InputController {
           }
         }
 
-        state.currentContentEl = null;
-
+        await streamController.finalizeProgressBlocks(
+          finalAssistantMsg,
+          didCancelThisTurn ? 'blocked' : 'completed',
+        );
         await streamController.finalizeCurrentThinkingBlock(finalAssistantMsg);
         await streamController.finalizeCurrentTextBlock(finalAssistantMsg);
+        state.currentContentEl = null;
         this.deps.getSubagentManager().resetStreamingState();
 
         // Auto-hide completed todo panel on response end
@@ -1304,6 +1326,7 @@ export class InputController {
       if (shouldDiscardPlaceholder) {
         this.discardStreamingAssistantMessage(previousAssistant.id);
       } else {
+        await this.deps.streamController.finalizeProgressBlocks(previousAssistant);
         await this.deps.streamController.finalizeCurrentThinkingBlock(previousAssistant);
         await this.deps.streamController.finalizeCurrentTextBlock(previousAssistant);
       }
@@ -1345,6 +1368,7 @@ export class InputController {
 
     const previousAssistant = this.activeStreamingAssistantMessage;
     if (previousAssistant) {
+      await this.deps.streamController.finalizeProgressBlocks(previousAssistant);
       await this.deps.streamController.finalizeCurrentThinkingBlock(previousAssistant);
       await this.deps.streamController.finalizeCurrentTextBlock(previousAssistant);
     }

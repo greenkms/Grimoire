@@ -29,10 +29,27 @@ export interface ImageAttachment {
 }
 
 /** Content block for preserving streaming order in messages. */
+export type AssistantTextPhase = 'commentary' | 'final_answer';
+
+export type ProgressState = 'running' | 'completed' | 'blocked';
+
+export interface ProgressItem {
+  content: string;
+  status: 'pending' | 'in_progress' | 'completed';
+}
+
 export type ContentBlock =
-  | { type: 'text'; content: string }
+  | { type: 'text'; content: string; phase?: AssistantTextPhase }
   | { type: 'tool_use'; toolId: string }
   | { type: 'thinking'; content: string; durationSeconds?: number }
+  | {
+    type: 'progress';
+    id: string;
+    content: string;
+    state: ProgressState;
+    items?: ProgressItem[];
+    durationSeconds?: number;
+  }
   | { type: 'subagent'; subagentId: string; mode?: SubagentMode }
   | { type: 'context_compacted' };
 
@@ -185,9 +202,17 @@ export interface SessionMetadata {
  */
 export type StreamChunk =
   | { type: 'user_message_start'; content: string; itemId?: string }
-  | { type: 'assistant_message_start'; itemId?: string }
-  | { type: 'text'; content: string }
+  | { type: 'assistant_message_start'; itemId?: string; phase?: AssistantTextPhase }
+  | { type: 'text'; content: string; phase?: AssistantTextPhase }
   | { type: 'thinking'; content: string }
+  | {
+    type: 'progress';
+    id: string;
+    content: string;
+    state?: ProgressState;
+    items?: ProgressItem[];
+    append?: boolean;
+  }
   | { type: 'status'; content: string }
   | { type: 'tool_use'; id: string; name: string; input: Record<string, unknown> }
   | { type: 'tool_result'; id: string; content: string; isError?: boolean; toolUseResult?: SDKToolUseResult }

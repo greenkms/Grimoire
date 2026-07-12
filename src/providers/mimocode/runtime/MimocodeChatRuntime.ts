@@ -65,6 +65,10 @@ import {
 import { mimocodePlanUsageStore } from '../app/MimocodePlanUsageStore';
 import { MIMOCODE_PROVIDER_CAPABILITIES } from '../capabilities';
 import { updateMimocodeDiscoveryState } from '../discoveryState';
+import {
+  formatMimocodeSessionError,
+  loadLatestMimocodeSessionError,
+} from '../history/MimocodeSessionErrorStore';
 import { loadMimocodeSessionCost } from '../history/MimocodeUsageMetadataStore';
 import {
   sameDiscoveredModels,
@@ -84,6 +88,7 @@ import {
   normalizeMimocodeDiscoveredModels,
   normalizeMimocodeModelVariants,
   resolveMimocodeBaseModelRawId,
+  resolveMimocodeUnsupportedModelFallback,
 } from '../models';
 import {
   getManagedMimocodeModes,
@@ -100,9 +105,14 @@ import { prepareMimocodeLaunchArtifacts } from './MimocodeLaunchArtifacts';
 import { buildMimocodeRuntimeEnv } from './MimocodeRuntimeEnvironment';
 
 interface ActiveTurn {
+  lifecycleGeneration: number;
   queue: StreamChunkQueue;
   sawOutput: boolean;
   sessionId: string;
+}
+
+interface MimocodeEnsureReadyOptions extends ChatRuntimeEnsureReadyOptions {
+  preserveActiveTurn?: boolean;
 }
 
 class StreamChunkQueue {
@@ -111,6 +121,9 @@ class StreamChunkQueue {
   private readonly waiters: Array<(chunk: StreamChunk | null) => void> = [];
 
   push(chunk: StreamChunk): void {
+    if (this.closed) {
+      return;
+    }
     const waiter = this.waiters.shift();
     if (waiter) {
       waiter(chunk);
@@ -161,6 +174,8 @@ export class MimocodeChatRuntime implements ChatRuntime {
   private currentSessionModeId: string | null = null;
   private currentTurnSawAcpCost = false;
   private currentTurnMetadata: ChatTurnMetadata = {};
+  private cleanupPromise: Promise<void> | null = null;
+  private lifecycleGeneration = 0;
   private loadedSessionId: string | null = null;
   private permissionModeSyncCallback: ((mode: string) => void) | null = null;
   private process: AcpSubprocess | null = null;
@@ -275,7 +290,9 @@ export class MimocodeChatRuntime implements ChatRuntime {
     return true;
   }
 
-  async ensureReady(options?: ChatRuntimeEnsureReadyOptions): Promise<boolean> {
+  async ensureReady(options?: MimocodeEnsureReadyOptions): Promise<boolean> {
+    await this.cleanupPromise;
+    const lifecycleGeneration = this.lifecycleGeneration;
     const settings = getMimocodeProviderSettings(this.plugin.settings);
     if (!settings.enabled) {
       this.setReady(false);
@@ -295,6 +312,9 @@ export class MimocodeChatRuntime implements ChatRuntime {
       settings: promptSettings,
       workspaceRoot: cwd,
     });
+    if (lifecycleGeneration !== this.lifecycleGeneration) {
+      return false;
+    }
     this.currentDatabasePath = artifacts.databasePath;
 
     const nextLaunchKey = JSON.stringify({
@@ -314,13 +334,20 @@ export class MimocodeChatRuntime implements ChatRuntime {
       || this.currentLaunchKey !== nextLaunchKey;
 
     if (shouldRestart) {
-      await this.shutdownProcess();
+      await this.shutdownProcess({ preserveActiveTurn: options?.preserveActiveTurn });
+      if (lifecycleGeneration !== this.lifecycleGeneration) {
+        return false;
+      }
       await this.startProcess({
         command: resolvedCliPath,
         configPath: artifacts.configPath,
         cwd,
         runtimeEnv,
       });
+      if (lifecycleGeneration !== this.lifecycleGeneration) {
+        await this.cleanupPromise;
+        return false;
+      }
       this.currentLaunchKey = nextLaunchKey;
       this.loadedSessionId = null;
     }
@@ -356,7 +383,8 @@ export class MimocodeChatRuntime implements ChatRuntime {
     let shouldBootstrapHistory = previousMessages.length > 0
       && (!expectedSessionId || this.sessionInvalidated);
 
-    if (!(await this.ensureReady())) {
+    const lifecycleGeneration = this.lifecycleGeneration;
+    if (!(await this.ensureReadyForQuery(lifecycleGeneration))) {
       yield { type: 'error', content: 'Failed to start Mimocode. Check the CLI path and login state.' };
       yield { type: 'done' };
       return;
@@ -385,6 +413,7 @@ export class MimocodeChatRuntime implements ChatRuntime {
     const sessionId = this.sessionId!;
     this.activeTurn?.queue.close();
     this.activeTurn = {
+      lifecycleGeneration,
       queue: new StreamChunkQueue(),
       sawOutput: false,
       sessionId,
@@ -413,6 +442,8 @@ export class MimocodeChatRuntime implements ChatRuntime {
     }
 
     const runPrompt = async (promptSessionId: string): Promise<void> => {
+      const promptStartedAt = Date.now();
+      this.currentTurnMetadata.wasSent = true;
       const response = await this.connection!.prompt({
         prompt: buildMimocodePromptBlocks(
           turn.request,
@@ -436,6 +467,34 @@ export class MimocodeChatRuntime implements ChatRuntime {
       }
 
       await this.refreshFallbackPlanUsageFromSessionCost(promptSessionId);
+      if (!activeTurn.sawOutput) {
+        const storedError = await loadLatestMimocodeSessionError(
+          promptSessionId,
+          { databasePath: this.currentDatabasePath ?? undefined },
+          promptStartedAt,
+          response.userMessageId,
+        );
+        if (storedError) {
+          const fallbackModel = this.resolveUnsupportedModelFallback(storedError.message);
+          if (fallbackModel) {
+            await this.persistFallbackModelSelection(fallbackModel);
+            activeTurn.queue.push({
+              type: 'error',
+              content: `MiMo does not support the selected model for this plan. Grimoire switched to ${fallbackModel}; retry the message.`,
+            });
+          } else {
+            activeTurn.queue.push({
+              type: 'error',
+              content: formatMimocodeSessionError(storedError),
+            });
+          }
+        } else if (response.stopReason && !/cancel/i.test(response.stopReason)) {
+          activeTurn.queue.push({
+            type: 'error',
+            content: 'MiMo completed without returning a response. Check MiMo credentials and logs, then retry.',
+          });
+        }
+      }
       activeTurn.queue.push({ type: 'done' });
       activeTurn.queue.close();
     };
@@ -548,8 +607,14 @@ export class MimocodeChatRuntime implements ChatRuntime {
   }
 
   cleanup(): void {
+    this.lifecycleGeneration += 1;
     this.activeTurn?.queue.close();
-    void this.shutdownProcess();
+    const cleanupPromise = this.shutdownProcess().finally(() => {
+      if (this.cleanupPromise === cleanupPromise) {
+        this.cleanupPromise = null;
+      }
+    });
+    this.cleanupPromise = cleanupPromise;
   }
 
   async rewind(
@@ -1239,6 +1304,15 @@ export class MimocodeChatRuntime implements ChatRuntime {
         }
         return;
       }
+      case 'plan': {
+        if (normalized.streamChunks.length > 0) {
+          this.activeTurn.sawOutput = true;
+        }
+        for (const chunk of normalized.streamChunks) {
+          this.activeTurn.queue.push(chunk);
+        }
+        return;
+      }
       case 'tool_call':
       case 'tool_call_update': {
         const streamChunks = normalized.type === 'tool_call'
@@ -1387,6 +1461,9 @@ export class MimocodeChatRuntime implements ChatRuntime {
   }
 
   private formatRuntimeError(error: unknown): string {
+    if (this.isRetryableTransportClose(error)) {
+      return 'MiMo connection closed unexpectedly. Please retry; Grimoire will reconnect automatically.';
+    }
     const baseMessage = error instanceof Error ? error.message : 'Mimocode request failed';
     const stderr = this.process?.getStderrSnapshot();
     return stderr ? `${baseMessage}\n\n${stderr}` : baseMessage;
@@ -1397,12 +1474,20 @@ export class MimocodeChatRuntime implements ChatRuntime {
     activeTurn: ActiveTurn,
     cwd: string,
   ): Promise<boolean> {
-    if (!this.isRetryableTransportClose(error) || activeTurn.sawOutput) {
+    if (
+      activeTurn.lifecycleGeneration !== this.lifecycleGeneration
+      || !this.isRetryableTransportClose(error)
+      || activeTurn.sawOutput
+    ) {
       return false;
     }
 
     await this.shutdownProcess({ preserveActiveTurn: true });
-    const ready = await this.ensureReady({ force: true, allowSessionCreation: false });
+    const ready = await this.ensureReady({
+      force: true,
+      allowSessionCreation: false,
+      preserveActiveTurn: true,
+    });
     if (!ready || !this.connection) {
       return false;
     }
@@ -1414,9 +1499,64 @@ export class MimocodeChatRuntime implements ChatRuntime {
     return true;
   }
 
+  private async ensureReadyForQuery(lifecycleGeneration: number): Promise<boolean> {
+    try {
+      const ready = await this.ensureReady();
+      return lifecycleGeneration === this.lifecycleGeneration && ready;
+    } catch (error) {
+      if (lifecycleGeneration !== this.lifecycleGeneration) {
+        return false;
+      }
+      if (!this.isRetryableTransportClose(error)) {
+        throw error;
+      }
+    }
+
+    try {
+      const ready = await this.ensureReady({ force: true });
+      return lifecycleGeneration === this.lifecycleGeneration && ready;
+    } catch (error) {
+      if (
+        lifecycleGeneration !== this.lifecycleGeneration
+        || this.isRetryableTransportClose(error)
+      ) {
+        return false;
+      }
+      throw error;
+    }
+  }
+
   private isRetryableTransportClose(error: unknown): boolean {
     return error instanceof JsonRpcTransportClosedError
       || (error instanceof Error && error.name === 'JsonRpcTransportClosedError');
+  }
+
+  private resolveUnsupportedModelFallback(errorMessage: string): string | null {
+    const unsupportedMatch = errorMessage.match(/not supported model\s+([^\s]+)/i);
+    if (!unsupportedMatch) {
+      return null;
+    }
+
+    const providerSettings = getMimocodeProviderSettings(this.getProviderSettings());
+    return resolveMimocodeUnsupportedModelFallback(
+      unsupportedMatch[1],
+      providerSettings.visibleModels.length > 0
+        ? providerSettings.visibleModels
+        : providerSettings.discoveredModels.map(model => model.rawId),
+    );
+  }
+
+  private async persistFallbackModelSelection(rawModelId: string): Promise<void> {
+    const modelSelection = encodeMimocodeModelId(rawModelId);
+    const settingsBag = this.plugin.settings as unknown as Record<string, unknown>;
+    const savedProviderModel = ensureProviderProjectionMap(settingsBag, 'savedProviderModel');
+    savedProviderModel.mimocode = modelSelection;
+    settingsBag.model = modelSelection;
+    // Force the next turn to send set_config_option; the failed ACP session is
+    // still bound to the rejected model until the provider confirms the fallback.
+    this.currentSessionModelId = null;
+    await this.plugin.saveSettings();
+    this.refreshModelSelectors();
   }
 
   private clearActiveSession(): void {

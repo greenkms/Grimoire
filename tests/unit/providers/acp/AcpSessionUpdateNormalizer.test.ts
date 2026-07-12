@@ -116,6 +116,76 @@ describe('AcpSessionUpdateNormalizer', () => {
     });
   });
 
+  it('maps ACP plan updates into a stable user-visible progress chunk', () => {
+    const normalizer = new AcpSessionUpdateNormalizer();
+
+    const plan = normalizer.normalize({
+      entries: [
+        { content: 'Inspect the workspace', priority: 'high', status: 'completed' },
+        { content: 'Implement the change', priority: 'high', status: 'in_progress' },
+        { content: 'Run focused tests', priority: 'medium', status: 'pending' },
+      ],
+      sessionUpdate: 'plan',
+    });
+
+    expect(plan).toEqual({
+      plan: expect.objectContaining({ sessionUpdate: 'plan' }),
+      streamChunks: [{
+        content: 'Implement the change',
+        id: 'acp:plan',
+        items: [
+          { content: 'Inspect the workspace', status: 'completed' },
+          { content: 'Implement the change', status: 'in_progress' },
+          { content: 'Run focused tests', status: 'pending' },
+        ],
+        state: 'running',
+        type: 'progress',
+      }],
+      type: 'plan',
+    });
+  });
+
+  it('keeps raw ACP thoughts private instead of promoting them to progress', () => {
+    const normalizer = new AcpSessionUpdateNormalizer();
+
+    const thought = normalizer.normalize({
+      content: { text: 'Internal chain of thought', type: 'text' },
+      messageId: 'thought-1',
+      sessionUpdate: 'agent_thought_chunk',
+    });
+
+    expect(thought).toMatchObject({
+      role: 'thinking',
+      streamChunks: [{ content: 'Internal chain of thought', type: 'thinking' }],
+      type: 'message_chunk',
+    });
+    expect((thought as any).streamChunks).not.toContainEqual(expect.objectContaining({
+      type: 'progress',
+    }));
+  });
+
+  it('marks a fully completed ACP plan as completed progress', () => {
+    const normalizer = new AcpSessionUpdateNormalizer();
+
+    const plan = normalizer.normalize({
+      entries: [
+        { content: 'Implement the change', priority: 'high', status: 'completed' },
+        { content: 'Run focused tests', priority: 'medium', status: 'completed' },
+      ],
+      sessionUpdate: 'plan',
+    });
+
+    expect(plan).toMatchObject({
+      streamChunks: [{
+        content: 'Plan completed',
+        id: 'acp:plan',
+        state: 'completed',
+        type: 'progress',
+      }],
+      type: 'plan',
+    });
+  });
+
   it('parses session info timestamps and renders non-text content blocks', () => {
     const normalizer = new AcpSessionUpdateNormalizer();
     const updatedAt = '2026-04-19T00:00:00.000Z';
