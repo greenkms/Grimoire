@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.32 - 2026-07-12
+
+### Improved
+
+- Documented Grimoire's composer keyboard shortcuts across every localized README.
+
+### Fixed
+
+- Made `Shift+Tab` cycle the complete Safe, Auto-approve, and Plan permission sequence instead of skipping Auto-approve. (#6)
+
 ## 1.0.31 - 2026-07-12
 
 ### Added

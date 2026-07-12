@@ -28,7 +28,7 @@ import { TabBar } from './tabs/TabBar';
 import { TabManager } from './tabs/TabManager';
 import type { TabData, TabId } from './tabs/types';
 import { normalizeMaxTabs } from './tabs/types';
-import { ContextUsageMeter } from './ui/InputToolbar';
+import { ContextUsageMeter, getNextPermissionMode } from './ui/InputToolbar';
 import { recalculateUsageForModel } from './utils/usageInfo';
 
 type LoadableView = {
@@ -834,7 +834,7 @@ export class GrimoireView extends ItemView {
       this.closeHistoryDropdown();
     });
 
-    // View-level Shift+Tab to toggle plan mode (works from any focused element)
+    // View-level Shift+Tab cycles the provider's permission modes from any focused element.
     this.registerDomEvent(this.containerEl, 'keydown', (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !e.isComposing && this.historyDropdown?.hasClass('visible')) {
         e.preventDefault();
@@ -847,19 +847,21 @@ export class GrimoireView extends ItemView {
         const activeTab = this.tabManager?.getActiveTab();
         if (!activeTab) return;
         const providerId = getTabProviderId(activeTab, this.plugin);
-        if (!ProviderRegistry.getCapabilities(providerId).supportsPlanMode) return;
+        const capabilities = ProviderRegistry.getCapabilities(providerId);
+        const toggleConfig = ProviderRegistry.getChatUIConfig(providerId)
+          .getPermissionModeToggle?.() ?? null;
+        if (!toggleConfig) return;
         const current = ProviderSettingsCoordinator.getProviderSettingsSnapshot(
           this.plugin.settings,
           providerId,
         ).permissionMode as string;
-        if (current === 'plan') {
-          const restoreMode = activeTab.state.prePlanPermissionMode ?? 'normal';
+        const next = getNextPermissionMode(current, toggleConfig, capabilities.supportsPlanMode);
+        if (current === toggleConfig.planValue) {
           activeTab.state.prePlanPermissionMode = null;
-          updatePlanModeUI(activeTab, this.plugin, restoreMode);
-        } else {
+        } else if (next === toggleConfig.planValue) {
           activeTab.state.prePlanPermissionMode = current;
-          updatePlanModeUI(activeTab, this.plugin, 'plan');
         }
+        updatePlanModeUI(activeTab, this.plugin, next);
       }
     });
 

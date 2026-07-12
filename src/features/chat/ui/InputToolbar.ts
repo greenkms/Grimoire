@@ -1204,24 +1204,31 @@ export class PermissionToggle {
 
     const current = this.callbacks.getSettings().permissionMode;
     const capabilities = this.callbacks.getCapabilities();
-    const planValue = toggleConfig.planValue;
-    const canCyclePlan = Boolean(planValue) && capabilities.supportsPlanMode;
-    const newMode = canCyclePlan && planValue
-      ? (
-        current === toggleConfig.inactiveValue
-          ? toggleConfig.activeValue
-          : current === toggleConfig.activeValue
-            ? planValue
-            : toggleConfig.inactiveValue
-      )
-      : (
-        current === toggleConfig.activeValue
-          ? toggleConfig.inactiveValue
-          : toggleConfig.activeValue
-      );
+    const newMode = getNextPermissionMode(
+      current,
+      toggleConfig,
+      capabilities.supportsPlanMode,
+    );
     await this.callbacks.onPermissionModeChange(newMode);
     this.updateDisplay();
   }
+}
+
+export function getNextPermissionMode(
+  current: string,
+  toggleConfig: ProviderPermissionModeToggleConfig,
+  supportsPlanMode: boolean,
+): string {
+  const planValue = toggleConfig.planValue;
+  if (supportsPlanMode && planValue) {
+    if (current === toggleConfig.inactiveValue) return toggleConfig.activeValue;
+    if (current === toggleConfig.activeValue) return planValue;
+    return toggleConfig.inactiveValue;
+  }
+
+  return current === toggleConfig.activeValue
+    ? toggleConfig.inactiveValue
+    : toggleConfig.activeValue;
 }
 
 export class ServiceTierToggle {

@@ -474,6 +474,78 @@ describe('GrimoireView Escape handling', () => {
   });
 });
 
+describe('GrimoireView permission mode shortcut', () => {
+  function createPermissionShortcutHarness(permissionMode: string) {
+    const handlers: Array<(event: KeyboardEvent) => void> = [];
+    const inputWrapper = createMockEl();
+    const activeTab = {
+      providerId: 'claude',
+      lifecycleState: 'active',
+      conversationId: null,
+      draftModel: null,
+      service: null,
+      state: { prePlanPermissionMode: null },
+      ui: { permissionToggle: { updateDisplay: jest.fn() } },
+      dom: { inputWrapper },
+    };
+    const view = Object.create(GrimoireView.prototype) as any;
+
+    view.app = { scope: new Scope() };
+    view.containerEl = createMockEl();
+    view.historyDropdown = createMockEl();
+    view.eventRefs = [];
+    view.registerDomEvent = jest.fn((_target, eventName, handler) => {
+      if (eventName === 'keydown') handlers.push(handler);
+    });
+    view.registerEvent = jest.fn();
+    view.plugin = {
+      settings: {
+        settingsProvider: 'claude',
+        providerConfigs: { claude: { enabled: true } },
+        model: 'sonnet',
+        permissionMode,
+        savedProviderModel: {},
+        savedProviderEffort: {},
+        savedProviderServiceTier: {},
+        savedProviderThinkingBudget: {},
+        savedProviderPermissionMode: {},
+      },
+      saveSettings: jest.fn().mockResolvedValue(undefined),
+      app: {
+        vault: { on: jest.fn() },
+        workspace: { on: jest.fn() },
+      },
+    };
+    view.tabManager = { getActiveTab: jest.fn().mockReturnValue(activeTab) };
+    view.wireEventHandlers();
+
+    const keydown = handlers[0];
+    const pressShiftTab = () => keydown({
+      key: 'Tab',
+      shiftKey: true,
+      isComposing: false,
+      preventDefault: jest.fn(),
+    } as unknown as KeyboardEvent);
+
+    return { activeTab, pressShiftTab, view };
+  }
+
+  it('cycles Safe, Auto-approve, and Plan with Shift+Tab', () => {
+    const { activeTab, pressShiftTab, view } = createPermissionShortcutHarness('normal');
+
+    pressShiftTab();
+    expect(view.plugin.settings.permissionMode).toBe('full_access');
+
+    pressShiftTab();
+    expect(view.plugin.settings.permissionMode).toBe('plan');
+    expect(activeTab.state.prePlanPermissionMode).toBe('full_access');
+
+    pressShiftTab();
+    expect(view.plugin.settings.permissionMode).toBe('normal');
+    expect(activeTab.state.prePlanPermissionMode).toBeNull();
+  });
+});
+
 describe('GrimoireView orchestrator wiring', () => {
   function createOrchestratorHarness() {
     const view = Object.create(GrimoireView.prototype) as any;

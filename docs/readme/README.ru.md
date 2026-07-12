@@ -265,7 +265,14 @@ grok
 
 Фокусная боковая панель с несколькими tabs. У каждой tab свой draft, provider, model, context и runtime. Закройте и снова откройте Obsidian — сессии восстановятся, а provider, model и reasoning effort сохранятся на каждом ответе. Rewind и fork появляются, когда активный provider их поддерживает. Auto-scroll останавливается, когда вы прокручиваете историю вручную.
 
-По умолчанию `Enter` отправляет turn, а `Shift+Enter` вставляет новую строку. Если нужна только ручная отправка, включите **Send only with button** в settings; тогда composer ждёт кнопку отправки и не submit'ит с клавиатуры.
+### Горячие клавиши
+
+| Сочетание | Действие |
+| --- | --- |
+| `Enter` | Отправить текущий turn. Не работает, если включено **Send only with button**. |
+| `Shift+Enter` | Вставить новую строку в composer. |
+| `Shift+Tab` | Переключить permission mode по кругу: `Safe -> Auto-approve -> Plan -> Safe`. У providers без Plan mode переключает Safe и Auto-approve. |
+| `Escape` | Остановить активный ответ или закрыть открытую панель истории чатов. |
 
 ### Model selector
 
@@ -295,7 +302,7 @@ Badge рядом с model selector показывает usage активного
 Когда active provider поддерживает Plan mode, его можно включить двумя способами:
 
 - Нажимайте permission control в composer, пока он не переключится на Plan: `Safe -> Auto-approve -> Plan`.
-- Нажмите `Shift+Tab`, чтобы быстро войти в Plan mode, или нажмите ещё раз, чтобы выйти.
+- Нажимайте `Shift+Tab`, чтобы переключать полный цикл: `Safe -> Auto-approve -> Plan -> Safe`.
 
 Plan mode просит provider сначала составить план, прежде чем начинать изменения. В composer он использует тот же permission control, что Safe и Auto-approve, поэтому active mode остаётся видимым во время работы.
 
@@ -325,7 +332,7 @@ Built-in commands покрывают workflows Grimoire, включая image ge
 
 ### Safety и permissions
 
-Permission modes принадлежат provider, поэтому Grimoire показывает их через shared composer controls, а не переизобретает. Permission control переключается между Safe, Auto-approve и Plan, когда active provider поддерживает plan mode; `Shift+Tab` остаётся быстрым shortcut для входа в Plan и выхода из него. Safe mode и permission prompts остаются видимыми во время работы. Bang-bash mode появляется только если enabled provider его поддерживает. Относитесь к configured MCP servers, shell access и API keys как к sensitive данным, потому что они sensitive.
+Permission modes принадлежат provider, поэтому Grimoire показывает их через shared composer controls, а не переизобретает. Permission control и `Shift+Tab` переключают Safe, Auto-approve и Plan по одному циклу, когда active provider поддерживает plan mode. Safe mode и permission prompts остаются видимыми во время работы. Bang-bash mode появляется только если enabled provider его поддерживает. Относитесь к configured MCP servers, shell access и API keys как к sensitive данным, потому что они sensitive.
 
 ### Debug logging
 

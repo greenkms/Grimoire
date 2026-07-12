@@ -259,6 +259,15 @@ Dentro de Grimoire, Grok Build corre sobre ACP via `grok agent stdio` con Grimoi
 
 Un panel lateral enfocado con múltiples tabs. Cada tab conserva su propio draft, provider, model, context y runtime. Cierra y vuelve a abrir Obsidian y tus sessions regresan, con provider, model y reasoning effort preservados en cada response. Rewind y fork aparecen cuando el provider activo los soporta. Auto-scroll se aparta en cuanto haces scroll para leer.
 
+### Atajos de teclado
+
+| Atajo | Acción |
+| --- | --- |
+| `Enter` | Envía el turn actual. Se desactiva cuando **Send only with button** está activado. |
+| `Shift+Enter` | Inserta una nueva línea en el composer. |
+| `Shift+Tab` | Recorre los permission modes: `Safe -> Auto-approve -> Plan -> Safe`. Los providers sin Plan mode alternan entre Safe y Auto-approve. |
+| `Escape` | Detiene la response activa o cierra el panel de chat history abierto. |
+
 ### Model selector
 
 Un solo picker, agrupado por provider y ordenado por label: Antigravity, Claude Code, Codex, Gemini CLI (Legacy), Grok Build, OpenCode, MiMoCode y Kimi Code. Search funciona sobre labels, descriptions, groups y model IDs. Catalogs carga lazily y recuerda qué groups colapsaste. Añade custom aliases y context-window overrides en settings. Los variants 1M de Claude son opciones extra, no reemplazos de los base models.
@@ -287,7 +296,7 @@ Un badge junto al model selector mantiene visible el usage del provider activo. 
 Cuando el provider activo soporta Plan mode, puedes activarlo de dos formas:
 
 - Haz clic en el permission control del composer hasta que cambie a Plan: `Safe -> Auto-approve -> Plan`.
-- Pulsa `Shift+Tab` para entrar rápido en Plan mode, o púlsalo otra vez para salir.
+- Pulsa `Shift+Tab` para recorrer el ciclo completo: `Safe -> Auto-approve -> Plan -> Safe`.
 
 Plan mode pide al provider que planifique antes de empezar a hacer cambios. En el composer usa el mismo permission control que Safe y Auto-approve, así que el modo activo sigue visible mientras trabajas.
 
@@ -315,7 +324,7 @@ Pega o arrastra imágenes para adjuntarlas. El command built-in `/image [prompt]
 
 ### Safety y permissions
 
-Permission modes pertenecen al provider, así que Grimoire los muestra mediante shared composer controls en vez de reinventarlos. El permission control recorre Safe, Auto-approve y Plan cuando el active provider soporta plan mode; `Shift+Tab` sigue siendo el shortcut rápido para entrar o salir de Plan. Safe mode y permission prompts permanecen visibles mientras trabajas. Bang-bash mode solo aparece cuando un enabled provider lo ofrece. Trata configured MCP servers, shell access y API keys como sensitive, porque lo son.
+Permission modes pertenecen al provider, así que Grimoire los muestra mediante shared composer controls en vez de reinventarlos. El permission control y `Shift+Tab` recorren Safe, Auto-approve y Plan cuando el active provider soporta plan mode. Safe mode y permission prompts permanecen visibles mientras trabajas. Bang-bash mode solo aparece cuando un enabled provider lo ofrece. Trata configured MCP servers, shell access y API keys como sensitive, porque lo son.
 
 ### Debug logging
 

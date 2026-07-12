@@ -261,6 +261,15 @@ Grimoire 内では、Grok Build は `grok agent stdio` 経由の ACP で動作�
 
 複数 tabs を持つ集中型サイドパネルです。各 tab は独自の draft、provider、model、context、runtime を保持します。Obsidian を閉じて再度開いても sessions は復元され、各 response に provider、model、reasoning effort が保持されます。Rewind と fork は、active provider がサポートする場合に表示されます。履歴を読むために手動で scroll すると、auto-scroll は自動的に控えます。
 
+### キーボードショートカット
+
+| ショートカット | 操作 |
+| --- | --- |
+| `Enter` | 現在の turn を送信します。**Send only with button** が有効な場合は無効です。 |
+| `Shift+Enter` | Composer に改行を挿入します。 |
+| `Shift+Tab` | Permission mode を `Safe -> Auto-approve -> Plan -> Safe` の順に切り替えます。Plan mode 非対応の provider では Safe と Auto-approve を切り替えます。 |
+| `Escape` | Active response を停止するか、開いている chat history パネルを閉じます。 |
+
 ### Model selector
 
 ひとつの picker が provider ごとに grouped され、label 順に並びます：Antigravity、Claude Code、Codex、Gemini CLI (Legacy)、Grok Build、OpenCode、MiMoCode、Kimi Code。Search は labels、descriptions、groups、model IDs を横断します。Catalogs は lazily に load され、collapse した groups を記憶します。Settings で custom aliases と context-window overrides を追加できます。Claude の 1M variants は base models の置き換えではなく、追加 options です。
@@ -289,7 +298,7 @@ Model selector の横の badge が active provider の usage を表示します�
 Active provider が Plan mode をサポートしている場合、次の 2 通りで有効にできます。
 
 - Composer の permission control をクリックし、Plan まで切り替えます: `Safe -> Auto-approve -> Plan`。
-- `Shift+Tab` を押すとすばやく Plan mode に入り、もう一度押すと Plan mode から戻ります。
+- `Shift+Tab` を押すと、`Safe -> Auto-approve -> Plan -> Safe` の完全なサイクルを切り替えます。
 
 Plan mode では、provider が変更を始める前にまず計画します。Composer では Safe と Auto-approve と同じ permission control を使うため、作業中も active mode が見えたままになります。
 
@@ -317,7 +326,7 @@ Built-in commands は image generation や resume などの Grimoire workflows �
 
 ### Safety と permissions
 
-Permission modes は provider に属するため、Grimoire はそれらを再実装せず、shared composer controls として表示します。Active provider が plan mode をサポートする場合、permission control は Safe、Auto-approve、Plan を順に切り替えます。`Shift+Tab` は Plan に入る、または Plan から戻るための quick shortcut のままです。Safe mode と permission prompts は作業中も見える状態を保ちます。Bang-bash mode は、enabled provider が提供する場合にのみ表示されます。Configured MCP servers、shell access、API keys は sensitive data として扱ってください。実際に sensitive だからです。
+Permission modes は provider に属するため、Grimoire はそれらを再実装せず、shared composer controls として表示します。Active provider が plan mode をサポートする場合、permission control と `Shift+Tab` はどちらも Safe、Auto-approve、Plan を順に切り替えます。Safe mode と permission prompts は作業中も見える状態を保ちます。Bang-bash mode は、enabled provider が提供する場合にのみ表示されます。Configured MCP servers、shell access、API keys は sensitive data として扱ってください。実際に sensitive だからです。
 
 ### Debug logging
 

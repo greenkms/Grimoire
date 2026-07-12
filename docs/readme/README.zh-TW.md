@@ -253,6 +253,15 @@ grok
 
 一個專注的側邊欄，支援多個 tabs。每個 tab 都保留自己的 draft、provider、model、context 和 runtime。關閉再開啟 Obsidian 後，sessions 會恢復，並且每個 response 都保留 provider、model 和 reasoning effort。Rewind 和 fork 會在目前 provider 支援時出現。你一旦手動捲動去閱讀歷史，auto-scroll 會自動讓位。
 
+### 鍵盤快捷鍵
+
+| 快捷鍵 | 操作 |
+| --- | --- |
+| `Enter` | 傳送目前的 turn。啟用 **Send only with button** 時此快捷鍵不可用。 |
+| `Shift+Enter` | 在 composer 中插入新行。 |
+| `Shift+Tab` | 循環切換 permission modes：`Safe -> Auto-approve -> Plan -> Safe`。不支援 Plan mode 的 providers 會在 Safe 和 Auto-approve 之間切換。 |
+| `Escape` | 停止目前的 response，或關閉已開啟的 chat history 面板。 |
+
 ### Model selector
 
 一個 picker，按 provider 分組，並按 label 排序：Antigravity、Claude Code、Codex、Gemini CLI (Legacy)、Grok Build、OpenCode、MiMoCode 和 Kimi Code。Search 會匹配 labels、descriptions、groups 和 model IDs。Catalogs 會 lazy load，並記住你摺疊過的 groups。你可以在 settings 中新增 custom aliases 和 context-window overrides。Claude 的 1M variants 是額外 options，不會替代 base models。
@@ -281,7 +290,7 @@ Model selector 旁邊的 badge 會持續顯示目前 provider 的 usage；model 
 當 active provider 支援 Plan mode 時，可以用兩種方式開啟：
 
 - 點擊 composer 裡的 permission control，直到它切換到 Plan：`Safe -> Auto-approve -> Plan`。
-- 按 `Shift+Tab` 快速進入 Plan mode，再按一次即可退出。
+- 按 `Shift+Tab` 循環切換完整序列：`Safe -> Auto-approve -> Plan -> Safe`。
 
 Plan mode 會要求 provider 先制定計畫，再開始進行變更。在 composer 中，它使用與 Safe 和 Auto-approve 相同的 permission control，因此工作時 active mode 會一直可見。
 
@@ -309,7 +318,7 @@ Built-in commands 覆蓋 Grimoire workflows，例如 image generation 和 resume
 
 ### Safety 和 permissions
 
-Permission modes 屬於 provider，因此 Grimoire 透過 shared composer controls 顯示它們，而不是重新實作一套。當 active provider 支援 plan mode 時，permission control 會在 Safe、Auto-approve 和 Plan 之間循環；`Shift+Tab` 仍然是進入或退出 Plan 的快捷鍵。Safe mode 和 permission prompts 在工作時保持可見。Bang-bash mode 只會在 enabled provider 提供時顯示。Configured MCP servers、shell access 和 API keys 都應該被視為 sensitive，因為它們確實 sensitive。
+Permission modes 屬於 provider，因此 Grimoire 透過 shared composer controls 顯示它們，而不是重新實作一套。當 active provider 支援 plan mode 時，permission control 和 `Shift+Tab` 都會在 Safe、Auto-approve 和 Plan 之間循環。Safe mode 和 permission prompts 在工作時保持可見。Bang-bash mode 只會在 enabled provider 提供時顯示。Configured MCP servers、shell access 和 API keys 都應該被視為 sensitive，因為它們確實 sensitive。
 
 ### Debug logging
 
