@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.0.33 - 2026-07-12
+
+### Added
+
+- Added task-level progress updates for Codex reasoning summaries and ACP plans from OpenCode, MiMoCode, and Kimi Code.
+- Added shared provider-error classification for authentication, quota, rate-limit, unavailable-model, and transport failures.
+
+### Improved
+
+- Asked every main agent to communicate meaningful phase changes, recovery attempts, and completion outcomes without exposing private reasoning.
+- Reworked permission requests with semantic command summaries, full-command tooltips, clearer shell copy, responsive actions, and readable multi-line commands.
+- Reduced Codex tool noise by keeping typed tool activity while suppressing duplicate raw execution wrappers.
+
+### Fixed
+
+- Reconnected OpenCode, MiMoCode, and Kimi Code after early JSON-RPC transport closures without reviving stale turns during runtime cleanup.
+- Recovered hidden MiMoCode API errors from native session metadata, preserved them in restored history, and switched unsupported Ultraspeed selections to an available base model.
+- Replaced empty ACP turns with actionable errors and recorded successful prompt enqueue metadata consistently.
+- Normalized Grok execute approvals as shell commands and prevented long permission titles from breaking the dialog layout.
+
 ## 1.0.32 - 2026-07-12
 
 ### Improved
