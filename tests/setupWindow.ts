@@ -26,7 +26,88 @@ function ensureGlobalTimers(): void {
   }
 }
 
+function installObsidianDomHelpers(): void {
+  if (typeof Element === 'undefined') return;
+
+  if (typeof Document !== 'undefined') {
+    const documentPrototype = Document.prototype as unknown as Record<string, any>;
+    if (!Object.getOwnPropertyDescriptor(documentPrototype, 'win')) {
+      Object.defineProperty(documentPrototype, 'win', {
+        configurable: true,
+        get(this: Document): Window | null {
+          return this.defaultView;
+        },
+      });
+    }
+  }
+
+  if (typeof Window !== 'undefined') {
+    const windowPrototype = Window.prototype as unknown as Record<string, any>;
+    if (typeof windowPrototype.createFragment !== 'function') {
+      windowPrototype.createFragment = function createFragment(this: Window): DocumentFragment {
+        return this.document.createDocumentFragment();
+      };
+    }
+  }
+
+  const prototype = Element.prototype as unknown as Record<string, any>;
+  if (typeof prototype.createEl !== 'function') {
+    prototype.createEl = function createEl(
+      this: Element,
+      tagName: string,
+      options?: { cls?: string; text?: string; attr?: Record<string, string> },
+    ): HTMLElement {
+      const element = this.ownerDocument.createElement(tagName);
+      if (options?.cls) element.className = options.cls;
+      if (options?.text) element.textContent = options.text;
+      for (const [name, value] of Object.entries(options?.attr ?? {})) {
+        element.setAttribute(name, value);
+      }
+      this.appendChild(element);
+      return element;
+    };
+  }
+  if (typeof prototype.createDiv !== 'function') {
+    prototype.createDiv = function createDiv(
+      this: Element,
+      options?: { cls?: string; text?: string; attr?: Record<string, string> },
+    ): HTMLDivElement {
+      return (this as any).createEl('div', options);
+    };
+  }
+  if (typeof prototype.createSpan !== 'function') {
+    prototype.createSpan = function createSpan(
+      this: Element,
+      options?: { cls?: string; text?: string; attr?: Record<string, string> },
+    ): HTMLSpanElement {
+      return (this as any).createEl('span', options);
+    };
+  }
+  if (typeof prototype.createSvg !== 'function') {
+    prototype.createSvg = function createSvg(
+      this: Element,
+      tagName: string,
+      options?: { cls?: string; attr?: Record<string, string> },
+    ): SVGElement {
+      const element = this.ownerDocument.createElementNS('http://www.w3.org/2000/svg', tagName);
+      if (options?.cls) element.setAttribute('class', options.cls);
+      for (const [name, value] of Object.entries(options?.attr ?? {})) {
+        element.setAttribute(name, value);
+      }
+      this.appendChild(element);
+      return element;
+    };
+  }
+  if (typeof prototype.detach !== 'function') {
+    prototype.detach = function detach(this: Element): Element {
+      this.remove();
+      return this;
+    };
+  }
+}
+
 ensureGlobalTimers();
+installObsidianDomHelpers();
 
 if (!testWindow.requestAnimationFrame) {
   testWindow.requestAnimationFrame = (callback: FrameRequestCallback): number => (
@@ -50,6 +131,7 @@ if (!('window' in globalThis)) {
 
 beforeEach(() => {
   ensureGlobalTimers();
+  installObsidianDomHelpers();
 });
 
 afterEach(() => {

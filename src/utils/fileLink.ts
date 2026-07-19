@@ -7,6 +7,7 @@
 
 import type { App, Component } from 'obsidian';
 
+import { createDetachedEl } from './dom';
 import { getVaultFileByPath } from './obsidianCompat';
 
 /**
@@ -121,9 +122,10 @@ function createWikilink(
   linkTarget: string,
   displayText: string
 ): HTMLElement {
-  const link = ownerDocument.createElement('a');
-  link.className = 'grimoire-file-link internal-link';
-  link.textContent = displayText;
+  const link = createDetachedEl(ownerDocument, 'a', {
+    cls: 'grimoire-file-link internal-link',
+    text: displayText,
+  });
   link.setAttribute('data-href', linkTarget);
   link.setAttribute('href', linkTarget);
   return link;
@@ -171,7 +173,7 @@ export function registerFileLinkHandler(
 }
 
 function buildFragmentWithLinks(ownerDocument: Document, text: string, matches: WikilinkMatch[]): DocumentFragment {
-  const fragment = ownerDocument.createDocumentFragment();
+  const fragment = ownerDocument.win.createFragment();
   let currentIndex = text.length;
 
   for (const { index, fullMatch, linkTarget, displayText } of matches) {

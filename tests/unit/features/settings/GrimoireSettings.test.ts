@@ -83,6 +83,29 @@ describe('GrimoireSettingTab general tab settings', () => {
     expect(versionEl?.querySelector('.grimoire-settings-whats-new')?.textContent).toBe('What\'s new');
   });
 
+  it('indexes the existing settings UI through the Obsidian 1.13 declarative API', () => {
+    const plugin = createSettingsPlugin();
+    const tab = new GrimoireSettingTab(createSettingsApp(), plugin);
+
+    const [definition] = tab.getSettingDefinitions();
+
+    expect(definition).toEqual(expect.objectContaining({
+      name: 'Grimoire settings',
+      aliases: expect.arrayContaining(['Debug logging', 'Grok Build', 'Maximum chat tabs']),
+    }));
+    expect('render' in definition!).toBe(true);
+
+    const settingEl = createMockEl('div');
+    settingEl.addClass('setting-item');
+    if (definition && 'render' in definition && definition.render) {
+      definition.render({ settingEl } as any, {} as any);
+    }
+
+    expect(settingEl.hasClass('setting-item')).toBe(false);
+    expect(settingEl.hasClass('grimoire-settings')).toBe(true);
+    expect(collectText(settingEl)).toContain('Maximum chat tabs');
+  });
+
   it('opens bundled release notes for the current version from the what\'s new action', async () => {
     const plugin = createSettingsPlugin();
     const app = createSettingsApp();

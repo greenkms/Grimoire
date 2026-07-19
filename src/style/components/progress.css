@@ -89,7 +89,6 @@
 
 .grimoire-progress-item--completed .grimoire-progress-item-label {
   text-decoration: line-through;
-  text-decoration-color: var(--text-faint);
 }
 
 .grimoire-progress-block + .grimoire-tool-call,

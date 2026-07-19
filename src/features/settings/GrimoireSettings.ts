@@ -1,4 +1,4 @@
-import type { App } from 'obsidian';
+import type { App, SettingDefinitionItem } from 'obsidian';
 import { Notice, Platform, PluginSettingTab, Setting } from 'obsidian';
 
 import { parseChangelogRelease } from '../../app/changelog/parser';
@@ -176,6 +176,31 @@ const PROVIDER_SETTING_COPY: Record<ProviderId, { desc?: string; descKey?: Trans
   },
 };
 
+const GENERAL_SETTINGS_SEARCH_KEYS: TranslationKey[] = [
+  'settings.language.name',
+  'settings.display',
+  'settings.theme.name',
+  'settings.chatViewPlacement.name',
+  'settings.enableAutoScroll.name',
+  'settings.conversations',
+  'settings.autoTitle.name',
+  'settings.content',
+  'settings.userName.name',
+  'settings.deferMathRenderingDuringStreaming.name',
+  'settings.titleModel.name',
+  'settings.systemPrompt.name',
+  'settings.excludedTags.name',
+  'settings.mediaFolder.name',
+  'settings.input',
+  'settings.requireCommandOrControlEnterToSend.name',
+  'settings.navMappings.name',
+  'settings.hotkeys',
+  'settings.diagnostics',
+  'settings.usageIndicators.name',
+  'settings.debugLogging.name',
+  'settings.maxTabs.name',
+];
+
 export class GrimoireSettingTab extends PluginSettingTab {
   plugin: GrimoirePlugin;
   private activeTab: SettingsTabId = 'general';
@@ -189,8 +214,35 @@ export class GrimoireSettingTab extends PluginSettingTab {
     this.renderSettings();
   }
 
-  private renderSettings(): void {
-    const { containerEl } = this;
+  getSettingDefinitions(): SettingDefinitionItem[] {
+    setLocale(this.plugin.settings.locale as Locale);
+    const providerAliases = Object.values(PROVIDER_SETTING_COPY).flatMap((copy) => [
+      copy.name,
+      ...(copy.desc ? [copy.desc] : []),
+      ...(copy.descKey ? [t(copy.descKey)] : []),
+    ]);
+    const aliases = Array.from(new Set([
+      ...GENERAL_SETTINGS_SEARCH_KEYS.map((key) => t(key)),
+      ...providerAliases,
+      'Providers',
+      'Models',
+      'Permissions',
+      'Environment variables',
+      'Project workspace',
+    ]));
+
+    return [{
+      name: 'Grimoire settings',
+      desc: 'Configure Grimoire, its workspace, and provider integrations.',
+      aliases,
+      render: (setting) => {
+        setting.settingEl.removeClass('setting-item');
+        this.renderSettings(setting.settingEl);
+      },
+    }];
+  }
+
+  private renderSettings(containerEl: HTMLElement = this.containerEl): void {
     containerEl.empty();
     containerEl.addClass('grimoire-settings');
 

@@ -308,7 +308,7 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
       );
 
       const headerEl = selectedEl.createDiv({ cls: 'grimoire-kimicode-model-picker-selected-header' });
-      headerEl.createEl('span', {
+      headerEl.createSpan({
         cls: 'grimoire-kimicode-model-picker-selected-label',
         text: `Selected (${current.visibleModels.length})`,
       });
@@ -337,29 +337,29 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
         const infoEl = rowEl.createDiv({ cls: 'grimoire-kimicode-model-picker-selected-info' });
         const titleEl = infoEl.createDiv({ cls: 'grimoire-kimicode-model-picker-selected-title' });
         if (enriched) {
-          titleEl.createEl('span', {
+          titleEl.createSpan({
             cls: 'grimoire-kimicode-model-picker-selected-badge',
             text: enriched.providerLabel,
           });
-          titleEl.createEl('span', {
+          titleEl.createSpan({
             cls: 'grimoire-kimicode-model-picker-selected-name',
             text: enriched.modelLabel,
           });
         } else {
-          titleEl.createEl('span', {
+          titleEl.createSpan({
             cls: 'grimoire-kimicode-model-picker-selected-name',
             text: rawId,
           });
         }
 
         if (enriched && !enriched.isAvailable) {
-          infoEl.createEl('div', {
+          infoEl.createDiv({
             cls: 'grimoire-kimicode-model-picker-selected-unavailable',
             text: 'Not currently reported by Kimi Code',
           });
         }
 
-        infoEl.createEl('div', {
+        infoEl.createDiv({
           cls: 'grimoire-kimicode-model-picker-selected-id',
           text: rawId,
         });
@@ -495,11 +495,11 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
         const textEl = rowEl.createDiv({ cls: 'grimoire-kimicode-model-picker-row-text' });
 
         const headerEl = textEl.createDiv({ cls: 'grimoire-kimicode-model-picker-row-header' });
-        headerEl.createEl('span', {
+        headerEl.createSpan({
           cls: 'grimoire-kimicode-model-picker-row-name',
           text: model.modelLabel,
         });
-        const badgeEl = headerEl.createEl('span', {
+        const badgeEl = headerEl.createSpan({
           cls: 'grimoire-kimicode-model-picker-row-badge',
           text: model.providerLabel,
         });

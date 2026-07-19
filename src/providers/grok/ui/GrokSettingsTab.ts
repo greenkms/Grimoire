@@ -315,7 +315,7 @@ export const grokSettingsTabRenderer: ProviderSettingsTabRenderer = {
       );
 
       const headerEl = selectedEl.createDiv({ cls: 'grimoire-grok-model-picker-selected-header' });
-      headerEl.createEl('span', {
+      headerEl.createSpan({
         cls: 'grimoire-grok-model-picker-selected-label',
         text: t('settings.grok.modelPicker.selectedCount', { count: current.visibleModels.length }),
       });
@@ -344,29 +344,29 @@ export const grokSettingsTabRenderer: ProviderSettingsTabRenderer = {
         const infoEl = rowEl.createDiv({ cls: 'grimoire-grok-model-picker-selected-info' });
         const titleEl = infoEl.createDiv({ cls: 'grimoire-grok-model-picker-selected-title' });
         if (enriched) {
-          titleEl.createEl('span', {
+          titleEl.createSpan({
             cls: 'grimoire-grok-model-picker-selected-badge',
             text: enriched.providerLabel,
           });
-          titleEl.createEl('span', {
+          titleEl.createSpan({
             cls: 'grimoire-grok-model-picker-selected-name',
             text: enriched.modelLabel,
           });
         } else {
-          titleEl.createEl('span', {
+          titleEl.createSpan({
             cls: 'grimoire-grok-model-picker-selected-name',
             text: rawId,
           });
         }
 
         if (enriched && !enriched.isAvailable) {
-          infoEl.createEl('div', {
+          infoEl.createDiv({
             cls: 'grimoire-grok-model-picker-selected-unavailable',
             text: t('settings.grok.modelPicker.notReported'),
           });
         }
 
-        infoEl.createEl('div', {
+        infoEl.createDiv({
           cls: 'grimoire-grok-model-picker-selected-id',
           text: rawId,
         });
@@ -502,11 +502,11 @@ export const grokSettingsTabRenderer: ProviderSettingsTabRenderer = {
         const textEl = rowEl.createDiv({ cls: 'grimoire-grok-model-picker-row-text' });
 
         const headerEl = textEl.createDiv({ cls: 'grimoire-grok-model-picker-row-header' });
-        headerEl.createEl('span', {
+        headerEl.createSpan({
           cls: 'grimoire-grok-model-picker-row-name',
           text: model.modelLabel,
         });
-        const badgeEl = headerEl.createEl('span', {
+        const badgeEl = headerEl.createSpan({
           cls: 'grimoire-grok-model-picker-row-badge',
           text: model.providerLabel,
         });

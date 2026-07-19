@@ -67,8 +67,7 @@ function wrapMarkdownTables(el: HTMLElement): void {
       continue;
     }
 
-    const wrapper = table.ownerDocument.createElement('div');
-    wrapper.classList.add('grimoire-table-scroll');
+    const wrapper = parent.createDiv({ cls: 'grimoire-table-scroll' });
     parent.insertBefore(wrapper, table);
     wrapper.appendChild(table);
   }
@@ -923,8 +922,10 @@ export class MessageRenderer {
         if (pre.parentElement?.classList.contains('grimoire-code-wrapper')) return;
 
         // Create wrapper
-        const wrapper = createEl('div', { cls: 'grimoire-code-wrapper' });
-        pre.parentElement?.insertBefore(wrapper, pre);
+        const preParent = pre.parentElement;
+        if (!preParent) return;
+        const wrapper = preParent.createDiv({ cls: 'grimoire-code-wrapper' });
+        preParent.insertBefore(wrapper, pre);
         wrapper.appendChild(pre);
 
         // Check for language class and add label
@@ -933,7 +934,7 @@ export class MessageRenderer {
           const match = code.className.match(/language-(\w+)/);
           if (match) {
             wrapper.classList.add('has-language');
-            const label = createEl('span', {
+            const label = wrapper.createSpan({
               cls: 'grimoire-code-lang-label',
               text: match[1],
             });

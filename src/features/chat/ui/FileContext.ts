@@ -10,6 +10,7 @@ import {
   isMentionStart,
   resolveExternalMentionAtIndex,
 } from '../../../utils/contextMentionResolver';
+import { createDetachedEl } from '../../../utils/dom';
 import { buildExternalContextDisplayEntries } from '../../../utils/externalContext';
 import { externalContextScanner } from '../../../utils/externalContextScanner';
 import { getVaultPath, normalizePathForVault as normalizePathForVaultUtil } from '../../../utils/path';
@@ -361,11 +362,10 @@ export class FileContextManager {
     className: string,
     text: string,
   ): HTMLElementTagNameMap[K] {
-    const element = this.contextMemoryEl?.ownerDocument.createElement(tagName)
-      ?? window.document.createElement(tagName);
-    element.className = className;
-    element.textContent = text;
-    return element;
+    return createDetachedEl(this.contextMemoryEl?.ownerDocument ?? window.document, tagName, {
+      cls: className,
+      text,
+    });
   }
 
   private handleFileRenamed(oldPath: string, newPath: string) {

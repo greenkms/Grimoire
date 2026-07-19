@@ -115,18 +115,17 @@ export class StatusPanel {
       return;
     }
 
-    const ownerDocument = this.containerEl.ownerDocument ?? window.document;
-
     // Hidden until there is todo or command output content.
-    this.panelEl = ownerDocument.createElement('div');
-    this.panelEl.className = 'grimoire-status-panel grimoire-hidden';
+    this.panelEl = this.containerEl.createDiv({ cls: 'grimoire-status-panel grimoire-hidden' });
 
     // Bash output container - hidden by default
-    this.bashOutputContainerEl = ownerDocument.createElement('div');
-    this.bashOutputContainerEl.className = 'grimoire-status-panel-bash grimoire-hidden';
+    this.bashOutputContainerEl = this.panelEl.createDiv({
+      cls: 'grimoire-status-panel-bash grimoire-hidden',
+    });
 
-    this.bashHeaderEl = ownerDocument.createElement('div');
-    this.bashHeaderEl.className = 'grimoire-tool-header grimoire-status-panel-bash-header';
+    this.bashHeaderEl = this.bashOutputContainerEl.createDiv({
+      cls: 'grimoire-tool-header grimoire-status-panel-bash-header',
+    });
     this.bashHeaderEl.setAttribute('tabindex', '0');
     this.bashHeaderEl.setAttribute('role', 'button');
 
@@ -140,21 +139,17 @@ export class StatusPanel {
     this.bashHeaderEl.addEventListener('click', this.bashClickHandler);
     this.bashHeaderEl.addEventListener('keydown', this.bashKeydownHandler);
 
-    this.bashContentEl = ownerDocument.createElement('div');
-    this.bashContentEl.className = 'grimoire-status-panel-bash-content';
-
-    this.bashOutputContainerEl.appendChild(this.bashHeaderEl);
-    this.bashOutputContainerEl.appendChild(this.bashContentEl);
-    this.panelEl.appendChild(this.bashOutputContainerEl);
+    this.bashContentEl = this.bashOutputContainerEl.createDiv({
+      cls: 'grimoire-status-panel-bash-content',
+    });
 
     // Todo container
-    this.todoContainerEl = ownerDocument.createElement('div');
-    this.todoContainerEl.className = 'grimoire-status-panel-todos grimoire-hidden';
-    this.panelEl.appendChild(this.todoContainerEl);
+    this.todoContainerEl = this.panelEl.createDiv({
+      cls: 'grimoire-status-panel-todos grimoire-hidden',
+    });
 
     // Todo header (collapsed view)
-    this.todoHeaderEl = ownerDocument.createElement('div');
-    this.todoHeaderEl.className = 'grimoire-status-panel-header';
+    this.todoHeaderEl = this.todoContainerEl.createDiv({ cls: 'grimoire-status-panel-header' });
     this.todoHeaderEl.setAttribute('tabindex', '0');
     this.todoHeaderEl.setAttribute('role', 'button');
 
@@ -168,14 +163,10 @@ export class StatusPanel {
     };
     this.todoHeaderEl.addEventListener('click', this.todoClickHandler);
     this.todoHeaderEl.addEventListener('keydown', this.todoKeydownHandler);
-    this.todoContainerEl.appendChild(this.todoHeaderEl);
-
     // Todo content (expanded list)
-    this.todoContentEl = ownerDocument.createElement('div');
-    this.todoContentEl.className = 'grimoire-status-panel-content grimoire-todo-list-container grimoire-hidden';
-    this.todoContainerEl.appendChild(this.todoContentEl);
-
-    this.containerEl.appendChild(this.panelEl);
+    this.todoContentEl = this.todoContainerEl.createDiv({
+      cls: 'grimoire-status-panel-content grimoire-todo-list-container grimoire-hidden',
+    });
   }
 
   /**
@@ -227,36 +218,32 @@ export class StatusPanel {
     if (!this.todoHeaderEl) return;
 
     this.todoHeaderEl.empty();
-    const ownerDocument = this.todoHeaderEl.ownerDocument ?? window.document;
-
     // List icon
-    const icon = ownerDocument.createElement('span');
-    icon.className = 'grimoire-status-panel-icon';
+    const icon = this.todoHeaderEl.createSpan({ cls: 'grimoire-status-panel-icon' });
     setIcon(icon, getToolIcon(TOOL_TODO_WRITE));
-    this.todoHeaderEl.appendChild(icon);
 
     // Label
-    const label = ownerDocument.createElement('span');
-    label.className = 'grimoire-status-panel-label';
-    label.textContent = `Tasks (${completedCount}/${totalCount})`;
-    this.todoHeaderEl.appendChild(label);
+    this.todoHeaderEl.createSpan({
+      cls: 'grimoire-status-panel-label',
+      text: `Tasks (${completedCount}/${totalCount})`,
+    });
 
     // Collapsed-only elements: status indicator and current task preview
     if (!this.isTodoExpanded) {
       // Status indicator (tick only when all todos complete)
       if (completedCount === totalCount && totalCount > 0) {
-        const status = ownerDocument.createElement('span');
-        status.className = 'grimoire-status-panel-status status-completed';
+        const status = this.todoHeaderEl.createSpan({
+          cls: 'grimoire-status-panel-status status-completed',
+        });
         setIcon(status, 'check');
-        this.todoHeaderEl.appendChild(status);
       }
 
       // Current task preview
       if (currentTask) {
-        const current = ownerDocument.createElement('span');
-        current.className = 'grimoire-status-panel-current';
-        current.textContent = currentTask.activeForm;
-        this.todoHeaderEl.appendChild(current);
+        this.todoHeaderEl.createSpan({
+          cls: 'grimoire-status-panel-current',
+          text: currentTask.activeForm,
+        });
       }
     }
   }
@@ -372,32 +359,22 @@ export class StatusPanel {
     this.updatePanelVisibility();
     this.bashHeaderEl.empty();
     this.bashContentEl.empty();
-    const ownerDocument = this.bashHeaderEl.ownerDocument ?? window.document;
-
-    const headerIconEl = ownerDocument.createElement('span');
-    headerIconEl.className = 'grimoire-tool-icon';
+    const headerIconEl = this.bashHeaderEl.createSpan({ cls: 'grimoire-tool-icon' });
     headerIconEl.setAttribute('aria-hidden', 'true');
     setIcon(headerIconEl, 'terminal');
-    this.bashHeaderEl.appendChild(headerIconEl);
 
     const latest = Array.from(this.currentBashOutputs.values()).at(-1);
 
-    const headerLabelEl = ownerDocument.createElement('span');
-    headerLabelEl.className = 'grimoire-tool-label';
+    const headerLabelEl = this.bashHeaderEl.createSpan({ cls: 'grimoire-tool-label' });
     if (this.isBashExpanded) {
       headerLabelEl.textContent = t('chat.bangBash.commandPanel');
     } else {
       headerLabelEl.textContent = latest ? this.truncateDescription(latest.command, 60) : t('chat.bangBash.commandPanel');
     }
-    this.bashHeaderEl.appendChild(headerLabelEl);
-
-    const previewEl = ownerDocument.createElement('span');
-    previewEl.className = 'grimoire-tool-current';
+    const previewEl = this.bashHeaderEl.createSpan({ cls: 'grimoire-tool-current' });
     previewEl.classList.toggle('grimoire-hidden', !this.isBashExpanded);
-    this.bashHeaderEl.appendChild(previewEl);
 
-    const summaryStatusEl = ownerDocument.createElement('span');
-    summaryStatusEl.className = 'grimoire-tool-status';
+    const summaryStatusEl = this.bashHeaderEl.createSpan({ cls: 'grimoire-tool-status' });
     if (!this.isBashExpanded && latest) {
       summaryStatusEl.classList.add(`status-${latest.status}`);
       summaryStatusEl.setAttribute('aria-label', t('chat.bangBash.statusLabel', { status: latest.status }));
@@ -406,20 +383,15 @@ export class StatusPanel {
     } else {
       summaryStatusEl.classList.add('grimoire-hidden');
     }
-    this.bashHeaderEl.appendChild(summaryStatusEl);
-
     this.bashHeaderEl.setAttribute('aria-expanded', String(this.isBashExpanded));
 
-    const actionsEl = ownerDocument.createElement('span');
-    actionsEl.className = 'grimoire-status-panel-bash-actions';
+    const actionsEl = this.bashHeaderEl.createSpan({ cls: 'grimoire-status-panel-bash-actions' });
     this.appendActionButton(actionsEl, 'copy', t('chat.bangBash.copyAriaLabel'), 'copy', () => {
       void this.copyLatestBashOutput();
     });
     this.appendActionButton(actionsEl, 'clear', t('chat.bangBash.clearAriaLabel'), 'trash', () => {
       this.clearBashOutputs();
     });
-    this.bashHeaderEl.appendChild(actionsEl);
-
     this.bashContentEl.toggleClass('grimoire-hidden', !this.isBashExpanded);
 
     if (!this.isBashExpanded) {
@@ -427,7 +399,7 @@ export class StatusPanel {
     }
 
     for (const info of this.currentBashOutputs.values()) {
-      this.bashContentEl.appendChild(this.renderBashEntry(info, ownerDocument));
+      this.renderBashEntry(info, this.bashContentEl);
     }
 
     if (scroll) {
@@ -436,38 +408,29 @@ export class StatusPanel {
     }
   }
 
-  private renderBashEntry(info: PanelBashOutput, ownerDocument: Document): HTMLElement {
-    const entryEl = ownerDocument.createElement('div');
-    entryEl.className = 'grimoire-tool-call grimoire-status-panel-bash-entry';
+  private renderBashEntry(info: PanelBashOutput, parentEl: HTMLElement): HTMLElement {
+    const entryEl = parentEl.createDiv({
+      cls: 'grimoire-tool-call grimoire-status-panel-bash-entry',
+    });
 
-    const entryHeaderEl = ownerDocument.createElement('div');
-    entryHeaderEl.className = 'grimoire-tool-header';
+    const entryHeaderEl = entryEl.createDiv({ cls: 'grimoire-tool-header' });
     entryHeaderEl.setAttribute('tabindex', '0');
     entryHeaderEl.setAttribute('role', 'button');
 
-    const entryIconEl = ownerDocument.createElement('span');
-    entryIconEl.className = 'grimoire-tool-icon';
+    const entryIconEl = entryHeaderEl.createSpan({ cls: 'grimoire-tool-icon' });
     entryIconEl.setAttribute('aria-hidden', 'true');
     setIcon(entryIconEl, 'dollar-sign');
-    entryHeaderEl.appendChild(entryIconEl);
+    entryHeaderEl.createSpan({
+      cls: 'grimoire-tool-label',
+      text: t('chat.bangBash.commandLabel', { command: this.truncateDescription(info.command, 60) }),
+    });
 
-    const entryLabelEl = ownerDocument.createElement('span');
-    entryLabelEl.className = 'grimoire-tool-label';
-    entryLabelEl.textContent = t('chat.bangBash.commandLabel', { command: this.truncateDescription(info.command, 60) });
-    entryHeaderEl.appendChild(entryLabelEl);
-
-    const entryStatusEl = ownerDocument.createElement('span');
-    entryStatusEl.className = 'grimoire-tool-status';
+    const entryStatusEl = entryHeaderEl.createSpan({ cls: 'grimoire-tool-status' });
     entryStatusEl.classList.add(`status-${info.status}`);
     entryStatusEl.setAttribute('aria-label', t('chat.bangBash.statusLabel', { status: info.status }));
     if (info.status === 'completed') setIcon(entryStatusEl, 'check');
     if (info.status === 'error') setIcon(entryStatusEl, 'x');
-    entryHeaderEl.appendChild(entryStatusEl);
-
-    entryEl.appendChild(entryHeaderEl);
-
-    const contentEl = ownerDocument.createElement('div');
-    contentEl.className = 'grimoire-tool-content';
+    const contentEl = entryEl.createDiv({ cls: 'grimoire-tool-content' });
     const isEntryExpanded = this.bashEntryExpanded.get(info.id) ?? true;
     contentEl.classList.toggle('grimoire-hidden', !isEntryExpanded);
     entryHeaderEl.setAttribute('aria-expanded', String(isEntryExpanded));
@@ -484,21 +447,15 @@ export class StatusPanel {
       }
     });
 
-    const rowEl = ownerDocument.createElement('div');
-    rowEl.className = 'grimoire-tool-result-row';
+    const rowEl = contentEl.createDiv({ cls: 'grimoire-tool-result-row' });
 
-    const textEl = ownerDocument.createElement('span');
-    textEl.className = 'grimoire-tool-result-text';
+    const textEl = rowEl.createSpan({ cls: 'grimoire-tool-result-text' });
     if (info.status === 'running' && !info.output) {
       textEl.textContent = t('chat.bangBash.running');
     } else if (info.output) {
       textEl.textContent = info.output;
     }
 
-    rowEl.appendChild(textEl);
-    contentEl.appendChild(rowEl);
-
-    entryEl.appendChild(contentEl);
     return entryEl;
   }
 
@@ -537,8 +494,9 @@ export class StatusPanel {
     icon: string,
     action: () => void
   ): void {
-    const el = (parent.ownerDocument ?? window.document).createElement('span');
-    el.className = `grimoire-status-panel-bash-action grimoire-status-panel-bash-action-${name}`;
+    const el = parent.createSpan({
+      cls: `grimoire-status-panel-bash-action grimoire-status-panel-bash-action-${name}`,
+    });
     el.setAttribute('role', 'button');
     el.setAttribute('tabindex', '0');
     el.setAttribute('aria-label', ariaLabel);
@@ -554,7 +512,6 @@ export class StatusPanel {
         action();
       }
     });
-    parent.appendChild(el);
   }
 
   private toggleBashSection(): void {

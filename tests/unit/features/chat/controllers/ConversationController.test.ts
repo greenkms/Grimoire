@@ -1162,19 +1162,13 @@ describe('ConversationController', () => {
       if (titleEl) {
         (titleEl as any).replaceWith = jest.fn();
       }
+      const createElSpy = jest.spyOn(item, 'createEl').mockReturnValue(mockInput);
 
-      const origDocument = global.document;
-      global.document = { createElement: jest.fn().mockReturnValue(mockInput) } as any;
+      renameItem!.clickHandler();
 
-      try {
-        renameItem!.clickHandler();
-
-        expect(global.document.createElement).toHaveBeenCalledWith('input');
-        expect((mockInput as any).value).toBe('Test Title');
-        expect(titleEl!.replaceWith).toHaveBeenCalledWith(mockInput);
-      } finally {
-        global.document = origDocument;
-      }
+      expect(createElSpy).toHaveBeenCalledWith('input');
+      expect((mockInput as any).value).toBe('Test Title');
+      expect(titleEl!.replaceWith).toHaveBeenCalledWith(mockInput);
     });
 
     it('should delete conversation and reload active when deleting current conversation', async () => {

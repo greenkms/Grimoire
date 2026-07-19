@@ -21,6 +21,7 @@ import {
   normalizeMentionPath,
   resolveExternalMentionAtIndex,
 } from '../../../utils/contextMentionResolver';
+import { createDetachedEl } from '../../../utils/dom';
 import { type CursorContext, getEditorView } from '../../../utils/editor';
 import { buildExternalContextDisplayEntries } from '../../../utils/externalContext';
 import { externalContextScanner } from '../../../utils/externalContextScanner';
@@ -59,28 +60,18 @@ class DiffWidget extends WidgetType {
   }
   toDOM(): HTMLElement {
     const ownerDocument = this.controller.getOwnerDocument();
-    const span = ownerDocument.createElement('span');
-    span.className = 'grimoire-inline-diff-replace';
+    const span = createDetachedEl(ownerDocument, 'span', { cls: 'grimoire-inline-diff-replace' });
     appendDiffOps(span, this.diffOps);
 
-    const btns = ownerDocument.createElement('span');
-    btns.className = 'grimoire-inline-diff-buttons';
+    const btns = span.createSpan({ cls: 'grimoire-inline-diff-buttons' });
 
-    const rejectBtn = ownerDocument.createElement('button');
-    rejectBtn.className = 'grimoire-inline-diff-btn reject';
-    rejectBtn.textContent = '✕';
+    const rejectBtn = btns.createEl('button', { cls: 'grimoire-inline-diff-btn reject', text: '✕' });
     rejectBtn.title = 'Reject (esc)';
     rejectBtn.onclick = () => this.controller.reject();
 
-    const acceptBtn = ownerDocument.createElement('button');
-    acceptBtn.className = 'grimoire-inline-diff-btn accept';
-    acceptBtn.textContent = '✓';
+    const acceptBtn = btns.createEl('button', { cls: 'grimoire-inline-diff-btn accept', text: '✓' });
     acceptBtn.title = 'Accept (enter)';
     acceptBtn.onclick = () => this.controller.accept();
-
-    btns.appendChild(rejectBtn);
-    btns.appendChild(acceptBtn);
-    span.appendChild(btns);
 
     return span;
   }
@@ -450,28 +441,19 @@ class InlineEditController {
 
   createInputDOM(): HTMLElement {
     const ownerDocument = this.getOwnerDocument();
-    const container = ownerDocument.createElement('div');
-    container.className = 'grimoire-inline-input-container';
+    const container = createDetachedEl(ownerDocument, 'div', { cls: 'grimoire-inline-input-container' });
     this.containerEl = container;
 
-    this.agentReplyEl = ownerDocument.createElement('div');
-    this.agentReplyEl.className = 'grimoire-inline-agent-reply grimoire-hidden';
-    container.appendChild(this.agentReplyEl);
+    this.agentReplyEl = container.createDiv({ cls: 'grimoire-inline-agent-reply grimoire-hidden' });
 
-    const inputWrap = ownerDocument.createElement('div');
-    inputWrap.className = 'grimoire-inline-input-wrap';
-    container.appendChild(inputWrap);
+    const inputWrap = container.createDiv({ cls: 'grimoire-inline-input-wrap' });
 
-    this.inputEl = ownerDocument.createElement('input');
+    this.inputEl = inputWrap.createEl('input');
     this.inputEl.type = 'text';
     this.inputEl.className = 'grimoire-inline-input';
     this.inputEl.placeholder = this.mode === 'cursor' ? 'Insert instructions...' : 'Edit instructions...';
     this.inputEl.spellcheck = false;
-    inputWrap.appendChild(this.inputEl);
-
-    this.spinnerEl = ownerDocument.createElement('div');
-    this.spinnerEl.className = 'grimoire-inline-spinner grimoire-hidden';
-    inputWrap.appendChild(this.spinnerEl);
+    this.spinnerEl = inputWrap.createDiv({ cls: 'grimoire-inline-spinner grimoire-hidden' });
 
     const inlineCatalog = ProviderWorkspaceRegistry.getCommandCatalog(this.resolvedProviderId);
     this.slashCommandDropdown = new SlashCommandDropdown(

@@ -67,7 +67,6 @@ function bindPrototypeLoad(value: unknown, view: LoadableView): () => Promise<vo
   };
 }
 
-const SVG_NS = 'http://www.w3.org/2000/svg';
 const HISTORY_ICON_PATHS = [
   'M3 12a9 9 0 1 0 3-6.7L3 8',
   'M3 3v5h5',
@@ -77,24 +76,23 @@ const HISTORY_ICON_PATHS = [
 function appendHistoryHeaderIcon(container: HTMLElement): void {
   container.empty();
 
-  const svg = container.ownerDocument.createElementNS(SVG_NS, 'svg');
-  svg.setAttribute('width', '16');
-  svg.setAttribute('height', '16');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  svg.setAttribute('fill', 'none');
-  svg.setAttribute('stroke', 'currentColor');
-  svg.setAttribute('stroke-width', '2');
-  svg.setAttribute('stroke-linecap', 'round');
-  svg.setAttribute('stroke-linejoin', 'round');
-  svg.setAttribute('aria-hidden', 'true');
+  const svg = container.createSvg('svg', {
+    attr: {
+      width: '16',
+      height: '16',
+      viewBox: '0 0 24 24',
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': '2',
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+      'aria-hidden': 'true',
+    },
+  });
 
   for (const pathData of HISTORY_ICON_PATHS) {
-    const path = container.ownerDocument.createElementNS(SVG_NS, 'path');
-    path.setAttribute('d', pathData);
-    svg.appendChild(path);
+    svg.createSvg('path', { attr: { d: pathData } });
   }
-
-  container.appendChild(svg);
 }
 
 export class GrimoireView extends ItemView {
@@ -442,14 +440,11 @@ export class GrimoireView extends ItemView {
    * This is called once and the content is moved between locations.
    */
   private buildNavRowContent(): HTMLElement {
-    const activeDocument = this.containerEl.ownerDocument;
-
-    // Create a fragment to hold nav row content
-    const fragment = activeDocument.createDocumentFragment();
+    const wrapper = this.containerEl.createDiv({ cls: 'grimoire-input-nav-content' });
+    wrapper.detach();
 
     // Tab badges (left side in nav row, or in title slot for header mode)
-    this.tabBarContainerEl = activeDocument.createElement('div');
-    this.tabBarContainerEl.className = 'grimoire-tab-bar-container';
+    this.tabBarContainerEl = wrapper.createDiv({ cls: 'grimoire-tab-bar-container' });
     this.tabBar = new TabBar(this.tabBarContainerEl, {
       onTabClick: (tabId) => this.handleTabClick(tabId),
       onTabClose: (tabId) => {
@@ -459,11 +454,8 @@ export class GrimoireView extends ItemView {
         void this.createNewTab().catch(() => new Notice('Failed to create tab'));
       },
     });
-    fragment.appendChild(this.tabBarContainerEl);
-
     // Header actions (right side)
-    this.headerActionsContent = activeDocument.createElement('div');
-    this.headerActionsContent.className = 'grimoire-header-actions';
+    this.headerActionsContent = wrapper.createDiv({ cls: 'grimoire-header-actions' });
 
     this.headerContextUsageMeter = new ContextUsageMeter(this.headerActionsContent, {
       showWhenEmpty: true,
@@ -495,12 +487,6 @@ export class GrimoireView extends ItemView {
       this.toggleHistoryDropdown();
     });
 
-    fragment.appendChild(this.headerActionsContent);
-
-    // Create a wrapper div to hold the fragment (for input mode nav row)
-    const wrapper = activeDocument.createElement('div');
-    wrapper.className = 'grimoire-input-nav-content';
-    wrapper.appendChild(fragment);
     return wrapper;
   }
 

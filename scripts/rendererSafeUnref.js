@@ -131,6 +131,43 @@ const UNSAFE_TIMER_UNREF_PATTERNS = [
       `})()`,
   },
   {
+    name: 'claude-sdk-process-transport-close-signal-code-minified-expression',
+    pattern: /setTimeout\(\(([A-Za-z_$][A-Za-z0-9_$]*),([A-Za-z_$][A-Za-z0-9_$]*)\)=>\{if\(\1\.exitCode!==null\|\|\1\.signalCode!=null\)\{\2\(\);return\}if\(process\.platform==="win32"\)\{setTimeout\(\(([A-Za-z_$][A-Za-z0-9_$]*),([A-Za-z_$][A-Za-z0-9_$]*)\)=>\{\3\.exitCode===null&&\3\.kill\("SIGKILL"\),\4\(\)\},5e3,\1,\2\)\.unref\(\);return\}\1\.kill\("SIGTERM"\),setTimeout\(([A-Za-z_$][A-Za-z0-9_$]*)=>\{\5\.exitCode===null&&\5\.kill\("SIGKILL"\)\},5e3,\1\)\.unref\(\),\2\(\)\},([A-Za-z_$][A-Za-z0-9_$]*),([A-Za-z_$][A-Za-z0-9_$]*),([A-Za-z_$][A-Za-z0-9_$]*)\)\.unref\(\),\7\.once\("exit",(\(\)=>[A-Za-z_$][A-Za-z0-9_$]*\.delete\(\7\))\)/g,
+    replacement: (
+      _match,
+      _processParam,
+      _completeParam,
+      _winProcessParam,
+      _winCompleteParam,
+      _forceKillParam,
+      timeoutVariable,
+      processVariable,
+      completeCallback,
+      exitHandler,
+    ) =>
+      `(()=>{` +
+      `const processKillTimer=setTimeout((childProcess,onClose)=>{` +
+      `if(childProcess.exitCode!==null||childProcess.signalCode!=null){onClose();return}` +
+      `if(process.platform==="win32"){` +
+      `const windowsForceKillTimer=setTimeout((windowsProcess,windowsOnClose)=>{` +
+      `windowsProcess.exitCode===null&&windowsProcess.kill("SIGKILL");` +
+      `windowsOnClose();` +
+      `},5e3,childProcess,onClose);` +
+      `windowsForceKillTimer.unref?.();` +
+      `return` +
+      `}` +
+      `childProcess.kill("SIGTERM");` +
+      `const forceKillTimer=setTimeout((forceKillProcess)=>{` +
+      `forceKillProcess.exitCode===null&&forceKillProcess.kill("SIGKILL");` +
+      `},5e3,childProcess);` +
+      `forceKillTimer.unref?.();` +
+      `onClose();` +
+      `},${timeoutVariable},${processVariable},${completeCallback});` +
+      `processKillTimer.unref?.();` +
+      `${processVariable}.once("exit",${exitHandler});` +
+      `})()`,
+  },
+  {
     name: 'mcp-sdk-stdio-close-wait',
     pattern: /new Promise\(\((resolve\d+)\) => setTimeout\(\1, 2e3\)\.unref\(\)\)/g,
     replacement:

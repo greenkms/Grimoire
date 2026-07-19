@@ -1526,10 +1526,10 @@ describe('MessageRenderer', () => {
 
     parent.children.push(table);
     table.parentElement = parent;
-    table.ownerDocument = {
-      ...table.ownerDocument,
-      createElement: jest.fn(() => wrapper),
-    };
+    parent.createDiv = jest.fn((options?: { cls?: string }) => {
+      if (options?.cls) wrapper.addClass(options.cls);
+      return wrapper;
+    });
     parent.insertBefore = jest.fn((child: any) => {
       child.parentElement = parent;
       parent.children.unshift(child);

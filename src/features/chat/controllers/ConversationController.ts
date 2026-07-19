@@ -822,7 +822,7 @@ export class ConversationController {
     }
 
     if (conv.titleGenerationStatus === 'pending') {
-      const loadingEl = actions.createEl('span', { cls: 'grimoire-action-btn grimoire-action-loading' });
+      const loadingEl = actions.createSpan({ cls: 'grimoire-action-btn grimoire-action-loading' });
       setIcon(loadingEl, 'loader-2');
       loadingEl.setAttribute('aria-label', 'Generating title...');
     } else if (conv.titleGenerationStatus === 'failed') {
@@ -1054,7 +1054,7 @@ export class ConversationController {
     const titleEl = item.querySelector('.grimoire-history-item-title') as HTMLElement;
     if (!titleEl) return;
 
-    const input = (item.ownerDocument ?? window.document).createElement('input');
+    const input = item.createEl('input');
     input.type = 'text';
     input.className = 'grimoire-rename-input';
     input.value = currentTitle;

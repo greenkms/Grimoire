@@ -187,8 +187,24 @@ function applyElementOptions(element, options = {}) {
 }
 
 function installObsidianDomExtensions(window) {
-  const { HTMLElement } = window;
+  const { Element, HTMLElement } = window;
+  const elementPrototype = Element.prototype;
   const prototype = HTMLElement.prototype;
+
+  elementPrototype.detach = function detach() {
+    this.remove();
+    return this;
+  };
+  elementPrototype.setText = function setText(text) {
+    this.textContent = text;
+    return this;
+  };
+  elementPrototype.createSvg = function createSvg(tagName, options) {
+    const element = this.ownerDocument.createElementNS('http://www.w3.org/2000/svg', tagName);
+    applyElementOptions(element, options);
+    this.appendChild(element);
+    return element;
+  };
 
   prototype.addClass = function addClass(className) {
     this.classList.add(...String(className).split(/\s+/).filter(Boolean));
@@ -209,10 +225,6 @@ function installObsidianDomExtensions(window) {
     while (this.firstChild) {
       this.removeChild(this.firstChild);
     }
-    return this;
-  };
-  prototype.setText = function setText(text) {
-    this.textContent = text;
     return this;
   };
   prototype.appendText = function appendText(text) {

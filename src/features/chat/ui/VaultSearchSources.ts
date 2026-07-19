@@ -8,12 +8,7 @@ function createChild<K extends keyof HTMLElementTagNameMap>(
   tagName: K,
   className?: string,
 ): HTMLElementTagNameMap[K] {
-  const child = parentEl.ownerDocument.createElement(tagName);
-  if (className) {
-    child.className = className;
-  }
-  parentEl.appendChild(child);
-  return child;
+  return parentEl.createEl(tagName, className ? { cls: className } : undefined);
 }
 
 function uniqueSourcePaths(context: VaultSearchTurnContext): string[] {

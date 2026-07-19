@@ -144,6 +144,27 @@ describe('rendererSafeUnref helpers', () => {
     expect(findUnsafeTimerUnrefSites(result.contents)).toEqual([]);
   });
 
+  it('patches the claude-sdk process close timeout shape that checks signalCode', () => {
+    const input = [
+      'a&&!a.killed&&a.exitCode===null&&a.signalCode==null?(setTimeout((m,h)=>{',
+      'if(m.exitCode!==null||m.signalCode!=null){h();return}',
+      'if(process.platform==="win32"){setTimeout((f,v)=>{f.exitCode===null&&f.kill("SIGKILL"),v()},5e3,m,h).unref();return}',
+      'm.kill("SIGTERM"),setTimeout(f=>{f.exitCode===null&&f.kill("SIGKILL")},5e3,m).unref(),h()',
+      '},YQe,a,s).unref(),a.once("exit",()=>rS.delete(a))):a&&(rS.delete(a),s())',
+    ].join('');
+
+    const result = patchRendererUnsafeUnrefSites(input);
+
+    expect(result.appliedPatches).toEqual([
+      { name: 'claude-sdk-process-transport-close-signal-code-minified-expression', count: 1 },
+    ]);
+    expect(result.contents).toContain('processKillTimer.unref?.();');
+    expect(result.contents).toContain('windowsForceKillTimer.unref?.();');
+    expect(result.contents).toContain('forceKillTimer.unref?.();');
+    expect(result.contents).toContain('childProcess.signalCode!=null');
+    expect(findUnsafeTimerUnrefSites(result.contents)).toEqual([]);
+  });
+
   it('patches minified MCP stdio close waits', () => {
     const input = [
       'await Promise.race([r,new Promise(i=>setTimeout(i,2e3).unref())]);',

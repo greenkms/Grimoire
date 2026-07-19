@@ -76,7 +76,6 @@ import { generateTabId } from './types';
 const AUTO_SCROLL_BOTTOM_THRESHOLD_PX = 20;
 const AUTO_SCROLL_REENABLE_DELAY_MS = 150;
 const SCROLL_RESUME_ICON_PATH = 'M12 17 6 11l1.4-1.4 4.6 4.6 4.6-4.6L18 11l-6 6Zm0-6L6 5l1.4-1.4 4.6 4.6 4.6-4.6L18 5l-6 6Z';
-const SVG_NS = 'http://www.w3.org/2000/svg';
 
 function getBasename(filePath: string): string {
   const normalizedPath = filePath.replace(/\\/g, '/');
@@ -316,20 +315,19 @@ function mergeDraftSettingsSnapshot(
 }
 
 function appendScrollResumeIcon(buttonEl: HTMLButtonElement): void {
-  const ownerDocument = buttonEl.ownerDocument;
-  const svg = ownerDocument.createElementNS(SVG_NS, 'svg');
-  svg.setAttribute('aria-hidden', 'true');
-  svg.setAttribute('focusable', 'false');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  svg.setAttribute('width', '18');
-  svg.setAttribute('height', '18');
-  svg.setAttribute('fill', 'currentColor');
-
-  const path = ownerDocument.createElementNS(SVG_NS, 'path');
-  path.setAttribute('d', SCROLL_RESUME_ICON_PATH);
-  path.setAttribute('fill', 'currentColor');
-  svg.appendChild(path);
-  buttonEl.appendChild(svg);
+  const svg = buttonEl.createSvg('svg', {
+    attr: {
+      'aria-hidden': 'true',
+      focusable: 'false',
+      viewBox: '0 0 24 24',
+      width: '18',
+      height: '18',
+      fill: 'currentColor',
+    },
+  });
+  svg.createSvg('path', {
+    attr: { d: SCROLL_RESUME_ICON_PATH, fill: 'currentColor' },
+  });
 }
 
 /**

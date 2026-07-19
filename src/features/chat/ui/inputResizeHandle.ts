@@ -11,8 +11,7 @@ export function createInputResizeHandle({
   viewport,
 }: InputResizeHandleOptions): () => void {
   const doc = inputWrapper.ownerDocument;
-  const handle = doc.createElement('div');
-  handle.className = 'grimoire-input-resize-handle';
+  const handle = inputWrapper.createDiv({ cls: 'grimoire-input-resize-handle' });
   handle.setAttribute('aria-label', 'Drag to resize input');
   inputWrapper.insertBefore(handle, inputWrapper.firstChild);
 

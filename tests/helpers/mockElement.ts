@@ -47,10 +47,12 @@ export interface MockElement {
   createDiv: (opts?: { cls?: string; text?: string }) => MockElement;
   createSpan: (opts?: { cls?: string; text?: string }) => MockElement;
   createEl: (tag: string, opts?: { cls?: string; text?: string; attr?: Record<string, string> }) => MockElement;
+  createSvg: (tag: string, opts?: { cls?: string; attr?: Record<string, string> }) => MockElement;
   appendChild: (child: any) => any;
   insertBefore: (el: MockElement, ref: MockElement | null) => void;
   firstChild: MockElement | null;
   remove: () => void;
+  detach: () => MockElement;
   empty: () => void;
   contains: (node: any) => boolean;
   scrollIntoView: () => void;
@@ -201,7 +203,7 @@ export function createMockEl(tag = 'div'): any {
       return currentDocument()?.activeElement ?? null;
     },
     get body() {
-      return currentDocument()?.body;
+      return currentDocument()?.body ?? createMockEl('body');
     },
     addEventListener(event: string, handler: (...args: any[]) => void) {
       currentDocument()?.addEventListener?.(event, handler);
@@ -297,11 +299,26 @@ export function createMockEl(tag = 'div'): any {
       children.push(child);
       return child;
     },
+    createSvg(tagName: string, opts?: { cls?: string; attr?: Record<string, string> }) {
+      const child = createMockEl(tagName);
+      if (opts?.cls) child.addClass(opts.cls);
+      if (opts?.attr) {
+        for (const [name, value] of Object.entries(opts.attr)) {
+          child.setAttribute(name, value);
+        }
+      }
+      children.push(child);
+      return child;
+    },
 
     appendChild(child: any) { children.push(child); return child; },
     insertBefore(el: MockElement, _ref: MockElement | null) { children.unshift(el); },
     get firstChild() { return children[0] || null; },
     remove() {},
+    detach() {
+      element.remove();
+      return element;
+    },
     empty() {
       children.length = 0;
       element.innerHTML = '';

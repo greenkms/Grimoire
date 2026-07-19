@@ -186,10 +186,7 @@ export class RelevantNotesView {
     tagName: K,
     className: string,
   ): HTMLElementTagNameMap[K] {
-    const child = parentEl.ownerDocument.createElement(tagName);
-    child.className = className;
-    parentEl.appendChild(child);
-    return child;
+    return parentEl.createEl(tagName, { cls: className });
   }
 
   private formatScore(score: number): string | null {
