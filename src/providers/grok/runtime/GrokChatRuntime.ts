@@ -93,6 +93,7 @@ import {
 } from '../models';
 import {
   getManagedGrokModes,
+  type GrokPermissionMode,
   normalizeGrokAvailableModes,
   resolveGrokModeForPermissionMode,
   resolveGrokPermissionModeForSettings,
@@ -375,6 +376,7 @@ export class GrokChatRuntime implements ChatRuntime {
         await this.startProcess({
           command: resolvedCliPath,
           cwd,
+          permissionMode,
           reasoningEffort,
           runtimeEnv,
         });
@@ -728,6 +730,7 @@ export class GrokChatRuntime implements ChatRuntime {
   private async startProcess(params: {
     command: string;
     cwd: string;
+    permissionMode: GrokPermissionMode;
     reasoningEffort?: string | null;
     runtimeEnv: NodeJS.ProcessEnv;
   }): Promise<void> {
@@ -741,7 +744,7 @@ export class GrokChatRuntime implements ChatRuntime {
     };
 
     this.process = new AcpSubprocess({
-      args: buildGrokAgentProcessArgs(params.reasoningEffort),
+      args: buildGrokAgentProcessArgs(params.reasoningEffort, params.permissionMode),
       command: params.command,
       cwd: params.cwd,
       env: processEnv,
@@ -935,6 +938,12 @@ export class GrokChatRuntime implements ChatRuntime {
 
     const selectedModeId = this.resolveSelectedModeId();
     if (!selectedModeId || selectedModeId === this.currentSessionModeId) {
+      return;
+    }
+
+    // Current Grok releases use launch policy without advertising ACP mode control.
+    // Do not send Grimoire's synthetic toolbar mode IDs to such sessions.
+    if (!this.currentSessionModeId) {
       return;
     }
 
