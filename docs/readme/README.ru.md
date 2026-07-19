@@ -239,7 +239,7 @@ kimi
 
 ### Grok Build
 
-Выбирайте Grok Build для agentic CLI от xAI в Obsidian, с поддержкой SuperGrok credits или API keys.
+Выбирайте Grok Build для agentic CLI от xAI в Obsidian. Авторизуйтесь через Grok OAuth или используйте API-ключ xAI.
 
 ```bash
 grok
@@ -247,9 +247,13 @@ grok
 
 Установите Grok CLI от xAI, авторизуйтесь через grok.com OAuth или настройте API keys, затем включите Grok Build в Grimoire.
 
-- [Grok Build](https://grok.com/build)
+- [Документация Grok Build](https://docs.x.ai/build/overview)
+- [Grok 4.5](https://docs.x.ai/developers/grok-4-5)
+- [Использование и лимиты](https://docs.x.ai/grok/faq)
 
-Внутри Grimoire Grok Build работает через ACP via `grok agent stdio` с Grimoire-managed launch artifacts в `.grimoire/grok/`, persistent runtime, native JSONL history hydration, plan mode, image input, provider commands, reasoning effort на native models, rewind и fork. SuperGrok credit usage отображается рядом с model selector при OAuth auth; API spend агрегируется из session cost metadata, когда доступна.
+Сейчас Grok 4.5 — модель по умолчанию, на которой работает Grok Build. Grimoire получает доступный каталог моделей из авторизованного Grok CLI, а не из статического списка, поэтому набор моделей может зависеть от аккаунта и версии CLI и обновляться автоматически.
+
+Внутри Grimoire Grok Build работает через ACP via `grok agent stdio` с Grimoire-managed launch artifacts в `.grimoire/grok/`, persistent runtime, native JSONL history hydration, plan mode, image input, provider commands, reasoning effort на native models, rewind и fork. При OAuth-авторизации Grimoire показывает общий недельный лимит Grok, время сброса и Extra Usage Credits, когда они доступны; API spend агрегируется из session cost metadata, когда доступна.
 
 ## Первый чат
 
@@ -295,7 +299,7 @@ Badge рядом с model selector показывает usage активного
 | OpenCode | Monthly spend, агрегированный из ACP и session cost metadata |
 | MiMoCode | Monthly spend, агрегированный из ACP и session cost metadata |
 | Kimi Code | Monthly spend, агрегированный из ACP и session cost metadata |
-| Grok Build | SuperGrok credit windows из grok.com billing при OAuth auth; monthly API spend из session cost metadata |
+| Grok Build | Общий недельный лимит Grok, время сброса и Extra Usage Credits при OAuth-авторизации; monthly API spend из session cost metadata |
 
 ### Plan mode
 

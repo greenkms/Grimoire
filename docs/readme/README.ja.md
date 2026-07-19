@@ -235,7 +235,7 @@ Grimoire 内では、Kimi Code は ACP で動作し、persistent runtime、nativ
 
 ### Grok Build
 
-Obsidian で xAI の agentic CLI を使う場合は Grok Build を選びます。SuperGrok credits または API keys で利用できます。
+Obsidian で xAI の agentic CLI を使う場合は Grok Build を選びます。Grok OAuth でサインインするか、xAI API キーを使用します。
 
 ```bash
 grok
@@ -243,9 +243,13 @@ grok
 
 xAI の Grok CLI をインストールし、grok.com OAuth で認証するか API keys を設定してから、Grimoire で Grok Build を有効化します。
 
-- [Grok Build](https://grok.com/build)
+- [Grok Build ドキュメント](https://docs.x.ai/build/overview)
+- [Grok 4.5](https://docs.x.ai/developers/grok-4-5)
+- [使用量と制限](https://docs.x.ai/grok/faq)
 
-Grimoire 内では、Grok Build は `grok agent stdio` 経由の ACP で動作し、`.grimoire/grok/` 配下の Grimoire-managed launch artifacts、persistent runtime、native JSONL history hydration、plan mode、image input、provider commands、native models 向け reasoning effort、rewind、fork をサポートします。OAuth auth が利用できる場合、SuperGrok credit usage は model selector の横に表示されます。API spend は session cost metadata が報告されたときに集計されます。
+Grok 4.5 は現在、Grok Build を支えるデフォルトモデルです。Grimoire は静的リストを保持するのではなく、認証済み Grok CLI アカウントから利用可能なモデルカタログを取得するため、モデルの提供状況はアカウントや CLI バージョンによって異なり、自動的に更新される場合があります。
+
+Grimoire 内では、Grok Build は `grok agent stdio` 経由の ACP で動作し、`.grimoire/grok/` 配下の Grimoire-managed launch artifacts、persistent runtime、native JSONL history hydration、plan mode、image input、provider commands、native models 向け reasoning effort、rewind、fork をサポートします。OAuth 認証時には、共有の週間 Grok 使用枠、リセット時刻、利用可能な Extra Usage Credits を表示します。API spend は session cost metadata が報告されたときに集計されます。
 
 ## 最初のチャット
 
@@ -291,7 +295,7 @@ Model selector の横の badge が active provider の usage を表示します�
 | OpenCode | ACP と session cost metadata から集計した monthly spend |
 | MiMoCode | ACP と session cost metadata から集計した monthly spend |
 | Kimi Code | ACP と session cost metadata から集計した monthly spend |
-| Grok Build | OAuth auth が利用できる場合の grok.com billing からの SuperGrok credit windows；session cost metadata からの monthly API spend |
+| Grok Build | OAuth 認証による共有の週間 Grok 使用枠、リセット時刻、Extra Usage Credits；session cost metadata からの monthly API spend |
 
 ### Plan mode
 

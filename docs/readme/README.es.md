@@ -233,7 +233,7 @@ Dentro de Grimoire, Kimi Code corre sobre ACP con persistent runtime, native his
 
 ### Grok Build
 
-Elige Grok Build para el agentic CLI de xAI en Obsidian, respaldado por SuperGrok credits o API keys.
+Elige Grok Build para el agentic CLI de xAI en Obsidian. Inicia sesión con OAuth de Grok o usa una clave de API de xAI.
 
 ```bash
 grok
@@ -241,9 +241,13 @@ grok
 
 Instala la Grok CLI de xAI, autentícate con grok.com OAuth o configura API keys, y luego activa Grok Build en Grimoire.
 
-- [Grok Build](https://grok.com/build)
+- [Documentación de Grok Build](https://docs.x.ai/build/overview)
+- [Grok 4.5](https://docs.x.ai/developers/grok-4-5)
+- [Uso y límites](https://docs.x.ai/grok/faq)
 
-Dentro de Grimoire, Grok Build corre sobre ACP via `grok agent stdio` con Grimoire-managed launch artifacts bajo `.grimoire/grok/`, persistent runtime, native JSONL history hydration, plan mode, image input, provider commands, reasoning effort en native models, rewind y fork. SuperGrok credit usage aparece junto al model selector cuando OAuth auth está disponible; API spend se agrega desde session cost metadata cuando se reporta.
+Grok 4.5 es actualmente el modelo predeterminado de Grok Build. Grimoire obtiene el catálogo de modelos disponible desde la cuenta autenticada del CLI de Grok en lugar de mantener una lista estática, por lo que la disponibilidad puede variar según la cuenta y la versión del CLI y actualizarse automáticamente.
+
+Dentro de Grimoire, Grok Build corre sobre ACP via `grok agent stdio` con Grimoire-managed launch artifacts bajo `.grimoire/grok/`, persistent runtime, native JSONL history hydration, plan mode, image input, provider commands, reasoning effort en native models, rewind y fork. Con OAuth, Grimoire muestra el límite semanal compartido de Grok, la hora de reinicio y los Extra Usage Credits disponibles; API spend se agrega desde session cost metadata cuando se reporta.
 
 ## Tu primer chat
 
@@ -289,7 +293,7 @@ Un badge junto al model selector mantiene visible el usage del provider activo. 
 | OpenCode | Monthly spend agregado desde ACP y session cost metadata |
 | MiMoCode | Monthly spend agregado desde ACP y session cost metadata |
 | Kimi Code | Monthly spend agregado desde ACP y session cost metadata |
-| Grok Build | SuperGrok credit windows desde grok.com billing cuando OAuth auth está disponible; monthly API spend desde session cost metadata |
+| Grok Build | Límite semanal compartido de Grok, hora de reinicio y Extra Usage Credits mediante OAuth; monthly API spend desde session cost metadata |
 
 ### Plan mode
 

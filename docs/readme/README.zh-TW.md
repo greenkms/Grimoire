@@ -227,7 +227,7 @@ kimi
 
 ### Grok Build
 
-若要在 Obsidian 中使用 xAI 的 agentic CLI，可選擇 Grok Build，支援 SuperGrok credits 或 API keys。
+若要在 Obsidian 中使用 xAI 的 agentic CLI，可選擇 Grok Build。透過 Grok OAuth 登入，或使用 xAI API 金鑰。
 
 ```bash
 grok
@@ -235,9 +235,13 @@ grok
 
 安裝 xAI 的 Grok CLI，透過 grok.com OAuth 認證或設定 API keys，然後在 Grimoire 中啟用 Grok Build。
 
-- [Grok Build](https://grok.com/build)
+- [Grok Build 文件](https://docs.x.ai/build/overview)
+- [Grok 4.5](https://docs.x.ai/developers/grok-4-5)
+- [使用量與限制](https://docs.x.ai/grok/faq)
 
-在 Grimoire 中，Grok Build 透過 `grok agent stdio` 以 ACP 執行，使用 `.grimoire/grok/` 下的 Grimoire-managed launch artifacts，並支援 persistent runtime、native JSONL history hydration、plan mode、image input、provider commands、native models 上的 reasoning effort、rewind 和 fork。OAuth auth 可用時，SuperGrok credit usage 會顯示在 model selector 旁；API spend 會在 session cost metadata 回報時聚合顯示。
+Grok 4.5 目前是 Grok Build 的預設模型。Grimoire 從已驗證的 Grok CLI 帳戶取得可用模型目錄，而不是維護靜態清單，因此模型可用性可能會因帳戶和 CLI 版本而異，並自動更新。
+
+在 Grimoire 中，Grok Build 透過 `grok agent stdio` 以 ACP 執行，使用 `.grimoire/grok/` 下的 Grimoire-managed launch artifacts，並支援 persistent runtime、native JSONL history hydration、plan mode、image input、provider commands、native models 上的 reasoning effort、rewind 和 fork。使用 OAuth 時，Grimoire 會顯示共用的每週 Grok 使用額度、重設時間以及可用的 Extra Usage Credits；API spend 會在 session cost metadata 回報時聚合顯示。
 
 ## 第一次聊天
 
@@ -283,7 +287,7 @@ Model selector 旁邊的 badge 會持續顯示目前 provider 的 usage；model 
 | OpenCode | 從 ACP 和 session cost metadata 聚合的 monthly spend |
 | MiMoCode | 從 ACP 和 session cost metadata 聚合的 monthly spend |
 | Kimi Code | 從 ACP 和 session cost metadata 聚合的 monthly spend |
-| Grok Build | OAuth auth 可用時來自 grok.com billing 的 SuperGrok credit windows；來自 session cost metadata 的 monthly API spend |
+| Grok Build | 透過 OAuth 顯示共用的每週 Grok 使用額度、重設時間和 Extra Usage Credits；來自 session cost metadata 的 monthly API spend |
 
 ### Plan mode
 
