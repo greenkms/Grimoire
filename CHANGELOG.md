@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.35 - 2026-07-20
+
+### Improved
+
+- Made Grimoire settings discoverable through Obsidian 1.13 settings search while preserving the existing settings UI on Obsidian 1.12.7.
+- Refreshed compatible project dependencies and aligned the minimum supported Obsidian version with the tested 1.12.7 stable release.
+- Updated localized Grok Build documentation for Grok 4.5 model discovery and unified weekly usage reporting.
+
+### Fixed
+
+- Aligned HTML and SVG creation with Obsidian's DOM helpers and removed the partially supported completed-task decoration color flagged by community-plugin review.
+
 ## 1.0.34 - 2026-07-19
 
 ### Added
@@ -9,8 +21,6 @@
 ### Improved
 
 - Aligned Grok permission modes with native Grok Build launch behavior while keeping the user's saved Safe, Auto-approve, or Plan choice authoritative.
-- Made Grimoire settings discoverable through Obsidian 1.13 settings search while preserving the existing settings UI on Obsidian 1.12.7.
-- Refreshed compatible project dependencies and aligned the minimum supported Obsidian version with the tested 1.12.7 stable release.
 
 ### Fixed
 
@@ -19,7 +29,6 @@
 - Restored Grok's unified weekly usage indicator, reset date, and extra-credit balance through the native billing contract with authenticated compatibility fallbacks.
 - Kept Grok's synthetic skills reminders out of visible chat history, including reminders already imported into failed conversations.
 - Loaded older Grok sessions whose ACP model records omit display names or the current model instead of failing during normalization.
-- Aligned HTML and SVG creation with Obsidian's DOM helpers and removed the partially supported completed-task decoration color flagged by community-plugin review.
 
 ## 1.0.33 - 2026-07-12
 
