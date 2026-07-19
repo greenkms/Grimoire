@@ -61,6 +61,7 @@ import {
   extractAcpSessionModelState,
   extractAcpSessionModeState,
   extractAcpSessionThoughtLevelState,
+  JsonRpcErrorResponse,
   JsonRpcTransportClosedError,
   resolveWorkspacePath,
 } from '../../acp';
@@ -92,11 +93,9 @@ import {
 } from '../models';
 import {
   getManagedGrokModes,
-  isManagedGrokModeId,
   normalizeGrokAvailableModes,
   resolveGrokModeForPermissionMode,
   resolveGrokPermissionModeForSettings,
-  resolvePermissionModeForManagedGrokMode,
 } from '../modes';
 import { createGrokToolStreamAdapter } from '../normalization/grokToolNormalization';
 import { getGrokProviderSettings, updateGrokProviderSettings } from '../settings';
@@ -177,11 +176,11 @@ export class GrokChatRuntime implements ChatRuntime {
   private currentSessionEffortValue: string | null = null;
   private currentSessionEffortValues = new Set<string>();
   private currentSessionModelId: string | null = null;
+  private currentSessionModeConfigId: string | null = null;
   private currentSessionModeId: string | null = null;
   private currentTurnSawAcpCost = false;
   private currentTurnMetadata: ChatTurnMetadata = {};
   private loadedSessionId: string | null = null;
-  private permissionModeSyncCallback: ((mode: string) => void) | null = null;
   private process: AcpSubprocess | null = null;
   private promptUsage: AcpUsage | null = null;
   private readonly readyListeners: Array<(ready: boolean) => void> = [];
@@ -236,6 +235,7 @@ export class GrokChatRuntime implements ChatRuntime {
       this.currentSessionEffortValue = null;
       this.currentSessionEffortValues = new Set<string>();
       this.currentSessionModelId = null;
+      this.currentSessionModeConfigId = null;
       this.currentSessionModeId = null;
       this.sessionInvalidated = false;
       this.setSupportedCommands([]);
@@ -311,8 +311,9 @@ export class GrokChatRuntime implements ChatRuntime {
     const targetSessionId = this.sessionId;
     const resolvedCliPath = this.plugin.getResolvedProviderCliPath('grok') ?? 'grok';
     const promptSettings = this.getSystemPromptSettings(cwd);
+    const providerSettings = this.getProviderSettings();
     const permissionMode = resolveGrokPermissionModeForSettings(
-      (this.plugin.settings as Record<string, unknown>).permissionMode,
+      providerSettings.permissionMode,
     );
     const artifacts = await prepareGrokLaunchArtifacts({
       permissionMode,
@@ -325,7 +326,6 @@ export class GrokChatRuntime implements ChatRuntime {
     );
     const grokAuthPath = resolveGrokProviderAuthPath(this.plugin.settings, runtimeEnv);
 
-    const providerSettings = this.getProviderSettings();
     const reasoningEffort = typeof providerSettings.effortLevel === 'string'
       ? providerSettings.effortLevel
       : null;
@@ -667,8 +667,8 @@ export class GrokChatRuntime implements ChatRuntime {
 
   setExitPlanModeCallback(_callback: ExitPlanModeCallback | null): void {}
 
-  setPermissionModeSyncCallback(callback: ((sdkMode: string) => void) | null): void {
-    this.permissionModeSyncCallback = callback;
+  setPermissionModeSyncCallback(_callback: ((sdkMode: string) => void) | null): void {
+    // Grok session reports describe effective state; saved permission remains user-owned.
   }
 
   setSubagentHookProvider(_getState: () => SubagentRuntimeState): void {}
@@ -789,6 +789,7 @@ export class GrokChatRuntime implements ChatRuntime {
       this.activeTurn = null;
     }
     this.currentSessionModelId = null;
+    this.currentSessionModeConfigId = null;
     this.currentSessionModeId = null;
     this.setSupportedCommands([]);
 
@@ -927,14 +928,45 @@ export class GrokChatRuntime implements ChatRuntime {
     return availableModes[0]?.id || null;
   }
 
-  private async applySelectedMode(_sessionId: string): Promise<void> {
+  private async applySelectedMode(sessionId: string): Promise<void> {
+    if (!this.connection) {
+      return;
+    }
+
     const selectedModeId = this.resolveSelectedModeId();
     if (!selectedModeId || selectedModeId === this.currentSessionModeId) {
       return;
     }
 
+    let unsupportedMethodError: JsonRpcErrorResponse | null = null;
+    try {
+      await this.connection.setMode({
+        modeId: selectedModeId,
+        sessionId,
+      });
+      this.currentSessionModeId = selectedModeId;
+      return;
+    } catch (error) {
+      if (!(error instanceof JsonRpcErrorResponse) || error.code !== -32601) {
+        throw error;
+      }
+      unsupportedMethodError = error;
+    }
+
+    if (!this.currentSessionModeConfigId) {
+      throw unsupportedMethodError;
+    }
+
+    const response = await this.connection.setConfigOption({
+      configId: this.currentSessionModeConfigId,
+      sessionId,
+      type: 'select',
+      value: selectedModeId,
+    });
     this.currentSessionModeId = selectedModeId;
-    this.emitPermissionModeSync(selectedModeId);
+    await this.syncSessionModeState({
+      configOptions: response.configOptions,
+    });
   }
 
   private async applySelectedModel(
@@ -1183,47 +1215,29 @@ export class GrokChatRuntime implements ChatRuntime {
     const acpState = extractAcpSessionModeState(params);
     const availableModes = normalizeGrokAvailableModes(acpState.availableModes);
     const currentModeId = params.currentModeId ?? acpState.currentModeId;
+    if (acpState.configId) {
+      this.currentSessionModeConfigId = acpState.configId;
+    }
     if (currentModeId) {
       this.currentSessionModeId = currentModeId;
-      this.emitPermissionModeSync(currentModeId);
     }
 
     const settingsBag = this.plugin.settings as unknown as Record<string, unknown>;
     const currentSettings = getGrokProviderSettings(settingsBag);
-    const shouldSeedSelectedMode = typeof currentModeId === 'string'
-      && !currentSettings.selectedMode
-      && isManagedGrokModeId(currentModeId);
     const discoveryChanged = availableModes.length > 0
       && !sameModes(currentSettings.availableModes, availableModes)
       && updateGrokDiscoveryState(settingsBag, { availableModes });
 
-    if (!discoveryChanged && !shouldSeedSelectedMode) {
+    if (!discoveryChanged) {
       return;
     }
 
-    if (shouldSeedSelectedMode && currentModeId) {
-      updateGrokProviderSettings(settingsBag, { selectedMode: currentModeId });
-      await this.plugin.saveSettings();
-    }
     this.refreshModelSelectors();
   }
 
   private refreshModelSelectors(): void {
     for (const view of this.plugin.getAllViews()) {
       view.refreshModelSelector();
-    }
-  }
-
-  private emitPermissionModeSync(modeId: string): void {
-    const permissionMode = resolvePermissionModeForManagedGrokMode(modeId);
-    if (!permissionMode || !this.permissionModeSyncCallback) {
-      return;
-    }
-
-    try {
-      this.permissionModeSyncCallback(permissionMode);
-    } catch {
-      // Non-critical UI sync callback.
     }
   }
 
@@ -1612,6 +1626,7 @@ export class GrokChatRuntime implements ChatRuntime {
     this.sessionId = null;
     this.loadedSessionId = null;
     this.currentSessionModelId = null;
+    this.currentSessionModeConfigId = null;
     this.currentSessionModeId = null;
     this.setSupportedCommands([]);
   }

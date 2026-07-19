@@ -55,6 +55,13 @@ describe('Grok Build mode settings', () => {
     expect(normalizeManagedGrokSelectedMode(GROK_LEGACY_YOLO_MODE_ID)).toBe(GROK_FULL_ACCESS_MODE_ID);
   });
 
+  it('normalizes native permission aliases into managed modes inside the Grok adapter', () => {
+    expect(normalizeManagedGrokSelectedMode('always-approve')).toBe(GROK_FULL_ACCESS_MODE_ID);
+    expect(normalizeManagedGrokSelectedMode('bypassPermissions')).toBe(GROK_FULL_ACCESS_MODE_ID);
+    expect(normalizeManagedGrokSelectedMode('ask')).toBe(GROK_SAFE_MODE_ID);
+    expect(normalizeManagedGrokSelectedMode('default')).toBe(GROK_SAFE_MODE_ID);
+  });
+
   it('maps shared permission modes onto managed Grok Build modes', () => {
     expect(resolveGrokModeForPermissionMode('full_access')).toBe(GROK_FULL_ACCESS_MODE_ID);
     expect(resolveGrokModeForPermissionMode('normal')).toBe(GROK_SAFE_MODE_ID);
@@ -73,6 +80,10 @@ describe('Grok Build mode settings', () => {
     expect(resolvePermissionModeForManagedGrokMode(GROK_LEGACY_YOLO_MODE_ID)).toBe('full_access');
     expect(resolvePermissionModeForManagedGrokMode(GROK_SAFE_MODE_ID)).toBe('normal');
     expect(resolvePermissionModeForManagedGrokMode('plan')).toBe('plan');
+    expect(resolvePermissionModeForManagedGrokMode('always-approve')).toBe('full_access');
+    expect(resolvePermissionModeForManagedGrokMode('bypassPermissions')).toBe('full_access');
+    expect(resolvePermissionModeForManagedGrokMode('ask')).toBe('normal');
+    expect(resolvePermissionModeForManagedGrokMode('default')).toBe('normal');
     expect(resolvePermissionModeForManagedGrokMode('summary')).toBeNull();
   });
 });

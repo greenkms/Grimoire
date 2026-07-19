@@ -354,6 +354,10 @@ For an Obsidian policy-oriented summary of network use, account requirements, ex
 
 ## Development
 
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a
+pull request; it covers provider ownership, security boundaries, testing, generated
+artifacts, and the repository's review expectations.
+
 ```bash
 npm install
 npm run dev
