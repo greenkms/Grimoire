@@ -81,4 +81,67 @@ describe('GrokPlanUsageStore', () => {
       note: 'Pay per token across vendors · no cap set.',
     });
   });
+
+  it('refreshes unified usage through the active Grok ACP billing reader', async () => {
+    const store = new GrokPlanUsageStore();
+    const owner = {};
+    store.setBillingReader(jest.fn().mockResolvedValue({
+      config: {
+        creditUsagePercent: 12,
+        currentPeriod: {
+          end: '2026-07-20T17:37:13.518496+00:00',
+          type: 'USAGE_PERIOD_TYPE_WEEKLY',
+        },
+        isUnifiedBillingUser: true,
+      },
+      subscription_tier: 'X Premium+',
+    }), owner);
+
+    await expect(store.refreshUsage({
+      plugin: {} as any,
+      providerId: 'grok',
+      settings: {},
+    })).resolves.toEqual({
+      plan: 'X Premium+',
+      note: expect.stringContaining('Shared across Grok products'),
+      windows: [{
+        label: 'Weekly',
+        pct: 12,
+        pctKnown: true,
+        reset: expect.stringMatching(/Jul/),
+      }],
+    });
+  });
+
+  it('restores the previous ACP billing reader when a temporary runtime closes', async () => {
+    const store = new GrokPlanUsageStore();
+    const activeOwner = {};
+    const temporaryOwner = {};
+    const billingPayload = (pct: number) => ({
+      config: {
+        creditUsagePercent: pct,
+        currentPeriod: {
+          end: '2026-07-20T17:37:13.518496+00:00',
+          type: 'USAGE_PERIOD_TYPE_WEEKLY',
+        },
+        isUnifiedBillingUser: true,
+      },
+    });
+    store.setBillingReader(async () => billingPayload(10), activeOwner);
+    store.setBillingReader(async () => billingPayload(20), temporaryOwner);
+    const context = {
+      plugin: {} as any,
+      providerId: 'grok' as const,
+      settings: {},
+    };
+
+    await expect(store.refreshUsage(context)).resolves.toEqual(expect.objectContaining({
+      windows: [expect.objectContaining({ pct: 20 })],
+    }));
+
+    store.setBillingReader(null, temporaryOwner);
+    await expect(store.refreshUsage(context)).resolves.toEqual(expect.objectContaining({
+      windows: [expect.objectContaining({ pct: 10 })],
+    }));
+  });
 });

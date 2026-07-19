@@ -1,7 +1,10 @@
 import type { ProviderConversationHistoryService } from '../../../core/providers/types';
 import type { Conversation } from '../../../core/types';
 import { getGrokState, type GrokProviderState } from '../types';
-import { loadGrokSessionMessages } from './GrokHistoryStore';
+import {
+  isImportedGrokSystemReminder,
+  loadGrokSessionMessages,
+} from './GrokHistoryStore';
 
 export class GrokConversationHistoryService implements ProviderConversationHistoryService {
   private hydratedKeys = new Map<string, string>();
@@ -15,6 +18,10 @@ export class GrokConversationHistoryService implements ProviderConversationHisto
       this.hydratedKeys.delete(conversation.id);
       return;
     }
+
+    conversation.messages = conversation.messages.filter((message) =>
+      !isImportedGrokSystemReminder(message)
+    );
 
     const state = getGrokState(conversation.providerState);
     const hydrationKey = [

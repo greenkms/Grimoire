@@ -21,4 +21,18 @@ describe('normalizeGrokAcpSessionModels', () => {
     expect(normalizeGrokAcpSessionModels(null)).toBeNull();
     expect(normalizeGrokAcpSessionModels(undefined)).toBeNull();
   });
+
+  it('normalizes older load-session model records without display names or a current model', () => {
+    expect(normalizeGrokAcpSessionModels({
+      availableModels: [
+        { modelId: ' grok-4.5 ' },
+        { id: '', name: 'Invalid model' },
+      ],
+    } as never)).toEqual({
+      availableModels: [
+        { id: 'grok-4.5', name: 'grok-4.5' },
+      ],
+      currentModelId: 'grok-4.5',
+    });
+  });
 });

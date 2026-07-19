@@ -67,7 +67,7 @@ import {
 } from '../../acp';
 import { grokPlanUsageStore } from '../app/GrokPlanUsageStore';
 import { GROK_PROVIDER_CAPABILITIES } from '../capabilities';
-import { updateGrokDiscoveryState } from '../discoveryState';
+import { getGrokDiscoveryState, updateGrokDiscoveryState } from '../discoveryState';
 import {
   loadGrokSessionContextUsage,
   loadGrokSessionCost,
@@ -168,6 +168,7 @@ export class GrokChatRuntime implements ChatRuntime {
   private approvalCallback: ApprovalCallback | null = null;
   private askUserQuestionAbortController: AbortController | null = null;
   private askUserQuestionCallback: AskUserQuestionCallback | null = null;
+  private readonly billingReaderOwner = {};
   private connection: AcpClientConnection | null = null;
   private contextUsage: AcpUsageUpdate | null = null;
   private currentSessionDirPath: string | null = null;
@@ -782,10 +783,19 @@ export class GrokChatRuntime implements ChatRuntime {
 
     this.transport.start();
     await this.connection.initialize();
+    grokPlanUsageStore.setBillingReader(async () => {
+      const activeTransport = this.transport;
+      if (!activeTransport || activeTransport.isClosed) {
+        return null;
+      }
+      return activeTransport.request('x.ai/billing', {});
+    }, this.billingReaderOwner);
+    this.refreshPlanUsageFromServerInBackground();
     this.setReady(true);
   }
 
   private async shutdownProcess(options?: { preserveActiveTurn?: boolean }): Promise<void> {
+    grokPlanUsageStore.setBillingReader(null, this.billingReaderOwner);
     this.setReady(false);
     if (!options?.preserveActiveTurn) {
       this.activeTurn?.queue.close();
@@ -809,6 +819,18 @@ export class GrokChatRuntime implements ChatRuntime {
       await this.process.shutdown().catch(() => {});
       this.process = null;
     }
+  }
+
+  private refreshPlanUsageFromServerInBackground(): void {
+    void grokPlanUsageStore.refreshUsage({
+      plugin: this.plugin,
+      providerId: this.providerId,
+      settings: this.plugin.settings,
+    }).then((usage) => {
+      if (usage) {
+        this.refreshModelSelectors();
+      }
+    }).catch(() => {});
   }
 
   private setReady(ready: boolean): void {
@@ -843,10 +865,15 @@ export class GrokChatRuntime implements ChatRuntime {
   }
 
   private getProviderSettings(): Record<string, unknown> {
-    return ProviderSettingsCoordinator.getProviderSettingsSnapshot(
+    const snapshot = ProviderSettingsCoordinator.getProviderSettingsSnapshot(
       this.plugin.settings,
       this.providerId,
     );
+    updateGrokDiscoveryState(
+      snapshot,
+      getGrokDiscoveryState(this.plugin.settings),
+    );
+    return snapshot;
   }
 
   private resolveSelectedRawModelId(queryOptions?: ChatRuntimeQueryOptions): string | null {
@@ -900,7 +927,9 @@ export class GrokChatRuntime implements ChatRuntime {
       const selectedRawModelId = this.resolveSelectedRawModelId(queryOptions);
       return selectedRawModelId
         ? encodeGrokModelId(selectedRawModelId)
-        : selectedModel;
+        : (this.currentSessionModelId
+          ? encodeGrokModelId(this.currentSessionModelId)
+          : selectedModel);
     }
 
     return this.currentSessionModelId
@@ -1096,10 +1125,26 @@ export class GrokChatRuntime implements ChatRuntime {
 
     const discoveredBaseModelIds = buildGrokBaseModels(discoveredModels)
       .map((model) => model.rawId);
+    const discoveredBaseModelIdSet = new Set(discoveredBaseModelIds);
+    const availableVisibleModels = currentSettings.visibleModels.filter((rawId) =>
+      discoveredBaseModelIdSet.has(rawId)
+    );
+    const removedUnavailableVisibleModels = discoveredBaseModelIds.length > 0
+      && availableVisibleModels.length !== currentSettings.visibleModels.length;
     const nextVisibleModels = currentSettings.visibleModels.length === 0
       ? (discoveredBaseModelIds.length > 0
         ? discoveredBaseModelIds
         : (currentBaseRawModelId ? [currentBaseRawModelId] : []))
+      : removedUnavailableVisibleModels
+      ? [
+          ...(currentBaseRawModelId && discoveredBaseModelIdSet.has(currentBaseRawModelId)
+            ? [currentBaseRawModelId]
+            : []),
+          ...availableVisibleModels.filter((rawId) => rawId !== currentBaseRawModelId),
+          ...(availableVisibleModels.length === 0
+            ? discoveredBaseModelIds.filter((rawId) => rawId !== currentBaseRawModelId)
+            : []),
+        ]
       : currentSettings.visibleModels;
     const currentPreferredThinking = currentBaseRawModelId
       ? currentSettings.preferredThinkingByModel[currentBaseRawModelId]

@@ -1,4 +1,5 @@
 import {
+  isImportedGrokSystemReminder,
   mapGrokMessages,
   parseGrokChatHistoryJsonl,
 } from '../../../../src/providers/grok/history/GrokHistoryStore';
@@ -44,6 +45,44 @@ describe('parseGrokChatHistoryJsonl', () => {
         }],
       },
     ]);
+  });
+
+  it('hides Grok synthetic system reminders from failed session history', () => {
+    const messages = parseGrokChatHistoryJsonl([
+      '{"type":"system","content":"Grok system prompt"}',
+      JSON.stringify({
+        content: [{
+          text: '<system-reminder>Available skills...</system-reminder>',
+          type: 'text',
+        }],
+        synthetic_reason: 'system_reminder',
+        type: 'user',
+      }),
+    ].join('\n'));
+
+    expect(messages).toEqual([]);
+  });
+
+  it('recognizes a previously imported Grok skills reminder without hiding normal messages', () => {
+    expect(isImportedGrokSystemReminder({
+      content: [
+        '<system-reminder>',
+        'The following skills are available for use:',
+        '',
+        '- help: Grok documentation',
+        '</system-reminder>',
+      ].join('\n'),
+      id: 'grok-user-1',
+      role: 'user',
+      timestamp: 1_000,
+    })).toBe(true);
+
+    expect(isImportedGrokSystemReminder({
+      content: 'The following skills are available for use in this vault.',
+      id: 'user-message',
+      role: 'user',
+      timestamp: 1_000,
+    })).toBe(false);
   });
 });
 

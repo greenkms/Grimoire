@@ -4,11 +4,16 @@ import type {
   ProviderPlanUsageContext,
 } from '../../../core/providers/types';
 import { getGrokProviderSettings } from '../settings';
-import { fetchGrokCreditsUsage } from './GrokBillingFetcher';
+import {
+  fetchGrokCreditsUsage,
+  parseGrokBillingResponse,
+} from './GrokBillingFetcher';
 
 const GROK_API_USAGE_NOTE = 'Pay per token across vendors · no cap set.';
+type GrokBillingReader = () => Promise<unknown>;
 
 export class GrokPlanUsageStore extends ProviderSpendUsageStore {
+  private readonly billingReaders = new Map<object, GrokBillingReader>();
   private readonly sessionTotals = new Map<string, number>();
   private creditsUsage: ProviderPlanUsage | null = null;
 
@@ -42,6 +47,7 @@ export class GrokPlanUsageStore extends ProviderSpendUsageStore {
 
   reset(): void {
     super.reset();
+    this.billingReaders.clear();
     this.sessionTotals.clear();
     this.creditsUsage = null;
   }
@@ -51,8 +57,18 @@ export class GrokPlanUsageStore extends ProviderSpendUsageStore {
   }
 
   async refreshUsage(context: ProviderPlanUsageContext): Promise<ProviderPlanUsage | null> {
+    let refreshedUsage: ReturnType<typeof parseGrokBillingResponse> = null;
+    const billingReader = [...this.billingReaders.values()].at(-1);
+    if (billingReader) {
+      try {
+        refreshedUsage = parseGrokBillingResponse(await billingReader());
+      } catch {
+        // Fall through to the auth-backed endpoint and then the last good snapshot.
+      }
+    }
+
     try {
-      const creditsUsage = await fetchGrokCreditsUsage(process.env);
+      const creditsUsage = refreshedUsage ?? await fetchGrokCreditsUsage(process.env);
       if (creditsUsage) {
         const nextCreditsUsage: ProviderPlanUsage = {
           plan: creditsUsage.plan,
@@ -70,6 +86,13 @@ export class GrokPlanUsageStore extends ProviderSpendUsageStore {
     }
 
     return this.getCachedUsage(context);
+  }
+
+  setBillingReader(reader: GrokBillingReader | null, owner: object): void {
+    this.billingReaders.delete(owner);
+    if (reader) {
+      this.billingReaders.set(owner, reader);
+    }
   }
 
   setCreditsUsageForTests(usage: ProviderPlanUsage | null): void {
