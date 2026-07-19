@@ -349,13 +349,16 @@ describe('GrokChatRuntime', () => {
       managedConfigPath: '/tmp/grimoire-grok-home/managed_config.toml',
       systemPromptPath: '/tmp/grimoire-grok-home/system.md',
     });
-    jest.spyOn(runtime as any, 'startProcess').mockImplementation(async () => {
+    const startProcess = jest.spyOn(runtime as any, 'startProcess').mockImplementation(async () => {
       (runtime as any).ready = true;
     });
 
     await expect(runtime.ensureReady({ allowSessionCreation: false })).resolves.toBe(true);
 
     expect(prepareLaunchArtifacts).toHaveBeenCalledWith(expect.objectContaining({
+      permissionMode: 'always-approve',
+    }));
+    expect(startProcess).toHaveBeenCalledWith(expect.objectContaining({
       permissionMode: 'always-approve',
     }));
   });
@@ -673,6 +676,30 @@ describe('GrokChatRuntime', () => {
     });
     expect(setConfigOption).not.toHaveBeenCalled();
     expect((runtime as any).currentSessionModeId).toBe(GROK_FULL_ACCESS_MODE_ID);
+  });
+
+  it('uses launch policy when the session advertises no runtime mode control', async () => {
+    const plugin = createMockPlugin({
+      settings: {
+        permissionMode: 'full_access',
+        providerConfigs: {
+          grok: {
+            availableModes: [],
+            selectedMode: GROK_FULL_ACCESS_MODE_ID,
+          },
+        },
+      },
+    });
+    const runtime = new GrokChatRuntime(plugin);
+    const setMode = jest.fn();
+    const setConfigOption = jest.fn();
+    (runtime as any).connection = { setConfigOption, setMode };
+    jest.spyOn(ProviderSettingsCoordinator, 'getProviderSettingsSnapshot').mockReturnValue(plugin.settings);
+
+    await (runtime as any).applySelectedMode('session-1');
+
+    expect(setMode).not.toHaveBeenCalled();
+    expect(setConfigOption).not.toHaveBeenCalled();
   });
 
   it('falls back to the discovered mode config only for ACP method-not-found', async () => {

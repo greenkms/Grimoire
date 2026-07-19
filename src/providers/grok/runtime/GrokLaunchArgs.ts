@@ -1,12 +1,20 @@
 import { normalizeGrokLaunchReasoningEffort } from '../models';
+import type { GrokPermissionMode } from '../modes';
 
 export function buildGrokAgentProcessArgs(
   reasoningEffort?: string | null,
+  permissionMode?: GrokPermissionMode,
 ): string[] {
-  const normalizedEffort = normalizeGrokLaunchReasoningEffort(reasoningEffort);
-  if (!normalizedEffort) {
-    return ['agent', 'stdio'];
+  const args = ['agent'];
+  if (permissionMode === 'always-approve') {
+    args.push('--always-approve');
   }
 
-  return ['agent', '--reasoning-effort', normalizedEffort, 'stdio'];
+  const normalizedEffort = normalizeGrokLaunchReasoningEffort(reasoningEffort);
+  if (normalizedEffort) {
+    args.push('--reasoning-effort', normalizedEffort);
+  }
+
+  args.push('stdio');
+  return args;
 }
