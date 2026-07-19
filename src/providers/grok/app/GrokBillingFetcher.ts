@@ -6,11 +6,58 @@ import { resolveGrokAuthPath } from '../runtime/GrokPaths';
 
 const GROK_CREDITS_CONFIG_URL = 'https://grok.com/grok_api_v2.GrokBuildBilling/GetGrokCreditsConfig';
 const GROK_CREDITS_USAGE_URL = 'https://grok.com/?_s=usage';
+const GROK_UNIFIED_BILLING_URL = 'https://cli-chat-proxy.grok.com/v1/billing?format=credits';
 
 export interface GrokCreditsUsageSnapshot {
   plan: string;
   note?: string;
   windows: ProviderPlanUsageWindow[];
+}
+
+export function parseGrokBillingResponse(payload: unknown): GrokCreditsUsageSnapshot | null {
+  if (!isRecord(payload) || !isRecord(payload.config)) {
+    return null;
+  }
+
+  const config = payload.config;
+  const currentPeriod = isRecord(config.currentPeriod) ? config.currentPeriod : null;
+  const resetAt = readDate(currentPeriod?.end) ?? readDate(config.billingPeriodEnd);
+  if (!resetAt) {
+    return null;
+  }
+
+  const reportedUsagePercent = readFiniteNumber(config.creditUsagePercent);
+  const usagePercent = reportedUsagePercent
+    ?? (config.isUnifiedBillingUser === true && currentPeriod ? 0 : null);
+  if (usagePercent === null) {
+    return null;
+  }
+
+  const periodType = readString(currentPeriod?.type);
+  const label = periodType === 'USAGE_PERIOD_TYPE_WEEKLY'
+    ? 'Weekly'
+    : periodType === 'USAGE_PERIOD_TYPE_MONTHLY'
+      ? 'Monthly'
+      : 'Credits';
+  const prepaidBalance = readAmount(config.prepaidBalance);
+  const noteParts = [
+    currentPeriod ? 'Shared across Grok products' : 'Grok credits',
+    ...(prepaidBalance !== null && prepaidBalance > 0
+      ? [`Extra credits: $${prepaidBalance.toFixed(2)}`]
+      : []),
+    GROK_CREDITS_USAGE_URL,
+  ];
+
+  return {
+    plan: normalizePlanName(readString(payload.subscription_tier) ?? readString(payload.subscriptionTier)),
+    note: noteParts.join(' · '),
+    windows: [{
+      label,
+      pct: Math.min(100, Math.max(0, Math.round(usagePercent))),
+      pctKnown: true,
+      reset: formatResetLabel(resetAt),
+    }],
+  };
 }
 
 export function parseGrokCreditsConfigMessage(message: Uint8Array): GrokCreditsUsageSnapshot | null {
@@ -38,6 +85,12 @@ export async function fetchGrokCreditsUsage(
   const token = await readGrokAuthBearerToken(env);
   if (!token) {
     return null;
+  }
+
+  const unifiedBilling = await requestGrokUnifiedBilling(token);
+  const unifiedUsage = parseGrokBillingResponse(unifiedBilling);
+  if (unifiedUsage) {
+    return unifiedUsage;
   }
 
   const response = await requestGrokCreditsConfig(token);
@@ -70,6 +123,21 @@ async function readGrokAuthBearerToken(env: NodeJS.ProcessEnv): Promise<string |
   }
 
   return null;
+}
+
+async function requestGrokUnifiedBilling(token: string): Promise<unknown> {
+  try {
+    const body = await getHttpsText(GROK_UNIFIED_BILLING_URL, {
+      accept: 'application/json',
+      authorization: `Bearer ${token}`,
+      'user-agent': 'Grimoire',
+      'x-grok-client-mode': 'interactive',
+      'x-xai-token-auth': 'xai-grok-cli',
+    });
+    return JSON.parse(body) as unknown;
+  } catch {
+    return null;
+  }
 }
 
 async function requestGrokCreditsConfig(token: string): Promise<Uint8Array | null> {
@@ -127,6 +195,35 @@ function postHttpsBinary(
 
     request.on('error', reject);
     request.write(body);
+    request.end();
+  });
+}
+
+function getHttpsText(
+  url: string,
+  headers: Record<string, string>,
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const request = https.request(url, {
+      headers,
+      method: 'GET',
+    }, (response) => {
+      const statusCode = response.statusCode ?? 0;
+      const chunks: Buffer[] = [];
+      response.on('data', (chunk: Buffer) => {
+        chunks.push(chunk);
+      });
+      response.on('end', () => {
+        if (statusCode < 200 || statusCode >= 300) {
+          reject(new Error(`Grok billing request failed with status ${statusCode}`));
+          return;
+        }
+
+        resolve(Buffer.concat(chunks).toString('utf8'));
+      });
+    });
+
+    request.on('error', reject);
     request.end();
   });
 }
@@ -323,6 +420,57 @@ function indexOfAscii(buffer: Uint8Array, needle: string): number {
   }
 
   return -1;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function readString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function readFiniteNumber(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function readAmount(value: unknown): number | null {
+  if (isRecord(value)) {
+    return readFiniteNumber(value.val);
+  }
+  return readFiniteNumber(value);
+}
+
+function readDate(value: unknown): Date | null {
+  const text = readString(value);
+  if (!text) {
+    return null;
+  }
+  const date = new Date(text);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function normalizePlanName(value: string | null): string {
+  if (!value) {
+    return 'Grok Build';
+  }
+
+  const knownPlans: Record<string, string> = {
+    supergrok: 'SuperGrok',
+    supergrok_heavy: 'SuperGrok Heavy',
+    supergrok_lite: 'SuperGrok Lite',
+    x_basic: 'X Basic',
+    x_premium: 'X Premium',
+    x_premium_plus: 'X Premium+',
+  };
+  return knownPlans[value.toLowerCase()] ?? value;
 }
 
 function formatResetLabel(value: Date): string {

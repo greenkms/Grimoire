@@ -3,6 +3,7 @@ import { ProviderSettingsCoordinator } from '@/core/providers/ProviderSettingsCo
 import { JsonRpcErrorResponse, JsonRpcTransportClosedError } from '@/providers/acp';
 import '@/providers';
 import { grokPlanUsageStore } from '@/providers/grok/app/GrokPlanUsageStore';
+import { updateGrokDiscoveryState } from '@/providers/grok/discoveryState';
 import {
   GROK_BUILD_MODE_ID,
   GROK_FULL_ACCESS_MODE_ID,
@@ -1020,6 +1021,58 @@ describe('GrokChatRuntime', () => {
     expect(refreshModelSelector).toHaveBeenCalledTimes(1);
   });
 
+  it('retargets stale Grok model selections to the current authoritative ACP model', async () => {
+    const refreshModelSelector = jest.fn();
+    const plugin = createMockPlugin({
+      getAllViews: jest.fn().mockReturnValue([{ refreshModelSelector }]),
+      settings: {
+        effortLevel: 'high',
+        model: 'grok:grok-composer-2.5-fast',
+        providerConfigs: {
+          grok: {
+            discoveredModels: [
+              { label: 'Grok Build', rawId: 'grok-build' },
+              { label: 'Grok Composer 2.5 Fast', rawId: 'grok-composer-2.5-fast' },
+            ],
+            preferredThinkingByModel: {
+              'grok-composer-2.5-fast': 'high',
+            },
+            visibleModels: ['grok-build', 'grok-composer-2.5-fast'],
+          },
+        },
+        savedProviderEffort: {
+          grok: 'high',
+        },
+        savedProviderModel: {
+          grok: 'grok:grok-composer-2.5-fast',
+        },
+        settingsProvider: 'grok',
+      },
+    });
+    const runtime = new GrokChatRuntime(plugin);
+    jest.spyOn(ProviderRegistry, 'resolveSettingsProviderId').mockReturnValue('grok');
+
+    await (runtime as any).syncSessionModelState({
+      models: {
+        availableModels: [
+          { id: 'grok-4.5', name: 'Grok 4.5' },
+        ],
+        currentModelId: 'grok-4.5',
+      },
+    });
+
+    expect(getGrokProviderSettings(plugin.settings).discoveredModels).toEqual([
+      { label: 'Grok 4.5', rawId: 'grok-4.5' },
+    ]);
+    expect(plugin.settings.providerConfigs.grok.visibleModels).toEqual(['grok-4.5']);
+    expect(plugin.settings.savedProviderModel.grok).toBe('grok:grok-4.5');
+    expect(plugin.settings.model).toBe('grok:grok-4.5');
+    expect(plugin.settings.savedProviderEffort.grok).toBe('default');
+    expect(plugin.settings.effortLevel).toBe('default');
+    expect(plugin.saveSettings).toHaveBeenCalledTimes(1);
+    expect(refreshModelSelector).toHaveBeenCalledTimes(1);
+  });
+
   it('syncs detached ACP thought-level options into Grok Build provider state', async () => {
     const refreshModelSelector = jest.fn();
     const plugin = createMockPlugin({
@@ -1156,6 +1209,42 @@ describe('GrokChatRuntime', () => {
       sessionId: 'session-1',
     });
     expect((runtime as any).currentSessionModelId).toBe('grok-composer-2.5-fast');
+  });
+
+  it('does not apply a stale selected model outside the runtime discovery catalog', async () => {
+    const plugin = createMockPlugin({
+      settings: {
+        model: 'grok:grok-composer-2.5-fast',
+        providerConfigs: {
+          grok: {
+            visibleModels: ['grok-composer-2.5-fast'],
+          },
+        },
+        savedProviderModel: {
+          grok: 'grok:grok-composer-2.5-fast',
+        },
+        settingsProvider: 'grok',
+      },
+    });
+    updateGrokDiscoveryState(plugin.settings, {
+      discoveredModels: [
+        { label: 'Grok 4.5', rawId: 'grok-4.5' },
+      ],
+    });
+    const runtime = new GrokChatRuntime(plugin);
+    const setModel = jest.fn();
+    (runtime as any).connection = { setModel };
+    (runtime as any).currentSessionModelId = 'grok-4.5';
+    jest.spyOn(ProviderRegistry, 'resolveSettingsProviderId').mockReturnValue('grok');
+
+    await (runtime as any).applySelectedModel('session-1', {
+      model: 'grok:grok-composer-2.5-fast',
+    });
+
+    expect(setModel).not.toHaveBeenCalled();
+    expect((runtime as any).getActiveDisplayModel({
+      model: 'grok:grok-composer-2.5-fast',
+    })).toBe('grok:grok-4.5');
   });
 
   it('applies selected Grok Build effort through the detached ACP effort option', async () => {

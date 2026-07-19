@@ -23,6 +23,8 @@ interface StoredMessage {
 interface GrokJsonlEvent {
   content?: unknown;
   summary?: unknown;
+  syntheticReason?: unknown;
+  synthetic_reason?: unknown;
   tool_call_id?: unknown;
   tool_calls?: unknown;
   type?: unknown;
@@ -121,6 +123,9 @@ export function parseGrokChatHistoryJsonl(rawHistory: string): ChatMessage[] {
     }
 
     if (type === 'user') {
+      if (isSyntheticGrokHistoryEvent(event)) {
+        continue;
+      }
       flushAssistant();
       sequence += 1;
       const promptText = extractGrokUserPrompt(event.content);
@@ -205,6 +210,23 @@ export function parseGrokChatHistoryJsonl(rawHistory: string): ChatMessage[] {
 
   flushAssistant();
   return mergeAdjacentAssistantMessages(messages);
+}
+
+export function isImportedGrokSystemReminder(message: ChatMessage): boolean {
+  if (message.role !== 'user') {
+    return false;
+  }
+
+  const content = message.content.trim();
+  return content.startsWith('<system-reminder>\nThe following skills are available for use:')
+    && content.endsWith('</system-reminder>');
+}
+
+function isSyntheticGrokHistoryEvent(event: GrokJsonlEvent): boolean {
+  return Boolean(
+    getString(event.synthetic_reason)
+    || getString(event.syntheticReason),
+  );
 }
 
 export function mapGrokMessages(messages: StoredMessage[]): ChatMessage[] {

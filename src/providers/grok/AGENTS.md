@@ -18,4 +18,4 @@
 - Grok sessions persist as JSONL under `<GROK data dir>/sessions/`; history hydration still needs runtime discovery before it can replace the scaffold store.
 - Do not project Grok provider state into generic chat UI code. Use provider helpers and shared contracts.
 - When changing launch artifacts or command loading, verify against current Grok Build runtime output rather than inferred schemas.
-- Plan indicators prefer SuperGrok credit windows from the grok.com billing endpoint when OAuth auth is available. `GrokPlanUsageStore` still aggregates ACP/session/API-key spend for the current month when cost data exists.
+- Plan indicators prefer the Grok-native `x.ai/billing` ACP extension and its unified weekly or monthly usage window. The authenticated billing endpoint and legacy credits protobuf remain compatibility fallbacks. `GrokPlanUsageStore` still aggregates ACP/session/API-key spend for the current month when cost data exists.

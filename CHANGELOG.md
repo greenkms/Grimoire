@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.0.34 - 2026-07-19
+
+### Added
+
+- Added repository contribution guidelines and a pull request template covering architecture, security, testing, attribution, and release expectations.
+
+### Improved
+
+- Aligned Grok permission modes with native Grok Build launch behavior while keeping the user's saved Safe, Auto-approve, or Plan choice authoritative.
+
+### Fixed
+
+- Launched Grok Build with its native `--always-approve` flag in Auto-approve mode so approved write operations do not prompt again. (#10)
+- Reconciled saved Grok models with the account's current ACP catalog and stopped sending retired model IDs through `session/set_model`.
+- Restored Grok's unified weekly usage indicator, reset date, and extra-credit balance through the native billing contract with authenticated compatibility fallbacks.
+- Kept Grok's synthetic skills reminders out of visible chat history, including reminders already imported into failed conversations.
+- Loaded older Grok sessions whose ACP model records omit display names or the current model instead of failing during normalization.
+
 ## 1.0.33 - 2026-07-12
 
 ### Added
