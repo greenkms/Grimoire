@@ -16,6 +16,7 @@ export interface AcpResolvedSessionModelState {
 
 export interface AcpResolvedSessionModeState {
   availableModes: AcpSessionMode[];
+  configId: string | null;
   currentModeId: string | null;
 }
 
@@ -57,12 +58,13 @@ export function extractAcpSessionModeState(params: {
   configOptions?: AcpSessionConfigOption[] | null;
   modes?: AcpSessionModeState | null;
 }): AcpResolvedSessionModeState {
-  const { items, current } = resolveSelectItems(params.configOptions, 'mode');
+  const { configId, items, current } = resolveSelectItems(params.configOptions, 'mode');
   if (items) {
-    return { availableModes: items, currentModeId: current };
+    return { availableModes: items, configId, currentModeId: current };
   }
   return {
     availableModes: params.modes?.availableModes ?? [],
+    configId,
     currentModeId: params.modes?.currentModeId ?? current,
   };
 }

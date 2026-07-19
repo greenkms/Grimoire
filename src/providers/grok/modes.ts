@@ -109,9 +109,9 @@ export function normalizeManagedGrokSelectedMode(
     return '';
   }
 
-  const canonicalModeId = normalized === GROK_BUILD_MODE_ID
-    || normalized === GROK_LEGACY_YOLO_MODE_ID
-    ? GROK_FULL_ACCESS_MODE_ID
+  const permissionMode = resolvePermissionModeForManagedGrokMode(normalized);
+  const canonicalModeId = permissionMode
+    ? resolveGrokModeForPermissionMode(permissionMode, modes)
     : normalized;
   const managedModes = getManagedGrokModes(modes);
   return managedModes.some((mode) => mode.id === canonicalModeId)
@@ -159,17 +159,31 @@ export function resolveGrokPermissionModeForSettings(
 export function resolvePermissionModeForManagedGrokMode(
   modeId: unknown,
 ): 'normal' | 'plan' | 'full_access' | null {
+  if (typeof modeId !== 'string') {
+    return null;
+  }
+
+  const normalized = modeId.trim().toLowerCase();
   if (
-    modeId === GROK_BUILD_MODE_ID
-    || modeId === GROK_FULL_ACCESS_MODE_ID
-    || modeId === GROK_LEGACY_YOLO_MODE_ID
+    normalized === GROK_BUILD_MODE_ID
+    || normalized === GROK_FULL_ACCESS_MODE_ID
+    || normalized === GROK_LEGACY_YOLO_MODE_ID
+    || normalized === 'always-approve'
+    || normalized === 'bypasspermissions'
+    || normalized === 'yolo'
   ) {
     return 'full_access';
   }
-  if (modeId === GROK_SAFE_MODE_ID) {
+  if (
+    normalized === GROK_SAFE_MODE_ID
+    || normalized === 'ask'
+    || normalized === 'default'
+    || normalized === 'normal'
+    || normalized === 'safe'
+  ) {
     return 'normal';
   }
-  if (modeId === GROK_PLAN_MODE_ID) {
+  if (normalized === GROK_PLAN_MODE_ID) {
     return 'plan';
   }
   return null;

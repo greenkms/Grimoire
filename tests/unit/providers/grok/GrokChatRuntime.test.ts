@@ -1,6 +1,6 @@
 import { ProviderRegistry } from '@/core/providers/ProviderRegistry';
 import { ProviderSettingsCoordinator } from '@/core/providers/ProviderSettingsCoordinator';
-import { JsonRpcTransportClosedError } from '@/providers/acp';
+import { JsonRpcErrorResponse, JsonRpcTransportClosedError } from '@/providers/acp';
 import '@/providers';
 import { grokPlanUsageStore } from '@/providers/grok/app/GrokPlanUsageStore';
 import {
@@ -318,6 +318,48 @@ describe('GrokChatRuntime', () => {
     expect(startProcess).toHaveBeenCalled();
   });
 
+  it('builds launch artifacts from the Grok-projected permission mode', async () => {
+    const plugin = createMockPlugin({
+      settings: {
+        permissionMode: 'normal',
+        providerConfigs: {
+          grok: {
+            enabled: true,
+            selectedMode: GROK_FULL_ACCESS_MODE_ID,
+          },
+        },
+        savedProviderPermissionMode: {
+          grok: 'full_access',
+        },
+        settingsProvider: 'codex',
+      },
+    });
+    const runtime = new GrokChatRuntime(plugin);
+    jest.spyOn(ProviderSettingsCoordinator, 'getProviderSettingsSnapshot').mockReturnValue({
+      ...plugin.settings,
+      permissionMode: 'full_access',
+    });
+    const prepareLaunchArtifacts = jest.spyOn(
+      launchArtifacts,
+      'prepareGrokLaunchArtifacts',
+    ).mockResolvedValue({
+      configContent: '# managed\n',
+      grokHomePath: '/tmp/grimoire-grok-home',
+      launchKey: 'launch-key',
+      managedConfigPath: '/tmp/grimoire-grok-home/managed_config.toml',
+      systemPromptPath: '/tmp/grimoire-grok-home/system.md',
+    });
+    jest.spyOn(runtime as any, 'startProcess').mockImplementation(async () => {
+      (runtime as any).ready = true;
+    });
+
+    await expect(runtime.ensureReady({ allowSessionCreation: false })).resolves.toBe(true);
+
+    expect(prepareLaunchArtifacts).toHaveBeenCalledWith(expect.objectContaining({
+      permissionMode: 'always-approve',
+    }));
+  });
+
   it('restarts when the ACP transport closed even if the subprocess still looks alive', async () => {
     const plugin = createMockPlugin({
       settings: {
@@ -475,8 +517,9 @@ describe('GrokChatRuntime', () => {
 
     await (runtime as any).syncSessionModeState({
       configOptions: [{
+        category: 'mode',
         currentValue: 'build',
-        id: 'mode',
+        id: 'session_mode',
         name: 'Mode',
         options: [
           { name: 'Build', value: 'build' },
@@ -491,12 +534,13 @@ describe('GrokChatRuntime', () => {
       { description: 'Planning-first agent', id: 'plan', name: 'Plan' },
     ]);
     expect(plugin.settings.providerConfigs.grok.selectedMode).toBe('plan');
+    expect((runtime as any).currentSessionModeConfigId).toBe('session_mode');
     expect((runtime as any).currentSessionModeId).toBe('build');
     expect(plugin.saveSettings).not.toHaveBeenCalled();
     expect(refreshModelSelector).toHaveBeenCalledTimes(1);
   });
 
-  it('seeds the Grok Build selected mode when no explicit mode has been saved yet', async () => {
+  it('does not derive a saved permission choice from provider-reported session state', async () => {
     const plugin = createMockPlugin({
       settings: {
         providerConfigs: {
@@ -513,7 +557,9 @@ describe('GrokChatRuntime', () => {
       currentModeId: GROK_BUILD_MODE_ID,
     });
 
-    expect(plugin.settings.providerConfigs.grok.selectedMode).toBe(GROK_FULL_ACCESS_MODE_ID);
+    expect(plugin.settings.providerConfigs.grok.selectedMode).toBe('');
+    expect((runtime as any).currentSessionModeId).toBe(GROK_BUILD_MODE_ID);
+    expect(plugin.saveSettings).not.toHaveBeenCalled();
   });
 
   it('defaults Grok Build mode selection to the managed full-access mode before ACP mode discovery finishes', () => {
@@ -597,13 +643,166 @@ describe('GrokChatRuntime', () => {
     expect((runtime as any).resolveSelectedModeId()).toBe(GROK_SAFE_MODE_ID);
   });
 
-  it('syncs managed Grok Build safe mode back through the permission-mode callback', async () => {
+  it('applies the saved Auto-approve mode through the native ACP mode method', async () => {
     const plugin = createMockPlugin({
       settings: {
+        permissionMode: 'full_access',
+        providerConfigs: {
+          grok: {
+            availableModes: [
+              { id: GROK_FULL_ACCESS_MODE_ID, name: 'Auto-approve' },
+              { id: GROK_SAFE_MODE_ID, name: 'Safe' },
+            ],
+            selectedMode: GROK_FULL_ACCESS_MODE_ID,
+          },
+        },
+      },
+    });
+    const runtime = new GrokChatRuntime(plugin);
+    const setMode = jest.fn().mockResolvedValue({});
+    const setConfigOption = jest.fn();
+    (runtime as any).connection = { setConfigOption, setMode };
+    (runtime as any).currentSessionModeId = GROK_SAFE_MODE_ID;
+    jest.spyOn(ProviderSettingsCoordinator, 'getProviderSettingsSnapshot').mockReturnValue(plugin.settings);
+
+    await (runtime as any).applySelectedMode('session-1');
+
+    expect(setMode).toHaveBeenCalledWith({
+      modeId: GROK_FULL_ACCESS_MODE_ID,
+      sessionId: 'session-1',
+    });
+    expect(setConfigOption).not.toHaveBeenCalled();
+    expect((runtime as any).currentSessionModeId).toBe(GROK_FULL_ACCESS_MODE_ID);
+  });
+
+  it('falls back to the discovered mode config only for ACP method-not-found', async () => {
+    const plugin = createMockPlugin({
+      settings: {
+        permissionMode: 'full_access',
         providerConfigs: {
           grok: {
             availableModes: [],
-            selectedMode: '',
+            selectedMode: GROK_FULL_ACCESS_MODE_ID,
+          },
+        },
+      },
+    });
+    const runtime = new GrokChatRuntime(plugin);
+    const methodNotFound = new JsonRpcErrorResponse(
+      'session/set_mode',
+      -32601,
+      'Method not found',
+    );
+    const setMode = jest.fn().mockRejectedValue(methodNotFound);
+    const setConfigOption = jest.fn().mockResolvedValue({
+      configOptions: [{
+        category: 'mode',
+        currentValue: GROK_FULL_ACCESS_MODE_ID,
+        id: 'session_mode',
+        name: 'Mode',
+        options: [
+          { name: 'Auto-approve', value: GROK_FULL_ACCESS_MODE_ID },
+          { name: 'Safe', value: GROK_SAFE_MODE_ID },
+        ],
+        type: 'select',
+      }],
+    });
+    (runtime as any).connection = { setConfigOption, setMode };
+    jest.spyOn(ProviderSettingsCoordinator, 'getProviderSettingsSnapshot').mockReturnValue(plugin.settings);
+
+    await (runtime as any).syncSessionModeState({
+      configOptions: [{
+        category: 'mode',
+        currentValue: GROK_SAFE_MODE_ID,
+        id: 'session_mode',
+        name: 'Mode',
+        options: [
+          { name: 'Auto-approve', value: GROK_FULL_ACCESS_MODE_ID },
+          { name: 'Safe', value: GROK_SAFE_MODE_ID },
+        ],
+        type: 'select',
+      }],
+    });
+    await (runtime as any).applySelectedMode('session-1');
+
+    expect(setConfigOption).toHaveBeenCalledWith({
+      configId: 'session_mode',
+      sessionId: 'session-1',
+      type: 'select',
+      value: GROK_FULL_ACCESS_MODE_ID,
+    });
+    expect((runtime as any).currentSessionModeId).toBe(GROK_FULL_ACCESS_MODE_ID);
+  });
+
+  it('preserves method-not-found when the session exposes no mode config fallback', async () => {
+    const plugin = createMockPlugin({
+      settings: {
+        permissionMode: 'full_access',
+        providerConfigs: {
+          grok: {
+            availableModes: [],
+            selectedMode: GROK_FULL_ACCESS_MODE_ID,
+          },
+        },
+      },
+    });
+    const runtime = new GrokChatRuntime(plugin);
+    const methodNotFound = new JsonRpcErrorResponse(
+      'session/set_mode',
+      -32601,
+      'Method not found',
+    );
+    const setMode = jest.fn().mockRejectedValue(methodNotFound);
+    const setConfigOption = jest.fn();
+    (runtime as any).connection = { setConfigOption, setMode };
+    (runtime as any).currentSessionModeId = GROK_SAFE_MODE_ID;
+    jest.spyOn(ProviderSettingsCoordinator, 'getProviderSettingsSnapshot').mockReturnValue(plugin.settings);
+
+    await expect((runtime as any).applySelectedMode('session-1')).rejects.toBe(methodNotFound);
+
+    expect(setConfigOption).not.toHaveBeenCalled();
+    expect((runtime as any).currentSessionModeId).toBe(GROK_SAFE_MODE_ID);
+  });
+
+  it('rethrows real ACP mode errors without attempting a second mutation', async () => {
+    const plugin = createMockPlugin({
+      settings: {
+        permissionMode: 'full_access',
+        providerConfigs: {
+          grok: {
+            availableModes: [],
+            selectedMode: GROK_FULL_ACCESS_MODE_ID,
+          },
+        },
+      },
+    });
+    const runtime = new GrokChatRuntime(plugin);
+    const policyError = new JsonRpcErrorResponse(
+      'session/set_mode',
+      -32001,
+      'Mode change rejected',
+    );
+    const setMode = jest.fn().mockRejectedValue(policyError);
+    const setConfigOption = jest.fn();
+    (runtime as any).connection = { setConfigOption, setMode };
+    (runtime as any).currentSessionModeConfigId = 'session_mode';
+    (runtime as any).currentSessionModeId = GROK_SAFE_MODE_ID;
+    jest.spyOn(ProviderSettingsCoordinator, 'getProviderSettingsSnapshot').mockReturnValue(plugin.settings);
+
+    await expect((runtime as any).applySelectedMode('session-1')).rejects.toBe(policyError);
+
+    expect(setConfigOption).not.toHaveBeenCalled();
+    expect((runtime as any).currentSessionModeId).toBe(GROK_SAFE_MODE_ID);
+  });
+
+  it('keeps provider-reported modes observational instead of persisting authorization', async () => {
+    const plugin = createMockPlugin({
+      settings: {
+        permissionMode: 'normal',
+        providerConfigs: {
+          grok: {
+            availableModes: [],
+            selectedMode: GROK_SAFE_MODE_ID,
           },
         },
       },
@@ -614,23 +813,14 @@ describe('GrokChatRuntime', () => {
     runtime.setPermissionModeSyncCallback(syncCallback);
 
     await (runtime as any).syncSessionModeState({
-      currentModeId: GROK_SAFE_MODE_ID,
-    });
-
-    expect(syncCallback).toHaveBeenCalledWith('normal');
-  });
-
-  it('maps the legacy build alias back through the permission-mode callback as Auto-approve', async () => {
-    const runtime = new GrokChatRuntime(createMockPlugin());
-    const syncCallback = jest.fn();
-
-    runtime.setPermissionModeSyncCallback(syncCallback);
-
-    await (runtime as any).syncSessionModeState({
       currentModeId: GROK_BUILD_MODE_ID,
     });
 
-    expect(syncCallback).toHaveBeenCalledWith('full_access');
+    expect((runtime as any).currentSessionModeId).toBe(GROK_BUILD_MODE_ID);
+    expect(plugin.settings.permissionMode).toBe('normal');
+    expect(plugin.settings.providerConfigs.grok.selectedMode).toBe(GROK_SAFE_MODE_ID);
+    expect(plugin.saveSettings).not.toHaveBeenCalled();
+    expect(syncCallback).not.toHaveBeenCalled();
   });
 
   it('summarizes workflow approval prompts with tool metadata', async () => {

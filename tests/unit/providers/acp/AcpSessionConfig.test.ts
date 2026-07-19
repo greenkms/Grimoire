@@ -147,6 +147,7 @@ describe('AcpSessionConfig', () => {
         { description: 'Default editing agent', id: 'build', name: 'Build' },
         { description: 'Planning-first agent', id: 'plan', name: 'Plan' },
       ],
+      configId: 'session_mode',
       currentModeId: 'plan',
     });
   });
@@ -168,6 +169,7 @@ describe('AcpSessionConfig', () => {
       availableModes: [
         { description: 'Default editing agent', id: 'build', name: 'Build' },
       ],
+      configId: 'mode',
       currentModeId: 'build',
     });
   });
@@ -186,6 +188,7 @@ describe('AcpSessionConfig', () => {
         { id: 'build', name: 'Build' },
         { description: 'Planning-first agent', id: 'plan', name: 'Plan' },
       ],
+      configId: null,
       currentModeId: 'build',
     });
   });
@@ -214,6 +217,7 @@ describe('AcpSessionConfig', () => {
         { id: 'build', name: 'Build' },
         { description: 'Planning-first agent', id: 'plan', name: 'Plan' },
       ],
+      configId: 'session_mode',
       currentModeId: 'build',
     });
   });
