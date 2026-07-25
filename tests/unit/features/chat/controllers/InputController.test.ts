@@ -1125,6 +1125,7 @@ describe('InputController - Message Queue', () => {
         vaultSearchMaxSnippetChars: 250,
       } as any;
       deps.plugin.settings.excludedTags = ['private'];
+      deps.plugin.settings.excludedFolders = ['Archive'];
       const vaultSearchService = {
         extractVaultQuery: jest.fn().mockReturnValue('roadmap'),
         search: jest.fn().mockResolvedValue({
@@ -1166,9 +1167,11 @@ describe('InputController - Message Queue', () => {
         maxResults: 3,
         maxSnippetChars: 250,
         excludedTags: ['private'],
+        excludedFolders: ['Archive'],
       });
       const prepareTurnCall = ((deps as any).mockAgentService.prepareTurn as jest.Mock).mock.calls[0];
       expect(prepareTurnCall[0]).toMatchObject({
+        excludedFolders: ['Archive'],
         text: '@vault roadmap',
         vaultSearchContext: {
           query: 'roadmap',
@@ -1276,6 +1279,62 @@ describe('InputController - Message Queue', () => {
       expect(prepareTurnCall[0].externalContextPaths).toEqual(['/shared', '/selected', '/repo']);
       expect(workspace.externalContextPaths).toEqual(['/repo', '/shared']);
       expect(deps.state.messages[0].displayContent).toBe('hello');
+    });
+
+    it('removes excluded vault paths from every automatic turn context', async () => {
+      const fileContextManager = createMockFileContextManager();
+      fileContextManager.getCurrentNotePath.mockReturnValue('Climate/Ocean.md');
+      fileContextManager.shouldSendCurrentNote.mockReturnValue(true);
+      const workspace = {
+        id: 'workspace-1',
+        name: 'Mixed workspace',
+        systemPrompt: '',
+        vaultFolders: ['Climate', 'Projects'],
+        vaultFiles: ['Climate/Forecast.md', 'Notes/Keep.md'],
+        tags: [],
+        externalContextPaths: [],
+      };
+      deps = createSendableDeps({
+        getActiveProjectWorkspace: () => workspace,
+        getFileContextManager: () => fileContextManager as any,
+        selectionController: {
+          getContext: jest.fn().mockReturnValue({
+            mode: 'selection',
+            notePath: 'Climate/Ocean.md',
+            selectedText: 'private selection',
+          }),
+        } as any,
+        canvasSelectionController: {
+          getContext: jest.fn().mockReturnValue({
+            canvasPath: 'Climate/Map.canvas',
+            nodeIds: ['node-1'],
+          }),
+        } as any,
+      });
+      deps.plugin.settings.excludedFolders = ['/Climate/'];
+      (deps as any).mockAgentService.query = jest.fn().mockImplementation(
+        () => createMockStream([{ type: 'done' }]),
+      );
+
+      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl.value = 'What is in the vault?';
+      controller = new InputController(deps);
+
+      await controller.sendMessage();
+
+      const request = (
+        (deps as any).mockAgentService.prepareTurn as jest.Mock
+      ).mock.calls[0][0];
+      expect(request).toMatchObject({
+        canvasSelection: null,
+        editorSelection: null,
+        excludedFolders: ['Climate'],
+      });
+      expect(request.currentNotePath).toBeUndefined();
+      expect(request.projectWorkspaceContext.workspace).toMatchObject({
+        vaultFolders: ['Projects'],
+        vaultFiles: ['Notes/Keep.md'],
+      });
     });
 
     it('passes the active project workspace model as a query override', async () => {

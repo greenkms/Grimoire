@@ -100,6 +100,8 @@ export type TranslationKey =
   | 'settings.userName.desc'
   | 'settings.excludedTags.name'
   | 'settings.excludedTags.desc'
+  | 'settings.excludedFolders.name'
+  | 'settings.excludedFolders.desc'
   | 'settings.mediaFolder.name'
   | 'settings.mediaFolder.desc'
   | 'settings.systemPrompt.name'

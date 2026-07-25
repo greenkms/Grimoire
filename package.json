@@ -1,6 +1,6 @@
 {
   "name": "grimoire",
-  "version": "1.0.35",
+  "version": "1.0.36",
   "description": "Local-first AI agents for Obsidian: Claude Code, Codex, Antigravity CLI, Gemini CLI, and OpenCode in a vault-native side panel.",
   "main": "main.js",
   "scripts": {
@@ -10,6 +10,7 @@
     "build": "node scripts/build.mjs production",
     "prebuild:release": "npm run lint && npm run review:source && npm run review:css && npm run review:deps",
     "build:release": "node scripts/build-release.mjs",
+    "audit:runtime": "node scripts/check-runtime-audit.mjs",
     "review:source": "node scripts/check-review-source.mjs",
     "review:css": "node scripts/check-review-css.mjs",
     "review:deps": "node scripts/check-review-dependencies.mjs",
@@ -55,7 +56,7 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "@anthropic-ai/claude-agent-sdk": "^0.3.215",
+    "@anthropic-ai/claude-agent-sdk": "^0.3.220",
     "@codemirror/state": "6.5.0",
     "@codemirror/view": "6.38.6",
     "@modelcontextprotocol/sdk": "^1.29.0",

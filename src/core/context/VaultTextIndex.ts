@@ -1,5 +1,6 @@
 import type { App } from 'obsidian';
 
+import { isPathInExcludedFolder } from './exclusions';
 import { tokenizeSearchText } from './text';
 
 export interface VaultIndexedDocument {
@@ -17,11 +18,15 @@ export class VaultTextIndex {
 
   constructor(private readonly app: App) {}
 
-  async refresh(options: { excludedTags: string[] }): Promise<void> {
+  async refresh(options: { excludedTags: string[]; excludedFolders: string[] }): Promise<void> {
     const excludedTags = new Set(options.excludedTags.map(normalizeTag));
     const documents = new Map<string, VaultIndexedDocument>();
 
     for (const file of this.app.vault.getMarkdownFiles()) {
+      if (isPathInExcludedFolder(file.path, options.excludedFolders)) {
+        continue;
+      }
+
       const cache = this.app.metadataCache.getFileCache(file);
       const tags = extractTags(cache);
 

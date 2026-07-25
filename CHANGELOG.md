@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.36 - 2026-07-25
+
+### Added
+
+- Added a global **Excluded folders** setting next to excluded tags. Notes inside these folders are kept out of automatic context, search, linked-note loading, editor selection, Canvas context, and project workspaces unless the user explicitly includes a path with `@`.
+
+### Improved
+
+- Streamlined Grimoire's shared agent prompt to reduce context overhead, preserve provider-native project instructions, and clarify vault paths, turn context, excluded-folder boundaries, Obsidian conventions, and image handling.
+- Updated compatible production and development dependencies, including Claude Agent SDK 0.3.220 and patched transitive releases for Hono, Fast URI, and Express body parsing.
+- This update changes foundational agent guidance. If tasks start working worse or you notice a provider-specific regression, please [open an issue on GitHub](https://github.com/sandsaber/Grimoire/issues).
+
 ## 1.0.35 - 2026-07-20
 
 ### Improved

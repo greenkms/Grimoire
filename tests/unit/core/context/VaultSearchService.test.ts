@@ -34,6 +34,7 @@ function createQuery(overrides: Partial<VaultSearchQuery> = {}): VaultSearchQuer
     maxResults: 5,
     maxSnippetChars: 120,
     excludedTags: [],
+    excludedFolders: [],
     ...overrides,
   };
 }

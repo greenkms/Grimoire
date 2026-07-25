@@ -1,7 +1,13 @@
 import type { ChatTurnRequest, PreparedChatTurn } from '../../../core/runtime/types';
 import { appendBrowserContext } from '../../../utils/browser';
 import { appendCanvasContext } from '../../../utils/canvas';
-import { appendContextFiles, appendCurrentNote, appendProjectWorkspaceContext, appendVaultSearchContext } from '../../../utils/context';
+import {
+  appendContextFiles,
+  appendCurrentNote,
+  appendExcludedFoldersContext,
+  appendProjectWorkspaceContext,
+  appendVaultSearchContext,
+} from '../../../utils/context';
 import { appendEditorContext } from '../../../utils/editor';
 
 function isCompactCommand(text: string): boolean {
@@ -23,6 +29,10 @@ export function encodeCodexTurn(request: ChatTurnRequest): PreparedChatTurn {
 
   const sections: string[] = [];
   sections.push(request.text);
+
+  if (request.excludedFolders && request.excludedFolders.length > 0) {
+    sections.push(`\n${appendExcludedFoldersContext('', request.excludedFolders).trim()}`);
+  }
 
   if (request.currentNotePath) {
     sections.push(`\n${appendCurrentNote('', request.currentNotePath).trim()}`);

@@ -32,6 +32,7 @@ import { appendCanvasContext } from '../../../utils/canvas';
 import {
   appendContextFiles,
   appendCurrentNote,
+  appendExcludedFoldersContext,
   appendProjectWorkspaceContext,
   appendVaultSearchContext,
   formatCurrentNote,
@@ -527,6 +528,10 @@ export function buildAntigravityPrintArgs(spec: AntigravityPrintArgsSpec): strin
 
 function buildAntigravityPromptText(request: ChatTurnRequest): string {
   let prompt = request.text;
+
+  if (request.excludedFolders && request.excludedFolders.length > 0) {
+    prompt = appendExcludedFoldersContext(prompt, request.excludedFolders);
+  }
 
   if (request.currentNotePath) {
     prompt = appendCurrentNote(prompt, request.currentNotePath);

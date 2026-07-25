@@ -49,7 +49,7 @@ describe('VaultTextIndex', () => {
     });
     const index = new VaultTextIndex(app);
 
-    await index.refresh({ excludedTags: ['#secret'] });
+    await index.refresh({ excludedTags: ['#secret'], excludedFolders: [] });
 
     expect(index.getAllDocuments()).toHaveLength(1);
     expect(index.getByPath('notes/Public.md')).toMatchObject({
@@ -59,6 +59,28 @@ describe('VaultTextIndex', () => {
       mtime: 100,
     });
     expect(index.getByPath('notes/Private.md')).toBeNull();
+  });
+
+  it('excludes configured folders and their descendants', async () => {
+    const privateFile = createFile('Private/Note.md', 100);
+    const nestedPrivateFile = createFile('Private/Nested/Plan.md', 200);
+    const similarlyNamedFile = createFile('Private Notes/Visible.md', 300);
+    const app = createApp({
+      files: [privateFile, nestedPrivateFile, similarlyNamedFile],
+      contents: {
+        'Private/Note.md': 'Private note',
+        'Private/Nested/Plan.md': 'Private plan',
+        'Private Notes/Visible.md': 'Visible note',
+      },
+    });
+    const index = new VaultTextIndex(app);
+
+    await index.refresh({ excludedTags: [], excludedFolders: ['/Private/'] });
+
+    expect(index.getByPath('Private/Note.md')).toBeNull();
+    expect(index.getByPath('Private/Nested/Plan.md')).toBeNull();
+    expect(index.getByPath('Private Notes/Visible.md')).not.toBeNull();
+    expect(app.vault.cachedRead).toHaveBeenCalledTimes(1);
   });
 
   it('normalizes frontmatter array, frontmatter string, and inline cache tags', async () => {
@@ -82,7 +104,7 @@ describe('VaultTextIndex', () => {
     });
     const index = new VaultTextIndex(app);
 
-    await index.refresh({ excludedTags: [] });
+    await index.refresh({ excludedTags: [], excludedFolders: [] });
 
     expect(index.getByPath('notes/Array.md')?.tags).toEqual(
       new Set(['Project', 'planning', 'inline'])
@@ -106,7 +128,7 @@ describe('VaultTextIndex', () => {
     });
     const index = new VaultTextIndex(app);
 
-    await index.refresh({ excludedTags: [] });
+    await index.refresh({ excludedTags: [], excludedFolders: [] });
 
     expect(index.getByPath('notes/Links.md')?.links).toEqual(
       new Set(['Roadmap', 'folder/Spec'])
@@ -126,7 +148,7 @@ describe('VaultTextIndex', () => {
       })
     );
 
-    await index.refresh({ excludedTags: [] });
+    await index.refresh({ excludedTags: [], excludedFolders: [] });
     index.markDirty('notes/First.md');
 
     expect(index.getByPath('notes/First.md')).toBeNull();
@@ -146,7 +168,7 @@ describe('VaultTextIndex', () => {
       })
     );
 
-    await index.refresh({ excludedTags: [] });
+    await index.refresh({ excludedTags: [], excludedFolders: [] });
     index.markDirty();
 
     expect(index.getAllDocuments()).toEqual([]);

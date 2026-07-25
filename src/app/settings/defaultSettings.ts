@@ -16,6 +16,7 @@ export const DEFAULT_GRIMOIRE_SETTINGS: GrimoireSettings = {
   titleGenerationModel: '',
 
   excludedTags: [],
+  excludedFolders: [],
   mediaFolder: '',
   systemPrompt: '',
   persistentExternalContextPaths: [],

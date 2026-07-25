@@ -41,6 +41,7 @@ function createMockSettings(overrides: Partial<GrimoireSettings> = {}): Grimoire
     thinkingBudget: 'off',
     titleGenerationModel: '',
     excludedTags: [],
+    excludedFolders: [],
     environmentVariables: '',
     providerConfigs: {
       claude: { loadUserSettings: false },

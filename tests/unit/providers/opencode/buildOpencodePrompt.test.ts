@@ -38,6 +38,16 @@ describe('buildOpencodePromptText', () => {
     expect(prompt).not.toContain('/tmp/project');
   });
 
+  it('appends excluded folders to the OpenCode prompt', () => {
+    const prompt = buildOpencodePromptText({
+      excludedFolders: ['Climate'],
+      text: 'Summarize this',
+    });
+
+    expect(prompt).toContain('<excluded_folders>');
+    expect(prompt).toContain('<folder>Climate</folder>');
+  });
+
   it('appends selected context files to the OpenCode prompt', () => {
     const prompt = buildOpencodePromptText({
       contextFiles: ['/external/brief.pdf'],

@@ -20,6 +20,9 @@ export function cloneChatTurnRequest(request: ChatTurnRequest): ChatTurnRequest 
     contextFiles: request.contextFiles
       ? [...request.contextFiles]
       : undefined,
+    excludedFolders: request.excludedFolders
+      ? [...request.excludedFolders]
+      : undefined,
     vaultSearchContext: cloneVaultSearchContext(request.vaultSearchContext),
     projectWorkspaceContext: cloneProjectWorkspaceContext(request.projectWorkspaceContext),
     enabledMcpServers: request.enabledMcpServers
@@ -62,6 +65,10 @@ export function mergeQueuedChatTurns(
       contextFiles: mergeStringLists(
         existingRequest.contextFiles,
         incomingRequest.contextFiles,
+      ),
+      excludedFolders: mergeStringLists(
+        existingRequest.excludedFolders,
+        incomingRequest.excludedFolders,
       ),
       enabledMcpServers: mergeSets(
         existingRequest.enabledMcpServers,

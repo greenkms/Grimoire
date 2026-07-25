@@ -1543,6 +1543,7 @@ function initializeContextManagers(tab: TabData, plugin: GrimoirePlugin): void {
     dom.inputEl,
     {
       getExcludedTags: () => plugin.settings.excludedTags,
+      getExcludedFolders: () => plugin.settings.excludedFolders,
       onChipsChanged: () => {
         void updateRelevantNotes(tab, plugin);
         syncContextSummary(tab, plugin);
@@ -1624,7 +1625,10 @@ async function updateRelevantNotes(tab: TabData, plugin: GrimoirePlugin): Promis
   }
 
   try {
-    await tab.services.vaultTextIndex?.refresh({ excludedTags: settings.excludedTags });
+    await tab.services.vaultTextIndex?.refresh({
+      excludedTags: settings.excludedTags,
+      excludedFolders: settings.excludedFolders,
+    });
     const notes = tab.services.relevantNotesService?.findRelevantNotes(currentPath, { maxResults }) ?? [];
     view.render(notes, currentSources);
   } catch (error) {

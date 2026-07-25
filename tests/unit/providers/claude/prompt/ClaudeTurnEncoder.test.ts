@@ -99,6 +99,18 @@ describe('encodeClaudeTurn', () => {
     expect(result.prompt).toContain('/external/brief.pdf');
   });
 
+  it('should append excluded folders to persisted content and prompt', () => {
+    const request: ChatTurnRequest = {
+      text: 'summarize this',
+      excludedFolders: ['Climate'],
+    };
+    const result = encodeClaudeTurn(request, mcpManager);
+
+    expect(result.persistedContent).toContain('<excluded_folders>');
+    expect(result.persistedContent).toContain('<folder>Climate</folder>');
+    expect(result.prompt).toContain('<excluded_folders>');
+  });
+
   it('should append editor selection context', () => {
     const request: ChatTurnRequest = {
       text: 'explain this',

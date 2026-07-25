@@ -5,6 +5,10 @@ import {
   detectBuiltInCommand,
   isBuiltInCommandSupported,
 } from '../../../core/commands/builtInCommands';
+import {
+  isPathInExcludedFolder,
+  normalizeExcludedFolders,
+} from '../../../core/context/exclusions';
 import { tokenizeSearchText } from '../../../core/context/text';
 import type { ProjectWorkspace } from '../../../core/context/types';
 import type { VaultSearchService } from '../../../core/context/VaultSearchService';
@@ -165,6 +169,25 @@ function mergeContextFiles(...pathLists: Array<string[] | undefined>): string[] 
     }
   }
   return merged;
+}
+
+function filterProjectWorkspace(
+  workspace: ProjectWorkspace,
+  excludedFolders: string[],
+): ProjectWorkspace {
+  if (excludedFolders.length === 0) {
+    return workspace;
+  }
+
+  return {
+    ...workspace,
+    vaultFolders: workspace.vaultFolders.filter(
+      (folder) => !isPathInExcludedFolder(folder, excludedFolders),
+    ),
+    vaultFiles: workspace.vaultFiles.filter(
+      (file) => !isPathInExcludedFolder(file, excludedFolders),
+    ),
+  };
 }
 
 function normalizeWorkspaceSetting(value: string | undefined): string | undefined {
@@ -874,6 +897,17 @@ export class InputController {
 
     const externalContextPaths = externalContextSelector?.getExternalContexts();
     const isCompact = /^\/compact(\s|$)/i.test(options.content);
+    const excludedFolders = isCompact
+      ? []
+      : normalizeExcludedFolders(this.deps.plugin.settings.excludedFolders ?? []);
+    const filteredEditorContext = editorContext
+      && isPathInExcludedFolder(editorContext.notePath, excludedFolders)
+      ? null
+      : editorContext;
+    const filteredCanvasContext = canvasContext
+      && isPathInExcludedFolder(canvasContext.canvasPath, excludedFolders)
+      ? null
+      : canvasContext;
     const transformedText = !isCompact && fileContextManager
       ? fileContextManager.transformContextMentions(options.content)
       : options.content;
@@ -883,6 +917,9 @@ export class InputController {
     const activeProjectWorkspace = isCompact
       ? null
       : (this.deps.getActiveProjectWorkspace?.() ?? null);
+    const filteredProjectWorkspace = activeProjectWorkspace
+      ? filterProjectWorkspace(activeProjectWorkspace, excludedFolders)
+      : null;
     const mergedExternalContextPaths = mergeExternalContextPaths(
       externalContextPaths,
       activeProjectWorkspace?.externalContextPaths,
@@ -908,19 +945,24 @@ export class InputController {
       turnRequest: {
         text: transformedText,
         images: options.images,
-        currentNotePath: shouldSendCurrentNote && currentNotePath ? currentNotePath : undefined,
-        editorSelection: editorContext,
+        currentNotePath: shouldSendCurrentNote
+          && currentNotePath
+          && !isPathInExcludedFolder(currentNotePath, excludedFolders)
+          ? currentNotePath
+          : undefined,
+        editorSelection: filteredEditorContext,
         browserSelection: browserContext,
-        canvasSelection: canvasContext,
+        canvasSelection: filteredCanvasContext,
         externalContextPaths: splitExternalContexts.directories,
         contextFiles: contextFiles.length > 0 ? contextFiles : undefined,
+        excludedFolders: excludedFolders.length > 0 ? excludedFolders : undefined,
         enabledMcpServers: enabledMcpServers && enabledMcpServers.size > 0
           ? enabledMcpServers
           : undefined,
         orchestratorMode: orchestratorMode ? true : undefined,
         vaultSearchContext: resolvedVaultSearchContext,
-        projectWorkspaceContext: activeProjectWorkspace
-          ? { workspace: activeProjectWorkspace }
+        projectWorkspaceContext: filteredProjectWorkspace
+          ? { workspace: filteredProjectWorkspace }
           : undefined,
       },
     });
@@ -966,6 +1008,7 @@ export class InputController {
         maxResults: contextEngine?.vaultSearchMaxResults ?? 8,
         maxSnippetChars: contextEngine?.vaultSearchMaxSnippetChars ?? 700,
         excludedTags: settings.excludedTags,
+        excludedFolders: settings.excludedFolders,
       })
       .then((result) => result.snippets.length > 0
         ? { query: trimmedQueryText, snippets: result.snippets }

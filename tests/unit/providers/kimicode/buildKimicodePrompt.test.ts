@@ -38,6 +38,16 @@ describe('buildKimicodePromptText', () => {
     expect(prompt).not.toContain('/tmp/project');
   });
 
+  it('appends excluded folders to the Kimi Code prompt', () => {
+    const prompt = buildKimicodePromptText({
+      excludedFolders: ['Climate'],
+      text: 'Summarize this',
+    });
+
+    expect(prompt).toContain('<excluded_folders>');
+    expect(prompt).toContain('<folder>Climate</folder>');
+  });
+
   it('appends selected context files to the Kimi Code prompt', () => {
     const prompt = buildKimicodePromptText({
       contextFiles: ['notes/instructions.md'],

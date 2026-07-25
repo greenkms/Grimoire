@@ -61,6 +61,7 @@ export interface ChatTurnRequest {
   canvasSelection?: CanvasSelectionContext | null;
   externalContextPaths?: string[];
   contextFiles?: string[];
+  excludedFolders?: string[];
   vaultSearchContext?: VaultSearchTurnContext;
   projectWorkspaceContext?: ProjectWorkspaceTurnContext;
   enabledMcpServers?: Set<string>;

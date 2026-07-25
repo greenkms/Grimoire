@@ -28,21 +28,52 @@ describe('systemPrompt', () => {
 
     it('should include base system prompt elements', () => {
       const prompt = buildSystemPrompt();
-      expect(prompt).toContain('Use `bash: date` to get the current date and time. Never guess or assume.');
-      expect(prompt).toContain('Grimoire');
-      expect(prompt).toContain('## Path Conventions');
-      expect(prompt).toContain('# User Message Format');
-      expect(prompt).toContain('Treat it as the default target for edit/rewrite/update/apply-instructions requests unless the user names a different target file.');
+      expect(prompt).toContain('active AI agent operating through Grimoire');
+      expect(prompt).toContain(
+        'Follow project instructions already supplied by the active provider through its native instruction mechanism. Do not reload or duplicate them.',
+      );
+      expect(prompt).toContain('## Workspace and Paths');
+      expect(prompt).toContain('## Turn Context');
+      expect(prompt).toContain('the default target for edit, rewrite, update, or apply-instructions requests');
+      expect(prompt).toContain('Every folder listed in `<excluded_folders>` and all descendants are unavailable');
+      expect(prompt).toContain('an explicit `@path` in the current query');
+      expect(prompt).toContain('Do not extend an override to siblings or parents.');
+      expect(prompt).toContain('verify it using an available runtime capability rather than guessing');
     });
 
-    it('should omit Claude-specific tool guidance from the shared prompt', () => {
+    it('should document the complete Grimoire turn context contract', () => {
       const prompt = buildSystemPrompt();
 
+      for (const tag of [
+        'current_note',
+        'editor_selection',
+        'editor_cursor',
+        'context_files',
+        'browser_selection',
+        'canvas_selection',
+        'vault_search',
+        'project_workspace',
+        'excluded_folders',
+      ]) {
+        expect(prompt).toContain(`<${tag}>`);
+      }
+    });
+
+    it('should remain provider-neutral and avoid duplicated legacy sections', () => {
+      const prompt = buildSystemPrompt();
+
+      expect(prompt).not.toContain('bash: date');
+      expect(prompt).not.toContain('Read file_path=');
+      expect(prompt).not.toContain('WebFetch');
+      expect(prompt).not.toContain('curl');
       expect(prompt).not.toContain('## Tool Usage Guidelines');
       expect(prompt).not.toContain('### WebSearch');
       expect(prompt).not.toContain('### Agent (Subagents)');
       expect(prompt).not.toContain('### TodoWrite');
       expect(prompt).not.toContain('### Skills');
+      expect(prompt).not.toContain('## Selection Context');
+      expect(prompt).not.toContain('## User Message Format');
+      expect(prompt.length).toBeLessThan(6_000);
     });
 
   });
@@ -50,23 +81,22 @@ describe('systemPrompt', () => {
   describe('userName in system prompt', () => {
     it('should include user context when userName is provided', () => {
       const prompt = buildSystemPrompt({ userName: 'Alice' });
-      expect(prompt).toContain('## User Context');
       expect(prompt).toContain('You are collaborating with **Alice**.');
     });
 
     it('should not include user context when userName is empty', () => {
       const prompt = buildSystemPrompt({ userName: '' });
-      expect(prompt).not.toContain('## User Context');
+      expect(prompt).not.toContain('You are collaborating with **');
     });
 
     it('should not include user context when userName is whitespace only', () => {
       const prompt = buildSystemPrompt({ userName: '   ' });
-      expect(prompt).not.toContain('## User Context');
+      expect(prompt).not.toContain('You are collaborating with **');
     });
 
     it('should not include user context when userName is undefined', () => {
       const prompt = buildSystemPrompt({});
-      expect(prompt).not.toContain('## User Context');
+      expect(prompt).not.toContain('You are collaborating with **');
     });
 
     it('should trim whitespace from userName', () => {
@@ -79,33 +109,31 @@ describe('systemPrompt', () => {
   describe('media folder instructions', () => {
     it('should use vault root path when mediaFolder is empty', () => {
       const prompt = buildSystemPrompt({ mediaFolder: '' });
-      expect(prompt).toContain('Located in media folder: `.`');
-      expect(prompt).toContain('Read file_path="image.jpg"');
+      expect(prompt).toContain('configured vault media folder `.`');
     });
 
     it('should use vault root path when mediaFolder is whitespace only', () => {
       const prompt = buildSystemPrompt({ mediaFolder: '   ' });
-      expect(prompt).toContain('Located in media folder: `.`');
+      expect(prompt).toContain('configured vault media folder `.`');
     });
 
     it('should use custom mediaFolder path when provided', () => {
       const prompt = buildSystemPrompt({ mediaFolder: 'attachments' });
-      expect(prompt).toContain('Located in media folder: `./attachments`');
-      expect(prompt).toContain('Read file_path="attachments/image.jpg"');
+      expect(prompt).toContain('configured vault media folder `attachments`');
     });
 
     it('should handle mediaFolder with special characters', () => {
       const prompt = buildSystemPrompt({ mediaFolder: '- attachments' });
-      expect(prompt).toContain('Located in media folder: `./- attachments`');
-      expect(prompt).toContain('Read file_path="- attachments/image.jpg"');
+      expect(prompt).toContain('configured vault media folder `- attachments`');
     });
 
-    it('should include external image handling instructions', () => {
+    it('should keep external image handling non-mutating by default', () => {
       const prompt = buildSystemPrompt({ mediaFolder: 'media' });
-      expect(prompt).toContain('WebFetch does NOT support images');
-      expect(prompt).toContain('Download to media folder');
-      expect(prompt).toContain('curl');
-      expect(prompt).toContain('replace the markdown link');
+      expect(prompt).toContain(
+        'Do not download, persist, or rewrite external images unless the user asks.',
+      );
+      expect(prompt).not.toContain('WebFetch');
+      expect(prompt).not.toContain('curl');
     });
   });
 
@@ -147,7 +175,7 @@ describe('systemPrompt', () => {
 
       const key = computeSystemPromptKey(settings);
 
-      expect(key).toBe('attachments::Be helpful::/vault::Alice');
+      expect(key).toBe('main-agent-v2::attachments::Be helpful::/vault::Alice');
     });
 
     it('handles empty or undefined values', () => {
@@ -158,7 +186,7 @@ describe('systemPrompt', () => {
         userName: '',
       });
 
-      expect(key).toBe('::::::');
+      expect(key).toBe('main-agent-v2::::::::');
     });
   });
 });

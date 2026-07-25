@@ -442,6 +442,7 @@ function createMockPlugin(overrides: Record<string, any> = {}): any {
     },
     settings: {
       excludedTags: [],
+      excludedFolders: [],
       model: 'claude-sonnet-4-5',
       thinkingBudget: 'low',
       effortLevel: 'high',
@@ -1116,6 +1117,7 @@ describe('Tab - Service Initialization', () => {
       const plugin = createMockPlugin({
         settings: {
           excludedTags: [],
+          excludedFolders: [],
           model: 'claude-sonnet-4-5',
           thinkingBudget: 'low',
           effortLevel: 'high',
@@ -1216,6 +1218,7 @@ describe('Tab - Service Initialization', () => {
       const plugin = createMockPlugin({
         settings: {
           excludedTags: [],
+          excludedFolders: [],
           model: 'claude-sonnet-4-5',
           thinkingBudget: 'low',
           effortLevel: 'high',
@@ -2763,6 +2766,25 @@ describe('Tab - UI Callback Wiring', () => {
       expect(excludedTags).toEqual(['tag1', 'tag2']);
     });
 
+    it('should wire getExcludedFolders to return plugin settings', () => {
+      const plugin = createMockPlugin({
+        settings: {
+          ...createMockPlugin().settings,
+          excludedFolders: ['Private', 'Archive/Old'],
+        },
+      });
+      const options = createMockOptions({ plugin });
+      const tab = createTab(options);
+
+      initializeTabUI(tab, plugin);
+
+      const { FileContextManager } = jest.requireMock('@/features/chat/ui/FileContext');
+      const constructorCall = FileContextManager.mock.calls[0];
+      const callbacks = constructorCall[3];
+
+      expect(callbacks.getExcludedFolders()).toEqual(['Private', 'Archive/Old']);
+    });
+
     it('should wire getExternalContexts to return external context selector contexts', () => {
       const options = createMockOptions();
       const tab = createTab(options);
@@ -3019,6 +3041,7 @@ describe('Tab - UI Callback Wiring', () => {
       const plugin = createMockPlugin({
         settings: {
           excludedTags: [],
+          excludedFolders: [],
           model: DEFAULT_CODEX_PRIMARY_MODEL,
           thinkingBudget: 'low',
           effortLevel: 'high',
@@ -4552,6 +4575,7 @@ describe('Tab - Blank Tab Draft Model Change', () => {
     const plugin = createMockPlugin({
       settings: {
         excludedTags: [],
+        excludedFolders: [],
         model: 'claude-sonnet-4-5',
         thinkingBudget: 'low',
         effortLevel: 'high',
@@ -4891,6 +4915,7 @@ describe('Tab - History Bind Without Runtime', () => {
     const plugin = createMockPlugin({
       settings: {
         excludedTags: [],
+        excludedFolders: [],
         model: 'claude-sonnet-4-5',
         thinkingBudget: 'low',
         effortLevel: 'high',

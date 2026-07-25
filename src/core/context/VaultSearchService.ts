@@ -47,7 +47,10 @@ export class VaultSearchService {
   }
 
   async search(query: VaultSearchQuery): Promise<VaultSearchResult> {
-    await this.index.refresh({ excludedTags: query.excludedTags });
+    await this.index.refresh({
+      excludedTags: query.excludedTags,
+      excludedFolders: query.excludedFolders,
+    });
 
     const normalizedTerms = query.terms
       .map((term) => normalizeSearchTerm(term))

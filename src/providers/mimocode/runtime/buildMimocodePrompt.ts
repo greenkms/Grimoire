@@ -3,7 +3,13 @@ import type { ChatTurnRequest } from '../../../core/runtime/types';
 import type { ChatMessage } from '../../../core/types';
 import { appendBrowserContext } from '../../../utils/browser';
 import { appendCanvasContext } from '../../../utils/canvas';
-import { appendContextFiles, appendCurrentNote, appendProjectWorkspaceContext, appendVaultSearchContext } from '../../../utils/context';
+import {
+  appendContextFiles,
+  appendCurrentNote,
+  appendExcludedFoldersContext,
+  appendProjectWorkspaceContext,
+  appendVaultSearchContext,
+} from '../../../utils/context';
 import { appendEditorContext } from '../../../utils/editor';
 import { buildContextFromHistory, buildPromptWithHistoryContext } from '../../../utils/session';
 import type { AcpContentBlock } from '../../acp';
@@ -18,6 +24,10 @@ export function buildMimocodePromptText(
   options: MimocodePromptOptions = {},
 ): string {
   let prompt = request.text;
+
+  if (request.excludedFolders && request.excludedFolders.length > 0) {
+    prompt = appendExcludedFoldersContext(prompt, request.excludedFolders);
+  }
 
   if (request.currentNotePath) {
     prompt = appendCurrentNote(prompt, request.currentNotePath);

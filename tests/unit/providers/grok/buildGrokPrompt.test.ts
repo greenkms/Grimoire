@@ -38,6 +38,16 @@ describe('buildGrokPromptText', () => {
     expect(prompt).not.toContain('/tmp/project');
   });
 
+  it('appends excluded folders to the Grok Build prompt', () => {
+    const prompt = buildGrokPromptText({
+      excludedFolders: ['Climate'],
+      text: 'Summarize this',
+    });
+
+    expect(prompt).toContain('<excluded_folders>');
+    expect(prompt).toContain('<folder>Climate</folder>');
+  });
+
   it('appends selected context files to the Grok prompt', () => {
     const prompt = buildGrokPromptText({
       contextFiles: ['notes/instructions.md'],

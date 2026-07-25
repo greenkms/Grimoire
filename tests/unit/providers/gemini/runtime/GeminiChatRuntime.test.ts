@@ -207,6 +207,7 @@ describe('GeminiChatRuntime', () => {
       },
       contextFiles: ['notes/instructions.md'],
       currentNotePath: 'notes/Artic Ocean.md',
+      excludedFolders: ['Climate'],
       editorSelection: {
         mode: 'selection',
         notePath: 'notes/Artic Ocean.md',
@@ -221,6 +222,8 @@ describe('GeminiChatRuntime', () => {
     expect(turn.persistedContent).toContain('notes/Artic Ocean.md');
     expect(turn.persistedContent).toContain('<context_files>');
     expect(turn.persistedContent).toContain('notes/instructions.md');
+    expect(turn.persistedContent).toContain('<excluded_folders>');
+    expect(turn.persistedContent).toContain('<folder>Climate</folder>');
     expect(turn.persistedContent).toContain('<editor_selection path="notes/Artic Ocean.md" lines="4-5">');
     expect(turn.persistedContent).toContain('Selected text');
     expect(turn.persistedContent).toContain('<browser_selection source="browser:https://example.com" title="Example" url="https://example.com">');
@@ -248,6 +251,7 @@ describe('GeminiChatRuntime', () => {
     const promptText = firstPromptBlock?.type === 'text' ? firstPromptBlock.text : '';
     expect(promptText).toContain('notes/Artic Ocean.md');
     expect(promptText).toContain('notes/instructions.md');
+    expect(promptText).toContain('<folder>Climate</folder>');
     expect(promptText).toContain('<editor_selection path="notes/Artic Ocean.md" lines="4-5">');
     expect(promptText).toContain('<browser_selection source="browser:https://example.com" title="Example" url="https://example.com">');
     expect(promptText).toContain('<canvas_selection path="boards/Artic Ocean.canvas">');

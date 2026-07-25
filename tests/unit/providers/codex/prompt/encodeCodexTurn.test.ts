@@ -58,6 +58,18 @@ describe('encodeCodexTurn', () => {
     expect(result.persistedContent).toBe('Fix this');
   });
 
+  it('should include excluded folders in prompt only', () => {
+    const request: ChatTurnRequest = {
+      text: 'Summarize this',
+      excludedFolders: ['Climate'],
+    };
+    const result = encodeCodexTurn(request);
+
+    expect(result.prompt).toContain('<excluded_folders>');
+    expect(result.prompt).toContain('<folder>Climate</folder>');
+    expect(result.persistedContent).toBe('Summarize this');
+  });
+
   it('should include editor selection context', () => {
     const request: ChatTurnRequest = {
       text: 'Explain this',

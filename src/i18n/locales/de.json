@@ -239,6 +239,10 @@
       "name": "Ausgeschlossene Tags",
       "desc": "Notizen mit diesen Tags werden nicht automatisch als Kontext geladen (einer pro Zeile, ohne #)"
     },
+    "excludedFolders": {
+      "name": "Ausgeschlossene Ordner",
+      "desc": "Notizen in diesen Vault-Ordnern sind vom Agentenzugriff ausgeschlossen, sofern sie nicht ausdrücklich mit @ eingebunden werden (ein Vault-relativer Pfad pro Zeile)"
+    },
     "mediaFolder": {
       "name": "Medienordner",
       "desc": "Ordner mit Anhängen/Bildern. Wenn Notizen ![[image.jpg]] verwenden, sucht Claude hier. Leer lassen für Vault-Stammverzeichnis."

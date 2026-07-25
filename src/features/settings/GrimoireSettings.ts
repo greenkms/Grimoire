@@ -4,6 +4,7 @@ import { Notice, Platform, PluginSettingTab, Setting } from 'obsidian';
 import { parseChangelogRelease } from '../../app/changelog/parser';
 import { GRIMOIRE_CHANGELOG_URL, readBundledChangelog } from '../../app/changelog/source';
 import { formatGrimoireVersion } from '../../app/version';
+import { normalizeExcludedFolder } from '../../core/context/exclusions';
 import {
   getHiddenProviderCommands,
   normalizeHiddenCommandList,
@@ -190,6 +191,7 @@ const GENERAL_SETTINGS_SEARCH_KEYS: TranslationKey[] = [
   'settings.titleModel.name',
   'settings.systemPrompt.name',
   'settings.excludedTags.name',
+  'settings.excludedFolders.name',
   'settings.mediaFolder.name',
   'settings.input',
   'settings.requireCommandOrControlEnterToSend.name',
@@ -569,6 +571,24 @@ export class GrimoireSettingTab extends PluginSettingTab {
             this.plugin.settings.excludedTags = value
               .split(/\r?\n/)
               .map((entry) => entry.trim().replace(/^#/, ''))
+              .filter((entry) => entry.length > 0);
+            await this.plugin.saveSettings();
+          });
+        text.inputEl.rows = 4;
+        text.inputEl.cols = 30;
+      });
+
+    new Setting(advancedContainer)
+      .setName(t('settings.excludedFolders.name'))
+      .setDesc(t('settings.excludedFolders.desc'))
+      .addTextArea((text) => {
+        text
+          .setPlaceholder('Private\narchive\nprojects/secret')
+          .setValue(this.plugin.settings.excludedFolders.join('\n'))
+          .onChange(async (value) => {
+            this.plugin.settings.excludedFolders = value
+              .split(/\r?\n/u)
+              .map(normalizeExcludedFolder)
               .filter((entry) => entry.length > 0);
             await this.plugin.saveSettings();
           });

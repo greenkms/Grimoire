@@ -239,6 +239,10 @@
       "name": "Etiquetas excluidas",
       "desc": "Las notas con estas etiquetas no se cargarán automáticamente como contexto (una por línea, sin #)"
     },
+    "excludedFolders": {
+      "name": "Carpetas excluidas",
+      "desc": "Las notas de estas carpetas de la bóveda quedan excluidas del acceso del agente, salvo que se incluyan explícitamente con @ (una ruta relativa a la bóveda por línea)"
+    },
     "mediaFolder": {
       "name": "Carpeta de medios",
       "desc": "Carpeta que contiene archivos adjuntos/imagenes. Cuando las notas usan ![[image.jpg]], Claude buscará aquí. Dejar vacío para la raíz del depósito."

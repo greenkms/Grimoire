@@ -154,6 +154,7 @@ export interface GrimoireSettings {
 
   // Content settings
   excludedTags: string[];
+  excludedFolders: string[];
   mediaFolder: string;
   systemPrompt: string;
   persistentExternalContextPaths: string[];

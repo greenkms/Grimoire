@@ -72,6 +72,18 @@ describe('QueuedTurn context cloning', () => {
     expect(request.projectWorkspaceContext!.workspace.tags).toEqual(['project']);
     expect(request.projectWorkspaceContext!.workspace.externalContextPaths).toEqual(['/tmp/project']);
   });
+
+  it('clones excluded folder arrays', () => {
+    const request: ChatTurnRequest = {
+      text: 'Respect exclusions',
+      excludedFolders: ['Private'],
+    };
+
+    const cloned = cloneChatTurnRequest(request);
+    cloned.excludedFolders!.push('Archive');
+
+    expect(request.excludedFolders).toEqual(['Private']);
+  });
 });
 
 describe('mergeQueuedChatTurns context merging', () => {
@@ -80,6 +92,7 @@ describe('mergeQueuedChatTurns context merging', () => {
       displayContent: 'First',
       request: {
         text: 'First',
+        excludedFolders: ['Private'],
         vaultSearchContext: { query: 'first', snippets: [createSnippet()] },
         projectWorkspaceContext: { workspace: createWorkspace() },
       },
@@ -93,6 +106,7 @@ describe('mergeQueuedChatTurns context merging', () => {
 
     expect(merged.request.vaultSearchContext?.query).toBe('first');
     expect(merged.request.projectWorkspaceContext?.workspace.id).toBe('workspace-1');
+    expect(merged.request.excludedFolders).toEqual(['Private']);
   });
 
   it('uses incoming contexts when incoming provides them', () => {

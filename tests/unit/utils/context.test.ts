@@ -1,6 +1,7 @@
 import {
   appendContextFiles,
   appendCurrentNote,
+  appendExcludedFoldersContext,
   appendVaultSearchContext,
   extractContentBeforeXmlContext,
   extractUserQuery,
@@ -244,6 +245,11 @@ describe('extractUserQuery', () => {
       expect(extractUserQuery(prompt)).toBe('Query end');
     });
 
+    it('strips excluded_folders tags', () => {
+      const prompt = 'Query <excluded_folders><folder>Private</folder></excluded_folders> end';
+      expect(extractUserQuery(prompt)).toBe('Query end');
+    });
+
     it('strips canvas_selection tags', () => {
       const prompt = 'Query <canvas_selection path="x.canvas">node1</canvas_selection> end';
       expect(extractUserQuery(prompt)).toBe('Query end');
@@ -296,6 +302,18 @@ describe('appendContextFiles', () => {
     const result = appendContextFiles('Query', []);
     expect(result).toContain('<context_files>');
     expect(result).toContain('</context_files>');
+  });
+});
+
+describe('appendExcludedFoldersContext', () => {
+  it('appends escaped excluded folder paths as structured XML', () => {
+    const result = appendExcludedFoldersContext('Query', ['Private', 'R&D/<Archive>']);
+
+    expect(result).toContain('<excluded_folders>');
+    expect(result).toContain('<folder>Private</folder>');
+    expect(result).toContain('<folder>R&amp;D/&lt;Archive&gt;</folder>');
+    expect(result).toContain('</excluded_folders>');
+    expect('Query\n\n<excluded_folders>').toMatch(XML_CONTEXT_PATTERN);
   });
 });
 

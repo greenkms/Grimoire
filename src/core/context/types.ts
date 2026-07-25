@@ -18,6 +18,7 @@ export interface VaultSearchQuery {
   maxResults: number;
   maxSnippetChars: number;
   excludedTags: string[];
+  excludedFolders: string[];
 }
 
 export interface VaultSearchResult {

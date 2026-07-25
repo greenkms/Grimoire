@@ -1,6 +1,7 @@
 import type { App, EventRef } from 'obsidian';
 import { Notice, TFile } from 'obsidian';
 
+import { isPathInExcludedFolder } from '../../../core/context/exclusions';
 import type { McpServerManager } from '../../../core/mcp/McpServerManager';
 import type { AgentMentionProvider } from '../../../shared/mention/MentionDropdownController';
 import { MentionDropdownController } from '../../../shared/mention/MentionDropdownController';
@@ -19,6 +20,7 @@ import { FileChipsView } from './file-context/view/FileChipsView';
 
 export interface FileContextCallbacks {
   getExcludedTags: () => string[];
+  getExcludedFolders: () => string[];
   onChipsChanged?: () => void;
   getExternalContexts?: () => string[];
   /** Called when an agent is selected from the @ mention dropdown. */
@@ -177,7 +179,7 @@ export class FileContextManager {
   /** Auto-attaches the currently focused file (for new sessions). */
   autoAttachActiveFile() {
     const activeFile = this.app.workspace.getActiveFile();
-    if (activeFile && !this.hasExcludedTag(activeFile)) {
+    if (activeFile && !this.isExcluded(activeFile)) {
       const normalizedPath = this.normalizePathForVault(activeFile.path);
       if (normalizedPath) {
         this.currentNotePath = normalizedPath;
@@ -194,7 +196,7 @@ export class FileContextManager {
 
     if (!this.state.isSessionStarted()) {
       this.state.clearAttachments();
-      if (!this.hasExcludedTag(file)) {
+      if (!this.isExcluded(file)) {
         this.currentNotePath = normalizedPath;
         this.state.attachFile(normalizedPath);
       } else {
@@ -454,7 +456,11 @@ export class FileContextManager {
     this.mentionDropdown.updateMcpMentionsFromText(text);
   }
 
-  private hasExcludedTag(file: TFile): boolean {
+  private isExcluded(file: TFile): boolean {
+    if (isPathInExcludedFolder(file.path, this.callbacks.getExcludedFolders())) {
+      return true;
+    }
+
     const excludedTags = this.callbacks.getExcludedTags();
     if (excludedTags.length === 0) return false;
 

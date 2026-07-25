@@ -27,4 +27,8 @@ describe('DEFAULT_GRIMOIRE_SETTINGS', () => {
   it('shows usage indicators by default', () => {
     expect(DEFAULT_GRIMOIRE_SETTINGS.usageIndicatorsEnabled).toBe(true);
   });
+
+  it('starts with no excluded folders', () => {
+    expect(DEFAULT_GRIMOIRE_SETTINGS.excludedFolders).toEqual([]);
+  });
 });

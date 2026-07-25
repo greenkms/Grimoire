@@ -239,6 +239,10 @@
       "name": "Tags exclus",
       "desc": "Les notes avec ces tags ne seront pas chargées automatiquement comme contexte (un par ligne, sans #)"
     },
+    "excludedFolders": {
+      "name": "Dossiers exclus",
+      "desc": "Les notes de ces dossiers du coffre sont exclues de l'accès de l'agent, sauf si elles sont incluses explicitement avec @ (un chemin relatif au coffre par ligne)"
+    },
     "mediaFolder": {
       "name": "Dossier des médias",
       "desc": "Dossier contenant les pièces jointes/images. Lorsque les notes utilisent ![[image.jpg]], Claude cherchera ici. Laisser vide pour la racine du coffre."

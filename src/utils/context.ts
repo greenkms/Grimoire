@@ -16,9 +16,9 @@ const CURRENT_NOTE_SUFFIX_REGEX = /\n\n<current_note>\n[\s\S]*?<\/current_note>$
  * Pattern to match XML context tags appended to prompts.
  * Providers may serialize the separator as one or more newlines.
  * Matches: current_note, editor_selection (with attributes), editor_cursor (with attributes),
- * context_files, canvas_selection, browser_selection, vault_search, project_workspace
+ * context_files, excluded_folders, canvas_selection, browser_selection, vault_search, project_workspace
  */
-export const XML_CONTEXT_PATTERN = /\n+<(?:current_note|editor_selection|editor_cursor|context_files|canvas_selection|browser_selection|vault_search|project_workspace)[\s>]/;
+export const XML_CONTEXT_PATTERN = /\n+<(?:current_note|editor_selection|editor_cursor|context_files|excluded_folders|canvas_selection|browser_selection|vault_search|project_workspace)[\s>]/;
 
 const CURRENT_NOTE_DEFAULT_TARGET_HINT = 'Default target: If the user asks to edit, rewrite, update, or apply instructions without naming another target file, use this note as the target file.';
 
@@ -96,6 +96,7 @@ export function extractUserQuery(prompt: string): string {
     .replace(/<editor_selection[\s\S]*?<\/editor_selection>\s*/g, '')
     .replace(/<editor_cursor[\s\S]*?<\/editor_cursor>\s*/g, '')
     .replace(/<context_files>[\s\S]*?<\/context_files>\s*/g, '')
+    .replace(/<excluded_folders>[\s\S]*?<\/excluded_folders>\s*/g, '')
     .replace(/<canvas_selection[\s\S]*?<\/canvas_selection>\s*/g, '')
     .replace(/<browser_selection[\s\S]*?<\/browser_selection>\s*/g, '')
     .replace(/<vault_search[\s\S]*?<\/vault_search>\s*/g, '')
@@ -118,6 +119,17 @@ function formatContextFilesLine(files: string[]): string {
 
 export function appendContextFiles(prompt: string, files: string[]): string {
   return `${prompt}\n\n${formatContextFilesLine(files)}`;
+}
+
+export function appendExcludedFoldersContext(prompt: string, folders: string[]): string {
+  const lines = ['<excluded_folders>'];
+
+  for (const folder of folders) {
+    lines.push(`  <folder>${escapeXmlText(folder)}</folder>`);
+  }
+
+  lines.push('</excluded_folders>');
+  return `${prompt}\n\n${lines.join('\n')}`;
 }
 
 export function appendVaultSearchContext(

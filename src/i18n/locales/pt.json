@@ -239,6 +239,10 @@
       "name": "Tags excluídas",
       "desc": "Notas com estas tags não serão carregadas automaticamente como contexto (uma por linha, sem #)"
     },
+    "excludedFolders": {
+      "name": "Pastas excluídas",
+      "desc": "Notas nestas pastas do cofre ficam excluídas do acesso do agente, salvo quando incluídas explicitamente com @ (um caminho relativo ao cofre por linha)"
+    },
     "mediaFolder": {
       "name": "Pasta de mídia",
       "desc": "Pasta contendo anexos/imagens. Quando notas usam ![[image.jpg]], Claude procurará aqui. Deixe vazio para a raiz do repositório."

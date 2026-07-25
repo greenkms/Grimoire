@@ -101,10 +101,12 @@ function createMockApp(options: {
 function createMockCallbacks(options: {
   externalContexts?: string[];
   excludedTags?: string[];
+  excludedFolders?: string[];
 } = {}): FileContextCallbacks {
-  const { externalContexts = [], excludedTags = [] } = options;
+  const { externalContexts = [], excludedTags = [], excludedFolders = [] } = options;
   return {
     getExcludedTags: jest.fn(() => excludedTags),
+    getExcludedFolders: jest.fn(() => excludedFolders),
     getExternalContexts: jest.fn(() => externalContexts),
   };
 }
@@ -241,6 +243,28 @@ describe('FileContextManager', () => {
     app.workspace.getActiveFile = jest.fn(() => createMockTFile('notes/public.md'));
     manager.autoAttachActiveFile();
     expect(manager.getCurrentNotePath()).toBe('notes/public.md');
+
+    manager.destroy();
+  });
+
+  it('does not auto-attach files inside an excluded folder', () => {
+    const app = createMockApp({
+      files: ['Private/secret.md', 'Private Notes/public.md'],
+      activeFilePath: 'Private/secret.md',
+    });
+    const manager = new FileContextManager(
+      app,
+      containerEl as any,
+      inputEl,
+      createMockCallbacks({ excludedFolders: ['/Private/'] })
+    );
+
+    manager.autoAttachActiveFile();
+    expect(manager.getCurrentNotePath()).toBeNull();
+
+    app.workspace.getActiveFile = jest.fn(() => createMockTFile('Private Notes/public.md'));
+    manager.autoAttachActiveFile();
+    expect(manager.getCurrentNotePath()).toBe('Private Notes/public.md');
 
     manager.destroy();
   });

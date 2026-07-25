@@ -2,7 +2,13 @@ import type { McpServerManager } from '../../../core/mcp/McpServerManager';
 import type { ChatTurnRequest, PreparedChatTurn } from '../../../core/runtime/types';
 import { appendBrowserContext } from '../../../utils/browser';
 import { appendCanvasContext } from '../../../utils/canvas';
-import { appendContextFiles, appendCurrentNote, appendProjectWorkspaceContext, appendVaultSearchContext } from '../../../utils/context';
+import {
+  appendContextFiles,
+  appendCurrentNote,
+  appendExcludedFoldersContext,
+  appendProjectWorkspaceContext,
+  appendVaultSearchContext,
+} from '../../../utils/context';
 import { appendEditorContext } from '../../../utils/editor';
 
 function isCompactCommand(text: string): boolean {
@@ -17,6 +23,10 @@ export function encodeClaudeTurn(
 
   let persistedContent = request.text;
   if (!isCompact) {
+    if (request.excludedFolders && request.excludedFolders.length > 0) {
+      persistedContent = appendExcludedFoldersContext(persistedContent, request.excludedFolders);
+    }
+
     if (request.currentNotePath) {
       persistedContent = appendCurrentNote(persistedContent, request.currentNotePath);
     }

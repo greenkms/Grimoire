@@ -30,7 +30,13 @@ import type {
 import type GrimoirePlugin from '../../../main';
 import { appendBrowserContext } from '../../../utils/browser';
 import { appendCanvasContext } from '../../../utils/canvas';
-import { appendContextFiles, appendCurrentNote, appendProjectWorkspaceContext, appendVaultSearchContext } from '../../../utils/context';
+import {
+  appendContextFiles,
+  appendCurrentNote,
+  appendExcludedFoldersContext,
+  appendProjectWorkspaceContext,
+  appendVaultSearchContext,
+} from '../../../utils/context';
 import { appendEditorContext } from '../../../utils/editor';
 import { getVaultPath } from '../../../utils/path';
 import { buildContextFromHistory, buildPromptWithHistoryContext } from '../../../utils/session';
@@ -755,6 +761,10 @@ function buildGeminiPromptText(
   conversationHistory: ChatMessage[] = [],
 ): string {
   let prompt = request.text;
+
+  if (request.excludedFolders && request.excludedFolders.length > 0) {
+    prompt = appendExcludedFoldersContext(prompt, request.excludedFolders);
+  }
 
   if (request.currentNotePath) {
     prompt = appendCurrentNote(prompt, request.currentNotePath);
