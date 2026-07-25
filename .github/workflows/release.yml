@@ -41,7 +41,7 @@ jobs:
         run: npm ci
 
       - name: Runtime dependency audit
-        run: npm run audit:runtime
+        run: npm audit --omit=dev
 
       - name: Lint
         run: npm run lint

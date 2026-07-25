@@ -108,19 +108,19 @@ Grimoire does not include closed-source Grimoire code. External provider CLIs, S
 
 The Obsidian community plugin review may report "Potentially vulnerable dependency" warnings for packages such as `hono`, `@hono/node-server`, `fast-uri`, `ip-address`, `qs`, `@anthropic-ai/sdk`, `ws`, and `brace-expansion`. These are transitive dependencies inherited from the official provider SDKs (`@anthropic-ai/claude-agent-sdk`) and the Model Context Protocol SDK (`@modelcontextprotocol/sdk`), plus development-only tooling (ESLint, Jest, jsdom). None are direct Grimoire dependencies.
 
-Grimoire keeps compatible patched versions selected by the current dependency graph and does not use npm `overrides` for these packages. Most server-side packages are not shipped to users: `hono`, `@hono/node-server`, `ip-address`, and `qs` are tree-shaken out of the release bundle because Grimoire uses the client-side portions of the MCP SDK.
+Grimoire keeps patched versions selected by the current dependency graph. Most server-side packages are not shipped to users: `hono`, `@hono/node-server`, `ip-address`, and `qs` are tree-shaken out of the release bundle because Grimoire uses the client-side portions of the MCP SDK.
 
-`npm audit --omit=dev` currently reports three moderate entries that all trace to one advisory: [`GHSA-frvp-7c67-39w9`](https://github.com/advisories/GHSA-frvp-7c67-39w9), a Windows path traversal issue in `@hono/node-server`'s `serveStatic` helper.
+The MCP SDK `1.29.0` still declares `@hono/node-server ^1.19.9`, while [`GHSA-frvp-7c67-39w9`](https://github.com/advisories/GHSA-frvp-7c67-39w9) is fixed in `@hono/node-server >=2.0.5`. Grimoire therefore applies a narrow npm override to `@hono/node-server 2.0.11`.
 
-- The latest MCP SDK release, `1.29.0`, requires `@hono/node-server ^1.19.9`; the advisory is fixed only in `@hono/node-server >=2.0.5`.
-- npm's proposed remediation downgrades MCP SDK to `1.24.3` and Claude Agent SDK to `0.2.85`. It is not a compatible security update and would regress current provider/runtime behavior.
-- Grimoire does not import the affected static-file server helper, and `@hono/node-server` and `serveStatic` are absent from the built `main.js`.
-- `npm run audit:runtime` permits only this exact transitive advisory chain and fails on every other runtime audit finding. The release workflow runs that check before publishing.
+- Grimoire does not import the affected static-file server helper. Its executable code and `serveStatic` are absent from the built `main.js`; the package name appears only in the bundled changelog entry that documents this fix.
+- The override changes the installation graph used for dependency review but does not change Grimoire's bundled runtime.
+- Clean installation, the full unit suite, release-bundle verification, and `npm audit --omit=dev` are required before publication.
+- `npm audit --omit=dev` reports zero production vulnerabilities with the override applied.
 
 | Package | Source | In `main.js` | Locked version | Advisory range | Status |
 |---|---|---|---|---|---|
 | `hono` | MCP SDK | No (tree-shaken) | 4.12.32 | tracked review advisories below 4.12.25 | Above tracked ranges |
-| `@hono/node-server` | MCP SDK | No (tree-shaken) | 1.19.15 | `<2.0.5` | Known upstream advisory; affected helper is not bundled |
+| `@hono/node-server` | MCP SDK | No (tree-shaken) | 2.0.11 | `<2.0.5` | Overridden to patched release; affected helper is not bundled |
 | `fast-uri` | MCP SDK (AJV) | Yes | 3.1.4 | tracked review advisories through 3.1.1 | Above tracked ranges |
 | `ip-address` | MCP SDK (Express) | No (tree-shaken) | 10.3.1 | tracked review advisories through 10.1.0 | Above tracked ranges |
 | `qs` | MCP SDK (Express) | No (tree-shaken) | 6.15.3 | tracked review advisories through 6.15.1 | Above tracked ranges |
@@ -128,4 +128,4 @@ Grimoire keeps compatible patched versions selected by the current dependency gr
 | `ws` | jsdom (dev only) | No | 8.21.1 | tracked review advisories below 8.20.1 | Dev-only, above tracked ranges |
 | `brace-expansion` | ESLint/Jest (dev only) | No | 5.0.8 for v5; nested dev-only copies are 1.1.16 and 2.1.2 | tracked v5 review advisory below 5.0.6 | Dev-only, above tracked range |
 
-The `npm run review:deps` check (run automatically by `npm run build:release`) enforces the resolved versions for previously tracked review advisories. The runtime audit allowlist is intentionally separate and narrowly scoped to the single upstream `@hono/node-server` advisory described above.
+The `npm run review:deps` check (run automatically by `npm run build:release`) enforces the resolved versions for tracked review advisories. The release workflow also runs the unmodified `npm audit --omit=dev` command and requires a clean result.

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.37 - 2026-07-25
+
+### Fixed
+
+- Resolved the `@hono/node-server` dependency advisory reported by Obsidian community-plugin review by pinning its patched 2.0.11 release. The server adapter remains excluded from Grimoire's bundled plugin runtime.
+
 ## 1.0.36 - 2026-07-25
 
 ### Added
