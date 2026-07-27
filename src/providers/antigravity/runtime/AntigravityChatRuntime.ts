@@ -115,7 +115,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
   async *query(
     turn: PreparedChatTurn,
     conversationHistory?: ChatMessage[],
-    _queryOptions?: ChatRuntimeQueryOptions,
+    queryOptions?: ChatRuntimeQueryOptions,
   ): AsyncGenerator<StreamChunk> {
     if (!(await this.ensureReady())) {
       yield { type: 'error', content: 'Failed to start Antigravity. Check that the provider is enabled.' };
@@ -142,7 +142,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
       const output = await this.runPrint({
         command,
         cwd,
-        model: this.getSelectedRawModel(),
+        model: this.getSelectedRawModel(queryOptions),
         permissionMode,
         prompt,
         runtimeEnv: buildAntigravityRuntimeEnv(this.plugin.settings, command),
@@ -476,7 +476,13 @@ export class AntigravityChatRuntime implements ChatRuntime {
     });
   }
 
-  private getSelectedRawModel(): string | null {
+  private getSelectedRawModel(queryOptions?: ChatRuntimeQueryOptions): string | null {
+    if (typeof queryOptions?.model === 'string') {
+      const selectedModel = decodeAntigravityModelId(queryOptions.model);
+      if (selectedModel) {
+        return selectedModel;
+      }
+    }
     const savedProviderModel = this.plugin.settings.savedProviderModel;
     const savedAntigravityModel = savedProviderModel
       && typeof savedProviderModel === 'object'

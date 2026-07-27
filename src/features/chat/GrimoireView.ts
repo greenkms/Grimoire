@@ -23,7 +23,7 @@ import {
 } from './rendering/InlineOrchestratorPlan';
 import type { OrchestratorPlan } from './rendering/orchestratorPlanParser';
 import { OrchestratorService } from './services/OrchestratorService';
-import { getTabProviderId, onProviderAvailabilityChanged, updatePlanModeUI } from './tabs/Tab';
+import { getTabProviderId, getTabSettingsSnapshot, onProviderAvailabilityChanged, updatePlanModeUI } from './tabs/Tab';
 import { TabBar } from './tabs/TabBar';
 import { TabManager } from './tabs/TabManager';
 import type { TabData, TabId } from './tabs/types';
@@ -175,16 +175,14 @@ export class GrimoireView extends ItemView {
     for (const tab of this.tabManager?.getAllTabs() ?? []) {
       onProviderAvailabilityChanged(tab, this.plugin);
       const providerId = getTabProviderId(tab, this.plugin);
-      const providerSettings = ProviderSettingsCoordinator.getProviderSettingsSnapshot(
-        this.plugin.settings,
-        providerId,
-      );
+      const providerSettings = getTabSettingsSnapshot(tab, this.plugin);
       const model = providerSettings.model;
       const uiConfig = ProviderRegistry.getChatUIConfig(providerId);
       const capabilities = ProviderRegistry.getCapabilities(providerId);
       const contextWindow = uiConfig.getContextWindowSize(
         model,
         providerSettings.customContextLimits,
+        providerSettings,
       );
 
       if (tab.state.usage) {

@@ -225,20 +225,20 @@ describe('QueryOptionsBuilder', () => {
 
     it('includes effortLevel for adaptive model', () => {
       const ctx = createMockContext({
-        settings: createMockSettings({ model: 'sonnet', effortLevel: 'max' }),
+        settings: createMockSettings({ model: 'sonnet', effortLevel: 'medium' }),
       });
       const config = QueryOptionsBuilder.buildPersistentQueryConfig(ctx);
 
-      expect(config.effortLevel).toBe('max');
+      expect(config.effortLevel).toBe('medium');
     });
 
     it('uses effort for Claude models even when a legacy budget is configured', () => {
       const ctx = createMockContext({
-        settings: createMockSettings({ model: 'sonnet', thinkingBudget: 'high', effortLevel: 'max' }),
+        settings: createMockSettings({ model: 'sonnet', thinkingBudget: 'high', effortLevel: 'medium' }),
       });
       const config = QueryOptionsBuilder.buildPersistentQueryConfig(ctx);
 
-      expect(config.effortLevel).toBe('max');
+      expect(config.effortLevel).toBe('medium');
     });
 
     it('normalizes unsupported xhigh effort for adaptive models', () => {
@@ -248,6 +248,29 @@ describe('QueryOptionsBuilder', () => {
       const config = QueryOptionsBuilder.buildPersistentQueryConfig(ctx);
 
       expect(config.effortLevel).toBe('high');
+    });
+
+    it('preserves SDK-supported xhigh for a dynamic default alias', () => {
+      const ctx = createMockContext({
+        settings: createMockSettings({
+          model: 'default',
+          effortLevel: 'xhigh',
+          providerConfigs: {
+            claude: {
+              loadUserSettings: false,
+              discoveredModels: [{
+                id: 'default',
+                displayName: 'Default',
+                source: 'sdk',
+                supportedEffortLevels: ['low', 'medium', 'high', 'xhigh', 'max'],
+              }],
+            },
+          },
+        }),
+      });
+
+      expect(QueryOptionsBuilder.buildPersistentQueryConfig(ctx).effortLevel).toBe('xhigh');
+      expect(QueryOptionsBuilder.buildPersistentQueryOptions({ ...ctx, hooks: {} }).effort).toBe('xhigh');
     });
 
     it('sets effortLevel for custom model ids', () => {
@@ -399,7 +422,7 @@ describe('QueryOptionsBuilder', () => {
     it('sets adaptive thinking with effort for Claude models', () => {
       const ctx = {
         ...createMockContext({
-          settings: createMockSettings({ model: 'sonnet', effortLevel: 'max' }),
+          settings: createMockSettings({ model: 'sonnet', effortLevel: 'medium' }),
         }),
         abortController: new AbortController(),
         hooks: {},
@@ -407,7 +430,7 @@ describe('QueryOptionsBuilder', () => {
       const options = QueryOptionsBuilder.buildPersistentQueryOptions(ctx);
 
       expect(options.thinking).toEqual({ type: 'adaptive' });
-      expect(options.effort).toBe('max');
+      expect(options.effort).toBe('medium');
       expect(options.maxThinkingTokens).toBeUndefined();
     });
 

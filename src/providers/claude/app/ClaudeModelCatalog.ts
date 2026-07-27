@@ -2,6 +2,7 @@ import { requestUrl } from 'obsidian';
 
 import type { ProviderModelCatalog } from '../../../core/providers/types';
 import type GrimoirePlugin from '../../../main';
+import { probeRuntimeModels } from '../commands/probeRuntimeModels';
 import {
   type ClaudeDiscoveredModel,
   getClaudeEffectiveEnvironmentVariables,
@@ -72,7 +73,7 @@ async function fetchClaudeModelsFromAnthropicApi(
       }
 
       seen.add(model.id);
-      models.push(model);
+      models.push({ ...model, source: 'api' });
     }
 
     if (payload.has_more !== true || typeof payload.last_id !== 'string' || !payload.last_id) {
@@ -85,19 +86,24 @@ async function fetchClaudeModelsFromAnthropicApi(
   return models;
 }
 
-function buildClaudeModelCatalogCacheKey(settings: ReturnType<typeof getClaudeProviderSettings>): string {
+function buildClaudeModelCatalogCacheKey(
+  settings: ReturnType<typeof getClaudeProviderSettings>,
+  cliPath: string,
+): string {
   return JSON.stringify({
+    cliPath,
+    enableChrome: settings.enableChrome,
     environmentHash: settings.environmentHash,
     environmentVariables: settings.environmentVariables,
+    loadUserSettings: settings.loadUserSettings,
     projectSettingsEnvHash: settings.projectSettingsSnapshot.hash,
     respectProjectSettings: settings.respectProjectSettings,
   });
 }
 
 export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
-  const initialSettings = getClaudeProviderSettings(plugin.settings ?? {});
-  let lastRefreshAt = initialSettings.discoveredModels.length > 0 ? Date.now() : 0;
-  let lastRefreshCacheKey = buildClaudeModelCatalogCacheKey(initialSettings);
+  const refreshAttemptsByKey = new Map<string, number>();
+  const refreshesByKey = new Map<string, Promise<boolean>>();
 
   return {
     isAvailable(settings) {
@@ -105,18 +111,13 @@ export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelC
     },
     async refreshModels({ settings }) {
       const currentSettings = getClaudeProviderSettings(settings);
-      const cacheKey = buildClaudeModelCatalogCacheKey(currentSettings);
-      if (currentSettings.discoveredModels.length > 0 && lastRefreshAt === 0) {
-        lastRefreshAt = Date.now();
-        lastRefreshCacheKey = cacheKey;
-      }
-
-      const cacheAgeMs = lastRefreshAt > 0 ? Date.now() - lastRefreshAt : Number.POSITIVE_INFINITY;
-      if (
-        currentSettings.discoveredModels.length > 0
-        && cacheKey === lastRefreshCacheKey
-        && cacheAgeMs < 10 * 60 * 1000
-      ) {
+      const cacheKey = buildClaudeModelCatalogCacheKey(
+        currentSettings,
+        plugin.getResolvedProviderCliPath?.('claude') ?? '',
+      );
+      const lastAttemptAt = refreshAttemptsByKey.get(cacheKey) ?? 0;
+      const cacheAgeMs = lastAttemptAt > 0 ? Date.now() - lastAttemptAt : Number.POSITIVE_INFINITY;
+      if (cacheAgeMs < 10 * 60 * 1000) {
         plugin.recordDebugLog?.({
           data: {
             ageMs: cacheAgeMs,
@@ -131,57 +132,70 @@ export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelC
         return false;
       }
 
-      const envVars = getClaudeEffectiveEnvironmentVariables(settings);
-      if (!envVars.ANTHROPIC_API_KEY?.trim()) {
-        plugin.recordDebugLog?.({
-          data: {
-            providerId: 'claude',
-            reason: 'missing_anthropic_api_key',
-          },
-          event: 'modelCatalog.refresh.skipped',
-          level: 'debug',
-          scope: 'provider.claude',
-        });
-        return false;
-      }
+      const inFlightRefresh = refreshesByKey.get(cacheKey);
+      if (inFlightRefresh) return inFlightRefresh;
 
-      const before = JSON.stringify(currentSettings.discoveredModels);
-      try {
-        const discoveredModels = await fetchClaudeModelsFromAnthropicApi(envVars);
-        if (discoveredModels.length === 0) {
+      const refresh = (async () => {
+        const envVars = getClaudeEffectiveEnvironmentVariables(settings);
+        const previousDiscoveredModels = currentSettings.discoveredModels;
+        const before = JSON.stringify(previousDiscoveredModels);
+        try {
+          let discoveredModels = await probeRuntimeModels(plugin);
+          if (discoveredModels.length === 0 && envVars.ANTHROPIC_API_KEY?.trim()) {
+            discoveredModels = await fetchClaudeModelsFromAnthropicApi(envVars);
+          }
+          if (discoveredModels.length === 0) {
+            return false;
+          }
+
+          const latestSettings = getClaudeProviderSettings(settings);
+          const latestCacheKey = buildClaudeModelCatalogCacheKey(
+            latestSettings,
+            plugin.getResolvedProviderCliPath?.('claude') ?? '',
+          );
+          if (latestCacheKey !== cacheKey) {
+            return false;
+          }
+
+          updateClaudeProviderSettings(settings, { discoveredModels });
+          try {
+            await plugin.saveSettings?.();
+          } catch (error) {
+            updateClaudeProviderSettings(settings, { discoveredModels: previousDiscoveredModels });
+            throw error;
+          }
+
+          const updatedSettings = getClaudeProviderSettings(settings);
+          const changed = before !== JSON.stringify(updatedSettings.discoveredModels);
+          plugin.recordDebugLog?.({
+            data: {
+              changed,
+              modelCount: updatedSettings.discoveredModels.length,
+              providerId: 'claude',
+            },
+            event: changed ? 'modelCatalog.refresh.succeeded' : 'modelCatalog.refresh.empty',
+            level: changed ? 'info' : 'debug',
+            scope: 'provider.claude',
+          });
+          return changed;
+        } catch (error) {
+          plugin.recordDebugLog?.({
+            data: {
+              message: error instanceof Error ? error.message : String(error),
+              providerId: 'claude',
+            },
+            event: 'modelCatalog.refresh.failed',
+            level: 'warn',
+            scope: 'provider.claude',
+          });
           return false;
+        } finally {
+          refreshAttemptsByKey.set(cacheKey, Date.now());
+          refreshesByKey.delete(cacheKey);
         }
-
-        updateClaudeProviderSettings(settings, { discoveredModels });
-        await plugin.saveSettings?.();
-
-        const updatedSettings = getClaudeProviderSettings(settings);
-        lastRefreshAt = Date.now();
-        lastRefreshCacheKey = buildClaudeModelCatalogCacheKey(updatedSettings);
-        const changed = before !== JSON.stringify(updatedSettings.discoveredModels);
-        plugin.recordDebugLog?.({
-          data: {
-            changed,
-            modelCount: updatedSettings.discoveredModels.length,
-            providerId: 'claude',
-          },
-          event: changed ? 'modelCatalog.refresh.succeeded' : 'modelCatalog.refresh.empty',
-          level: changed ? 'info' : 'debug',
-          scope: 'provider.claude',
-        });
-        return changed;
-      } catch (error) {
-        plugin.recordDebugLog?.({
-          data: {
-            message: error instanceof Error ? error.message : String(error),
-            providerId: 'claude',
-          },
-          event: 'modelCatalog.refresh.failed',
-          level: 'warn',
-          scope: 'provider.claude',
-        });
-        return false;
-      }
+      })();
+      refreshesByKey.set(cacheKey, refresh);
+      return refresh;
     },
   };
 }

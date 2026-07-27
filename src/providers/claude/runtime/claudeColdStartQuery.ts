@@ -7,6 +7,7 @@ import { getEnhancedPath, getMissingNodeError, parseEnvironmentVariables } from 
 import { getVaultPath } from '../../../utils/path';
 import { extractAssistantText } from '../auxiliary/extractAssistantText';
 import {
+  getClaudeModelSupportedEffortLevels,
   getClaudeProviderSettings,
   resolveClaudeSettingSources,
 } from '../settings';
@@ -111,7 +112,11 @@ export async function runColdStartQuery(
   }
 
   if (!config.thinking?.disabled) {
-    const effortLevel = resolveEffortLevel(selectedModel, settings.effortLevel);
+    const effortLevel = resolveEffortLevel(
+      selectedModel,
+      settings.effortLevel,
+      getClaudeModelSupportedEffortLevels(settings, selectedModel),
+    );
     options.thinking = { type: 'adaptive' };
     // SDK runtime accepts `xhigh` on Opus 4.7+ and silently falls back to
     // `high` elsewhere, but its type definition lags our local EffortLevel.

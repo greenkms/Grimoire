@@ -54,4 +54,20 @@ describe('claudeSettingsReconciler', () => {
       expect(settings.model).toBe('sonnet');
     });
   });
+
+  describe('normalizeModelVariantSettings', () => {
+    it('does not rewrite an SDK-native 1M alias', () => {
+      const settings: Record<string, unknown> = {
+        model: 'opus[1m]',
+        providerConfigs: {
+          claude: {
+            discoveredModels: [{ id: 'opus[1m]', displayName: 'Opus (1M context)', source: 'sdk' }],
+          },
+        },
+      };
+
+      expect(claudeSettingsReconciler.normalizeModelVariantSettings(settings)).toBe(false);
+      expect(settings.model).toBe('opus[1m]');
+    });
+  });
 });

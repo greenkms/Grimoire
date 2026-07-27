@@ -403,14 +403,6 @@
       "desc": "Définissez les tailles de fenêtre de contexte pour vos modèles personnalisés. Laissez vide pour utiliser la valeur par défaut (200k tokens).",
       "invalid": "Format invalide. Utilisez : 256k, 1m ou nombre exact (1000-10000000)."
     },
-    "enableOpus1M": {
-      "name": "Fenêtre de contexte Opus 1M",
-      "desc": "Afficher Opus 1M dans le sélecteur de modèle. Inclus avec les plans Max, Team et Enterprise. Les utilisateurs API et Pro nécessitent une utilisation supplémentaire."
-    },
-    "enableSonnet1M": {
-      "name": "Fenêtre de contexte Sonnet 1M",
-      "desc": "Afficher Sonnet 1M dans le sélecteur de modèle. Nécessite une utilisation supplémentaire sur les plans Max, Team et Enterprise. Les utilisateurs API et Pro nécessitent une utilisation supplémentaire."
-    },
     "customModels": {
       "name": "Custom models",
       "desc": "Append additional Claude model IDs to the picker, one per line. Environment model overrides still replace the picker.",

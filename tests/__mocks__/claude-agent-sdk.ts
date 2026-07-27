@@ -53,6 +53,7 @@ export interface Options {
   };
   agents?: Record<string, AgentDefinition>;
   persistSession?: boolean;
+  extraArgs?: Record<string, null>;
 }
 
 export interface Settings {
@@ -119,6 +120,7 @@ let customMockMessages: any[] | null = null;
 let appendResultMessage = true;
 let lastOptions: Options | undefined;
 let mockSupportedCommands: Array<{ name: string; description: string; argumentHint?: string }> = [];
+let mockSupportedModels: unknown[] = [];
 let lastResponse: (AsyncGenerator<any> & {
   interrupt: jest.Mock;
   setModel: jest.Mock;
@@ -145,6 +147,7 @@ export function resetMockMessages() {
   appendResultMessage = true;
   lastOptions = undefined;
   mockSupportedCommands = [];
+  mockSupportedModels = [];
   lastResponse = null;
   shouldThrowOnIteration = false;
   throwAfterChunks = 0;
@@ -155,6 +158,10 @@ export function setMockSupportedCommands(
   commands: Array<{ name: string; description: string; argumentHint?: string }>
 ) {
   mockSupportedCommands = commands;
+}
+
+export function setMockSupportedModels(models: unknown[]) {
+  mockSupportedModels = models;
 }
 
 /**
@@ -302,6 +309,7 @@ export function query({ prompt, options }: { prompt: any; options: Options }): A
     applyFlagSettings: jest.Mock;
     setMcpServers: jest.Mock;
     supportedCommands: jest.Mock;
+    supportedModels: jest.Mock;
   };
   gen.interrupt = jest.fn().mockResolvedValue(undefined);
   // Dynamic update methods for persistent queries
@@ -311,6 +319,7 @@ export function query({ prompt, options }: { prompt: any; options: Options }): A
   gen.applyFlagSettings = jest.fn().mockResolvedValue(undefined);
   gen.setMcpServers = jest.fn().mockResolvedValue({ added: [], removed: [], errors: {} });
   gen.supportedCommands = jest.fn().mockResolvedValue(mockSupportedCommands);
+  gen.supportedModels = jest.fn().mockResolvedValue(mockSupportedModels);
   lastResponse = gen;
 
   return gen;

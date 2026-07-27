@@ -6,7 +6,7 @@ import {
   getClaudeEffectiveEnvironmentVariables,
   getClaudeProviderSettings,
 } from './settings';
-import { DEFAULT_CLAUDE_MODELS, filterVisibleModelOptions } from './types/models';
+import { CONTEXT_WINDOW_1M, DEFAULT_CLAUDE_MODELS, resolveClaudeContextWindowSize } from './types/models';
 
 function parseConfiguredCustomModelIds(value: string): string[] {
   const modelIds: string[] = [];
@@ -46,11 +46,13 @@ function normalizeCustomModelAliases(value: unknown): Record<string, string> {
 }
 
 function formatDiscoveredModelDescription(model: ClaudeDiscoveredModel): string {
-  if (model.maxInputTokens && model.maxInputTokens >= 1_000_000) {
-    return 'Anthropic API model · 1M context';
+  const description = model.description || 'Anthropic API model';
+  const contextWindow = resolveClaudeContextWindowSize(model.id, undefined, [model]);
+  if (contextWindow >= CONTEXT_WINDOW_1M && !/\b1m\s+context\b/i.test(description)) {
+    return `${description} · 1M context`;
   }
 
-  return 'Anthropic API model';
+  return description;
 }
 
 function appendModelOption(
@@ -88,12 +90,10 @@ export function getClaudeModelOptions(settings: Record<string, unknown>): Provid
     });
   }
 
-  for (const model of filterVisibleModelOptions(
-    DEFAULT_CLAUDE_MODELS,
-    claudeSettings.enableOpus1M,
-    claudeSettings.enableSonnet1M,
-  )) {
-    appendModelOption(models, seenValues, model);
+  if (claudeSettings.discoveredModels.length === 0) {
+    for (const model of DEFAULT_CLAUDE_MODELS) {
+      appendModelOption(models, seenValues, model);
+    }
   }
 
   for (const modelId of parseConfiguredCustomModelIds(claudeSettings.customModels)) {

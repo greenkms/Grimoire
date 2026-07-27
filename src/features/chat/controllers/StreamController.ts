@@ -93,6 +93,8 @@ export interface StreamControllerDeps {
   updateQueueIndicator: () => void;
   /** Get the agent service from the tab. */
   getAgentService?: () => ChatRuntime | null;
+  /** Tab-local provider settings used when a usage event omits its model. */
+  getActiveProviderSettings?: () => Record<string, unknown>;
   /** True when this tab should treat the final assistant response as an orchestrator plan. */
   isOrchestratorMode?: () => boolean;
   /** Render an inline approval control for a parsed orchestration plan. */
@@ -290,7 +292,7 @@ export class StreamController {
           break;
         }
         if (!state.ignoreUsageUpdates) {
-          const activeModel = this.getActiveProviderModel();
+          const activeModel = this.getActiveProviderModel(msg);
           state.usage = activeModel && !chunk.usage.model
             ? { ...chunk.usage, model: activeModel }
             : chunk.usage;
@@ -430,7 +432,14 @@ export class StreamController {
     }
   }
 
-  private getActiveProviderModel(): string | undefined {
+  private getActiveProviderModel(message?: ChatMessage): string | undefined {
+    if (typeof message?.responseMetadata?.model === 'string') {
+      return message.responseMetadata.model;
+    }
+    const tabSettings = this.deps.getActiveProviderSettings?.();
+    if (typeof tabSettings?.model === 'string') {
+      return tabSettings.model;
+    }
     const providerId = this.deps.getAgentService?.()?.providerId;
     if (!providerId) {
       return undefined;

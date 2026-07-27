@@ -70,6 +70,8 @@ export interface TransformOptions {
   intendedModel?: string;
   /** Custom context limits from settings (model ID → tokens). */
   customContextLimits?: Record<string, number>;
+  /** Context resolved from live model discovery before result metadata arrives. */
+  resolvedContextWindow?: number;
   /** Tracks active streamed tool blocks so input_json_delta can be normalized. */
   streamState?: TransformStreamState;
   /** Tracks prompt-token usage across Anthropic-compatible stream events. */
@@ -303,7 +305,11 @@ function samePromptUsage(a: PromptUsageSnapshot, b: PromptUsageSnapshot): boolea
 
 function buildUsageInfo(promptUsage: PromptUsageSnapshot, options?: TransformOptions): UsageInfo {
   const model = options?.intendedModel ?? 'sonnet';
-  const contextWindow = getContextWindowSize(model, options?.customContextLimits);
+  const contextWindow = typeof options?.resolvedContextWindow === 'number'
+    && Number.isFinite(options.resolvedContextWindow)
+    && options.resolvedContextWindow > 0
+    ? options.resolvedContextWindow
+    : getContextWindowSize(model, options?.customContextLimits);
   const percentage = Math.min(100, Math.max(0, Math.round((promptUsage.contextTokens / contextWindow) * 100)));
 
   return {

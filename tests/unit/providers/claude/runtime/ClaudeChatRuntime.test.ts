@@ -118,6 +118,20 @@ describe('ClaudeChatRuntime', () => {
     });
   });
 
+  describe('stream transform options', () => {
+    it('resolves the dynamic Sonnet 5 context window before a result message arrives', () => {
+      (mockPlugin as any).settings.model = 'sonnet';
+      (mockPlugin as any).settings.providerConfigs.claude.discoveredModels = [{
+        id: 'sonnet',
+        displayName: 'Sonnet 5',
+        resolvedModel: 'claude-sonnet-5',
+        source: 'sdk',
+      }];
+
+      expect((service as any).getTransformOptions().resolvedContextWindow).toBe(1_000_000);
+    });
+  });
+
   describe('query with PreparedChatTurn', () => {
     it('should stream chunks when called with PreparedChatTurn', async () => {
       sdkMock.setMockMessages([
@@ -1648,21 +1662,21 @@ describe('ClaudeChatRuntime', () => {
 
     it('should update effort level when changed for adaptive models', async () => {
       (mockPlugin as any).settings.model = 'sonnet';
-      (mockPlugin as any).settings.effortLevel = 'max';
+      (mockPlugin as any).settings.effortLevel = 'medium';
 
       await (service as any).applyDynamicUpdates({});
 
-      expect(mockPersistentQuery.applyFlagSettings).toHaveBeenCalledWith({ effortLevel: 'max' });
-      expect((service as any).currentConfig.effortLevel).toBe('max');
+      expect(mockPersistentQuery.applyFlagSettings).toHaveBeenCalledWith({ effortLevel: 'medium' });
+      expect((service as any).currentConfig.effortLevel).toBe('medium');
     });
 
     it('should update effort level for custom model ids', async () => {
       (mockPlugin as any).settings.model = 'custom-model';
-      (mockPlugin as any).settings.effortLevel = 'max';
+      (mockPlugin as any).settings.effortLevel = 'medium';
 
       await (service as any).applyDynamicUpdates({});
 
-      expect(mockPersistentQuery.applyFlagSettings).toHaveBeenCalledWith({ effortLevel: 'max' });
+      expect(mockPersistentQuery.applyFlagSettings).toHaveBeenCalledWith({ effortLevel: 'medium' });
     });
 
     it('should keep effort active when switching from custom to built-in model ids', async () => {
@@ -1679,19 +1693,19 @@ describe('ClaudeChatRuntime', () => {
       mockPersistentQuery.applyFlagSettings.mockClear();
 
       (mockPlugin as any).settings.model = 'sonnet';
-      (mockPlugin as any).settings.effortLevel = 'max';
+      (mockPlugin as any).settings.effortLevel = 'medium';
 
       const previousQuery = mockPersistentQuery;
       await (service as any).applyDynamicUpdates({});
 
       expect(previousQuery.setMaxThinkingTokens).not.toHaveBeenCalled();
-      expect((service as any).currentConfig.effortLevel).toBe('max');
+      expect((service as any).currentConfig.effortLevel).toBe('medium');
     });
 
     it('should keep effort active when switching from built-in to custom model ids', async () => {
       (mockPlugin as any).settings.model = 'sonnet';
       (mockPlugin as any).settings.thinkingBudget = 'high';
-      (mockPlugin as any).settings.effortLevel = 'max';
+      (mockPlugin as any).settings.effortLevel = 'medium';
       (service as any).currentConfig = (service as any).buildPersistentQueryConfig(
         '/mock/vault/path',
         '/usr/local/bin/claude',
@@ -1708,7 +1722,7 @@ describe('ClaudeChatRuntime', () => {
       await (service as any).applyDynamicUpdates({});
 
       expect(previousQuery.setMaxThinkingTokens).not.toHaveBeenCalled();
-      expect((service as any).currentConfig.effortLevel).toBe('max');
+      expect((service as any).currentConfig.effortLevel).toBe('medium');
     });
 
     it('should update permission mode when changed', async () => {
@@ -1758,11 +1772,24 @@ describe('ClaudeChatRuntime', () => {
       expect(mockPersistentQuery.setModel).not.toHaveBeenCalled();
     });
 
-    it('should silently handle model update error', async () => {
+    it('should silently handle global model update error', async () => {
       (mockPlugin as any).settings.model = 'claude-3-opus';
       mockPersistentQuery.setModel.mockRejectedValueOnce(new Error('Model error'));
 
-      await expect((service as any).applyDynamicUpdates({ model: 'claude-3-opus' })).resolves.toBeUndefined();
+      await expect((service as any).applyDynamicUpdates({})).resolves.toBeUndefined();
+    });
+
+    it('does not enqueue a persistent prompt when an explicit model update fails', async () => {
+      mockPersistentQuery.setModel.mockRejectedValueOnce(new Error('Model error'));
+      const enqueue = jest.fn();
+      (service as any).messageChannel = { enqueue };
+      (service as any).responseConsumerRunning = true;
+
+      await expect(collectChunks(service.query('hello', undefined, undefined, {
+        model: 'claude-3-opus',
+      }))).rejects.toThrow('Model error');
+
+      expect(enqueue).not.toHaveBeenCalled();
     });
 
     it('should not dynamically update legacy thinking budget', async () => {
@@ -1789,7 +1816,7 @@ describe('ClaudeChatRuntime', () => {
 
     it('should silently handle effort level update error', async () => {
       (mockPlugin as any).settings.model = 'sonnet';
-      (mockPlugin as any).settings.effortLevel = 'max';
+      (mockPlugin as any).settings.effortLevel = 'medium';
       mockPersistentQuery.applyFlagSettings.mockRejectedValueOnce(new Error('Effort error'));
 
       await expect((service as any).applyDynamicUpdates({})).resolves.toBeUndefined();

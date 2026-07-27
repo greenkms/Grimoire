@@ -117,6 +117,8 @@ export interface Conversation {
   /** Timestamp when the last agent response completed. */
   lastResponseAt?: number;
   sessionId: string | null;
+  /** Model selected for this bound conversation. */
+  model?: string;
   /** Opaque provider-owned state bag (session tracking, fork metadata, etc.). */
   providerState?: Record<string, unknown>;
   messages: ChatMessage[];
@@ -175,6 +177,8 @@ export interface SessionMetadata {
   lastResponseAt?: number;
   /** Session ID used for provider resume (may be cleared when invalidated). */
   sessionId?: string | null;
+  /** Model selected for this bound conversation. */
+  model?: string;
   /** Opaque provider-owned state bag. */
   providerState?: Record<string, unknown>;
   /** Display fallback used when provider-native history cannot be hydrated. */

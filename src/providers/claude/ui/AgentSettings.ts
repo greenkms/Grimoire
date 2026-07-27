@@ -14,7 +14,7 @@ export const CLAUDE_AGENT_MODEL_OPTIONS = [
   { value: 'inherit', label: 'Inherit' },
   { value: 'best', label: 'Best' },
   { value: 'fable', label: 'Fable 5' },
-  { value: 'opus', label: 'Opus 4.8' },
+  { value: 'opus', label: 'Opus 5' },
   { value: 'opusplan', label: 'Opus Plan' },
   { value: 'sonnet', label: 'Sonnet 5' },
   { value: 'haiku', label: 'Haiku 4.5' },

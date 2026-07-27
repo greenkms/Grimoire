@@ -442,9 +442,14 @@ export class InputController {
         ? await turnSubmissionResult
         : turnSubmissionResult;
       const queryOptionsResult = this.resolveProjectWorkspaceQueryOptions(turnSubmission.turnRequest);
-      queryOptions = queryOptionsResult instanceof Promise
+      const workspaceQueryOptions = queryOptionsResult instanceof Promise
         ? await queryOptionsResult
         : queryOptionsResult;
+      const activeModel = this.deps.getActiveProviderSettings?.().model;
+      queryOptions = {
+        ...workspaceQueryOptions,
+        model: workspaceQueryOptions?.model ?? (typeof activeModel === 'string' ? activeModel : undefined),
+      };
     } catch (error) {
       state.isStreaming = false;
       if (shouldUseInput) {
@@ -1461,6 +1466,9 @@ export class InputController {
       const conversation = await plugin.createConversation({
         providerId: this.getActiveProviderId(),
         sessionId,
+        model: typeof this.deps.getActiveProviderSettings?.().model === 'string'
+          ? this.deps.getActiveProviderSettings?.().model as string
+          : undefined,
       });
       state.currentConversationId = conversation.id;
     }

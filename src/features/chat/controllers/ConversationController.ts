@@ -61,6 +61,7 @@ export interface ConversationControllerDeps {
   getTitleGenerationService: () => TitleGenerationService | null;
   getStatusPanel: () => StatusPanel | null;
   getAgentService?: () => ChatRuntime | null;
+  getActiveProviderSettings?: () => Record<string, unknown>;
   getOrchestratorMode?: () => boolean;
   ensureServiceForConversation?: (conversation: Conversation | null) => Promise<void>;
   dismissPendingInlinePrompts?: () => void;
@@ -457,6 +458,9 @@ export class ConversationController {
       const conversation = await plugin.createConversation({
         providerId: agentService?.providerId,
         sessionId: initialSessionId,
+        model: typeof this.deps.getActiveProviderSettings?.().model === 'string'
+          ? this.deps.getActiveProviderSettings?.().model as string
+          : undefined,
       });
       state.currentConversationId = conversation.id;
     }
@@ -482,6 +486,9 @@ export class ConversationController {
       usage: state.usage ?? undefined,
       enabledMcpServers: enabledMcpServers.length > 0 ? enabledMcpServers : undefined,
       orchestratorMode: this.deps.getOrchestratorMode?.() === true ? true : undefined,
+      model: typeof this.deps.getActiveProviderSettings?.().model === 'string'
+        ? this.deps.getActiveProviderSettings?.().model as string
+        : undefined,
     };
 
     if (updateLastResponse) {

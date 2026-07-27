@@ -361,6 +361,7 @@ export class SessionStorage {
       updatedAt: conversation.updatedAt,
       lastResponseAt: conversation.lastResponseAt,
       sessionId: conversation.sessionId,
+      model: conversation.model,
       providerState: providerState && Object.keys(providerState).length > 0 ? providerState : undefined,
       messages: cloneMessagesForMetadata(conversation.messages),
       currentNote: conversation.currentNote,

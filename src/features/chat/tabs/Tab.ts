@@ -77,6 +77,54 @@ const AUTO_SCROLL_BOTTOM_THRESHOLD_PX = 20;
 const AUTO_SCROLL_REENABLE_DELAY_MS = 150;
 const SCROLL_RESUME_ICON_PATH = 'M12 17 6 11l1.4-1.4 4.6 4.6 4.6-4.6L18 11l-6 6Zm0-6L6 5l1.4-1.4 4.6 4.6 4.6-4.6L18 5l-6 6Z';
 
+/**
+ * Provider settings are shared by every tab in a plugin instance. Keep model
+ * selections ordered per provider so a slower earlier save cannot overwrite a
+ * later selection's future-tab default.
+ */
+interface ProviderModelPersistenceQueue {
+  tail: Promise<void>;
+  durableConversationModels: Map<string, string | undefined>;
+}
+
+const providerModelPersistenceQueues = new WeakMap<object, Map<ProviderId, ProviderModelPersistenceQueue>>();
+
+function getProviderModelPersistenceQueue(
+  plugin: GrimoirePlugin,
+  providerId: ProviderId,
+): ProviderModelPersistenceQueue {
+  let queues = providerModelPersistenceQueues.get(plugin);
+  if (!queues) {
+    queues = new Map();
+    providerModelPersistenceQueues.set(plugin, queues);
+  }
+
+  let queue = queues.get(providerId);
+  if (!queue) {
+    queue = { tail: Promise.resolve(), durableConversationModels: new Map() };
+    queues.set(providerId, queue);
+  }
+  return queue;
+}
+
+function enqueueProviderModelPersistence<T>(
+  plugin: GrimoirePlugin,
+  providerId: ProviderId,
+  task: (queue: ProviderModelPersistenceQueue) => Promise<T>,
+): Promise<T> {
+  const queue = getProviderModelPersistenceQueue(plugin, providerId);
+  const persistence = queue.tail.catch(() => {}).then(() => task(queue));
+  const continuation = persistence.then(() => {}, () => {});
+  queue.tail = continuation;
+  void continuation.then(() => {
+    const queues = providerModelPersistenceQueues.get(plugin);
+    if (queues?.get(providerId) === queue && queue.tail === continuation) {
+      queues.delete(providerId);
+    }
+  });
+  return persistence;
+}
+
 function getBasename(filePath: string): string {
   const normalizedPath = filePath.replace(/\\/g, '/');
   return normalizedPath.split('/').pop() || filePath;
@@ -394,17 +442,54 @@ function getTabChatUIConfig(
   return ProviderRegistry.getChatUIConfig(getTabProviderId(tab, plugin, conversation));
 }
 
-function getTabSettingsSnapshot(
+function resolveLegacyConversationModel(conversation: Conversation | null | undefined): string | undefined {
+  if (!conversation) {
+    return undefined;
+  }
+
+  const persisted = conversation.assistantResponseMetadata;
+  for (let index = (persisted?.length ?? 0) - 1; index >= 0; index--) {
+    const model = persisted?.[index]?.metadata.model;
+    if (model) return model;
+  }
+  for (let index = conversation.messages.length - 1; index >= 0; index--) {
+    const model = conversation.messages[index].responseMetadata?.model;
+    if (model) return model;
+  }
+  return conversation.usage?.model;
+}
+
+/** Resolves the model for a tab without making other provider settings tab-local. */
+export function resolveTabModel(
   tab: TabProviderContext,
   plugin: GrimoirePlugin,
+  conversation?: Conversation | null,
+): string | undefined {
+  if (tab.lifecycleState === 'blank') {
+    return tab.draftModel ?? undefined;
+  }
+  const boundConversation = conversation ?? (tab.conversationId
+    ? plugin.getConversationSync(tab.conversationId)
+    : null);
+  return boundConversation?.model ?? resolveLegacyConversationModel(boundConversation);
+}
+
+export function getTabSettingsSnapshot(
+  tab: TabProviderContext,
+  plugin: GrimoirePlugin,
+  conversation?: Conversation | null,
 ): TabProviderSettings {
-  const providerId = getTabProviderId(tab, plugin);
+  const providerId = getTabProviderId(tab, plugin, conversation);
   const snapshot = ProviderSettingsCoordinator.getProviderSettingsSnapshot(
     plugin.settings,
     providerId,
   );
   if (tab.lifecycleState === 'blank') {
     return mergeDraftSettingsSnapshot(snapshot, tab.draftSettings, providerId);
+  }
+  const model = resolveTabModel(tab, plugin, conversation);
+  if (model) {
+    snapshot.model = model;
   }
   return snapshot;
 }
@@ -1898,15 +1983,91 @@ function initializeInputToolbar(
       }
 
       const uiConfig: ProviderChatUIConfig = getTabChatUIConfig(tab, plugin);
-      const providerSettings = await updateTabProviderSettings(
-        tab,
-        plugin,
-        (settings) => {
-          settings.model = model;
-          uiConfig.applyModelDefaults(model, settings);
-        },
-        onDraftSettingsChanged,
+      const modelSelectionGeneration = (tab.modelSelectionGeneration ?? 0) + 1;
+      tab.modelSelectionGeneration = modelSelectionGeneration;
+      const targetConversationId = tab.conversationId;
+      const conversation = targetConversationId
+        ? plugin.getConversationSync(targetConversationId)
+        : null;
+      const previousConversationModel = conversation?.model;
+      const persistenceQueue = getProviderModelPersistenceQueue(plugin, boundProvider);
+      if (targetConversationId && !persistenceQueue.durableConversationModels.has(targetConversationId)) {
+        persistenceQueue.durableConversationModels.set(targetConversationId, previousConversationModel);
+      }
+
+      // Make the new bound-tab model visible to a Send triggered before persistence finishes.
+      if (conversation) {
+        conversation.model = model;
+      }
+
+      let providerSettings: TabProviderSettings | undefined;
+      const isCurrentSelection = () => (
+        tab.modelSelectionGeneration === modelSelectionGeneration
+        && tab.conversationId === targetConversationId
       );
+      const rollbackConversationModel = () => {
+        if (conversation?.model === model) {
+          conversation.model = targetConversationId
+            ? persistenceQueue.durableConversationModels.get(targetConversationId)
+            : previousConversationModel;
+        }
+      };
+      const persistence = enqueueProviderModelPersistence(plugin, boundProvider, async (queue) => {
+          const previousProviderSettings = ProviderSettingsCoordinator.getProviderSettingsSnapshot(
+            plugin.settings,
+            boundProvider,
+          );
+          if (!isCurrentSelection()) {
+            rollbackConversationModel();
+            return;
+          }
+          try {
+            providerSettings = await updateTabProviderSettings(
+              tab,
+              plugin,
+              (settings) => {
+                settings.model = model;
+                uiConfig.applyModelDefaults(model, settings);
+              },
+              onDraftSettingsChanged,
+            );
+            if (!isCurrentSelection()) {
+              rollbackConversationModel();
+              return;
+            }
+            if (targetConversationId) {
+              await plugin.updateConversation(targetConversationId, { model });
+              queue.durableConversationModels.set(targetConversationId, model);
+            }
+          } catch (error) {
+            rollbackConversationModel();
+            ProviderSettingsCoordinator.commitProviderSettingsSnapshot(
+              plugin.settings,
+              boundProvider,
+              previousProviderSettings,
+            );
+            await plugin.saveSettings().catch(() => {});
+            throw error;
+          }
+        });
+      try {
+        await persistence;
+        if (!isCurrentSelection()) {
+          return;
+        }
+      } catch (error) {
+        if (!isCurrentSelection()) {
+          rollbackConversationModel();
+          return;
+        }
+        rollbackConversationModel();
+        tab.ui.modelSelector?.updateDisplay();
+        tab.ui.modelSelector?.renderOptions();
+        throw error;
+      }
+      if (!providerSettings || !isCurrentSelection()) {
+        return;
+      }
       prepareModelMetadataInBackground(tab, plugin, boundProvider, model, uiConfig);
       tab.ui.thinkingBudgetSelector?.updateDisplay();
       tab.ui.serviceTierToggle?.updateDisplay();
@@ -1921,6 +2082,7 @@ function initializeInputToolbar(
         const newContextWindow = uiConfig.getContextWindowSize(
           model,
           providerSettings.customContextLimits,
+          providerSettings,
         );
         tab.state.usage = recalculateUsageForModel(currentUsage, model, newContextWindow);
       }
@@ -2189,6 +2351,7 @@ export function initializeTabUI(
 export interface ForkContext {
   messages: ChatMessage[];
   providerId?: ProviderId;
+  model?: string;
   sourceSessionId: string;
   sourceProviderState?: Record<string, unknown>;
   resumeAt: string;
@@ -2220,6 +2383,7 @@ interface ForkSource {
   sourceProviderState?: Record<string, unknown>;
   sourceTitle?: string;
   currentNote?: string;
+  model?: string;
 }
 
 /**
@@ -2251,6 +2415,7 @@ function resolveForkSource(tab: TabData, plugin: GrimoirePlugin): ForkSource | n
     sourceProviderState: conversation?.providerState,
     sourceTitle: conversation?.title,
     currentNote: conversation?.currentNote,
+    model: resolveTabModel(tab, plugin, conversation),
   };
 }
 
@@ -2302,6 +2467,7 @@ async function handleForkRequest(
     sourceTitle: source.sourceTitle,
     forkAtUserMessage: countUserMessagesForForkTitle(msgs.slice(0, userIdx + 1)),
     currentNote: source.currentNote,
+    model: source.model,
   });
 }
 
@@ -2353,6 +2519,7 @@ async function handleForkAll(
     sourceTitle: source.sourceTitle,
     forkAtUserMessage: countUserMessagesForForkTitle(msgs) + 1,
     currentNote: source.currentNote,
+    model: source.model,
   });
 }
 
@@ -2448,6 +2615,7 @@ export function initializeTabControllers(
     getFileContextManager: () => ui.fileContextManager,
     updateQueueIndicator: () => tab.controllers.inputController?.updateQueueIndicator(),
     getAgentService: () => tab.service,
+    getActiveProviderSettings: () => getTabSettingsSnapshot(tab, plugin),
     recordRuntimeToolCall: (toolCall) => {
       tab.ui.runtimeContextActivity?.recordToolCall(getTabProviderId(tab, plugin), toolCall);
     },
@@ -2488,6 +2656,7 @@ export function initializeTabControllers(
       getTitleGenerationService: () => services.titleGenerationService,
       getStatusPanel: () => ui.statusPanel,
       getAgentService: () => tab.service, // Use tab's service instead of plugin's
+      getActiveProviderSettings: () => getTabSettingsSnapshot(tab, plugin),
       getOrchestratorMode: () => tab.orchestratorMode,
       dismissPendingInlinePrompts: () => tab.controllers.inputController?.dismissPendingApproval(),
       clearRuntimeContextActivity: () => tab.ui.runtimeContextActivity?.clear(),
@@ -2505,6 +2674,9 @@ export function initializeTabControllers(
         }
 
         // Bind session state only — runtime starts on send
+        if (tab.conversationId !== (conversation?.id ?? null)) {
+          tab.modelSelectionGeneration = (tab.modelSelectionGeneration ?? 0) + 1;
+        }
         tab.orchestratorMode = conversation?.orchestratorMode === true;
         tab.draftModel = null;
         tab.draftSettings = null;

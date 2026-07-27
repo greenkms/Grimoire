@@ -12,10 +12,9 @@ import {
   DEFAULT_CLAUDE_MODELS,
   DEFAULT_EFFORT_LEVEL,
   EFFORT_LEVELS,
-  getContextWindowSize,
+  getAllowedEffortLevels,
   normalizeEffortLevel,
-  normalizeVisibleModelVariant,
-  supportsXHighEffort,
+  resolveClaudeContextWindowSize,
 } from '../types/models';
 
 const CLAUDE_PERMISSION_MODE_TOGGLE: ProviderPermissionModeToggleConfig = {
@@ -40,19 +39,34 @@ export const claudeChatUIConfig: ProviderChatUIConfig = {
     return true;
   },
 
-  getReasoningOptions(model: string, _settings: Record<string, unknown>): ProviderReasoningOption[] {
-    const levels = supportsXHighEffort(model)
-      ? EFFORT_LEVELS
-      : EFFORT_LEVELS.filter(e => e.value !== 'xhigh');
-    return levels.map(e => ({ value: e.value, label: e.label }));
+  getReasoningOptions(model: string, settings: Record<string, unknown>): ProviderReasoningOption[] {
+    const discoveredModel = getClaudeProviderSettings(settings).discoveredModels
+      .find(candidate => candidate.id === model);
+    const allowed = new Set(getAllowedEffortLevels(model, discoveredModel?.supportedEffortLevels));
+    return EFFORT_LEVELS
+      .filter(level => allowed.has(level.value))
+      .map(level => ({ value: level.value, label: level.label }));
   },
 
-  getDefaultReasoningValue(model: string, _settings: Record<string, unknown>): string {
-    return DEFAULT_EFFORT_LEVEL[model] ?? 'high';
+  getDefaultReasoningValue(model: string, settings: Record<string, unknown>): string {
+    return normalizeEffortLevel(
+      model,
+      DEFAULT_EFFORT_LEVEL[model] ?? 'high',
+      getClaudeProviderSettings(settings).discoveredModels
+        .find(candidate => candidate.id === model)?.supportedEffortLevels,
+    );
   },
 
-  getContextWindowSize(model: string, customLimits?: Record<string, number>): number {
-    return getContextWindowSize(model, customLimits);
+  getContextWindowSize(
+    model: string,
+    customLimits?: Record<string, number>,
+    settings?: Record<string, unknown>,
+  ): number {
+    return resolveClaudeContextWindowSize(
+      model,
+      customLimits,
+      settings ? getClaudeProviderSettings(settings).discoveredModels : [],
+    );
   },
 
   isDefaultModel(model: string): boolean {
@@ -61,9 +75,11 @@ export const claudeChatUIConfig: ProviderChatUIConfig = {
 
   applyModelDefaults(model: string, settings: unknown): void {
     const target = settings as Record<string, unknown>;
+    const isDiscoveredModel = getClaudeProviderSettings(target).discoveredModels
+      .some(candidate => candidate.id === model);
 
-    if (DEFAULT_CLAUDE_MODELS.some(m => m.value === model)) {
-      target.effortLevel = DEFAULT_EFFORT_LEVEL[model] ?? 'high';
+    if (DEFAULT_CLAUDE_MODELS.some(m => m.value === model) || isDiscoveredModel) {
+      target.effortLevel = this.getDefaultReasoningValue(model, target);
       updateClaudeProviderSettings(target, { lastModel: model });
     } else {
       target.lastCustomModel = model;
@@ -71,13 +87,8 @@ export const claudeChatUIConfig: ProviderChatUIConfig = {
     }
   },
 
-  normalizeModelVariant(model: string, settings) {
-    const claudeSettings = getClaudeProviderSettings(settings);
-    return normalizeVisibleModelVariant(
-      model,
-      claudeSettings.enableOpus1M,
-      claudeSettings.enableSonnet1M,
-    );
+  normalizeModelVariant(model: string, _settings) {
+    return model;
   },
 
   getCustomModelIds(envVars: Record<string, string>): Set<string> {

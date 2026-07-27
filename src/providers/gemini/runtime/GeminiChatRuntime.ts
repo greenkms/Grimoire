@@ -59,6 +59,11 @@ import {
 import { geminiPlanUsageStore } from '../app/GeminiPlanUsageStore';
 import { GEMINI_PROVIDER_CAPABILITIES } from '../capabilities';
 import {
+  decodeGeminiModelId,
+  encodeGeminiModelId,
+  GEMINI_SYNTHETIC_MODEL_ID,
+} from '../models';
+import {
   type GeminiDiscoveredModel,
   type GeminiMode,
   getGeminiProviderSettings,
@@ -125,6 +130,7 @@ export class GeminiChatRuntime implements ChatRuntime {
   private approvalCallback: ApprovalCallback | null = null;
   private connection: AcpClientConnection | null = null;
   private contextUsage: Parameters<typeof buildAcpUsageInfo>[0]['contextWindow'] = null;
+  private currentSessionModelId: string | null = null;
   private currentLaunchKey: string | null = null;
   private currentTurnMetadata: ChatTurnMetadata = {};
   private loadedSessionId: string | null = null;
@@ -173,6 +179,7 @@ export class GeminiChatRuntime implements ChatRuntime {
     const nextSessionId = conversation?.sessionId ?? null;
     if (this.sessionId !== nextSessionId) {
       this.sessionInvalidated = false;
+      this.currentSessionModelId = null;
     }
     this.sessionId = nextSessionId;
   }
@@ -272,6 +279,16 @@ export class GeminiChatRuntime implements ChatRuntime {
     }
 
     const sessionId = this.sessionId!;
+    try {
+      await this.applySelectedModel(sessionId, queryOptions);
+    } catch (error) {
+      yield {
+        type: 'error',
+        content: this.formatRuntimeError(error),
+      };
+      yield { type: 'done' };
+      return;
+    }
     this.activeTurn?.queue.close();
     this.activeTurn = {
       queue: new StreamChunkQueue(),
@@ -474,6 +491,7 @@ export class GeminiChatRuntime implements ChatRuntime {
     this.setReady(false);
     this.activeTurn?.queue.close();
     this.activeTurn = null;
+    this.currentSessionModelId = null;
 
     this.unregisterTransportClose?.();
     this.unregisterTransportClose = null;
@@ -607,6 +625,10 @@ export class GeminiChatRuntime implements ChatRuntime {
     const currentSettings = getGeminiProviderSettings(this.plugin.settings);
     const updates: Parameters<typeof updateGeminiProviderSettings>[1] = {};
 
+    if (modelState.currentModelId) {
+      this.currentSessionModelId = modelState.currentModelId;
+    }
+
     if (modelState.availableModels.length > 0) {
       const discoveredRawIds = modelState.availableModels
         .map((model) => model.id.trim())
@@ -705,6 +727,18 @@ export class GeminiChatRuntime implements ChatRuntime {
   }
 
   private getActiveModel(): string | null {
+    const rawModelId = this.currentSessionModelId ?? this.resolveSelectedRawModelId();
+    return rawModelId
+      ? encodeGeminiModelId(rawModelId)
+      : GEMINI_SYNTHETIC_MODEL_ID;
+  }
+
+  private resolveSelectedRawModelId(queryOptions?: ChatRuntimeQueryOptions): string | null {
+    if (queryOptions?.model !== undefined) {
+      return typeof queryOptions.model === 'string'
+        ? decodeGeminiModelId(queryOptions.model)
+        : null;
+    }
     const providerSettings = getGeminiProviderSettings(this.plugin.settings);
     const savedProviderModel = this.plugin.settings.savedProviderModel;
     const savedGeminiModel = savedProviderModel
@@ -713,8 +747,23 @@ export class GeminiChatRuntime implements ChatRuntime {
       ? (savedProviderModel as Record<string, unknown>).gemini
       : null;
     return typeof savedGeminiModel === 'string'
-      ? savedGeminiModel
-      : providerSettings.visibleModels[0] ?? 'gemini';
+      ? decodeGeminiModelId(savedGeminiModel)
+      : providerSettings.visibleModels[0] ?? null;
+  }
+
+  private async applySelectedModel(
+    sessionId: string,
+    queryOptions?: ChatRuntimeQueryOptions,
+  ): Promise<void> {
+    if (!this.connection) {
+      return;
+    }
+    const selectedModel = this.resolveSelectedRawModelId(queryOptions);
+    if (!selectedModel || selectedModel === this.currentSessionModelId) {
+      return;
+    }
+    await this.connection.setModel({ modelId: selectedModel, sessionId });
+    this.currentSessionModelId = selectedModel;
   }
 
   private formatRuntimeError(error: unknown): string {
@@ -726,6 +775,7 @@ export class GeminiChatRuntime implements ChatRuntime {
   private clearActiveSession(): void {
     this.sessionId = null;
     this.loadedSessionId = null;
+    this.currentSessionModelId = null;
   }
 
   private setReady(ready: boolean): void {

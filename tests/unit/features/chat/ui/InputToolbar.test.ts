@@ -593,6 +593,26 @@ describe('ModelSelector', () => {
     expect(labels).toEqual(['Claude Sonnet 4.6 (Thinking)', 'Sonnet 5']);
   });
 
+  it('finds a native Claude model by provider group and versioned description', () => {
+    const uiConfig = createMockUIConfig();
+    uiConfig.getModelOptions.mockReturnValue([{
+      value: 'opus[1m]',
+      label: 'Opus (1M context)',
+      description: 'Opus 5 with 1M context',
+      group: 'Claude Code',
+    }]);
+    callbacks.getUIConfig.mockReturnValue(uiConfig);
+    selector.renderOptions();
+
+    const input = parentEl.querySelector('.grimoire-model-search-input') as any;
+    input!.value = 'claude opus 5';
+    input!.dispatchEvent('input');
+
+    const labels = (Array.from(parentEl.querySelectorAll('.grimoire-model-option-label')) as any[])
+      .map(el => el.textContent);
+    expect(labels).toEqual(['Opus (1M context)']);
+  });
+
   it('should bound long model names inside a copy wrapper', () => {
     const uiConfig = createMockUIConfig();
     const longModel = 'minimax-token-plan/minimax-m2.7-highspeed';

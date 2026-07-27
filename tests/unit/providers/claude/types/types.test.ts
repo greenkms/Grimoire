@@ -15,10 +15,9 @@ import {
   CONTEXT_WINDOW_1M,
   CONTEXT_WINDOW_STANDARD,
   DEFAULT_CLAUDE_MODELS,
-  filterVisibleModelOptions,
   getContextWindowSize,
   normalizeEffortLevel,
-  normalizeVisibleModelVariant,
+  resolveClaudeContextWindowSize,
   supportsXHighEffort,
 } from '@/providers/claude/types/models';
 import {
@@ -114,8 +113,6 @@ describe('types.ts', () => {
         maxTabs: 3,
         enableChrome: false,
         enableBangBash: false,
-        enableOpus1M: false,
-        enableSonnet1M: false,
         tabBarPosition: 'header',
         enableAutoScroll: true,
         deferMathRenderingDuringStreaming: true,
@@ -179,8 +176,6 @@ describe('types.ts', () => {
         maxTabs: 3,
         enableChrome: false,
         enableBangBash: false,
-        enableOpus1M: false,
-        enableSonnet1M: false,
         tabBarPosition: 'header',
         enableAutoScroll: true,
         deferMathRenderingDuringStreaming: true,
@@ -245,8 +240,6 @@ describe('types.ts', () => {
         maxTabs: 5,
         enableChrome: false,
         enableBangBash: false,
-        enableOpus1M: false,
-        enableSonnet1M: false,
         tabBarPosition: 'header',
         enableAutoScroll: false,
         deferMathRenderingDuringStreaming: true,
@@ -685,50 +678,39 @@ describe('types.ts', () => {
       });
     });
 
-    describe('filterVisibleModelOptions', () => {
-      it('should hide 1M variants when toggles are disabled', () => {
-        const models = filterVisibleModelOptions(DEFAULT_CLAUDE_MODELS, false, false).map((model) => model.value);
-        expect(models).toEqual(['best', 'fable', 'opus', 'opusplan', 'sonnet', 'haiku']);
+    describe('dynamic discovery', () => {
+      it('prioritizes selected and resolved custom limits over discovery', () => {
+        const discoveredModels = [{
+          id: 'sonnet',
+          resolvedModel: 'claude-sonnet-5',
+          maxInputTokens: 1_000_000,
+        }];
+
+        expect(resolveClaudeContextWindowSize(
+          'sonnet',
+          { sonnet: 750_000, 'claude-sonnet-5': 500_000 },
+          discoveredModels,
+        )).toBe(750_000);
+        expect(resolveClaudeContextWindowSize(
+          'sonnet',
+          { 'claude-sonnet-5': 500_000 },
+          discoveredModels,
+        )).toBe(500_000);
       });
 
-      it('should append 1M variants when toggles are enabled', () => {
-        const models = filterVisibleModelOptions(DEFAULT_CLAUDE_MODELS, true, true).map((model) => model.value);
-        expect(models).toEqual(['best', 'fable', 'opus', 'opus[1m]', 'opusplan', 'sonnet', 'sonnet[1m]', 'haiku']);
-      });
-
-      it('should append only opus 1M when enableOpus1M is true and enableSonnet1M is false', () => {
-        const models = filterVisibleModelOptions(DEFAULT_CLAUDE_MODELS, true, false).map((model) => model.value);
-        expect(models).toEqual(['best', 'fable', 'opus', 'opus[1m]', 'opusplan', 'sonnet', 'haiku']);
-      });
-
-      it('should append only sonnet 1M when enableSonnet1M is true and enableOpus1M is false', () => {
-        const models = filterVisibleModelOptions(DEFAULT_CLAUDE_MODELS, false, true).map((model) => model.value);
-        expect(models).toEqual(['best', 'fable', 'opus', 'opusplan', 'sonnet', 'sonnet[1m]', 'haiku']);
+      it('uses discovered limits before the narrow Sonnet 5 capability fallback', () => {
+        expect(resolveClaudeContextWindowSize('sonnet', undefined, [{
+          id: 'sonnet',
+          resolvedModel: 'claude-sonnet-5',
+          maxInputTokens: 400_000,
+        }])).toBe(400_000);
+        expect(resolveClaudeContextWindowSize('custom-alias', undefined, [{
+          id: 'custom-alias',
+          resolvedModel: 'claude-sonnet-5',
+        }])).toBe(CONTEXT_WINDOW_1M);
       });
     });
 
-    describe('normalizeVisibleModelVariant', () => {
-      it('should keep standard built-in variants selected when 1M variants are visible', () => {
-        expect(normalizeVisibleModelVariant('sonnet', true, true)).toBe('sonnet');
-        expect(normalizeVisibleModelVariant('opus', true, false)).toBe('opus');
-      });
-
-      it('should normalize hidden 1M built-in variants back to standard variants', () => {
-        expect(normalizeVisibleModelVariant('sonnet[1m]', false, false)).toBe('sonnet');
-        expect(normalizeVisibleModelVariant('opus[1m]', false, true)).toBe('opus');
-      });
-
-      it('should normalize built-in variants regardless of 1M suffix casing', () => {
-        expect(normalizeVisibleModelVariant('sonnet[1M]', false, false)).toBe('sonnet');
-        expect(normalizeVisibleModelVariant('opus[1M]', true, false)).toBe('opus[1m]');
-      });
-
-      it('should leave unrelated model ids unchanged', () => {
-        expect(normalizeVisibleModelVariant('', true, true)).toBe('');
-        expect(normalizeVisibleModelVariant('haiku', true, true)).toBe('haiku');
-        expect(normalizeVisibleModelVariant('custom-model', true, true)).toBe('custom-model');
-      });
-    });
   });
 
   describe('supportsXHighEffort', () => {
@@ -750,7 +732,12 @@ describe('types.ts', () => {
   describe('normalizeEffortLevel', () => {
     it('preserves supported effort levels', () => {
       expect(normalizeEffortLevel('claude-opus-4-7', 'xhigh')).toBe('xhigh');
-      expect(normalizeEffortLevel('claude-sonnet-4-5', 'max')).toBe('max');
+    });
+
+    it('never permits max without explicit runtime metadata', () => {
+      expect(normalizeEffortLevel('claude-sonnet-4-5', 'max')).toBe('high');
+      expect(normalizeEffortLevel('haiku', 'max')).toBe('high');
+      expect(normalizeEffortLevel('claude-opus-4-7', 'max')).toBe('high');
     });
 
     it('clamps unsupported xhigh values to the model default', () => {
@@ -761,6 +748,30 @@ describe('types.ts', () => {
     it('falls back to high for unknown or missing effort values', () => {
       expect(normalizeEffortLevel('claude-sonnet-4-5', 'invalid')).toBe('high');
       expect(normalizeEffortLevel('claude-sonnet-4-5', undefined)).toBe('high');
+    });
+
+    it('prefers the model default when dynamic effort metadata supports it', () => {
+      expect(normalizeEffortLevel(
+        'default',
+        'invalid',
+        ['low', 'medium', 'high', 'xhigh', 'max'],
+      )).toBe('high');
+    });
+
+    it('preserves max only when dynamic metadata explicitly supports it', () => {
+      expect(normalizeEffortLevel(
+        'claude-sonnet-5',
+        'max',
+        ['low', 'medium', 'high', 'xhigh', 'max'],
+      )).toBe('max');
+    });
+
+    it('clamps max when dynamic metadata excludes it', () => {
+      expect(normalizeEffortLevel(
+        'claude-sonnet-5',
+        'max',
+        ['low', 'medium', 'high'],
+      )).toBe('high');
     });
   });
 });

@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.38 - 2026-07-27
+
+### Improved
+
+- Loaded Claude models, context metadata, and supported effort levels from the authenticated Claude Code runtime, with saved, API, and built-in fallbacks when live discovery is unavailable.
+- Recognized Claude Sonnet 5 as a native 1M-context model and removed the obsolete manual Opus and Sonnet 1M toggles.
+
+### Fixed
+
+- Preserved each conversation's selected model across tab switches, reloads, forks, and sends for every provider, including explicit conversation-model selection in Gemini and Antigravity.
+
 ## 1.0.37 - 2026-07-25
 
 ### Fixed

@@ -96,6 +96,23 @@ describe('AntigravityChatRuntime', () => {
     expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
   });
 
+  it('uses the explicit query model instead of the saved provider default', async () => {
+    const plugin = createMockPlugin();
+    plugin.settings.savedProviderModel = { antigravity: 'antigravity:gemini-2.5-pro' };
+    const runtime = new AntigravityChatRuntime(plugin);
+    const runPrint = jest.spyOn(runtime as any, 'runPrint').mockResolvedValue('Hi\n');
+
+    await collect(runtime.query(
+      runtime.prepareTurn({ text: 'Hello' }) as PreparedChatTurn,
+      undefined,
+      { model: 'antigravity:gemini-2.5-flash' },
+    ));
+
+    expect(runPrint).toHaveBeenCalledWith(expect.objectContaining({
+      model: 'gemini-2.5-flash',
+    }));
+  });
+
   it('emits a startup status before waiting for agy print output', async () => {
     const runtime = new AntigravityChatRuntime(createMockPlugin());
     jest.spyOn(runtime as any, 'runPrint').mockResolvedValue('Hi from Antigravity\n');

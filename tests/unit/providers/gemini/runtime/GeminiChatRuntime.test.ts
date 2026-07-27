@@ -117,6 +117,89 @@ describe('GeminiChatRuntime', () => {
     expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
   });
 
+  it('applies the explicit query model before prompting instead of the saved global model', async () => {
+    const plugin = createMockPlugin();
+    plugin.settings.savedProviderModel = { gemini: 'gemini:gemini-2.5-pro' };
+    const runtime = new GeminiChatRuntime(plugin);
+    const setModel = jest.fn().mockResolvedValue({});
+    const prompt = jest.fn().mockResolvedValue({
+      usage: {
+        inputTokens: 10,
+        outputTokens: 5,
+        totalTokens: 15,
+      },
+    });
+    const turn = runtime.prepareTurn({ text: 'Hello' });
+
+    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+    (runtime as any).sessionId = 'session-1';
+    (runtime as any).loadedSessionId = 'session-1';
+    (runtime as any).connection = { prompt, setModel };
+
+    const chunks = await collect(runtime.query(turn, undefined, {
+      model: 'gemini:gemini-2.5-flash',
+    }));
+
+    expect(setModel).toHaveBeenCalledWith({
+      modelId: 'gemini-2.5-flash',
+      sessionId: 'session-1',
+    });
+    expect(setModel.mock.invocationCallOrder[0]).toBeLessThan(prompt.mock.invocationCallOrder[0]);
+    expect((runtime as any).getActiveModel()).toBe('gemini:gemini-2.5-flash');
+    expect(chunks).toContainEqual(expect.objectContaining({
+      type: 'usage',
+      usage: expect.objectContaining({ model: 'gemini:gemini-2.5-flash' }),
+    }));
+    expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
+  });
+
+  it('does not prompt when applying the explicit query model fails', async () => {
+    const runtime = new GeminiChatRuntime(createMockPlugin());
+    const setModel = jest.fn().mockRejectedValue(new Error('model unavailable'));
+    const prompt = jest.fn();
+    const turn = runtime.prepareTurn({ text: 'Hello' });
+
+    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+    (runtime as any).sessionId = 'session-1';
+    (runtime as any).loadedSessionId = 'session-1';
+    (runtime as any).connection = { prompt, setModel };
+
+    const chunks = await collect(runtime.query(turn, undefined, {
+      model: 'gemini:gemini-2.5-flash',
+    }));
+
+    expect(prompt).not.toHaveBeenCalled();
+    expect(chunks).toEqual([
+      { type: 'error', content: 'model unavailable' },
+      { type: 'done' },
+    ]);
+  });
+
+  it('reapplies the selected model after a runtime restart without model discovery state', async () => {
+    const runtime = new GeminiChatRuntime(createMockPlugin());
+    const turn = runtime.prepareTurn({ text: 'Hello' });
+    (runtime as any).currentSessionModelId = 'gemini-2.5-pro';
+
+    await (runtime as any).shutdownProcess();
+
+    const setModel = jest.fn().mockResolvedValue({});
+    const prompt = jest.fn().mockResolvedValue({});
+    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+    (runtime as any).sessionId = 'session-1';
+    (runtime as any).loadedSessionId = 'session-1';
+    (runtime as any).connection = { prompt, setModel };
+
+    await collect(runtime.query(turn, undefined, {
+      model: 'gemini:gemini-2.5-flash',
+    }));
+
+    expect(setModel).toHaveBeenCalledWith({
+      modelId: 'gemini-2.5-flash',
+      sessionId: 'session-1',
+    });
+    expect(setModel.mock.invocationCallOrder[0]).toBeLessThan(prompt.mock.invocationCallOrder[0]);
+  });
+
   it('rebuilds prior conversation context when creating a replacement ACP session', async () => {
     const runtime = new GeminiChatRuntime(createMockPlugin());
     const prompt = jest.fn<Promise<object>, [{ prompt: AcpContentBlock[]; sessionId: string }]>(

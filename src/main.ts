@@ -503,6 +503,7 @@ export default class GrimoirePlugin extends Plugin {
         updatedAt: meta.updatedAt,
         lastResponseAt: meta.lastResponseAt,
         sessionId: resumeSessionId,
+        model: meta.model,
         providerState: meta.providerState,
         messages: clonePersistedMessages(meta.messages),
         currentNote: meta.currentNote,
@@ -828,6 +829,7 @@ export default class GrimoirePlugin extends Plugin {
   async createConversation(options?: {
     providerId?: ProviderId;
     sessionId?: string;
+    model?: string;
   }): Promise<Conversation> {
     const providerId = options?.providerId ?? DEFAULT_CHAT_PROVIDER_ID;
     const sessionId = options?.sessionId;
@@ -839,6 +841,7 @@ export default class GrimoirePlugin extends Plugin {
       createdAt: Date.now(),
       updatedAt: Date.now(),
       sessionId: sessionId ?? null,
+      model: options?.model,
       messages: [],
     };
 

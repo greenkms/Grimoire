@@ -73,11 +73,13 @@ import { createStopSubagentHook, type SubagentHookState } from '../hooks/Subagen
 import { encodeClaudeTurn } from '../prompt/ClaudeTurnEncoder';
 import { isContextWindowEvent, isSessionInitEvent, isStreamChunk } from '../sdk/typeGuards';
 import type { TransformEvent } from '../sdk/types';
+import { getClaudeProviderSettings } from '../settings';
 import {
   createTransformStreamState,
   createTransformUsageState,
   transformSDKMessage,
 } from '../stream/transformClaudeMessage';
+import { resolveClaudeContextWindowSize } from '../types/models';
 import { type ClaudeProviderState, getClaudeState } from '../types/providerState';
 import { createClaudeApprovalCallback } from './ClaudeApprovalHandler';
 import { applyClaudeDynamicUpdates } from './ClaudeDynamicUpdates';
@@ -923,9 +925,15 @@ export class ClaudeChatRuntime implements ChatRuntime {
     usageState = this.usageTransformState,
   ) {
     const settings = this.getScopedSettings();
+    const selectedModel = modelOverride ?? settings.model;
     return {
-      intendedModel: modelOverride ?? settings.model,
+      intendedModel: selectedModel,
       customContextLimits: settings.customContextLimits,
+      resolvedContextWindow: resolveClaudeContextWindowSize(
+        selectedModel,
+        settings.customContextLimits,
+        getClaudeProviderSettings(settings).discoveredModels,
+      ),
       streamState,
       usageState,
     };

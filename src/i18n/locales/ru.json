@@ -403,14 +403,6 @@
       "desc": "Установите размеры окна контекста для ваших пользовательских моделей. Оставьте пустым для использования значения по умолчанию (200k токенов).",
       "invalid": "Неверный формат. Используйте: 256k, 1m или точное число (1000-10000000)."
     },
-    "enableOpus1M": {
-      "name": "Контекстное окно Opus 1M",
-      "desc": "Показать Opus 1M в селекторе моделей. Включено в планы Max, Team и Enterprise. Пользователям API и Pro требуется дополнительное использование."
-    },
-    "enableSonnet1M": {
-      "name": "Контекстное окно Sonnet 1M",
-      "desc": "Показать Sonnet 1M в селекторе моделей. Требуется дополнительное использование в планах Max, Team и Enterprise. Пользователям API и Pro требуется дополнительное использование."
-    },
     "customModels": {
       "name": "Custom models",
       "desc": "Append additional Claude model IDs to the picker, one per line. Environment model overrides still replace the picker.",

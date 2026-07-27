@@ -13,6 +13,7 @@ import {
 import type { AppPluginManager } from '../../../core/providers/types';
 import type { GrimoireSettings, PermissionMode } from '../../../core/types/settings';
 import {
+  getClaudeModelSupportedEffortLevels,
   getClaudeProviderSettings,
   resolveClaudeSettingSources,
 } from '../settings';
@@ -116,7 +117,11 @@ export class QueryOptionsBuilder {
 
     return {
       model: ctx.settings.model,
-      effortLevel: resolveEffortLevel(ctx.settings.model, ctx.settings.effortLevel),
+      effortLevel: resolveEffortLevel(
+        ctx.settings.model,
+        ctx.settings.effortLevel,
+        claudeSettings.discoveredModels.find(model => model.id === ctx.settings.model)?.supportedEffortLevels,
+      ),
       permissionMode: ctx.settings.permissionMode,
       sdkPermissionMode,
       systemPromptKey: computeSystemPromptKey(systemPromptSettings, { orchestratorMode }),
@@ -286,7 +291,11 @@ export class QueryOptionsBuilder {
     settings: GrimoireSettings,
     model: string
   ): void {
-    const effortLevel = resolveEffortLevel(model, settings.effortLevel);
+    const effortLevel = resolveEffortLevel(
+      model,
+      settings.effortLevel,
+      getClaudeModelSupportedEffortLevels(settings, model),
+    );
     options.thinking = { type: 'adaptive' };
     // SDK runtime accepts `xhigh` on Opus 4.7+ and silently falls back to
     // `high` elsewhere, but its type definition lags our local EffortLevel.

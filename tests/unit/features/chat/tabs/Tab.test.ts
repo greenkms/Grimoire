@@ -16,6 +16,7 @@ import {
   deactivateTab,
   destroyTab,
   getBlankTabModelOptions,
+  getTabSettingsSnapshot,
   getTabTitle,
   initializeTabControllers,
   initializeTabService,
@@ -478,6 +479,7 @@ function createMockPlugin(overrides: Record<string, any> = {}): any {
     codexAgentMentionProvider,
     getConversationById: jest.fn().mockResolvedValue(null),
     getConversationSync: jest.fn().mockReturnValue(null),
+    updateConversation: jest.fn().mockResolvedValue(undefined),
     saveSettings: jest.fn().mockResolvedValue(undefined),
     getActiveEnvironmentVariables: jest.fn().mockReturnValue(''),
     manifest: { version: '9.8.7-test' },
@@ -520,6 +522,10 @@ function createMockOptions(overrides: Partial<TestTabCreateOptions> = {}): TestT
 
 async function flushMicrotasks(times = 8): Promise<void> {
   for (let i = 0; i < times; i++) {
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
     await Promise.resolve();
   }
 }
@@ -4060,6 +4066,342 @@ describe('Tab - Cross-Provider Model Rejection', () => {
 
     expect(Notice).not.toHaveBeenCalled();
     expect(plugin.saveSettings).toHaveBeenCalled();
+    expect(plugin.updateConversation).toHaveBeenCalledWith('conv-1', { model: 'opus' });
+  });
+
+  it('makes a bound model change visible before deferred conversation persistence completes', async () => {
+    jest.spyOn(ProviderRegistry, 'createInstructionRefineService').mockReturnValue({ cancel: jest.fn(), resetConversation: jest.fn() } as any);
+    jest.spyOn(ProviderRegistry, 'createTitleGenerationService').mockReturnValue({ cancel: jest.fn() } as any);
+    jest.spyOn(ProviderRegistry, 'getTaskResultInterpreter').mockReturnValue({} as any);
+    const conversation = {
+      id: 'conv-1', providerId: 'claude', title: 'Chat', createdAt: 1, updatedAt: 1,
+      sessionId: 'session-1', model: 'sonnet', messages: [],
+    };
+    let resolveUpdate: (() => void) | undefined;
+    const plugin = createMockPlugin({
+      getConversationSync: jest.fn().mockReturnValue(conversation),
+      updateConversation: jest.fn().mockImplementation(() => new Promise<void>((resolve) => {
+        resolveUpdate = resolve;
+      })),
+    });
+    const tab = createTab(createMockOptions({ plugin, conversation }));
+    initializeTabUI(tab, plugin);
+    tab.lifecycleState = 'bound_cold';
+    tab.providerId = 'claude';
+    tab.conversationId = 'conv-1';
+    const toolbarModule = jest.requireMock('@/features/chat/ui/InputToolbar') as {
+      createInputToolbar: jest.Mock;
+    };
+    const toolbarCallbacks = toolbarModule.createInputToolbar.mock.calls.at(-1)?.[1];
+
+    const change = toolbarCallbacks.onModelChange('opus');
+
+    expect(conversation.model).toBe('opus');
+    expect(getTabSettingsSnapshot(tab, plugin).model).toBe('opus');
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(resolveUpdate).toBeDefined();
+    resolveUpdate?.();
+    await change;
+  });
+
+  it('serializes durable model writes so the final persisted payload is the latest selection', async () => {
+    jest.spyOn(ProviderRegistry, 'createInstructionRefineService').mockReturnValue({ cancel: jest.fn(), resetConversation: jest.fn() } as any);
+    jest.spyOn(ProviderRegistry, 'createTitleGenerationService').mockReturnValue({ cancel: jest.fn() } as any);
+    jest.spyOn(ProviderRegistry, 'getTaskResultInterpreter').mockReturnValue({} as any);
+    const conversation = {
+      id: 'conv-1', providerId: 'claude', title: 'Chat', createdAt: 1, updatedAt: 1,
+      sessionId: 'session-1', model: 'sonnet', messages: [],
+    };
+    const completions: Array<() => void> = [];
+    const durableModels: string[] = [];
+    const plugin = createMockPlugin({
+      getConversationSync: jest.fn().mockReturnValue(conversation),
+      updateConversation: jest.fn().mockImplementation((_id, updates) => {
+        Object.assign(conversation, updates);
+        return new Promise<void>((resolve) => completions.push(() => {
+          durableModels.push((updates as { model: string }).model);
+          resolve();
+        }));
+      }),
+    });
+    const tab = createTab(createMockOptions({ plugin, conversation }));
+    initializeTabUI(tab, plugin);
+    tab.lifecycleState = 'bound_cold';
+    tab.providerId = 'claude';
+    tab.conversationId = 'conv-1';
+    const toolbarModule = jest.requireMock('@/features/chat/ui/InputToolbar') as {
+      createInputToolbar: jest.Mock;
+    };
+    const toolbarCallbacks = toolbarModule.createInputToolbar.mock.calls.at(-1)?.[1];
+
+    const first = toolbarCallbacks.onModelChange('opus');
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(completions).toHaveLength(1);
+
+    const second = toolbarCallbacks.onModelChange('sonnet');
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(conversation.model).toBe('sonnet');
+
+    completions[0]?.();
+    await first;
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(completions).toHaveLength(2);
+    completions[1]?.();
+    await second;
+
+    expect(conversation.model).toBe('sonnet');
+    expect(durableModels).toEqual(['opus', 'sonnet']);
+    expect(durableModels.at(-1)).toBe('sonnet');
+  });
+
+  it('serializes same-provider defaults across tabs in selection order', async () => {
+    jest.spyOn(ProviderRegistry, 'createInstructionRefineService').mockReturnValue({ cancel: jest.fn(), resetConversation: jest.fn() } as any);
+    jest.spyOn(ProviderRegistry, 'createTitleGenerationService').mockReturnValue({ cancel: jest.fn() } as any);
+    jest.spyOn(ProviderRegistry, 'getTaskResultInterpreter').mockReturnValue({} as any);
+    const conversations = new Map([
+      ['conv-a', { id: 'conv-a', providerId: 'claude', title: 'A', createdAt: 1, updatedAt: 1, sessionId: 'a', model: 'sonnet', messages: [] }],
+      ['conv-b', { id: 'conv-b', providerId: 'claude', title: 'B', createdAt: 1, updatedAt: 1, sessionId: 'b', model: 'haiku', messages: [] }],
+    ]);
+    let finishFirstSave: (() => void) | undefined;
+    const plugin = createMockPlugin({
+      getConversationSync: jest.fn((id: string) => conversations.get(id)),
+      updateConversation: jest.fn().mockResolvedValue(undefined),
+      saveSettings: jest.fn()
+        .mockImplementationOnce(() => new Promise<void>((resolve) => { finishFirstSave = resolve; }))
+        .mockResolvedValue(undefined),
+    });
+    const tabA = createTab(createMockOptions({ plugin, conversation: conversations.get('conv-a') }));
+    initializeTabUI(tabA, plugin);
+    const toolbarModule = jest.requireMock('@/features/chat/ui/InputToolbar') as {
+      createInputToolbar: jest.Mock;
+    };
+    const callbacksA = toolbarModule.createInputToolbar.mock.calls.at(-1)?.[1];
+    const tabB = createTab(createMockOptions({ plugin, conversation: conversations.get('conv-b') }));
+    initializeTabUI(tabB, plugin);
+    const callbacksB = toolbarModule.createInputToolbar.mock.calls.at(-1)?.[1];
+    tabA.lifecycleState = 'bound_cold';
+    tabA.providerId = 'claude';
+    tabA.conversationId = 'conv-a';
+    tabB.lifecycleState = 'bound_cold';
+    tabB.providerId = 'claude';
+    tabB.conversationId = 'conv-b';
+
+    const first = callbacksA.onModelChange('opus');
+    await flushMicrotasks();
+    const second = callbacksB.onModelChange('haiku');
+    await flushMicrotasks();
+
+    expect(plugin.saveSettings).toHaveBeenCalledTimes(1);
+    expect(plugin.settings.savedProviderModel.claude).toBe('opus');
+
+    finishFirstSave?.();
+    await first;
+    await second;
+
+    expect(plugin.saveSettings).toHaveBeenCalledTimes(2);
+    expect(plugin.settings.savedProviderModel.claude).toBe('haiku');
+    expect(plugin.updateConversation).toHaveBeenNthCalledWith(1, 'conv-a', { model: 'opus' });
+    expect(plugin.updateConversation).toHaveBeenNthCalledWith(2, 'conv-b', { model: 'haiku' });
+  });
+
+  it('restores the preceding same-provider default when a later tab selection fails', async () => {
+    jest.spyOn(ProviderRegistry, 'createInstructionRefineService').mockReturnValue({ cancel: jest.fn(), resetConversation: jest.fn() } as any);
+    jest.spyOn(ProviderRegistry, 'createTitleGenerationService').mockReturnValue({ cancel: jest.fn() } as any);
+    jest.spyOn(ProviderRegistry, 'getTaskResultInterpreter').mockReturnValue({} as any);
+    const conversations = new Map([
+      ['conv-a', { id: 'conv-a', providerId: 'claude', title: 'A', createdAt: 1, updatedAt: 1, sessionId: 'a', model: 'sonnet', messages: [] }],
+      ['conv-b', { id: 'conv-b', providerId: 'claude', title: 'B', createdAt: 1, updatedAt: 1, sessionId: 'b', model: 'haiku', messages: [] }],
+    ]);
+    const saveError = new Error('save failed');
+    const plugin = createMockPlugin({
+      getConversationSync: jest.fn((id: string) => conversations.get(id)),
+      saveSettings: jest.fn()
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(saveError)
+        .mockResolvedValueOnce(undefined),
+    });
+    const tabA = createTab(createMockOptions({ plugin, conversation: conversations.get('conv-a') }));
+    initializeTabUI(tabA, plugin);
+    const toolbarModule = jest.requireMock('@/features/chat/ui/InputToolbar') as {
+      createInputToolbar: jest.Mock;
+    };
+    const callbacksA = toolbarModule.createInputToolbar.mock.calls.at(-1)?.[1];
+    const tabB = createTab(createMockOptions({ plugin, conversation: conversations.get('conv-b') }));
+    initializeTabUI(tabB, plugin);
+    const callbacksB = toolbarModule.createInputToolbar.mock.calls.at(-1)?.[1];
+    tabA.lifecycleState = 'bound_cold';
+    tabA.providerId = 'claude';
+    tabA.conversationId = 'conv-a';
+    tabB.lifecycleState = 'bound_cold';
+    tabB.providerId = 'claude';
+    tabB.conversationId = 'conv-b';
+
+    await callbacksA.onModelChange('opus');
+    await expect(callbacksB.onModelChange('sonnet')).rejects.toThrow(saveError);
+
+    expect(plugin.settings.savedProviderModel.claude).toBe('opus');
+    expect(conversations.get('conv-b')?.model).toBe('haiku');
+  });
+
+  it('rolls a failed latest selection back to the durable conversation model after a stale selection', async () => {
+    jest.spyOn(ProviderRegistry, 'createInstructionRefineService').mockReturnValue({ cancel: jest.fn(), resetConversation: jest.fn() } as any);
+    jest.spyOn(ProviderRegistry, 'createTitleGenerationService').mockReturnValue({ cancel: jest.fn() } as any);
+    jest.spyOn(ProviderRegistry, 'getTaskResultInterpreter').mockReturnValue({} as any);
+    const conversation = {
+      id: 'conv-1', providerId: 'claude', title: 'Chat', createdAt: 1, updatedAt: 1,
+      sessionId: 'session-1', model: 'sonnet', messages: [],
+    };
+    let finishFirstSave: (() => void) | undefined;
+    const conversationError = new Error('conversation save failed');
+    const plugin = createMockPlugin({
+      getConversationSync: jest.fn().mockReturnValue(conversation),
+      saveSettings: jest.fn()
+        .mockImplementationOnce(() => new Promise<void>(resolve => { finishFirstSave = resolve; }))
+        .mockResolvedValue(undefined),
+      updateConversation: jest.fn().mockRejectedValue(conversationError),
+    });
+    const tab = createTab(createMockOptions({ plugin, conversation }));
+    initializeTabUI(tab, plugin);
+    tab.lifecycleState = 'bound_cold';
+    tab.providerId = 'claude';
+    tab.conversationId = 'conv-1';
+    const toolbarModule = jest.requireMock('@/features/chat/ui/InputToolbar') as {
+      createInputToolbar: jest.Mock;
+    };
+    const toolbarCallbacks = toolbarModule.createInputToolbar.mock.calls.at(-1)?.[1];
+
+    const opus = toolbarCallbacks.onModelChange('opus');
+    await flushMicrotasks();
+    const haiku = toolbarCallbacks.onModelChange('haiku');
+    expect(conversation.model).toBe('haiku');
+
+    finishFirstSave?.();
+    await opus;
+    await expect(haiku).rejects.toThrow(conversationError);
+
+    expect(plugin.updateConversation).toHaveBeenCalledWith('conv-1', { model: 'haiku' });
+    expect(conversation.model).toBe('sonnet');
+    expect(plugin.settings.savedProviderModel.claude).toBe('opus');
+  });
+
+  it('uses a stale selection that finished writing as the durable rollback baseline', async () => {
+    jest.spyOn(ProviderRegistry, 'createInstructionRefineService').mockReturnValue({ cancel: jest.fn(), resetConversation: jest.fn() } as any);
+    jest.spyOn(ProviderRegistry, 'createTitleGenerationService').mockReturnValue({ cancel: jest.fn() } as any);
+    jest.spyOn(ProviderRegistry, 'getTaskResultInterpreter').mockReturnValue({} as any);
+    const conversation = {
+      id: 'conv-1', providerId: 'claude', title: 'Chat', createdAt: 1, updatedAt: 1,
+      sessionId: 'session-1', model: 'sonnet', messages: [],
+    };
+    let finishOpusWrite: (() => void) | undefined;
+    const conversationError = new Error('conversation save failed');
+    const plugin = createMockPlugin({
+      getConversationSync: jest.fn().mockReturnValue(conversation),
+      updateConversation: jest.fn().mockImplementation((_id, updates) => {
+        const model = (updates as { model: string }).model;
+        if (model === 'opus') {
+          return new Promise<void>(resolve => { finishOpusWrite = resolve; });
+        }
+        return Promise.reject(conversationError);
+      }),
+    });
+    const tab = createTab(createMockOptions({ plugin, conversation }));
+    initializeTabUI(tab, plugin);
+    tab.lifecycleState = 'bound_cold';
+    tab.providerId = 'claude';
+    tab.conversationId = 'conv-1';
+    const toolbarModule = jest.requireMock('@/features/chat/ui/InputToolbar') as {
+      createInputToolbar: jest.Mock;
+    };
+    const toolbarCallbacks = toolbarModule.createInputToolbar.mock.calls.at(-1)?.[1];
+
+    const opus = toolbarCallbacks.onModelChange('opus');
+    await flushMicrotasks();
+    expect(finishOpusWrite).toBeDefined();
+    const haiku = toolbarCallbacks.onModelChange('haiku');
+    expect(conversation.model).toBe('haiku');
+
+    finishOpusWrite?.();
+    await opus;
+    await expect(haiku).rejects.toThrow(conversationError);
+
+    expect(conversation.model).toBe('opus');
+    expect(plugin.settings.savedProviderModel.claude).toBe('opus');
+  });
+
+  it('does not persist a deferred selection into a conversation loaded after it began', async () => {
+    jest.spyOn(ProviderRegistry, 'createInstructionRefineService').mockReturnValue({ cancel: jest.fn(), resetConversation: jest.fn() } as any);
+    jest.spyOn(ProviderRegistry, 'createTitleGenerationService').mockReturnValue({ cancel: jest.fn() } as any);
+    jest.spyOn(ProviderRegistry, 'getTaskResultInterpreter').mockReturnValue({} as any);
+    const conversations = new Map([
+      ['conv-1', { id: 'conv-1', providerId: 'claude', title: 'First', createdAt: 1, updatedAt: 1, sessionId: 'one', model: 'sonnet', messages: [] }],
+      ['conv-2', { id: 'conv-2', providerId: 'claude', title: 'Second', createdAt: 1, updatedAt: 1, sessionId: 'two', model: 'haiku', messages: [] }],
+    ]);
+    const plugin = createMockPlugin({
+      getConversationSync: jest.fn((id: string) => conversations.get(id)),
+    });
+    const tab = createTab(createMockOptions({ plugin, conversation: conversations.get('conv-1') }));
+    initializeTabUI(tab, plugin);
+    tab.lifecycleState = 'bound_cold';
+    tab.providerId = 'claude';
+    tab.conversationId = 'conv-1';
+    const toolbarModule = jest.requireMock('@/features/chat/ui/InputToolbar') as {
+      createInputToolbar: jest.Mock;
+    };
+    const toolbarCallbacks = toolbarModule.createInputToolbar.mock.calls.at(-1)?.[1];
+
+    const change = toolbarCallbacks.onModelChange('opus');
+    tab.conversationId = 'conv-2';
+    tab.modelSelectionGeneration = (tab.modelSelectionGeneration ?? 0) + 1;
+    await change;
+
+    expect(plugin.updateConversation).not.toHaveBeenCalled();
+    expect(conversations.get('conv-2')?.model).toBe('haiku');
+  });
+});
+
+describe('Tab - Bound Conversation Model', () => {
+  it('uses the persisted conversation model instead of the current provider default', () => {
+    const conversation = {
+      id: 'conv-1', providerId: 'claude', title: 'Chat', createdAt: 1, updatedAt: 1,
+      sessionId: 'session-1', model: 'sonnet', messages: [],
+    };
+    const plugin = createMockPlugin({
+      getConversationSync: jest.fn().mockReturnValue(conversation),
+    });
+    plugin.settings.savedProviderModel.claude = 'opus';
+    const tab = createTab(createMockOptions({ plugin, conversation }));
+
+    expect(getTabSettingsSnapshot(tab, plugin).model).toBe('sonnet');
+  });
+
+  it('infers the latest legacy assistant response model when metadata lacks one', () => {
+    const conversation = {
+      id: 'conv-1', providerId: 'claude', title: 'Chat', createdAt: 1, updatedAt: 1,
+      sessionId: 'session-1', messages: [],
+      assistantResponseMetadata: [
+        { assistantMessageIndex: 0, metadata: { model: 'sonnet' } },
+        { assistantMessageIndex: 2, metadata: { model: 'opus' } },
+      ],
+    };
+    const plugin = createMockPlugin({
+      getConversationSync: jest.fn().mockReturnValue(conversation),
+    });
+    const tab = createTab(createMockOptions({ plugin, conversation }));
+
+    expect(getTabSettingsSnapshot(tab, plugin).model).toBe('opus');
   });
 });
 

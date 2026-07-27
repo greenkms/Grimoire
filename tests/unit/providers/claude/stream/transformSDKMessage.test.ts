@@ -1560,6 +1560,31 @@ describe('transformSDKMessage', () => {
       expect(usage.percentage).toBe(39); // 100000 / 256000 * 100 ≈ 39%
     });
 
+    it('uses the resolved Sonnet 5 context window before result model usage arrives', () => {
+      const message = msg({
+        type: 'assistant',
+        parent_tool_use_id: null,
+        message: {
+          content: [{ type: 'text', text: 'Hello' }],
+          usage: {
+            input_tokens: 100000,
+            output_tokens: 10000,
+            cache_creation_input_tokens: 0,
+            cache_read_input_tokens: 0,
+          },
+        },
+      });
+
+      const results = [...transformSDKMessage(message, {
+        intendedModel: 'sonnet',
+        resolvedContextWindow: 1_000_000,
+      })];
+
+      const usage = (results.find(result => result.type === 'usage') as any).usage;
+      expect(usage.contextWindow).toBe(1_000_000);
+      expect(usage.percentage).toBe(10);
+    });
+
     it('handles missing usage field gracefully', () => {
       const message = msg({
         type: 'assistant',

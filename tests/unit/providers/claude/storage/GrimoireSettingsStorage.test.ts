@@ -410,12 +410,27 @@ describe('GrimoireSettingsStorage', () => {
       const result = await storage.load();
       const writtenContent = JSON.parse(mockAdapter.write.mock.calls[0][1]);
 
-      expect(getClaudeProviderSettings(result).enableSonnet1M).toBe(
-        getClaudeProviderSettings(DEFAULT_SETTINGS).enableSonnet1M,
-      );
       expect(writtenContent.model).toBe('sonnet');
       expect(writtenContent.hiddenProviderCommands).toEqual({});
       expect(writtenContent).not.toHaveProperty('show1MModel');
+    });
+
+    it('should remove legacy Claude 1M toggles from the stored file', async () => {
+      mockAdapter.exists.mockResolvedValue(true);
+      mockAdapter.read.mockResolvedValue(JSON.stringify({
+        model: 'opus[1m]',
+        enableOpus1M: true,
+        enableSonnet1M: false,
+      }));
+
+      const result = await storage.load();
+      const writtenContent = JSON.parse(mockAdapter.write.mock.calls[0][1]);
+
+      expect(result.model).toBe('opus[1m]');
+      expect(result).not.toHaveProperty('enableOpus1M');
+      expect(result).not.toHaveProperty('enableSonnet1M');
+      expect(writtenContent).not.toHaveProperty('enableOpus1M');
+      expect(writtenContent).not.toHaveProperty('enableSonnet1M');
     });
 
     it('should remove legacy slashCommands from the stored file', async () => {

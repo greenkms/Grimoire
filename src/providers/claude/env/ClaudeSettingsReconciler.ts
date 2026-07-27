@@ -8,7 +8,6 @@ import {
   getClaudeRuntimeEnvironmentText,
   updateClaudeProviderSettings,
 } from '../settings';
-import { normalizeVisibleModelVariant } from '../types/models';
 
 const ENV_HASH_MODEL_KEYS = [
   'ANTHROPIC_MODEL',
@@ -68,42 +67,7 @@ export const claudeSettingsReconciler: ProviderSettingsReconciler = {
     return { changed: true, invalidatedConversations };
   },
 
-  normalizeModelVariantSettings(settings: Record<string, unknown>): boolean {
-    const claudeSettings = getClaudeProviderSettings(settings);
-    let changed = false;
-
-    const normalize = (model: string): string =>
-      normalizeVisibleModelVariant(
-        model,
-        claudeSettings.enableOpus1M,
-        claudeSettings.enableSonnet1M,
-      );
-
-    const model = settings.model as string;
-    const normalizedModel = normalize(model);
-    if (model !== normalizedModel) {
-      settings.model = normalizedModel;
-      changed = true;
-    }
-
-    const titleModel = settings.titleGenerationModel as string;
-    if (titleModel) {
-      const normalizedTitleModel = normalize(titleModel);
-      if (titleModel !== normalizedTitleModel) {
-        settings.titleGenerationModel = normalizedTitleModel;
-        changed = true;
-      }
-    }
-
-    const lastClaudeModel = claudeSettings.lastModel;
-    if (lastClaudeModel) {
-      const normalizedLastClaudeModel = normalize(lastClaudeModel);
-      if (lastClaudeModel !== normalizedLastClaudeModel) {
-        updateClaudeProviderSettings(settings, { lastModel: normalizedLastClaudeModel });
-        changed = true;
-      }
-    }
-
-    return changed;
+  normalizeModelVariantSettings(_settings: Record<string, unknown>): boolean {
+    return false;
   },
 };

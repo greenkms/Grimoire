@@ -247,6 +247,31 @@ describe('runColdStartQuery', () => {
       const opts = sdkMock.getLastOptions();
       expect(opts?.effort).toBe('high');
     });
+
+    it('preserves SDK-supported max effort for a dynamic default alias', async () => {
+      sdkMock.setMockMessages([]);
+
+      await runColdStartQuery(createConfig({
+        providerSettings: {
+          model: 'default',
+          thinkingBudget: 'off',
+          effortLevel: 'max',
+          providerConfigs: {
+            claude: {
+              loadUserSettings: false,
+              discoveredModels: [{
+                id: 'default',
+                displayName: 'Default',
+                source: 'sdk',
+                supportedEffortLevels: ['low', 'medium', 'high', 'xhigh', 'max'],
+              }],
+            },
+          },
+        },
+      }), 'hi');
+
+      expect(sdkMock.getLastOptions()?.effort).toBe('max');
+    });
   });
 
   describe('abort handling', () => {

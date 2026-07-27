@@ -8,8 +8,8 @@ export type ClaudeModel = string;
 export const DEFAULT_CLAUDE_MODELS: { value: ClaudeModel; label: string; description: string }[] = [
   { value: 'best', label: 'Best', description: 'Fable 5 when available, otherwise latest Opus' },
   { value: 'fable', label: 'Fable 5', description: 'Hardest and longest-running tasks' },
-  { value: 'opus', label: 'Opus 4.8', description: 'Complex reasoning' },
-  { value: 'opus[1m]', label: 'Opus 4.8 · 1M', description: 'Complex reasoning (1M context window)' },
+  { value: 'opus', label: 'Opus 5', description: 'Complex reasoning' },
+  { value: 'opus[1m]', label: 'Opus 5 · 1M', description: 'Complex reasoning (1M context window)' },
   { value: 'opusplan', label: 'Opus Plan', description: 'Opus for planning, Sonnet for execution' },
   { value: 'sonnet', label: 'Sonnet 5', description: 'Daily coding' },
   { value: 'sonnet[1m]', label: 'Sonnet 5 · 1M', description: 'Daily coding (1M context window)' },
@@ -100,87 +100,114 @@ export function supportsXHighEffort(model: string): boolean {
   return /claude-opus-(4-[7-9]|[5-9])/.test(normalized);
 }
 
+/**
+ * Returns the canonical effort levels the selected model may use. Runtime
+ * discovery is authoritative when it supplies capability metadata; without
+ * it, keep the conservative built-in fallback (and never invent `max`).
+ */
+export function getAllowedEffortLevels(
+  model: string,
+  supportedEffortLevels?: readonly EffortLevel[],
+): EffortLevel[] {
+  if (supportedEffortLevels !== undefined) {
+    const supported = new Set(supportedEffortLevels);
+    return EFFORT_LEVELS
+      .map(level => level.value)
+      .filter((level): level is EffortLevel => supported.has(level));
+  }
+
+  return EFFORT_LEVELS
+    .map(level => level.value)
+    .filter(level => level !== 'max' && (level !== 'xhigh' || supportsXHighEffort(model)));
+}
+
 /** Clamp stored effort values to what the selected model actually supports. */
 export function normalizeEffortLevel(
   model: string,
   effortLevel: unknown,
+  supportedEffortLevels?: readonly EffortLevel[],
 ): EffortLevel {
-  const allowsXHigh = supportsXHighEffort(model);
-  const isSupported = EFFORT_LEVELS.some((level) =>
-    level.value === effortLevel && (allowsXHigh || level.value !== 'xhigh')
-  );
-
-  if (isSupported) {
+  const allowedLevels = getAllowedEffortLevels(model, supportedEffortLevels);
+  if (allowedLevels.includes(effortLevel as EffortLevel)) {
     return effortLevel as EffortLevel;
   }
 
-  return DEFAULT_EFFORT_LEVEL[normalizeModelId(model)] ?? 'high';
+  const modelDefault = DEFAULT_EFFORT_LEVEL[normalizeModelId(model)] ?? 'high';
+  return allowedLevels.includes('high')
+    ? 'high'
+    : allowedLevels.includes(modelDefault)
+      ? modelDefault
+      : allowedLevels[0] ?? modelDefault;
 }
 
 export function resolveEffortLevel(
   model: string,
   effortLevel: unknown,
+  supportedEffortLevels?: readonly EffortLevel[],
 ): EffortLevel {
-  return normalizeEffortLevel(model, effortLevel);
+  return normalizeEffortLevel(model, effortLevel, supportedEffortLevels);
 }
 
 export const CONTEXT_WINDOW_STANDARD = 200_000;
 export const CONTEXT_WINDOW_1M = 1_000_000;
 
-export function filterVisibleModelOptions<T extends { value: string }>(
-  models: T[],
-  enableOpus1M: boolean,
-  enableSonnet1M: boolean
-): T[] {
-  return models.filter((model) => {
-    if (isBuiltInFamilyVariant(model.value, 'opus')) {
-      return !has1MContextSuffix(model.value) || enableOpus1M;
-    }
-
-    if (isBuiltInFamilyVariant(model.value, 'sonnet')) {
-      return !has1MContextSuffix(model.value) || enableSonnet1M;
-    }
-
-    return true;
-  });
+/** The small subset of runtime discovery metadata needed to resolve context. */
+export interface ClaudeContextModelMetadata {
+  id: string;
+  resolvedModel?: string;
+  maxInputTokens?: number;
 }
 
-export function normalizeVisibleModelVariant(
-  model: string,
-  enableOpus1M: boolean,
-  enableSonnet1M: boolean
-): string {
-  const normalized = normalizeModelId(model);
+function findDiscoveredModel(
+  selectedModel: string,
+  discoveredModels: readonly ClaudeContextModelMetadata[],
+): ClaudeContextModelMetadata | undefined {
+  const normalizedSelectedModel = normalizeModelId(selectedModel);
+  return discoveredModels.find(model => normalizeModelId(model.id) === normalizedSelectedModel);
+}
 
-  if (isBuiltInFamilyVariant(normalized, 'opus')) {
-    if (has1MContextSuffix(normalized)) {
-      return enableOpus1M ? 'opus[1m]' : 'opus';
-    }
-    return 'opus';
+/**
+ * Resolves the selected model's context window without maintaining a second
+ * model catalog. Discovery is authoritative when it supplies a token limit.
+ */
+export function resolveClaudeContextWindowSize(
+  selectedModel: string,
+  customLimits?: Record<string, number>,
+  discoveredModels: readonly ClaudeContextModelMetadata[] = [],
+): number {
+  const selectedLimit = resolveCustomContextLimit(selectedModel, customLimits);
+  if (selectedLimit !== null) {
+    return selectedLimit;
   }
 
-  if (isBuiltInFamilyVariant(normalized, 'sonnet')) {
-    if (has1MContextSuffix(normalized)) {
-      return enableSonnet1M ? 'sonnet[1m]' : 'sonnet';
+  const discoveredModel = findDiscoveredModel(selectedModel, discoveredModels);
+  const resolvedModel = discoveredModel?.resolvedModel;
+  if (resolvedModel) {
+    const resolvedLimit = resolveCustomContextLimit(resolvedModel, customLimits);
+    if (resolvedLimit !== null) {
+      return resolvedLimit;
     }
-    return 'sonnet';
   }
 
-  return model;
+  if (isValidContextLimit(discoveredModel?.maxInputTokens)) {
+    return discoveredModel.maxInputTokens;
+  }
+
+  const capabilityModel = resolvedModel ?? selectedModel;
+  if (
+    normalizeModelId(capabilityModel) === 'claude-sonnet-5'
+    || (discoveredModel !== undefined && normalizeModelId(selectedModel) === 'sonnet')
+    || has1MContextSuffix(capabilityModel)
+  ) {
+    return CONTEXT_WINDOW_1M;
+  }
+
+  return CONTEXT_WINDOW_STANDARD;
 }
 
 export function getContextWindowSize(
   model: string,
   customLimits?: Record<string, number>
 ): number {
-  const customLimit = resolveCustomContextLimit(model, customLimits);
-  if (customLimit !== null) {
-    return customLimit;
-  }
-
-  if (has1MContextSuffix(model)) {
-    return CONTEXT_WINDOW_1M;
-  }
-
-  return CONTEXT_WINDOW_STANDARD;
+  return resolveClaudeContextWindowSize(model, customLimits);
 }

@@ -249,10 +249,6 @@ export type TranslationKey =
   | 'settings.customContextLimits.invalid'
 
   // Settings - Advanced
-  | 'settings.enableOpus1M.name'
-  | 'settings.enableOpus1M.desc'
-  | 'settings.enableSonnet1M.name'
-  | 'settings.enableSonnet1M.desc'
   | 'settings.customModels.name'
   | 'settings.customModels.desc'
   | 'settings.customModels.placeholder'

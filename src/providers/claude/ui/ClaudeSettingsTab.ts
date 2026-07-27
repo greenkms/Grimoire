@@ -167,34 +167,6 @@ export const claudeSettingsTabRenderer: ProviderSettingsTabRenderer = {
     new Setting(container).setName(t('settings.models')).setHeading();
 
     new Setting(container)
-      .setName(t('settings.enableOpus1M.name'))
-      .setDesc(t('settings.enableOpus1M.desc'))
-      .addToggle((toggle) =>
-        toggle
-          .setValue(claudeSettings.enableOpus1M)
-          .onChange(async (value) => {
-            updateClaudeProviderSettings(settingsBag, { enableOpus1M: value });
-            context.plugin.normalizeModelVariantSettings();
-            await context.plugin.saveSettings();
-            context.refreshModelSelectors();
-          })
-      );
-
-    new Setting(container)
-      .setName(t('settings.enableSonnet1M.name'))
-      .setDesc(t('settings.enableSonnet1M.desc'))
-      .addToggle((toggle) =>
-        toggle
-          .setValue(claudeSettings.enableSonnet1M)
-          .onChange(async (value) => {
-            updateClaudeProviderSettings(settingsBag, { enableSonnet1M: value });
-            context.plugin.normalizeModelVariantSettings();
-            await context.plugin.saveSettings();
-            context.refreshModelSelectors();
-          })
-      );
-
-    new Setting(container)
       .setName(t('settings.customModels.name'))
       .setDesc(t('settings.customModels.desc'))
       .addTextArea((text) => {

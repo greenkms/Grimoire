@@ -1366,6 +1366,23 @@ describe('InputController - Message Queue', () => {
       );
     });
 
+    it('passes the active bound-tab model even after the provider default changes', async () => {
+      deps = createSendableDeps({
+        getActiveProviderSettings: () => ({ model: 'sonnet' }),
+      });
+      (deps.plugin as any).settings.model = 'opus';
+      (deps as any).mockAgentService.query = jest.fn().mockImplementation(() => createMockStream([{ type: 'done' }]));
+      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl.value = 'hello';
+      controller = new InputController(deps);
+
+      await controller.sendMessage();
+
+      expect((deps as any).mockAgentService.query).toHaveBeenCalledWith(
+        expect.anything(), expect.any(Array), { model: 'sonnet' },
+      );
+    });
+
     it('routes a blank tab to the project workspace provider before creating the conversation', async () => {
       let activeProviderId = 'claude';
       deps = createSendableDeps({
@@ -1606,7 +1623,7 @@ describe('InputController - Message Queue', () => {
         providerId: 'claude',
         providerLabel: 'Claude Code',
         model: 'opus',
-        modelLabel: 'Opus 4.8',
+        modelLabel: 'Opus 5',
         effort: 'xhigh',
         effortLabel: 'XHigh',
       });

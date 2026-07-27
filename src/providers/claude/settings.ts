@@ -10,6 +10,7 @@ import {
   getLegacyHostnameKey,
   migrateLegacyHostnameKeyedMap,
 } from '../../utils/env';
+import type { EffortLevel } from './types/models';
 import type { CCSettings } from './types/settings';
 
 export type ClaudeSettingSource = 'user' | 'project' | 'local';
@@ -21,8 +22,6 @@ export interface ClaudeProviderSettings {
   loadUserSettings: boolean;
   enableChrome: boolean;
   enableBangBash: boolean;
-  enableOpus1M: boolean;
-  enableSonnet1M: boolean;
   customModels: string;
   lastModel: string;
   environmentVariables: string;
@@ -35,7 +34,11 @@ export interface ClaudeProviderSettings {
 export interface ClaudeDiscoveredModel {
   id: string;
   displayName: string;
+  description?: string;
   maxInputTokens?: number;
+  resolvedModel?: string;
+  source?: 'api' | 'sdk';
+  supportedEffortLevels?: EffortLevel[];
 }
 
 export interface ClaudeCodeProjectSettingsSnapshot {
@@ -57,8 +60,6 @@ export const DEFAULT_CLAUDE_PROVIDER_SETTINGS: Readonly<ClaudeProviderSettings> 
   loadUserSettings: true,
   enableChrome: false,
   enableBangBash: false,
-  enableOpus1M: false,
-  enableSonnet1M: false,
   customModels: '',
   lastModel: 'haiku',
   environmentVariables: '',
@@ -125,6 +126,18 @@ export function normalizeClaudeDiscoveredModels(value: unknown): ClaudeDiscovere
       : typeof record.display_name === 'string'
         ? record.display_name.trim()
         : '';
+    const description = typeof record.description === 'string' ? record.description.trim() : '';
+    const resolvedModel = typeof record.resolvedModel === 'string' ? record.resolvedModel.trim() : '';
+    const source = record.source === 'sdk' || record.source === 'api' ? record.source : undefined;
+    const supportedEffortLevels = Array.isArray(record.supportedEffortLevels)
+      ? record.supportedEffortLevels.filter((level): level is EffortLevel =>
+        level === 'low'
+        || level === 'medium'
+        || level === 'high'
+        || level === 'xhigh'
+        || level === 'max'
+      )
+      : [];
     const rawMaxInputTokens = record.maxInputTokens ?? record.max_input_tokens;
     const maxInputTokens = typeof rawMaxInputTokens === 'number' && isFinite(rawMaxInputTokens) && rawMaxInputTokens > 0
       ? rawMaxInputTokens
@@ -134,7 +147,11 @@ export function normalizeClaudeDiscoveredModels(value: unknown): ClaudeDiscovere
     models.push({
       id,
       displayName: displayName || id,
+      ...(description ? { description } : {}),
       ...(maxInputTokens !== undefined ? { maxInputTokens } : {}),
+      ...(resolvedModel ? { resolvedModel } : {}),
+      ...(source ? { source } : {}),
+      ...(supportedEffortLevels.length > 0 ? { supportedEffortLevels } : {}),
     });
   }
 
@@ -232,12 +249,6 @@ export function getClaudeProviderSettings(
     enableBangBash: (config.enableBangBash as boolean | undefined)
       ?? (settings.enableBangBash as boolean | undefined)
       ?? DEFAULT_CLAUDE_PROVIDER_SETTINGS.enableBangBash,
-    enableOpus1M: (config.enableOpus1M as boolean | undefined)
-      ?? (settings.enableOpus1M as boolean | undefined)
-      ?? DEFAULT_CLAUDE_PROVIDER_SETTINGS.enableOpus1M,
-    enableSonnet1M: (config.enableSonnet1M as boolean | undefined)
-      ?? (settings.enableSonnet1M as boolean | undefined)
-      ?? DEFAULT_CLAUDE_PROVIDER_SETTINGS.enableSonnet1M,
     customModels: (config.customModels as string | undefined)
       ?? DEFAULT_CLAUDE_PROVIDER_SETTINGS.customModels,
     lastModel: (config.lastModel as string | undefined)
@@ -256,6 +267,14 @@ export function getClaudeProviderSettings(
     ),
     discoveredModels: normalizeClaudeDiscoveredModels(config.discoveredModels),
   };
+}
+
+export function getClaudeModelSupportedEffortLevels(
+  settings: Record<string, unknown>,
+  model: string,
+): EffortLevel[] | undefined {
+  return getClaudeProviderSettings(settings).discoveredModels
+    .find(candidate => candidate.id === model)?.supportedEffortLevels;
 }
 
 export function getClaudeEffectiveEnvironmentVariables(

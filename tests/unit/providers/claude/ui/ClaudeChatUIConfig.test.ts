@@ -1,4 +1,5 @@
 import { resolveClaudeModelSelection } from '@/providers/claude/modelOptions';
+import { getClaudeProviderSettings } from '@/providers/claude/settings';
 import { claudeChatUIConfig } from '@/providers/claude/ui/ClaudeChatUIConfig';
 
 describe('claudeChatUIConfig', () => {
@@ -101,8 +102,10 @@ describe('claudeChatUIConfig', () => {
         'best',
         'fable',
         'opus',
+        'opus[1m]',
         'opusplan',
         'sonnet',
+        'sonnet[1m]',
         'haiku',
         'claude-opus-4-6',
         'claude-opus-4-6[1m]',
@@ -134,8 +137,10 @@ describe('claudeChatUIConfig', () => {
         'best',
         'fable',
         'opus',
+        'opus[1m]',
         'opusplan',
         'sonnet',
+        'sonnet[1m]',
         'haiku',
         'claude-opus-4-6',
       ]);
@@ -148,8 +153,10 @@ describe('claudeChatUIConfig', () => {
         'best',
         'fable',
         'opus',
+        'opus[1m]',
         'opusplan',
         'sonnet',
+        'sonnet[1m]',
         'haiku',
       ]);
       expect(options.find(option => option.value === 'sonnet')).toEqual({
@@ -157,9 +164,14 @@ describe('claudeChatUIConfig', () => {
         label: 'Sonnet 5',
         description: 'Daily coding',
       });
+      expect(options.find(option => option.value === 'opus')).toEqual({
+        value: 'opus',
+        label: 'Opus 5',
+        description: 'Complex reasoning',
+      });
     });
 
-    it('prepends discovered Anthropic API models before static fallback aliases', () => {
+    it('uses discovered Anthropic API models as the authoritative catalog', () => {
       const options = claudeChatUIConfig.getModelOptions({
         providerConfigs: {
           claude: {
@@ -191,8 +203,29 @@ describe('claudeChatUIConfig', () => {
           description: 'Anthropic API model · 1M context',
         },
       ]);
-      expect(options.map(option => option.value)).toContain('fable');
-      expect(options.map(option => option.value)).toContain('sonnet');
+      expect(options.map(option => option.value)).toEqual(['claude-fable-5', 'claude-sonnet-5']);
+    });
+
+    it('keeps one dynamically discovered Sonnet row and marks its native 1M context', () => {
+      const options = claudeChatUIConfig.getModelOptions({
+        providerConfigs: {
+          claude: {
+            discoveredModels: [{
+              id: 'sonnet',
+              displayName: 'Sonnet 5',
+              description: 'Daily coding',
+              resolvedModel: 'claude-sonnet-5',
+              source: 'sdk',
+            }],
+          },
+        },
+      });
+
+      expect(options.filter(option => option.value === 'sonnet')).toEqual([{
+        value: 'sonnet',
+        label: 'Sonnet 5',
+        description: 'Daily coding · 1M context',
+      }]);
     });
 
     it('formats dated settings-defined custom models with shortened date tags', () => {
@@ -228,6 +261,30 @@ describe('claudeChatUIConfig', () => {
         label: 'Work Opus',
         description: 'Custom model',
       });
+    });
+
+    it('uses custom model aliases for discovered model labels', () => {
+      const options = claudeChatUIConfig.getModelOptions({
+        customModelAliases: {
+          'opus[1m]': 'Team Opus',
+        },
+        providerConfigs: {
+          claude: {
+            discoveredModels: [{
+              id: 'opus[1m]',
+              displayName: 'Opus (1M context)',
+              description: 'Opus 5 with 1M context',
+              source: 'sdk',
+            }],
+          },
+        },
+      });
+
+      expect(options).toEqual([{
+        value: 'opus[1m]',
+        label: 'Team Opus',
+        description: 'Opus 5 with 1M context',
+      }]);
     });
 
     it('keeps environment-defined custom models as a full override', () => {
@@ -272,23 +329,57 @@ describe('claudeChatUIConfig', () => {
   });
 
   describe('getReasoningOptions', () => {
-    it('hides xhigh on models that do not support it', () => {
-      const options = claudeChatUIConfig.getReasoningOptions('claude-sonnet-4-5', {});
-
-      expect(options.map(option => option.value)).toEqual(['low', 'medium', 'high', 'max']);
-    });
-
-    it('keeps xhigh on supported opus models', () => {
-      const options = claudeChatUIConfig.getReasoningOptions('claude-opus-4-7', {});
+    it('uses the SDK effort metadata for the default model', () => {
+      const options = claudeChatUIConfig.getReasoningOptions('default', {
+        providerConfigs: {
+          claude: {
+            discoveredModels: [{
+              id: 'default',
+              displayName: 'Default (recommended)',
+              source: 'sdk',
+              supportedEffortLevels: ['low', 'medium', 'high', 'xhigh', 'max'],
+            }],
+          },
+        },
+      });
 
       expect(options.map(option => option.value)).toEqual(['low', 'medium', 'high', 'xhigh', 'max']);
     });
 
-    it('uses effort options for custom model ids', () => {
+    it('uses the conservative metadata-free levels for Sonnet', () => {
+      const options = claudeChatUIConfig.getReasoningOptions('claude-sonnet-4-5', {});
+
+      expect(options.map(option => option.value)).toEqual(['low', 'medium', 'high']);
+    });
+
+    it('keeps only heuristic xhigh on supported Opus models without metadata', () => {
+      const options = claudeChatUIConfig.getReasoningOptions('claude-opus-4-7', {});
+
+      expect(options.map(option => option.value)).toEqual(['low', 'medium', 'high', 'xhigh']);
+    });
+
+    it('uses conservative effort options for custom model ids', () => {
       const options = claudeChatUIConfig.getReasoningOptions('custom-model', {});
 
-      expect(options.map(option => option.value)).toEqual(['low', 'medium', 'high', 'max']);
+      expect(options.map(option => option.value)).toEqual(['low', 'medium', 'high']);
       expect(options.some(option => option.tokens !== undefined)).toBe(false);
+    });
+
+    it('honors dynamic metadata even when it excludes max', () => {
+      const options = claudeChatUIConfig.getReasoningOptions('claude-sonnet-5', {
+        providerConfigs: {
+          claude: {
+            discoveredModels: [{
+              id: 'claude-sonnet-5',
+              displayName: 'Sonnet',
+              source: 'sdk',
+              supportedEffortLevels: ['medium', 'high'],
+            }],
+          },
+        },
+      });
+
+      expect(options.map(option => option.value)).toEqual(['medium', 'high']);
     });
   });
 
@@ -344,6 +435,84 @@ describe('claudeChatUIConfig', () => {
       claudeChatUIConfig.applyModelDefaults('opus', settings);
 
       expect(settings.effortLevel).toBe('high');
+    });
+
+    it('tracks an SDK-discovered model as the last Claude model', () => {
+      const settings: Record<string, unknown> = {
+        effortLevel: 'xhigh',
+        providerConfigs: {
+          claude: {
+            discoveredModels: [{
+              id: 'default',
+              displayName: 'Default (recommended)',
+              source: 'sdk',
+            }],
+          },
+        },
+      };
+
+      claudeChatUIConfig.applyModelDefaults('default', settings);
+
+      expect(getClaudeProviderSettings(settings).lastModel).toBe('default');
+      expect(settings.lastCustomModel).toBeUndefined();
+      expect(settings.effortLevel).toBe('high');
+    });
+  });
+
+  describe('getContextWindowSize', () => {
+    it('uses the resolved SDK model for dynamic aliases', () => {
+      const settings = {
+        providerConfigs: {
+          claude: {
+            discoveredModels: [{
+              id: 'default',
+              displayName: 'Default (recommended)',
+              resolvedModel: 'claude-opus-5[1m]',
+              source: 'sdk',
+            }],
+          },
+        },
+      };
+
+      expect(claudeChatUIConfig.getContextWindowSize('default', undefined, settings)).toBe(1_000_000);
+    });
+
+    it('uses Sonnet 5 native context when discovery does not expose a token limit', () => {
+      const settings = {
+        providerConfigs: {
+          claude: {
+            discoveredModels: [{
+              id: 'sonnet',
+              displayName: 'Sonnet 5',
+              resolvedModel: 'claude-sonnet-5',
+              source: 'sdk',
+            }],
+          },
+        },
+      };
+
+      expect(claudeChatUIConfig.getContextWindowSize('sonnet', undefined, settings)).toBe(1_000_000);
+    });
+
+    it('prefers an explicit custom limit for the selected alias', () => {
+      const settings = {
+        providerConfigs: {
+          claude: {
+            discoveredModels: [{
+              id: 'default',
+              displayName: 'Default (recommended)',
+              resolvedModel: 'claude-opus-5[1m]',
+              source: 'sdk',
+            }],
+          },
+        },
+      };
+
+      expect(claudeChatUIConfig.getContextWindowSize(
+        'default',
+        { DEFAULT: 750_000 },
+        settings,
+      )).toBe(750_000);
     });
   });
 });

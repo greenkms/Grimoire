@@ -269,6 +269,9 @@ export interface TabData {
 
   /** Set on orchestrator tabs: IDs of all worker tabs spawned by this orchestrator. */
   workerTabIds?: TabId[];
+
+  /** Monotonic guard for overlapping bound-session model selections. */
+  modelSelectionGeneration?: number;
 }
 
 export type TabProviderContext = Pick<TabData, 'conversationId' | 'service' | 'providerId' | 'lifecycleState' | 'draftModel' | 'draftSettings'>;

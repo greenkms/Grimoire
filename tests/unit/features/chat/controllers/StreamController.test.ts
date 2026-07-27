@@ -535,6 +535,31 @@ describe('StreamController - Text Content', () => {
       providerSettingsSpy.mockRestore();
     });
 
+    it('uses the active tab model instead of a conflicting provider default', async () => {
+      const msg = createTestMessage();
+      const usage = createMockUsage({ model: undefined });
+      deps.getActiveProviderSettings = () => ({ model: 'sonnet' });
+      const providerSettingsSpy = jest.spyOn(ProviderSettingsCoordinator, 'getProviderSettingsSnapshot');
+      providerSettingsSpy.mockReturnValue({ model: 'opus' } as any);
+
+      await controller.handleStreamChunk({ type: 'usage', usage, sessionId: 'session-1' }, msg);
+
+      expect(deps.state.usage).toEqual({ ...usage, model: 'sonnet' });
+      expect(providerSettingsSpy).not.toHaveBeenCalled();
+      providerSettingsSpy.mockRestore();
+    });
+
+    it('uses the assistant response model before the tab model for a workspace override', async () => {
+      const msg = createTestMessage();
+      msg.responseMetadata = { model: 'opus' };
+      const usage = createMockUsage({ model: undefined });
+      deps.getActiveProviderSettings = () => ({ model: 'sonnet' });
+
+      await controller.handleStreamChunk({ type: 'usage', usage, sessionId: 'session-1' }, msg);
+
+      expect(deps.state.usage).toEqual({ ...usage, model: 'opus' });
+    });
+
     it('should ignore usage from other sessions', async () => {
       const msg = createTestMessage();
       const usage = createMockUsage();

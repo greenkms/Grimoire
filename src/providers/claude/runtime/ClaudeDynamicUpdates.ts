@@ -9,6 +9,7 @@ import type {
   ChatRuntimeQueryOptions,
 } from '../../../core/runtime/types';
 import type { GrimoireSettings, PermissionMode } from '../../../core/types/settings';
+import { getClaudeModelSupportedEffortLevels } from '../settings';
 import {
   resolveEffortLevel,
 } from '../types/models';
@@ -72,18 +73,27 @@ export async function applyClaudeDynamicUpdates(
       deps.mutateCurrentConfig(config => {
         config.model = selectedModel;
       });
-    } catch {
+    } catch (error) {
       deps.notifyFailure('Failed to update model');
+      if (queryOptions?.model) {
+        throw error;
+      }
     }
   }
 
-  const effortLevel = resolveEffortLevel(selectedModel, settings.effortLevel);
+  const effortLevel = resolveEffortLevel(
+    selectedModel,
+    settings.effortLevel,
+    getClaudeModelSupportedEffortLevels(settings, selectedModel),
+  );
   const currentEffort = deps.getCurrentConfig()?.effortLevel ?? null;
   if (effortLevel !== currentEffort) {
     try {
       // SDK runtime accepts `max`, but the current type definition for
       // Settings.effortLevel has not caught up yet.
-      await persistentQuery.applyFlagSettings({ effortLevel });
+      await persistentQuery.applyFlagSettings(
+        { effortLevel } as unknown as Parameters<Query['applyFlagSettings']>[0],
+      );
       deps.mutateCurrentConfig(config => {
         config.effortLevel = effortLevel;
       });

@@ -1611,13 +1611,13 @@ describe('ClaudeChatRuntime', () => {
       for await (const c of service.query('first')) chunks1.push(c);
 
       const queryCountBefore = getQueryCallCount();
-      mockPlugin.settings.effortLevel = 'max';
+      mockPlugin.settings.effortLevel = 'medium';
 
       const chunks2: any[] = [];
       for await (const c of service.query('second')) chunks2.push(c);
 
       const response = getLastResponse();
-      expect(response?.applyFlagSettings).toHaveBeenCalledWith({ effortLevel: 'max' });
+      expect(response?.applyFlagSettings).toHaveBeenCalledWith({ effortLevel: 'medium' });
       expect(getQueryCallCount()).toBe(queryCountBefore);
     });
 

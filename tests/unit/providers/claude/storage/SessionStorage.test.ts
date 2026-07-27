@@ -272,11 +272,26 @@ describe('SessionStorage', () => {
       const loaded = await storage.loadMetadata('conv-roundtrip');
 
       expect(loaded!.providerId).toBe('claude');
+      expect(loaded!.model).toBeUndefined();
       expect((loaded!.providerState as any)?.providerSessionId).toBe('active-session');
       expect((loaded!.providerState as any)?.forkSource).toEqual({
         sessionId: 'parent',
         resumeAt: 'uuid-456',
       });
+    });
+
+    it('round-trips the bound conversation model', async () => {
+      const conversation: Conversation = {
+        id: 'conv-model-rt', providerId: 'claude' as ProviderId, title: 'Model',
+        createdAt: 1, updatedAt: 2, sessionId: 'sdk-session', model: 'opus', messages: [],
+      };
+
+      await storage.saveMetadata(storage.toSessionMetadata(conversation));
+      const writtenContent = mockAdapter.write.mock.calls.at(-1)![1];
+      mockAdapter.exists.mockResolvedValue(true);
+      mockAdapter.read.mockResolvedValue(writtenContent);
+
+      expect((await storage.loadMetadata('conv-model-rt'))?.model).toBe('opus');
     });
 
     it('round-trips non-Claude providerId', async () => {
