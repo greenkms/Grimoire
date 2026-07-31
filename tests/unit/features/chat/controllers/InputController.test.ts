@@ -164,6 +164,10 @@ function createMockDeps(overrides: Partial<InputControllerDeps> = {}): InputCont
       finalizeCurrentTextBlock: jest.fn(),
       finalizeCurrentThinkingBlock: jest.fn(),
       appendText: jest.fn(),
+      startTurnSilenceIndicator: jest.fn(),
+      noteTurnActivity: jest.fn(),
+      pauseTurnSilenceIndicator: jest.fn(),
+      stopTurnSilenceIndicator: jest.fn(),
     } as any,
     selectionController: {
       getContext: jest.fn().mockReturnValue(null),
@@ -994,6 +998,9 @@ describe('InputController - Message Queue', () => {
       // No user_message_sent in stream → save without clearing resumeAtMessageId
       expect(deps.conversationController.save).toHaveBeenCalledWith(true, undefined);
       expect((deps as any).mockAgentService.query).toHaveBeenCalled();
+      expect(deps.streamController.startTurnSilenceIndicator).toHaveBeenCalledWith('claude');
+      expect(deps.streamController.noteTurnActivity).toHaveBeenCalledWith();
+      expect(deps.streamController.stopTurnSilenceIndicator).toHaveBeenCalledWith();
       expect(deps.state.isStreaming).toBe(false);
     });
 
@@ -2368,6 +2375,7 @@ describe('InputController - Message Queue', () => {
       controller.cancelStreaming();
 
       expect(deps.streamController.hideThinkingIndicator).toHaveBeenCalled();
+      expect(deps.streamController.stopTurnSilenceIndicator).toHaveBeenCalled();
     });
 
     it('should be a no-op when not streaming', () => {
@@ -2908,6 +2916,7 @@ describe('InputController - Message Queue', () => {
       );
 
       expect(deps.streamController.flushPendingToolsForPermission).toHaveBeenCalled();
+      expect(deps.streamController.pauseTurnSilenceIndicator).toHaveBeenCalledWith(true);
       expect(composerEl.hasClass('grimoire-composer--asking')).toBe(true);
       expect(toolEl.hasClass('is-awaiting')).toBe(true);
       expect(toolResultEl.textContent).toBe('Awaiting you');
@@ -2927,6 +2936,7 @@ describe('InputController - Message Queue', () => {
       allowButton!.click();
 
       await expect(approvalPromise).resolves.toBe('allow');
+      expect(deps.streamController.pauseTurnSilenceIndicator).toHaveBeenLastCalledWith(false);
       expect(composerEl.hasClass('grimoire-composer--asking')).toBe(false);
       expect(toolEl.hasClass('is-awaiting')).toBe(false);
       expect(toolResultEl.textContent).toBe('');

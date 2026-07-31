@@ -142,6 +142,8 @@ function getProviderLabel(providerId: ProviderId): string {
       return 'Antigravity';
     case 'gemini':
       return 'Gemini';
+    case 'qwen':
+      return 'Qwen';
     case 'grok':
       return 'Grok';
     default:

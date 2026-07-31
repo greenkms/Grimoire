@@ -386,6 +386,7 @@ export interface AcpToolCall {
   content?: AcpToolCallContent[];
   kind?: AcpToolKind | null;
   locations?: AcpToolCallLocation[];
+  _meta?: Record<string, unknown>;
   rawInput?: unknown;
   rawOutput?: unknown;
   status?: AcpToolCallStatus | null;
@@ -394,6 +395,7 @@ export interface AcpToolCall {
 }
 
 export interface AcpToolCallUpdate {
+  _meta?: Record<string, unknown>;
   content?: AcpToolCallContent[] | null;
   kind?: AcpToolKind | null;
   locations?: AcpToolCallLocation[] | null;

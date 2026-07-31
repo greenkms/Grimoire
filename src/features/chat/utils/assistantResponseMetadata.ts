@@ -12,6 +12,7 @@ const CHAT_PROVIDER_LABELS: Record<string, string> = {
   codex: 'Codex',
   gemini: 'Gemini CLI (Legacy)',
   opencode: 'OpenCode',
+  qwen: 'Qwen Code',
 };
 
 export function getAssistantResponseProviderLabel(providerId: ProviderId): string {

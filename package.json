@@ -1,7 +1,7 @@
 {
   "name": "grimoire",
   "version": "1.0.39",
-  "description": "Local-first AI agents for Obsidian: Claude Code, Codex, Antigravity CLI, Gemini CLI, and OpenCode in a vault-native side panel.",
+  "description": "Local-first AI agents for Obsidian: Claude Code, Codex, Qwen Code, Antigravity CLI, Gemini CLI, and OpenCode in a vault-native side panel.",
   "main": "main.js",
   "scripts": {
     "prebuild": "npm run lint",
@@ -25,6 +25,7 @@
     "agentic-cli",
     "claude-code",
     "codex",
+    "qwen-code",
     "antigravity-cli",
     "gemini-cli",
     "opencode",

@@ -38,11 +38,97 @@
 
 /* ── Tab bar ── */
 .grimoire-settings-tabs {
+  position: relative;
   display: flex;
-  gap: 4px;
+  align-items: stretch;
   margin-bottom: 2px;
   padding: 0 2px;
   border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.grimoire-settings-tabs-viewport {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.grimoire-settings-tabs-viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.grimoire-settings-tab-scroll {
+  display: none;
+  flex: 0 0 auto;
+  width: 28px;
+  padding: 0;
+  border: none;
+  background: var(--background-primary);
+  color: var(--text-muted);
+  cursor: pointer;
+  z-index: 2;
+}
+
+.grimoire-settings-tabs.is-overflowing .grimoire-settings-tab-scroll {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grimoire-settings-tab-scroll:disabled {
+  color: var(--text-faint);
+  cursor: default;
+  opacity: 0.45;
+}
+
+.grimoire-settings-tab-scroll:not(:disabled):hover,
+.grimoire-settings-tab-scroll:focus-visible {
+  color: var(--text-normal);
+  background: var(--background-modifier-hover);
+}
+
+.grimoire-settings-tab-scroll:focus-visible {
+  outline: 2px solid rgba(var(--grimoire-brand-rgb), 0.45);
+  outline-offset: -2px;
+}
+
+.grimoire-settings-tabs.is-overflowing::before,
+.grimoire-settings-tabs.is-overflowing::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 1px;
+  width: 18px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.14s ease;
+  z-index: 1;
+}
+
+.grimoire-settings-tabs.is-overflowing::before {
+  left: 30px;
+  background: linear-gradient(to right, var(--background-primary), transparent);
+}
+
+.grimoire-settings-tabs.is-overflowing::after {
+  right: 30px;
+  background: linear-gradient(to left, var(--background-primary), transparent);
+}
+
+.grimoire-settings-tabs.can-scroll-prev::before,
+.grimoire-settings-tabs.can-scroll-next::after {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grimoire-settings-tabs-viewport {
+    scroll-behavior: auto;
+  }
 }
 
 .grimoire-settings-version {
@@ -80,6 +166,8 @@
 }
 
 .grimoire-settings-tab {
+  flex: 0 0 auto;
+  white-space: nowrap;
   position: relative;
   height: 38px;
   padding: 0 15px;

@@ -27,7 +27,7 @@
   <sub>Arbeite mit lokalen CLI-Agents im selben Obsidian workspace, in dem deine Notizen leben.</sub>
 </p>
 
-Grimoire bringt agentic CLI-Assistenten direkt nach Obsidian. Claude Code, Codex, Antigravity CLI, Gemini CLI (Legacy), OpenCode, MiMoCode, Kimi Code und Grok Build laufen in einer gemeinsamen Seitenleiste: Sie lesen Notizen, bearbeiten Dateien, führen Befehle aus, rufen Tools auf und behalten session history im Kontext deines echten vault. Nichts läuft über einen Grimoire-Server. Es gibt keine telemetry, kein hosted backend und keinen proxy zwischen dir und deinem provider.
+Grimoire bringt agentic CLI-Assistenten direkt nach Obsidian. Claude Code, Codex, Antigravity CLI, Gemini CLI (Legacy), OpenCode, MiMoCode, Kimi Code, Grok Build und Qwen Code laufen in einer gemeinsamen Seitenleiste: Sie lesen Notizen, bearbeiten Dateien, führen Befehle aus, rufen Tools auf und behalten session history im Kontext deines echten vault. Nichts läuft über einen Grimoire-Server. Es gibt keine telemetry, kein hosted backend und keinen proxy zwischen dir und deinem provider.
 
 Grimoire ist für Menschen gebaut, die bereits in Obsidian arbeiten und AI-Hilfe wollen, die sich wie ein Teil des vault anfühlt: lokaler context, lokale files, bewusst gewählte provider und sichtbare usage/cost direkt im UI.
 
@@ -36,25 +36,25 @@ Grimoire ist für Menschen gebaut, die bereits in Obsidian arbeiten und AI-Hilfe
 ## Warum Grimoire
 
 - Nutze die CLI-Agents, denen du bereits vertraust, direkt in deinen Notizen.
-- Wechsle provider im composer. Claude Code, Codex, Antigravity CLI, Gemini CLI (Legacy), OpenCode, MiMoCode, Kimi Code und Grok Build teilen sich einen model picker.
+- Wechsle provider im composer. Claude Code, Codex, Antigravity CLI, Gemini CLI (Legacy), OpenCode, MiMoCode, Kimi Code, Grok Build und Qwen Code teilen sich einen model picker.
 - Grounde jeden turn in deinem vault. Erwähne Notizen, Ordner und MCP tools, statt paths per Hand zu kopieren.
 - Sieh cost und limits direkt neben der model-Auswahl.
 - Bleib local-first. Grimoire sammelt keine telemetry, proxyed keine prompts und betreibt kein backend.
 
 ## Was die provider können
 
-| Capability | Claude Code | Codex | OpenCode | Grok Build | MiMoCode | Kimi Code | Antigravity CLI | Gemini CLI (Legacy) |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Local persistent runtime | Ja | Ja | Ja | Ja | Ja | Ja | Nein | Ja |
-| Native history hydration | Ja | Ja | Ja | Ja | Ja | Ja | Nein | Ja |
-| Plan mode | Ja | Ja | Ja | Ja | Ja | Ja | Nein | Ja |
-| Image attachments | Ja | Ja | Ja | Ja | Ja | Ja | Nein | Ja |
-| Instruction mode | Ja | Ja | Ja | Ja | Ja | Ja | Nein | Ja |
-| Reasoning effort controls | Ja | Ja | Ja | Ja | Ja | Ja | Ja | Ja |
-| Rewind | Ja | Nein | Nein | Ja | Nein | Nein | Nein | Nein |
-| Fork | Ja | Ja | Nein | Ja | Nein | Nein | Nein | Nein |
-| Provider slash commands | Ja | Nein | Ja | Ja | Ja | Ja | Nein | Nein |
-| Grimoire-managed MCP UI | Ja | Nein | Nein | Nein | Nein | Nein | Nein | Nein |
+| Capability | Claude Code | Codex | OpenCode | Grok Build | MiMoCode | Kimi Code | Antigravity CLI | Gemini CLI (Legacy) | Qwen Code |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Local persistent runtime | Ja | Ja | Ja | Ja | Ja | Ja | Nein | Ja | Ja |
+| Native history hydration | Ja | Ja | Ja | Ja | Ja | Ja | Nein | Ja | Nein |
+| Plan mode | Ja | Ja | Ja | Ja | Ja | Ja | Nein | Ja | Ja |
+| Image attachments | Ja | Ja | Ja | Ja | Ja | Ja | Nein | Ja | Ja |
+| Instruction mode | Ja | Ja | Ja | Ja | Ja | Ja | Nein | Ja | Ja |
+| Reasoning effort controls | Ja | Ja | Ja | Ja | Ja | Ja | Ja | Ja | Ja |
+| Rewind | Ja | Nein | Nein | Ja | Nein | Nein | Nein | Nein | Nein |
+| Fork | Ja | Ja | Nein | Ja | Nein | Nein | Nein | Nein | Nein |
+| Provider slash commands | Ja | Nein | Ja | Ja | Ja | Ja | Nein | Nein | Ja |
+| Grimoire-managed MCP UI | Ja | Nein | Nein | Nein | Nein | Nein | Nein | Nein | Nein |
 
 ## Installation
 
@@ -112,7 +112,7 @@ Aktiviere die gewünschten providers unter Settings, Grimoire, Providers. Danach
 
 ### Empfohlene Provider
 
-Für die beste Grimoire-Erfahrung beginne mit Claude Code, Codex, OpenCode, MiMoCode, Kimi Code oder Grok Build. Diese provider bieten aktuell die stärksten runtime surfaces für vault-native Arbeit: persistent sessions, history hydration, plan-oriented workflows, tool activity und umfangreiche model controls.
+Für die beste Grimoire-Erfahrung beginne mit Claude Code, Codex, OpenCode, MiMoCode, Kimi Code, Grok Build oder Qwen Code. Diese provider bieten aktuell die stärksten runtime surfaces für vault-native Arbeit: persistent sessions, plan-oriented workflows, tool activity und umfangreiche model controls.
 
 Antigravity CLI und Gemini CLI (Legacy) bleiben für Google accounts und compatibility-Fälle verfügbar, werden heute aber nicht als primäre Grimoire-Provider empfohlen. Grimoire unterstützt sie best-effort und wir haben die Fallbacks implementiert, die ihre aktuellen CLIs erlauben, aber ihre ACP und runtime surfaces sind technisch begrenzt: sessions, approvals, streaming, tool/edit metadata, model discovery und usage reporting sind im Vergleich zu den empfohlenen Providern unvollständig oder unzuverlässig.
 
@@ -182,7 +182,38 @@ Gemini CLI bleibt ein legacy compatibility provider fuer Gemini Code Assist Stan
 gemini
 ```
 
-Aktiviere Gemini CLI nur, wenn dein account tier weiterhin unterstuetzt wird und du genau diesen legacy Google path brauchst. Grimoire startet es ueber `gemini --acp`, fuegt active note, editor/browser/canvas selection, vault search und project workspace context in den ACP prompt ein und markiert es als legacy, damit es nicht wie ein empfohlener provider wirkt. Nutze nach Möglichkeit Codex, Claude Code, OpenCode, MiMoCode, Kimi Code oder Grok Build.
+Aktiviere Gemini CLI nur, wenn dein account tier weiterhin unterstuetzt wird und du genau diesen legacy Google path brauchst. Grimoire startet es ueber `gemini --acp`, fuegt active note, editor/browser/canvas selection, vault search und project workspace context in den ACP prompt ein und markiert es als legacy, damit es nicht wie ein empfohlener provider wirkt. Nutze nach Möglichkeit Codex, Claude Code, OpenCode, MiMoCode, Kimi Code, Grok Build oder Qwen Code.
+
+### Qwen Code
+
+Qwen Code ist ein opt-in ACP-provider mit provider-nativen persistenten Sessions, Resume und model context sowie live model- und mode-discovery. Es streamt Nachrichten, Tool- und Plan-Aktivität und unterstützt image input, provider commands und file approvals. Grimoire hydriert keine provider-native message history.
+
+```bash
+# macOS und Linux
+curl -fsSL https://qwen-code-assets.oss-cn-hangzhou.aliyuncs.com/installation/install-qwen-standalone.sh | bash
+
+# Windows (PowerShell)
+irm https://qwen-code-assets.oss-cn-hangzhou.aliyuncs.com/installation/install-qwen-standalone.ps1 | iex
+
+# Alternativen: npm benötigt Node.js 22 oder neuer; Homebrew
+npm install -g @qwen-code/qwen-code@latest
+brew install qwen-code
+
+qwen --version
+qwen
+```
+
+Starte `qwen`, wähle in `/auth` **Alibaba ModelStudio**, **Third-party Providers** oder **Custom Provider** und aktiviere Qwen Code anschließend in Grimoire. Es gibt keinen OAuth-Anmeldeweg. Grimoire startet den opt-in provider mit `qwen --acp`.
+
+Safe, Auto-approve und Plan werden auf Qwen `default`, `yolo` und `plan` abgebildet; andere oder unbekannte Qwen modes werden in der shared toolbar konservativ als Safe gezeigt. Reasoning effort unterstützt Low, Medium, High, XHigh und Max; High ist der Standard. `/effort <tier>` wird vor dem normalen turn gesetzt, pro Session gecacht und hängt vom effektiven model ab. ACP permission metadata für single-select, multi-select und freeform questions wird in derselben shared inline UI angezeigt.
+
+Grimoire verwaltet weder Qwen MCP noch credentials: Konfiguriere sie in `~/.qwen/settings.json` sowie in der von Qwen verwalteten Umgebung oder `.env`. Usage wird nur angezeigt, wenn Qwen ACP token- oder cost-metadata meldet. Rewind und fork werden nicht unterstützt.
+
+- [Qwen Code documentation](https://qwenlm.github.io/qwen-code-docs/en/)
+- [Qwen Code authentication](https://qwenlm.github.io/qwen-code-docs/en/users/configuration/auth/)
+- [Qwen Code repository](https://github.com/QwenLM/qwen-code)
+
+Wenn Qwen nicht startet oder keine models erscheinen, führe `/doctor` in Qwen Code aus, schließe `/auth` ab, prüfe `qwen --version` und kontrolliere den Qwen CLI path in den Grimoire settings.
 
 ### OpenCode
 
@@ -274,7 +305,7 @@ Eine fokussierte Seitenleiste mit mehreren tabs. Jeder tab behält eigenen draft
 
 ### Model selector
 
-Ein picker, gruppiert nach provider und nach label sortiert: Antigravity, Claude Code, Codex, Gemini CLI (Legacy), Grok Build, OpenCode, MiMoCode und Kimi Code. Search läuft über labels, descriptions, groups und model IDs. Catalogs laden lazily und merken sich collapsed groups. In settings kannst du custom aliases und context-window overrides hinzufügen. Claude 1M variants sind zusätzliche options, keine Ersetzungen für base models.
+Ein picker, gruppiert nach provider und nach label sortiert: Antigravity, Claude Code, Codex, Gemini CLI (Legacy), Grok Build, Kimi Code, MiMoCode, OpenCode und Qwen Code. Search läuft über labels, descriptions, groups und model IDs. Catalogs laden lazily und merken sich collapsed groups. In settings kannst du custom aliases und context-window overrides hinzufügen. Claude 1M variants sind zusätzliche options, keine Ersetzungen für base models.
 
 <p align="center">
   <img src="../../assets/readme/model-selector-usage.png" alt="Grimoire model selector mit provider groups, search und plan usage" width="100%">
@@ -290,6 +321,7 @@ Ein badge neben dem model selector hält die usage des aktiven provider sichtbar
 | Codex | Account rate-limit notifications und `account/rateLimits/read`, wenn verfügbar |
 | Antigravity CLI | Noch nicht zuverlässig über `agy --print` verfügbar |
 | Gemini CLI (Legacy) | ACP cost metadata, wenn Gemini CLI sie meldet; nur legacy provider |
+| Qwen Code | ACP token- und cost-metadata, wenn Qwen Code sie meldet |
 | OpenCode | Monthly spend aggregiert aus ACP und session cost metadata |
 | MiMoCode | Monthly spend aggregiert aus ACP und session cost metadata |
 | Kimi Code | Monthly spend aggregiert aus ACP und session cost metadata |
@@ -316,11 +348,11 @@ Führe "Grimoire: Inline edit" auf einer Auswahl aus. Neben dem Text öffnet sic
 
 ### Clarifying questions
 
-Wenn ein provider structured user input anfordert, pausiert Grimoire den turn und rendert die Frage über dem composer. Claude Code stellt das als `AskUserQuestion` bereit; Codex app-server stellt eine experimentelle `request_user_input` / `requestUserInput` Oberfläche bereit. Grimoire normalisiert diese provider-specific Mechanismen in dieselbe inline question UI. Single-select, multi-select und freeform answers gehen zurück in den provider run, damit der agent ohne separate chat message fortfahren kann.
+Wenn ein provider structured user input anfordert, pausiert Grimoire den turn und rendert die Frage über dem composer. Claude Code stellt das als `AskUserQuestion` bereit; Codex app-server stellt eine experimentelle `request_user_input` / `requestUserInput` Oberfläche bereit; Qwen Code liefert ACP permission metadata. Grimoire normalisiert diese provider-specific Mechanismen in dieselbe inline question UI. Single-select, multi-select und freeform answers gehen zurück in den provider run, damit der agent ohne separate chat message fortfahren kann.
 
 ### Commands
 
-Built-in commands decken Grimoire workflows wie image generation und resume ab. Providers, die eigene commands anbieten, etwa Claude Code slash commands, OpenCode runtime commands und Grok Build runtime commands, zeigen sie über provider-owned catalogs. Nicht genutzte commands kannst du in settings ausblenden.
+Built-in commands decken Grimoire workflows wie image generation und resume ab. Providers, die eigene commands anbieten, etwa Claude Code slash commands sowie OpenCode-, Grok-Build- und Qwen-Code-runtime commands, zeigen sie über provider-owned catalogs. Nicht genutzte commands kannst du in settings ausblenden.
 
 ### Image generation
 
@@ -391,9 +423,9 @@ Obsidian Community plugins sind der empfohlene Installationsweg für Nutzer. Git
 
 ## Roadmap
 
-Aktuell wird Grimoire mit Claude Code, Codex, Antigravity CLI, Gemini CLI (Legacy), OpenCode, MiMoCode, Kimi Code und Grok Build ausgeliefert.
+Aktuell wird Grimoire mit Claude Code, Codex, Antigravity CLI, Gemini CLI (Legacy), OpenCode, MiMoCode, Kimi Code, Grok Build und Qwen Code ausgeliefert.
 
-Als Nächstes: Qwen Code, GitHub Copilot CLI, weitere ACP-compatible providers und local model CLIs, sobald deren runtime stabil genug ist, um in Obsidian eingebettet zu werden. Implementation notes stehen in [docs/provider-roadmap.md](../provider-roadmap.md).
+Als Nächstes: GitHub Copilot CLI, weitere ACP-compatible providers und local model CLIs, sobald deren runtime stabil genug ist, um in Obsidian eingebettet zu werden. Implementation notes stehen in [docs/provider-roadmap.md](../provider-roadmap.md).
 
 ## Lizenz
 

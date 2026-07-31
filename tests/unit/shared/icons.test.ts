@@ -4,6 +4,7 @@ import {
   createProviderIconSvg,
   OPENAI_PROVIDER_ICON,
   OPENCODE_PROVIDER_ICON,
+  QWEN_PROVIDER_ICON,
 } from '@/shared/icons';
 
 describe('createProviderIconSvg', () => {
@@ -38,5 +39,16 @@ describe('createProviderIconSvg', () => {
     expect(svg.getAttribute('viewBox')).toBe(OPENCODE_PROVIDER_ICON.viewBox);
     expect(svg.querySelector('.grimoire-provider-icon-variant--light')).not.toBeNull();
     expect(svg.querySelector('.grimoire-provider-icon-variant--dark')).not.toBeNull();
+  });
+
+  it('renders the Qwen provider icon with the official mark view box', () => {
+    const svg = createProviderIconSvg(QWEN_PROVIDER_ICON, {
+      dataProvider: 'qwen',
+      ownerDocument: document,
+    });
+
+    expect(svg.getAttribute('viewBox')).toBe('0 0 141.38 140');
+    expect(svg.getAttribute('data-provider')).toBe('qwen');
+    expect(svg.querySelector('path')?.getAttribute('fill')).toBe('currentColor');
   });
 });

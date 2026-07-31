@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Added the opt-in Qwen Code ACP provider with native persistent sessions and resume, live model and mode discovery, streaming activity, image input, commands, file approvals, and usage metadata when Qwen reports it.
+- Added Qwen reasoning effort controls and structured Qwen questions in the shared inline question UI.
+
+### Improved
+
+- Made long provider waits visible after 10 seconds without output by showing the active provider and elapsed time; the indicator pauses for questions and permissions.
+- Made horizontally scrolling provider settings tabs easier to use.
+
+### Fixed
+
+- Applied Qwen's selected effort with its native `/effort` command before the next normal turn and retained it for the active session.
+- Rendered Qwen's actual structured questions and answer controls instead of showing a generic permission request.
+
 ## 1.0.39 - 2026-07-27
 
 ### Improved

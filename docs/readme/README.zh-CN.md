@@ -27,7 +27,7 @@
   <sub>在笔记所在的同一个 Obsidian workspace 中，与本地 CLI 代理对话。</sub>
 </p>
 
-Grimoire 将 agentic CLI 助手带入 Obsidian。Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode、MiMoCode、Kimi Code、Grok Build 都在同一个侧边栏中运行：读取笔记、编辑文件、执行命令、调用工具，并把会话历史保存在真实的 vault 上下文中。Grimoire 不经过自家服务器：没有 telemetry、没有 hosted backend，也没有夹在你和 provider 之间的 proxy。
+Grimoire 将 agentic CLI 助手带入 Obsidian。Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode、MiMoCode、Kimi Code、Grok Build 和 Qwen Code 都在同一个侧边栏中运行：读取笔记、编辑文件、执行命令、调用工具，并把会话历史保存在真实的 vault 上下文中。Grimoire 不经过自家服务器：没有 telemetry、没有 hosted backend，也没有夹在你和 provider 之间的 proxy。
 
 它面向已经在 Obsidian 中工作的人：你可以使用本地上下文、本地文件、明确选择的 provider，并在界面里直接看到 usage 和 cost。
 
@@ -36,25 +36,25 @@ Grimoire 将 agentic CLI 助手带入 Obsidian。Claude Code、Codex、Antigravi
 ## 为什么选择 Grimoire
 
 - 在笔记里直接使用你已经信任的 CLI 代理。
-- 从 composer 切换 provider。Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode、MiMoCode、Kimi Code、Grok Build 共用一个 model picker。
+- 从 composer 切换 provider。Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode、MiMoCode、Kimi Code、Grok Build 和 Qwen Code 共用一个 model picker。
 - 让每一次 turn 都基于 vault 上下文。可以 mention 笔记、文件夹和 MCP tools，不需要手动复制路径。
 - 在选择模型的位置直接看到 cost 和 limits。
 - 保持 local-first。Grimoire 不收集 telemetry，不 proxy prompts，也不运行 backend。
 
 ## 各 provider 能做什么
 
-| 能力 | Claude Code | Codex | OpenCode | Grok Build | MiMoCode | Kimi Code | Antigravity CLI | Gemini CLI (Legacy) |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 本地 persistent runtime | 是 | 是 | 是 | 是 | 是 | 是 | 否 | 是 |
-| 原生 history hydration | 是 | 是 | 是 | 是 | 是 | 是 | 否 | 是 |
-| Plan mode | 是 | 是 | 是 | 是 | 是 | 是 | 否 | 是 |
-| Image attachments | 是 | 是 | 是 | 是 | 是 | 是 | 否 | 是 |
-| Instruction mode | 是 | 是 | 是 | 是 | 是 | 是 | 否 | 是 |
-| Reasoning effort controls | 是 | 是 | 是 | 是 | 是 | 是 | 是 | 是 |
-| Rewind | 是 | 否 | 否 | 是 | 否 | 否 | 否 | 否 |
-| Fork | 是 | 是 | 否 | 是 | 否 | 否 | 否 | 否 |
-| Provider slash commands | 是 | 否 | 是 | 是 | 是 | 是 | 否 | 否 |
-| Grimoire-managed MCP UI | 是 | 否 | 否 | 否 | 否 | 否 | 否 | 否 |
+| 能力 | Claude Code | Codex | OpenCode | Grok Build | MiMoCode | Kimi Code | Antigravity CLI | Gemini CLI (Legacy) | Qwen Code |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 本地 persistent runtime | 是 | 是 | 是 | 是 | 是 | 是 | 否 | 是 | 是 |
+| 原生 history hydration | 是 | 是 | 是 | 是 | 是 | 是 | 否 | 是 | 否 |
+| Plan mode | 是 | 是 | 是 | 是 | 是 | 是 | 否 | 是 | 是 |
+| Image attachments | 是 | 是 | 是 | 是 | 是 | 是 | 否 | 是 | 是 |
+| Instruction mode | 是 | 是 | 是 | 是 | 是 | 是 | 否 | 是 | 是 |
+| Reasoning effort controls | 是 | 是 | 是 | 是 | 是 | 是 | 是 | 是 | 是 |
+| Rewind | 是 | 否 | 否 | 是 | 否 | 否 | 否 | 否 | 否 |
+| Fork | 是 | 是 | 否 | 是 | 否 | 否 | 否 | 否 | 否 |
+| Provider slash commands | 是 | 否 | 是 | 是 | 是 | 是 | 否 | 否 | 是 |
+| Grimoire-managed MCP UI | 是 | 否 | 否 | 否 | 否 | 否 | 否 | 否 | 否 |
 
 ## 安装
 
@@ -112,7 +112,7 @@ cp dist/grimoire/main.js dist/grimoire/manifest.json dist/grimoire/styles.css \
 
 ### 推荐 providers
 
-为了获得最好的 Grimoire 体验，建议先从 Claude Code、Codex、OpenCode、MiMoCode、Kimi Code 或 Grok Build 开始。这些 providers 目前为 vault-native 工作提供最强的 runtime surface：persistent sessions、history hydration、plan-oriented workflows、tool activity，以及更丰富的 model controls。
+为了获得最好的 Grimoire 体验，建议先从 Claude Code、Codex、OpenCode、MiMoCode、Kimi Code、Grok Build 或 Qwen Code 开始。这些 providers 目前为 vault-native 工作提供最强的 runtime surface：persistent sessions、plan-oriented workflows、tool activity，以及更丰富的 model controls。
 
 Antigravity CLI 和 Gemini CLI (Legacy) 仍然可用于 Google accounts 和 compatibility 场景，但目前不推荐作为 Grimoire 的主要 provider。Grimoire 以 best-effort 方式支持它们，并已经实现了当前 CLI 能提供的 fallback，但它们的 ACP 和 runtime surfaces 存在技术限制：sessions、approvals、streaming、tool/edit metadata、model discovery 和 usage reporting 相比推荐 providers 并不完整，也不够可靠。
 
@@ -184,7 +184,37 @@ Gemini CLI 作为 legacy compatibility provider 保留给 Gemini Code Assist Sta
 gemini
 ```
 
-只有当你的 account tier 仍受支持，并且你确实需要这个 legacy Google path 时，才启用 Gemini CLI。Grimoire 通过 `gemini --acp` 运行它，将 active note、editor/browser/canvas selection、vault search 和 project workspace context 加入 ACP prompt，并标记为 legacy，避免看起来像推荐 provider。尽量优先使用 Codex、Claude Code、OpenCode、MiMoCode、Kimi Code 或 Grok Build。
+只有当你的 account tier 仍受支持，并且你确实需要这个 legacy Google path 时，才启用 Gemini CLI。Grimoire 通过 `gemini --acp` 运行它，将 active note、editor/browser/canvas selection、vault search 和 project workspace context 加入 ACP prompt，并标记为 legacy，避免看起来像推荐 provider。尽量优先使用 Codex、Claude Code、OpenCode、MiMoCode、Kimi Code、Grok Build 或 Qwen Code。
+
+### Qwen Code
+
+Qwen Code 是 opt-in ACP provider，支持 provider-native persistent sessions、resume 和 model context、live model/mode discovery、streaming messages/tools/plans、image input、provider commands 和 file approvals。Grimoire 不会 hydrate provider-native message history。
+
+```bash
+# Linux 和 macOS：推荐的 standalone 安装
+curl -fsSL https://qwen-code-assets.oss-cn-hangzhou.aliyuncs.com/installation/install-qwen-standalone.sh | bash
+
+# Windows PowerShell
+irm https://qwen-code-assets.oss-cn-hangzhou.aliyuncs.com/installation/install-qwen-standalone.ps1 | iex
+
+# 其他安装方式
+brew install qwen-code
+npm install -g @qwen-code/qwen-code@latest # 需要 Node.js 22+
+qwen --version
+qwen
+```
+
+在交互式 CLI 中使用 `/auth`，选择 Alibaba ModelStudio、Third-party Providers 或 Custom Provider；Qwen OAuth 已停止。然后在 Grimoire 中启用 Qwen Code，它会启动 `qwen --acp`。Safe、Auto-approve 和 Plan 对应 Qwen 的 `default`、`yolo` 和 `plan`；其他 automatic modes 会在 shared toolbar 中保守地显示为 Safe。模型和 modes 来自 live ACP session。
+
+- [Qwen Code documentation](https://qwenlm.github.io/qwen-code-docs/en/)
+- [Qwen Code authentication](https://qwenlm.github.io/qwen-code-docs/en/users/configuration/auth/)
+- [Qwen Code repository](https://github.com/QwenLM/qwen-code)
+
+如果 Qwen 无法启动或没有显示模型，请在 Qwen Code 中运行 `/doctor`、完成 `/auth`、检查 `qwen --version`，并确认 Grimoire 设置中的 Qwen CLI 路径。
+
+Reasoning effort 有 Low、Medium、High、XHigh、Max，默认 High。每个 normal turn 前，Grimoire 会执行真实的 Qwen `/effort <tier>` 并按 session 缓存；有效 tier 仍取决于所选 model/provider。Structured `AskUserQuestion` 通过 ACP permission metadata 到达，并在 shared inline question UI 中支持 single-select、multi-select 和 freeform answers。
+
+Credentials 和 config 由 Qwen 管理：请使用 CLI、`~/.qwen/settings.json` 或 Qwen-owned `.env`/environment。Grimoire 可以传递 provider environment variables，但不会管理 Qwen credentials 或 MCP。仅在 Qwen 发送 ACP token/cost metadata 时显示 usage；Qwen 目前不支持 Grimoire fork 或 rewind。
 
 ### OpenCode
 
@@ -255,7 +285,7 @@ Grok 4.5 目前是 Grok Build 的默认模型。Grimoire 从已认证的 Grok CL
 
 ### Chat workspace
 
-一个专注的侧边栏，支持多个 tabs。每个 tab 都保留自己的 draft、provider、model、context 和 runtime。关闭再打开 Obsidian 后，会话会恢复，并且每个 response 都保留 provider、model 和 reasoning effort。Rewind 和 fork 会在当前 provider 支持时出现。你一旦手动滚动去阅读历史，auto-scroll 会自动让位。
+一个专注的侧边栏，支持多个 tabs。每个 tab 都保留自己的 draft、provider、model、context 和 runtime。关闭再打开 Obsidian 后，会话会恢复，并且每个 response 都保留 provider、model 和 reasoning effort。Rewind 和 fork 会在当前 provider 支持时出现。你一旦手动滚动去阅读历史，auto-scroll 会自动让位。10 秒没有可见输出后，shared wait indicator 会显示 active provider 和已等待时间；等待问题或 permission 时会暂停。
 
 ### 键盘快捷键
 
@@ -268,7 +298,7 @@ Grok 4.5 目前是 Grok Build 的默认模型。Grimoire 从已认证的 Grok CL
 
 ### Model selector
 
-一个 picker，按 provider 分组，并按 label 排序：Antigravity、Claude Code、Codex、Gemini CLI (Legacy)、Grok Build、OpenCode、MiMoCode 和 Kimi Code。Search 会匹配 labels、descriptions、groups 和 model IDs。Catalogs 会 lazy load，并记住你折叠过的 groups。你可以在 settings 中添加 custom aliases 和 context-window overrides。Claude 的 1M variants 是额外 options，不会替代 base models。
+一个 picker，按 provider 分组，并按 label 排序：Antigravity、Claude Code、Codex、Gemini CLI (Legacy)、Grok Build、Kimi Code、MiMoCode、OpenCode 和 Qwen Code。Search 会匹配 labels、descriptions、groups 和 model IDs。Catalogs 会 lazy load，并记住你折叠过的 groups。你可以在 settings 中添加 custom aliases 和 context-window overrides。Claude 的 1M variants 是额外 options，不会替代 base models。
 
 <p align="center">
   <img src="../../assets/readme/model-selector-usage.png" alt="Grimoire model selector 显示 provider groups、model search 和 plan usage" width="100%">
@@ -284,6 +314,7 @@ Model selector 旁边的 badge 会持续显示当前 provider 的 usage；model 
 | Codex | Account rate-limit notifications，以及可用时的 `account/rateLimits/read` |
 | Antigravity CLI | `agy --print` 目前还不能可靠提供 |
 | Gemini CLI (Legacy) | Gemini CLI 返回时的 ACP cost metadata；仅 legacy provider |
+| Qwen Code | 仅在 Qwen Code 返回时的 ACP token 和 cost metadata |
 | OpenCode | 从 ACP 和 session cost metadata 聚合的 monthly spend |
 | MiMoCode | 从 ACP 和 session cost metadata 聚合的 monthly spend |
 | Kimi Code | 从 ACP 和 session cost metadata 聚合的 monthly spend |
@@ -310,11 +341,11 @@ Plan mode 会要求 provider 先制定计划，再开始进行更改。在 compo
 
 ### Clarifying questions
 
-当 provider 请求 structured user input 时，Grimoire 会暂停 turn，并在 composer 上方显示问题。Claude Code 将它暴露为 `AskUserQuestion`；Codex app-server 将它暴露为实验性的 `request_user_input` / `requestUserInput` surface。Grimoire 会把这些 provider-specific mechanisms 规范化到同一个 inline question UI。Single-select、multi-select 和 freeform answers 会返回给 provider run，让 agent 不需要另一条 chat message 就能继续。
+当 provider 请求 structured user input 时，Grimoire 会暂停 turn，并在 composer 上方显示问题。Claude Code 将它暴露为 `AskUserQuestion`；Codex app-server 将它暴露为实验性的 `request_user_input` / `requestUserInput` surface；Qwen Code 通过 ACP permission metadata 传递 `AskUserQuestion`。Grimoire 会把这些 provider-specific mechanisms 规范化到同一个 inline question UI。Single-select、multi-select 和 freeform answers 会返回给 provider run，让 agent 不需要另一条 chat message 就能继续。
 
 ### Commands
 
-Built-in commands 覆盖 Grimoire workflows，例如 image generation 和 resume。Provider 暴露的自有 commands，例如 Claude Code slash commands、OpenCode runtime commands 和 Grok Build runtime commands，会通过 provider-owned catalogs 展示。你可以在 settings 中隐藏不使用的 commands。
+Built-in commands 覆盖 Grimoire workflows，例如 image generation 和 resume。Provider 暴露的自有 commands，例如 Claude Code slash commands、OpenCode、Grok Build 和 Qwen Code runtime commands，会通过 provider-owned catalogs 展示。你可以在 settings 中隐藏不使用的 commands。
 
 ### Image generation
 
@@ -385,9 +416,9 @@ Obsidian Community plugins 是推荐的用户安装方式。GitHub Releases 仍�
 
 ## Roadmap
 
-目前 Grimoire 随 Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode、MiMoCode、Kimi Code 和 Grok Build 一起发布。
+目前 Grimoire 随 Claude Code、Codex、Antigravity CLI、Gemini CLI (Legacy)、OpenCode、MiMoCode、Kimi Code、Grok Build 和 Qwen Code 一起发布。
 
-下一步计划：Qwen Code、GitHub Copilot CLI、其他 ACP-compatible providers，以及当 runtime 足够稳定可嵌入 Obsidian 时的 local model CLIs。Implementation notes 位于 [docs/provider-roadmap.md](../provider-roadmap.md)。
+下一步计划：GitHub Copilot CLI、其他 ACP-compatible providers，以及当 runtime 足够稳定可嵌入 Obsidian 时的 local model CLIs。Implementation notes 位于 [docs/provider-roadmap.md](../provider-roadmap.md)。
 
 ## 许可证
 

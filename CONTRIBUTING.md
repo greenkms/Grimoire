@@ -36,7 +36,7 @@ vault. Do not commit local vault paths, credentials, transcripts, or debug artif
 ## Architecture
 
 The plugin shell is provider-neutral. Provider adapters wrap external tools such as
-Claude Code, Codex, OpenCode, MiMoCode, Kimi Code, Antigravity CLI, and Grok Build.
+Claude Code, Codex, OpenCode, MiMoCode, Kimi Code, Qwen Code, Antigravity CLI, and Grok Build.
 
 - Put shared runtime, provider, security, storage, and tool contracts in `src/core/`
   only when at least two providers use the behavior.

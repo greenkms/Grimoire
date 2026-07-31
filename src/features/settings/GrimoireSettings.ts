@@ -1,5 +1,5 @@
 import type { App, SettingDefinitionItem } from 'obsidian';
-import { Notice, Platform, PluginSettingTab, Setting } from 'obsidian';
+import { Notice, Platform, PluginSettingTab, setIcon, Setting } from 'obsidian';
 
 import { parseChangelogRelease } from '../../app/changelog/parser';
 import { GRIMOIRE_CHANGELOG_URL, readBundledChangelog } from '../../app/changelog/source';
@@ -30,6 +30,7 @@ import { updateGrokProviderSettings } from '../../providers/grok/settings';
 import { updateKimicodeProviderSettings } from '../../providers/kimicode/settings';
 import { updateMimocodeProviderSettings } from '../../providers/mimocode/settings';
 import { updateOpencodeProviderSettings } from '../../providers/opencode/settings';
+import { updateQwenProviderSettings } from '../../providers/qwen/settings';
 import { showWhatsNewModal } from '../../shared/modals/WhatsNewModal';
 import { formatContextLimit, parseContextLimit, parseEnvironmentVariables } from '../../utils/env';
 import { buildNavMappingText, parseNavMappings } from './keyboardNavigation';
@@ -57,6 +58,111 @@ type AppWithHotkeyInternals = App & {
   hotkeyManager?: ObsidianHotkeyManager;
   setting?: ObsidianSettingsController;
 };
+
+class SettingsTabScroller {
+  private readonly buttons: HTMLButtonElement[];
+  private readonly onScroll = () => this.updateState();
+  private readonly onWheel = (event: WheelEvent) => this.handleWheel(event);
+  private readonly onKeydown = (event: KeyboardEvent) => this.handleKeydown(event);
+  private readonly onResize = () => this.updateState();
+  private resizeObserver: ResizeObserver | null = null;
+
+  constructor(
+    private readonly root: HTMLElement,
+    private readonly viewport: HTMLElement,
+    private readonly previousButton: HTMLButtonElement,
+    private readonly nextButton: HTMLButtonElement,
+    private readonly activate: (index: number) => void,
+  ) {
+    this.buttons = Array.from(viewport.querySelectorAll<HTMLButtonElement>('.grimoire-settings-tab'));
+    this.previousButton.addEventListener('click', () => this.scrollByPage(-1));
+    this.nextButton.addEventListener('click', () => this.scrollByPage(1));
+    this.viewport.addEventListener('scroll', this.onScroll);
+    this.viewport.addEventListener('wheel', this.onWheel, { passive: false });
+    this.viewport.addEventListener('keydown', this.onKeydown);
+    const ResizeObserverCtor = viewport.ownerDocument.defaultView?.ResizeObserver;
+    if (typeof ResizeObserverCtor === 'function') {
+      this.resizeObserver = new ResizeObserverCtor(this.onResize);
+      this.resizeObserver.observe(viewport);
+    }
+    const view = viewport.ownerDocument.defaultView;
+    if (typeof view?.addEventListener === 'function') {
+      view.addEventListener('resize', this.onResize);
+    }
+    this.updateState();
+  }
+
+  reveal(button: HTMLButtonElement | undefined): void {
+    button?.scrollIntoView?.({ behavior: this.motionBehavior(), block: 'nearest', inline: 'nearest' });
+    this.updateState();
+  }
+
+  destroy(): void {
+    this.viewport.removeEventListener('scroll', this.onScroll);
+    this.viewport.removeEventListener('wheel', this.onWheel);
+    this.viewport.removeEventListener('keydown', this.onKeydown);
+    const view = this.viewport.ownerDocument.defaultView;
+    if (typeof view?.removeEventListener === 'function') {
+      view.removeEventListener('resize', this.onResize);
+    }
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
+  }
+
+  private handleWheel(event: WheelEvent): void {
+    if (this.viewport.scrollWidth <= this.viewport.clientWidth) return;
+    const delta = event.deltaX || event.deltaY;
+    if (!delta) return;
+    const before = this.viewport.scrollLeft;
+    const maximum = Math.max(0, this.viewport.scrollWidth - this.viewport.clientWidth);
+    this.viewport.scrollLeft = Math.max(0, Math.min(maximum, before + delta));
+    if (this.viewport.scrollLeft !== before) {
+      event.preventDefault();
+      this.updateState();
+    }
+  }
+
+  private handleKeydown(event: KeyboardEvent): void {
+    const current = this.buttons.findIndex((button) => button === event.target);
+    if (current < 0) return;
+    let nextIndex: number | null = null;
+    if (event.key === 'ArrowLeft') nextIndex = Math.max(0, current - 1);
+    if (event.key === 'ArrowRight') nextIndex = Math.min(this.buttons.length - 1, current + 1);
+    if (event.key === 'Home') nextIndex = 0;
+    if (event.key === 'End') nextIndex = this.buttons.length - 1;
+    if (nextIndex === null) return;
+    event.preventDefault();
+    this.activate(nextIndex);
+    const button = this.buttons[nextIndex];
+    button?.focus?.();
+    this.reveal(button);
+  }
+
+  private scrollByPage(direction: number): void {
+    const amount = Math.max(80, this.viewport.clientWidth * 0.75) * direction;
+    this.viewport.scrollBy?.({ behavior: this.motionBehavior(), left: amount });
+    if (!this.viewport.scrollBy) this.viewport.scrollLeft += amount;
+    this.updateState();
+  }
+
+  private updateState(): void {
+    const overflowing = this.viewport.scrollWidth > this.viewport.clientWidth + 1;
+    const canScrollPrevious = overflowing && this.viewport.scrollLeft > 1;
+    const canScrollNext = overflowing
+      && this.viewport.scrollLeft + this.viewport.clientWidth < this.viewport.scrollWidth - 1;
+    this.root.toggleClass('is-overflowing', overflowing);
+    this.root.toggleClass('can-scroll-prev', canScrollPrevious);
+    this.root.toggleClass('can-scroll-next', canScrollNext);
+    this.previousButton.disabled = !canScrollPrevious;
+    this.nextButton.disabled = !canScrollNext;
+  }
+
+  private motionBehavior(): ScrollBehavior {
+    return this.viewport.ownerDocument.defaultView?.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+      ? 'auto'
+      : 'smooth';
+  }
+}
 
 function formatHotkey(hotkey: ObsidianHotkey): string {
   const isMac = Platform.isMacOS;
@@ -159,6 +265,10 @@ const PROVIDER_SETTING_COPY: Record<ProviderId, { desc?: string; descKey?: Trans
     desc: 'Legacy Gemini CLI for Standard, Enterprise, and paid API-key users.',
     name: 'Gemini CLI (Legacy)',
   },
+  qwen: {
+    desc: 'Alibaba Qwen Code over its native Agent Client Protocol runtime.',
+    name: 'Qwen Code',
+  },
   opencode: {
     desc: 'Open-source, multi-vendor. Exposes the widest model catalog.',
     name: 'OpenCode',
@@ -206,6 +316,7 @@ const GENERAL_SETTINGS_SEARCH_KEYS: TranslationKey[] = [
 export class GrimoireSettingTab extends PluginSettingTab {
   plugin: GrimoirePlugin;
   private activeTab: SettingsTabId = 'general';
+  private tabScroller: SettingsTabScroller | null = null;
 
   constructor(app: App, plugin: GrimoirePlugin) {
     super(app, plugin);
@@ -214,6 +325,11 @@ export class GrimoireSettingTab extends PluginSettingTab {
 
   display(): void {
     this.renderSettings();
+  }
+
+  hide(): void {
+    this.tabScroller?.destroy();
+    this.tabScroller = null;
   }
 
   getSettingDefinitions(): SettingDefinitionItem[] {
@@ -245,6 +361,8 @@ export class GrimoireSettingTab extends PluginSettingTab {
   }
 
   private renderSettings(containerEl: HTMLElement = this.containerEl): void {
+    this.tabScroller?.destroy();
+    this.tabScroller = null;
     containerEl.empty();
     containerEl.addClass('grimoire-settings');
 
@@ -257,6 +375,18 @@ export class GrimoireSettingTab extends PluginSettingTab {
     }
 
     const tabBar = containerEl.createDiv({ cls: 'grimoire-settings-tabs' });
+    const previousTabButton = tabBar.createEl('button', {
+      attr: { 'aria-label': 'Scroll settings tabs backward', type: 'button' },
+      cls: 'grimoire-settings-tab-scroll grimoire-settings-tab-scroll--previous',
+    });
+    setIcon(previousTabButton, 'chevron-left');
+    const tabViewport = tabBar.createDiv({ cls: 'grimoire-settings-tabs-viewport' });
+    tabViewport.setAttribute('role', 'tablist');
+    const nextTabButton = tabBar.createEl('button', {
+      attr: { 'aria-label': 'Scroll settings tabs forward', type: 'button' },
+      cls: 'grimoire-settings-tab-scroll grimoire-settings-tab-scroll--next',
+    });
+    setIcon(nextTabButton, 'chevron-right');
     const versionEl = containerEl.createDiv({ cls: 'grimoire-settings-version' });
     versionEl.createSpan({ text: formatGrimoireVersion(this.plugin.manifest) });
     const whatsNewButton = versionEl.createEl('button', {
@@ -273,10 +403,13 @@ export class GrimoireSettingTab extends PluginSettingTab {
       const label = id === 'general'
         ? t('settings.tabs.general' as TranslationKey)
         : (PROVIDER_SETTING_COPY[id]?.name ?? ProviderRegistry.getProviderDisplayName(id));
-      const button = tabBar.createEl('button', {
+      const button = tabViewport.createEl('button', {
         cls: `grimoire-settings-tab${id === this.activeTab ? ' grimoire-settings-tab--active' : ''}`,
         text: label,
       });
+      button.setAttribute('role', 'tab');
+      button.setAttribute('aria-selected', String(id === this.activeTab));
+      button.tabIndex = id === this.activeTab ? 0 : -1;
       if (id !== 'general') {
         button.createSpan({
           cls: `grimoire-settings-tab-status${ProviderRegistry.isEnabled(id, this.plugin.settings) ? ' is-enabled' : ''}`,
@@ -286,11 +419,25 @@ export class GrimoireSettingTab extends PluginSettingTab {
         this.activeTab = id;
         for (const tabId of tabIds) {
           tabButtons.get(tabId)?.toggleClass('grimoire-settings-tab--active', tabId === id);
+          tabButtons.get(tabId)?.setAttribute('aria-selected', String(tabId === id));
+          if (tabButtons.get(tabId)) {
+            tabButtons.get(tabId)!.tabIndex = tabId === id ? 0 : -1;
+          }
           tabContents.get(tabId)?.toggleClass('grimoire-settings-tab-content--active', tabId === id);
         }
+        this.tabScroller?.reveal(button);
       });
       tabButtons.set(id, button);
     }
+
+    this.tabScroller = new SettingsTabScroller(
+      tabBar,
+      tabViewport,
+      previousTabButton,
+      nextTabButton,
+      (index) => tabButtons.get(tabIds[index])?.click(),
+    );
+    this.tabScroller.reveal(tabButtons.get(this.activeTab));
 
     for (const id of tabIds) {
       const content = containerEl.createDiv({
@@ -777,6 +924,8 @@ export class GrimoireSettingTab extends PluginSettingTab {
       updateAntigravityProviderSettings(this.plugin.settings, { enabled });
     } else if (providerId === 'gemini') {
       updateGeminiProviderSettings(this.plugin.settings, { enabled });
+    } else if (providerId === 'qwen') {
+      updateQwenProviderSettings(this.plugin.settings, { enabled });
     } else if (providerId === 'opencode') {
       updateOpencodeProviderSettings(this.plugin.settings, { enabled });
     } else if (providerId === 'mimocode') {

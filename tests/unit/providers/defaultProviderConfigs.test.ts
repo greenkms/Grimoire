@@ -10,6 +10,7 @@ describe('getBuiltInProviderDefaultConfigs', () => {
     expect(first).toHaveProperty('codex');
     expect(first).toHaveProperty('gemini');
     expect(first).toHaveProperty('opencode');
+    expect(first).toHaveProperty('qwen');
     expect(first).toHaveProperty('grok');
     expect(first).not.toBe(second);
     expect(first.antigravity).not.toBe(second.antigravity);
@@ -17,5 +18,6 @@ describe('getBuiltInProviderDefaultConfigs', () => {
     expect(first.codex).not.toBe(second.codex);
     expect(first.gemini).not.toBe(second.gemini);
     expect(first.opencode).not.toBe(second.opencode);
+    expect(first.qwen).not.toBe(second.qwen);
   });
 });

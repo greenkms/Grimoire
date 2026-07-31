@@ -237,6 +237,7 @@ describe('GrimoireSettingTab provider tabs', () => {
       'Kimi Code',
       'Antigravity',
       'Gemini CLI (Legacy)',
+      'Qwen Code',
     ]);
     expect(ProviderRegistry.getRegisteredProviderIds()).toEqual([
       'claude',
@@ -247,6 +248,84 @@ describe('GrimoireSettingTab provider tabs', () => {
       'kimicode',
       'antigravity',
       'gemini',
+      'qwen',
     ]);
+  });
+
+  it('renders accessible overflow controls and updates their boundary state', () => {
+    const tab = new GrimoireSettingTab(createSettingsApp(), createSettingsPlugin());
+    const container = createMockEl('div') as any;
+    (tab as any).containerEl = container;
+    tab.display();
+
+    const tabBar = container.querySelector('.grimoire-settings-tabs') as any;
+    const viewport = container.querySelector('.grimoire-settings-tabs-viewport') as any;
+    const previous = container.querySelector('.grimoire-settings-tab-scroll--previous') as any;
+    const next = container.querySelector('.grimoire-settings-tab-scroll--next') as any;
+    viewport.clientWidth = 100;
+    viewport.scrollWidth = 300;
+    viewport.scrollLeft = 0;
+    viewport.dispatchEvent('scroll');
+
+    expect(previous.getAttribute('aria-label')).toBe('Scroll settings tabs backward');
+    expect(next.getAttribute('aria-label')).toBe('Scroll settings tabs forward');
+    expect(tabBar.hasClass('is-overflowing')).toBe(true);
+    expect(previous.disabled).toBe(true);
+    expect(next.disabled).toBe(false);
+
+    viewport.scrollLeft = 200;
+    viewport.dispatchEvent('scroll');
+    expect(previous.disabled).toBe(false);
+    expect(next.disabled).toBe(true);
+    expect(tabBar.hasClass('can-scroll-prev')).toBe(true);
+
+    tab.hide();
+    expect(viewport.getEventListenerCount('scroll')).toBe(0);
+    expect(viewport.getEventListenerCount('wheel')).toBe(0);
+    expect(viewport.getEventListenerCount('keydown')).toBe(0);
+  });
+
+  it('uses wheel movement only when the overflowing tab list moves', () => {
+    const tab = new GrimoireSettingTab(createSettingsApp(), createSettingsPlugin());
+    const container = createMockEl('div') as any;
+    (tab as any).containerEl = container;
+    tab.display();
+
+    const viewport = container.querySelector('.grimoire-settings-tabs-viewport') as any;
+    viewport.clientWidth = 100;
+    viewport.scrollWidth = 300;
+    viewport.scrollLeft = 0;
+    const preventDefault = jest.fn();
+    viewport.dispatchEvent({ type: 'wheel', deltaX: 0, deltaY: 40, preventDefault });
+    expect(viewport.scrollLeft).toBe(40);
+    expect(preventDefault).toHaveBeenCalledTimes(1);
+
+    viewport.scrollLeft = 200;
+    viewport.dispatchEvent({ type: 'wheel', deltaX: 40, deltaY: 0, preventDefault });
+    expect(preventDefault).toHaveBeenCalledTimes(1);
+  });
+
+  it('activates, focuses, and reveals keyboard-selected tabs', () => {
+    const tab = new GrimoireSettingTab(createSettingsApp(), createSettingsPlugin());
+    const container = createMockEl('div') as any;
+    (tab as any).containerEl = container;
+    tab.display();
+
+    const buttons = Array.from(container.querySelectorAll('.grimoire-settings-tab')) as any[];
+    const reveal = jest.fn();
+    const focus = jest.fn();
+    buttons[1].scrollIntoView = reveal;
+    buttons[1].focus = focus;
+    const preventDefault = jest.fn();
+    container.querySelector('.grimoire-settings-tabs-viewport').dispatchEvent({
+      key: 'ArrowRight', preventDefault, target: buttons[0], type: 'keydown',
+    });
+
+    expect(buttons[1].hasClass('grimoire-settings-tab--active')).toBe(true);
+    expect(buttons[0].tabIndex).toBe(-1);
+    expect(buttons[1].tabIndex).toBe(0);
+    expect(focus).toHaveBeenCalled();
+    expect(reveal).toHaveBeenCalled();
+    expect(preventDefault).toHaveBeenCalled();
   });
 });

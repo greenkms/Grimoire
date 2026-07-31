@@ -938,6 +938,8 @@ export class ConversationController {
         return '#669df6';
       case 'opencode':
         return '#e0b341';
+      case 'qwen':
+        return '#615ced';
       case 'claude':
       default:
         return '#d97757';

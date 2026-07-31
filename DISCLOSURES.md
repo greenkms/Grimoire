@@ -4,7 +4,7 @@ This document summarizes Grimoire's privacy, network, account, payment, and file
 
 ## Short version
 
-Grimoire is a local-first Obsidian desktop plugin. It has no hosted backend, no client-side telemetry, no ads, and no self-update mechanism. It wraps user-installed CLI agents such as Claude Code, Codex, Gemini CLI, and OpenCode, so enabled providers may send selected prompts, context, files, images, tool output, and commands to their own services according to their own terms and privacy policies.
+Grimoire is a local-first Obsidian desktop plugin. It has no hosted backend, no client-side telemetry, no ads, and no self-update mechanism. It wraps user-installed CLI agents such as Claude Code, Codex, Gemini CLI, OpenCode, and Qwen Code, so enabled providers may send selected prompts, context, files, images, tool output, and commands to their own services according to their own terms and privacy policies.
 
 ## Payments and accounts
 
@@ -16,6 +16,7 @@ Full functionality requires at least one external CLI provider. Those providers 
 - Codex may require an OpenAI or ChatGPT account, plan access, or API key.
 - Gemini CLI may require a Google account, Gemini API key, or Vertex AI configuration.
 - OpenCode may require provider credentials for the model vendors configured by the user.
+- Qwen Code may require an Alibaba ModelStudio, third-party provider, or custom-provider account and configuration.
 
 Provider billing, quotas, rate limits, retention, and account requirements are controlled by the provider, not by Grimoire.
 
@@ -25,7 +26,7 @@ Grimoire does not send data to a Grimoire server and does not proxy provider tra
 
 Network use can happen when the user enables or configures external tools:
 
-- Provider CLIs may contact Anthropic, OpenAI, Google, OpenCode-configured vendors, or other services required by that provider.
+- Provider CLIs may contact Anthropic, OpenAI, Google, Alibaba ModelStudio, OpenCode-configured vendors, or other services required by that provider.
 - User-configured MCP servers may contact remote services depending on the MCP server configuration.
 - User-approved shell commands or provider tools may access the network if the command or tool does so.
 - Installation and updates happen through Obsidian, BRAT, npm, or GitHub Releases, depending on the user's installation path.
@@ -67,7 +68,7 @@ Grimoire stores its own data under:
 - `.grimoire/logs/YYYY-MM-DD.jsonl` when debug logging is enabled
 - `.grimoire/claude/statusline-usage.json` when Claude usage snapshots are configured
 
-Grimoire also reads and preserves provider-native vault files such as `.claude/`, `.codex/`, and `.opencode/` when the corresponding provider integration uses them.
+Grimoire also reads and preserves provider-native vault files such as `.claude/`, `.codex/`, and `.opencode/` when the corresponding provider integration uses them. Qwen Code configuration and MCP settings remain Qwen-owned: the Qwen CLI reads `~/.qwen/settings.json`, and Grimoire does not parse, write, or reconcile that file or Qwen MCP configuration.
 
 Users can add external context paths outside the vault. When they do, Grimoire may read those paths to surface files as selectable context for provider turns. Provider CLIs and user-approved shell commands may also access files outside the vault according to the provider's runtime and permission settings.
 

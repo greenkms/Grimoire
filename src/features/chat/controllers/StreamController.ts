@@ -35,6 +35,7 @@ import type {
 } from '../../../core/types';
 import type { SDKToolUseResult } from '../../../core/types/diff';
 import type GrimoirePlugin from '../../../main';
+import { createProviderIconSvg } from '../../../shared/icons';
 import {
   cancelScheduledAnimationFrame,
   scheduleAnimationFrame,
@@ -122,6 +123,13 @@ export class StreamController {
   private progressBlocks = new Map<string, ProgressBlockState>();
   private activeProgressId: string | null = null;
   private currentTextPhase: AssistantTextPhase | undefined;
+  private silentTurnTimeout: number | null = null;
+  private silentTurnElapsedInterval: number | null = null;
+  private silentTurnProviderId: ProviderId | null = null;
+  private silentTurnPaused = false;
+  private silentTurnStatusEl: HTMLElement | null = null;
+  private silentTurnStartedAt: number | null = null;
+  private silentTurnTimerWindow: Window | null = null;
 
   // Provider lifecycle agent tracking (spawn → wait/close lifecycle)
   private lifecycleSubagentStates = new Map<string, SubagentState>(); // spawn callId → SubagentState
@@ -158,6 +166,7 @@ export class StreamController {
   // ============================================
 
   async handleStreamChunk(chunk: StreamChunk, msg: ChatMessage): Promise<void> {
+    this.noteTurnActivity();
     const { state } = this.deps;
 
     switch (chunk.type) {
@@ -1605,6 +1614,122 @@ export class StreamController {
   // Thinking Indicator
   // ============================================
 
+  private static readonly SILENT_TURN_DELAY_MS = 10_000;
+
+  /** Starts the per-tab heartbeat that acknowledges a provider's silent turn. */
+  startTurnSilenceIndicator(providerId: ProviderId): void {
+    this.stopTurnSilenceIndicator();
+    this.silentTurnProviderId = providerId;
+    this.silentTurnPaused = false;
+    this.silentTurnStartedAt = Date.now();
+    this.scheduleSilenceCheck();
+  }
+
+  /** Resets the heartbeat when any raw provider chunk arrives. */
+  noteTurnActivity(): void {
+    if (!this.silentTurnProviderId || this.silentTurnPaused) return;
+    this.clearSilenceTimeout();
+    this.clearSilentTurnStatus();
+    this.silentTurnStartedAt = Date.now();
+    this.scheduleSilenceCheck();
+  }
+
+  /** Pauses or resumes the heartbeat while Grimoire is awaiting the user. */
+  pauseTurnSilenceIndicator(paused: boolean): void {
+    this.silentTurnPaused = paused;
+    this.clearSilenceTimeout();
+    this.clearSilentTurnStatus();
+    if (!paused && this.silentTurnProviderId) {
+      this.silentTurnStartedAt = Date.now();
+      this.scheduleSilenceCheck();
+    }
+  }
+
+  /** Stops the heartbeat and removes any transient status. */
+  stopTurnSilenceIndicator(): void {
+    this.clearSilenceTimeout();
+    this.clearSilentTurnStatus();
+    this.silentTurnProviderId = null;
+    this.silentTurnPaused = false;
+    this.silentTurnStartedAt = null;
+  }
+
+  private scheduleSilenceCheck(): void {
+    if (!this.silentTurnProviderId || this.silentTurnPaused) return;
+    const timerWindow = this.getSilenceTimerWindow();
+    this.silentTurnTimerWindow = timerWindow;
+    this.silentTurnTimeout = timerWindow.setTimeout(() => {
+      this.silentTurnTimeout = null;
+      if (this.silentTurnPaused || !this.silentTurnProviderId) return;
+      if (this.deps.state.currentThinkingState || this.activeProgressId) {
+        this.scheduleSilenceCheck();
+        return;
+      }
+      this.showSilentTurnStatus();
+    }, StreamController.SILENT_TURN_DELAY_MS);
+  }
+
+  private showSilentTurnStatus(): void {
+    const contentEl = this.deps.state.currentContentEl;
+    const providerId = this.silentTurnProviderId;
+    if (!contentEl || !providerId || this.silentTurnPaused) return;
+
+    this.clearSilentTurnStatus();
+    this.hideThinkingIndicator();
+    const statusEl = contentEl.createDiv({ cls: 'grimoire-silent-turn-status' });
+    statusEl.setAttribute('aria-live', 'polite');
+    statusEl.setAttribute('role', 'status');
+    const icon = ProviderRegistry.getChatUIConfig(providerId).getProviderIcon?.();
+    if (icon) {
+      statusEl.appendChild(createProviderIconSvg(icon, {
+        className: 'grimoire-silent-turn-status-icon',
+        dataProvider: providerId,
+        height: 14,
+        ownerDocument: statusEl.ownerDocument,
+        width: 14,
+      }));
+    }
+    statusEl.createSpan({ text: `${ProviderRegistry.getProviderDisplayName(providerId)} is still working` });
+    const elapsedEl = statusEl.createSpan({ cls: 'grimoire-silent-turn-status-elapsed' });
+    const updateElapsed = () => {
+      const startedAt = this.silentTurnStartedAt;
+      if (startedAt === null || elapsedEl.isConnected === false) return;
+      elapsedEl.setText(` · ${this.formatSilentTurnElapsed(Math.floor((Date.now() - startedAt) / 1000))}`);
+    };
+    updateElapsed();
+    this.silentTurnStatusEl = statusEl;
+    const timerWindow = contentEl.ownerDocument.defaultView ?? this.getSilenceTimerWindow();
+    this.silentTurnTimerWindow = timerWindow;
+    this.silentTurnElapsedInterval = timerWindow.setInterval(updateElapsed, 1000);
+    this.scrollToBottom();
+  }
+
+  private clearSilenceTimeout(): void {
+    if (this.silentTurnTimeout === null) return;
+    (this.silentTurnTimerWindow ?? this.getSilenceTimerWindow()).clearTimeout(this.silentTurnTimeout);
+    this.silentTurnTimeout = null;
+  }
+
+  private clearSilentTurnStatus(): void {
+    if (this.silentTurnElapsedInterval !== null) {
+      (this.silentTurnTimerWindow ?? this.getSilenceTimerWindow()).clearInterval(this.silentTurnElapsedInterval);
+      this.silentTurnElapsedInterval = null;
+    }
+    this.silentTurnStatusEl?.remove();
+    this.silentTurnStatusEl = null;
+  }
+
+  private getSilenceTimerWindow(): Window {
+    return this.deps.state.currentContentEl?.ownerDocument.defaultView
+      ?? this.getMessagesWindow()
+      ?? window;
+  }
+
+  private formatSilentTurnElapsed(seconds: number): string {
+    const totalSeconds = Math.max(0, seconds);
+    return `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, '0')}`;
+  }
+
   /** Debounce delay before showing thinking indicator (ms). */
   private static readonly THINKING_INDICATOR_DELAY = 400;
 
@@ -1826,6 +1951,7 @@ export class StreamController {
     this.cancelPendingToolOutputRenders();
     this.cancelPendingScroll();
     this.hideThinkingIndicator();
+    this.stopTurnSilenceIndicator();
     for (const progress of this.progressBlocks.values()) {
       cleanupProgressBlock(progress);
     }

@@ -33,28 +33,27 @@ This file tracks future provider integrations and the implementation sequence fo
 
 ## Current Integration Notes
 
-- Claude Code, Codex, and OpenCode are the strongest current Grimoire targets. They expose enough runtime structure for reliable chat streaming, file/tool activity, and provider-owned workspace behavior.
+- Claude Code, Codex, OpenCode, and Qwen Code are the strongest current Grimoire targets. They expose enough runtime structure for reliable chat streaming, file/tool activity, and provider-owned workspace behavior.
 - Antigravity and Gemini are usable but more limited today. Keep them available, but treat provider-specific enhancements as runtime-limited until their CLIs expose richer event streams, safer approval flows, and stronger session/tool metadata.
 - Context visibility should stay provider-neutral. The Context tab should show both user-pinned files and provider runtime file loads when Grimoire can infer them from tool events, while avoiding provider-specific assumptions in shared feature code.
 
-## Next Candidate: Qwen Code
+## Integrated Provider: Qwen Code
 
-Target shape:
+Current integration:
 
-- Add `src/providers/qwen/` with its own `AGENTS.md` once the runtime surface is confirmed.
-- Keep Qwen opt-in by default.
-- Verify whether the current Qwen CLI exposes ACP, JSON-RPC, JSONL transcripts, or only a terminal-style interface before choosing the adapter.
-- If ACP is available and stable, reuse `src/providers/acp/` for transport/session normalization while keeping Qwen-specific settings and model discovery in `src/providers/qwen/`.
-- If ACP is not available, build a provider-specific runtime boundary rather than forcing Qwen through an incompatible abstraction.
-- Capture model catalog, tool event shape, session persistence, and usage/cost metadata before implementing UI readouts.
+- Qwen Code is opt-in and owns its runtime, settings, model discovery, history boundary, and UI under `src/providers/qwen/`.
+- Grimoire launches `qwen --acp` and reuses `src/providers/acp/` for the standard JSON-RPC transport and session update normalization.
+- Models and ACP modes are discovered from live sessions. Raw model identifiers remain opaque provider-owned values instead of a duplicated static catalog.
+- Qwen's `default`, `yolo`, and `plan` modes map to Grimoire's Safe, Auto-approve, and Plan controls. Other Qwen automatic modes remain conservative in the shared Grimoire projection.
+- Provider-native session IDs are persisted for resume. Messages, tool activity, plan updates, commands, model/mode changes, and usage are normalized when Qwen emits them.
+- Qwen ACP permission choices are mapped to Grimoire's approval surface; structured `AskUserQuestion` requests use the shared inline question UI with single-select, multi-select, and freeform answers. Delegated file access remains workspace-confined outside Auto-approve mode.
+- The Qwen effort picker exposes Low, Medium, High, XHigh, and Max (High by default). Grimoire sends `/effort <tier>` before a normal turn and caches it per session; supported effective tiers remain model- and provider-dependent.
 
-Open questions:
+Current boundaries:
 
-- What is the stable Qwen launch command and protocol mode?
-- Does Qwen expose a model catalog, or should Grimoire use a static model list first?
-- Does Qwen expose plan usage, token usage, or spend metadata?
-- Does Qwen support MCP or provider-native tools, and where should Grimoire reconcile those settings?
-- Can Qwen resume sessions from provider-native history, or does Grimoire need provider-neutral transcript storage only?
+- Authentication and configuration remain owned by Qwen Code. Configure it through the CLI, `~/.qwen/settings.json`, or Qwen-owned environment variables before refreshing models or starting a chat.
+- Grimoire does not yet reconcile Qwen MCP configuration, fork sessions, or expose a rewind workflow.
+- Token or spend indicators depend on optional ACP usage updates. Qwen account quotas are not inferred when the CLI does not report them.
 
 ## Other Candidates
 

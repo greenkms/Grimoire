@@ -512,6 +512,7 @@ export class InputController {
       if (!ready) {
         new Notice('Failed to initialize agent service. Please try again.');
         streamController.hideThinkingIndicator();
+        streamController.stopTurnSilenceIndicator();
         state.isStreaming = false;
         this.activeStreamingAssistantMessage = null;
         this.resetProviderMessageBoundaryState();
@@ -524,6 +525,7 @@ export class InputController {
       new Notice('Agent service not available. Please reload the plugin.');
       this.activeStreamingAssistantMessage = null;
       this.resetProviderMessageBoundaryState();
+      streamController.stopTurnSilenceIndicator();
       return;
     }
 
@@ -544,6 +546,8 @@ export class InputController {
       }
     }
 
+    streamController.startTurnSilenceIndicator(this.getActiveProviderId());
+
     try {
       const preparedTurn = agentService.prepareTurn(turnRequest);
       userMsg.content = preparedTurn.persistedContent;
@@ -555,6 +559,7 @@ export class InputController {
       // This prevents duplication when rebuilding context for new sessions
       const previousMessages = state.messages.slice(0, -2);
       for await (const chunk of agentService.query(preparedTurn, previousMessages, queryOptions)) {
+        streamController.noteTurnActivity();
         if (state.streamGeneration !== streamGeneration) {
           wasInvalidated = true;
           break;
@@ -593,6 +598,7 @@ export class InputController {
       ).message;
       await streamController.appendText(`\n\n**Error:** ${errorMsg}`);
     } finally {
+      streamController.stopTurnSilenceIndicator();
       const finalAssistantMsg = this.activeStreamingAssistantMessage ?? assistantMsg;
       const turnMetadata = agentService.consumeTurnMetadata();
       userMsg.userMessageId = turnMetadata.userMessageId ?? userMsg.userMessageId;
@@ -1544,6 +1550,7 @@ export class InputController {
     this.restorePendingMessagesToInput();
     this.getAgentService()?.cancel();
     streamController.hideThinkingIndicator();
+    streamController.stopTurnSilenceIndicator();
   }
 
   private syncScrollToBottomAfterRenderUpdates(): void {
@@ -1699,6 +1706,7 @@ export class InputController {
 
     this.deps.streamController.flushPendingToolsForPermission();
     this.deps.streamController.hideThinkingIndicator();
+    this.deps.streamController.pauseTurnSilenceIndicator(true);
     const restoreAwaitingTool = this.markToolAwaitingPermission(toolName, input);
     const restoreComposer = this.lockComposerForPermission(inputContainerEl, parentEl);
 
@@ -1715,6 +1723,7 @@ export class InputController {
           this.pendingApprovalInline = null;
           restoreAwaitingTool();
           restoreComposer();
+          this.deps.streamController.pauseTurnSilenceIndicator(false);
           resolve(value);
         },
       });
@@ -1726,6 +1735,7 @@ export class InputController {
         this.pendingApprovalInline = null;
         restoreAwaitingTool();
         restoreComposer();
+        this.deps.streamController.pauseTurnSilenceIndicator(false);
         reject(toError(err));
       }
     });
@@ -1753,6 +1763,7 @@ export class InputController {
     }
 
     this.deps.streamController.hideThinkingIndicator();
+    this.deps.streamController.pauseTurnSilenceIndicator(true);
     composerSurfaceEl.addClass('grimoire-asking');
 
     return new Promise<Record<string, string | string[]> | null>((resolve, reject) => {
@@ -1762,6 +1773,7 @@ export class InputController {
         (result: Record<string, string | string[]> | null) => {
           this.pendingAskInline = null;
           composerSurfaceEl.removeClass('grimoire-asking');
+          this.deps.streamController.pauseTurnSilenceIndicator(false);
           resolve(result);
         },
         signal,
@@ -1772,6 +1784,7 @@ export class InputController {
       } catch (err) {
         this.pendingAskInline = null;
         composerSurfaceEl.removeClass('grimoire-asking');
+        this.deps.streamController.pauseTurnSilenceIndicator(false);
         reject(toError(err));
       }
     });
@@ -1789,6 +1802,7 @@ export class InputController {
     }
 
     streamController.hideThinkingIndicator();
+    streamController.pauseTurnSilenceIndicator(true);
     this.hideInputContainer(inputContainerEl);
 
     const enrichedInput = state.planFilePath
@@ -1807,6 +1821,7 @@ export class InputController {
         (decision: ExitPlanModeDecision | null) => {
           this.pendingExitPlanModeInline = null;
           this.restoreInputContainer(inputContainerEl);
+          streamController.pauseTurnSilenceIndicator(false);
           resolve(decision);
         },
         signal,
@@ -1819,6 +1834,7 @@ export class InputController {
       } catch (err) {
         this.pendingExitPlanModeInline = null;
         this.restoreInputContainer(inputContainerEl);
+        streamController.pauseTurnSilenceIndicator(false);
         reject(toError(err));
       }
     });
@@ -1854,6 +1870,7 @@ export class InputController {
     }
 
     this.hideInputContainer(inputContainerEl);
+    this.deps.streamController.pauseTurnSilenceIndicator(true);
     this.pendingPlanApprovalInvalidated = false;
 
     return new Promise<{ decision: PlanApprovalDecision | null; invalidated: boolean }>((resolve, reject) => {
@@ -1864,6 +1881,7 @@ export class InputController {
           this.pendingPlanApprovalInvalidated = false;
           this.pendingPlanApproval = null;
           this.restoreInputContainer(inputContainerEl);
+          this.deps.streamController.pauseTurnSilenceIndicator(false);
           resolve({ decision, invalidated });
         },
       );
@@ -1874,6 +1892,7 @@ export class InputController {
         this.pendingPlanApproval = null;
         this.pendingPlanApprovalInvalidated = false;
         this.restoreInputContainer(inputContainerEl);
+        this.deps.streamController.pauseTurnSilenceIndicator(false);
         reject(toError(err));
       }
     });

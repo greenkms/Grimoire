@@ -2476,6 +2476,92 @@ describe('StreamController - Text Content', () => {
   });
 });
 
+describe('StreamController - silent turn heartbeat', () => {
+  let controller: StreamController;
+  let deps: StreamControllerDeps;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+    installTestWindow();
+    deps = createMockDeps();
+    deps.state.currentContentEl = createMockEl();
+    controller = new StreamController(deps);
+  });
+
+  afterEach(() => {
+    controller.resetStreamingState();
+    restoreTestWindow();
+    jest.useRealTimers();
+  });
+
+  it('shows a provider-aware status after ten seconds of silence', () => {
+    deps.state.thinkingEl = createMockEl();
+    controller.startTurnSilenceIndicator('claude');
+
+    jest.advanceTimersByTime(9_999);
+    expect((controller as any).silentTurnStatusEl).toBeNull();
+
+    jest.advanceTimersByTime(1);
+    const status = (controller as any).silentTurnStatusEl;
+    expect(status).not.toBeNull();
+    expect(status.getAttribute('role')).toBe('status');
+    expect(status.getAttribute('aria-live')).toBe('polite');
+    expect(status.children.some((child: any) => child.getAttribute?.('data-provider') === 'claude')).toBe(true);
+    expect(status.children.some((child: any) => child.textContent === 'Claude is still working')).toBe(true);
+    expect(status.children.some((child: any) => child.textContent === ' · 0:10')).toBe(true);
+    expect(deps.state.thinkingEl).toBeNull();
+
+    jest.advanceTimersByTime(4_000);
+    expect((controller as any).silentTurnStatusEl).not.toBeNull();
+    expect(status.children.some((child: any) => child.textContent === ' · 0:14')).toBe(true);
+  });
+
+  it('resets on activity and pauses while awaiting user attention', () => {
+    controller.startTurnSilenceIndicator('claude');
+    jest.advanceTimersByTime(9_000);
+    controller.noteTurnActivity();
+    jest.advanceTimersByTime(1_000);
+    expect((controller as any).silentTurnStatusEl).toBeNull();
+
+    controller.pauseTurnSilenceIndicator(true);
+    jest.advanceTimersByTime(20_000);
+    expect((controller as any).silentTurnStatusEl).toBeNull();
+
+    controller.pauseTurnSilenceIndicator(false);
+    jest.advanceTimersByTime(10_000);
+    expect((controller as any).silentTurnStatusEl).not.toBeNull();
+  });
+
+  it('suppresses the status while a thinking block or progress is active', () => {
+    deps.state.currentThinkingState = { content: '', contentEl: createMockEl() } as any;
+    controller.startTurnSilenceIndicator('claude');
+    jest.advanceTimersByTime(10_000);
+    expect((controller as any).silentTurnStatusEl).toBeNull();
+
+    deps.state.currentThinkingState = null;
+    (controller as any).progressBlocks.set('completed-progress', { state: 'completed' });
+    jest.advanceTimersByTime(10_000);
+    expect((controller as any).silentTurnStatusEl).not.toBeNull();
+    controller.noteTurnActivity();
+
+    (controller as any).activeProgressId = 'progress-1';
+    (controller as any).progressBlocks.set('progress-1', {});
+    jest.advanceTimersByTime(10_000);
+    expect((controller as any).silentTurnStatusEl).toBeNull();
+    (controller as any).progressBlocks.clear();
+  });
+
+  it('cleans up the heartbeat when streaming resets', () => {
+    controller.startTurnSilenceIndicator('claude');
+    controller.resetStreamingState();
+
+    jest.advanceTimersByTime(20_000);
+    expect((controller as any).silentTurnStatusEl).toBeNull();
+    expect((controller as any).silentTurnProviderId).toBeNull();
+  });
+});
+
 describe('StreamController - User-facing progress', () => {
   let controller: StreamController;
   let deps: StreamControllerDeps;

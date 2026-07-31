@@ -7,6 +7,7 @@ import { DEFAULT_GROK_PROVIDER_SETTINGS } from './grok/settings';
 import { DEFAULT_KIMICODE_PROVIDER_SETTINGS } from './kimicode/settings';
 import { DEFAULT_MIMOCODE_PROVIDER_SETTINGS } from './mimocode/settings';
 import { DEFAULT_OPENCODE_PROVIDER_SETTINGS } from './opencode/settings';
+import { DEFAULT_QWEN_PROVIDER_SETTINGS } from './qwen/settings';
 
 export function getBuiltInProviderDefaultConfigs(): ProviderConfigMap {
   return {
@@ -18,5 +19,6 @@ export function getBuiltInProviderDefaultConfigs(): ProviderConfigMap {
     kimicode: { ...DEFAULT_KIMICODE_PROVIDER_SETTINGS },
     mimocode: { ...DEFAULT_MIMOCODE_PROVIDER_SETTINGS },
     opencode: { ...DEFAULT_OPENCODE_PROVIDER_SETTINGS },
+    qwen: { ...DEFAULT_QWEN_PROVIDER_SETTINGS },
   };
 }

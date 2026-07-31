@@ -14,6 +14,7 @@ describe('DEFAULT_GRIMOIRE_SETTINGS', () => {
     expect(DEFAULT_GRIMOIRE_SETTINGS.providerConfigs.antigravity?.enabled).toBe(false);
     expect(DEFAULT_GRIMOIRE_SETTINGS.providerConfigs.gemini?.enabled).toBe(false);
     expect(DEFAULT_GRIMOIRE_SETTINGS.providerConfigs.opencode?.enabled).toBe(false);
+    expect(DEFAULT_GRIMOIRE_SETTINGS.providerConfigs.qwen?.enabled).toBe(false);
   });
 
   it('starts every advanced settings disclosure collapsed', () => {

@@ -90,6 +90,18 @@ describe('ProviderRegistry', () => {
     expect(caps.supportsFork).toBe(false);
   });
 
+  it('returns Qwen Code ACP capabilities without unsupported controls', () => {
+    const caps = ProviderRegistry.getCapabilities('qwen');
+    expect(caps.providerId).toBe('qwen');
+    expect(caps.supportsPersistentRuntime).toBe(true);
+    expect(caps.supportsProviderCommands).toBe(true);
+    expect(caps.supportsPlanMode).toBe(true);
+    expect(caps.supportsMcpTools).toBe(false);
+    expect(caps.supportsFork).toBe(false);
+    expect(caps.supportsRewind).toBe(false);
+    expect(caps.reasoningControl).toBe('effort');
+  });
+
   it('lists registered provider ids in settings tab order', () => {
     expect(ProviderRegistry.getRegisteredProviderIds()).toEqual([
       'claude',
@@ -100,6 +112,7 @@ describe('ProviderRegistry', () => {
       'kimicode',
       'antigravity',
       'gemini',
+      'qwen',
     ]);
   });
 
@@ -130,6 +143,7 @@ describe('ProviderRegistry', () => {
         grok: { enabled: true },
         antigravity: { enabled: true },
         gemini: { enabled: true },
+        qwen: { enabled: true },
       },
     })).toEqual([
       'claude',
@@ -138,6 +152,7 @@ describe('ProviderRegistry', () => {
       'grok',
       'antigravity',
       'gemini',
+      'qwen',
     ]);
   });
 

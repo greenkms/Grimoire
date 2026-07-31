@@ -16,6 +16,8 @@ import { mimocodeWorkspaceRegistration } from './mimocode/app/MimocodeWorkspaceS
 import { mimocodeProviderRegistration } from './mimocode/registration';
 import { opencodeWorkspaceRegistration } from './opencode/app/OpencodeWorkspaceServices';
 import { opencodeProviderRegistration } from './opencode/registration';
+import { qwenWorkspaceRegistration } from './qwen/app/QwenWorkspaceServices';
+import { qwenProviderRegistration } from './qwen/registration';
 
 let builtInProvidersRegistered = false;
 
@@ -32,6 +34,7 @@ export function registerBuiltInProviders(): void {
   ProviderRegistry.register('kimicode', kimicodeProviderRegistration);
   ProviderRegistry.register('antigravity', antigravityProviderRegistration);
   ProviderRegistry.register('gemini', geminiProviderRegistration);
+  ProviderRegistry.register('qwen', qwenProviderRegistration);
   ProviderWorkspaceRegistry.register('claude', claudeWorkspaceRegistration);
   ProviderWorkspaceRegistry.register('codex', codexWorkspaceRegistration);
   ProviderWorkspaceRegistry.register('opencode', opencodeWorkspaceRegistration);
@@ -40,6 +43,7 @@ export function registerBuiltInProviders(): void {
   ProviderWorkspaceRegistry.register('kimicode', kimicodeWorkspaceRegistration);
   ProviderWorkspaceRegistry.register('antigravity', antigravityWorkspaceRegistration);
   ProviderWorkspaceRegistry.register('gemini', geminiWorkspaceRegistration);
+  ProviderWorkspaceRegistry.register('qwen', qwenWorkspaceRegistration);
   builtInProvidersRegistered = true;
 }
 
