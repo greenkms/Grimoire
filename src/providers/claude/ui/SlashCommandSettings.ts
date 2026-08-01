@@ -42,9 +42,13 @@ export class SlashCommandModal extends Modal {
     const existingIsSkill = this.existingEntry ? isSkillEntry(this.existingEntry) : false;
     let selectedType: 'command' | 'skill' = existingIsSkill ? 'skill' : 'command';
 
-    const typeLabel = () => selectedType === 'skill' ? 'Skill' : 'Slash Command';
+    const typeLabel = () => selectedType === 'skill'
+      ? t('settings.slashCommandEditor.skill')
+      : t('settings.slashCommandEditor.slashCommand');
 
-    this.setTitle(this.existingEntry ? `Edit ${typeLabel()}` : `Add ${typeLabel()}`);
+    this.setTitle(this.existingEntry
+      ? t('settings.slashCommandEditor.titleEdit', { type: typeLabel() })
+      : t('settings.slashCommandEditor.titleAdd', { type: typeLabel() }));
     this.modalEl.addClass('grimoire-sp-modal');
 
     const { contentEl } = this;
@@ -74,16 +78,18 @@ export class SlashCommandModal extends Modal {
     };
 
     new Setting(contentEl)
-      .setName('Type')
-      .setDesc('Command or skill')
+      .setName(t('settings.slashCommandEditor.type'))
+      .setDesc(t('settings.slashCommandEditor.typeDesc'))
       .addDropdown(dropdown => {
         dropdown
-          .addOption('command', 'Command')
-          .addOption('skill', 'Skill')
+          .addOption('command', t('settings.slashCommandEditor.command'))
+          .addOption('skill', t('settings.slashCommandEditor.skill'))
           .setValue(selectedType)
           .onChange(value => {
             selectedType = value as 'command' | 'skill';
-            this.setTitle(this.existingEntry ? `Edit ${typeLabel()}` : `Add ${typeLabel()}`);
+            this.setTitle(this.existingEntry
+              ? t('settings.slashCommandEditor.titleEdit', { type: typeLabel() })
+              : t('settings.slashCommandEditor.titleAdd', { type: typeLabel() }));
             updateSkillOnlyFields();
           });
         if (this.existingEntry) {
@@ -92,8 +98,8 @@ export class SlashCommandModal extends Modal {
       });
 
     new Setting(contentEl)
-      .setName('Command name')
-      .setDesc('The name used after / (e.g., "review" for /review)')
+      .setName(t('settings.slashCommandEditor.name'))
+      .setDesc(t('settings.slashCommandEditor.nameDesc'))
       .addText(text => {
         nameInput = text.inputEl;
         text.setValue(this.existingEntry?.name || '')
@@ -101,8 +107,8 @@ export class SlashCommandModal extends Modal {
       });
 
     new Setting(contentEl)
-      .setName('Description')
-      .setDesc('Optional description shown in dropdown')
+      .setName(t('settings.subagents.modal.description'))
+      .setDesc(t('settings.slashCommandEditor.descriptionDesc'))
       .addText(text => {
         descInput = text.inputEl;
         text.setValue(this.existingEntry?.description || '');
@@ -110,7 +116,7 @@ export class SlashCommandModal extends Modal {
 
     const details = contentEl.createEl('details', { cls: 'grimoire-sp-advanced-section' });
     details.createEl('summary', {
-      text: 'Advanced options',
+      text: t('settings.subagents.modal.advancedOptions'),
       cls: 'grimoire-sp-advanced-summary',
     });
     if (
@@ -126,16 +132,16 @@ export class SlashCommandModal extends Modal {
     }
 
     new Setting(details)
-      .setName('Argument hint')
-      .setDesc('Placeholder text for arguments (e.g., "[file] [focus]")')
+      .setName(t('settings.slashCommandEditor.argumentHint'))
+      .setDesc(t('settings.slashCommandEditor.argumentHintDesc'))
       .addText(text => {
         hintInput = text.inputEl;
         text.setValue(this.existingEntry?.argumentHint || '');
       });
 
     new Setting(details)
-      .setName('Model override')
-      .setDesc('Optional model to use for this command')
+      .setName(t('settings.slashCommandEditor.modelOverride'))
+      .setDesc(t('settings.slashCommandEditor.modelOverrideDesc'))
       .addText(text => {
         modelInput = text.inputEl;
         text.setValue(this.existingEntry?.model || '')
@@ -143,24 +149,24 @@ export class SlashCommandModal extends Modal {
       });
 
     new Setting(details)
-      .setName('Allowed tools')
-      .setDesc('Comma-separated list of tools to allow (empty = all)')
+      .setName(t('settings.slashCommandEditor.allowedTools'))
+      .setDesc(t('settings.slashCommandEditor.allowedToolsDesc'))
       .addText(text => {
         toolsInput = text.inputEl;
         text.setValue(this.existingEntry?.allowedTools?.join(', ') || '');
       });
 
     new Setting(details)
-      .setName('Disable model invocation')
-      .setDesc('Prevent the model from invoking this command itself')
+      .setName(t('settings.slashCommandEditor.disableModelInvocation'))
+      .setDesc(t('settings.slashCommandEditor.disableModelInvocationDesc'))
       .addToggle(toggle => {
         toggle.setValue(disableModelToggle)
           .onChange(value => { disableModelToggle = value; });
       });
 
     disableUserSetting = new Setting(details)
-      .setName('Disable user invocation')
-      .setDesc('Prevent the user from invoking this skill directly')
+      .setName(t('settings.slashCommandEditor.disableUserInvocation'))
+      .setDesc(t('settings.slashCommandEditor.disableUserInvocationDesc'))
       .addToggle(toggle => {
         disableUserToggle = toggle;
         toggle.setValue(disableUserInvocation)
@@ -170,8 +176,8 @@ export class SlashCommandModal extends Modal {
     updateSkillOnlyFields();
 
     new Setting(details)
-      .setName('Context')
-      .setDesc('Run in a subagent (fork)')
+      .setName(t('settings.slashCommandEditor.context'))
+      .setDesc(t('settings.slashCommandEditor.contextDesc'))
       .addToggle(toggle => {
         toggle.setValue(contextValue === 'fork')
           .onChange(value => {
@@ -181,8 +187,8 @@ export class SlashCommandModal extends Modal {
       });
 
     const agentSetting = new Setting(details)
-      .setName('Agent')
-      .setDesc('Subagent type when context is fork')
+      .setName(t('settings.slashCommandEditor.agent'))
+      .setDesc(t('settings.slashCommandEditor.agentDesc'))
       .addText(text => {
         agentInput = text.inputEl;
         text.setValue(this.existingEntry?.agent || '')
@@ -191,14 +197,14 @@ export class SlashCommandModal extends Modal {
     agentSetting.settingEl.toggleClass('grimoire-hidden', contextValue !== 'fork');
 
     new Setting(contentEl)
-      .setName('Prompt template')
-      .setDesc('Use $ARGUMENTS, $1, $2, @file, !`bash`');
+      .setName(t('settings.slashCommandEditor.promptTemplate'))
+      .setDesc(t('settings.slashCommandEditor.promptTemplateDesc'));
 
     const contentArea = contentEl.createEl('textarea', {
       cls: 'grimoire-sp-content-area',
       attr: {
         rows: '10',
-        placeholder: 'Review this code for:\n$ARGUMENTS\n\n@$1',
+        placeholder: t('settings.slashCommandEditor.promptTemplatePlaceholder'),
       },
     });
     const initialContent = this.existingEntry
@@ -209,13 +215,13 @@ export class SlashCommandModal extends Modal {
     const buttonContainer = contentEl.createDiv({ cls: 'grimoire-sp-modal-buttons' });
 
     const cancelBtn = buttonContainer.createEl('button', {
-      text: 'Cancel',
+      text: t('common.cancel'),
       cls: 'grimoire-cancel-btn',
     });
     cancelBtn.addEventListener('click', () => this.close());
 
     const saveBtn = buttonContainer.createEl('button', {
-      text: 'Save',
+      text: t('common.save'),
       cls: 'grimoire-save-btn',
     });
     saveBtn.addEventListener('click', () => {
@@ -229,7 +235,7 @@ export class SlashCommandModal extends Modal {
 
       const content = contentArea.value;
       if (!content.trim()) {
-        new Notice('Prompt template is required');
+        new Notice(t('settings.slashCommandEditor.promptRequired'));
         return;
       }
 
@@ -238,7 +244,7 @@ export class SlashCommandModal extends Modal {
           && entry.id !== this.existingEntry?.id,
       );
       if (existing) {
-        new Notice(`A command named "/${name}" already exists`);
+        new Notice(t('settings.slashCommandEditor.commandExists', { name }));
         return;
       }
 
@@ -277,8 +283,9 @@ export class SlashCommandModal extends Modal {
       try {
         await this.onSave(entry);
       } catch {
-        const label = isSkillType ? 'skill' : 'slash command';
-        new Notice(`Failed to save ${label}`);
+        new Notice(isSkillType
+          ? t('settings.slashCommandEditor.saveSkillFailed')
+          : t('settings.slashCommandEditor.saveCommandFailed'));
         return;
       }
       this.close();
@@ -329,7 +336,7 @@ export class SlashCommandSettings {
   private renderUnavailable(): void {
     this.containerEl.empty();
     const emptyEl = this.containerEl.createDiv({ cls: 'grimoire-sp-empty-state' });
-    emptyEl.setText('Claude command catalog is unavailable.');
+    emptyEl.setText(t('settings.slashCommandEditor.catalogUnavailable'));
   }
 
   private render(): void {
@@ -342,14 +349,14 @@ export class SlashCommandSettings {
 
     const addBtn = actionsEl.createEl('button', {
       cls: 'grimoire-settings-action-btn',
-      attr: { 'aria-label': 'Add' },
+      attr: { 'aria-label': t('common.add') },
     });
     setIcon(addBtn, 'plus');
     addBtn.addEventListener('click', () => this.openCommandModal(null));
 
     if (this.commands.length === 0) {
       const emptyEl = this.containerEl.createDiv({ cls: 'grimoire-sp-empty-state' });
-      emptyEl.setText('No commands or skills configured. Click + to create one.');
+      emptyEl.setText(t('settings.slashCommandEditor.noEntries'));
       return;
     }
 
@@ -371,7 +378,7 @@ export class SlashCommandSettings {
     nameEl.setText(`/${cmd.name}`);
 
     if (isSkillEntry(cmd)) {
-      headerRow.createSpan({ text: 'skill', cls: 'grimoire-slash-item-badge' });
+      headerRow.createSpan({ text: t('settings.slashCommandEditor.skillBadge'), cls: 'grimoire-slash-item-badge' });
     }
 
     if (cmd.argumentHint) {
@@ -389,7 +396,7 @@ export class SlashCommandSettings {
     if (cmd.isEditable) {
       const editBtn = actionsEl.createEl('button', {
         cls: 'grimoire-settings-action-btn',
-        attr: { 'aria-label': 'Edit' },
+        attr: { 'aria-label': t('common.edit') },
       });
       setIcon(editBtn, 'pencil');
       editBtn.addEventListener('click', () => this.openCommandModal(cmd));
@@ -398,7 +405,7 @@ export class SlashCommandSettings {
     if (!isSkillEntry(cmd) && cmd.isEditable) {
       const convertBtn = actionsEl.createEl('button', {
         cls: 'grimoire-settings-action-btn',
-        attr: { 'aria-label': 'Convert to skill' },
+        attr: { 'aria-label': t('settings.slashCommandEditor.convertToSkill') },
       });
       setIcon(convertBtn, 'package');
       convertBtn.addEventListener('click', () => {
@@ -406,7 +413,7 @@ export class SlashCommandSettings {
         try {
           await this.transformToSkill(cmd);
         } catch {
-          new Notice('Failed to convert to skill');
+          new Notice(t('settings.slashCommandEditor.convertFailed'));
         }
         })();
       });
@@ -415,7 +422,7 @@ export class SlashCommandSettings {
     if (cmd.isDeletable) {
       const deleteBtn = actionsEl.createEl('button', {
         cls: 'grimoire-settings-action-btn grimoire-settings-delete-btn',
-        attr: { 'aria-label': 'Delete' },
+        attr: { 'aria-label': t('common.delete') },
       });
       setIcon(deleteBtn, 'trash-2');
       deleteBtn.addEventListener('click', () => {
@@ -423,8 +430,9 @@ export class SlashCommandSettings {
         try {
           await this.deleteCommand(cmd);
         } catch {
-          const label = isSkillEntry(cmd) ? 'skill' : 'slash command';
-          new Notice(`Failed to delete ${label}`);
+          new Notice(isSkillEntry(cmd)
+            ? t('settings.slashCommandEditor.deleteSkillFailed')
+            : t('settings.slashCommandEditor.deleteCommandFailed'));
         }
         })();
       });
@@ -457,8 +465,12 @@ export class SlashCommandSettings {
     await this.reloadCommands();
 
     this.render();
-    const label = isSkillEntry(cmd) ? 'Skill' : 'Slash command';
-    new Notice(`${label} "/${cmd.name}" ${existing ? 'updated' : 'created'}`);
+    const type = isSkillEntry(cmd)
+      ? t('settings.slashCommandEditor.skill')
+      : t('settings.slashCommandEditor.slashCommand');
+    new Notice(existing
+      ? t('settings.slashCommandEditor.updated', { type, name: cmd.name })
+      : t('settings.slashCommandEditor.created', { type, name: cmd.name }));
   }
 
   private async deleteCommand(cmd: ProviderCommandEntry): Promise<void> {
@@ -471,8 +483,10 @@ export class SlashCommandSettings {
     await this.reloadCommands();
 
     this.render();
-    const label = isSkillEntry(cmd) ? 'Skill' : 'Slash command';
-    new Notice(`${label} "/${cmd.name}" deleted`);
+    const type = isSkillEntry(cmd)
+      ? t('settings.slashCommandEditor.skill')
+      : t('settings.slashCommandEditor.slashCommand');
+    new Notice(t('settings.slashCommandEditor.deleted', { type, name: cmd.name }));
   }
 
   private async transformToSkill(cmd: ProviderCommandEntry): Promise<void> {
@@ -486,7 +500,7 @@ export class SlashCommandSettings {
       entry => isSkillEntry(entry) && entry.name === skillName,
     );
     if (existingSkill) {
-      new Notice(`A skill named "/${skillName}" already exists`);
+      new Notice(t('settings.slashCommandEditor.skillExists', { name: skillName }));
       return;
     }
 
@@ -509,7 +523,7 @@ export class SlashCommandSettings {
 
     await this.reloadCommands();
     this.render();
-    new Notice(`Converted "/${cmd.name}" to skill`);
+    new Notice(t('settings.slashCommandEditor.converted', { name: cmd.name }));
   }
 
   private async reloadCommands(): Promise<void> {

@@ -24,8 +24,8 @@ export const geminiSettingsTabRenderer: ProviderSettingsTabRenderer = {
     new Setting(container).setName(t('settings.setup')).setHeading();
 
     const cliPathSetting = new Setting(container)
-      .setName('Gemini CLI path')
-      .setDesc('Custom path to the local Gemini CLI. Leave empty to launch `gemini` from PATH.');
+      .setName(t('settings.providerTabs.gemini.cliPath.name'))
+      .setDesc(t('settings.providerTabs.gemini.cliPath.desc'));
 
     const validationEl = container.createDiv({
       cls: 'grimoire-cli-path-validation grimoire-setting-validation grimoire-setting-validation-error grimoire-hidden',
@@ -93,16 +93,16 @@ export const geminiSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
     const advancedContainer = context.renderAdvancedSection(container, {
       count: 2,
-      summary: 'Environment variables and context overrides',
+      summary: t('settings.advanced.environmentSummary'),
     });
 
     renderEnvironmentSettingsSection({
       container: advancedContainer,
       plugin: context.plugin,
       scope: 'provider:gemini',
-      heading: 'Environment',
-      name: 'Environment Variables',
-      desc: 'Extra environment variables passed to Gemini CLI, such as GEMINI_API_KEY or GOOGLE_CLOUD_PROJECT.',
+      heading: t('settings.environment'),
+      name: t('settings.providerTabs.environmentVariables'),
+      desc: t('settings.providerTabs.gemini.environmentDesc'),
       placeholder: 'GEMINI_API_KEY=...\nGOOGLE_CLOUD_PROJECT=...',
       renderCustomContextLimits: (target) => context.renderCustomContextLimits(target, 'gemini'),
     });

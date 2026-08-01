@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 
+import { setLocale, t } from '@/i18n/i18n';
 import { MIMOCODE_DEFAULT_ENVIRONMENT_VARIABLES } from '@/providers/mimocode/settings';
 import { mimocodeSettingsTabRenderer } from '@/providers/mimocode/ui/MimocodeSettingsTab';
 
@@ -433,6 +434,7 @@ describe('MimocodeSettingsTab', () => {
     mockRuntimeWarmModelMetadata.mockResolvedValue(false);
     mockedExistsSync.mockReturnValue(false);
     mockedStatSync.mockReturnValue({ isFile: () => true } as fs.Stats);
+    setLocale('en');
   });
 
   it('stores the CLI path per host and resets active runtime state across all views', async () => {
@@ -441,9 +443,16 @@ describe('MimocodeSettingsTab', () => {
 
     mimocodeSettingsTabRenderer.render(createContainer(), createContext(plugin));
 
-    const cliPathSetting = findSetting('CLI path');
-    expect(cliPathSetting.desc).toBe('Optional absolute path to the MiMoCode CLI for this computer. Leave empty to use `mimo` from PATH.');
-    expect(cliPathSetting.textComponents[0].placeholder).toBe('/usr/local/bin/mimo');
+    const cliPathSetting = findSetting(t('settings.providerTabs.acp.cliPath.name', {
+      provider: 'MiMoCode',
+    }));
+    expect(cliPathSetting.desc).toBe(t('settings.providerTabs.acp.cliPath.desc', {
+      command: 'mimo',
+      provider: 'MiMoCode',
+    }));
+    expect(cliPathSetting.textComponents[0].placeholder).toBe(process.platform === 'win32'
+      ? 'C:\\Users\\you\\AppData\\Roaming\\npm\\mimo.cmd'
+      : '/usr/local/bin/mimo');
     await cliPathSetting.textComponents[0].onChangeCallback?.('/custom/mimo');
 
     expect(plugin.settings.providerConfigs.mimocode.cliPathsByHost).toEqual({
@@ -466,20 +475,20 @@ describe('MimocodeSettingsTab', () => {
 
     mimocodeSettingsTabRenderer.render(createContainer(), context);
 
-    expect(findSetting('Commands and skills').heading).toBe(true);
+    expect(findSetting(t('settings.slashCommands.name')).heading).toBe(true);
     expect(context.renderHiddenProviderCommandSetting).toHaveBeenCalledWith(
       expect.anything(),
       'mimocode',
       expect.objectContaining({
-        name: 'Hidden Commands and Skills',
-        desc: 'Hide specific MiMoCode commands and skills from the dropdown. Enter names without the leading slash, one per line.',
+        name: t('settings.hiddenSlashCommands.name'),
+        desc: t('settings.providerTabs.acp.hiddenCommandsDesc', { provider: 'MiMoCode' }),
       }),
     );
 
     expect(createdElements).toContainEqual({
       cls: 'setting-item-description',
       tag: 'p',
-      text: 'MiMoCode can auto-detect vault-level Claude slash commands from .claude/commands/ and skills from .claude/skills/, .codex/skills/, and .agents/skills/. Manage those entries in the Claude or Codex settings tab. This setting only hides entries from the MiMoCode dropdown.',
+      text: t('settings.providerTabs.acp.commandsDesc', { provider: 'MiMoCode' }),
     });
   });
 
@@ -488,11 +497,15 @@ describe('MimocodeSettingsTab', () => {
 
     mimocodeSettingsTabRenderer.render(createContainer(), createContext(plugin));
 
-    expect(findSetting('Subagents').heading).toBe(true);
+    expect(findSetting(t('settings.subagents.name')).heading).toBe(true);
     expect(createdElements).toContainEqual({
       cls: 'setting-item-description',
       tag: 'p',
-      text: 'Manage vault-level MiMoCode subagents from .mimocode/agent/ and legacy .mimocode/agents/. New entries are saved as subagent-only files and appear in the @mention menu.',
+      text: t('settings.providerTabs.acp.subagentsDesc', {
+        legacyRoot: '.mimocode/agents/',
+        provider: 'MiMoCode',
+        root: '.mimocode/agent/',
+      }),
     });
 
     expect(mockCreatedAgentSettings).toHaveLength(1);

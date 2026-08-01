@@ -9,28 +9,28 @@ import type { GrokAgentDefinition } from '../types/agent';
 const GROK_AGENT_INVALID_SEGMENT_PATTERN = /[<>:"\\|?*]/;
 
 export function validateGrokAgentName(name: string): string | null {
-  if (!name) return 'Agent name is required';
+  if (!name) return t('settings.agentEditor.nameRequired');
 
   const segments = name.split('/');
   if (segments.length === 0 || segments.some((segment) => segment.length === 0)) {
-    return 'Agent name must use slash-separated path segments without leading or trailing slashes';
+    return t('settings.agentEditor.pathSegmentsRequired');
   }
 
   for (const segment of segments) {
     if (!segment.trim()) {
-      return 'Agent name path segments cannot be empty or whitespace-only';
+      return t('settings.agentEditor.segmentEmpty');
     }
 
     if (segment !== segment.trim()) {
-      return 'Agent name path segments cannot start or end with whitespace';
+      return t('settings.agentEditor.segmentWhitespace');
     }
 
     if (segment === '.' || segment === '..') {
-      return 'Agent name cannot include "." or ".." path segments';
+      return t('settings.agentEditor.dotSegments');
     }
 
     if (segment.includes('\0') || GROK_AGENT_INVALID_SEGMENT_PATTERN.test(segment)) {
-      return 'Agent name path segments cannot contain Windows-reserved filename characters';
+      return t('settings.agentEditor.reservedCharacters');
     }
   }
 
@@ -92,7 +92,7 @@ class GrokAgentModal extends Modal {
       .addText((text) => {
         nameInput = text.inputEl;
         text.setValue(this.existing?.name ?? '')
-          .setPlaceholder('Review');
+          .setPlaceholder(t('settings.agentEditor.namePlaceholder'));
       });
 
     new Setting(contentEl)
@@ -101,7 +101,7 @@ class GrokAgentModal extends Modal {
       .addText((text) => {
         descriptionInput = text.inputEl;
         text.setValue(this.existing?.description ?? '')
-          .setPlaceholder('Reviews code for correctness and maintainability');
+          .setPlaceholder(t('settings.agentEditor.descriptionPlaceholder'));
       });
 
     const details = contentEl.createEl('details', { cls: 'grimoire-sp-advanced-section' });
@@ -339,7 +339,7 @@ class GrokAgentModal extends Modal {
       try {
         await this.onSave(agent);
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
+        const message = error instanceof Error ? error.message : t('settings.agentEditor.unknownError');
         new Notice(t('settings.subagents.saveFailed', { message }));
         return;
       }
@@ -424,7 +424,7 @@ export class GrokAgentSettings {
     nameEl.setText(agent.name);
 
     headerRow.createSpan({
-      text: 'subagent',
+      text: t('settings.agentEditor.badge'),
       cls: 'grimoire-slash-item-badge',
     });
 

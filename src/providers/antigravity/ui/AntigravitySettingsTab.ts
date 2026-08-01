@@ -25,12 +25,12 @@ export const antigravitySettingsTabRenderer: ProviderSettingsTabRenderer = {
     new Setting(container).setName(t('settings.setup')).setHeading();
 
     new Setting(container)
-      .setName('Windows CLI limitations')
-      .setDesc('On Windows, current agy builds can finish successfully while returning empty stdout for model discovery and print responses. Grimoire uses transcript, settings, and fallback recovery where possible, but antigravity may be less reliable on Windows than on macOS or Linux.');
+      .setName(t('settings.providerTabs.antigravity.windowsLimitations.name'))
+      .setDesc(t('settings.providerTabs.antigravity.windowsLimitations.desc'));
 
     const cliPathSetting = new Setting(container)
-      .setName('Antigravity CLI path')
-      .setDesc('Custom path to the local agy command. Leave empty to auto-detect it.');
+      .setName(t('settings.providerTabs.antigravity.cliPath.name'))
+      .setDesc(t('settings.providerTabs.antigravity.cliPath.desc'));
 
     const validationEl = container.createDiv({
       cls: 'grimoire-cli-path-validation grimoire-setting-validation grimoire-setting-validation-error grimoire-hidden',
@@ -99,8 +99,8 @@ export const antigravitySettingsTabRenderer: ProviderSettingsTabRenderer = {
     new Setting(container).setName(t('settings.models')).setHeading();
 
     new Setting(container)
-      .setName('Custom models')
-      .setDesc('Add antigravity model labels to the picker, one per line. Use the exact labels shown in the agy model switcher when Windows discovery is incomplete.')
+      .setName(t('settings.providerTabs.antigravity.customModels.name'))
+      .setDesc(t('settings.providerTabs.antigravity.customModels.desc'))
       .addTextArea((text) => {
         let pendingCustomModels = antigravitySettings.customModels;
         let savedCustomModels = antigravitySettings.customModels;
@@ -132,16 +132,16 @@ export const antigravitySettingsTabRenderer: ProviderSettingsTabRenderer = {
 
     const advancedContainer = context.renderAdvancedSection(container, {
       count: 3,
-      summary: 'Environment variables and context overrides',
+      summary: t('settings.advanced.environmentSummary'),
     });
 
     renderEnvironmentSettingsSection({
       container: advancedContainer,
       plugin: context.plugin,
       scope: 'provider:antigravity',
-      heading: 'Environment',
-      name: 'Environment Variables',
-      desc: 'Extra environment variables passed to Antigravity CLI, such as GOOGLE_CLOUD_PROJECT.',
+      heading: t('settings.environment'),
+      name: t('settings.providerTabs.environmentVariables'),
+      desc: t('settings.providerTabs.antigravity.environmentDesc'),
       placeholder: 'GOOGLE_CLOUD_PROJECT=...',
       renderCustomContextLimits: (target) => context.renderCustomContextLimits(target, 'antigravity'),
     });
