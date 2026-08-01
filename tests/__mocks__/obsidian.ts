@@ -2,6 +2,7 @@
 
 export const addIcon = jest.fn();
 export const requestUrl = jest.fn();
+export const setTooltip = jest.fn();
 
 export class Plugin {
   app: any;
@@ -185,11 +186,35 @@ export class Setting {
     return this;
   });
 
+  addButton = jest.fn((callback?: (button: ButtonComponent) => void) => {
+    const button = new ButtonComponent(this.controlEl);
+    callback?.(button);
+    return this;
+  });
+
   addTextArea = jest.fn((callback?: (text: TextAreaComponent) => void) => {
     const text = new TextAreaComponent(this.controlEl);
     callback?.(text);
     return this;
   });
+}
+
+export class ButtonComponent {
+  buttonEl: any;
+
+  constructor(containerEl?: any) {
+    this.buttonEl = containerEl?.createEl?.('button') ?? {};
+  }
+
+  setButtonText(text: string): this {
+    this.buttonEl?.setText?.(text);
+    return this;
+  }
+
+  onClick(handler: () => void | Promise<void>): this {
+    this.buttonEl?.addEventListener?.('click', handler);
+    return this;
+  }
 }
 
 export class DropdownComponent {
@@ -273,6 +298,7 @@ export class TextComponent {
 
   setPlaceholder(value: string): this {
     this.inputEl.placeholder = value;
+    this.inputEl?.setAttribute?.('placeholder', value);
     return this;
   }
 
@@ -286,7 +312,10 @@ export class TextComponent {
     return this._value;
   }
 
-  onChange(_handler: (value: string) => void | Promise<void>): this {
+  onChange(handler: (value: string) => void | Promise<void>): this {
+    this.inputEl?.addEventListener?.('change', () => {
+      void handler(this.inputEl.value ?? '');
+    });
     return this;
   }
 }
@@ -307,7 +336,10 @@ export class ToggleComponent {
     return this;
   }
 
-  onChange(_handler: (value: boolean) => void | Promise<void>): this {
+  onChange(handler: (value: boolean) => void | Promise<void>): this {
+    this.toggleEl?.addEventListener?.('change', () => {
+      void handler(Boolean(this.toggleEl.checked));
+    });
     return this;
   }
 }
@@ -339,10 +371,14 @@ export class TextAreaComponent {
 
   setPlaceholder(value: string): this {
     this.inputEl.placeholder = value;
+    this.inputEl?.setAttribute?.('placeholder', value);
     return this;
   }
 
-  onChange(_handler: (value: string) => void | Promise<void>): this {
+  onChange(handler: (value: string) => void | Promise<void>): this {
+    this.inputEl?.addEventListener?.('change', () => {
+      void handler(this.inputEl.value ?? '');
+    });
     return this;
   }
 }

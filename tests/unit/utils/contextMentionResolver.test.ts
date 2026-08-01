@@ -22,7 +22,7 @@ describe('contextMentionResolver', () => {
     });
 
     it('returns false when @ is not preceded by whitespace', () => {
-      expect(isMentionStart('email@test.com', 5)).toBe(false);
+      expect(isMentionStart('email@example.com', 5)).toBe(false);
     });
 
     it('returns false when the index is not @', () => {

@@ -191,6 +191,9 @@
           "plain": "歡迎回來！",
           "named": "歡迎回來，{name}！"
         },
+        "version": {
+          "name": "版本"
+        },
         "whatsNew": {
           "plain": "有什麼新鮮事？",
           "named": "有什麼新鮮事，{name}？"
@@ -214,6 +217,372 @@
         "summonContext": "先召喚脈絡，再說具體點。",
         "earnKeep": "讓這則筆記證明自己的價值。"
       }
+    },
+    "ui": {
+      "view": {
+        "all": "All",
+        "chat": "Chat",
+        "context": "Context",
+        "contextMemoryTab": "Context memory · tab",
+        "conversation": "Conversation",
+        "current": "Current",
+        "currentTabViews": "Current tab views",
+        "linked": "Linked",
+        "shownCount": "{count} shown",
+        "sources": "Sources",
+        "sourcesAndActions": "Sources and actions",
+        "sourcesInTab": "Sources in tab",
+        "vaultContextMemory": "Vault context memory",
+        "moreNotes": "+{count} more notes",
+        "matchScore": "{percent}% match"
+      },
+      "composer": {
+        "jumpToLatest": "Jump to latest message",
+        "placeholder": "Ask Grimoire to edit, search, compare, generate, or run a command...",
+        "send": "Send",
+        "sendMessage": "Send message",
+        "stopResponse": "Stop response",
+        "resizeInput": "Drag to resize input"
+      },
+      "model": {
+        "unknown": "Unknown",
+        "switching": "Switching model…",
+        "noneAvailable": "No models available",
+        "noMatch": "No models match “{query}”",
+        "models": "Models",
+        "searchAriaLabel": "Search models",
+        "searchPlaceholder": "Search models...",
+        "loading": "Loading models…",
+        "loadFailed": "Couldn’t load models",
+        "changeFailed": "Failed to change model",
+        "selectTooltip": "選擇模型"
+      },
+      "usage": {
+        "label": "Usage",
+        "fiveHourLimit": "5-hour limit",
+        "namedLimit": "{name} limit",
+        "ariaWithPercent": "{plan} {limit}: {percent}% used, resets {reset}",
+        "ariaWithoutPercent": "{plan} {limit}: resets {reset}",
+        "planUsage": "plan usage",
+        "percentUsed": "{percent}% used",
+        "resets": "resets {reset}",
+        "weeklyPercent": "weekly {percent}%",
+        "weeklyUnavailable": "weekly usage unavailable",
+        "updated": "updated {time}"
+      },
+      "toolbar": {
+        "modeChangeFailed": "Failed to change mode",
+        "effort": "Effort:",
+        "thinking": "Thinking:",
+        "high": "High",
+        "off": "Off",
+        "tokens": "{count} tokens",
+        "effortChangeFailed": "Failed to change effort level",
+        "thinkingChangeFailed": "Failed to change thinking budget",
+        "permissionChangeFailed": "Failed to change permission mode",
+        "plan": "PLAN",
+        "serviceTierChangeFailed": "Failed to change service tier",
+        "toggleFastMode": "Toggle on/off fast mode",
+        "modeTooltip": "工作模式",
+        "permissionSafe": "安全",
+        "permissionAuto": "自動",
+        "permissionPlan": "計畫",
+        "effortLevels": {
+          "low": "輕度",
+          "medium": "中",
+          "high": "高",
+          "xhigh": "極高",
+          "max": "最高"
+        }
+      },
+      "navigation": {
+        "scrollTop": "捲動至頂部",
+        "previousMessage": "上一則提問",
+        "directory": "對話目錄",
+        "nextMessage": "下一則提問",
+        "scrollBottom": "捲動至底部",
+        "empty": "此對話中尚無提問"
+      },
+      "externalContext": {
+        "removeFile": "Remove external file",
+        "removedInvalid": "Removed {count} invalid external context path(s): {paths}",
+        "cannotPersistMissing": "Cannot persist “{path}” — path no longer exists",
+        "noPath": "No path provided. Usage: /add-dir /absolute/path",
+        "absolutePathRequired": "Path must be absolute. Usage: /add-dir /absolute/path",
+        "duplicate": "This folder is already added as an external context.",
+        "selectTitle": "Select external context",
+        "pickerFailed": "Unable to open folder picker.",
+        "conflictInside": "Cannot add “{path}” — it is inside existing path “{existing}”",
+        "conflictContains": "Cannot add “{path}” — it contains existing path “{existing}”",
+        "header": "External contexts",
+        "empty": "Click the folder icon to add one",
+        "makeSessionOnly": "Persistent (click to make session-only)",
+        "makePersistent": "Session-only (click to persist)",
+        "removePath": "Remove path",
+        "countTitle": "{count} external contexts (click to add more)",
+        "files": "Files",
+        "addTitle": "Add external contexts"
+      },
+      "mcp": {
+        "header": "MCP servers",
+        "noneConfigured": "No MCP servers configured",
+        "allDisabled": "All MCP servers disabled",
+        "contextSaving": "Context-saving: can also enable via @{server}",
+        "enabledCount": "{count} MCP server(s) enabled (click to manage)",
+        "enableTitle": "MCP servers (click to enable)"
+      },
+      "contextUsage": {
+        "approachingLimit": " (Approaching limit, run `/compact` to continue)",
+        "ariaUsed": "Context window {percent}% used",
+        "tokens": "{used} / {total} tokens",
+        "left": "{count} left",
+        "context": "context",
+        "noneYet": "No context used yet",
+        "hint": "Usage appears as the active tab builds context."
+      },
+      "context": {
+        "noNoteSelected": "No note selected",
+        "boundToTab": "bound to this chat tab",
+        "openNoteToBind": "open a note to bind it to this chat",
+        "active": "active",
+        "idle": "idle",
+        "selectedFile": "Selected file",
+        "selectedFiles": "Selected files",
+        "filesBadge": "files",
+        "modelDetail": "{provider}{reasoning} · provider state preserved",
+        "modelBadge": "model",
+        "attached": "Attached context",
+        "linkedNotes": "{count} linked note(s) · {permission}",
+        "reasoningEffort": "{value} effort",
+        "reasoningThinking": "{value} thinking",
+        "permissionPlanDescription": "plan before tool execution",
+        "permissionSafeDescription": "ask before file edits and MCP writes",
+        "planMode": "Plan mode",
+        "autoApprove": "Auto-approve",
+        "safeMode": "Safe mode",
+        "loadedThisSession": "Loaded this session"
+      },
+      "tabs": {
+        "createFailed": "Failed to create tab",
+        "newTab": "New tab",
+        "history": "Chat history",
+        "switchFailed": "Failed to switch tab",
+        "closeFailed": "Failed to close tab",
+        "maximumAllowed": "Maximum {count} tabs allowed",
+        "closeTab": "Close tab"
+      },
+      "messages": {
+        "interrupted": "Interrupted",
+        "interruptedHint": "· What should Grimoire do instead?",
+        "conversationCompacted": "Conversation compacted",
+        "completed": "Baked",
+        "duration": "* {flavor} for {duration}",
+        "copied": "Copied!",
+        "renderFailed": "Failed to render message content.",
+        "copyMessage": "Copy message",
+        "awaitingYou": "Awaiting you"
+      },
+      "errors": {
+        "relevantNotesFailed": "Relevant notes failed: {error}",
+        "couldNotOpenFile": "Could not open file: {path}",
+        "openFileFailed": "Failed to open file: {error}",
+        "providerSwitchBound": "Cannot switch provider on a bound session. Start a new tab instead.",
+        "forkUnsupported": "Fork is not supported by this provider.",
+        "initializeFailed": "Failed to initialize chat service",
+        "loadConversationFailed": "Failed to load conversation",
+        "regenerateFailed": "Failed to regenerate response",
+        "deleteConversationFailed": "Failed to delete conversation",
+        "renameConversationFailed": "Failed to rename conversation",
+        "initializeAgentFailed": "Failed to initialize agent service. Please try again.",
+        "agentUnavailable": "Agent service not available. Please reload the plugin.",
+        "externalContextUnavailable": "External context selector not available.",
+        "forkUnavailable": "Fork not available.",
+        "rewindUnsupported": "Rewind is not supported by this provider.",
+        "messageNotFound": "Message not found",
+        "agentServiceUnavailable": "Agent service not available",
+        "unknown": "Unknown error",
+        "saveFailed": "Failed to save"
+      },
+      "history": {
+        "title": "History",
+        "close": "Close history",
+        "searchPlaceholder": "Search past chats...",
+        "empty": "No past chats",
+        "noMatches": "No matches",
+        "current": "Current",
+        "openNewTab": "Open in new tab",
+        "generatingTitle": "Generating title...",
+        "regenerateTitle": "Regenerate title",
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "earlier": "Earlier",
+        "sourceCount": "{count} src",
+        "now": "now",
+        "openBackgroundTab": "Open in background tab",
+        "switchOpenSession": "Switch to open session",
+        "rename": "Rename",
+        "noneToResume": "No conversations to resume"
+      },
+      "thinking": {
+        "expandAriaLabel": "Extended thinking — click to expand",
+        "inProgress": "Thinking {seconds}s...",
+        "completed": "Thought for {seconds}s",
+        "thought": "Thought"
+      },
+      "ask": {
+        "question": "Question",
+        "needsDetail": "Needs a detail",
+        "questionCount": "Grimoire asks {count} question(s) before proceeding",
+        "single": "single",
+        "multiple": "multiple",
+        "optional": "opt.",
+        "answerPlaceholder": "Type your answer...",
+        "decideForMe": "Decide for me",
+        "sendAnswers": "Send answers",
+        "expand": "Expand question",
+        "collapse": "Collapse question",
+        "option": "Option",
+        "questionCountOne": "Grimoire asks {count} question before proceeding",
+        "questionCountMany": "Grimoire asks {count} questions before proceeding"
+      },
+      "permission": {
+        "required": "Permission required",
+        "commandPreview": "Command preview: {command}",
+        "agent": "Agent: {agent}",
+        "reject": "Reject",
+        "tool": "tool",
+        "runShellCommand": "Grimoire wants to run a shell command",
+        "useTool": "Grimoire wants to use {tool}",
+        "providerRequestedCommand": "{provider} requested permission to run this command.",
+        "shellCommand": "shell command"
+      },
+      "plan": {
+        "requestedPermissions": "Requested permissions:",
+        "approveCurrentSession": "Approve (current session)",
+        "continueFeedbackPlaceholder": "Enter feedback to continue planning...",
+        "keyboardHints": "Arrow keys to navigate · Enter to select · Esc to cancel",
+        "complete": "Plan complete",
+        "reviewBeforeProceeding": "Review the plan before proceeding",
+        "label": "plan",
+        "expand": "Expand plan",
+        "collapse": "Collapse plan",
+        "implement": "Implement",
+        "reviseFeedbackPlaceholder": "Enter feedback to revise plan..."
+      },
+      "images": {
+        "dropHere": "Drop image here",
+        "unsupportedProvider": "Image attachments are not supported by this provider.",
+        "sizeLimit": "Image exceeds the {size} limit.",
+        "unsupportedType": "Unsupported image type.",
+        "attachFailed": "Failed to attach image.",
+        "remove": "Remove image",
+        "fileNotFound": "(File not found)",
+        "permissionDenied": "(Permission denied)"
+      },
+      "queue": {
+        "steering": "Steering...",
+        "steerNow": "Steer Now",
+        "steerFailed": "Failed to steer the queued Codex message. It is still available."
+      },
+      "instructions": {
+        "added": "Instruction added to custom system prompt",
+        "noneReceived": "No instruction received",
+        "processFailed": "Failed to process response",
+        "refineFailed": "Failed to refine instruction"
+      },
+      "commands": {
+        "imageUsage": "Usage: /image <prompt>"
+      },
+      "progress": {
+        "working": "Working",
+        "stillWorking": "Still working",
+        "blocked": "Blocked",
+        "completed": "Completed"
+      },
+      "status": {
+        "aria": "Status: {status}",
+        "initializing": "Initializing",
+        "running": "running",
+        "runningEllipsis": "Running...",
+        "completed": "completed",
+        "blocked": "blocked",
+        "error": "Error",
+        "orphaned": "Orphaned",
+        "inProgress": "in progress",
+        "errorUpper": "ERROR",
+        "doneUpper": "DONE"
+      },
+      "subagent": {
+        "task": "Subagent task",
+        "noPrompt": "No prompt provided",
+        "expandAria": "Subagent task: {description} — Status: {status} — click to expand",
+        "result": "Result",
+        "prompt": "Prompt",
+        "runningBackground": "Running in background",
+        "backgroundExpandAria": "Background task: {description} — {status} — click to expand",
+        "endedEarly": "Conversation ended before task completed",
+        "backgroundTask": "Background task"
+      },
+      "tools": {
+        "noChanges": "No changes",
+        "openPage": "Open page",
+        "urlUnavailable": "URL unavailable",
+        "findInPage": "Find in page",
+        "query": "Query: {query}",
+        "searchWeb": "Search web",
+        "noResult": "No result",
+        "noMatches": "No matches found",
+        "showPreview": "Show preview",
+        "showAll": "Show all",
+        "fileDeleted": "File deleted",
+        "noTextDiff": "No textual diff available",
+        "tasksUpdated": "Tasks updated",
+        "waitingForAnswer": "Waiting for answer...",
+        "pattern": "Pattern: {pattern}",
+        "altQuery": "Alt query: {query}",
+        "moreQueries": "... {count} more queries",
+        "tasksProgress": "Tasks {completed}/{total}",
+        "tasks": "Tasks",
+        "enteringPlanMode": "Entering plan mode",
+        "ranCommand": "Ran command",
+        "runCommand": "Run command",
+        "readNote": "Read note",
+        "readingNote": "Reading note",
+        "wroteFile": "Wrote file",
+        "writingFile": "Writing file",
+        "editedFile": "Edited file",
+        "editingFile": "Editing file",
+        "globbingFiles": "Globbing files",
+        "globbedFiles": "Globbed files",
+        "searchingFiles": "Searching files",
+        "searchedFiles": "Searched files",
+        "listingFiles": "Listing files",
+        "listedFiles": "Listed files",
+        "searchingWeb": "Searching the web",
+        "searchedWeb": "Searched the web",
+        "fetchingPage": "Fetching page",
+        "fetchedPage": "Fetched page",
+        "searchingTools": "Searching tools",
+        "searchedTools": "Searched tools",
+        "applyingPatch": "Applying patch",
+        "appliedPatch": "Applied patch",
+        "sentInput": "Sent input",
+        "loadedSkill": "Loaded skill",
+        "searchingVault": "Searching the vault",
+        "searchedVault": "Searched the vault",
+        "runningTools": "Running tools",
+        "ranTools": "Ran tools",
+        "queryCount": "{count} query/queries",
+        "stepCount": "{count} step(s)",
+        "writingEllipsis": "Writing...",
+        "queryCountOne": "{count} query",
+        "queryCountMany": "{count} queries",
+        "stepCountOne": "{count} step",
+        "stepCountMany": "{count} steps"
+      },
+      "responseMetadata": {
+        "effort": "推理強度 {value}"
+      }
     }
   },
   "settings": {
@@ -221,7 +590,9 @@
     "tabs": {
       "general": "一般",
       "claude": "Claude",
-      "codex": "Codex"
+      "codex": "Codex",
+      "scrollBackward": "向左捲動設定分頁",
+      "scrollForward": "向右捲動設定分頁"
     },
     "display": "顯示",
     "conversations": "對話",
@@ -245,7 +616,8 @@
     },
     "mediaFolder": {
       "name": "媒體資料夾",
-      "desc": "存放附件/圖片的資料夾。當筆記使用 ![[image.jpg]] 時，Claude 會在此查找。留空使用儲存庫根目錄。"
+      "desc": "存放附件/圖片的資料夾。當筆記使用 ![[image.jpg]] 時，Claude 會在此查找。留空使用儲存庫根目錄。",
+      "placeholder": "Attachments"
     },
     "systemPrompt": {
       "name": "自訂系統提示詞",
@@ -365,7 +737,8 @@
         "prompt": "系統提示詞",
         "promptDesc": "給代理的指示",
         "promptPlaceholder": "你是一名程式碼審查員。請分析給定的程式碼..."
-      }
+      },
+      "loadFailed": "Failed to load subagent \"{name}\": {message}"
     },
     "environment": "環境",
     "customVariables": {
@@ -389,7 +762,14 @@
         "save": "保存",
         "update": "更新",
         "cancel": "取消"
-      }
+      },
+      "insert": "Insert",
+      "insertFailed": "Failed to insert snippet",
+      "deleteConfirm": "Delete environment snippet \"{name}\"?",
+      "deleteFailed": "Failed to delete snippet",
+      "saved": "Environment snippet \"{name}\" saved",
+      "updated": "Environment snippet \"{name}\" updated",
+      "deleted": "Environment snippet \"{name}\" deleted"
     },
     "customModelOverrides": {
       "name": "自訂模型覆寫",
@@ -493,6 +873,30 @@
     "providers": {
       "grok": {
         "desc": "xAI 的 agentic coding CLI，支援 plan mode、subagents、skills 和 MCP。"
+      },
+      "claude": {
+        "desc": "Anthropic's agentic CLI. Recommended default."
+      },
+      "codex": {
+        "desc": "OpenAI's coding agent."
+      },
+      "antigravity": {
+        "desc": "Google's new multi-model agent CLI. Recommended Google provider."
+      },
+      "gemini": {
+        "desc": "Legacy Gemini CLI for Standard, Enterprise, and paid API-key users."
+      },
+      "opencode": {
+        "desc": "Open-source, multi-vendor. Exposes the widest model catalog."
+      },
+      "mimocode": {
+        "desc": "Xiaomi's fork of OpenCode with persistent memory and context management."
+      },
+      "kimicode": {
+        "desc": "MoonshotAI's multi-provider agent CLI. Supports Kimi, OpenAI, Anthropic, and Gemini."
+      },
+      "qwen": {
+        "desc": "透過原生 Agent Client Protocol 執行的阿里巴巴 Qwen Code。"
       }
     },
     "grok": {
@@ -576,6 +980,394 @@
       },
       "environment": {
         "desc": "傳遞給 Grok 的額外環境變數。預設啟用 `GROK_ENABLE_EXA=1`。"
+      }
+    },
+    "version": {
+      "name": "版本"
+    },
+    "whatsNew": "What's new",
+    "noReleaseNotes": "No release notes are bundled for this Grimoire version.",
+    "learnMore": "Learn more",
+    "environmentReview": "Review environment ownership for: {keys}",
+    "search": {
+      "description": "Configure Grimoire, its workspace, and provider integrations.",
+      "providers": "Providers",
+      "models": "Models",
+      "permissions": "Permissions",
+      "environmentVariables": "Environment variables",
+      "projectWorkspace": "Project workspace",
+      "title": "Grimoire settings"
+    },
+    "advanced": {
+      "title": "Advanced settings",
+      "generalSummary": "Prompts, hotkeys, diagnostics, environment variables, and more",
+      "environmentSummary": "Environment variables and context overrides",
+      "providerSummary": "Commands, subagents, environment, and context overrides"
+    },
+    "provider": {
+      "enableName": "Enable {provider}",
+      "disabledTitle": "{provider} is disabled.",
+      "disabledDesc": "Enable this provider above to use these settings and show its models in the model selector.",
+      "fallbackDesc": "{provider} provider.",
+      "loadModelsFailed": "Could not load provider models.",
+      "contextWindowLabel": "Context window for {model}"
+    },
+    "providerModelPicker": {
+      "browseModels": "Browse models",
+      "searchPlaceholder": "Filter by model, provider, or ID...",
+      "visibleLabel": "Visible:",
+      "summaryDiscovered": "of {total} discovered - {count} {providerWord}",
+      "providerSingular": "provider",
+      "providerPlural": "providers",
+      "noDiscovered": "No models discovered yet",
+      "loadingModels": "Loading models...",
+      "availableCount": "{count} available",
+      "selectedCount": "Selected ({count})",
+      "clearSelected": "Clear all selected models",
+      "notReported": "Not currently reported by {provider}",
+      "aliasLabel": "Alias for {model}",
+      "aliasTitle": "Custom label shown in the model selector. Leave empty to use the default.",
+      "removeModel": "Remove {model}",
+      "allProviders": "All providers ({count})",
+      "noMatch": "No models match your filter.",
+      "loadingCatalog": "Loading {provider} model catalog...",
+      "loadFailed": "Could not load the {provider} model catalog. Check the CLI path and login state, then expand this section again.",
+      "startToLoad": "Start {provider} once to load its model catalog. Grimoire will then let you pick visible models.",
+      "unavailable": "Unavailable",
+      "unavailableTitle": "Configured model not currently reported by {provider}"
+    },
+    "sharedEnvironment": {
+      "name": "Shared environment",
+      "desc": "Provider-neutral runtime variables shared across all providers. Use this for PATH, proxy, certificate, and temporary-directory variables."
+    },
+    "providerTabs": {
+      "environmentVariables": "Environment variables",
+      "acp": {
+        "cliPath": {
+          "name": "{provider} CLI path",
+          "desc": "Custom path to the local {provider} command. Leave empty to auto-detect it."
+        },
+        "visibleModels": {
+          "name": "Visible models",
+          "desc": "Choose which {provider} models appear in the chat selector. Filter by provider or type to search."
+        },
+        "commandsDesc": "Manage vault-level {provider} commands.",
+        "hiddenCommandsDesc": "Hide specific {provider} commands from the dropdown. Enter command names without the leading slash, one per line.",
+        "subagentsDesc": "Manage vault-level {provider} subagents. Each Markdown file defines one custom agent.",
+        "environmentDesc": "{provider}-owned runtime variables only. Use this for provider-specific settings; put shared PATH, proxy, and certificate variables in Shared environment."
+      },
+      "antigravity": {
+        "windowsLimitations": {
+          "name": "Windows CLI limitations",
+          "desc": "On Windows, current agy builds can finish successfully while returning empty stdout for model discovery and print responses. Grimoire uses transcript, settings, and fallback recovery where possible, but Antigravity may be less reliable on Windows than on macOS or Linux."
+        },
+        "cliPath": {
+          "name": "Antigravity CLI path",
+          "desc": "Custom path to the local agy command. Leave empty to auto-detect it."
+        },
+        "customModels": {
+          "name": "Custom models",
+          "desc": "Add Antigravity model labels to the picker, one per line. Use the exact labels shown in the agy model switcher when Windows discovery is incomplete."
+        },
+        "environmentDesc": "Extra environment variables passed to Antigravity CLI, such as GOOGLE_CLOUD_PROJECT."
+      },
+      "gemini": {
+        "cliPath": {
+          "name": "Gemini CLI path",
+          "desc": "Custom path to the local Gemini CLI. Leave empty to launch `gemini` from PATH."
+        },
+        "environmentDesc": "Extra environment variables passed to Gemini CLI, such as GEMINI_API_KEY or GOOGLE_CLOUD_PROJECT."
+      },
+      "claude": {
+        "advancedSummary": "Commands, agents, MCP, environment, and experiments",
+        "environmentDesc": "Claude-owned runtime variables only. Use this for ANTHROPIC_* and Claude-specific toggles."
+      },
+      "codex": {
+        "installationMethod": {
+          "name": "Installation method",
+          "desc": "How Grimoire should launch Codex on Windows. Native Windows uses a Windows executable path. WSL launches the Linux CLI inside a selected distro.",
+          "nativeWindows": "Native Windows"
+        },
+        "cliPath": {
+          "name": "Codex CLI path",
+          "desc": "Custom path to the local Codex CLI. Leave empty for auto-detection from PATH.",
+          "descWindows": "Custom path to the local Codex CLI. Leave empty for auto-detection from PATH. Use the native Windows executable path, usually `codex.exe`.",
+          "descWsl": "Linux-side Codex command or absolute path to run inside WSL. Leave empty for PATH lookup inside the selected distro.",
+          "wslValidation": "WSL mode expects a Linux command or Linux absolute path, not a Windows executable path."
+        },
+        "wslDistro": {
+          "name": "WSL distro override",
+          "desc": "Optional advanced override. Leave empty to infer the distro from a WSL workspace path when possible; otherwise use the default WSL distro."
+        },
+        "customModels": {
+          "name": "Custom models",
+          "desc": "Append additional Codex model IDs to the picker, one per line. `OPENAI_MODEL` still takes precedence when set."
+        },
+        "reasoning": {
+          "name": "Reasoning summary",
+          "desc": "Show a summary of the model's reasoning process in the thinking block.",
+          "auto": "Auto",
+          "concise": "Concise",
+          "detailed": "Detailed",
+          "off": "Off"
+        },
+        "advancedSummary": "Skills, subagents, MCP, and launch settings",
+        "skills": {
+          "name": "Codex skills",
+          "desc": "Manage vault-level Codex skills stored in .codex/skills/ or .agents/skills/. Home-level skills are excluded here."
+        },
+        "hiddenSkills": {
+          "name": "Hidden skills",
+          "desc": "Hide specific Codex skills from the dropdown. Enter skill names without the leading $, one per line."
+        },
+        "subagents": {
+          "name": "Codex subagents",
+          "desc": "Manage vault-level Codex subagents stored in .codex/agents/. Each TOML file defines one custom agent."
+        },
+        "mcp": {
+          "beforeCommand": "Codex manages MCP servers through its own CLI. Configure them with ",
+          "afterCommand": " and they will be available in Grimoire. "
+        },
+        "environment": {
+          "name": "Codex environment",
+          "desc": "Codex-owned runtime variables only. Use this for OPENAI_* and CODEX_* settings. If auto-detection needs help, add the Codex install directory to Shared environment PATH instead."
+        }
+      },
+      "qwen": {
+        "cliPath": {
+          "name": "Qwen CLI 路徑",
+          "desc": "Qwen CLI 的本機路徑。留空則從 PATH 啟動 `qwen`。"
+        },
+        "advancedSummary": "隱藏命令、環境變數與上下文覆寫",
+        "hiddenCommands": {
+          "name": "隱藏的命令",
+          "desc": "隱藏 Qwen Code ACP 回報的指定命令。每行輸入一個不含斜線前綴的名稱。",
+          "placeholder": "compact\nmemory\nstats"
+        },
+        "environment": {
+          "heading": "環境",
+          "name": "環境變數",
+          "desc": "使用 `qwen` 與 `/auth` 設定 Qwen Code 驗證。DASHSCOPE_API_KEY、OPENAI_API_KEY、ANTHROPIC_API_KEY 等選用供應商變數會原樣傳遞；Grimoire 不會自動登入。"
+        }
+      }
+    },
+    "agentEditor": {
+      "title": "{provider} subagents",
+      "noAgents": "No {provider} subagents in the vault. Click + to create one.",
+      "modalTitleEdit": "Edit {provider} subagent",
+      "modalTitleAdd": "Add {provider} subagent",
+      "nameDesc": "{provider} agent name. Use slash-separated segments for nested agents.",
+      "namePlaceholder": "Review",
+      "descriptionDesc": "When {provider} should use this subagent",
+      "descriptionPlaceholder": "Reviews code for correctness and maintainability",
+      "modelDesc": "Model override in provider/model format",
+      "variant": "Variant",
+      "variantDesc": "Model variant override",
+      "temperature": "Temperature",
+      "temperatureDesc": "Optional sampling temperature",
+      "topP": "Top p",
+      "topPDesc": "Optional nucleus sampling value",
+      "color": "Color",
+      "colorDesc": "Hex color or theme token",
+      "steps": "Steps",
+      "stepsDesc": "Maximum agentic iterations before forcing text-only output",
+      "hideFromMention": "Hide from @mention",
+      "hideFromMentionDesc": "Hide this subagent from the @ autocomplete menu",
+      "disableAgent": "Disable agent",
+      "disableAgentDesc": "Disable the agent without deleting the file",
+      "enabledTools": "Enabled tools (JSON)",
+      "enabledToolsDesc": "Optional deprecated tools map, e.g. {\"write\":false,\"edit\":false}",
+      "permission": "Permission (JSON)",
+      "permissionDesc": "Optional permission config, e.g. {\"edit\":\"deny\",\"bash\":\"allow\"}",
+      "options": "Options (JSON)",
+      "optionsDesc": "Optional custom agent options",
+      "promptDesc": "Markdown body used as the agent prompt",
+      "promptPlaceholder": "Review code changes carefully and call out correctness, regressions, and missing coverage.",
+      "badge": "subagent",
+      "deleteFailed": "Failed to delete subagent",
+      "unknownError": "Unknown error",
+      "inherit": "Inherit",
+      "best": "Best",
+      "nameRequired": "Agent name is required",
+      "pathSegmentsRequired": "Agent name must use slash-separated path segments without leading or trailing slashes",
+      "segmentEmpty": "Agent name path segments cannot be empty or whitespace-only",
+      "segmentWhitespace": "Agent name path segments cannot start or end with whitespace",
+      "dotSegments": "Agent name cannot include \".\" or \"..\" path segments",
+      "reservedCharacters": "Agent name path segments cannot contain Windows-reserved filename characters",
+      "invalidNumber": "{label} must be a valid number",
+      "invalidPositiveInteger": "{label} must be a positive integer",
+      "invalidJson": "{label} must be valid JSON",
+      "invalidJsonObject": "{label} must be a JSON object",
+      "invalidBooleanMap": "{label} must map tool names to boolean values"
+    },
+    "codexSkills": {
+      "title": "Codex skills",
+      "titleEdit": "Edit Codex skill",
+      "titleAdd": "Add Codex skill",
+      "directory": "Directory",
+      "directoryDesc": "Where to store the skill",
+      "name": "Skill name",
+      "nameDesc": "The name used after $ (e.g., \"analyze\" for $analyze)",
+      "descriptionDesc": "Optional description shown in the dropdown",
+      "instructions": "Instructions",
+      "instructionsDesc": "The skill instructions (SKILL.md content)",
+      "instructionsPlaceholder": "Analyze the code for...",
+      "instructionsRequired": "Instructions are required",
+      "saveFailed": "Failed to save Codex skill",
+      "noSkills": "No Codex skills in the vault. Click + to create one.",
+      "badge": "skill",
+      "deleted": "Codex skill \"${name}\" deleted",
+      "deleteFailed": "Failed to delete Codex skill",
+      "updated": "Codex skill \"${name}\" updated",
+      "created": "Codex skill \"${name}\" created"
+    },
+    "codexSubagents": {
+      "title": "Codex subagents",
+      "titleEdit": "Edit Codex subagent",
+      "titleAdd": "Add Codex subagent",
+      "nameDesc": "Agent name Codex uses when spawning (lowercase, hyphens, underscores)",
+      "descriptionDesc": "When Codex should use this agent",
+      "modelDesc": "Model override (leave empty to inherit)",
+      "reasoningEffort": "Reasoning effort",
+      "reasoningEffortDesc": "Model reasoning effort level",
+      "sandboxMode": "Sandbox mode",
+      "sandboxModeDesc": "Sandbox restriction for this agent",
+      "nicknameCandidates": "Nickname candidates",
+      "nicknameCandidatesDesc": "Comma-separated display nicknames (e.g., atlas, delta, echo)",
+      "developerInstructions": "Developer instructions",
+      "developerInstructionsDesc": "Core instructions that define the agent's behavior",
+      "developerInstructionsPlaceholder": "Review code like an owner.\nPrioritize correctness, security, and missing test coverage.",
+      "developerInstructionsRequired": "Developer instructions are required",
+      "nameRequired": "Subagent name is required",
+      "nameTooLong": "Subagent name must be {count} characters or fewer",
+      "nameInvalid": "Subagent name can only contain lowercase letters, numbers, hyphens, and underscores",
+      "nicknamesInvalid": "Nickname candidates can only contain ASCII letters, numbers, spaces, hyphens, and underscores",
+      "nicknamesUnique": "Nickname candidates must be unique",
+      "noAgents": "No Codex subagents in the vault. Click + to create one.",
+      "deleteFailed": "Failed to delete subagent",
+      "options": {
+        "inherit": "Inherit",
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "extraHigh": "Extra high",
+        "readOnly": "Read only",
+        "dangerFullAccess": "Danger full access",
+        "workspaceWrite": "Workspace write"
+      }
+    },
+    "slashCommandEditor": {
+      "skill": "Skill",
+      "slashCommand": "Slash command",
+      "command": "Command",
+      "titleEdit": "Edit {type}",
+      "titleAdd": "Add {type}",
+      "type": "Type",
+      "typeDesc": "Command or skill",
+      "name": "Command name",
+      "nameDesc": "The name used after / (e.g., \"review\" for /review)",
+      "descriptionDesc": "Optional description shown in the dropdown",
+      "argumentHint": "Argument hint",
+      "argumentHintDesc": "Placeholder text for arguments (e.g., \"[file] [focus]\")",
+      "modelOverride": "Model override",
+      "modelOverrideDesc": "Optional model to use for this command",
+      "allowedTools": "Allowed tools",
+      "allowedToolsDesc": "Comma-separated list of tools to allow (empty = all)",
+      "disableModelInvocation": "Disable model invocation",
+      "disableModelInvocationDesc": "Prevent the model from invoking this command itself",
+      "disableUserInvocation": "Disable user invocation",
+      "disableUserInvocationDesc": "Prevent the user from invoking this skill directly",
+      "context": "Context",
+      "contextDesc": "Run in a subagent (fork)",
+      "agent": "Agent",
+      "agentDesc": "Subagent type when context is fork",
+      "promptTemplate": "Prompt template",
+      "promptTemplateDesc": "Use $ARGUMENTS, $1, $2, @file, !`bash`",
+      "promptTemplatePlaceholder": "Review this code for:\n$ARGUMENTS\n\n@$1",
+      "promptRequired": "Prompt template is required",
+      "commandExists": "A command named \"/{name}\" already exists",
+      "saveSkillFailed": "Failed to save skill",
+      "saveCommandFailed": "Failed to save slash command",
+      "catalogUnavailable": "Claude command catalog is unavailable.",
+      "noEntries": "No commands or skills configured. Click + to create one.",
+      "skillBadge": "skill",
+      "convertToSkill": "Convert to skill",
+      "convertFailed": "Failed to convert to skill",
+      "deleteSkillFailed": "Failed to delete skill",
+      "deleteCommandFailed": "Failed to delete slash command",
+      "updated": "{type} \"/{name}\" updated",
+      "created": "{type} \"/{name}\" created",
+      "deleted": "{type} \"/{name}\" deleted",
+      "skillExists": "A skill named \"/{name}\" already exists",
+      "converted": "Converted \"/{name}\" to skill"
+    },
+    "mcp": {
+      "addStdio": "stdio (local command)",
+      "addRemote": "http / sse (remote)",
+      "importClipboard": "Import from clipboard",
+      "noServers": "No MCP servers configured. Click + to add one.",
+      "contextSavingTitle": "Context saving: mention @{server} to enable",
+      "verify": "Verify (show tools)",
+      "verificationFailed": "Verification failed",
+      "reloadFailed": "Setting saved, but reload failed. Changes will apply in the next session.",
+      "saveFailed": "Failed to save MCP server",
+      "clipboardEmpty": "Clipboard is empty",
+      "clipboardInvalid": "No valid MCP configuration found in the clipboard",
+      "enterServerName": "Enter a name for the server",
+      "clipboardReadFailed": "Failed to read clipboard",
+      "serverExists": "Server \"{name}\" already exists",
+      "serverUpdated": "MCP server \"{name}\" updated",
+      "serverAdded": "MCP server \"{name}\" added",
+      "unnamed": "<unnamed>",
+      "noNewServers": "No new MCP servers imported",
+      "imported": "Imported {count} MCP server(s)",
+      "importedWithSkipped": "Imported {added} MCP server(s) ({skipped} skipped)",
+      "serverEnabled": "MCP server \"{name}\" enabled",
+      "serverDisabled": "MCP server \"{name}\" disabled",
+      "deleteConfirm": "Delete MCP server \"{name}\"?",
+      "serverDeleted": "MCP server \"{name}\" deleted",
+      "modal": {
+        "titleEdit": "Edit MCP server",
+        "titleAdd": "Add MCP server",
+        "serverName": "Server name",
+        "serverNameDesc": "Unique identifier for this server",
+        "type": "Type",
+        "typeDesc": "Server connection type",
+        "stdio": "stdio (local command)",
+        "sse": "SSE (server-sent events)",
+        "http": "HTTP (HTTP endpoint)",
+        "enabledDesc": "Whether this server is active",
+        "contextSaving": "Context-saving mode",
+        "contextSavingDesc": "Hide tools from the agent unless @-mentioned (saves context window)",
+        "command": "Command",
+        "commandDesc": "Full command with arguments",
+        "environmentDesc": "KEY=VALUE per line (optional)",
+        "url": "URL",
+        "sseUrlDesc": "SSE endpoint URL",
+        "httpUrlDesc": "HTTP endpoint URL",
+        "headers": "Headers",
+        "headersDesc": "HTTP headers (KEY=VALUE per line)",
+        "serverNameRequired": "Please enter a server name",
+        "serverNameInvalid": "Server name can only contain letters, numbers, dots, hyphens, and underscores",
+        "commandRequired": "Please enter a command",
+        "urlRequired": "Please enter a URL"
+      },
+      "test": {
+        "title": "Verify: {server}",
+        "connecting": "Connecting to MCP server...",
+        "connected": "Connected successfully",
+        "connectedTo": "Connected successfully to {server}",
+        "connectedToVersion": "Connected successfully to {server} v{version}",
+        "connectionFailed": "Connection failed",
+        "availableTools": "Available tools ({count})",
+        "noTools": "No tool information is available. Tools will be loaded when used in chat.",
+        "close": "Close",
+        "disableAll": "Disable all",
+        "enableAll": "Enable all",
+        "updateToolFailed": "Failed to update tool setting",
+        "permissionDenied": "Permission denied. Check .claude/ folder permissions.",
+        "diskFull": "Disk full. Free up space and try again.",
+        "configCorrupted": "Configuration file is corrupted. Check .claude/mcp.json."
       }
     }
   }

@@ -82,7 +82,7 @@ describe('VaultSearchService', () => {
   it('does not match email addresses or longer mentions', () => {
     const service = new VaultSearchService(new VaultTextIndex({} as App));
 
-    expect(service.extractVaultQuery('email@vault.com')).toBeNull();
+    expect(service.extractVaultQuery('email@example.com')).toBeNull();
     expect(service.extractVaultQuery('@vaulted thing')).toBeNull();
   });
 

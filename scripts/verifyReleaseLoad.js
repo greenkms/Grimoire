@@ -87,6 +87,7 @@ const obsidianStub = {
   normalizePath: (value) => value,
   requestUrl: async () => ({}),
   setIcon: () => undefined,
+  setTooltip: () => undefined,
 };
 
 class CodeMirrorRangeSetBuilder {

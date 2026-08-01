@@ -12,7 +12,7 @@
 }
 
 .grimoire-container--chat-window {
-  --grimoire-window-padding-x: 13px;
+  --grimoire-window-padding-x: 8px;
   --grimoire-window-radius: 0;
   background: var(--grimoire-panel);
 }
@@ -460,21 +460,13 @@
 .grimoire-composer-surface {
   position: relative;
   overflow: visible;
-  padding: 6px var(--grimoire-window-padding-x) 13px;
+  padding: 0;
   background: var(--grimoire-panel);
 }
 
 .grimoire-composer-surface .grimoire-input-container,
 .grimoire-sources-panel .grimoire-status-panel-container {
   padding: 0;
-}
-
-.grimoire-composer-version {
-  margin: 4px 2px 0;
-  color: var(--text-faint);
-  font-size: 10px;
-  line-height: 1.2;
-  text-align: right;
 }
 
 .grimoire-operational-panel {
@@ -484,7 +476,7 @@
 
 @media (max-width: 460px) {
   .grimoire-container--chat-window {
-    --grimoire-window-padding-x: 10px;
+    --grimoire-window-padding-x: 7px;
   }
 
   .grimoire-chat-window-shell {
