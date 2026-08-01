@@ -11,7 +11,7 @@ import {
 } from '../../../core/tools/toolNames';
 import { extractToolResultContent } from '../../../core/tools/toolResultContent';
 import type { ChatMessage, ImageAttachment, SubagentInfo, ToolCallInfo } from '../../../core/types';
-import { t } from '../../../i18n/i18n';
+import { getLocale, t } from '../../../i18n/i18n';
 import type GrimoirePlugin from '../../../main';
 import { scheduleAnimationFrame } from '../../../utils/animationFrame';
 import { formatDurationMmSs } from '../../../utils/date';
@@ -21,6 +21,7 @@ import { escapeMathDelimitersForStreaming } from '../../../utils/markdownMath';
 import { findRewindContext } from '../rewind';
 import { renderVaultSearchSources } from '../ui/VaultSearchSources';
 import { getAssistantResponseProviderLabel } from '../utils/assistantResponseMetadata';
+import { localizeReasoningLevel } from '../utils/reasoningDisplay';
 import { renderStoredProgressBlock } from './ProgressBlockRenderer';
 import { resolveSubagentLifecycleAdapter } from './subagentLifecycleResolution';
 import {
@@ -248,11 +249,12 @@ export class MessageRenderer {
         const textEl = contentEl.createDiv({ cls: 'grimoire-text-block' });
         void this.renderContent(textEl, textToShow);
         this.renderUserVaultSearchSources(contentEl, msg);
-        this.addUserCopyButton(msgEl, textToShow);
+        this.addUserCopyButton(msgEl, textToShow, msg.completedAt ?? msg.timestamp);
       }
       this.liveMessageEls.set(msg.id, msgEl);
     } else if (msg.role === 'assistant') {
       this.renderAssistantResponseMetadata(contentEl, msg);
+      this.liveMessageEls.set(msg.id, msgEl);
     }
 
     this.scrollToBottomAfterMessage(msg);
@@ -290,7 +292,7 @@ export class MessageRenderer {
     }
 
     if (textToShow) {
-      this.addUserCopyButton(msgEl, textToShow);
+      this.addUserCopyButton(msgEl, textToShow, msg.completedAt ?? msg.timestamp);
     }
   }
 
@@ -381,7 +383,7 @@ export class MessageRenderer {
         const textEl = contentEl.createDiv({ cls: 'grimoire-text-block' });
         void this.renderContent(textEl, textToShow);
         this.renderUserVaultSearchSources(contentEl, msg);
-        this.addUserCopyButton(msgEl, textToShow);
+        this.addUserCopyButton(msgEl, textToShow, msg.completedAt ?? msg.timestamp);
       }
       if (msg.userMessageId && this.isRewindEligible(allMessages, index)) {
         if (this.rewindCallback) {
@@ -397,6 +399,7 @@ export class MessageRenderer {
       if (msg.isInterrupt) {
         this.appendInterruptIndicator(contentEl);
       }
+      this.applyAssistantCompletionTime(msgEl, msg.completedAt ?? msg.timestamp);
     }
   }
 
@@ -407,7 +410,11 @@ export class MessageRenderer {
     const parts = [
       providerLabel,
       metadata?.modelLabel,
-      metadata?.effortLabel ? `Effort ${metadata.effortLabel}` : undefined,
+      metadata?.effortLabel
+        ? t('chat.ui.responseMetadata.effort', {
+          value: localizeReasoningLevel(metadata.effort ?? metadata.effortLabel, metadata.effortLabel),
+        })
+        : undefined,
     ].filter((part): part is string => !!part && part.trim().length > 0);
 
     if (parts.length === 0) {
@@ -467,7 +474,7 @@ export class MessageRenderer {
   private openVaultSearchSource(path: string): void {
     const file = this.app.vault.getAbstractFileByPath(path);
     if (!(file instanceof TFile)) {
-      new Notice(`Could not open file: ${path}`);
+      new Notice(t('chat.ui.errors.couldNotOpenFile', { path }));
       return;
     }
 
@@ -475,7 +482,9 @@ export class MessageRenderer {
       try {
         await this.app.workspace.getLeaf().openFile(file);
       } catch (error) {
-        new Notice(`Failed to open file: ${error instanceof Error ? error.message : String(error)}`);
+        new Notice(t('chat.ui.errors.openFileFailed', {
+          error: error instanceof Error ? error.message : String(error),
+        }));
       }
     });
   }
@@ -488,11 +497,11 @@ export class MessageRenderer {
 
   private appendInterruptIndicator(contentEl: HTMLElement): void {
     const textEl = contentEl.createDiv({ cls: 'grimoire-text-block' });
-    textEl.createSpan({ cls: 'grimoire-interrupted', text: 'Interrupted' });
+    textEl.createSpan({ cls: 'grimoire-interrupted', text: t('chat.ui.messages.interrupted') });
     textEl.appendText(' ');
     textEl.createSpan({
       cls: 'grimoire-interrupted-hint',
-      text: '\u00B7 What should Grimoire do instead?',
+      text: t('chat.ui.messages.interruptedHint'),
     });
   }
 
@@ -567,7 +576,10 @@ export class MessageRenderer {
         } else if (block.type === 'context_compacted') {
           flushPendingToolGroup();
           const boundaryEl = contentEl.createDiv({ cls: 'grimoire-compact-boundary' });
-          boundaryEl.createSpan({ cls: 'grimoire-compact-boundary-label', text: 'Conversation compacted' });
+          boundaryEl.createSpan({
+            cls: 'grimoire-compact-boundary-label',
+            text: t('chat.ui.messages.conversationCompacted'),
+          });
         } else if (block.type === 'subagent') {
           flushPendingToolGroup();
           const taskToolCall = msg.toolCalls?.find(
@@ -605,10 +617,13 @@ export class MessageRenderer {
     // Render response duration footer (skip when message contains a compaction boundary)
     const hasCompactBoundary = msg.contentBlocks?.some(b => b.type === 'context_compacted');
     if (msg.durationSeconds && msg.durationSeconds > 0 && !hasCompactBoundary) {
-      const flavorWord = msg.durationFlavorWord || 'Baked';
+      const flavorWord = msg.durationFlavorWord || t('chat.ui.messages.completed');
       const footerEl = contentEl.createDiv({ cls: 'grimoire-response-footer' });
       footerEl.createSpan({
-        text: `* ${flavorWord} for ${formatDurationMmSs(msg.durationSeconds)}`,
+        text: t('chat.ui.messages.duration', {
+          flavor: flavorWord,
+          duration: formatDurationMmSs(msg.durationSeconds),
+        }),
         cls: 'grimoire-baked-duration',
       });
     }
@@ -946,7 +961,7 @@ export class MessageRenderer {
 
                 try {
                   await navigator.clipboard.writeText(code.textContent || '');
-                  label.setText('Copied!');
+                  label.setText(t('chat.ui.messages.copied'));
                   window.setTimeout(() => label.setText(originalLabel), 1500);
                 } catch {
                   // Clipboard API may fail in non-secure contexts
@@ -970,7 +985,7 @@ export class MessageRenderer {
     } catch {
       el.createDiv({
         cls: 'grimoire-render-error',
-        text: 'Failed to render message content.',
+        text: t('chat.ui.messages.renderFailed'),
       });
     }
   }
@@ -988,6 +1003,7 @@ export class MessageRenderer {
   addTextCopyButton(textEl: HTMLElement, markdown: string): void {
     const copyBtn = textEl.createSpan({ cls: 'grimoire-text-copy-btn' });
     setIcon(copyBtn, 'copy');
+    textEl.createSpan({ cls: 'grimoire-message-completion-time' });
 
     let feedbackTimeout: number | null = null;
 
@@ -1009,7 +1025,7 @@ export class MessageRenderer {
 
         // Show "copied!" feedback
         copyBtn.empty();
-        copyBtn.setText('Copied!');
+        copyBtn.setText(t('chat.ui.messages.copied'));
         copyBtn.classList.add('copied');
 
         feedbackTimeout = window.setTimeout(() => {
@@ -1020,6 +1036,53 @@ export class MessageRenderer {
         }, 1500);
       });
     });
+  }
+
+  updateMessageCompletionTime(msg: ChatMessage): void {
+    const msgEl = this.liveMessageEls.get(msg.id)
+      ?? this.messagesEl.querySelector<HTMLElement>(`[data-message-id="${msg.id}"]`);
+    if (!msgEl) return;
+
+    const completedAt = msg.completedAt ?? msg.timestamp;
+    if (msg.role === 'assistant') {
+      this.applyAssistantCompletionTime(msgEl, completedAt);
+      this.liveMessageEls.delete(msg.id);
+      return;
+    }
+
+    this.ensureUserCompletionTime(msgEl, completedAt);
+  }
+
+  private applyAssistantCompletionTime(msgEl: HTMLElement, completedAt: number): void {
+    const textBlocks = Array.from(msgEl.querySelectorAll<HTMLElement>('.grimoire-text-block'));
+    for (const textBlock of textBlocks) {
+      textBlock.removeClass('grimoire-text-block--with-completion-time');
+      const completionEl = textBlock.querySelector<HTMLElement>('.grimoire-message-completion-time');
+      completionEl?.setText('');
+    }
+
+    const lastTextBlock = [...textBlocks].reverse().find((textBlock) =>
+      Boolean(textBlock.querySelector('.grimoire-text-copy-btn'))
+    );
+    if (!lastTextBlock) return;
+
+    const completionEl = lastTextBlock.querySelector<HTMLElement>('.grimoire-message-completion-time');
+    if (!completionEl) return;
+
+    completionEl.setText(this.formatMessageCompletionTime(completedAt));
+    lastTextBlock.addClass('grimoire-text-block--with-completion-time');
+  }
+
+  private formatMessageCompletionTime(timestamp: number): string {
+    if (!Number.isFinite(timestamp)) return '';
+    return new Intl.DateTimeFormat(getLocale(), {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(new Date(timestamp)).replace(/,\s*/, ' ');
   }
 
   refreshActionButtons(msg: ChatMessage, allMessages?: ChatMessage[], index?: number): void {
@@ -1051,11 +1114,19 @@ export class MessageRenderer {
     return msgEl.createDiv({ cls: 'grimoire-user-msg-actions' });
   }
 
-  private addUserCopyButton(msgEl: HTMLElement, content: string): void {
+  private ensureUserCompletionTime(msgEl: HTMLElement, completedAt: number): void {
     const toolbar = this.getOrCreateActionsToolbar(msgEl);
+    const completionEl = toolbar.querySelector<HTMLElement>('.grimoire-message-completion-time')
+      ?? toolbar.createSpan({ cls: 'grimoire-message-completion-time' });
+    completionEl.setText(this.formatMessageCompletionTime(completedAt));
+  }
+
+  private addUserCopyButton(msgEl: HTMLElement, content: string, completedAt: number): void {
+    const toolbar = this.getOrCreateActionsToolbar(msgEl);
+    this.ensureUserCompletionTime(msgEl, completedAt);
     const copyBtn = toolbar.createSpan({ cls: 'grimoire-user-msg-copy-btn' });
     setIcon(copyBtn, 'copy');
-    copyBtn.setAttribute('aria-label', 'Copy message');
+    copyBtn.setAttribute('aria-label', t('chat.ui.messages.copyMessage'));
 
     let feedbackTimeout: number | null = null;
 
@@ -1069,7 +1140,7 @@ export class MessageRenderer {
         }
         if (feedbackTimeout) window.clearTimeout(feedbackTimeout);
         copyBtn.empty();
-        copyBtn.setText('Copied!');
+        copyBtn.setText(t('chat.ui.messages.copied'));
         copyBtn.classList.add('copied');
         feedbackTimeout = window.setTimeout(() => {
           copyBtn.empty();
@@ -1115,7 +1186,7 @@ export class MessageRenderer {
             try {
               await this.rewindCallback?.(messageId, mode);
             } catch (err) {
-              new Notice(t('chat.rewind.failed', { error: err instanceof Error ? err.message : 'Unknown error' }));
+              new Notice(t('chat.rewind.failed', { error: err instanceof Error ? err.message : t('chat.ui.errors.unknown') }));
             }
           });
         });
@@ -1135,7 +1206,7 @@ export class MessageRenderer {
         try {
           await this.forkCallback?.(messageId);
         } catch (err) {
-          new Notice(t('chat.fork.failed', { error: err instanceof Error ? err.message : 'Unknown error' }));
+          new Notice(t('chat.fork.failed', { error: err instanceof Error ? err.message : t('chat.ui.errors.unknown') }));
         }
       });
     });

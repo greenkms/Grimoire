@@ -16,6 +16,7 @@ import { renderStoredAsyncSubagent, renderStoredSubagent } from '@/features/chat
 import { renderStoredThinkingBlock } from '@/features/chat/rendering/ThinkingBlockRenderer';
 import { renderStoredToolCall, renderStoredToolCallGroup } from '@/features/chat/rendering/ToolCallRenderer';
 import { renderStoredWriteEdit } from '@/features/chat/rendering/WriteEditRenderer';
+import { setLocale } from '@/i18n/i18n';
 
 jest.mock('@/features/chat/rendering/SubagentRenderer', () => ({
   renderStoredAsyncSubagent: jest.fn().mockReturnValue({ wrapperEl: {}, cleanup: jest.fn() }),
@@ -231,8 +232,34 @@ describe('MessageRenderer', () => {
       '\u00B7',
       'Opus 4.8',
       '\u00B7',
-      'Effort XHigh',
+      'Effort Extra high',
     ]);
+  });
+
+  it('localizes assistant effort metadata in Simplified Chinese', () => {
+    setLocale('zh-CN');
+    const messagesEl = createMockEl();
+    const { renderer } = createRenderer(messagesEl);
+
+    renderer.renderStoredMessage({
+      id: 'assistant-with-localized-meta',
+      role: 'assistant',
+      content: 'Done',
+      timestamp: Date.now(),
+      responseMetadata: {
+        providerId: 'claude',
+        providerLabel: 'Claude Code',
+        model: 'claude-opus-4-8',
+        modelLabel: 'Opus 4.8',
+        effort: 'xhigh',
+        effortLabel: 'XHigh',
+      },
+    });
+
+    const header = messagesEl.querySelector('.grimoire-assistant-response-meta');
+    expect(Array.from(header?.children ?? []).map(child => (child as HTMLElement).textContent))
+      .toContain('推理强度 极高');
+    setLocale('en');
   });
 
   it('renders vault search sources for stored user messages', () => {
@@ -1177,7 +1204,7 @@ describe('MessageRenderer', () => {
       '\u00B7',
       'Opus 4.8',
       '\u00B7',
-      'Effort XHigh',
+      'Effort Extra high',
     ]);
   });
 
@@ -1274,9 +1301,72 @@ describe('MessageRenderer', () => {
 
     renderer.addTextCopyButton(textEl, 'some markdown');
 
-    expect(textEl.children.length).toBe(1);
+    expect(textEl.children.length).toBe(2);
     const copyBtn = textEl.children[0];
     expect(copyBtn.hasClass('grimoire-text-copy-btn')).toBe(true);
+    expect(textEl.children[1].hasClass('grimoire-message-completion-time')).toBe(true);
+  });
+
+  it('shows the localized completion date and time beside the last assistant copy button', () => {
+    setLocale('zh-CN');
+    try {
+      const messagesEl = createMockEl();
+      const { renderer } = createRenderer(messagesEl);
+      jest.spyOn(renderer, 'renderContent').mockResolvedValue(undefined);
+      const completedAt = new Date(2026, 6, 31, 9, 5).getTime();
+
+      renderer.renderStoredMessage({
+        id: 'assistant-completed-at',
+        role: 'assistant',
+        content: 'First\nSecond',
+        timestamp: completedAt - 5000,
+        completedAt,
+        contentBlocks: [
+          { type: 'text', content: 'First' },
+          { type: 'text', content: 'Second' },
+        ],
+      });
+
+      const textBlocks = messagesEl.querySelectorAll('.grimoire-text-block');
+      expect(textBlocks[0]?.hasClass('grimoire-text-block--with-completion-time')).toBe(false);
+      expect(textBlocks[1]?.hasClass('grimoire-text-block--with-completion-time')).toBe(true);
+      const completionTime = textBlocks[1]?.querySelector('.grimoire-message-completion-time')?.textContent ?? '';
+      expect(completionTime).toContain('2026');
+      expect(completionTime).toContain('09:05');
+    } finally {
+      setLocale('en');
+    }
+  });
+
+  it('places the user completion time before the user copy button', () => {
+    setLocale('zh-CN');
+    try {
+      const messagesEl = createMockEl();
+      const { renderer } = createRenderer(messagesEl);
+      jest.spyOn(renderer, 'renderContent').mockResolvedValue(undefined);
+      const completedAt = new Date(2026, 6, 31, 10, 26).getTime();
+
+      renderer.renderStoredMessage({
+        id: 'user-completed-at',
+        role: 'user',
+        content: 'Question',
+        timestamp: completedAt,
+        completedAt,
+      });
+
+      const toolbar = messagesEl.querySelector('.grimoire-user-msg-actions');
+      const completionIndex = toolbar?.children.findIndex((child: any) =>
+        child.hasClass('grimoire-message-completion-time')
+      );
+      const copyIndex = toolbar?.children.findIndex((child: any) =>
+        child.hasClass('grimoire-user-msg-copy-btn')
+      );
+      expect(completionIndex).toBeGreaterThanOrEqual(0);
+      expect(copyIndex).toBeGreaterThan(completionIndex ?? -1);
+      expect(toolbar?.querySelector('.grimoire-message-completion-time')?.textContent).toContain('10:26');
+    } finally {
+      setLocale('en');
+    }
   });
 
   // ============================================

@@ -1,12 +1,7 @@
 import { setIcon } from 'obsidian';
 
 import type { AskUserQuestionItem, AskUserQuestionOption } from '../../../core/types/tools';
-
-const KIND_LABELS: Record<string, string> = {
-  single: 'single',
-  multi: 'multiple',
-  freeform: 'opt.',
-};
+import { t } from '../../../i18n/i18n';
 
 export interface InlineAskQuestionConfig {
   title?: string;
@@ -62,7 +57,7 @@ export class InlineAskUserQuestion {
     this.resolveCallback = resolve;
     this.signal = signal;
     this.config = {
-      title: config?.title ?? 'Question',
+      title: config?.title ?? t('chat.ui.ask.question'),
       headerEl: config?.headerEl,
       showCustomInput: config?.showCustomInput ?? true,
       immediateSelect: config?.immediateSelect ?? false,
@@ -117,10 +112,12 @@ export class InlineAskUserQuestion {
     setIcon(glyph, 'message-circle-question');
 
     const titleBlock = head.createDiv({ cls: 'grimoire-ask-title-block' });
-    titleBlock.createDiv({ text: 'Needs a detail', cls: 'grimoire-ask-title' });
+    titleBlock.createDiv({ text: t('chat.ui.ask.needsDetail'), cls: 'grimoire-ask-title' });
     const questionCount = this.questions.length;
     titleBlock.createDiv({
-      text: `Grimoire asks ${questionCount} question${questionCount !== 1 ? 's' : ''} before proceeding`,
+      text: t(questionCount === 1
+        ? 'chat.ui.ask.questionCountOne'
+        : 'chat.ui.ask.questionCountMany', { count: questionCount }),
       cls: 'grimoire-ask-subtitle',
     });
 
@@ -163,7 +160,7 @@ export class InlineAskUserQuestion {
       topRow.createSpan({ text: q.question, cls: 'grimoire-ask-q-title' });
 
       const kind = this.getQuestionKind(q, blockIdx);
-      topRow.createSpan({ text: KIND_LABELS[kind] ?? kind, cls: 'grimoire-ask-q-kind' });
+      topRow.createSpan({ text: this.getQuestionKindLabel(kind), cls: 'grimoire-ask-q-kind' });
 
       if (q.options.length > 0) {
         const optsEl = block.createDiv({ cls: 'grimoire-ask-opts' });
@@ -205,7 +202,7 @@ export class InlineAskUserQuestion {
       if (this.isFreeformQuestion(q, blockIdx)) {
         const ta = block.createEl('textarea', { cls: 'grimoire-ask-freeform' });
         ta.setAttribute('rows', '1');
-        ta.setAttribute('placeholder', 'Type your answer...');
+        ta.setAttribute('placeholder', t('chat.ui.ask.answerPlaceholder'));
         ta.addEventListener('input', () => {
           this.questionStates[blockIdx].freeformText = ta.value;
           ta.setCssProps({ height: Math.min(80, ta.scrollHeight) + 'px' });
@@ -232,7 +229,7 @@ export class InlineAskUserQuestion {
 
     const skipBtn = actions.createEl('button', {
       cls: 'grimoire-ask-btn grimoire-ask-btn--skip',
-      text: 'Decide for me',
+      text: t('chat.ui.ask.decideForMe'),
     });
     skipBtn.addEventListener('click', () => this.handleSkip());
 
@@ -240,7 +237,7 @@ export class InlineAskUserQuestion {
       cls: 'grimoire-ask-btn grimoire-ask-btn--submit',
     });
     setIcon(this.submitBtn.createSpan(), 'arrow-right');
-    this.submitBtn.createSpan({ text: 'Send answers' });
+    this.submitBtn.createSpan({ text: t('chat.ui.ask.sendAnswers') });
     this.submitBtn.addEventListener('click', () => this.handleSubmit());
 
     this.refreshValidity();
@@ -249,6 +246,13 @@ export class InlineAskUserQuestion {
   private getQuestionKind(q: AskUserQuestionItem, _idx: number): string {
     if (q.options.length === 0) return 'freeform';
     return q.multiSelect ? 'multi' : 'single';
+  }
+
+  private getQuestionKindLabel(kind: string): string {
+    if (kind === 'single') return t('chat.ui.ask.single');
+    if (kind === 'multi') return t('chat.ui.ask.multiple');
+    if (kind === 'freeform') return t('chat.ui.ask.optional');
+    return kind;
   }
 
   private isFreeformQuestion(q: AskUserQuestionItem, _idx: number): boolean {
@@ -298,7 +302,7 @@ export class InlineAskUserQuestion {
   private refreshCollapseToggle(): void {
     if (!this.collapseBtn) return;
 
-    const label = this.isCollapsed ? 'Expand question' : 'Collapse question';
+    const label = this.isCollapsed ? t('chat.ui.ask.expand') : t('chat.ui.ask.collapse');
     this.collapseBtn.setAttribute('aria-label', label);
     this.collapseBtn.setAttribute('title', label);
     this.collapseBtn.setAttribute('aria-expanded', String(!this.isCollapsed));
@@ -551,7 +555,7 @@ export class InlineAskUserQuestion {
     if (typeof obj.value === 'string') return obj.value;
     if (typeof obj.text === 'string') return obj.text;
     if (typeof obj.name === 'string') return obj.name;
-    return 'Option';
+    return t('chat.ui.ask.option');
   }
 
   private stringifyOptionValue(value: unknown): string {
@@ -559,7 +563,7 @@ export class InlineAskUserQuestion {
     if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
       return `${value}`;
     }
-    return 'Option';
+    return t('chat.ui.ask.option');
   }
 
   private extractValue(obj: Record<string, unknown>, fallback: string): string {

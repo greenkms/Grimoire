@@ -201,6 +201,11 @@
   border-radius: var(--grimoire-radius-3) var(--grimoire-radius-3) 4px var(--grimoire-radius-3);
 }
 
+/* Reserve room for the date/action row positioned below the question bubble. */
+.grimoire-container--chat-window .grimoire-message-user {
+  margin-bottom: 12px;
+}
+
 /* Text selection in user messages - visible highlight */
 .grimoire-message-user ::selection {
   background: rgba(255, 255, 255, 0.35);
@@ -229,7 +234,7 @@
 
 .grimoire-container--chat-window .grimoire-message-assistant .grimoire-message-content {
   display: grid;
-  gap: 10px;
+  gap: 5px;
 }
 
 .grimoire-assistant-response-meta {
@@ -259,6 +264,10 @@
 
 .grimoire-assistant-response-meta[data-provider="codex"] .grimoire-assistant-response-dot {
   background: var(--grimoire-provider-codex);
+}
+
+.grimoire-assistant-response-meta[data-provider="qwen"] .grimoire-assistant-response-dot {
+  background: var(--grimoire-provider-qwen);
 }
 
 .grimoire-assistant-response-meta[data-provider="antigravity"] .grimoire-assistant-response-dot {
@@ -328,8 +337,8 @@
   border-radius: var(--grimoire-radius-1);
   color: var(--text-faint);
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.15s ease, color 0.15s ease;
+  opacity: 1;
+  transition: color 0.15s ease;
   z-index: 2;
   display: flex;
   align-items: center;
@@ -340,10 +349,6 @@
 .grimoire-text-copy-btn svg {
   width: 16px;
   height: 16px;
-}
-
-.grimoire-text-block:hover .grimoire-text-copy-btn {
-  opacity: 1;
 }
 
 .grimoire-text-copy-btn:hover {
@@ -357,6 +362,36 @@
   color: var(--text-accent);
   font-size: 11px;
   font-family: var(--font-monospace);
+}
+
+.grimoire-message-completion-time {
+  color: var(--text-faint);
+  font-family: var(--font-monospace);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 400;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.grimoire-text-block > .grimoire-message-completion-time {
+  position: absolute;
+  bottom: 7px;
+  inset-inline-end: 42px;
+  display: none;
+  pointer-events: none;
+}
+
+.grimoire-text-block--with-completion-time {
+  padding-bottom: 24px;
+}
+
+.grimoire-text-block--with-completion-time > .grimoire-message-completion-time {
+  display: inline-block;
+}
+
+.grimoire-text-copy-btn.copied + .grimoire-message-completion-time {
+  inset-inline-end: 78px;
 }
 
 .grimoire-text-block+.grimoire-tool-call {
@@ -486,13 +521,8 @@
   right: 0;
   display: flex;
   gap: 12px;
-  opacity: 0;
-  transition: opacity 0.15s;
-  z-index: 1;
-}
-
-.grimoire-message-user:hover .grimoire-user-msg-actions {
   opacity: 1;
+  z-index: 1;
 }
 
 .grimoire-user-msg-actions span {
@@ -517,6 +547,11 @@
   color: var(--text-accent);
   font-size: 11px;
   font-family: var(--font-monospace);
+}
+
+.grimoire-user-msg-actions .grimoire-message-completion-time {
+  cursor: default;
+  color: var(--text-faint);
 }
 
 /* Compact boundary indicator */

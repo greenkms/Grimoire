@@ -5,9 +5,8 @@ import * as nodePath from 'path';
 import { getToolIcon } from '../../../core/tools/toolIcons';
 import { TOOL_ENTER_PLAN_MODE } from '../../../core/tools/toolNames';
 import type { ExitPlanModeDecision } from '../../../core/types/tools';
+import { t } from '../../../i18n/i18n';
 import type { RenderContentFn } from './MessageRenderer';
-
-const HINTS_TEXT = 'Arrow keys to navigate \u00B7 Enter to select \u00B7 Esc to cancel';
 
 export class InlineExitPlanMode {
   private containerEl: HTMLElement;
@@ -71,7 +70,7 @@ export class InlineExitPlanMode {
     const allowedPrompts = this.input.allowedPrompts as Array<{ tool: string; prompt: string }> | undefined;
     if (allowedPrompts && Array.isArray(allowedPrompts) && allowedPrompts.length > 0) {
       const permEl = this.rootEl.createDiv({ cls: 'grimoire-plan-permissions' });
-      permEl.createDiv({ text: 'Requested permissions:', cls: 'grimoire-plan-permissions-label' });
+      permEl.createDiv({ text: t('chat.ui.plan.requestedPermissions'), cls: 'grimoire-plan-permissions-label' });
       const listEl = permEl.createEl('ul', { cls: 'grimoire-plan-permissions-list' });
       for (const perm of allowedPrompts) {
         listEl.createEl('li', { text: perm.prompt });
@@ -84,7 +83,7 @@ export class InlineExitPlanMode {
     approveRow.addClass('is-focused');
     approveRow.createSpan({ text: '\u203A', cls: 'grimoire-ask-cursor' });
     approveRow.createSpan({ text: '1', cls: 'grimoire-ask-item-num' });
-    approveRow.createSpan({ text: 'Approve (current session)', cls: 'grimoire-ask-item-label' });
+    approveRow.createSpan({ text: t('chat.ui.plan.approveCurrentSession'), cls: 'grimoire-ask-item-label' });
     approveRow.addEventListener('click', () => {
       this.focusedIndex = 0;
       this.updateFocus();
@@ -98,7 +97,7 @@ export class InlineExitPlanMode {
     this.feedbackInput = feedbackRow.createEl('input', {
       type: 'text',
       cls: 'grimoire-ask-custom-text',
-      placeholder: 'Enter feedback to continue planning...',
+      placeholder: t('chat.ui.plan.continueFeedbackPlaceholder'),
     });
     this.feedbackInput.addEventListener('focus', () => { this.isInputFocused = true; });
     this.feedbackInput.addEventListener('blur', () => { this.isInputFocused = false; });
@@ -108,7 +107,7 @@ export class InlineExitPlanMode {
     });
     this.items.push(feedbackRow);
 
-    this.rootEl.createDiv({ text: HINTS_TEXT, cls: 'grimoire-ask-hints' });
+    this.rootEl.createDiv({ text: t('chat.ui.plan.keyboardHints'), cls: 'grimoire-ask-hints' });
 
     this.rootEl.setAttribute('tabindex', '0');
     this.rootEl.addEventListener('keydown', this.boundKeyDown);
@@ -135,15 +134,15 @@ export class InlineExitPlanMode {
     setIcon(glyph, getToolIcon(TOOL_ENTER_PLAN_MODE));
 
     const titleBlock = head.createDiv({ cls: 'grimoire-plan-title-block' });
-    titleBlock.createDiv({ text: 'Plan complete', cls: 'grimoire-plan-title' });
+    titleBlock.createDiv({ text: t('chat.ui.plan.complete'), cls: 'grimoire-plan-title' });
     titleBlock.createDiv({
-      text: 'Review the plan before proceeding',
+      text: t('chat.ui.plan.reviewBeforeProceeding'),
       cls: 'grimoire-plan-subtitle',
     });
 
     const pill = head.createDiv({ cls: 'grimoire-plan-tool-pill' });
     setIcon(pill.createSpan(), getToolIcon(TOOL_ENTER_PLAN_MODE));
-    pill.createSpan({ text: 'plan', cls: 'grimoire-plan-tool-label' });
+    pill.createSpan({ text: t('chat.ui.plan.label'), cls: 'grimoire-plan-tool-label' });
 
     this.collapseBtn = head.createEl('button', {
       cls: 'grimoire-plan-collapse-toggle',
@@ -179,7 +178,7 @@ export class InlineExitPlanMode {
   private refreshCollapseToggle(): void {
     if (!this.collapseBtn) return;
 
-    const label = this.isCollapsed ? 'Expand plan' : 'Collapse plan';
+    const label = this.isCollapsed ? t('chat.ui.plan.expand') : t('chat.ui.plan.collapse');
     this.collapseBtn.setAttribute('aria-label', label);
     this.collapseBtn.setAttribute('title', label);
     this.collapseBtn.setAttribute('aria-expanded', String(!this.isCollapsed));

@@ -467,12 +467,14 @@ export class InputController {
 
     fileContextManager?.markCurrentNoteSent();
 
+    const userCompletedAt = Date.now();
     const userMsg: ChatMessage = {
       id: this.deps.generateId(),
       role: 'user',
       content: displayContent,
       displayContent,                // Original user input (for UI display)
-      timestamp: Date.now(),
+      timestamp: userCompletedAt,
+      completedAt: userCompletedAt,
       images: imagesForMessage,
       vaultSearchContext: turnRequest.vaultSearchContext,
     };
@@ -510,7 +512,7 @@ export class InputController {
     if (this.deps.ensureServiceInitialized) {
       const ready = await this.deps.ensureServiceInitialized();
       if (!ready) {
-        new Notice('Failed to initialize agent service. Please try again.');
+        new Notice(t('chat.ui.errors.initializeAgentFailed'));
         streamController.hideThinkingIndicator();
         streamController.stopTurnSilenceIndicator();
         state.isStreaming = false;
@@ -522,7 +524,7 @@ export class InputController {
 
     const agentService = this.getAgentService();
     if (!agentService) {
-      new Notice('Agent service not available. Please reload the plugin.');
+      new Notice(t('chat.ui.errors.agentUnavailable'));
       this.activeStreamingAssistantMessage = null;
       this.resetProviderMessageBoundaryState();
       streamController.stopTurnSilenceIndicator();
@@ -669,6 +671,8 @@ export class InputController {
         );
         await streamController.finalizeCurrentThinkingBlock(finalAssistantMsg);
         await streamController.finalizeCurrentTextBlock(finalAssistantMsg);
+        finalAssistantMsg.completedAt = Date.now();
+        renderer.updateMessageCompletionTime(finalAssistantMsg);
         state.currentContentEl = null;
         this.deps.getSubagentManager().resetStreamingState();
 
@@ -758,7 +762,7 @@ export class InputController {
         if (this.canSteerQueuedMessage()) {
           const steerButton = actionsEl.createEl('button', {
             cls: 'grimoire-queue-indicator-action',
-            text: this.steerInFlight ? 'Steering...' : 'Steer Now',
+            text: this.steerInFlight ? t('chat.ui.queue.steering') : t('chat.ui.queue.steerNow'),
           });
           steerButton.setAttribute('type', 'button');
           if (this.steerInFlight) {
@@ -1280,7 +1284,7 @@ export class InputController {
       });
     } catch {
       this.restoreQueuedMessageAfterSteerFailure(queuedMessage);
-      new Notice('Failed to steer the queued Codex message. It is still available.');
+      new Notice(t('chat.ui.queue.steerFailed'));
     }
   }
 
@@ -1383,6 +1387,8 @@ export class InputController {
         await this.deps.streamController.finalizeProgressBlocks(previousAssistant);
         await this.deps.streamController.finalizeCurrentThinkingBlock(previousAssistant);
         await this.deps.streamController.finalizeCurrentTextBlock(previousAssistant);
+        previousAssistant.completedAt = Date.now();
+        this.deps.renderer.updateMessageCompletionTime(previousAssistant);
       }
     }
     this.deps.streamController.hideThinkingIndicator();
@@ -1391,12 +1397,14 @@ export class InputController {
     const persistedContent = expected?.persistedContent ?? displayContent;
     const images = expected?.images;
     if (displayContent || (images?.length ?? 0) > 0) {
+      const userCompletedAt = Date.now();
       const userMessage: ChatMessage = {
         id: this.deps.generateId(),
         role: 'user',
         content: persistedContent,
         displayContent,
-        timestamp: Date.now(),
+        timestamp: userCompletedAt,
+        completedAt: userCompletedAt,
         currentNote: expected?.currentNote,
         images,
         vaultSearchContext: expected?.vaultSearchContext,
@@ -1425,6 +1433,8 @@ export class InputController {
       await this.deps.streamController.finalizeProgressBlocks(previousAssistant);
       await this.deps.streamController.finalizeCurrentThinkingBlock(previousAssistant);
       await this.deps.streamController.finalizeCurrentTextBlock(previousAssistant);
+      previousAssistant.completedAt = Date.now();
+      this.deps.renderer.updateMessageCompletionTime(previousAssistant);
     }
 
     const assistantMessage = this.createAssistantMessage();
@@ -1594,7 +1604,7 @@ export class InputController {
               plugin.settings.systemPrompt = appendMarkdownSnippet(currentPrompt, finalInstruction);
               await plugin.saveSettings();
 
-              new Notice('Instruction added to custom system prompt');
+              new Notice(t('chat.ui.instructions.added'));
               instructionModeManager?.clear();
             })();
           },
@@ -1615,8 +1625,8 @@ export class InputController {
               if (result.error === 'Cancelled') {
                 return;
               }
-              new Notice(result.error || 'Failed to process response');
-              modal?.showError(result.error || 'Failed to process response');
+              new Notice(result.error || t('chat.ui.instructions.processFailed'));
+              modal?.showError(result.error || t('chat.ui.instructions.processFailed'));
               return;
             }
 
@@ -1646,8 +1656,8 @@ export class InputController {
           instructionModeManager?.clear();
           return;
         }
-        new Notice(result.error || 'Failed to refine instruction');
-        modal.showError(result.error || 'Failed to refine instruction');
+        new Notice(result.error || t('chat.ui.instructions.refineFailed'));
+        modal.showError(result.error || t('chat.ui.instructions.refineFailed'));
         instructionModeManager?.clear();
         return;
       }
@@ -1657,8 +1667,8 @@ export class InputController {
       } else if (result.refinedInstruction) {
         modal.showConfirmation(result.refinedInstruction);
       } else {
-        new Notice('No instruction received');
-        modal.showError('No instruction received');
+        new Notice(t('chat.ui.instructions.noneReceived'));
+        modal.showError(t('chat.ui.instructions.noneReceived'));
         instructionModeManager?.clear();
       }
     } catch (error) {
@@ -1930,7 +1940,7 @@ export class InputController {
     const resultEl = toolEl.querySelector('.grimoire-tool-result');
     const previousResult = resultEl?.textContent ?? '';
     toolEl.addClass('is-awaiting');
-    resultEl?.setText('Awaiting you');
+    resultEl?.setText(t('chat.ui.messages.awaitingYou'));
 
     return () => {
       toolEl.removeClass('is-awaiting');
@@ -2014,7 +2024,7 @@ export class InputController {
       case 'add-dir': {
         const externalContextSelector = this.deps.getExternalContextSelector();
         if (!externalContextSelector) {
-          new Notice('External context selector not available.');
+          new Notice(t('chat.ui.errors.externalContextUnavailable'));
           return;
         }
         const result = externalContextSelector.addExternalContext(args);
@@ -2030,11 +2040,11 @@ export class InputController {
         break;
       case 'fork': {
         if (!this.getActiveCapabilities().supportsFork) {
-          new Notice('Fork is not supported by this provider.');
+          new Notice(t('chat.ui.errors.forkUnsupported'));
           return;
         }
         if (!this.deps.onForkAll) {
-          new Notice('Fork not available.');
+          new Notice(t('chat.ui.errors.forkUnavailable'));
           return;
         }
         await this.deps.onForkAll();
@@ -2043,7 +2053,7 @@ export class InputController {
       case 'image': {
         const prompt = args.trim();
         if (!prompt) {
-          new Notice('Usage: /image <prompt>');
+          new Notice(t('chat.ui.commands.imageUsage'));
           return;
         }
         await this.sendMessage({
@@ -2097,7 +2107,7 @@ export class InputController {
 
     const conversations = plugin.getConversationList();
     if (conversations.length === 0) {
-      new Notice('No conversations to resume');
+      new Notice(t('chat.ui.history.noneToResume'));
       return;
     }
 

@@ -26,6 +26,7 @@ import {
 import { extractToolResultContent } from '../../../core/tools/toolResultContent';
 import type { AskUserQuestionItem, ToolCallInfo } from '../../../core/types';
 import type { DiffStats } from '../../../core/types/diff';
+import { t } from '../../../i18n/i18n';
 import { appendMcpIcon } from '../../../shared/icons';
 import { parseApplyPatchDiffs, parseFileUpdateChangeDiffs } from '../../../utils/diff';
 import { setupCollapsible } from './collapsible';
@@ -63,14 +64,14 @@ export function getToolName(name: string, input: Record<string, unknown>): strin
       const todos = input.todos as Array<{ status: string }> | undefined;
       if (todos && Array.isArray(todos) && todos.length > 0) {
         const completed = todos.filter(t => t.status === 'completed').length;
-        return `Tasks ${completed}/${todos.length}`;
+        return t('chat.ui.tools.tasksProgress', { completed, total: todos.length });
       }
-      return 'Tasks';
+      return t('chat.ui.tools.tasks');
     }
     case TOOL_ENTER_PLAN_MODE:
-      return 'Entering plan mode';
+      return t('chat.ui.tools.enteringPlanMode');
     case TOOL_EXIT_PLAN_MODE:
-      return 'Plan complete';
+      return t('chat.ui.plan.complete');
     default:
       return name;
   }
@@ -126,33 +127,33 @@ export function isToolCallGroupable(toolCall: ToolCallInfo): boolean {
 export function getToolDisplayName(toolCall: ToolCallInfo): string {
   switch (toolCall.name) {
     case TOOL_BASH:
-      return toolCall.status === 'completed' ? 'Ran command' : 'Run command';
+      return toolCall.status === 'completed' ? t('chat.ui.tools.ranCommand') : t('chat.ui.tools.runCommand');
     case TOOL_READ:
-      return toolCall.status === 'completed' ? 'Read note' : 'Reading note';
+      return toolCall.status === 'completed' ? t('chat.ui.tools.readNote') : t('chat.ui.tools.readingNote');
     case TOOL_WRITE:
-      return toolCall.status === 'completed' ? 'Wrote file' : 'Writing file';
+      return toolCall.status === 'completed' ? t('chat.ui.tools.wroteFile') : t('chat.ui.tools.writingFile');
     case TOOL_EDIT:
-      return toolCall.status === 'completed' ? 'Edited file' : 'Editing file';
+      return toolCall.status === 'completed' ? t('chat.ui.tools.editedFile') : t('chat.ui.tools.editingFile');
     case TOOL_GLOB:
-      return toolCall.status === 'running' ? 'Globbing files' : 'Globbed files';
+      return toolCall.status === 'running' ? t('chat.ui.tools.globbingFiles') : t('chat.ui.tools.globbedFiles');
     case TOOL_GREP:
-      return toolCall.status === 'running' ? 'Searching files' : 'Searched files';
+      return toolCall.status === 'running' ? t('chat.ui.tools.searchingFiles') : t('chat.ui.tools.searchedFiles');
     case TOOL_LS:
-      return toolCall.status === 'running' ? 'Listing files' : 'Listed files';
+      return toolCall.status === 'running' ? t('chat.ui.tools.listingFiles') : t('chat.ui.tools.listedFiles');
     case TOOL_WEB_SEARCH:
-      return toolCall.status === 'running' ? 'Searching the web' : 'Searched the web';
+      return toolCall.status === 'running' ? t('chat.ui.tools.searchingWeb') : t('chat.ui.tools.searchedWeb');
     case TOOL_WEB_FETCH:
-      return toolCall.status === 'running' ? 'Fetching page' : 'Fetched page';
+      return toolCall.status === 'running' ? t('chat.ui.tools.fetchingPage') : t('chat.ui.tools.fetchedPage');
     case TOOL_TOOL_SEARCH:
-      return toolCall.status === 'running' ? 'Searching tools' : 'Searched tools';
+      return toolCall.status === 'running' ? t('chat.ui.tools.searchingTools') : t('chat.ui.tools.searchedTools');
     case TOOL_TODO_WRITE:
       return getToolName(toolCall.name, toolCall.input);
     case TOOL_APPLY_PATCH:
-      return toolCall.status === 'running' ? 'Applying patch' : 'Applied patch';
+      return toolCall.status === 'running' ? t('chat.ui.tools.applyingPatch') : t('chat.ui.tools.appliedPatch');
     case TOOL_WRITE_STDIN:
-      return 'Sent input';
+      return t('chat.ui.tools.sentInput');
     case TOOL_SKILL:
-      return 'Loaded skill';
+      return t('chat.ui.tools.loadedSkill');
     default:
       if (isMcpTool(toolCall.name)) {
         return getMcpOperationName(toolCall.name);
@@ -470,23 +471,23 @@ function renderWebSearchActionExpanded(container: HTMLElement, input: Record<str
 
   switch (data.actionType) {
     case 'open_page':
-      linesEl.createDiv({ cls: 'grimoire-tool-line', text: 'Open page' });
+      linesEl.createDiv({ cls: 'grimoire-tool-line', text: t('chat.ui.tools.openPage') });
       if (data.url) {
         appendToolLink(linesEl, data.url, data.url);
       } else {
-        linesEl.createDiv({ cls: 'grimoire-tool-line', text: 'URL unavailable' });
+        linesEl.createDiv({ cls: 'grimoire-tool-line', text: t('chat.ui.tools.urlUnavailable') });
       }
       return true;
 
     case 'find_in_page':
-      linesEl.createDiv({ cls: 'grimoire-tool-line', text: 'Find in page' });
+      linesEl.createDiv({ cls: 'grimoire-tool-line', text: t('chat.ui.tools.findInPage') });
       if (data.url) {
         appendToolLink(linesEl, data.url, data.url);
       } else {
-        linesEl.createDiv({ cls: 'grimoire-tool-line', text: 'URL unavailable' });
+        linesEl.createDiv({ cls: 'grimoire-tool-line', text: t('chat.ui.tools.urlUnavailable') });
       }
       if (data.pattern) {
-        linesEl.createDiv({ cls: 'grimoire-tool-line', text: `Pattern: ${data.pattern}` });
+        linesEl.createDiv({ cls: 'grimoire-tool-line', text: t('chat.ui.tools.pattern', { pattern: data.pattern }) });
       }
       return true;
 
@@ -495,17 +496,19 @@ function renderWebSearchActionExpanded(container: HTMLElement, input: Record<str
       const primaryQuery = data.query || data.queries[0];
       linesEl.createDiv({
         cls: 'grimoire-tool-line',
-        text: primaryQuery ? `Query: ${primaryQuery}` : 'Search web',
+        text: primaryQuery
+          ? t('chat.ui.tools.query', { query: primaryQuery })
+          : t('chat.ui.tools.searchWeb'),
       });
 
       const alternateQueries = data.queries.filter(query => query !== primaryQuery);
       for (const query of alternateQueries.slice(0, 4)) {
-        linesEl.createDiv({ cls: 'grimoire-tool-line', text: `Alt query: ${query}` });
+        linesEl.createDiv({ cls: 'grimoire-tool-line', text: t('chat.ui.tools.altQuery', { query }) });
       }
       if (alternateQueries.length > 4) {
         linesEl.createDiv({
           cls: 'grimoire-tool-truncated',
-          text: `... ${alternateQueries.length - 4} more queries`,
+          text: t('chat.ui.tools.moreQueries', { count: alternateQueries.length - 4 }),
         });
       }
       return true;
@@ -555,13 +558,13 @@ function renderWebSearchExpanded(
     return;
   }
 
-  container.createDiv({ cls: 'grimoire-tool-empty', text: 'No result' });
+  container.createDiv({ cls: 'grimoire-tool-empty', text: t('chat.ui.tools.noResult') });
 }
 
 function renderFileSearchExpanded(container: HTMLElement, result: string): void {
   const lines = result.split(/\r?\n/).filter(line => line.trim());
   if (lines.length === 0) {
-    container.createDiv({ cls: 'grimoire-tool-empty', text: 'No matches found' });
+    container.createDiv({ cls: 'grimoire-tool-empty', text: t('chat.ui.tools.noMatches') });
     return;
   }
   const partEl = createIoPart(container, 'MATCHED');
@@ -677,7 +680,7 @@ function appendPreviewToggle(
 
   const buttonEl = actionEl.createEl('button', {
     cls: 'grimoire-tool-show-all',
-    text: showAll ? 'Show preview' : 'Show all',
+    text: showAll ? t('chat.ui.tools.showPreview') : t('chat.ui.tools.showAll'),
   });
   buttonEl.setAttribute('type', 'button');
   buttonEl.setAttribute('aria-expanded', showAll ? 'true' : 'false');
@@ -741,7 +744,7 @@ function renderApplyPatchExpanded(
     return;
   }
 
-  container.createDiv({ cls: 'grimoire-tool-empty', text: 'No result' });
+  container.createDiv({ cls: 'grimoire-tool-empty', text: t('chat.ui.tools.noResult') });
 }
 
 function renderApplyPatchDiffSections(
@@ -752,12 +755,12 @@ function renderApplyPatchDiffSections(
     const sectionEl = container.createDiv({ cls: 'grimoire-tool-patch-section' });
 
     if (fileDiff.operation === 'delete' && fileDiff.diffLines.length === 0) {
-      sectionEl.createDiv({ cls: 'grimoire-tool-empty', text: 'File deleted' });
+      sectionEl.createDiv({ cls: 'grimoire-tool-empty', text: t('chat.ui.tools.fileDeleted') });
       continue;
     }
 
     if (fileDiff.diffLines.length === 0) {
-      sectionEl.createDiv({ cls: 'grimoire-tool-empty', text: 'No textual diff available' });
+      sectionEl.createDiv({ cls: 'grimoire-tool-empty', text: t('chat.ui.tools.noTextDiff') });
       continue;
     }
 
@@ -836,7 +839,7 @@ export function renderExpandedContent(
   input: Record<string, unknown> = {},
 ): void {
   if (!result && toolName !== TOOL_WEB_SEARCH && toolName !== TOOL_BASH && toolName !== TOOL_APPLY_PATCH) {
-    container.createDiv({ cls: 'grimoire-tool-empty', text: 'No result' });
+    container.createDiv({ cls: 'grimoire-tool-empty', text: t('chat.ui.tools.noResult') });
     return;
   }
 
@@ -914,13 +917,22 @@ const STATUS_ICONS: Record<string, string> = {
 function setTodoWriteStatus(statusEl: HTMLElement, input: Record<string, unknown>): void {
   const isComplete = areAllTodosCompleted(input);
   const status = isComplete ? 'completed' : 'running';
-  const ariaLabel = isComplete ? 'Status: completed' : 'Status: in progress';
+  const ariaLabel = t('chat.ui.status.aria', {
+    status: isComplete ? t('chat.ui.status.completed') : t('chat.ui.status.inProgress'),
+  });
   resetStatusElement(statusEl, `status-${status}`, ariaLabel);
   if (isComplete) setIcon(statusEl, 'check');
 }
 
 function setToolStatus(statusEl: HTMLElement, status: ToolCallInfo['status']): void {
-  resetStatusElement(statusEl, `status-${status}`, `Status: ${status}`);
+  const statusText = status === 'running'
+    ? t('chat.ui.status.running')
+    : status === 'completed'
+      ? t('chat.ui.status.completed')
+      : status === 'blocked'
+        ? t('chat.ui.status.blocked')
+        : t('chat.ui.status.error');
+  resetStatusElement(statusEl, `status-${status}`, t('chat.ui.status.aria', { status: statusText }));
   if (status === 'running') {
     statusEl.createSpan({ cls: 'grimoire-tool-spinner' });
     return;
@@ -963,7 +975,7 @@ export function renderTodoWriteResult(
   const todos = input.todos as TodoItem[] | undefined;
   if (!todos || !Array.isArray(todos)) {
     const item = container.createSpan({ cls: 'grimoire-tool-result-item' });
-    item.setText('Tasks updated');
+    item.setText(t('chat.ui.tools.tasksUpdated'));
     return;
   }
 
@@ -1134,13 +1146,13 @@ function renderAskUserQuestionFallback(container: HTMLElement, toolCall: ToolCal
     : [];
 
   if (questions.length === 0) {
-    contentFallback(container, initialText || toolCall.result || 'Waiting for answer...');
+    contentFallback(container, initialText || toolCall.result || t('chat.ui.tools.waitingForAnswer'));
     return;
   }
 
   if (initialText || toolCall.result) {
     container.createDiv({
-      text: initialText || toolCall.result || 'Waiting for answer...',
+      text: initialText || toolCall.result || t('chat.ui.tools.waitingForAnswer'),
       cls: 'grimoire-tool-result-text',
     });
   }
@@ -1191,7 +1203,7 @@ function renderBashContent(
     const outputPartEl = createIoPart(container, 'OUTPUT');
     renderLinesExpanded(outputPartEl, result, 20);
   } else {
-    container.createDiv({ cls: 'grimoire-tool-empty', text: 'No result' });
+    container.createDiv({ cls: 'grimoire-tool-empty', text: t('chat.ui.tools.noResult') });
   }
 }
 
@@ -1234,7 +1246,7 @@ function renderToolContent(
   } else if (toolCall.name === TOOL_ASK_USER_QUESTION) {
     content.addClass('grimoire-tool-content-ask');
     if (initialText) {
-      renderAskUserQuestionFallback(content, toolCall, 'Waiting for answer...');
+      renderAskUserQuestionFallback(content, toolCall, t('chat.ui.tools.waitingForAnswer'));
     } else if (!renderAskUserQuestionResult(content, toolCall)) {
       renderAskUserQuestionFallback(content, toolCall);
     }
@@ -1259,13 +1271,13 @@ function getToolGroupName(toolCalls: ToolCallInfo[]): string {
   const status = getGroupStatus(toolCalls);
   switch (key) {
     case 'vault-search':
-      return status === 'running' ? 'Searching the vault' : 'Searched the vault';
+      return status === 'running' ? t('chat.ui.tools.searchingVault') : t('chat.ui.tools.searchedVault');
     case 'web-search':
-      return status === 'running' ? 'Searching the web' : 'Searched the web';
+      return status === 'running' ? t('chat.ui.tools.searchingWeb') : t('chat.ui.tools.searchedWeb');
     case 'file-discovery':
-      return status === 'running' ? 'Searching files' : 'Searched files';
+      return status === 'running' ? t('chat.ui.tools.searchingFiles') : t('chat.ui.tools.searchedFiles');
     default:
-      return status === 'running' ? 'Running tools' : 'Ran tools';
+      return status === 'running' ? t('chat.ui.tools.runningTools') : t('chat.ui.tools.ranTools');
   }
 }
 
@@ -1292,10 +1304,9 @@ function getToolGroupSummary(toolCalls: ToolCallInfo[]): string {
 function getToolGroupCountLabel(toolCalls: ToolCallInfo[]): string {
   const key = getToolGroupKey(toolCalls[0]);
   const count = toolCalls.length;
-  const noun = key === 'vault-search' || key === 'web-search'
-    ? (count === 1 ? 'query' : 'queries')
-    : (count === 1 ? 'step' : 'steps');
-  return `${count} ${noun}`;
+  return key === 'vault-search' || key === 'web-search'
+    ? t(count === 1 ? 'chat.ui.tools.queryCountOne' : 'chat.ui.tools.queryCountMany', { count })
+    : t(count === 1 ? 'chat.ui.tools.stepCountOne' : 'chat.ui.tools.stepCountMany', { count });
 }
 
 function syncToolGroupStateClasses(groupEl: HTMLElement, status: ToolCallInfo['status']): void {
@@ -1376,7 +1387,7 @@ export function renderToolCall(
 
   setGenericToolHeaderRight(statusEl, toolCall);
 
-  renderToolContent(content, toolCall, 'Running...');
+  renderToolContent(content, toolCall, t('chat.ui.status.runningEllipsis'));
 
   const state = { isExpanded: false };
   toolCall.isExpanded = false;

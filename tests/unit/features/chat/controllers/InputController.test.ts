@@ -154,6 +154,7 @@ function createMockDeps(overrides: Partial<InputControllerDeps> = {}): InputCont
       refreshActionButtons: jest.fn(),
       removeMessage: jest.fn(),
       updateLiveUserMessage: jest.fn(),
+      updateMessageCompletionTime: jest.fn(),
     } as any,
     streamController: {
       showThinkingIndicator: jest.fn(),
@@ -2547,6 +2548,8 @@ describe('InputController - Message Queue', () => {
       expect(assistantMsg).toBeDefined();
       expect(assistantMsg!.durationSeconds).toBe(5);
       expect(assistantMsg!.durationFlavorWord).toBeDefined();
+      expect(assistantMsg!.completedAt).toEqual(expect.any(Number));
+      expect(deps.renderer.updateMessageCompletionTime).toHaveBeenCalledWith(assistantMsg);
 
       jest.spyOn(performance, 'now').mockRestore();
     });

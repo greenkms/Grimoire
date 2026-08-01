@@ -31,16 +31,16 @@ describe('InlinePermissionRequest', () => {
 
   it('summarizes long path lists by their meaningful final segments', () => {
     const command = [
-      'ls /Users/sandsaber/HomeBrew/GrimorieTestObsidian/Climate',
-      '/Users/sandsaber/HomeBrew/GrimorieTestObsidian/Phenomena',
-      '/Users/sandsaber/HomeBrew/GrimorieTestObsidian/Threats',
+      'ls /Users/test/ExampleVault/Climate',
+      '/Users/test/ExampleVault/Phenomena',
+      '/Users/test/ExampleVault/Threats',
     ].join('\n');
 
     expect(buildPermissionCommandSummary(command)).toBe('ls · Climate, Phenomena +1');
 
     const parentEl = createMockEl();
     const request = new InlinePermissionRequest(parentEl, {
-      toolName: 'Ls /users/sandsaber/homebrew…',
+      toolName: 'Ls /users/test/example-vault…',
       input: { command },
       description: `OpenCode wants permission to use ${command}.`,
       decisionOptions: [{ decision: 'allow', label: 'Allow once', value: 'allow' }],
