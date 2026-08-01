@@ -27,10 +27,6 @@ function createTabBarItem(overrides: Partial<TabBarItem> = {}): TabBarItem {
   };
 }
 
-function findCloseButton(badge: any): any | undefined {
-  return badge._children.find((child: any) => child._classList.has('grimoire-tab-badge-close'));
-}
-
 describe('TabBar', () => {
   describe('constructor', () => {
     it('should add tab badges class to container', () => {
@@ -228,62 +224,17 @@ describe('TabBar', () => {
       expect(callbacks.onTabClick).toHaveBeenCalledWith('clicked-tab');
     });
 
-    it('should render a close button when canClose is true', () => {
+    it('should not render a close button even when a tab can be closed elsewhere', () => {
       const containerEl = createMockEl();
       const callbacks = createMockCallbacks();
       const tabBar = new TabBar(containerEl, callbacks);
 
       tabBar.update([createTabBarItem({ id: 'closeable-tab', canClose: true })]);
 
-      const closeButton = findCloseButton(containerEl._children[0]);
-
-      expect(closeButton).toBeDefined();
-      expect(closeButton.textContent).toBe('×');
+      expect(containerEl._children[0]._children).toHaveLength(0);
     });
 
-    it('should not render a close button when canClose is false', () => {
-      const containerEl = createMockEl();
-      const callbacks = createMockCallbacks();
-      const tabBar = new TabBar(containerEl, callbacks);
-
-      tabBar.update([createTabBarItem({ id: 'uncloseable-tab', canClose: false })]);
-
-      expect(findCloseButton(containerEl._children[0])).toBeUndefined();
-    });
-
-    it('should label the close button for assistive technology', () => {
-      const containerEl = createMockEl();
-      const callbacks = createMockCallbacks();
-      const tabBar = new TabBar(containerEl, callbacks);
-
-      tabBar.update([createTabBarItem({ canClose: true })]);
-
-      expect(findCloseButton(containerEl._children[0])?.getAttribute('aria-label')).toBe('Close tab');
-    });
-
-    it('should isolate close button clicks and call onTabClose', () => {
-      const containerEl = createMockEl();
-      const callbacks = createMockCallbacks();
-      const tabBar = new TabBar(containerEl, callbacks);
-
-      tabBar.update([createTabBarItem({ id: 'closeable-tab', canClose: true })]);
-
-      const closeButton = findCloseButton(containerEl._children[0]);
-      const mockEvent = {
-        stopPropagation: jest.fn(),
-        stopImmediatePropagation: jest.fn(),
-        preventDefault: jest.fn(),
-      };
-      closeButton.dispatchEvent('click', mockEvent);
-
-      expect(mockEvent.stopPropagation).toHaveBeenCalled();
-      expect(mockEvent.stopImmediatePropagation).toHaveBeenCalled();
-      expect(mockEvent.preventDefault).toHaveBeenCalled();
-      expect(callbacks.onTabClose).toHaveBeenCalledWith('closeable-tab');
-      expect(callbacks.onTabClick).not.toHaveBeenCalled();
-    });
-
-    it('should keep right-click close support when canClose is true', () => {
+    it('should close a closeable tab on right-click', () => {
       const containerEl = createMockEl();
       const callbacks = createMockCallbacks();
       const tabBar = new TabBar(containerEl, callbacks);

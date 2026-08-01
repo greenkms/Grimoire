@@ -1,118 +1,213 @@
 import { setIcon } from 'obsidian';
 
+import { t } from '../../../i18n/i18n';
 import {
   cancelScheduledAnimationFrame,
   scheduleAnimationFrame,
   type ScheduledAnimationFrame,
 } from '../../../utils/animationFrame';
 
-/**
- * Floating sidebar for navigating chat history.
- * Provides quick access to top/bottom and previous/next user messages.
- */
+type DirectoryEntry = {
+  element: HTMLElement;
+  title: string;
+};
+
+/** Compact floating navigation for long conversations. */
 export class NavigationSidebar {
-  private container: HTMLElement;
-  private topBtn: HTMLElement;
-  private prevBtn: HTMLElement;
-  private nextBtn: HTMLElement;
-  private bottomBtn: HTMLElement;
-  private scrollHandler: () => void = () => {};
+  private readonly container: HTMLElement;
+  private readonly topBtn: HTMLElement;
+  private readonly prevBtn: HTMLElement;
+  private readonly directoryBtn: HTMLElement;
+  private readonly nextBtn: HTMLElement;
+  private readonly bottomBtn: HTMLElement;
+  private directoryPopover: HTMLElement | null = null;
   private pendingVisibilityFrame: ScheduledAnimationFrame | null = null;
   private isVisible: boolean | null = null;
+  private readonly scrollHandler = () => this.updateVisibility();
+  private readonly outsideClickHandler = (event: MouseEvent) => {
+    const target = event.target as Node | null;
+    if (!target) return;
+    if (this.container.contains(target) || this.directoryPopover?.contains(target)) return;
+    this.closeDirectory();
+  };
 
   constructor(
-    private parentEl: HTMLElement,
-    private messagesEl: HTMLElement
+    private readonly parentEl: HTMLElement,
+    private readonly scrollEl: HTMLElement,
+    private readonly messageListEl: HTMLElement = scrollEl,
   ) {
     this.container = this.parentEl.createDiv({ cls: 'grimoire-nav-sidebar' });
-
-    // Create buttons
-    this.topBtn = this.createButton('grimoire-nav-btn-top', 'chevrons-up', 'Scroll to top');
-    this.prevBtn = this.createButton('grimoire-nav-btn-prev', 'chevron-up', 'Previous message');
-    this.nextBtn = this.createButton('grimoire-nav-btn-next', 'chevron-down', 'Next message');
-    this.bottomBtn = this.createButton('grimoire-nav-btn-bottom', 'chevrons-down', 'Scroll to bottom');
+    this.topBtn = this.createButton(
+      'grimoire-nav-btn-top',
+      'chevrons-up',
+      t('chat.ui.navigation.scrollTop'),
+    );
+    this.prevBtn = this.createButton(
+      'grimoire-nav-btn-prev',
+      'chevron-up',
+      t('chat.ui.navigation.previousMessage'),
+    );
+    this.directoryBtn = this.createButton(
+      'grimoire-nav-btn-directory',
+      'list-tree',
+      t('chat.ui.navigation.directory'),
+    );
+    this.directoryBtn.setAttribute('aria-haspopup', 'dialog');
+    this.directoryBtn.setAttribute('aria-expanded', 'false');
+    this.nextBtn = this.createButton(
+      'grimoire-nav-btn-next',
+      'chevron-down',
+      t('chat.ui.navigation.nextMessage'),
+    );
+    this.bottomBtn = this.createButton(
+      'grimoire-nav-btn-bottom',
+      'chevrons-down',
+      t('chat.ui.navigation.scrollBottom'),
+    );
 
     this.setupEventListeners();
     this.applyVisibility();
   }
 
   private createButton(cls: string, icon: string, label: string): HTMLElement {
-    const btn = this.container.createDiv({ cls: `grimoire-nav-btn ${cls}` });
-    setIcon(btn, icon);
-    btn.setAttribute('aria-label', label);
-    return btn;
+    const button = this.container.createDiv({ cls: `grimoire-nav-btn ${cls}` });
+    button.setAttribute('role', 'button');
+    button.setAttribute('tabindex', '0');
+    button.setAttribute('aria-label', label);
+    setIcon(button, icon);
+    button.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      button.click();
+    });
+    return button;
   }
 
   private setupEventListeners(): void {
-    // Scroll handling to toggle visibility
-    this.scrollHandler = () => this.updateVisibility();
-    this.messagesEl.addEventListener('scroll', this.scrollHandler, { passive: true });
-
-    // Button clicks
-    this.topBtn.addEventListener('click', () => {
-      this.messagesEl.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-
-    this.bottomBtn.addEventListener('click', () => {
-      this.messagesEl.scrollTo({ top: this.messagesEl.scrollHeight, behavior: 'smooth' });
-    });
-
+    this.scrollEl.addEventListener('scroll', this.scrollHandler, { passive: true });
+    this.topBtn.addEventListener('click', () => this.scrollTo(0));
+    this.bottomBtn.addEventListener('click', () => this.scrollTo(this.scrollEl.scrollHeight));
     this.prevBtn.addEventListener('click', () => this.scrollToMessage('prev'));
     this.nextBtn.addEventListener('click', () => this.scrollToMessage('next'));
+    this.directoryBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      this.toggleDirectory();
+    });
+    this.parentEl.ownerDocument.addEventListener?.('click', this.outsideClickHandler);
   }
 
-  /**
-   * Updates visibility of the sidebar based on scroll state.
-   * Visible if content overflows.
-   */
   updateVisibility(): void {
     if (this.pendingVisibilityFrame !== null) return;
     this.pendingVisibilityFrame = scheduleAnimationFrame(() => {
       this.pendingVisibilityFrame = null;
       this.applyVisibility();
-    }, this.messagesEl.ownerDocument.defaultView ?? null);
+    }, this.scrollEl.ownerDocument.defaultView ?? null);
   }
 
   private applyVisibility(): void {
-    const { scrollHeight, clientHeight } = this.messagesEl;
-    const isScrollable = scrollHeight > clientHeight + 50; // Small buffer
+    const isScrollable = this.scrollEl.scrollHeight > this.scrollEl.clientHeight + 50;
+    if (!isScrollable) this.closeDirectory();
     if (this.isVisible === isScrollable) return;
     this.isVisible = isScrollable;
     this.container.classList.toggle('visible', isScrollable);
   }
 
-  /**
-   * Scrolls to previous or next user message, skipping assistant messages.
-   */
-  private scrollToMessage(direction: 'prev' | 'next'): void {
-    const messages = Array.from(this.messagesEl.querySelectorAll<HTMLElement>('.grimoire-message-user'));
+  private toggleDirectory(): void {
+    if (this.directoryPopover) {
+      this.closeDirectory();
+      return;
+    }
+    this.openDirectory();
+  }
 
+  private openDirectory(): void {
+    const entries = this.getDirectoryEntries();
+    const popover = this.parentEl.createDiv({ cls: 'grimoire-nav-directory' });
+    popover.setAttribute('role', 'dialog');
+    popover.createDiv({
+      cls: 'grimoire-nav-directory-title',
+      text: t('chat.ui.navigation.directory'),
+    });
+    const list = popover.createDiv({ cls: 'grimoire-nav-directory-list' });
+
+    if (entries.length === 0) {
+      list.createDiv({
+        cls: 'grimoire-nav-directory-empty',
+        text: t('chat.ui.navigation.empty'),
+      });
+    } else {
+      entries.forEach((entry, index) => {
+        const item = list.createDiv({
+          cls: 'grimoire-nav-directory-item',
+          text: `${index + 1}. ${entry.title}`,
+        });
+        item.setAttribute('role', 'button');
+        item.setAttribute('tabindex', '0');
+        const activate = () => {
+          this.scrollToElement(entry.element);
+          this.closeDirectory();
+        };
+        item.addEventListener('click', activate);
+        item.addEventListener('keydown', (event) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return;
+          event.preventDefault();
+          activate();
+        });
+      });
+    }
+
+    this.directoryPopover = popover;
+    this.directoryBtn.setAttribute('aria-expanded', 'true');
+  }
+
+  private closeDirectory(): void {
+    this.directoryPopover?.remove();
+    this.directoryPopover = null;
+    this.directoryBtn?.setAttribute('aria-expanded', 'false');
+  }
+
+  private getDirectoryEntries(): DirectoryEntry[] {
+    return Array.from(
+      this.messageListEl.querySelectorAll<HTMLElement>('.grimoire-message-user'),
+    ).map((element) => ({
+      element,
+      title: this.getDirectoryTitle(element),
+    })).filter((entry) => entry.title.length > 0);
+  }
+
+  private getDirectoryTitle(messageEl: HTMLElement): string {
+    const content = messageEl.querySelector<HTMLElement>('.grimoire-message-content');
+    const title = (content?.textContent ?? messageEl.textContent ?? '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return title.length > 90 ? `${title.slice(0, 89)}…` : title;
+  }
+
+  private scrollToMessage(direction: 'prev' | 'next'): void {
+    const messages = Array.from(
+      this.messageListEl.querySelectorAll<HTMLElement>('.grimoire-message-user'),
+    );
     if (messages.length === 0) return;
 
-    const scrollTop = this.messagesEl.scrollTop;
+    const currentTop = this.scrollEl.scrollTop;
     const threshold = 30;
+    const candidate = direction === 'prev'
+      ? [...messages].reverse().find((message) => message.offsetTop < currentTop - threshold)
+      : messages.find((message) => message.offsetTop > currentTop + threshold);
 
-    if (direction === 'prev') {
-      // Find the last message strictly above the current scroll position
-      for (let i = messages.length - 1; i >= 0; i--) {
-        if (messages[i].offsetTop < scrollTop - threshold) {
-          this.messagesEl.scrollTo({ top: messages[i].offsetTop - 10, behavior: 'smooth' });
-          return;
-        }
-      }
-      // Already at or above the first message — scroll to top
-      this.messagesEl.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      // Find the first message strictly below the current scroll position
-      for (let i = 0; i < messages.length; i++) {
-        if (messages[i].offsetTop > scrollTop + threshold) {
-          this.messagesEl.scrollTo({ top: messages[i].offsetTop - 10, behavior: 'smooth' });
-          return;
-        }
-      }
-      // Already at or past the last message — scroll to bottom
-      this.messagesEl.scrollTo({ top: this.messagesEl.scrollHeight, behavior: 'smooth' });
+    if (candidate) {
+      this.scrollToElement(candidate);
+      return;
     }
+    this.scrollTo(direction === 'prev' ? 0 : this.scrollEl.scrollHeight);
+  }
+
+  private scrollToElement(element: HTMLElement): void {
+    this.scrollTo(Math.max(0, element.offsetTop - 10));
+  }
+
+  private scrollTo(top: number): void {
+    this.scrollEl.scrollTo({ top, behavior: 'smooth' });
   }
 
   destroy(): void {
@@ -120,7 +215,9 @@ export class NavigationSidebar {
       cancelScheduledAnimationFrame(this.pendingVisibilityFrame);
       this.pendingVisibilityFrame = null;
     }
-    this.messagesEl.removeEventListener('scroll', this.scrollHandler);
+    this.closeDirectory();
+    this.parentEl.ownerDocument.removeEventListener?.('click', this.outsideClickHandler);
+    this.scrollEl.removeEventListener('scroll', this.scrollHandler);
     this.container.remove();
   }
 }

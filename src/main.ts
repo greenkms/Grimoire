@@ -898,6 +898,10 @@ export default class GrimoirePlugin extends Plugin {
     await this.storage.sessions.saveMetadata(
       this.storage.sessions.toSessionMetadata(conversation)
     );
+
+    for (const view of this.getAllViews()) {
+      view.getTabManager()?.notifyConversationRenamed?.(id, conversation.title);
+    }
   }
 
   async updateConversation(id: string, updates: Partial<Conversation>): Promise<void> {

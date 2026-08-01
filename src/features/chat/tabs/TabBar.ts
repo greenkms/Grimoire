@@ -71,22 +71,9 @@ export class TabBar {
       badgeEl.setAttribute('data-worker', 'true');
     }
 
-    // Close button (visible on hover)
     if (item.canClose) {
-      const closeEl = badgeEl.createDiv({
-        cls: 'grimoire-tab-badge-close',
-        text: '×',
-      });
-      closeEl.setAttribute('aria-label', 'Close tab');
-      closeEl.addEventListener('click', (e: Event) => {
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        e.preventDefault();
-        this.callbacks.onTabClose(item.id);
-      });
-
-      badgeEl.addEventListener('contextmenu', (e: Event) => {
-        e.preventDefault();
+      badgeEl.addEventListener('contextmenu', (event: Event) => {
+        event.preventDefault();
         this.callbacks.onTabClose(item.id);
       });
     }

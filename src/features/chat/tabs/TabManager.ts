@@ -450,6 +450,15 @@ export class TabManager implements TabManagerInterface {
     return Array.from(this.tabs.values());
   }
 
+  /** Refreshes tab-bar titles for every tab displaying a renamed conversation. */
+  notifyConversationRenamed(conversationId: string, title: string): void {
+    for (const tab of this.tabs.values()) {
+      if (tab.conversationId === conversationId) {
+        this.callbacks.onTabTitleChanged?.(tab.id, title);
+      }
+    }
+  }
+
   /** Gets the number of tabs. */
   getTabCount(): number {
     return this.tabs.size;
@@ -507,6 +516,13 @@ export class TabManager implements TabManagerInterface {
       ? true
       : options.activate ?? true;
 
+    // An explicit new-tab request must create a separate conversation tab,
+    // even when the same conversation is already open elsewhere.
+    if (preferNewTab && this.canCreateTab()) {
+      await this.createTab(conversationId, undefined, { activate });
+      return;
+    }
+
     // Check if conversation is already open in this view's tabs
     for (const tab of this.tabs.values()) {
       if (tab.conversationId === conversationId) {
@@ -527,17 +543,11 @@ export class TabManager implements TabManagerInterface {
     }
 
     // Open in current tab or new tab
-    if (preferNewTab && this.canCreateTab()) {
-      await this.createTab(conversationId, undefined, { activate });
-    } else {
-      // Open in current tab
-      // Note: Don't set tab.conversationId here - the onConversationIdChanged callback
-      // will sync it after successful switch. Setting it before switchTo() would cause
-      // incorrect tab metadata if switchTo() returns early (streaming/switching/creating).
-      const activeTab = this.getActiveTab();
-      if (activeTab) {
-        await activeTab.controllers.conversationController?.switchTo(conversationId);
-      }
+    // Open in current tab. Note: Don't set tab.conversationId here - the
+    // onConversationIdChanged callback will sync it after successful switch.
+    const activeTab = this.getActiveTab();
+    if (activeTab) {
+      await activeTab.controllers.conversationController?.switchTo(conversationId);
     }
   }
 

@@ -69,6 +69,9 @@ export interface TabManagerInterface {
 
   /** Gets all tabs. */
   getAllTabs(): TabData[];
+
+  /** Refreshes tab-bar titles for tabs displaying a renamed conversation. */
+  notifyConversationRenamed?(conversationId: string, title: string): void;
 }
 
 /** Tab identifier type. */
@@ -178,7 +181,6 @@ export interface TabDOMElements {
   statusPanelContainerEl: HTMLElement;
 
   inputContainerEl: HTMLElement;
-  composerVersionEl: HTMLElement;
   queueIndicatorEl: HTMLElement;
   inputWrapper: HTMLElement;
   inputEl: HTMLTextAreaElement;

@@ -1,4 +1,5 @@
 import { NavigationSidebar } from '@/features/chat/ui/NavigationSidebar';
+import { setLocale } from '@/i18n/i18n';
 
 // Mock obsidian
 jest.mock('obsidian', () => ({
@@ -203,6 +204,7 @@ describe('NavigationSidebar', () => {
   let originalWindow: Window | undefined;
 
   beforeEach(() => {
+    setLocale('en');
     jest.useFakeTimers();
     originalWindow = (globalThis as { window?: Window }).window;
     Object.defineProperty(globalThis, 'window', {
@@ -227,6 +229,7 @@ describe('NavigationSidebar', () => {
 
   afterEach(() => {
     sidebar?.destroy();
+    setLocale('en');
     if (originalWindow === undefined) {
       delete (globalThis as { window?: Window }).window;
     } else {
@@ -249,7 +252,7 @@ describe('NavigationSidebar', () => {
       expect(container).not.toBeNull();
     });
 
-    it('should create four navigation buttons', () => {
+    it('should create five navigation buttons', () => {
       sidebar = new NavigationSidebar(
         parentEl as unknown as HTMLElement,
         messagesEl as unknown as HTMLElement
@@ -257,7 +260,7 @@ describe('NavigationSidebar', () => {
 
       const container = parentEl.querySelector('.grimoire-nav-sidebar');
       expect(container).not.toBeNull();
-      expect(container!.children.length).toBe(4);
+      expect(container!.children.length).toBe(5);
     });
 
     it('should set correct aria-labels on buttons', () => {
@@ -270,9 +273,10 @@ describe('NavigationSidebar', () => {
       const buttons = container!.children;
 
       expect(buttons[0].getAttribute('aria-label')).toBe('Scroll to top');
-      expect(buttons[1].getAttribute('aria-label')).toBe('Previous message');
-      expect(buttons[2].getAttribute('aria-label')).toBe('Next message');
-      expect(buttons[3].getAttribute('aria-label')).toBe('Scroll to bottom');
+      expect(buttons[1].getAttribute('aria-label')).toBe('Previous prompt');
+      expect(buttons[2].getAttribute('aria-label')).toBe('Conversation directory');
+      expect(buttons[3].getAttribute('aria-label')).toBe('Next prompt');
+      expect(buttons[4].getAttribute('aria-label')).toBe('Scroll to bottom');
     });
 
     it('should set correct icons on buttons', () => {
@@ -286,8 +290,22 @@ describe('NavigationSidebar', () => {
 
       expect(buttons[0].getAttribute('data-icon')).toBe('chevrons-up');
       expect(buttons[1].getAttribute('data-icon')).toBe('chevron-up');
-      expect(buttons[2].getAttribute('data-icon')).toBe('chevron-down');
-      expect(buttons[3].getAttribute('data-icon')).toBe('chevrons-down');
+      expect(buttons[2].getAttribute('data-icon')).toBe('list-tree');
+      expect(buttons[3].getAttribute('data-icon')).toBe('chevron-down');
+      expect(buttons[4].getAttribute('data-icon')).toBe('chevrons-down');
+    });
+
+    it('should localize navigation labels in Simplified Chinese', () => {
+      setLocale('zh-CN');
+      sidebar = new NavigationSidebar(
+        parentEl as unknown as HTMLElement,
+        messagesEl as unknown as HTMLElement,
+      );
+
+      const buttons = parentEl.querySelector('.grimoire-nav-sidebar')!.children;
+      expect(buttons[0].getAttribute('aria-label')).toBe('滚动至顶部');
+      expect(buttons[2].getAttribute('aria-label')).toBe('会话目录');
+      expect(buttons[4].getAttribute('aria-label')).toBe('滚动至底部');
     });
   });
 
@@ -393,7 +411,7 @@ describe('NavigationSidebar', () => {
       );
 
       const container = parentEl.querySelector('.grimoire-nav-sidebar');
-      const bottomBtn = container!.children[3];
+      const bottomBtn = container!.children[4];
       bottomBtn.click();
 
       expect(messagesEl.scrollToCalls.length).toBe(1);
@@ -431,7 +449,7 @@ describe('NavigationSidebar', () => {
       const container = parent.querySelector('.grimoire-nav-sidebar')!;
       return {
         prev: container.children[1],
-        next: container.children[2],
+        next: container.children[3],
       };
     }
 
@@ -550,6 +568,61 @@ describe('NavigationSidebar', () => {
 
       const lastCall = messagesEl.scrollToCalls[messagesEl.scrollToCalls.length - 1];
       expect(lastCall.top).toBe(0);
+    });
+  });
+
+  describe('conversation directory', () => {
+    it('lists user prompts and scrolls the real chat viewport', () => {
+      const parent = new MockElement('div');
+      const scrollEl = parent.createDiv({ cls: 'grimoire-chat-scroll' });
+      const messageListEl = scrollEl.createDiv({ cls: 'grimoire-messages' });
+      scrollEl.scrollHeight = 1800;
+      scrollEl.clientHeight = 500;
+
+      const first = messageListEl.createDiv({ cls: 'grimoire-message-user' });
+      first.textContent = 'First prompt';
+      first.offsetTop = 120;
+      const second = messageListEl.createDiv({ cls: 'grimoire-message-user' });
+      second.textContent = 'Second prompt with more detail';
+      second.offsetTop = 620;
+
+      sidebar = new NavigationSidebar(
+        parent as unknown as HTMLElement,
+        scrollEl as unknown as HTMLElement,
+        messageListEl as unknown as HTMLElement,
+      );
+
+      const directoryButton = parent.querySelector('.grimoire-nav-sidebar')!.children[2];
+      directoryButton.click();
+
+      const directory = parent.querySelector('.grimoire-nav-directory');
+      const items = parent.querySelector('.grimoire-nav-directory-list')!.children;
+      expect(directory).not.toBeNull();
+      expect(directoryButton.getAttribute('aria-expanded')).toBe('true');
+      expect(items.map(item => item.textContent)).toEqual([
+        '1. First prompt',
+        '2. Second prompt with more detail',
+      ]);
+
+      items[1].click();
+      expect(scrollEl.scrollToCalls.at(-1)?.top).toBe(610);
+      expect(parent.querySelector('.grimoire-nav-directory')).toBeNull();
+      expect(directoryButton.getAttribute('aria-expanded')).toBe('false');
+    });
+
+    it('shows a localized empty state when the conversation has no prompts', () => {
+      setLocale('zh-CN');
+      messagesEl.scrollHeight = 1000;
+      messagesEl.clientHeight = 500;
+      sidebar = new NavigationSidebar(
+        parentEl as unknown as HTMLElement,
+        messagesEl as unknown as HTMLElement,
+      );
+
+      parentEl.querySelector('.grimoire-nav-sidebar')!.children[2].click();
+
+      expect(parentEl.querySelector('.grimoire-nav-directory-title')?.textContent).toBe('会话目录');
+      expect(parentEl.querySelector('.grimoire-nav-directory-empty')?.textContent).toBe('此会话中还没有提问');
     });
   });
 

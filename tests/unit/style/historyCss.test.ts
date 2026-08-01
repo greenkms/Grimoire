@@ -43,4 +43,12 @@ describe('history.css', () => {
     expect(getRule(css, '.grimoire-history-item:hover .grimoire-history-item-actions')).toContain('opacity: 1');
     expect(getRule(css, '.grimoire-history-item:hover .grimoire-history-item-time')).toContain('opacity: 0');
   });
+
+  it('keeps new-tab controls in the same hover action row as rename', () => {
+    const css = readHistoryCss();
+
+    expect(css).not.toContain('.grimoire-history-quick-open');
+    expect(css).not.toContain('.grimoire-history-item.has-quick-open');
+    expect(getRule(css, '.grimoire-history-item-actions')).toContain('right: 8px');
+  });
 });

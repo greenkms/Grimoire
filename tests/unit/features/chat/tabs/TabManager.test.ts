@@ -774,6 +774,26 @@ describe('TabManager - Conversation Management', () => {
       );
     });
 
+    it('should create a separate tab when the requested conversation is already open', async () => {
+      const tabWithConv = createMockTabData({
+        id: 'tab-with-conv',
+        conversationId: 'conv-123',
+      });
+      mockCreateTab.mockReturnValueOnce(tabWithConv);
+      await manager.createTab();
+      plugin.getConversationById.mockResolvedValue({ id: 'conv-123' });
+
+      const switchSpy = jest.spyOn(manager, 'switchToTab');
+      await manager.openConversation('conv-123', { preferNewTab: true, activate: true });
+
+      expect(mockCreateTab).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          conversation: expect.objectContaining({ id: 'conv-123' }),
+        })
+      );
+      expect(switchSpy).not.toHaveBeenCalledWith('tab-with-conv');
+    });
+
     it('should create a background tab without switching focus', async () => {
       plugin.getConversationById.mockResolvedValue({ id: 'conv-background' });
       const initialActiveTabId = manager.getActiveTabId();

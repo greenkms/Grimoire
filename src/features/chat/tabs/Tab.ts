@@ -1,7 +1,6 @@
 import type { Component } from 'obsidian';
 import { Notice, setIcon, TFile } from 'obsidian';
 
-import { formatGrimoireVersion } from '../../../app/version';
 import { ProjectWorkspaceStore } from '../../../core/context/ProjectWorkspaceStore';
 import { RelevantNotesService } from '../../../core/context/RelevantNotesService';
 import { VaultSearchService } from '../../../core/context/VaultSearchService';
@@ -68,6 +67,7 @@ import { type RelevantNotesCurrentSource, RelevantNotesView } from '../ui/Releva
 import { StatusPanel } from '../ui/StatusPanel';
 import { autoResizeTextarea } from '../ui/textareaResize';
 import { buildAssistantResponseMetadata } from '../utils/assistantResponseMetadata';
+import { localizeReasoningLevel } from '../utils/reasoningDisplay';
 import { recalculateUsageForModel } from '../utils/usageInfo';
 import { getTabProviderId } from './providerResolution';
 import type { TabData, TabDOMElements, TabId, TabPanelView, TabProviderContext } from './types';
@@ -177,7 +177,7 @@ function renderExternalFileChips(tab: TabData, selectedFilePath?: string): void 
     const removeEl = chipEl.createSpan({
       cls: 'grimoire-external-file-chip-remove',
       text: '\u00D7',
-      attr: { 'aria-label': 'Remove external file' },
+      attr: { 'aria-label': t('chat.ui.externalContext.removeFile') },
     });
     removeEl.addEventListener('click', (event) => {
       event.stopPropagation();
@@ -846,9 +846,9 @@ function syncContextSummary(tab: TabData, plugin: GrimoirePlugin): void {
 
   appendContextSummaryRow(
     contextSummaryEl,
-    currentPath ? getPathTitle(currentPath) : 'No note selected',
-    currentPath ? 'bound to this chat tab' : 'open a note to bind it to this chat',
-    currentPath ? 'active' : 'idle',
+    currentPath ? getPathTitle(currentPath) : t('chat.ui.context.noNoteSelected'),
+    currentPath ? t('chat.ui.context.boundToTab') : t('chat.ui.context.openNoteToBind'),
+    currentPath ? t('chat.ui.context.active') : t('chat.ui.context.idle'),
     Boolean(currentPath),
   );
 
@@ -856,9 +856,11 @@ function syncContextSummary(tab: TabData, plugin: GrimoirePlugin): void {
   if (selectedExternalFiles.length > 0) {
     appendContextSummaryRow(
       contextSummaryEl,
-      selectedExternalFiles.length === 1 ? 'Selected file' : 'Selected files',
+      selectedExternalFiles.length === 1
+        ? t('chat.ui.context.selectedFile')
+        : t('chat.ui.context.selectedFiles'),
       selectedExternalFiles.map(getBasename).join(', '),
-      'files',
+      t('chat.ui.context.filesBadge'),
       true,
     );
   }
@@ -866,8 +868,11 @@ function syncContextSummary(tab: TabData, plugin: GrimoirePlugin): void {
   appendContextSummaryRow(
     contextSummaryEl,
     getModelSummaryLabel(providerId, settings),
-    `${providerName}${reasoningLabel ? ` · ${reasoningLabel}` : ''} · provider state preserved`,
-    'model',
+    t('chat.ui.context.modelDetail', {
+      provider: providerName,
+      reasoning: reasoningLabel ? ` · ${reasoningLabel}` : '',
+    }),
+    t('chat.ui.context.modelBadge'),
     false,
   );
 
@@ -891,7 +896,7 @@ function getModelSummaryLabel(providerId: ProviderId, settings: TabProviderSetti
 function formatModelFallbackLabel(model: string): string {
   const trimmed = model.trim();
   if (!trimmed) {
-    return 'Unknown';
+    return t('chat.ui.model.unknown');
   }
   if (/^gpt-/i.test(trimmed)) {
     return trimmed
@@ -927,8 +932,11 @@ function syncBoundStatus(tab: TabData, plugin: GrimoirePlugin): void {
   const safeLabel = getPermissionInlineLabel(getTabProviderId(tab, plugin), permissionMode);
   const linkedCount = attachedFiles.size;
 
-  tab.dom.boundStatusNoteEl.setText(currentPath ? getPathTitle(currentPath) : 'Attached context');
-  tab.dom.boundStatusMetaEl.setText(`${linkedCount} linked ${linkedCount === 1 ? 'note' : 'notes'} · ${safeLabel}`);
+  tab.dom.boundStatusNoteEl.setText(currentPath ? getPathTitle(currentPath) : t('chat.ui.context.attached'));
+  tab.dom.boundStatusMetaEl.setText(t('chat.ui.context.linkedNotes', {
+    count: linkedCount,
+    permission: safeLabel,
+  }));
 }
 
 function syncComposerStopButton(tab: TabData): void {
@@ -954,10 +962,14 @@ function appendContextSummaryRow(
 
 function getReasoningLabel(settings: TabProviderSettings): string {
   if (settings.effortLevel) {
-    return `${settings.effortLevel} effort`;
+    return t('chat.ui.context.reasoningEffort', {
+      value: localizeReasoningLevel(settings.effortLevel),
+    });
   }
   if (settings.thinkingBudget && settings.thinkingBudget !== 'off') {
-    return `${settings.thinkingBudget} thinking`;
+    return t('chat.ui.context.reasoningThinking', {
+      value: localizeReasoningLevel(settings.thinkingBudget),
+    });
   }
   return '';
 }
@@ -965,42 +977,45 @@ function getReasoningLabel(settings: TabProviderSettings): string {
 function getPermissionSummary(providerId: ProviderId, permissionMode: string): string {
   const toggle = ProviderRegistry.getChatUIConfig(providerId).getPermissionModeToggle?.() ?? null;
   if (toggle) {
-    if (permissionMode === toggle.activeValue && toggle.activeDescription) {
-      return toggle.activeDescription;
+    if (permissionMode === toggle.activeValue) {
+      return t('chat.ui.context.autoApprove');
     }
-    if (permissionMode === toggle.inactiveValue && toggle.inactiveDescription) {
-      return toggle.inactiveDescription;
+    if (permissionMode === toggle.inactiveValue) {
+      return t('chat.ui.context.permissionSafeDescription');
     }
-    if (permissionMode === toggle.planValue && toggle.planDescription) {
-      return toggle.planDescription;
+    if (permissionMode === toggle.planValue) {
+      return t('chat.ui.context.permissionPlanDescription');
     }
   }
   if (permissionMode === 'plan') {
-    return 'plan before tool execution';
+    return t('chat.ui.context.permissionPlanDescription');
   }
-  return 'ask before file edits and MCP writes';
+  if (permissionMode === 'full_access') {
+    return t('chat.ui.context.autoApprove');
+  }
+  return t('chat.ui.context.permissionSafeDescription');
 }
 
 function getPermissionTitle(providerId: ProviderId, permissionMode: string): string {
   const toggle = ProviderRegistry.getChatUIConfig(providerId).getPermissionModeToggle?.() ?? null;
   if (toggle) {
     if (permissionMode === toggle.activeValue) {
-      return toggle.activeLabel;
+      return t('chat.ui.toolbar.permissionAuto');
     }
     if (permissionMode === toggle.inactiveValue) {
-      return toggle.inactiveLabel;
+      return t('chat.ui.toolbar.permissionSafe');
     }
     if (permissionMode === toggle.planValue) {
-      return toggle.planLabel ?? 'Plan mode';
+      return t('chat.ui.toolbar.permissionPlan');
     }
   }
   if (permissionMode === 'plan') {
-    return 'Plan mode';
+    return t('chat.ui.toolbar.permissionPlan');
   }
   if (permissionMode === 'full_access') {
-    return 'Auto-approve';
+    return t('chat.ui.toolbar.permissionAuto');
   }
-  return 'Safe mode';
+  return t('chat.ui.toolbar.permissionSafe');
 }
 
 function getPermissionInlineLabel(providerId: ProviderId, permissionMode: string): string {
@@ -1010,12 +1025,12 @@ function getPermissionInlineLabel(providerId: ProviderId, permissionMode: string
 
 function formatPermissionBadge(permissionMode: string): string {
   if (permissionMode === 'full_access') {
-    return 'auto';
+    return t('chat.ui.toolbar.permissionAuto');
   }
   if (permissionMode === 'plan') {
-    return 'plan';
+    return t('chat.ui.toolbar.permissionPlan');
   }
-  return 'on';
+  return t('chat.ui.toolbar.permissionSafe');
 }
 
 /**
@@ -1159,7 +1174,7 @@ export function createTab(options: TabCreateOptions): TabData {
   const vaultSearchService = new VaultSearchService(vaultTextIndex);
   const relevantNotesService = new RelevantNotesService(vaultTextIndex);
 
-  const dom = buildTabDOM(contentEl, formatGrimoireVersion(plugin.manifest));
+  const dom = buildTabDOM(contentEl);
   dom.eventCleanups.push(attachInputResizeHandle(dom));
   state.queueIndicatorEl = dom.queueIndicatorEl;
 
@@ -1247,7 +1262,7 @@ export function createTab(options: TabCreateOptions): TabData {
 /**
  * Builds the DOM structure for a tab.
  */
-function buildTabDOM(contentEl: HTMLElement, versionText: string): TabDOMElements {
+function buildTabDOM(contentEl: HTMLElement): TabDOMElements {
   contentEl.addClass('grimoire-tab-chat-window');
   contentEl.dataset.panelView = 'chat';
 
@@ -1255,21 +1270,20 @@ function buildTabDOM(contentEl: HTMLElement, versionText: string): TabDOMElement
 
   const panelTabsEl = workbenchGridEl.createEl('nav', {
     cls: 'grimoire-panel-tabs',
-    attr: { 'aria-label': 'Current tab views' },
   });
   const chatPanelButtonEl = panelTabsEl.createEl('button', {
     cls: 'grimoire-panel-tab is-active',
-    text: 'Chat',
+    text: t('chat.ui.view.chat'),
     attr: { type: 'button', 'data-panel-view': 'chat', 'aria-pressed': 'true' },
   });
   const sourcesPanelButtonEl = panelTabsEl.createEl('button', {
     cls: 'grimoire-panel-tab',
-    text: 'Sources',
+    text: t('chat.ui.view.sources'),
     attr: { type: 'button', 'data-panel-view': 'sources', 'aria-pressed': 'false' },
   });
   const contextPanelButtonEl = panelTabsEl.createEl('button', {
     cls: 'grimoire-panel-tab',
-    text: 'Context',
+    text: t('chat.ui.view.context'),
     attr: { type: 'button', 'data-panel-view': 'context', 'aria-pressed': 'false' },
   });
 
@@ -1293,26 +1307,29 @@ function buildTabDOM(contentEl: HTMLElement, versionText: string): TabDOMElement
 
   const sourceRailEl = focusedMainEl.createDiv({
     cls: 'grimoire-panel-view grimoire-sources-panel',
-    attr: { 'data-panel-view': 'sources', 'aria-label': 'Sources and actions' },
+    attr: { 'data-panel-view': 'sources' },
   });
   sourceRailEl.hidden = true;
   const sourceHeaderEl = sourceRailEl.createDiv({ cls: 'grimoire-panel-section-heading' });
-  sourceHeaderEl.createSpan({ text: 'Sources in tab' });
-  const sourceShownCountEl = sourceHeaderEl.createSpan({ cls: 'grimoire-panel-section-count', text: '0 shown' });
+  sourceHeaderEl.createSpan({ text: t('chat.ui.view.sourcesInTab') });
+  const sourceShownCountEl = sourceHeaderEl.createSpan({
+    cls: 'grimoire-panel-section-count',
+    text: t('chat.ui.view.shownCount', { count: 0 }),
+  });
   const sourceFiltersEl = sourceRailEl.createDiv({ cls: 'grimoire-source-filters' });
   sourceFiltersEl.createEl('button', {
     cls: 'grimoire-source-filter is-active',
-    text: 'All',
+    text: t('chat.ui.view.all'),
     attr: { type: 'button', 'data-source-filter': 'all', 'aria-pressed': 'true' },
   });
   sourceFiltersEl.createEl('button', {
     cls: 'grimoire-source-filter',
-    text: 'Linked',
+    text: t('chat.ui.view.linked'),
     attr: { type: 'button', 'data-source-filter': 'linked', 'aria-pressed': 'false' },
   });
   sourceFiltersEl.createEl('button', {
     cls: 'grimoire-source-filter',
-    text: 'Current',
+    text: t('chat.ui.view.current'),
     attr: { type: 'button', 'data-source-filter': 'current', 'aria-pressed': 'false' },
   });
   const sourceCardsEl = sourceRailEl.createDiv({ cls: 'grimoire-source-card-stack' });
@@ -1322,11 +1339,11 @@ function buildTabDOM(contentEl: HTMLElement, versionText: string): TabDOMElement
 
   const contextRailEl = focusedMainEl.createDiv({
     cls: 'grimoire-panel-view grimoire-context-panel',
-    attr: { 'data-panel-view': 'context', 'aria-label': 'Vault context memory' },
+    attr: { 'data-panel-view': 'context' },
   });
   contextRailEl.hidden = true;
   const contextHeaderEl = contextRailEl.createDiv({ cls: 'grimoire-panel-section-heading' });
-  contextHeaderEl.createSpan({ text: 'Context memory · tab' });
+  contextHeaderEl.createSpan({ text: t('chat.ui.view.contextMemoryTab') });
   const contextSummaryEl = contextRailEl.createDiv({ cls: 'grimoire-context-summary' });
   const contextMemoryEl = contextRailEl.createDiv({ cls: 'grimoire-context-memory-panel grimoire-hidden' });
   const contextRuntimeEl = contextRailEl.createDiv({ cls: 'grimoire-context-runtime-panel grimoire-hidden' });
@@ -1336,7 +1353,7 @@ function buildTabDOM(contentEl: HTMLElement, versionText: string): TabDOMElement
     cls: 'grimoire-scroll-resume-btn grimoire-hidden',
     attr: {
       type: 'button',
-      'aria-label': 'Jump to latest message',
+      'aria-label': t('chat.ui.composer.jumpToLatest'),
       'aria-hidden': 'true',
     },
   });
@@ -1351,16 +1368,11 @@ function buildTabDOM(contentEl: HTMLElement, versionText: string): TabDOMElement
   const inputEl = inputWrapper.createEl('textarea', {
     cls: 'grimoire-input',
     attr: {
-      placeholder: 'Ask Grimoire to edit, search, compare, generate, or run a command...',
+      placeholder: t('chat.ui.composer.placeholder'),
       rows: '3',
       dir: 'auto',
     },
   });
-  const composerVersionEl = composerSurfaceEl.createDiv({
-    cls: 'grimoire-composer-version',
-    text: versionText,
-  });
-
   const panelViews: Record<TabPanelView, HTMLElement> = {
     chat: chatStageEl,
     sources: sourceRailEl,
@@ -1416,7 +1428,6 @@ function buildTabDOM(contentEl: HTMLElement, versionText: string): TabDOMElement
     welcomeEl,
     statusPanelContainerEl,
     inputContainerEl,
-    composerVersionEl,
     queueIndicatorEl,
     inputWrapper,
     inputEl,
@@ -1718,7 +1729,9 @@ async function updateRelevantNotes(tab: TabData, plugin: GrimoirePlugin): Promis
     view.render(notes, currentSources);
   } catch (error) {
     view.render([], currentSources);
-    new Notice(`Relevant notes failed: ${error instanceof Error ? error.message : String(error)}`);
+    new Notice(t('chat.ui.errors.relevantNotesFailed', {
+      error: error instanceof Error ? error.message : String(error),
+    }));
   }
 }
 
@@ -1763,7 +1776,7 @@ function getPathTitle(path: string): string {
 function openRelevantVaultPath(plugin: GrimoirePlugin, path: string): void {
   const file = plugin.app.vault.getAbstractFileByPath(path);
   if (!(file instanceof TFile)) {
-    new Notice(`Could not open file: ${path}`);
+    new Notice(t('chat.ui.errors.couldNotOpenFile', { path }));
     return;
   }
 
@@ -1771,7 +1784,9 @@ function openRelevantVaultPath(plugin: GrimoirePlugin, path: string): void {
     try {
       await plugin.app.workspace.getLeaf().openFile(file);
     } catch (error) {
-      new Notice(`Failed to open file: ${error instanceof Error ? error.message : String(error)}`);
+      new Notice(t('chat.ui.errors.openFileFailed', {
+        error: error instanceof Error ? error.message : String(error),
+      }));
     }
   })();
 }
@@ -1976,7 +1991,7 @@ function initializeInputToolbar(
       const boundProvider = tab.providerId;
       const modelProvider = getProviderForModel(model, plugin.settings);
       if (modelProvider !== boundProvider) {
-        new Notice('Cannot switch provider on a bound session. Start a new tab instead.');
+        new Notice(t('chat.ui.errors.providerSwitchBound'));
         tab.ui.modelSelector?.updateDisplay();
         tab.ui.planUsageBadge?.updateDisplay();
         return;
@@ -2199,13 +2214,17 @@ function initializeInputToolbar(
   const sendActionsEl = actionsRowEl.createDiv({ cls: 'grimoire-send-actions' });
   dom.stopButtonEl = sendActionsEl.createEl('button', {
     cls: 'grimoire-stop-button grimoire-hidden',
-    attr: { type: 'button', 'aria-label': 'Stop response', title: 'Stop response' },
+    attr: {
+      type: 'button',
+      'aria-label': t('chat.ui.composer.stopResponse'),
+      title: t('chat.ui.composer.stopResponse'),
+    },
   });
   setIcon(dom.stopButtonEl, 'square');
   dom.sendButtonEl = sendActionsEl.createEl('button', {
     cls: 'grimoire-send-button',
-    text: 'Send',
-    attr: { type: 'button', 'aria-label': 'Send message' },
+    text: t('chat.ui.composer.send'),
+    attr: { type: 'button', 'aria-label': t('chat.ui.composer.sendMessage') },
   });
   syncComposerStopButton(tab);
 
@@ -2303,12 +2322,11 @@ export function initializeTabUI(
     catalogInfo,
   );
 
-  if (dom.messagesEl.parentElement) {
-    tab.ui.navigationSidebar = new NavigationSidebar(
-      dom.messagesEl.parentElement,
-      dom.messagesEl
-    );
-  }
+  tab.ui.navigationSidebar = new NavigationSidebar(
+    dom.workbenchGridEl,
+    dom.chatScrollEl,
+    dom.messagesEl,
+  );
 
   initializeInstructionAndTodo(tab, plugin);
   initializeInputToolbar(
@@ -2428,7 +2446,7 @@ async function handleForkRequest(
   const { state } = tab;
 
   if (!getTabCapabilities(tab, plugin).supportsFork) {
-    new Notice('Fork is not supported by this provider.');
+    new Notice(t('chat.ui.errors.forkUnsupported'));
     return;
   }
 
@@ -2479,7 +2497,7 @@ async function handleForkAll(
   const { state } = tab;
 
   if (!getTabCapabilities(tab, plugin).supportsFork) {
-    new Notice('Fork is not supported by this provider.');
+    new Notice(t('chat.ui.errors.forkUnsupported'));
     return;
   }
 
@@ -2829,7 +2847,7 @@ export function initializeTabControllers(
         applyProviderUIGating(tab, plugin);
         return true;
       } catch (error) {
-        new Notice(error instanceof Error ? error.message : 'Failed to initialize chat service');
+        new Notice(error instanceof Error ? error.message : t('chat.ui.errors.initializeFailed'));
         return false;
       }
     },
@@ -3088,6 +3106,8 @@ export async function destroyTab(tab: TabData): Promise<void> {
   tab.ui.statusPanel?.destroy();
   tab.ui.statusPanel = null;
   tab.ui.modelSelector?.destroy();
+  tab.ui.thinkingBudgetSelector?.destroy();
+  tab.ui.permissionToggle?.destroy();
   tab.ui.navigationSidebar?.destroy();
   tab.ui.navigationSidebar = null;
 
@@ -3279,6 +3299,8 @@ async function renderAutoTriggeredTurn(tab: TabData, plugin: GrimoirePlugin, res
       await tab.controllers.streamController?.finalizeProgressBlocks(assistantMsg);
       await tab.controllers.streamController?.finalizeCurrentThinkingBlock(assistantMsg);
       await tab.controllers.streamController?.finalizeCurrentTextBlock(assistantMsg);
+      assistantMsg.completedAt = Date.now();
+      tab.renderer?.updateMessageCompletionTime?.(assistantMsg);
     }
   } finally {
     if (hasVisibleContent) {

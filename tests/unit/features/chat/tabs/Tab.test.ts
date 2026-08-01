@@ -26,6 +26,7 @@ import {
   type TabCreateOptions,
   wireTabInputEvents,
 } from '@/features/chat/tabs/Tab';
+import { setLocale } from '@/i18n/i18n';
 import {
   DEFAULT_CODEX_PRIMARY_MODEL,
   DEFAULT_CODEX_PRIMARY_MODEL_LABEL,
@@ -174,6 +175,7 @@ const createMockClaudeChatRuntime = (overrides?: {
 
 const createMockThinkingBudgetSelector = () => ({
   updateDisplay: jest.fn(),
+  destroy: jest.fn(),
 });
 
 const createMockContextUsageMeter = () => ({
@@ -199,6 +201,7 @@ const createMockMcpServerSelector = () => ({
 const createMockPermissionToggle = () => ({
   setVisible: jest.fn(),
   updateDisplay: jest.fn(),
+  destroy: jest.fn(),
 });
 
 const createMockServiceTierToggle = () => ({
@@ -658,6 +661,7 @@ describe('Tab - Creation', () => {
       expect(tab.dom.contentEl.dataset.panelView).toBe('chat');
       expect(tab.dom.workbenchGridEl.hasClass('grimoire-chat-window-grid')).toBe(true);
       expect(tab.dom.panelTabsEl?.hasClass('grimoire-panel-tabs')).toBe(true);
+      expect(tab.dom.panelTabsEl?.getAttribute('aria-label')).toBeNull();
       expect(tab.dom.chatPanelButtonEl?.textContent).toBe('Chat');
       expect(tab.dom.sourcesPanelButtonEl?.textContent).toBe('Sources');
       expect(tab.dom.contextPanelButtonEl?.textContent).toBe('Context');
@@ -672,12 +676,13 @@ describe('Tab - Creation', () => {
       expect(tab.dom.chatStageEl.getAttribute('data-panel-view')).toBe('chat');
       expect(tab.dom.chatStageEl.getAttribute('aria-label')).toBeNull();
       expect(tab.dom.sourceRailEl.hasClass('grimoire-sources-panel')).toBe(true);
+      expect(tab.dom.sourceRailEl.getAttribute('aria-label')).toBeNull();
+      expect(tab.dom.contextRailEl.getAttribute('aria-label')).toBeNull();
       expect(tab.dom.contextMemoryEl.hasClass('grimoire-context-memory-panel')).toBe(true);
       expect(tab.dom.contextRuntimeEl.hasClass('grimoire-context-runtime-panel')).toBe(true);
       expect(tab.dom.sourceCardsEl.hasClass('grimoire-source-card-stack')).toBe(true);
       expect(tab.dom.composerSurfaceEl.contains(tab.dom.inputContainerEl)).toBe(true);
-      expect(tab.dom.composerSurfaceEl.contains(tab.dom.composerVersionEl)).toBe(true);
-      expect(tab.dom.composerVersionEl.textContent).toBe('Grimoire v9.8.7-test');
+      expect(tab.dom.composerSurfaceEl.querySelector('.grimoire-composer-version')).toBeNull();
       expect(tab.dom.chatStageEl.contains(tab.dom.messagesEl)).toBe(true);
       expect(tab.dom.sourceRailEl.contains(tab.dom.statusPanelContainerEl)).toBe(true);
     });
@@ -2024,13 +2029,36 @@ describe('Tab - UI Initialization', () => {
       const badges = Array.from(tab.dom.contextSummaryEl.querySelectorAll('.grimoire-context-summary-badge'))
         .map(badge => badge.textContent);
 
-      expect(titles).toEqual(['No note selected', 'Sonnet 4.5', 'Auto-approve']);
+      expect(titles).toEqual(['No note selected', 'Sonnet 4.5', 'Auto']);
       expect(details[0]).toBe('open a note to bind it to this chat');
       expect(details[1]).toContain('Claude');
-      expect(details[1]).toContain('high effort');
+      expect(details[1]).toContain('High effort');
       expect(details[1]).toContain('provider state preserved');
-      expect(details[2]).toBe('ask before file edits and MCP writes');
-      expect(badges).toEqual(['idle', 'model', 'auto']);
+      expect(details[2]).toBe('Auto-approve');
+      expect(badges).toEqual(['idle', 'model', 'Auto']);
+    });
+
+    it('localizes the work mode row in the Simplified Chinese context panel', () => {
+      setLocale('zh-CN');
+      try {
+        const options = createMockOptions();
+        const tab = createTab(options);
+
+        initializeTabUI(tab, options.plugin);
+
+        const titles = Array.from(tab.dom.contextSummaryEl.querySelectorAll('.grimoire-context-summary-title'))
+          .map(title => title.textContent);
+        const details = Array.from(tab.dom.contextSummaryEl.querySelectorAll('.grimoire-context-summary-detail'))
+          .map(detail => detail.textContent);
+        const badges = Array.from(tab.dom.contextSummaryEl.querySelectorAll('.grimoire-context-summary-badge'))
+          .map(badge => badge.textContent);
+
+        expect(titles.at(-1)).toBe('自动');
+        expect(details.at(-1)).toBe('自动批准');
+        expect(badges.at(-1)).toBe('自动');
+      } finally {
+        setLocale('en');
+      }
     });
 
     it('renders selected external files in the context summary', () => {

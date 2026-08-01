@@ -7,6 +7,7 @@ import { ProviderRegistry } from '../../core/providers/ProviderRegistry';
 import { ProviderSettingsCoordinator } from '../../core/providers/ProviderSettingsCoordinator';
 import { DEFAULT_CHAT_PROVIDER_ID, type ProviderId } from '../../core/providers/types';
 import { VIEW_TYPE_GRIMOIRE } from '../../core/types';
+import { t } from '../../i18n/i18n';
 import type GrimoirePlugin from '../../main';
 import { GRIMOIRE_APP_ICON_ID } from '../../shared/appIcon';
 import { createProviderIconSvg } from '../../shared/icons';
@@ -449,7 +450,7 @@ export class GrimoireView extends ItemView {
         void this.handleTabClose(tabId);
       },
       onNewTab: () => {
-        void this.createNewTab().catch(() => new Notice('Failed to create tab'));
+        void this.createNewTab().catch(() => new Notice(t('chat.ui.tabs.createFailed')));
       },
     });
     // Header actions (right side)
@@ -462,15 +463,15 @@ export class GrimoireView extends ItemView {
     // New tab button (plus icon)
     this.newTabButtonEl = this.headerActionsContent.createDiv({ cls: 'grimoire-header-btn grimoire-new-tab-btn' });
     this.newTabButtonEl.setText('+');
-    this.newTabButtonEl.setAttribute('aria-label', 'New tab');
+    this.newTabButtonEl.setAttribute('aria-label', t('chat.ui.tabs.newTab'));
     this.newTabButtonEl.addEventListener('click', () => {
-      void this.createNewTab().catch(() => new Notice('Failed to create tab'));
+      void this.createNewTab().catch(() => new Notice(t('chat.ui.tabs.createFailed')));
     });
 
     this.historyButtonEl = this.headerActionsContent.createDiv({ cls: 'grimoire-header-btn grimoire-history-btn' });
     this.historyButtonEl.setAttribute('role', 'button');
     this.historyButtonEl.setAttribute('tabindex', '0');
-    this.historyButtonEl.setAttribute('aria-label', 'Chat history');
+    this.historyButtonEl.setAttribute('aria-label', t('chat.ui.tabs.history'));
     this.historyButtonEl.setAttribute('aria-haspopup', 'dialog');
     this.historyButtonEl.setAttribute('aria-expanded', 'false');
     appendHistoryHeaderIcon(this.historyButtonEl);
@@ -494,7 +495,7 @@ export class GrimoireView extends ItemView {
       attr: {
         role: 'dialog',
         'aria-hidden': 'true',
-        'aria-label': 'Chat history',
+        'aria-label': t('chat.ui.tabs.history'),
       },
     });
     sheetEl.addEventListener('click', (e) => e.stopPropagation());
@@ -544,7 +545,7 @@ export class GrimoireView extends ItemView {
   private handleTabClick(tabId: TabId): void {
     const switched = this.tabManager?.switchToTab(tabId);
     if (switched) {
-      void switched.catch(() => new Notice('Failed to switch tab'));
+      void switched.catch(() => new Notice(t('chat.ui.tabs.switchFailed')));
     }
   }
 
@@ -556,7 +557,7 @@ export class GrimoireView extends ItemView {
       await this.tabManager?.closeTab(tabId, force);
       this.updateTabBarVisibility();
     } catch {
-      new Notice('Failed to close tab');
+      new Notice(t('chat.ui.tabs.closeFailed'));
     }
   }
 
@@ -564,7 +565,7 @@ export class GrimoireView extends ItemView {
     const tab = await this.tabManager?.createTab();
     if (!tab) {
       const maxTabs = normalizeMaxTabs(this.plugin.settings.maxTabs);
-      new Notice(`Maximum ${maxTabs} tabs allowed`);
+      new Notice(t('chat.ui.tabs.maximumAllowed', { count: maxTabs }));
       this.updateTabBarVisibility();
       return;
     }
