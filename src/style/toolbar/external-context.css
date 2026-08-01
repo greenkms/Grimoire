@@ -129,11 +129,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 24px;
+  box-sizing: border-box;
+  height: 28px;
   min-width: 43px;
   padding: 0 7px;
-  border: 0;
-  border-radius: var(--grimoire-radius-1);
+  border: 1px solid transparent;
+  border-radius: var(--grimoire-radius-2);
   background: var(--grimoire-raise);
   color: var(--grimoire-workbench-muted);
   font-family: var(--font-monospace);
@@ -156,6 +157,12 @@
 .grimoire-container--chat-window .grimoire-external-context-icon-wrapper:hover {
   background: var(--grimoire-raise-2);
   color: var(--text-normal);
+}
+
+.grimoire-container--chat-window .grimoire-external-context-icon-wrapper.active {
+  border-color: var(--grimoire-accent-line);
+  background: var(--grimoire-accent-soft);
+  color: var(--grimoire-accent-text);
 }
 
 .grimoire-container--chat-window .grimoire-external-context-badge.visible {

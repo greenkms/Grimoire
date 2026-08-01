@@ -108,17 +108,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  max-width: 74px;
-  height: 24px;
+  max-width: 92px;
+  box-sizing: border-box;
+  height: 28px;
   overflow: hidden;
-  padding: 0 7px;
-  border: 0;
-  border-radius: var(--grimoire-radius-1);
+  padding: 0 9px;
+  border: 1px solid transparent;
+  border-radius: var(--grimoire-radius-2);
   background: var(--grimoire-raise);
   color: var(--grimoire-workbench-muted);
   font-family: var(--font-monospace);
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -129,15 +130,38 @@
   color: var(--text-normal);
 }
 
+.grimoire-container--chat-window .grimoire-thinking-gears.open .grimoire-thinking-current {
+  border-color: var(--grimoire-accent-line);
+  background: var(--grimoire-accent-soft);
+  color: var(--grimoire-accent-text);
+}
+
 .grimoire-container--chat-window .grimoire-thinking-options {
   bottom: calc(100% + 8px);
-  min-width: 112px;
+  box-sizing: border-box;
+  min-width: 92px;
   margin-bottom: 0;
   overflow: hidden;
-  border-color: var(--grimoire-line-3);
+  border-color: var(--background-modifier-border);
   border-radius: var(--grimoire-radius-2);
-  background: var(--grimoire-panel-2);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.48);
+  background: var(--background-primary);
+  box-shadow: var(--shadow-s, 0 6px 18px rgba(0, 0, 0, 0.22));
   z-index: 10004;
   animation: grimoire-pop 0.14s ease-out;
+}
+
+.grimoire-container--chat-window .grimoire-thinking-gear {
+  display: flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 8px;
+  border-radius: var(--grimoire-radius-1);
+  font-weight: 400;
+  line-height: 1;
+}
+
+.grimoire-container--chat-window .grimoire-thinking-gear.selected {
+  background: var(--grimoire-accent-soft);
+  color: var(--grimoire-accent-text);
+  font-weight: 400;
 }

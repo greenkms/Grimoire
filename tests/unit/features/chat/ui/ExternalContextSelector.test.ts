@@ -9,6 +9,7 @@ import { ExternalContextSelector } from '@/features/chat/ui/InputToolbar';
 jest.mock('obsidian', () => ({
   Notice: jest.fn(),
   setIcon: jest.fn(),
+  setTooltip: jest.fn(),
 }));
 
 // Mock fs
@@ -238,8 +239,10 @@ describe('ExternalContextSelector', () => {
       selector.setExternalContexts(['/vault/docs/brief.pdf']);
 
       const label = parentEl.querySelector('.grimoire-external-context-label');
+      const button = parentEl.querySelector('.grimoire-external-context-icon-wrapper');
       expect(label?.textContent).toBe('Files');
-      expect(label?.getAttribute('title')).toBe('/vault/docs/brief.pdf');
+      expect(label?.getAttribute('title')).toBeNull();
+      expect(button?.getAttribute('aria-label')).toBe('/vault/docs/brief.pdf');
     });
   });
 

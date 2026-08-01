@@ -1,5 +1,6 @@
 import { createMockEl } from '@test/helpers/mockElement';
 import { readFileSync } from 'fs';
+import { setTooltip } from 'obsidian';
 
 import type { UsageInfo } from '@/core/types';
 import {
@@ -24,6 +25,7 @@ import {
 jest.mock('obsidian', () => ({
   Notice: jest.fn(),
   setIcon: jest.fn(),
+  setTooltip: jest.fn(),
 }));
 
 function makeUsage(overrides: Partial<UsageInfo> = {}): UsageInfo {
@@ -239,6 +241,20 @@ describe('ModelSelector', () => {
     const label = btn?.querySelector('.grimoire-model-label');
     expect(label).not.toBeNull();
     expect(label?.textContent).toBe('Sonnet 4.6');
+  });
+
+  it('should use the localized Obsidian model tooltip', () => {
+    const button = parentEl.querySelector('.grimoire-model-btn');
+    expect(button?.getAttribute('title')).toBeNull();
+    expect(setTooltip).toHaveBeenCalledWith(button, 'Select model', { placement: 'top' });
+
+    jest.clearAllMocks();
+    setLocale('zh-CN');
+    const parentEl2 = createMockEl();
+    new ModelSelector(parentEl2, callbacks);
+    const localizedButton = parentEl2.querySelector('.grimoire-model-btn');
+    expect(setTooltip).toHaveBeenCalledWith(localizedButton, '选择模型', { placement: 'top' });
+    setLocale('en');
   });
 
   it('should display only the model segment after slash on the model button', () => {
@@ -642,7 +658,7 @@ describe('ModelSelector', () => {
     expect(copy?.querySelector('.grimoire-model-option-label')?.textContent).toBe(
       'MiniMax Token Plan (minimax.io)/MiniMax-M2.7-highspeed',
     );
-    expect(copy?.querySelector('.grimoire-model-option-detail')?.textContent).toBe('ACP runtime');
+    expect(copy?.querySelector('.grimoire-model-option-detail')).toBeNull();
   });
 
   it('should not render group separators when models have no group field', () => {
@@ -1104,6 +1120,16 @@ describe('ThinkingBudgetSelector', () => {
       expect(current?.textContent).toBe('High');
     });
 
+    it('should localize all reasoning levels in Simplified Chinese', () => {
+      setLocale('zh-CN');
+      const parentEl2 = createMockEl();
+      new ThinkingBudgetSelector(parentEl2, callbacks);
+
+      const options = parentEl2.querySelector('.grimoire-thinking-options')?.children ?? [];
+      expect(options.map((option: any) => option.textContent)).toEqual(['最高', '高', '中', '轻度']);
+      setLocale('en');
+    });
+
     it('should toggle effort options on current value click', async () => {
       const current = parentEl.querySelector('.grimoire-thinking-current');
       const gears = parentEl.querySelector('.grimoire-thinking-gears');
@@ -1119,6 +1145,20 @@ describe('ThinkingBudgetSelector', () => {
       expect(current?.getAttribute('aria-expanded')).toBe('false');
     });
 
+    it('should close effort options after clicking outside the selector', async () => {
+      const current = parentEl.querySelector('.grimoire-thinking-current');
+      const gears = parentEl.querySelector('.grimoire-thinking-gears');
+      const container = parentEl.querySelector('.grimoire-thinking-selector');
+
+      await current?.dispatchEvent('click', { stopPropagation: () => {} });
+      expect(gears?.hasClass('open')).toBe(true);
+
+      container?.ownerDocument.dispatchEvent({ type: 'click', target: createMockEl() });
+
+      expect(gears?.hasClass('open')).toBe(false);
+      expect(current?.getAttribute('aria-expanded')).toBe('false');
+    });
+
     it('should not expose effort options on hover', () => {
       const stylesheet = readFileSync('src/style/toolbar/thinking-selector.css', 'utf8');
       expect(stylesheet).not.toContain('.grimoire-thinking-gears:hover .grimoire-thinking-options');
@@ -1128,7 +1168,7 @@ describe('ThinkingBudgetSelector', () => {
       const current = parentEl.querySelector('.grimoire-thinking-current');
       const gears = parentEl.querySelector('.grimoire-thinking-gears');
       const options = parentEl.querySelector('.grimoire-thinking-options');
-      const mediumGear = options?.children.find((gear: any) => gear.textContent === 'Med');
+      const mediumGear = options?.children.find((gear: any) => gear.textContent === 'Medium');
 
       await current?.dispatchEvent('click', { stopPropagation: () => {} });
       expect(gears?.hasClass('open')).toBe(true);
@@ -1193,7 +1233,7 @@ describe('ThinkingBudgetSelector', () => {
       // THINKING_BUDGETS reversed: [xhigh, high, medium, low, off]
       const gears = options?.children || [];
       expect(gears.length).toBe(5);
-      expect(gears[0]?.textContent).toBe('Ultra');
+      expect(gears[0]?.textContent).toBe('Extra high');
       expect(gears[4]?.textContent).toBe('Off');
     });
 
@@ -1235,142 +1275,111 @@ describe('PermissionToggle', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    setLocale('en');
     parentEl = createMockEl();
     callbacks = createMockCallbacks();
     new PermissionToggle(parentEl, callbacks);
   });
 
+  const findOption = (root: any, label: string) => {
+    const options = root.querySelector('.grimoire-permission-options');
+    return options?.children.find((option: any) => option.textContent === label);
+  };
+
   it('should create a container with permission-toggle class', () => {
+    expect(parentEl.querySelector('.grimoire-permission-toggle')).not.toBeNull();
+  });
+
+  it('should display the localized current mode', () => {
+    expect(parentEl.querySelector('.grimoire-permission-label')?.textContent).toBe('Safe');
+
+    callbacks.getSettings.mockReturnValue({
+      ...callbacks.getSettings(),
+      permissionMode: 'full_access',
+    });
+    const parentEl2 = createMockEl();
+    new PermissionToggle(parentEl2, callbacks);
+    expect(parentEl2.querySelector('.grimoire-permission-label')?.textContent).toBe('Auto');
+
+    callbacks.getSettings.mockReturnValue({
+      ...callbacks.getSettings(),
+      permissionMode: 'plan',
+    });
+    const parentEl3 = createMockEl();
+    new PermissionToggle(parentEl3, callbacks);
+    expect(parentEl3.querySelector('.grimoire-permission-label')?.textContent).toBe('Plan');
+  });
+
+  it('should open the mode options without changing mode immediately', async () => {
+    const label = parentEl.querySelector('.grimoire-permission-label');
+    const gears = parentEl.querySelector('.grimoire-permission-gears');
+
+    await label?.dispatchEvent('click', { stopPropagation: jest.fn() });
+
+    expect(gears?.hasClass('open')).toBe(true);
+    expect(label?.getAttribute('aria-expanded')).toBe('true');
+    expect(callbacks.onPermissionModeChange).not.toHaveBeenCalled();
+  });
+
+  it('should close the mode options after clicking outside the selector', async () => {
+    const label = parentEl.querySelector('.grimoire-permission-label');
+    const gears = parentEl.querySelector('.grimoire-permission-gears');
     const container = parentEl.querySelector('.grimoire-permission-toggle');
-    expect(container).not.toBeNull();
+
+    await label?.dispatchEvent('click', { stopPropagation: jest.fn() });
+    expect(gears?.hasClass('open')).toBe(true);
+
+    container?.ownerDocument.dispatchEvent({ type: 'click', target: createMockEl() });
+
+    expect(gears?.hasClass('open')).toBe(false);
+    expect(label?.getAttribute('aria-expanded')).toBe('false');
   });
 
-  it('should display Safe label when in normal mode', () => {
-    const label = parentEl.querySelector('.grimoire-permission-label');
-    expect(label?.textContent).toBe('Safe');
+  it('should select Auto, Plan, and Safe from the option list', async () => {
+    await findOption(parentEl, 'Auto')?.dispatchEvent('click', { stopPropagation: jest.fn() });
+    expect(callbacks.onPermissionModeChange).toHaveBeenLastCalledWith('full_access');
+
+    await findOption(parentEl, 'Plan')?.dispatchEvent('click', { stopPropagation: jest.fn() });
+    expect(callbacks.onPermissionModeChange).toHaveBeenLastCalledWith('plan');
+
+    await findOption(parentEl, 'Safe')?.dispatchEvent('click', { stopPropagation: jest.fn() });
+    expect(callbacks.onPermissionModeChange).toHaveBeenLastCalledWith('normal');
   });
 
-  it('should display Auto-approve label when in full access mode', () => {
-    callbacks.getSettings.mockReturnValue({
-      model: 'sonnet',
-      thinkingBudget: 'low',
-      serviceTier: 'default',
-      permissionMode: 'full_access',
-      enableOpus1M: false,
-      enableSonnet1M: false,
-    });
-    const parentEl2 = createMockEl();
-    new PermissionToggle(parentEl2, callbacks);
-
-    const label = parentEl2.querySelector('.grimoire-permission-label');
-    expect(label?.textContent).toBe('Auto-approve');
-  });
-
-  it('should show Plan label and active plan state in plan mode', () => {
-    callbacks.getSettings.mockReturnValue({
-      model: 'sonnet',
-      thinkingBudget: 'low',
-      serviceTier: 'default',
-      permissionMode: 'plan',
-      enableOpus1M: false,
-      enableSonnet1M: false,
-    });
-    const parentEl2 = createMockEl();
-    new PermissionToggle(parentEl2, callbacks);
-
-    const label = parentEl2.querySelector('.grimoire-permission-label');
-    expect(label?.textContent).toBe('Plan');
-    expect(label?.hasClass('plan-active')).toBe(true);
-
-    const toggle = parentEl2.querySelector('.grimoire-toggle-switch');
-    expect(toggle?.style.display).not.toBe('none');
-    expect(toggle?.hasClass('plan-active')).toBe(true);
-  });
-
-  it('should add active class when in full access mode', () => {
-    callbacks.getSettings.mockReturnValue({
-      model: 'sonnet',
-      thinkingBudget: 'low',
-      serviceTier: 'default',
-      permissionMode: 'full_access',
-    });
-    const parentEl2 = createMockEl();
-    new PermissionToggle(parentEl2, callbacks);
-
-    const toggle = parentEl2.querySelector('.grimoire-toggle-switch');
-    expect(toggle?.hasClass('active')).toBe(true);
-  });
-
-  it('should not have active class in normal mode', () => {
-    const toggle = parentEl.querySelector('.grimoire-toggle-switch');
-    expect(toggle?.hasClass('active')).toBe(false);
-  });
-
-  it('should toggle from normal to full access on click', async () => {
-    const toggle = parentEl.querySelector('.grimoire-toggle-switch');
-    await toggle?.dispatchEvent('click');
-    expect(callbacks.onPermissionModeChange).toHaveBeenCalledWith('full_access');
-  });
-
-  it('should toggle when the permission label is clicked', async () => {
-    const label = parentEl.querySelector('.grimoire-permission-label');
-    await label?.dispatchEvent('click');
-    expect(callbacks.onPermissionModeChange).toHaveBeenCalledWith('full_access');
-  });
-
-  it('should toggle from full access to plan on click when the provider supports plan mode', async () => {
-    callbacks.getSettings.mockReturnValue({
-      model: 'sonnet',
-      thinkingBudget: 'low',
-      permissionMode: 'full_access',
-    });
-    const parentEl2 = createMockEl();
-    new PermissionToggle(parentEl2, callbacks);
-
-    const toggle = parentEl2.querySelector('.grimoire-toggle-switch');
-    await toggle?.dispatchEvent('click');
-    expect(callbacks.onPermissionModeChange).toHaveBeenCalledWith('plan');
-  });
-
-  it('should toggle from plan to normal on click when the provider supports plan mode', async () => {
-    callbacks.getSettings.mockReturnValue({
-      model: 'sonnet',
-      thinkingBudget: 'low',
-      permissionMode: 'plan',
-    });
-    const parentEl2 = createMockEl();
-    new PermissionToggle(parentEl2, callbacks);
-
-    const toggle = parentEl2.querySelector('.grimoire-toggle-switch');
-    await toggle?.dispatchEvent('click');
-    expect(callbacks.onPermissionModeChange).toHaveBeenCalledWith('normal');
-  });
-
-  it('should toggle from full access to normal on click when the provider does not support plan mode', async () => {
-    callbacks.getSettings.mockReturnValue({
-      model: 'sonnet',
-      thinkingBudget: 'low',
-      permissionMode: 'full_access',
-    });
+  it('should omit Plan when the provider does not support plan mode', () => {
     callbacks.getCapabilities.mockReturnValue({
-      providerId: 'antigravity',
-      supportsPersistentRuntime: false,
-      supportsNativeHistory: false,
+      ...callbacks.getCapabilities(),
       supportsPlanMode: false,
-      supportsRewind: false,
-      supportsFork: false,
-      supportsProviderCommands: false,
-      supportsImageAttachments: false,
-      supportsInstructionMode: false,
-      supportsMcpTools: false,
-      reasoningControl: 'effort',
     });
     const parentEl2 = createMockEl();
     new PermissionToggle(parentEl2, callbacks);
 
-    const toggle = parentEl2.querySelector('.grimoire-toggle-switch');
-    await toggle?.dispatchEvent('click');
-    expect(callbacks.onPermissionModeChange).toHaveBeenCalledWith('normal');
+    const options = parentEl2.querySelector('.grimoire-permission-options')?.children ?? [];
+    expect(options.map((option: any) => option.textContent)).toEqual(['Auto', 'Safe']);
+  });
+
+  it('should use an Obsidian localized mode tooltip', () => {
+    const label = parentEl.querySelector('.grimoire-permission-label');
+    expect(label?.getAttribute('title')).toBeNull();
+    expect(setTooltip).toHaveBeenCalledWith(label, 'Work mode', { placement: 'top' });
+
+    jest.clearAllMocks();
+    setLocale('zh-CN');
+    const parentEl2 = createMockEl();
+    new PermissionToggle(parentEl2, callbacks);
+
+    const localizedLabel = parentEl2.querySelector('.grimoire-permission-label');
+    expect(localizedLabel?.textContent).toBe('安全');
+    expect(setTooltip).toHaveBeenCalledWith(localizedLabel, '工作模式', { placement: 'top' });
+  });
+
+  it('should localize all Chinese mode options', () => {
+    setLocale('zh-CN');
+    const parentEl2 = createMockEl();
+    new PermissionToggle(parentEl2, callbacks);
+
+    const options = parentEl2.querySelector('.grimoire-permission-options')?.children ?? [];
+    expect(options.map((option: any) => option.textContent)).toEqual(['计划', '自动', '安全']);
   });
 
   it('should hide the control when provider exposes no permission toggle UI', () => {
@@ -1704,7 +1713,8 @@ describe('ContextUsageMeter', () => {
     const container = headerParentEl.querySelector('.grimoire-context-meter');
     expect(container?.style.display).toBe('flex');
     expect(headerParentEl.querySelector('.grimoire-context-meter-percent')?.textContent).toBe('0%');
-    expect(container?.getAttribute('aria-label')).toBe('Context window 0% used');
+    expect(container?.getAttribute('aria-label')).toBeNull();
+    expect(container?.getAttribute('data-tooltip')).toBeNull();
   });
 
   it('should become visible when contextTokens > 0', () => {
@@ -1732,10 +1742,10 @@ describe('ContextUsageMeter', () => {
     expect(container?.hasClass('warning')).toBe(false);
   });
 
-  it('should set tooltip with formatted token counts', () => {
+  it('should not set Obsidian native tooltip alongside the custom tooltip', () => {
     meter.update(makeUsage({ contextTokens: 50000, contextWindow: 200000, percentage: 25 }));
     const container = parentEl.querySelector('.grimoire-context-meter');
-    expect(container?.getAttribute('data-tooltip')).toBe('50k / 200k');
+    expect(container?.getAttribute('data-tooltip')).toBeNull();
   });
 
   it('should render a visible detail tooltip with tokens left', () => {
@@ -1747,20 +1757,20 @@ describe('ContextUsageMeter', () => {
 
   it('should format small token counts without k suffix', () => {
     meter.update(makeUsage({ contextTokens: 500, contextWindow: 200000, percentage: 0 }));
-    const container = parentEl.querySelector('.grimoire-context-meter');
-    expect(container?.getAttribute('data-tooltip')).toBe('500 / 200k');
+    expect(parentEl.querySelector('.grimoire-context-meter-tip-primary')?.textContent)
+      .toContain('500 / 200k tokens');
   });
 
-  it('should add compact reminder to tooltip when usage > 80%', () => {
+  it('should keep the native tooltip disabled when usage is above 80%', () => {
     meter.update(makeUsage({ contextTokens: 170000, contextWindow: 200000, percentage: 85 }));
     const container = parentEl.querySelector('.grimoire-context-meter');
-    expect(container?.getAttribute('data-tooltip')).toBe('170k / 200k (Approaching limit, run `/compact` to continue)');
+    expect(container?.getAttribute('data-tooltip')).toBeNull();
   });
 
-  it('should not add compact reminder to tooltip when usage ≤ 80%', () => {
+  it('should keep the native tooltip disabled when usage is at 80%', () => {
     meter.update(makeUsage({ contextTokens: 160000, contextWindow: 200000, percentage: 80 }));
     const container = parentEl.querySelector('.grimoire-context-meter');
-    expect(container?.getAttribute('data-tooltip')).toBe('160k / 200k');
+    expect(container?.getAttribute('data-tooltip')).toBeNull();
   });
 });
 
@@ -1914,10 +1924,10 @@ describe('OrchestratorToggle', () => {
 
     new OrchestratorToggle(parentEl, callbacks);
 
-    const toggle = parentEl.querySelector('.grimoire-orchestrator-toggle');
     const button = parentEl.querySelector('.grimoire-orchestrator-button');
-    expect(toggle?.getAttribute('title')).toBe('Режим оркестратора');
+    expect(parentEl.querySelector('.grimoire-orchestrator-toggle')?.getAttribute('title')).toBeNull();
     expect(button?.getAttribute('aria-label')).toBe('Переключить режим оркестратора');
+    expect(setTooltip).toHaveBeenCalledWith(button, 'Режим оркестратора', { placement: 'top' });
   });
 });
 
@@ -1940,7 +1950,7 @@ describe('createInputToolbar', () => {
     expect(toolbar.relevantNotesContainerEl).toBeDefined();
   });
 
-  it('should place action controls in the actions row', () => {
+  it('should group left-aligned configuration controls separately from send actions', () => {
     const parentEl = createMockEl();
     const callbacks = createMockCallbacks();
 
@@ -1948,9 +1958,11 @@ describe('createInputToolbar', () => {
 
     const actionsRow = parentEl.children.find((child: any) => child.hasClass('grimoire-input-toolbar-actions-row'));
     expect(actionsRow).toBeDefined();
-    const permissionIndex = actionsRow.children.findIndex((child: any) => child.hasClass('grimoire-permission-toggle'));
-    const modeIndex = actionsRow.children.findIndex((child: any) => child.hasClass('grimoire-mode-selector'));
-    const orchestratorIndex = actionsRow.children.findIndex((child: any) => child.hasClass('grimoire-orchestrator-toggle'));
+    const configActions = actionsRow.children.find((child: any) => child.hasClass('grimoire-input-toolbar-config-actions'));
+    expect(configActions).toBeDefined();
+    const permissionIndex = configActions.children.findIndex((child: any) => child.hasClass('grimoire-permission-toggle'));
+    const modeIndex = configActions.children.findIndex((child: any) => child.hasClass('grimoire-mode-selector'));
+    const orchestratorIndex = configActions.children.findIndex((child: any) => child.hasClass('grimoire-orchestrator-toggle'));
     expect(permissionIndex).toBeGreaterThanOrEqual(0);
     expect(modeIndex).toBeGreaterThan(permissionIndex);
     expect(orchestratorIndex).toBeGreaterThan(modeIndex);
@@ -1962,9 +1974,12 @@ describe('createInputToolbar', () => {
     const toolbar = createInputToolbar(parentEl, callbacks);
 
     const modelRow = parentEl.children.find((child: any) => child.hasClass('grimoire-input-toolbar-model-row'));
-    const stack = modelRow?.children.find((child: any) => child.hasClass('grimoire-model-context-stack'));
+    const actionsRow = parentEl.children.find((child: any) => child.hasClass('grimoire-input-toolbar-actions-row'));
+    const configActions = modelRow?.children.find((child: any) => child.hasClass('grimoire-input-toolbar-config-actions'));
+    const stack = configActions?.children.find((child: any) => child.hasClass('grimoire-model-context-stack'));
 
     expect(stack).toBeDefined();
+    expect(modelRow).toBe(actionsRow);
     expect(stack.children[0]?.hasClass('grimoire-model-selector')).toBe(true);
     expect(stack.children[1]?.hasClass('grimoire-plan-usage-badge')).toBe(true);
     expect(stack.children[2]).toBe(toolbar.relevantNotesContainerEl);

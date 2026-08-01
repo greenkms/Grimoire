@@ -85,7 +85,7 @@ export class RelevantNotesView {
     const overflowCount = visibleSources.length - renderedSources.length;
     if (overflowCount > 0) {
       const moreEl = this.createChild(this.containerEl, 'div', 'grimoire-source-more');
-      moreEl.textContent = `+${overflowCount} more notes`;
+      moreEl.textContent = t('chat.ui.view.moreNotes', { count: overflowCount });
       moreEl.title = visibleSources.slice(MAX_VISIBLE_RELEVANT_NOTES)
         .map(source => source.title || source.path)
         .join('\n');
@@ -178,7 +178,7 @@ export class RelevantNotesView {
     if (!this.controls.shownCountEl) {
       return;
     }
-    this.controls.shownCountEl.textContent = `${count} shown`;
+    this.controls.shownCountEl.textContent = t('chat.ui.view.shownCount', { count });
   }
 
   private createChild<K extends keyof HTMLElementTagNameMap>(
@@ -196,6 +196,6 @@ export class RelevantNotesView {
 
     const percent = score <= 1 ? score * 100 : score;
     const clampedPercent = Math.max(0, Math.min(100, Math.round(percent)));
-    return `${clampedPercent}% match`;
+    return t('chat.ui.view.matchScore', { percent: clampedPercent });
   }
 }

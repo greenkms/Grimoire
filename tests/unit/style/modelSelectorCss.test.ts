@@ -28,17 +28,17 @@ describe('model-selector.css', () => {
   it('keeps the model search container height stable while filtering', () => {
     const css = readModelSelectorCss();
     const searchRule = getRule(css, '.grimoire-model-search');
-    expect(searchRule).toContain('height: 48px');
-    expect(searchRule).toContain('min-height: 48px');
-    expect(searchRule).toContain('max-height: 48px');
-    expect(searchRule).toContain('padding: 0 12px');
+    expect(searchRule).toContain('height: 34px');
+    expect(searchRule).toContain('min-height: 34px');
+    expect(searchRule).toContain('max-height: 34px');
+    expect(searchRule).toContain('padding: 0 9px');
   });
 
   it('frames the model search container so it does not bleed past the dropdown edges', () => {
     const css = readModelSelectorCss();
     const searchRule = getRule(css, '.grimoire-model-search');
-    expect(searchRule).toContain('border: 1px solid var(--grimoire-line-3)');
-    expect(searchRule).toContain('border-radius: var(--grimoire-radius-2)');
+    expect(searchRule).toContain('border: 1px solid var(--background-modifier-border)');
+    expect(searchRule).toContain('border-radius: 6px');
     expect(searchRule).toContain('box-sizing: border-box');
     expect(searchRule).toMatch(/margin:\s*0/);
   });

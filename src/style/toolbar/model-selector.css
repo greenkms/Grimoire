@@ -39,25 +39,32 @@
   min-width: 0;
   max-width: min(100%, 178px);
   height: 28px;
-  border: 0;
-  background: var(--grimoire-raise-2);
+  border: 1px solid transparent;
+  border-radius: var(--grimoire-radius-2);
+  background: var(--grimoire-raise);
   color: var(--grimoire-workbench-muted);
 }
 
 .grimoire-container--chat-window .grimoire-model-selector {
-  position: static;
+  position: relative;
   z-index: 25;
 }
 
-.grimoire-container--chat-window .grimoire-model-btn:hover,
+.grimoire-container--chat-window .grimoire-model-btn:hover {
+  background: var(--grimoire-raise-2);
+  color: var(--text-normal);
+  box-shadow: none;
+}
+
 .grimoire-container--chat-window .grimoire-model-selector.open .grimoire-model-btn {
+  border-color: var(--grimoire-accent-line);
   background: var(--grimoire-accent-soft);
   color: var(--grimoire-accent-text);
-  box-shadow: inset 0 0 0 1px var(--grimoire-accent-line);
+  box-shadow: none;
 }
 
 .grimoire-model-label {
-  font-weight: 500;
+  font-weight: 400;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -229,23 +236,23 @@
 
 .grimoire-container--chat-window .grimoire-model-dropdown {
   position: absolute;
-  right: 0;
-  bottom: calc(100% + 9px);
+  right: auto;
+  bottom: calc(100% + 8px);
   left: 0;
   box-sizing: border-box;
-  width: auto;
-  max-width: none;
-  max-height: min(50vh, 360px);
+  width: min(224px, calc(100vw - 24px));
+  max-width: min(224px, calc(100vw - 24px));
+  max-height: min(44vh, 320px);
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
   margin-bottom: 0;
-  padding: 11px;
-  gap: 1px;
-  border: 1px solid var(--grimoire-line-3);
-  border-radius: var(--grimoire-radius-3);
-  background: color-mix(in srgb, var(--grimoire-panel-2) 97%, #000);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  padding: 5px;
+  gap: 2px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-primary);
+  box-shadow: var(--shadow-s, 0 6px 18px rgba(0, 0, 0, 0.22));
   scrollbar-width: thin;
   scrollbar-color: var(--grimoire-workbench-border-strong) transparent;
   z-index: 10001;
@@ -269,20 +276,20 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  flex: 0 0 48px;
+  flex: 0 0 34px;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   box-sizing: border-box;
   gap: 8px;
-  height: 48px;
-  min-height: 48px;
-  max-height: 48px;
+  height: 34px;
+  min-height: 34px;
+  max-height: 34px;
   margin: 0;
-  padding: 0 12px;
-  border: 1px solid var(--grimoire-line-3);
-  border-radius: var(--grimoire-radius-2);
-  background: color-mix(in srgb, var(--grimoire-panel-2) 97%, #000);
+  padding: 0 9px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-secondary);
   overflow: hidden;
 }
 
@@ -348,15 +355,15 @@
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 8px;
-  min-height: 31px;
-  padding: 5px 8px;
+  min-height: 28px;
+  padding: 4px 7px;
   border: 0;
   border-radius: 0;
   background: transparent;
   color: var(--text-normal);
   font-family: inherit;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1;
   box-shadow: none;
   text-align: left;
@@ -385,6 +392,11 @@
 
 .grimoire-model-group-section--codex .grimoire-model-group-provider-icon {
   color: var(--grimoire-provider-codex, #19c37d);
+}
+
+.grimoire-model-group-section--qwen .grimoire-model-group-provider-icon,
+.grimoire-model-group-section--qwen-code .grimoire-model-group-provider-icon {
+  color: var(--grimoire-provider-qwen, #615ced);
 }
 
 .grimoire-model-group-section--antigravity .grimoire-model-group-provider-icon {
@@ -425,7 +437,7 @@
   color: var(--grimoire-workbench-faint);
   font-family: var(--font-monospace);
   font-size: 10px;
-  font-weight: 650;
+  font-weight: 400;
   text-align: right;
 }
 
@@ -601,10 +613,7 @@
 }
 
 .grimoire-model-option-detail {
-  color: var(--text-faint);
-  font-size: 10px;
-  line-height: 1.2;
-  white-space: nowrap;
+  display: none;
 }
 
 .grimoire-model-option:hover {
@@ -615,15 +624,15 @@
 .grimoire-model-option.selected {
   background: rgba(var(--grimoire-brand-rgb), 0.15);
   color: var(--grimoire-brand);
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .grimoire-container--chat-window .grimoire-model-option {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  min-height: 34px;
-  padding: 7px 10px 7px 27px;
+  min-height: 30px;
+  padding: 5px 8px 5px 22px;
   border: 1px solid transparent;
   border-radius: var(--grimoire-radius-1);
   color: var(--grimoire-workbench-muted);
@@ -647,16 +656,9 @@
 }
 
 .grimoire-container--chat-window .grimoire-model-option-label {
-  display: -webkit-box;
-  overflow-wrap: anywhere;
-  white-space: normal;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.grimoire-container--chat-window .grimoire-model-option-detail {
-  color: var(--grimoire-workbench-faint);
-  font-size: 10px;
+  display: block;
+  overflow-wrap: normal;
+  white-space: nowrap;
 }
 
 .grimoire-container--chat-window .grimoire-model-option:hover {

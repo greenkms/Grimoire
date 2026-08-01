@@ -115,19 +115,25 @@
 }
 
 .grimoire-container--chat-window .grimoire-mcp-selector-icon {
-  width: 24px;
-  height: 24px;
-  border: 1px solid var(--grimoire-workbench-border);
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.032);
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: var(--grimoire-radius-2);
+  background: var(--grimoire-raise);
   color: var(--grimoire-workbench-muted);
 }
 
-.grimoire-container--chat-window .grimoire-mcp-selector-icon-wrapper:hover .grimoire-mcp-selector-icon,
-.grimoire-container--chat-window .grimoire-mcp-selector-icon.active {
-  border-color: rgba(var(--grimoire-brand-rgb), 0.46);
-  background: rgba(var(--grimoire-brand-rgb), 0.13);
+.grimoire-container--chat-window .grimoire-mcp-selector-icon-wrapper:hover .grimoire-mcp-selector-icon {
+  background: var(--grimoire-raise-2);
   color: var(--text-normal);
+}
+
+.grimoire-container--chat-window .grimoire-mcp-selector-icon.active {
+  border-color: var(--grimoire-accent-line);
+  background: var(--grimoire-accent-soft);
+  color: var(--grimoire-accent-text);
+  animation: none;
 }
 
 .grimoire-container--chat-window .grimoire-mcp-selector-dropdown {

@@ -1,5 +1,6 @@
 import { TOOL_BASH, TOOL_READ } from '../../../../core/tools/toolNames';
 import type { ChatMessage, ProviderId, ToolCallInfo } from '../../../../core/types';
+import { t } from '../../../../i18n/i18n';
 
 export type RuntimeContextLoadMethod = 'read note' | 'shell' | 'tool';
 export type RuntimeContextLoadStatus = 'loading' | 'loaded' | 'failed';
@@ -218,7 +219,7 @@ export class RuntimeContextActivityView {
     });
     section.createDiv({
       cls: 'grimoire-context-section-title',
-      text: 'Loaded this session',
+      text: t('chat.ui.context.loadedThisSession'),
     });
 
     for (const entry of entries) {

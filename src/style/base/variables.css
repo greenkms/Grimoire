@@ -31,6 +31,8 @@
   --grimoire-brand-claude-rgb: 217, 119, 87;
   --grimoire-brand-codex: #19c37d;
   --grimoire-brand-codex-rgb: 25, 195, 125;
+  --grimoire-brand-qwen: #615ced;
+  --grimoire-brand-qwen-rgb: 97, 92, 237;
   --grimoire-brand-antigravity: #5b8def;
   --grimoire-brand-antigravity-rgb: 91, 141, 239;
   --grimoire-brand-gemini: #669df6;
@@ -39,6 +41,7 @@
   --grimoire-brand-opencode-rgb: 224, 179, 65;
   --grimoire-provider-claude: var(--grimoire-brand-claude);
   --grimoire-provider-codex: var(--grimoire-brand-codex);
+  --grimoire-provider-qwen: var(--grimoire-brand-qwen);
   --grimoire-provider-antigravity: var(--grimoire-brand-antigravity);
   --grimoire-provider-gemini: var(--grimoire-brand-gemini);
   --grimoire-provider-opencode: var(--grimoire-brand-opencode);
