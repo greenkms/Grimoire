@@ -125,7 +125,7 @@ describe('renderProjectWorkspaceSettings', () => {
     expect(plugin.saveSettings).toHaveBeenCalledTimes(4);
   });
 
-  it('renders context engine controls inside the shared settings panel structure', () => {
+  it('renders context engine and workspaces as native setting sections', () => {
     const container = createMockEl('div') as unknown as HTMLElement;
     const plugin: any = {
       settings: {
@@ -144,16 +144,16 @@ describe('renderProjectWorkspaceSettings', () => {
 
     renderProjectWorkspaceSettings(container, { plugin: plugin as any });
 
-    const contextPanel = (container as any).querySelector('.grimoire-context-engine-settings');
-    const workspacePanel = (container as any).querySelector('.grimoire-project-workspaces-settings');
+    const contextHeading = (container as any).querySelector('.grimoire-context-engine-heading');
     const workspaceHeader = (container as any).querySelector('.grimoire-project-workspaces-header');
-    const controlCells = (container as any).querySelectorAll('.grimoire-context-engine-setting-control');
+    const numberRows = (container as any).querySelectorAll('.grimoire-context-engine-number-setting');
 
-    expect(contextPanel?.hasClass('grimoire-settings-panel')).toBe(true);
-    expect(workspacePanel?.hasClass('grimoire-settings-panel')).toBe(true);
+    expect(contextHeading?.hasClass('setting-item-heading')).toBe(true);
+    expect(workspaceHeader?.hasClass('setting-item-heading')).toBe(true);
     expect(workspaceHeader).not.toBeNull();
-    expect(workspaceHeader?.children.some((child: any) => child.tagName === 'BUTTON')).toBe(true);
-    expect(controlCells).toHaveLength(5);
+    expect(findButtonByText(workspaceHeader as any, 'Add workspace')).not.toBeNull();
+    expect(numberRows).toHaveLength(3);
+    expect((container as any).querySelector('.grimoire-settings-panel')).toBeNull();
   });
 
   it('renders existing workspaces and saves normalized edits', async () => {
@@ -374,7 +374,7 @@ describe('renderProjectWorkspaceSettings', () => {
 
     renderProjectWorkspaceSettings(container, { plugin });
 
-    expect(findByTagAndText(container as any, 'h3', 'Projektarbeitsbereiche')).not.toBeNull();
+    expect(findByTagAndText(container as any, 'div', 'Projektarbeitsbereiche')).not.toBeNull();
     expect(findByTagAndAttribute(container as any, 'input', 'aria-label', 'Arbeitsbereichsname')).not.toBeNull();
     expect(findByTagAndAttribute(container as any, 'textarea', 'aria-label', 'Tresorordner')).not.toBeNull();
     expect(findButtonByText(container as any, 'Arbeitsbereich hinzufügen')).not.toBeNull();

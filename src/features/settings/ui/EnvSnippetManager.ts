@@ -140,8 +140,8 @@ export class EnvSnippetModal extends Modal {
           cls: 'grimoire-snippet-alias-input',
         });
         aliasInput.value = existingAliases[modelId] ?? '';
-        aliasInput.setAttribute('aria-label', `Alias for ${modelId}`);
-        aliasInput.title = 'Custom label shown in the model selector. Leave empty to use the default.';
+        aliasInput.setAttribute('aria-label', t('settings.providerModelPicker.aliasLabel', { model: modelId }));
+        aliasInput.title = t('settings.providerModelPicker.aliasTitle');
         modelAliasInputs.set(modelId, aliasInput);
 
         const input = row.createEl('input', {
@@ -150,7 +150,7 @@ export class EnvSnippetModal extends Modal {
           cls: 'grimoire-snippet-limit-input',
         });
         input.value = existingLimits[modelId] ? formatContextLimit(existingLimits[modelId]) : '';
-        input.setAttribute('aria-label', `Context window for ${modelId}`);
+        input.setAttribute('aria-label', t('settings.provider.contextWindowLabel', { model: modelId }));
         contextLimitInputs.set(modelId, input);
       }
     };
@@ -274,7 +274,7 @@ export class EnvSnippetManager {
 
       const restoreBtn = actionsEl.createEl('button', {
         cls: 'grimoire-settings-action-btn',
-        attr: { 'aria-label': 'Insert' },
+        attr: { 'aria-label': t('settings.envSnippets.insert') },
       });
       setIcon(restoreBtn, 'clipboard-paste');
       restoreBtn.addEventListener('click', () => {
@@ -282,14 +282,14 @@ export class EnvSnippetManager {
         try {
           await this.insertSnippet(snippet);
         } catch {
-          new Notice('Failed to insert snippet');
+          new Notice(t('settings.envSnippets.insertFailed'));
         }
         })();
       });
 
       const editBtn = actionsEl.createEl('button', {
         cls: 'grimoire-settings-action-btn',
-        attr: { 'aria-label': 'Edit' },
+        attr: { 'aria-label': t('common.edit') },
       });
       setIcon(editBtn, 'pencil');
       editBtn.addEventListener('click', () => {
@@ -298,17 +298,17 @@ export class EnvSnippetManager {
 
       const deleteBtn = actionsEl.createEl('button', {
         cls: 'grimoire-settings-action-btn grimoire-settings-delete-btn',
-        attr: { 'aria-label': 'Delete' },
+        attr: { 'aria-label': t('common.delete') },
       });
       setIcon(deleteBtn, 'trash-2');
       deleteBtn.addEventListener('click', () => {
         void (async (): Promise<void> => {
         try {
-          if (await confirmDelete(this.plugin.app, `Delete environment snippet "${snippet.name}"?`)) {
+          if (await confirmDelete(this.plugin.app, t('settings.envSnippets.deleteConfirm', { name: snippet.name }))) {
             await this.deleteSnippet(snippet);
           }
         } catch {
-          new Notice('Failed to delete snippet');
+          new Notice(t('settings.envSnippets.deleteFailed'));
         }
         })();
       });
@@ -326,7 +326,7 @@ export class EnvSnippetManager {
           this.plugin.settings.envSnippets.push(snippet);
           await this.plugin.saveSettings();
           this.render();
-          new Notice(`Environment snippet "${snippet.name}" saved`);
+          new Notice(t('settings.envSnippets.saved', { name: snippet.name }));
         })();
       }
     );
@@ -394,7 +394,7 @@ export class EnvSnippetManager {
             this.plugin.settings.envSnippets[index] = updatedSnippet;
             await this.plugin.saveSettings();
             this.render();
-            new Notice(`Environment snippet "${updatedSnippet.name}" updated`);
+            new Notice(t('settings.envSnippets.updated', { name: updatedSnippet.name }));
           }
         })();
       }
@@ -406,7 +406,7 @@ export class EnvSnippetManager {
     this.plugin.settings.envSnippets = this.plugin.settings.envSnippets.filter(s => s.id !== snippet.id);
     await this.plugin.saveSettings();
     this.render();
-    new Notice(`Environment snippet "${snippet.name}" deleted`);
+    new Notice(t('settings.envSnippets.deleted', { name: snippet.name }));
   }
 
   public refresh() {

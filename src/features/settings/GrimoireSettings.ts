@@ -248,70 +248,57 @@ function isHtmlElement(element: Element | null): element is HTMLElement {
   return 'classList' in element;
 }
 
-const PROVIDER_SETTING_COPY: Record<ProviderId, { desc?: string; descKey?: TranslationKey; name: string }> = {
+const PROVIDER_SETTING_COPY: Record<ProviderId, {
+  descKey: TranslationKey;
+  name: string;
+  tabName: string;
+}> = {
   claude: {
-    desc: 'Anthropic\'s agentic CLI. Recommended default.',
+    descKey: 'settings.providers.claude.desc',
     name: 'Claude Code',
+    tabName: 'Claude',
   },
   codex: {
-    desc: 'OpenAI\'s coding agent.',
+    descKey: 'settings.providers.codex.desc',
     name: 'Codex',
+    tabName: 'Codex',
   },
   antigravity: {
-    desc: 'Google\'s new multi-model agent CLI. Recommended Google provider.',
+    descKey: 'settings.providers.antigravity.desc',
     name: 'Antigravity',
+    tabName: 'Antigravity',
   },
   gemini: {
-    desc: 'Legacy Gemini CLI for Standard, Enterprise, and paid API-key users.',
+    descKey: 'settings.providers.gemini.desc',
     name: 'Gemini CLI (Legacy)',
+    tabName: 'Gemini',
   },
   qwen: {
-    desc: 'Alibaba Qwen Code over its native Agent Client Protocol runtime.',
+    descKey: 'settings.providers.qwen.desc',
     name: 'Qwen Code',
+    tabName: 'Qwen',
   },
   opencode: {
-    desc: 'Open-source, multi-vendor. Exposes the widest model catalog.',
+    descKey: 'settings.providers.opencode.desc',
     name: 'OpenCode',
+    tabName: 'OpenCode',
   },
   mimocode: {
-    desc: 'Xiaomi\'s fork of OpenCode with persistent memory and context management.',
+    descKey: 'settings.providers.mimocode.desc',
     name: 'MiMo Code',
+    tabName: 'MiMo',
   },
   kimicode: {
-    desc: 'MoonshotAI\'s multi-provider agent CLI. Supports Kimi, OpenAI, Anthropic, Gemini.',
+    descKey: 'settings.providers.kimicode.desc',
     name: 'Kimi Code',
+    tabName: 'Kimi',
   },
   grok: {
     descKey: 'settings.providers.grok.desc',
     name: 'Grok Build',
+    tabName: 'Grok',
   },
 };
-
-const GENERAL_SETTINGS_SEARCH_KEYS: TranslationKey[] = [
-  'settings.language.name',
-  'settings.display',
-  'settings.theme.name',
-  'settings.chatViewPlacement.name',
-  'settings.enableAutoScroll.name',
-  'settings.conversations',
-  'settings.autoTitle.name',
-  'settings.content',
-  'settings.userName.name',
-  'settings.deferMathRenderingDuringStreaming.name',
-  'settings.titleModel.name',
-  'settings.systemPrompt.name',
-  'settings.excludedTags.name',
-  'settings.excludedFolders.name',
-  'settings.mediaFolder.name',
-  'settings.input',
-  'settings.requireCommandOrControlEnterToSend.name',
-  'settings.navMappings.name',
-  'settings.hotkeys',
-  'settings.diagnostics',
-  'settings.usageIndicators.name',
-  'settings.debugLogging.name',
-  'settings.maxTabs.name',
-];
 
 export class GrimoireSettingTab extends PluginSettingTab {
   plugin: GrimoirePlugin;
@@ -333,31 +320,16 @@ export class GrimoireSettingTab extends PluginSettingTab {
   }
 
   getSettingDefinitions(): SettingDefinitionItem[] {
-    setLocale(this.plugin.settings.locale as Locale);
-    const providerAliases = Object.values(PROVIDER_SETTING_COPY).flatMap((copy) => [
-      copy.name,
-      ...(copy.desc ? [copy.desc] : []),
-      ...(copy.descKey ? [t(copy.descKey)] : []),
-    ]);
-    const aliases = Array.from(new Set([
-      ...GENERAL_SETTINGS_SEARCH_KEYS.map((key) => t(key)),
-      ...providerAliases,
-      'Providers',
-      'Models',
-      'Permissions',
-      'Environment variables',
-      'Project workspace',
-    ]));
-
-    return [{
-      name: 'Grimoire settings',
-      desc: 'Configure Grimoire, its workspace, and provider integrations.',
-      aliases,
-      render: (setting) => {
-        setting.settingEl.removeClass('setting-item');
-        this.renderSettings(setting.settingEl);
-      },
-    }];
+    /*
+     * Keep this page on PluginSettingTab's imperative display path.
+     *
+     * Rendering the complete custom page from a single declarative `render`
+     * definition makes Obsidian wrap it in `.setting-group > .setting-items`.
+     * Obsidian 1.13 then applies its grouped-row descendant styles to every
+     * nested Setting, flattening all sections into one large coloured block.
+     * Claudian avoids that wrapper by returning no declarative definitions.
+     */
+    return [];
   }
 
   private renderSettings(containerEl: HTMLElement = this.containerEl): void {
@@ -376,33 +348,30 @@ export class GrimoireSettingTab extends PluginSettingTab {
 
     const tabBar = containerEl.createDiv({ cls: 'grimoire-settings-tabs' });
     const previousTabButton = tabBar.createEl('button', {
-      attr: { 'aria-label': 'Scroll settings tabs backward', type: 'button' },
+      attr: {
+        'aria-label': t('settings.tabs.scrollBackward' as TranslationKey),
+        type: 'button',
+      },
       cls: 'grimoire-settings-tab-scroll grimoire-settings-tab-scroll--previous',
     });
     setIcon(previousTabButton, 'chevron-left');
     const tabViewport = tabBar.createDiv({ cls: 'grimoire-settings-tabs-viewport' });
     tabViewport.setAttribute('role', 'tablist');
     const nextTabButton = tabBar.createEl('button', {
-      attr: { 'aria-label': 'Scroll settings tabs forward', type: 'button' },
+      attr: {
+        'aria-label': t('settings.tabs.scrollForward' as TranslationKey),
+        type: 'button',
+      },
       cls: 'grimoire-settings-tab-scroll grimoire-settings-tab-scroll--next',
     });
     setIcon(nextTabButton, 'chevron-right');
-    const versionEl = containerEl.createDiv({ cls: 'grimoire-settings-version' });
-    versionEl.createSpan({ text: formatGrimoireVersion(this.plugin.manifest) });
-    const whatsNewButton = versionEl.createEl('button', {
-      cls: 'grimoire-settings-whats-new',
-      text: 'What\'s new',
-    });
-    whatsNewButton.addEventListener('click', () => {
-      void this.openCurrentChangelog();
-    });
     const tabButtons = new Map<SettingsTabId, HTMLButtonElement>();
     const tabContents = new Map<SettingsTabId, HTMLDivElement>();
 
     for (const id of tabIds) {
       const label = id === 'general'
         ? t('settings.tabs.general' as TranslationKey)
-        : (PROVIDER_SETTING_COPY[id]?.name ?? ProviderRegistry.getProviderDisplayName(id));
+        : (PROVIDER_SETTING_COPY[id]?.tabName ?? ProviderRegistry.getProviderDisplayName(id));
       const button = tabViewport.createEl('button', {
         cls: `grimoire-settings-tab${id === this.activeTab ? ' grimoire-settings-tab--active' : ''}`,
         text: label,
@@ -454,6 +423,15 @@ export class GrimoireSettingTab extends PluginSettingTab {
         continue;
       }
 
+      this.renderProviderEnableRow(
+        content,
+        providerId,
+        ProviderRegistry.isEnabled(providerId, this.plugin.settings),
+        async (enabled) => {
+          await this.updateProviderEnabled(providerId, enabled);
+        },
+      );
+
       ProviderWorkspaceRegistry.getSettingsTabRenderer(providerId)?.render(content, {
         plugin: this.plugin,
         renderHiddenProviderCommandSetting: (
@@ -480,7 +458,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
     const markdown = await readBundledChangelog(this.app.vault.adapter, this.plugin.manifest);
     const release = markdown ? parseChangelogRelease(markdown, normalizedVersion) : null;
     if (!release) {
-      new Notice('No release notes are bundled for this Grimoire version.');
+      new Notice(t('settings.noReleaseNotes'));
       return;
     }
 
@@ -534,6 +512,19 @@ export class GrimoireSettingTab extends PluginSettingTab {
   }
 
   private renderGeneralTab(container: HTMLElement): void {
+    const versionSetting = new Setting(container)
+      .setName(t('settings.version.name'))
+      .setDesc(formatGrimoireVersion(this.plugin.manifest))
+      .addButton((button) => {
+        button
+          .setButtonText(t('settings.whatsNew'))
+          .onClick(() => {
+            void this.openCurrentChangelog();
+          });
+        button.buttonEl.addClass('grimoire-settings-whats-new');
+      });
+    versionSetting.settingEl.addClass('grimoire-settings-version-row');
+
     new Setting(container)
       .setName(t('settings.language.name'))
       .setDesc(t('settings.language.desc'))
@@ -556,15 +547,9 @@ export class GrimoireSettingTab extends PluginSettingTab {
           });
       });
 
-    this.renderProviderEnableSettings(container);
-
     // --- Display ---
 
     new Setting(container).setName(t('settings.display')).setHeading();
-
-    new Setting(container)
-      .setName(t('settings.theme.name'))
-      .setDesc(t('settings.theme.followsObsidian'));
 
     new Setting(container)
       .setName(t('settings.chatViewPlacement.name'))
@@ -634,7 +619,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
 
     const advancedContainer = this.renderAdvancedSection(container, 'general', {
       count: 11,
-      summary: 'Prompts, hotkeys, diagnostics, environment variables, and more',
+      summary: t('settings.advanced.generalSummary'),
     });
 
     // --- Display (advanced) ---
@@ -748,7 +733,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
       .setDesc(t('settings.mediaFolder.desc'))
       .addText((text) => {
         text
-          .setPlaceholder('Attachments')
+          .setPlaceholder(t('settings.mediaFolder.placeholder'))
           .setValue(this.plugin.settings.mediaFolder)
           .onChange(async (value) => {
             this.plugin.settings.mediaFolder = value.trim();
@@ -881,8 +866,8 @@ export class GrimoireSettingTab extends PluginSettingTab {
       plugin: this.plugin,
       scope: 'shared',
       heading: t('settings.environment'),
-      name: 'Shared environment',
-      desc: 'Provider-neutral runtime variables shared across all providers. Use this for PATH, proxy, cert, and temp variables.',
+      name: t('settings.sharedEnvironment.name'),
+      desc: t('settings.sharedEnvironment.desc'),
       placeholder: 'PATH=/opt/homebrew/bin:/usr/local/bin\nHTTPS_PROXY=http://proxy.example.com:8080\nSSL_CERT_FILE=/path/to/cert.pem',
       renderCustomContextLimits: (target) => this.renderCustomContextLimits(target),
     });
@@ -891,26 +876,6 @@ export class GrimoireSettingTab extends PluginSettingTab {
   private refreshModelSelectors(): void {
     for (const view of this.plugin.getAllViews()) {
       view.refreshModelSelector();
-    }
-  }
-
-  private renderProviderEnableSettings(container: HTMLElement): void {
-    new Setting(container).setName('Providers').setHeading();
-    const desc = container.createDiv({ cls: 'grimoire-provider-settings-desc' });
-    desc.createEl('p', {
-      cls: 'setting-item-description',
-      text: 'Which CLI back-ends Grimoire can talk to. Each runs as a local agent; only enabled providers appear in the model selector.',
-    });
-
-    for (const providerId of ProviderRegistry.getRegisteredProviderIds()) {
-      this.renderProviderEnableRow(
-        container,
-        providerId,
-        ProviderRegistry.isEnabled(providerId, this.plugin.settings),
-        async (enabled) => {
-          await this.updateProviderEnabled(providerId, enabled);
-        },
-      );
     }
   }
 
@@ -959,7 +924,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
         settings: this.plugin.settings,
       });
     } catch (error) {
-      new Notice(error instanceof Error ? error.message : 'Could not load provider models.');
+      new Notice(error instanceof Error ? error.message : t('settings.provider.loadModelsFailed'));
     }
   }
 
@@ -970,14 +935,15 @@ export class GrimoireSettingTab extends PluginSettingTab {
     onChange: (enabled: boolean) => Promise<void>,
   ): void {
     const copy = PROVIDER_SETTING_COPY[providerId] ?? {
-      desc: `${ProviderRegistry.getProviderDisplayName(providerId)} provider.`,
+      descKey: 'settings.provider.fallbackDesc',
       name: ProviderRegistry.getProviderDisplayName(providerId),
     };
     const setting = new Setting(container)
-      .setName(copy.name)
-      .setDesc(copy.descKey ? t(copy.descKey) : copy.desc ?? '');
+      .setName(t('settings.provider.enableName', { provider: copy.name }))
+      .setDesc(t(copy.descKey, { provider: copy.name }));
 
     setting.settingEl.addClass('grimoire-provider-row');
+    setting.settingEl.addClass('grimoire-provider-enable-row');
     setting.settingEl.addClass(`grimoire-provider-row--${providerId}`);
     setting.settingEl.toggleClass('is-enabled', enabled);
 
@@ -1091,8 +1057,8 @@ export class GrimoireSettingTab extends PluginSettingTab {
         cls: 'grimoire-context-alias-input',
         value: currentAlias,
       });
-      aliasInputEl.setAttribute('aria-label', `Alias for ${modelId}`);
-      aliasInputEl.title = 'Custom label shown in the model selector. Leave empty to use the default.';
+      aliasInputEl.setAttribute('aria-label', t('settings.providerModelPicker.aliasLabel', { model: modelId }));
+      aliasInputEl.title = t('settings.providerModelPicker.aliasTitle');
 
       const inputEl = inputWrapper.createEl('input', {
         type: 'text',
@@ -1100,7 +1066,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
         cls: 'grimoire-context-limits-input',
         value: currentValue ? formatContextLimit(currentValue) : '',
       });
-      inputEl.setAttribute('aria-label', `Context window for ${modelId}`);
+      inputEl.setAttribute('aria-label', t('settings.provider.contextWindowLabel', { model: modelId }));
 
       const validationEl = inputWrapper.createDiv({ cls: 'grimoire-context-limit-validation grimoire-hidden' });
 

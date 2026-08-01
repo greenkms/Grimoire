@@ -66,7 +66,8 @@ describe('GrimoireSettingTab general tab settings', () => {
 
     (tab as any).renderGeneralTab(container);
 
-    expect(collectText(container)).not.toContain('Appearance theme');
+    expect(collectText(container)).not.toContain('Theme');
+    expect(collectText(container)).not.toContain('Follows Obsidian');
     expect(container.querySelector('.grimoire-theme-card')).toBeNull();
   });
 
@@ -78,32 +79,23 @@ describe('GrimoireSettingTab general tab settings', () => {
 
     tab.display();
 
-    const versionEl = (tab as any).containerEl.querySelector('.grimoire-settings-version');
+    const versionEl = (tab as any).containerEl.querySelector('.grimoire-settings-version-row');
+    expect(collectText(versionEl)).toContain('Version');
     expect(collectText(versionEl)).toContain('Grimoire v9.8.7-test');
     expect(versionEl?.querySelector('.grimoire-settings-whats-new')?.textContent).toBe('What\'s new');
   });
 
-  it('indexes the existing settings UI through the Obsidian 1.13 declarative API', () => {
+  it('uses the imperative settings path so Obsidian does not wrap the whole page in one setting group', () => {
     const plugin = createSettingsPlugin();
     const tab = new GrimoireSettingTab(createSettingsApp(), plugin);
+    (tab as any).containerEl = createMockEl('div');
 
-    const [definition] = tab.getSettingDefinitions();
+    expect(tab.getSettingDefinitions()).toEqual([]);
 
-    expect(definition).toEqual(expect.objectContaining({
-      name: 'Grimoire settings',
-      aliases: expect.arrayContaining(['Debug logging', 'Grok Build', 'Maximum chat tabs']),
-    }));
-    expect('render' in definition!).toBe(true);
+    tab.display();
 
-    const settingEl = createMockEl('div');
-    settingEl.addClass('setting-item');
-    if (definition && 'render' in definition && definition.render) {
-      definition.render({ settingEl } as any, {} as any);
-    }
-
-    expect(settingEl.hasClass('setting-item')).toBe(false);
-    expect(settingEl.hasClass('grimoire-settings')).toBe(true);
-    expect(collectText(settingEl)).toContain('Maximum chat tabs');
+    expect((tab as any).containerEl.hasClass('grimoire-settings')).toBe(true);
+    expect(collectText((tab as any).containerEl)).toContain('Maximum chat tabs');
   });
 
   it('opens bundled release notes for the current version from the what\'s new action', async () => {
@@ -229,15 +221,15 @@ describe('GrimoireSettingTab provider tabs', () => {
 
     expect(tabLabels[0]).toBe('General');
     expect(tabLabels.slice(1)).toEqual([
-      'Claude Code',
+      'Claude',
       'Codex',
       'OpenCode',
-      'Grok Build',
-      'MiMo Code',
-      'Kimi Code',
+      'Grok',
+      'MiMo',
+      'Kimi',
       'Antigravity',
-      'Gemini CLI (Legacy)',
-      'Qwen Code',
+      'Gemini',
+      'Qwen',
     ]);
     expect(ProviderRegistry.getRegisteredProviderIds()).toEqual([
       'claude',
