@@ -148,6 +148,12 @@ function flattenTranslations(
   return out;
 }
 
+function extractPlaceholders(value: string): string[] {
+  return [...new Set(
+    [...value.matchAll(/\{(\w+)\}/g)].map(match => match[1])
+  )].sort();
+}
+
 describe('locale files', () => {
   const english = flattenTranslations(en as unknown as TranslationTree);
 
@@ -158,6 +164,24 @@ describe('locale files', () => {
       const localeKeys = Object.keys(flattenTranslations(translations as unknown as TranslationTree)).sort();
       expect(localeKeys).toEqual(englishKeys);
       expect(locale).toBeTruthy();
+    }
+  });
+
+  it('keeps interpolation parameters aligned with English', () => {
+    for (const [localeName, translations] of Object.entries(locales)) {
+      const locale = flattenTranslations(translations as unknown as TranslationTree);
+
+      for (const [key, englishValue] of Object.entries(english)) {
+        expect({
+          key,
+          locale: localeName,
+          placeholders: extractPlaceholders(locale[key]),
+        }).toEqual({
+          key,
+          locale: localeName,
+          placeholders: extractPlaceholders(englishValue),
+        });
+      }
     }
   });
 
