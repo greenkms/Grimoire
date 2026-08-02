@@ -19,18 +19,18 @@
 
 .grimoire-opencode-model-picker-summary-value {
   color: var(--text-normal);
-  font-weight: var(--font-medium);
+  font-weight: 400;
 }
 
 /* Selected models block */
 .grimoire-opencode-model-picker-selected {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px 14px;
-  border: 1px solid var(--background-modifier-border);
-  border-radius: var(--gs-r2, 9px);
-  background: color-mix(in srgb, var(--background-secondary) 70%, transparent);
+  gap: 10px;
+  padding: 14px 16px;
+  border: none;
+  border-radius: 8px;
+  background: var(--background-secondary);
 }
 
 .grimoire-opencode-model-picker-selected-header {
@@ -41,10 +41,9 @@
 }
 
 .grimoire-opencode-model-picker-selected-label {
-  font-family: var(--font-monospace);
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text-faint);
 }
@@ -52,32 +51,31 @@
 .grimoire-opencode-model-picker-selected-clear {
   padding: 4px 10px;
   font-size: 11.5px;
-  font-weight: 550;
+  font-weight: 400;
   color: var(--text-muted);
-  background: var(--background-modifier-form-field);
-  border: none;
-  box-shadow: inset 0 0 0 1px var(--background-modifier-border-hover);
+  background: transparent;
+  border: 1px solid var(--background-modifier-border);
   border-radius: var(--gs-r1, 6px);
   cursor: pointer;
   transition: background 0.14s ease, color 0.14s ease;
 }
 
 .grimoire-opencode-model-picker-selected-clear:hover {
-  background: rgba(var(--grimoire-brand-rgb), 0.14);
+  background: var(--background-modifier-hover);
   color: var(--text-normal);
 }
 
 .grimoire-opencode-model-picker-selected-rows {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .grimoire-opencode-model-picker-selected-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 9px 11px;
+  padding: 10px 12px;
   background: var(--background-primary);
   border: 1px solid var(--background-modifier-border);
   border-radius: var(--gs-r1, 6px);
@@ -107,15 +105,15 @@
   font-size: 11px;
   padding: 1px 7px;
   border-radius: var(--gs-pill, 999px);
-  background: rgba(var(--grimoire-brand-rgb), 0.13);
-  color: var(--grimoire-brand);
+  background: var(--background-modifier-hover);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .grimoire-opencode-model-picker-selected-name {
   color: var(--text-normal);
-  font-weight: var(--font-medium);
+  font-weight: 400;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -147,17 +145,16 @@
   width: 180px;
   height: 30px;
   padding: 0 10px;
-  border: none;
-  box-shadow: inset 0 0 0 1px var(--background-modifier-border-hover);
+  border: 1px solid var(--background-modifier-border);
   border-radius: var(--gs-r1, 6px);
-  background: var(--background-modifier-form-field);
+  background: var(--background-primary);
   color: var(--text-normal);
   font-size: 12.5px;
 }
 
 .grimoire-opencode-model-picker-selected-alias:focus {
   outline: none;
-  box-shadow: inset 0 0 0 1px rgba(var(--grimoire-brand-rgb), 0.55);
+  border-color: var(--interactive-accent);
 }
 
 .grimoire-opencode-model-picker-selected-remove {
@@ -186,17 +183,19 @@
 .grimoire-opencode-model-picker-catalog {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px 14px;
-  border: 1px solid var(--background-modifier-border);
-  border-radius: var(--gs-r2, 9px);
-  background: color-mix(in srgb, var(--background-secondary) 70%, transparent);
+  gap: 12px;
+  padding: 14px 16px;
+  border: none;
+  border-radius: 8px;
+  background: var(--background-secondary);
 }
 
 .grimoire-opencode-model-picker-catalog-summary {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-height: 28px;
+  padding: 2px 0;
   cursor: pointer;
   user-select: none;
   list-style: none;
@@ -210,7 +209,7 @@
   display: inline-flex;
   width: 18px;
   justify-content: center;
-  font-size: 12px;
+  font-size: 16px;
   color: var(--text-muted);
   line-height: 1;
   transition: transform 0.18s ease;
@@ -218,12 +217,12 @@
 
 .grimoire-opencode-model-picker-catalog[open] .grimoire-opencode-model-picker-catalog-caret {
   transform: rotate(90deg);
-  color: rgb(var(--grimoire-brand-rgb));
+  color: var(--text-normal);
 }
 
 .grimoire-opencode-model-picker-catalog-title {
   color: var(--text-normal);
-  font-weight: var(--font-medium);
+  font-weight: 400;
   font-size: 13px;
 }
 
@@ -239,6 +238,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  margin-bottom: 6px;
 }
 
 .grimoire-opencode-model-picker-search {
@@ -246,10 +246,9 @@
   min-width: 180px;
   height: 34px;
   padding: 0 12px;
-  border: none;
-  box-shadow: inset 0 0 0 1px var(--background-modifier-border-hover);
+  border: 1px solid var(--background-modifier-border);
   border-radius: var(--gs-r1, 6px);
-  background: var(--background-modifier-form-field);
+  background: var(--background-primary);
   color: var(--text-normal);
   font-size: 13px;
 }
@@ -260,16 +259,15 @@
 
 .grimoire-opencode-model-picker-search:focus {
   outline: none;
-  box-shadow: inset 0 0 0 1px rgba(var(--grimoire-brand-rgb), 0.55);
+  border-color: var(--interactive-accent);
 }
 
 .grimoire-opencode-model-picker-provider {
   height: 34px;
   padding: 0 30px 0 12px;
-  border: none;
-  box-shadow: inset 0 0 0 1px var(--background-modifier-border-hover);
+  border: 1px solid var(--background-modifier-border);
   border-radius: var(--gs-r1, 6px);
-  background-color: var(--background-modifier-form-field);
+  background-color: var(--background-primary);
   color: var(--text-normal);
   font-size: 13px;
   cursor: pointer;
@@ -284,7 +282,7 @@
 
 .grimoire-opencode-model-picker-provider:focus {
   outline: none;
-  box-shadow: inset 0 0 0 1px rgba(var(--grimoire-brand-rgb), 0.55);
+  border-color: var(--interactive-accent);
 }
 
 /* Model list → .oc-list / .oc-item */
@@ -317,7 +315,7 @@
 }
 
 .grimoire-opencode-model-picker-row--selected {
-  background: rgba(var(--grimoire-brand-rgb), 0.08);
+  background: var(--background-modifier-hover);
 }
 
 .grimoire-opencode-model-picker-row input[type="checkbox"] {
@@ -344,7 +342,7 @@
 .grimoire-opencode-model-picker-row-name {
   color: var(--text-normal);
   font-family: var(--font-monospace);
-  font-weight: 580;
+  font-weight: 400;
   font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -355,8 +353,8 @@
   font-size: 11px;
   padding: 1px 7px;
   border-radius: var(--gs-pill, 999px);
-  background: rgba(var(--grimoire-brand-rgb), 0.13);
-  color: var(--grimoire-brand);
+  background: var(--background-modifier-hover);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }

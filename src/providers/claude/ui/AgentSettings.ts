@@ -89,7 +89,12 @@ class AgentModal extends Modal {
       .setDesc(t('settings.subagents.modal.modelDesc'))
       .addDropdown(dropdown => {
         for (const opt of CLAUDE_AGENT_MODEL_OPTIONS) {
-          dropdown.addOption(opt.value, opt.label);
+          const label = opt.value === 'inherit'
+            ? t('settings.agentEditor.inherit')
+            : opt.value === 'best'
+              ? t('settings.agentEditor.best')
+              : opt.label;
+          dropdown.addOption(opt.value, label);
         }
         dropdown
           .setValue(modelValue)
@@ -201,7 +206,7 @@ class AgentModal extends Modal {
       try {
         await this.onSave(agent);
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Unknown error';
+        const message = err instanceof Error ? err.message : t('settings.agentEditor.unknownError');
         new Notice(t('settings.subagents.saveFailed', { message }));
         return;
       }
@@ -312,7 +317,7 @@ export class AgentSettings {
       try {
         await this.deleteAgent(agent);
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Unknown error';
+        const message = err instanceof Error ? err.message : t('settings.agentEditor.unknownError');
         new Notice(t('settings.subagents.deleteFailed', { message }));
       }
       })();
@@ -324,7 +329,7 @@ export class AgentSettings {
       await this.agentManager.loadAgents();
       this.render();
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error';
+      const message = err instanceof Error ? err.message : t('settings.agentEditor.unknownError');
       new Notice(t('settings.subagents.refreshFailed', { message }));
     }
   }
@@ -335,8 +340,8 @@ export class AgentSettings {
       try {
         fresh = await this.agentStorage.load(existingAgent) ?? existingAgent;
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Unknown error';
-        new Notice(`Failed to load subagent "${existingAgent.name}": ${message}`);
+        const message = err instanceof Error ? err.message : t('settings.agentEditor.unknownError');
+        new Notice(t('settings.subagents.loadFailed', { name: existingAgent.name, message }));
         return;
       }
     } else {

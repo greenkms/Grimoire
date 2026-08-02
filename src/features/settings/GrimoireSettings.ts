@@ -930,6 +930,32 @@ export class GrimoireSettingTab extends PluginSettingTab {
 
   private async updateProviderEnabled(providerId: ProviderId, enabled: boolean): Promise<void> {
     ProviderSettingsCoordinator.persistProjectedProviderState(this.plugin.settings);
+    this.setProviderEnabled(providerId, enabled);
+
+    if (ProviderSettingsCoordinator.normalizeProviderSelection(this.plugin.settings)) {
+      ProviderSettingsCoordinator.projectActiveProviderState(this.plugin.settings);
+    }
+    if (enabled) {
+      try {
+        await this.refreshProviderModelCatalog(providerId);
+      } catch {
+        this.setProviderEnabled(providerId, false);
+        if (ProviderSettingsCoordinator.normalizeProviderSelection(this.plugin.settings)) {
+          ProviderSettingsCoordinator.projectActiveProviderState(this.plugin.settings);
+        }
+        await this.plugin.saveSettings();
+        this.refreshModelSelectors();
+        this.update();
+        new Notice(t('settings.provider.loadModelsFailed'));
+        return;
+      }
+    }
+    await this.plugin.saveSettings();
+    this.refreshModelSelectors();
+    this.update();
+  }
+
+  private setProviderEnabled(providerId: ProviderId, enabled: boolean): void {
     if (providerId === 'claude') {
       updateClaudeProviderSettings(this.plugin.settings, { enabled });
     } else if (providerId === 'codex') {
@@ -949,16 +975,6 @@ export class GrimoireSettingTab extends PluginSettingTab {
     } else if (providerId === 'grok') {
       updateGrokProviderSettings(this.plugin.settings, { enabled });
     }
-
-    if (ProviderSettingsCoordinator.normalizeProviderSelection(this.plugin.settings)) {
-      ProviderSettingsCoordinator.projectActiveProviderState(this.plugin.settings);
-    }
-    if (enabled) {
-      await this.refreshProviderModelCatalog(providerId);
-    }
-    await this.plugin.saveSettings();
-    this.refreshModelSelectors();
-    this.update();
   }
 
   private async refreshProviderModelCatalog(providerId: ProviderId): Promise<void> {
@@ -967,14 +983,10 @@ export class GrimoireSettingTab extends PluginSettingTab {
       return;
     }
 
-    try {
-      await catalog.refreshModels({
-        plugin: this.plugin,
-        settings: this.plugin.settings,
-      });
-    } catch (error) {
-      new Notice(error instanceof Error ? error.message : t('settings.provider.loadModelsFailed'));
-    }
+    await catalog.refreshModels({
+      plugin: this.plugin,
+      settings: this.plugin.settings,
+    });
   }
 
   private renderProviderEnableRow(

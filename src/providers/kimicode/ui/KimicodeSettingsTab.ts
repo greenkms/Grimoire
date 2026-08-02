@@ -4,6 +4,7 @@ import { Setting } from 'obsidian';
 import type { ProviderSettingsTabRenderer } from '../../../core/providers/types';
 import { renderEnvironmentSettingsSection } from '../../../features/settings/ui/EnvironmentSettingsSection';
 import { renderProviderDisabledNotice } from '../../../features/settings/ui/ProviderDisabledNotice';
+import { t } from '../../../i18n/i18n';
 import { getHostnameKey } from '../../../utils/env';
 import { expandHomePath } from '../../../utils/path';
 import { maybeGetKimicodeWorkspaceServices } from '../app/KimicodeWorkspaceServices';
@@ -47,11 +48,14 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
       renderProviderDisabledNotice(container, 'Kimi Code');
     }
 
-    new Setting(container).setName('Setup').setHeading();
+    new Setting(container).setName(t('settings.setup')).setHeading();
 
     const cliPathSetting = new Setting(container)
-      .setName('CLI path')
-      .setDesc('Optional absolute path to the Kimi Code CLI for this computer. Leave empty to use `kimi` from PATH.');
+      .setName(t('settings.providerTabs.acp.cliPath.name', { provider: 'Kimi Code' }))
+      .setDesc(t('settings.providerTabs.acp.cliPath.desc', {
+        command: 'kimi',
+        provider: 'Kimi Code',
+      }));
 
     const validationEl = container.createDiv({
       cls: 'grimoire-cli-path-validation grimoire-setting-validation grimoire-setting-validation-error grimoire-hidden',
@@ -65,12 +69,12 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
       const expandedPath = expandHomePath(trimmed);
       if (!fs.existsSync(expandedPath)) {
-        return 'Path does not exist';
+        return t('settings.cliPath.validation.notExist');
       }
 
       const stat = fs.statSync(expandedPath);
       if (!stat.isFile()) {
-        return 'Path must point to a file';
+        return t('settings.cliPath.validation.isDirectory');
       }
 
       return null;
@@ -150,11 +154,11 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
       updateCliPathValidation(currentValue, text.inputEl);
     });
 
-    new Setting(container).setName('Models').setHeading();
+    new Setting(container).setName(t('settings.models')).setHeading();
 
     new Setting(container)
-      .setName('Visible models')
-      .setDesc('Choose which Kimi Code models appear in the chat selector. Filter by provider or type to search. The current session model stays pinned even if it is not selected here.');
+      .setName(t('settings.providerTabs.acp.visibleModels.name'))
+      .setDesc(t('settings.providerTabs.acp.visibleModels.desc', { provider: 'Kimi Code' }));
 
     const pickerEl = container.createDiv({ cls: 'grimoire-kimicode-model-picker' });
 
@@ -174,7 +178,7 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
     });
     catalogSummaryEl.createSpan({
       cls: 'grimoire-kimicode-model-picker-catalog-title',
-      text: 'Browse models',
+      text: t('settings.providerModelPicker.browseModels'),
     });
     const catalogSummaryCountEl = catalogSummaryEl.createSpan({
       cls: 'grimoire-kimicode-model-picker-catalog-count',
@@ -186,7 +190,7 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
       cls: 'grimoire-kimicode-model-picker-search',
       type: 'search',
     });
-    searchInput.placeholder = 'Filter by model, provider, or ID…';
+    searchInput.placeholder = t('settings.providerModelPicker.searchPlaceholder');
     searchInput.addEventListener('input', () => {
       searchQuery = searchInput.value.trim().toLowerCase();
       renderList();
@@ -274,22 +278,30 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
       const current = getKimicodeProviderSettings(settingsBag);
       const enriched = getEnrichedModels();
       const providerCount = new Set(enriched.map((model) => model.providerKey)).size;
-      const providerWord = providerCount === 1 ? 'provider' : 'providers';
+      const providerWord = t(providerCount === 1
+        ? 'settings.providerModelPicker.providerSingular'
+        : 'settings.providerModelPicker.providerPlural');
 
-      summaryEl.createSpan({ text: 'Visible: ' });
+      summaryEl.createSpan({ text: `${t('settings.providerModelPicker.visibleLabel')} ` });
       summaryEl.createSpan({
         cls: 'grimoire-kimicode-model-picker-summary-value',
         text: String(current.visibleModels.length),
       });
       summaryEl.createSpan({
-        text: ` of ${current.discoveredModels.length} discovered • ${providerCount} ${providerWord}`,
+        text: ` ${t('settings.providerModelPicker.summaryDiscovered', {
+          total: current.discoveredModels.length,
+          count: providerCount,
+          providerWord,
+        })}`,
       });
 
-      let catalogSummary = 'No models discovered yet';
+      let catalogSummary = t('settings.providerModelPicker.noDiscovered');
       if (loadingModelCatalog) {
-        catalogSummary = 'Loading models...';
+        catalogSummary = t('settings.providerModelPicker.loadingModels');
       } else if (current.discoveredModels.length > 0) {
-        catalogSummary = `${current.discoveredModels.length} available`;
+        catalogSummary = t('settings.providerModelPicker.availableCount', {
+          count: current.discoveredModels.length,
+        });
       }
       catalogSummaryCountEl.setText(catalogSummary);
     };
@@ -310,13 +322,13 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
       const headerEl = selectedEl.createDiv({ cls: 'grimoire-kimicode-model-picker-selected-header' });
       headerEl.createSpan({
         cls: 'grimoire-kimicode-model-picker-selected-label',
-        text: `Selected (${current.visibleModels.length})`,
+        text: t('settings.providerModelPicker.selectedCount', { count: current.visibleModels.length }),
       });
       const clearAllBtn = headerEl.createEl('button', {
         cls: 'grimoire-kimicode-model-picker-selected-clear',
-        text: 'Clear all',
+        text: t('common.clearAll'),
       });
-      clearAllBtn.setAttribute('aria-label', 'Clear all selected models');
+      clearAllBtn.setAttribute('aria-label', t('settings.providerModelPicker.clearSelected'));
       clearAllBtn.addEventListener('click', () => {
         void persistVisibleModels([]);
       });
@@ -355,7 +367,7 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
         if (enriched && !enriched.isAvailable) {
           infoEl.createDiv({
             cls: 'grimoire-kimicode-model-picker-selected-unavailable',
-            text: 'Not currently reported by Kimi Code',
+            text: t('settings.providerModelPicker.notReported', { provider: 'Kimi Code' }),
           });
         }
 
@@ -371,8 +383,8 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
         });
         aliasInput.placeholder = defaultLabel;
         aliasInput.value = current.modelAliases[rawId] ?? '';
-        aliasInput.setAttribute('aria-label', `Alias for ${defaultLabel}`);
-        aliasInput.title = 'Custom label shown in the model selector. Leave empty to use the default.';
+        aliasInput.setAttribute('aria-label', t('settings.providerModelPicker.aliasLabel', { model: defaultLabel }));
+        aliasInput.title = t('settings.providerModelPicker.aliasTitle');
 
         const commitAlias = (): void => {
           const latest = getKimicodeProviderSettings(settingsBag);
@@ -408,7 +420,7 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
           cls: 'grimoire-kimicode-model-picker-selected-remove',
           text: '×',
         });
-        removeBtn.setAttribute('aria-label', `Remove ${defaultLabel}`);
+        removeBtn.setAttribute('aria-label', t('settings.providerModelPicker.removeModel', { model: defaultLabel }));
         removeBtn.addEventListener('click', () => {
           void persistVisibleModels(current.visibleModels.filter((entry) => entry !== rawId));
         });
@@ -429,7 +441,7 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
       providerSelectEl.empty();
       providerSelectEl.createEl('option', {
-        text: `All providers (${enriched.length})`,
+        text: t('settings.providerModelPicker.allProviders', { count: enriched.length }),
         value: ALL_PROVIDERS_KEY,
       });
 
@@ -457,13 +469,13 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
       if (filtered.length === 0) {
         const emptyEl = listEl.createDiv({ cls: 'grimoire-kimicode-model-picker-empty' });
-        let emptyText = 'No models match your filter.';
+        let emptyText = t('settings.providerModelPicker.noMatch');
         if (loadingModelCatalog) {
-          emptyText = 'Loading Kimi Code model catalog...';
+          emptyText = t('settings.providerModelPicker.loadingCatalog', { provider: 'Kimi Code' });
         } else if (modelCatalogLoadFailed) {
-          emptyText = 'Could not load the Kimi Code model catalog. Check the CLI path and login state, then expand this section again.';
+          emptyText = t('settings.providerModelPicker.loadFailed', { provider: 'Kimi Code' });
         } else if (enriched.length === 0) {
-          emptyText = 'Start Kimi Code once to load its model catalog. Grimoire will then let you pick visible models.';
+          emptyText = t('settings.providerModelPicker.startToLoad', { provider: 'Kimi Code' });
         }
         emptyEl.setText(emptyText);
         return;
@@ -505,8 +517,8 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
         });
         if (!model.isAvailable) {
           badgeEl.classList.add('grimoire-kimicode-model-picker-row-badge--unavailable');
-          badgeEl.setText('Unavailable');
-          badgeEl.title = 'Configured model not currently reported by Kimi Code';
+          badgeEl.setText(t('settings.providerModelPicker.unavailable'));
+          badgeEl.title = t('settings.providerModelPicker.unavailableTitle', { provider: 'Kimi Code' });
         }
 
         textEl.createDiv({
@@ -573,30 +585,34 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
     const advancedContainer = context.renderAdvancedSection(container, {
       count: 4,
-      summary: 'Hidden commands, subagents, environment, and context overrides',
+      summary: t('settings.advanced.providerSummary'),
     });
 
-    new Setting(advancedContainer).setName('Commands and skills').setHeading();
+    new Setting(advancedContainer).setName(t('settings.slashCommands.name')).setHeading();
 
     const commandsDesc = advancedContainer.createDiv({ cls: 'grimoire-sp-settings-desc' });
     commandsDesc.createEl('p', {
       cls: 'setting-item-description',
-      text: 'Kimi Code can auto-detect vault-level Claude slash commands from .claude/commands/ and skills from .claude/skills/, .codex/skills/, and .agents/skills/. Manage those entries in the Claude or Codex settings tab. This setting only hides entries from the Kimi Code dropdown.',
+      text: t('settings.providerTabs.acp.commandsDesc', { provider: 'Kimi Code' }),
     });
 
     context.renderHiddenProviderCommandSetting(advancedContainer, 'kimicode', {
-      name: 'Hidden Commands and Skills',
-      desc: 'Hide specific Kimi Code commands and skills from the dropdown. Enter names without the leading slash, one per line.',
+      name: t('settings.hiddenSlashCommands.name'),
+      desc: t('settings.providerTabs.acp.hiddenCommandsDesc', { provider: 'Kimi Code' }),
       placeholder: 'compact\nreview\nfix',
     });
 
     if (kimicodeWorkspace?.agentStorage) {
-      new Setting(advancedContainer).setName('Subagents').setHeading();
+      new Setting(advancedContainer).setName(t('settings.subagents.name')).setHeading();
 
       const subagentsDesc = advancedContainer.createDiv({ cls: 'grimoire-sp-settings-desc' });
       subagentsDesc.createEl('p', {
         cls: 'setting-item-description',
-        text: 'Manage vault-level Kimi Code subagents from .kimicode/agent/ and legacy .kimicode/agents/. New entries are saved as subagent-only files and appear in the @mention menu.',
+        text: t('settings.providerTabs.acp.subagentsDesc', {
+          legacyRoot: '.kimicode/agents/',
+          provider: 'Kimi Code',
+          root: '.kimicode/agent/',
+        }),
       });
 
       const subagentsContainer = advancedContainer.createDiv({ cls: 'grimoire-slash-commands-container' });
@@ -615,9 +631,12 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
       container: advancedContainer,
       plugin: context.plugin,
       scope: 'provider:kimicode',
-      heading: 'Environment',
-      name: 'Environment Variables',
-      desc: 'Extra environment variables passed to Kimi Code. `KIMICODE_ENABLE_EXA=1` is enabled by default.',
+      heading: t('settings.environment'),
+      name: t('settings.providerTabs.environmentVariables'),
+      desc: t('settings.providerTabs.acp.environmentDesc', {
+        environmentVariable: 'KIMICODE_ENABLE_EXA',
+        provider: 'Kimi Code',
+      }),
       placeholder: `${KIMICODE_DEFAULT_ENVIRONMENT_VARIABLES}\nKIMICODE_DB=/path/to/kimicode.db`,
       renderCustomContextLimits: (target) => context.renderCustomContextLimits(target, 'kimicode'),
     });

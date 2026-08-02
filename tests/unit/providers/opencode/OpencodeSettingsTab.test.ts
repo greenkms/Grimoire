@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 
+import { setLocale, t } from '@/i18n/i18n';
 import { OPENCODE_DEFAULT_ENVIRONMENT_VARIABLES } from '@/providers/opencode/settings';
 import { opencodeSettingsTabRenderer } from '@/providers/opencode/ui/OpencodeSettingsTab';
 
@@ -433,6 +434,7 @@ describe('OpencodeSettingsTab', () => {
     mockRuntimeWarmModelMetadata.mockResolvedValue(false);
     mockedExistsSync.mockReturnValue(false);
     mockedStatSync.mockReturnValue({ isFile: () => true } as fs.Stats);
+    setLocale('en');
   });
 
   it('stores the CLI path per host and resets active runtime state across all views', async () => {
@@ -441,7 +443,9 @@ describe('OpencodeSettingsTab', () => {
 
     opencodeSettingsTabRenderer.render(createContainer(), createContext(plugin));
 
-    const cliPathSetting = findSetting('CLI path');
+    const cliPathSetting = findSetting(t('settings.providerTabs.acp.cliPath.name', {
+      provider: 'OpenCode',
+    }));
     await cliPathSetting.textComponents[0].onChangeCallback?.('/custom/opencode');
 
     expect(plugin.settings.providerConfigs.opencode.cliPathsByHost).toEqual({
@@ -464,20 +468,20 @@ describe('OpencodeSettingsTab', () => {
 
     opencodeSettingsTabRenderer.render(createContainer(), context);
 
-    expect(findSetting('Commands and skills').heading).toBe(true);
+    expect(findSetting(t('settings.slashCommands.name')).heading).toBe(true);
     expect(context.renderHiddenProviderCommandSetting).toHaveBeenCalledWith(
       expect.anything(),
       'opencode',
       expect.objectContaining({
-        name: 'Hidden Commands and Skills',
-        desc: 'Hide specific OpenCode commands and skills from the dropdown. Enter names without the leading slash, one per line.',
+        name: t('settings.hiddenSlashCommands.name'),
+        desc: t('settings.providerTabs.acp.hiddenCommandsDesc', { provider: 'OpenCode' }),
       }),
     );
 
     expect(createdElements).toContainEqual({
       cls: 'setting-item-description',
       tag: 'p',
-      text: 'OpenCode can auto-detect vault-level Claude slash commands from .claude/commands/ and skills from .claude/skills/, .codex/skills/, and .agents/skills/. Manage those entries in the Claude or Codex settings tab. This setting only hides entries from the OpenCode dropdown.',
+      text: t('settings.providerTabs.acp.commandsDesc', { provider: 'OpenCode' }),
     });
   });
 
@@ -486,11 +490,15 @@ describe('OpencodeSettingsTab', () => {
 
     opencodeSettingsTabRenderer.render(createContainer(), createContext(plugin));
 
-    expect(findSetting('Subagents').heading).toBe(true);
+    expect(findSetting(t('settings.subagents.name')).heading).toBe(true);
     expect(createdElements).toContainEqual({
       cls: 'setting-item-description',
       tag: 'p',
-      text: 'Manage vault-level OpenCode subagents from .opencode/agent/ and legacy .opencode/agents/. New entries are saved as subagent-only files and appear in the @mention menu.',
+      text: t('settings.providerTabs.acp.subagentsDesc', {
+        legacyRoot: '.opencode/agents/',
+        provider: 'OpenCode',
+        root: '.opencode/agent/',
+      }),
     });
 
     expect(mockCreatedAgentSettings).toHaveLength(1);

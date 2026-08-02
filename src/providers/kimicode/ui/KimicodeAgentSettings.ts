@@ -1,6 +1,7 @@
 import type { App } from 'obsidian';
 import { Modal, Notice, setIcon, Setting } from 'obsidian';
 
+import { t } from '../../../i18n/i18n';
 import { confirmDelete } from '../../../shared/modals/ConfirmModal';
 import type { KimicodeAgentStorage } from '../storage/KimicodeAgentStorage';
 import type { KimicodeAgentDefinition } from '../types/agent';
@@ -8,28 +9,28 @@ import type { KimicodeAgentDefinition } from '../types/agent';
 const KIMICODE_AGENT_INVALID_SEGMENT_PATTERN = /[<>:"\\|?*]/;
 
 export function validateKimicodeAgentName(name: string): string | null {
-  if (!name) return 'Agent name is required';
+  if (!name) return t('settings.agentEditor.nameRequired');
 
   const segments = name.split('/');
   if (segments.length === 0 || segments.some((segment) => segment.length === 0)) {
-    return 'Agent name must use slash-separated path segments without leading or trailing slashes';
+    return t('settings.agentEditor.pathSegmentsRequired');
   }
 
   for (const segment of segments) {
     if (!segment.trim()) {
-      return 'Agent name path segments cannot be empty or whitespace-only';
+      return t('settings.agentEditor.segmentEmpty');
     }
 
     if (segment !== segment.trim()) {
-      return 'Agent name path segments cannot start or end with whitespace';
+      return t('settings.agentEditor.segmentWhitespace');
     }
 
     if (segment === '.' || segment === '..') {
-      return 'Agent name cannot include "." or ".." path segments';
+      return t('settings.agentEditor.dotSegments');
     }
 
     if (segment.includes('\0') || KIMICODE_AGENT_INVALID_SEGMENT_PATTERN.test(segment)) {
-      return 'Agent name path segments cannot contain Windows-reserved filename characters';
+      return t('settings.agentEditor.reservedCharacters');
     }
   }
 
@@ -66,7 +67,9 @@ class KimicodeAgentModal extends Modal {
   }
 
   onOpen() {
-    this.setTitle(this.existing ? 'Edit Kimi Code Subagent' : 'Add Kimi Code Subagent');
+    this.setTitle(this.existing
+      ? t('settings.agentEditor.modalTitleEdit', { provider: 'Kimi Code' })
+      : t('settings.agentEditor.modalTitleAdd', { provider: 'Kimi Code' }));
     this.modalEl.addClass('grimoire-sp-modal');
 
     const { contentEl } = this;
@@ -86,26 +89,26 @@ class KimicodeAgentModal extends Modal {
     let optionsInput!: HTMLTextAreaElement;
 
     new Setting(contentEl)
-      .setName('Name')
-      .setDesc('Kimi Code agent name. Use slash-separated segments for nested agents.')
+      .setName(t('settings.subagents.modal.name'))
+      .setDesc(t('settings.agentEditor.nameDesc', { provider: 'Kimi Code' }))
       .addText((text) => {
         nameInput = text.inputEl;
         text.setValue(this.existing?.name ?? '')
-          .setPlaceholder('Review');
+          .setPlaceholder(t('settings.agentEditor.namePlaceholder'));
       });
 
     new Setting(contentEl)
-      .setName('Description')
-      .setDesc('When Kimi Code should use this subagent')
+      .setName(t('settings.subagents.modal.description'))
+      .setDesc(t('settings.agentEditor.descriptionDesc', { provider: 'Kimi Code' }))
       .addText((text) => {
         descriptionInput = text.inputEl;
         text.setValue(this.existing?.description ?? '')
-          .setPlaceholder('Reviews code for correctness and maintainability');
+          .setPlaceholder(t('settings.agentEditor.descriptionPlaceholder'));
       });
 
     const details = contentEl.createEl('details', { cls: 'grimoire-sp-advanced-section' });
     details.createEl('summary', {
-      text: 'Advanced options',
+      text: t('settings.subagents.modal.advancedOptions'),
       cls: 'grimoire-sp-advanced-summary',
     });
     if (
@@ -125,8 +128,8 @@ class KimicodeAgentModal extends Modal {
     }
 
     new Setting(details)
-      .setName('Model')
-      .setDesc('Model override in provider/model format')
+      .setName(t('settings.subagents.modal.model'))
+      .setDesc(t('settings.agentEditor.modelDesc'))
       .addText((text) => {
         modelInput = text.inputEl;
         text.setValue(this.existing?.model ?? '')
@@ -134,8 +137,8 @@ class KimicodeAgentModal extends Modal {
       });
 
     new Setting(details)
-      .setName('Variant')
-      .setDesc('Model variant override')
+      .setName(t('settings.agentEditor.variant'))
+      .setDesc(t('settings.agentEditor.variantDesc'))
       .addText((text) => {
         variantInput = text.inputEl;
         text.setValue(this.existing?.variant ?? '')
@@ -143,8 +146,8 @@ class KimicodeAgentModal extends Modal {
       });
 
     new Setting(details)
-      .setName('Temperature')
-      .setDesc('Optional sampling temperature')
+      .setName(t('settings.agentEditor.temperature'))
+      .setDesc(t('settings.agentEditor.temperatureDesc'))
       .addText((text) => {
         temperatureInput = text.inputEl;
         text.setValue(this.existing?.temperature !== undefined ? String(this.existing.temperature) : '')
@@ -152,8 +155,8 @@ class KimicodeAgentModal extends Modal {
       });
 
     new Setting(details)
-      .setName('Top p')
-      .setDesc('Optional nucleus sampling value')
+      .setName(t('settings.agentEditor.topP'))
+      .setDesc(t('settings.agentEditor.topPDesc'))
       .addText((text) => {
         topPInput = text.inputEl;
         text.setValue(this.existing?.topP !== undefined ? String(this.existing.topP) : '')
@@ -161,8 +164,8 @@ class KimicodeAgentModal extends Modal {
       });
 
     new Setting(details)
-      .setName('Color')
-      .setDesc('Hex color or theme token')
+      .setName(t('settings.agentEditor.color'))
+      .setDesc(t('settings.agentEditor.colorDesc'))
       .addText((text) => {
         colorInput = text.inputEl;
         text.setValue(this.existing?.color ?? '')
@@ -170,8 +173,8 @@ class KimicodeAgentModal extends Modal {
       });
 
     new Setting(details)
-      .setName('Steps')
-      .setDesc('Maximum agentic iterations before forcing text-only output')
+      .setName(t('settings.agentEditor.steps'))
+      .setDesc(t('settings.agentEditor.stepsDesc'))
       .addText((text) => {
         stepsInput = text.inputEl;
         text.setValue(this.existing?.steps !== undefined ? String(this.existing.steps) : '')
@@ -179,8 +182,8 @@ class KimicodeAgentModal extends Modal {
       });
 
     new Setting(details)
-      .setName('Hide from @mention')
-      .setDesc('Hide this subagent from the @ autocomplete menu')
+      .setName(t('settings.agentEditor.hideFromMention'))
+      .setDesc(t('settings.agentEditor.hideFromMentionDesc'))
       .addToggle((toggle) => {
         toggle.setValue(hiddenValue).onChange((value) => {
           hiddenValue = value;
@@ -188,8 +191,8 @@ class KimicodeAgentModal extends Modal {
       });
 
     new Setting(details)
-      .setName('Disable agent')
-      .setDesc('Disable the agent without deleting the file')
+      .setName(t('settings.agentEditor.disableAgent'))
+      .setDesc(t('settings.agentEditor.disableAgentDesc'))
       .addToggle((toggle) => {
         toggle.setValue(disableValue).onChange((value) => {
           disableValue = value;
@@ -197,8 +200,8 @@ class KimicodeAgentModal extends Modal {
       });
 
     new Setting(details)
-      .setName('Enabled tools (JSON)')
-      .setDesc('Optional deprecated tools map, e.g. {"write":false,"edit":false}')
+      .setName(t('settings.agentEditor.enabledTools'))
+      .setDesc(t('settings.agentEditor.enabledToolsDesc'))
       .addTextArea((text) => {
         toolsInput = text.inputEl;
         text.setValue(this.existing?.tools ? JSON.stringify(this.existing.tools, null, 2) : '')
@@ -206,8 +209,8 @@ class KimicodeAgentModal extends Modal {
       });
 
     new Setting(details)
-      .setName('Permission (JSON)')
-      .setDesc('Optional permission config, e.g. {"edit":"deny","bash":"allow"}')
+      .setName(t('settings.agentEditor.permission'))
+      .setDesc(t('settings.agentEditor.permissionDesc'))
       .addTextArea((text) => {
         permissionInput = text.inputEl;
         text.setValue(this.existing?.permission !== undefined ? JSON.stringify(this.existing.permission, null, 2) : '')
@@ -215,8 +218,8 @@ class KimicodeAgentModal extends Modal {
       });
 
     new Setting(details)
-      .setName('Options (JSON)')
-      .setDesc('Optional custom agent options')
+      .setName(t('settings.agentEditor.options'))
+      .setDesc(t('settings.agentEditor.optionsDesc'))
       .addTextArea((text) => {
         optionsInput = text.inputEl;
         text.setValue(this.existing?.options ? JSON.stringify(this.existing.options, null, 2) : '')
@@ -224,14 +227,14 @@ class KimicodeAgentModal extends Modal {
       });
 
     new Setting(contentEl)
-      .setName('Prompt')
-      .setDesc('Markdown body used as the agent prompt');
+      .setName(t('settings.subagents.modal.prompt'))
+      .setDesc(t('settings.agentEditor.promptDesc'));
 
     const promptArea = contentEl.createEl('textarea', {
       cls: 'grimoire-sp-content-area',
       attr: {
         rows: '10',
-        placeholder: 'Review code changes carefully and call out correctness, regressions, and missing coverage.',
+        placeholder: t('settings.agentEditor.promptPlaceholder'),
       },
     });
     promptArea.value = this.existing?.prompt ?? '';
@@ -239,13 +242,13 @@ class KimicodeAgentModal extends Modal {
     const buttonContainer = contentEl.createDiv({ cls: 'grimoire-sp-modal-buttons' });
 
     const cancelBtn = buttonContainer.createEl('button', {
-      text: 'Cancel',
+      text: t('common.cancel'),
       cls: 'grimoire-cancel-btn',
     });
     cancelBtn.addEventListener('click', () => this.close());
 
     const saveBtn = buttonContainer.createEl('button', {
-      text: 'Save',
+      text: t('common.save'),
       cls: 'grimoire-save-btn',
     });
     saveBtn.addEventListener('click', () => {
@@ -259,13 +262,13 @@ class KimicodeAgentModal extends Modal {
 
       const description = descriptionInput.value.trim();
       if (!description) {
-        new Notice('Description is required');
+        new Notice(t('settings.subagents.descriptionRequired'));
         return;
       }
 
       const prompt = promptArea.value;
       if (!prompt.trim()) {
-        new Notice('Prompt is required');
+        new Notice(t('settings.subagents.promptRequired'));
         return;
       }
 
@@ -275,41 +278,41 @@ class KimicodeAgentModal extends Modal {
         this.existing?.persistenceKey,
       );
       if (duplicate) {
-        new Notice(`A subagent named "${name}" already exists`);
+        new Notice(t('settings.subagents.duplicateName', { name }));
         return;
       }
 
-      const temperature = parseOptionalNumber(temperatureInput.value, 'Temperature');
+      const temperature = parseOptionalNumber(temperatureInput.value, t('settings.agentEditor.temperature'));
       if (temperature.error) {
         new Notice(temperature.error);
         return;
       }
 
-      const topP = parseOptionalNumber(topPInput.value, 'Top P');
+      const topP = parseOptionalNumber(topPInput.value, t('settings.agentEditor.topP'));
       if (topP.error) {
         new Notice(topP.error);
         return;
       }
 
-      const steps = parseOptionalPositiveInteger(stepsInput.value, 'Steps');
+      const steps = parseOptionalPositiveInteger(stepsInput.value, t('settings.agentEditor.steps'));
       if (steps.error) {
         new Notice(steps.error);
         return;
       }
 
-      const tools = parseOptionalJsonObjectOfBooleans(toolsInput.value, 'Enabled Tools');
+      const tools = parseOptionalJsonObjectOfBooleans(toolsInput.value, t('settings.agentEditor.enabledTools'));
       if (tools.error) {
         new Notice(tools.error);
         return;
       }
 
-      const permission = parseOptionalJson(permissionInput.value, 'Permission');
+      const permission = parseOptionalJson(permissionInput.value, t('settings.agentEditor.permission'));
       if (permission.error) {
         new Notice(permission.error);
         return;
       }
 
-      const options = parseOptionalJsonObject(optionsInput.value, 'Options');
+      const options = parseOptionalJsonObject(optionsInput.value, t('settings.agentEditor.options'));
       if (options.error) {
         new Notice(options.error);
         return;
@@ -338,8 +341,8 @@ class KimicodeAgentModal extends Modal {
       try {
         await this.onSave(agent);
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        new Notice(`Failed to save subagent: ${message}`);
+        const message = error instanceof Error ? error.message : t('settings.agentEditor.unknownError');
+        new Notice(t('settings.subagents.saveFailed', { message }));
         return;
       }
       this.close();
@@ -384,27 +387,30 @@ export class KimicodeAgentSettings {
     const visibleAgents = this.agents.filter((agent) => agent.mode === 'subagent');
 
     const headerEl = this.containerEl.createDiv({ cls: 'grimoire-sp-header' });
-    headerEl.createSpan({ text: 'Kimi Code Subagents', cls: 'grimoire-sp-label' });
+    headerEl.createSpan({
+      text: t('settings.agentEditor.title', { provider: 'Kimi Code' }),
+      cls: 'grimoire-sp-label',
+    });
 
     const actionsEl = headerEl.createDiv({ cls: 'grimoire-sp-header-actions' });
 
     const refreshBtn = actionsEl.createEl('button', {
       cls: 'grimoire-settings-action-btn',
-      attr: { 'aria-label': 'Refresh' },
+      attr: { 'aria-label': t('common.refresh') },
     });
     setIcon(refreshBtn, 'refresh-cw');
     refreshBtn.addEventListener('click', () => { void this.render(); });
 
     const addBtn = actionsEl.createEl('button', {
       cls: 'grimoire-settings-action-btn',
-      attr: { 'aria-label': 'Add' },
+      attr: { 'aria-label': t('common.add') },
     });
     setIcon(addBtn, 'plus');
     addBtn.addEventListener('click', () => this.openModal(null));
 
     if (visibleAgents.length === 0) {
       const emptyEl = this.containerEl.createDiv({ cls: 'grimoire-sp-empty-state' });
-      emptyEl.setText('No Kimi Code subagents in vault. Click + to create one.');
+      emptyEl.setText(t('settings.agentEditor.noAgents', { provider: 'Kimi Code' }));
       return;
     }
 
@@ -423,7 +429,7 @@ export class KimicodeAgentSettings {
     nameEl.setText(agent.name);
 
     headerRow.createSpan({
-      text: 'subagent',
+      text: t('settings.agentEditor.badge'),
       cls: 'grimoire-slash-item-badge',
     });
 
@@ -440,14 +446,14 @@ export class KimicodeAgentSettings {
 
     const editBtn = actionsEl.createEl('button', {
       cls: 'grimoire-settings-action-btn',
-      attr: { 'aria-label': 'Edit' },
+      attr: { 'aria-label': t('common.edit') },
     });
     setIcon(editBtn, 'pencil');
     editBtn.addEventListener('click', () => this.openModal(agent));
 
     const deleteBtn = actionsEl.createEl('button', {
       cls: 'grimoire-settings-action-btn grimoire-settings-delete-btn',
-      attr: { 'aria-label': 'Delete' },
+      attr: { 'aria-label': t('common.delete') },
     });
     setIcon(deleteBtn, 'trash-2');
     deleteBtn.addEventListener('click', () => {
@@ -455,16 +461,16 @@ export class KimicodeAgentSettings {
       if (!this.app) return;
       const confirmed = await confirmDelete(
         this.app,
-        `Delete subagent "${agent.name}"?`,
+        t('settings.subagents.deleteConfirm', { name: agent.name }),
       );
       if (!confirmed) return;
       try {
         await this.storage.delete(agent);
         await this.render();
         await this.onChanged?.();
-        new Notice(`Subagent "${agent.name}" deleted`);
+        new Notice(t('settings.subagents.deleted', { name: agent.name }));
       } catch {
-        new Notice('Failed to delete subagent');
+        new Notice(t('settings.agentEditor.deleteFailed'));
       }
       })();
     });
@@ -483,8 +489,8 @@ export class KimicodeAgentSettings {
         await this.onChanged?.();
         new Notice(
           existing
-            ? `Subagent "${agent.name}" updated`
-            : `Subagent "${agent.name}" created`,
+            ? t('settings.subagents.updated', { name: agent.name })
+            : t('settings.subagents.created', { name: agent.name }),
         );
       },
     );
@@ -503,7 +509,7 @@ function parseOptionalNumber(
 
   const parsed = Number(trimmed);
   if (!Number.isFinite(parsed)) {
-    return { error: `${label} must be a valid number` };
+    return { error: t('settings.agentEditor.invalidNumber', { label }) };
   }
 
   return { value: parsed };
@@ -520,7 +526,7 @@ function parseOptionalPositiveInteger(
 
   const parsed = Number(trimmed);
   if (!Number.isInteger(parsed) || parsed <= 0) {
-    return { error: `${label} must be a positive integer` };
+    return { error: t('settings.agentEditor.invalidPositiveInteger', { label }) };
   }
 
   return { value: parsed };
@@ -538,7 +544,7 @@ function parseOptionalJson(
   try {
     return { value: JSON.parse(trimmed) };
   } catch {
-    return { error: `${label} must be valid JSON` };
+    return { error: t('settings.agentEditor.invalidJson', { label }) };
   }
 }
 
@@ -552,7 +558,7 @@ function parseOptionalJsonObject(
   }
 
   if (!isJsonObject(parsed.value)) {
-    return { error: `${label} must be a JSON object` };
+    return { error: t('settings.agentEditor.invalidJsonObject', { label }) };
   }
 
   return { value: parsed.value };
@@ -568,7 +574,7 @@ function parseOptionalJsonObjectOfBooleans(
   }
 
   if (!Object.values(parsed.value).every((entry) => typeof entry === 'boolean')) {
-    return { error: `${label} must map tool names to boolean values` };
+    return { error: t('settings.agentEditor.invalidBooleanMap', { label }) };
   }
 
   return { value: parsed.value as Record<string, boolean> };

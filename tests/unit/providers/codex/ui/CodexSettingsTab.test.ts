@@ -115,7 +115,13 @@ jest.mock('@/providers/codex/ui/CodexSubagentSettings', () => ({
 }));
 
 jest.mock('@/i18n/i18n', () => ({
-  t: (key: string) => key,
+  t: (key: string) => ({
+    'settings.providerTabs.codex.installationMethod.name': 'Installation method',
+    'settings.providerTabs.codex.wslDistro.name': 'WSL distro override',
+    'settings.providerTabs.codex.cliPath.name': 'Codex CLI path',
+    'settings.providerTabs.codex.cliPath.desc': 'Custom path to the local Codex CLI. Leave empty for auto-detection from PATH.',
+    'settings.providerTabs.codex.customModels.name': 'Custom models',
+  } as Record<string, string>)[key] ?? key,
 }));
 
 jest.mock('@/utils/env', () => ({
