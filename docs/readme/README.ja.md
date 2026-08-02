@@ -15,7 +15,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="ライセンス: MIT">
   <img src="https://img.shields.io/github/v/release/sandsaber/Grimoire?label=release" alt="最新リリース">
-  <img src="https://img.shields.io/badge/Obsidian-1.12.7%2B-7c3aed" alt="Obsidian 1.12.7+">
+  <img src="https://img.shields.io/badge/Obsidian-1.13.0%2B-7c3aed" alt="Obsidian 1.13.0+">
   <img src="https://img.shields.io/badge/platform-desktop-lightgrey" alt="デスクトップのみ">
 </p>
 

@@ -337,10 +337,6 @@ export class GrimoireSettingTab extends PluginSettingTab {
     this.plugin = plugin;
   }
 
-  display(): void {
-    this.renderSettings();
-  }
-
   hide(): void {
     this.tabScroller?.destroy();
     this.tabScroller = null;
@@ -596,7 +592,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
             }
             this.plugin.settings.locale = locale;
             await this.plugin.saveSettings();
-            this.renderSettings();
+            this.update();
           });
       });
 
@@ -646,7 +642,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             this.plugin.settings.enableAutoTitleGeneration = value;
             await this.plugin.saveSettings();
-            this.renderSettings();
+            this.update();
           })
       );
 
@@ -962,7 +958,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
     }
     await this.plugin.saveSettings();
     this.refreshModelSelectors();
-    this.renderSettings();
+    this.update();
   }
 
   private async refreshProviderModelCatalog(providerId: ProviderId): Promise<void> {

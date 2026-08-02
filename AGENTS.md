@@ -90,7 +90,7 @@ Fix production dependency advisories when an upstream-compatible update is avail
 
 Dependency changes use npm as the canonical package manager. Keep `package-lock.json` current with `package.json`; do not add secondary package-manager lockfiles unless the repository intentionally changes its install, CI, and release workflow.
 
-The project currently compiles against Obsidian 1.13 API typings for forward-compatible settings search while `manifest.json` targets the currently tested stable Obsidian 1.12.7 release. Keep the legacy `PluginSettingTab.display()` path alongside `getSettingDefinitions()` until Obsidian 1.13 is publicly stable and the declarative path has been verified there.
+The project requires Obsidian 1.13.0 or newer and uses the declarative settings API for native settings search. Implement settings tabs through `getSettingDefinitions()`; do not restore the deprecated `PluginSettingTab.display()` fallback.
 
 ## Testing Rules
 

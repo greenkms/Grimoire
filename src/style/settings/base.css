@@ -35,7 +35,7 @@
 /*
  * The declarative root keeps this custom page indexed by Obsidian settings
  * search. Isolate its synthetic SettingGroup so nested Settings retain the
- * same standalone cards as the legacy display() fallback.
+ * same standalone cards as the custom settings layout.
  */
 .setting-group.grimoire-settings-root-group {
   max-width: none;

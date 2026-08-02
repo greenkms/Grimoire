@@ -36,6 +36,7 @@ export class PluginSettingTab {
   }
 
   display() {}
+  update = jest.fn();
 }
 
 export class ItemView {
