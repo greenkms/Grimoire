@@ -3100,6 +3100,8 @@ export async function destroyTab(tab: TabData): Promise<void> {
   tab.ui.statusPanel?.destroy();
   tab.ui.statusPanel = null;
   tab.ui.modelSelector?.destroy();
+  tab.ui.thinkingBudgetSelector?.destroy();
+  tab.ui.permissionToggle?.destroy();
   tab.ui.navigationSidebar?.destroy();
   tab.ui.navigationSidebar = null;
 

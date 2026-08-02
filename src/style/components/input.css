@@ -461,6 +461,8 @@ body.grimoire-dragging-ns {
 .grimoire-container--chat-window .grimoire-composer-shell {
   position: relative;
   display: grid;
+  container-name: grimoire-composer;
+  container-type: inline-size;
   width: 100%;
   margin: 0;
   gap: 7px;
@@ -506,7 +508,7 @@ body.grimoire-dragging-ns {
 }
 
 .grimoire-container--chat-window .grimoire-context-row {
-  padding: 0;
+  padding: 0 2px 5px;
   gap: 5px;
 }
 
@@ -551,30 +553,30 @@ body.grimoire-dragging-ns {
 
 .grimoire-container--chat-window .grimoire-input-toolbar-actions-row {
   gap: 5px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   row-gap: 5px;
 }
 
 .grimoire-container--chat-window .grimoire-input-toolbar-config-actions {
   display: flex;
-  flex: 0 0 auto;
-  flex-wrap: wrap;
+  flex: 0 1 auto;
+  flex-wrap: nowrap;
   align-items: center;
-  max-width: 100%;
   min-width: 0;
   gap: 5px;
 }
 
 .grimoire-container--chat-window .grimoire-model-context-stack {
-  flex: 0 1 auto;
+  flex: 1 1 260px;
   width: auto;
-  max-width: 190px;
+  min-width: 132px;
+  max-width: 420px;
   overflow: visible;
 }
 
 .grimoire-container--chat-window .grimoire-model-btn {
-  min-width: 0;
-  max-width: min(100%, 178px);
+  min-width: 132px;
+  max-width: min(100%, 260px);
   border-radius: var(--grimoire-radius-2);
 }
 
@@ -597,6 +599,34 @@ body.grimoire-dragging-ns {
   align-items: center;
   gap: 5px;
   margin-inline-start: auto;
+}
+
+@container grimoire-composer (max-width: 600px) {
+  .grimoire-container--chat-window .grimoire-input-toolbar-actions-row {
+    display: grid;
+    grid-template-areas:
+      "model model"
+      "controls send";
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .grimoire-container--chat-window .grimoire-model-context-stack {
+    grid-area: model;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .grimoire-container--chat-window .grimoire-input-toolbar-config-actions {
+    grid-area: controls;
+    flex-wrap: wrap;
+  }
+
+  .grimoire-container--chat-window .grimoire-send-actions {
+    grid-area: send;
+    align-self: end;
+    margin-inline-start: 0;
+  }
 }
 
 .grimoire-container--chat-window button.grimoire-send-button {

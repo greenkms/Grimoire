@@ -243,17 +243,35 @@ describe('ModelSelector', () => {
     expect(label?.textContent).toBe('Sonnet 4.6');
   });
 
-  it('should use the localized Obsidian model tooltip', () => {
+  it('should mark the selected model icon with its provider for brand coloring', () => {
+    const uiConfig = {
+      ...createMockUIConfig(),
+      getProviderIcon: jest.fn().mockReturnValue({
+        viewBox: '0 0 1 1',
+        path: 'M0 0h1v1H0z',
+      }),
+    };
+    callbacks.getUIConfig.mockReturnValue(uiConfig);
+    const iconParent = createMockEl();
+    new ModelSelector(iconParent, callbacks);
+    const icon = iconParent.querySelector('.grimoire-model-button-provider-icon');
+
+    expect(icon?.getAttribute('data-provider')).toBe('claude');
+  });
+
+  it('should expose the full selected model in its tooltip and accessible label', () => {
     const button = parentEl.querySelector('.grimoire-model-btn');
     expect(button?.getAttribute('title')).toBeNull();
-    expect(setTooltip).toHaveBeenCalledWith(button, 'Select model', { placement: 'top' });
+    expect(button?.getAttribute('aria-label')).toBe('Select model: Sonnet 4.6');
+    expect(setTooltip).toHaveBeenCalledWith(button, 'Sonnet 4.6', { placement: 'top' });
 
     jest.clearAllMocks();
     setLocale('zh-CN');
     const parentEl2 = createMockEl();
     new ModelSelector(parentEl2, callbacks);
     const localizedButton = parentEl2.querySelector('.grimoire-model-btn');
-    expect(setTooltip).toHaveBeenCalledWith(localizedButton, '选择模型', { placement: 'top' });
+    expect(localizedButton?.getAttribute('aria-label')).toBe('选择模型: Sonnet 4.6');
+    expect(setTooltip).toHaveBeenCalledWith(localizedButton, 'Sonnet 4.6', { placement: 'top' });
     setLocale('en');
   });
 
@@ -629,7 +647,7 @@ describe('ModelSelector', () => {
     expect(labels).toEqual(['Opus (1M context)']);
   });
 
-  it('should bound long model names inside a copy wrapper', () => {
+  it('should prioritize the distinguishing model segment for long names', () => {
     const uiConfig = createMockUIConfig();
     const longModel = 'minimax-token-plan/minimax-m2.7-highspeed';
     uiConfig.getModelOptions.mockReturnValue([
@@ -656,9 +674,14 @@ describe('ModelSelector', () => {
 
     expect(copy).not.toBeNull();
     expect(copy?.querySelector('.grimoire-model-option-label')?.textContent).toBe(
-      'MiniMax Token Plan (minimax.io)/MiniMax-M2.7-highspeed',
+      'MiniMax-M2.7-highspeed',
     );
-    expect(copy?.querySelector('.grimoire-model-option-detail')).toBeNull();
+    expect(copy?.querySelector('.grimoire-model-option-detail')?.textContent).toBe(
+      'MiniMax Token Plan (minimax.io)',
+    );
+    expect(option?.getAttribute('title')).toBe(
+      'MiniMax Token Plan (minimax.io)/MiniMax-M2.7-highspeed\nACP runtime',
+    );
   });
 
   it('should not render group separators when models have no group field', () => {
@@ -1958,7 +1981,9 @@ describe('createInputToolbar', () => {
 
     const actionsRow = parentEl.children.find((child: any) => child.hasClass('grimoire-input-toolbar-actions-row'));
     expect(actionsRow).toBeDefined();
+    const modelStack = actionsRow.children.find((child: any) => child.hasClass('grimoire-model-context-stack'));
     const configActions = actionsRow.children.find((child: any) => child.hasClass('grimoire-input-toolbar-config-actions'));
+    expect(modelStack).toBeDefined();
     expect(configActions).toBeDefined();
     const permissionIndex = configActions.children.findIndex((child: any) => child.hasClass('grimoire-permission-toggle'));
     const modeIndex = configActions.children.findIndex((child: any) => child.hasClass('grimoire-mode-selector'));
@@ -1975,8 +2000,7 @@ describe('createInputToolbar', () => {
 
     const modelRow = parentEl.children.find((child: any) => child.hasClass('grimoire-input-toolbar-model-row'));
     const actionsRow = parentEl.children.find((child: any) => child.hasClass('grimoire-input-toolbar-actions-row'));
-    const configActions = modelRow?.children.find((child: any) => child.hasClass('grimoire-input-toolbar-config-actions'));
-    const stack = configActions?.children.find((child: any) => child.hasClass('grimoire-model-context-stack'));
+    const stack = modelRow?.children.find((child: any) => child.hasClass('grimoire-model-context-stack'));
 
     expect(stack).toBeDefined();
     expect(modelRow).toBe(actionsRow);

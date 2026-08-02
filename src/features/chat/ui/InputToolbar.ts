@@ -66,6 +66,21 @@ function formatModelButtonLabel(label: string): string {
   return trimmed.slice(slashIndex + 1).trim() || trimmed;
 }
 
+function splitModelOptionLabel(label: string): { detail: string | null; label: string } {
+  const trimmed = label.trim();
+  const slashIndex = trimmed.lastIndexOf('/');
+  if (slashIndex <= 0 || slashIndex >= trimmed.length - 1) {
+    return { detail: null, label: trimmed };
+  }
+
+  const detail = trimmed.slice(0, slashIndex).trim();
+  const modelLabel = trimmed.slice(slashIndex + 1).trim();
+  return {
+    detail: detail || null,
+    label: modelLabel || trimmed,
+  };
+}
+
 const PLAN_USAGE_WARN_THRESHOLD = 80;
 const FIVE_HOUR_WINDOW_PATTERN = /5\s*-?\s*h/i;
 const WEEKLY_WINDOW_PATTERN = /week/i;
@@ -375,10 +390,14 @@ export class ModelSelector {
 
     this.buttonEl.empty();
 
+    const providerId = modelInfo
+      ? this.resolveProviderIdForModel(modelInfo)
+      : this.callbacks.resolveProviderForModel?.(currentModel) ?? this.callbacks.getProviderId?.() ?? null;
     const icon = modelInfo?.providerIcon ?? this.callbacks.getUIConfig().getProviderIcon?.();
     if (icon) {
       this.buttonEl.appendChild(createProviderIconSvg(icon, {
         className: 'grimoire-model-button-provider-icon',
+        ...(providerId ? { dataProvider: providerId } : {}),
         height: 13,
         ownerDocument: this.buttonEl.ownerDocument,
         width: 13,
@@ -386,11 +405,13 @@ export class ModelSelector {
     }
 
     const labelEl = this.buttonEl.createSpan({ cls: 'grimoire-model-label' });
-    labelEl.setText(modelInfo ? formatModelButtonLabel(modelInfo.label) : formatModelFallbackLabel(currentModel));
+    const fullLabel = modelInfo?.label.trim() || formatModelFallbackLabel(currentModel);
+    labelEl.setText(modelInfo ? formatModelButtonLabel(modelInfo.label) : fullLabel);
     const chevronEl = this.buttonEl.createSpan({ cls: 'grimoire-model-chevron' });
     setIcon(chevronEl, 'chevron-up');
     this.buttonEl.removeAttribute('title');
-    setTooltip(this.buttonEl, t('chat.ui.model.selectTooltip'), { placement: 'top' });
+    this.buttonEl.setAttribute('aria-label', `${t('chat.ui.model.selectTooltip')}: ${fullLabel}`);
+    setTooltip(this.buttonEl, fullLabel, { placement: 'top' });
   }
 
   renderOptions() {
@@ -713,8 +734,12 @@ export class ModelSelector {
       }));
     }
 
+    const displayLabel = splitModelOptionLabel(model.label);
     const copyEl = option.createSpan({ cls: 'grimoire-model-option-copy' });
-    copyEl.createSpan({ cls: 'grimoire-model-option-label', text: model.label });
+    copyEl.createSpan({ cls: 'grimoire-model-option-label', text: displayLabel.label });
+    if (displayLabel.detail) {
+      copyEl.createSpan({ cls: 'grimoire-model-option-detail', text: displayLabel.detail });
+    }
     if (model.description) {
       option.setAttribute('title', `${model.label}\n${model.description}`);
     } else {
@@ -2282,11 +2307,11 @@ export function createInputToolbar(
   const actionsRowEl = parentEl.createDiv({
     cls: 'grimoire-input-toolbar-row grimoire-input-toolbar-model-row grimoire-input-toolbar-actions-row',
   });
-  const configActionsEl = actionsRowEl.createDiv({ cls: 'grimoire-input-toolbar-config-actions' });
-  const modelContextStackEl = configActionsEl.createDiv({ cls: 'grimoire-model-context-stack' });
+  const modelContextStackEl = actionsRowEl.createDiv({ cls: 'grimoire-model-context-stack' });
   const modelSelector = new ModelSelector(modelContextStackEl, callbacks);
   const planUsageBadge = new PlanUsageBadge(modelContextStackEl, callbacks);
   const relevantNotesContainerEl = modelContextStackEl.createDiv({ cls: 'grimoire-relevant-notes-slot' });
+  const configActionsEl = actionsRowEl.createDiv({ cls: 'grimoire-input-toolbar-config-actions' });
   const thinkingBudgetSelector = new ThinkingBudgetSelector(configActionsEl, callbacks);
   const serviceTierToggle = new ServiceTierToggle(configActionsEl, callbacks);
   const contextUsageMeter = new ContextUsageMeter(configActionsEl);

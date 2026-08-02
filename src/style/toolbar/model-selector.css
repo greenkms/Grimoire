@@ -36,8 +36,8 @@
 .grimoire-container--chat-window .grimoire-model-btn {
   display: inline-flex;
   align-items: center;
-  min-width: 0;
-  max-width: min(100%, 178px);
+  min-width: 132px;
+  max-width: min(100%, 260px);
   height: 28px;
   border: 1px solid transparent;
   border-radius: var(--grimoire-radius-2);
@@ -47,6 +47,9 @@
 
 .grimoire-container--chat-window .grimoire-model-selector {
   position: relative;
+  flex: 0 1 260px;
+  min-width: 132px;
+  max-width: 260px;
   z-index: 25;
 }
 
@@ -205,6 +208,38 @@
   background: currentColor;
 }
 
+.grimoire-model-button-provider-icon[data-provider="claude"] {
+  color: var(--grimoire-provider-claude, #d97757);
+}
+
+.grimoire-model-button-provider-icon[data-provider="codex"] {
+  color: var(--grimoire-provider-codex, #19c37d);
+}
+
+.grimoire-model-button-provider-icon[data-provider="qwen"] {
+  color: var(--grimoire-provider-qwen, #615ced);
+}
+
+.grimoire-model-button-provider-icon[data-provider="antigravity"] {
+  color: var(--grimoire-provider-antigravity, #5b8def);
+}
+
+.grimoire-model-button-provider-icon[data-provider="gemini"] {
+  color: var(--grimoire-provider-gemini, #669df6);
+}
+
+.grimoire-model-button-provider-icon[data-provider="opencode"] {
+  color: var(--grimoire-provider-opencode, #e0b341);
+}
+
+.grimoire-model-button-provider-icon[data-provider="mimocode"] {
+  color: var(--grimoire-provider-mimocode, #FF6A00);
+}
+
+.grimoire-model-button-provider-icon[data-provider="kimicode"] {
+  color: var(--grimoire-provider-kimicode, #7C3AED);
+}
+
 .grimoire-container--chat-window .grimoire-model-button-provider-icon * {
   display: none;
 }
@@ -240,8 +275,8 @@
   bottom: calc(100% + 8px);
   left: 0;
   box-sizing: border-box;
-  width: min(224px, calc(100vw - 24px));
-  max-width: min(224px, calc(100vw - 24px));
+  width: min(360px, calc(100vw - 24px));
+  max-width: min(360px, calc(100vw - 24px));
   max-height: min(44vh, 320px);
   overflow-y: auto;
   overflow-x: hidden;
@@ -613,7 +648,10 @@
 }
 
 .grimoire-model-option-detail {
-  display: none;
+  color: var(--text-faint);
+  font-size: 10px;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .grimoire-model-option:hover {
@@ -631,7 +669,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  min-height: 30px;
+  min-height: 38px;
   padding: 5px 8px 5px 22px;
   border: 1px solid transparent;
   border-radius: var(--grimoire-radius-1);

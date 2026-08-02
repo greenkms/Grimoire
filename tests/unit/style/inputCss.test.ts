@@ -19,18 +19,26 @@ describe('input.css', () => {
     expect(rule).toContain('max-height: var(--grimoire-textarea-max-height, none)');
   });
 
-  it('keeps controls and send on one line until their intrinsic widths require wrapping', () => {
+  it('uses a two-row composer hierarchy before controls can collapse the model label', () => {
     const css = readInputCss();
     const actionsRule = getRule(css, '.grimoire-container--chat-window .grimoire-input-toolbar-actions-row');
     const configRule = getRule(css, '.grimoire-container--chat-window .grimoire-input-toolbar-config-actions');
     const sendRule = getRule(css, '.grimoire-send-actions');
 
-    expect(actionsRule).toContain('flex-wrap: wrap');
-    expect(configRule).toContain('flex: 0 0 auto');
-    expect(configRule).toContain('max-width: 100%');
+    expect(actionsRule).toContain('flex-wrap: nowrap');
+    expect(configRule).toContain('flex: 0 1 auto');
     expect(sendRule).toContain('margin-inline-start: auto');
-    expect(css).not.toContain('@container grimoire-composer');
-    expect(css).not.toContain('flex: 0 0 100%');
+    expect(css).toContain('@container grimoire-composer (max-width: 600px)');
+    expect(css).toContain('grid-template-areas:');
+    expect(css).toContain('"model model"');
+    expect(css).toContain('"controls send"');
+  });
+
+  it('keeps context chips visually separated from long textarea content', () => {
+    const css = readInputCss();
+    const contextRule = getRule(css, '.grimoire-container--chat-window .grimoire-context-row');
+
+    expect(contextRule).toContain('padding: 0 2px 5px');
   });
 
   it('uses a borderless soft-accent send button with a deeper hover surface', () => {
