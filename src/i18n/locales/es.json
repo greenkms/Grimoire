@@ -191,6 +191,9 @@
           "plain": "Bienvenido de vuelta!",
           "named": "Bienvenido de vuelta, {name}!"
         },
+        "version": {
+          "name": "Versión"
+        },
         "whatsNew": {
           "plain": "¿Qué hay de nuevo?",
           "named": "¿Qué hay de nuevo, {name}?"
@@ -214,6 +217,372 @@
         "summonContext": "Invoca contexto y luego sé específico.",
         "earnKeep": "Hagamos que esta nota se gane su lugar."
       }
+    },
+    "ui": {
+      "view": {
+        "all": "Todo",
+        "chat": "Chat",
+        "context": "Contexto",
+        "contextMemoryTab": "Memoria de contexto · pestaña",
+        "conversation": "Conversación",
+        "current": "Actual",
+        "currentTabViews": "Vistas de la pestaña actual",
+        "linked": "Vinculado",
+        "shownCount": "{count} mostrados",
+        "sources": "Fuentes",
+        "sourcesAndActions": "Fuentes y acciones",
+        "sourcesInTab": "Fuentes en la pestaña",
+        "vaultContextMemory": "Memoria de contexto del vault",
+        "moreNotes": "+{count} notas más",
+        "matchScore": "{percent}% de coincidencia"
+      },
+      "composer": {
+        "jumpToLatest": "Ir al mensaje más reciente",
+        "placeholder": "Pídele a Grimoire que edite, busque, compare, genere o ejecute un comando...",
+        "send": "Enviar",
+        "sendMessage": "Enviar mensaje",
+        "stopResponse": "Detener respuesta",
+        "resizeInput": "Arrastra para cambiar el tamaño de la entrada"
+      },
+      "model": {
+        "unknown": "Desconocido",
+        "switching": "Cambiando de modelo…",
+        "noneAvailable": "No hay modelos disponibles",
+        "noMatch": "Ningún modelo coincide con “{query}”",
+        "models": "Modelos",
+        "searchAriaLabel": "Buscar modelos",
+        "searchPlaceholder": "Buscar modelos...",
+        "loading": "Cargando modelos…",
+        "loadFailed": "No se pudieron cargar los modelos",
+        "changeFailed": "No se pudo cambiar el modelo",
+        "selectTooltip": "Seleccionar modelo"
+      },
+      "usage": {
+        "label": "Uso",
+        "fiveHourLimit": "límite de 5 horas",
+        "namedLimit": "límite de {name}",
+        "ariaWithPercent": "{plan} {limit}: {percent}% usado, se restablece {reset}",
+        "ariaWithoutPercent": "{plan} {limit}: se restablece {reset}",
+        "planUsage": "uso del plan",
+        "percentUsed": "{percent}% usado",
+        "resets": "se restablece {reset}",
+        "weeklyPercent": "semanal {percent}%",
+        "weeklyUnavailable": "uso semanal no disponible",
+        "updated": "actualizado {time}"
+      },
+      "toolbar": {
+        "modeChangeFailed": "No se pudo cambiar el modo",
+        "effort": "Esfuerzo:",
+        "thinking": "Razonamiento:",
+        "high": "Alto",
+        "off": "Desactivado",
+        "tokens": "{count} tokens",
+        "effortChangeFailed": "No se pudo cambiar el nivel de esfuerzo",
+        "thinkingChangeFailed": "No se pudo cambiar el presupuesto de razonamiento",
+        "permissionChangeFailed": "No se pudo cambiar el modo de permisos",
+        "plan": "PLAN",
+        "serviceTierChangeFailed": "No se pudo cambiar el nivel de servicio",
+        "toggleFastMode": "Activar/desactivar modo rápido",
+        "modeTooltip": "Modo de trabajo",
+        "permissionSafe": "Seguro",
+        "permissionAuto": "Automático",
+        "permissionPlan": "Plan",
+        "effortLevels": {
+          "low": "Bajo",
+          "medium": "Medio",
+          "high": "Alto",
+          "xhigh": "Muy alto",
+          "max": "Máximo"
+        }
+      },
+      "navigation": {
+        "scrollTop": "Ir arriba",
+        "previousMessage": "Solicitud anterior",
+        "directory": "Directorio de conversación",
+        "nextMessage": "Siguiente solicitud",
+        "scrollBottom": "Ir abajo",
+        "empty": "No hay solicitudes en esta conversación"
+      },
+      "externalContext": {
+        "removeFile": "Quitar archivo externo",
+        "removedInvalid": "Se quitaron {count} rutas de contexto externo no válidas: {paths}",
+        "cannotPersistMissing": "No se puede conservar “{path}” — la ruta ya no existe",
+        "noPath": "No se proporcionó una ruta. Uso: /add-dir /absolute/path",
+        "absolutePathRequired": "La ruta debe ser absoluta. Uso: /add-dir /absolute/path",
+        "duplicate": "Esta carpeta ya se añadió como contexto externo.",
+        "selectTitle": "Seleccionar contexto externo",
+        "pickerFailed": "No se pudo abrir el selector de carpetas.",
+        "conflictInside": "No se puede añadir “{path}” — está dentro de la ruta existente “{existing}”",
+        "conflictContains": "No se puede añadir “{path}” — contiene la ruta existente “{existing}”",
+        "header": "Contextos externos",
+        "empty": "Haz clic en el icono de carpeta para añadir uno",
+        "makeSessionOnly": "Persistente (haz clic para hacerlo solo de sesión)",
+        "makePersistent": "Solo de sesión (haz clic para conservarlo)",
+        "removePath": "Quitar ruta",
+        "countTitle": "{count} contextos externos (haz clic para añadir más)",
+        "files": "Archivos",
+        "addTitle": "Añadir contextos externos"
+      },
+      "mcp": {
+        "header": "Servidores MCP",
+        "noneConfigured": "No hay servidores MCP configurados",
+        "allDisabled": "Todos los servidores MCP están desactivados",
+        "contextSaving": "Ahorro de contexto: también se puede activar mediante @{server}",
+        "enabledCount": "{count} servidor(es) MCP activado(s) (haz clic para administrar)",
+        "enableTitle": "Servidores MCP (haz clic para activar)"
+      },
+      "contextUsage": {
+        "approachingLimit": " (Se acerca al límite, ejecuta `/compact` para continuar)",
+        "ariaUsed": "Ventana de contexto usada: {percent}%",
+        "tokens": "{used} / {total} tokens",
+        "left": "quedan {count}",
+        "context": "contexto",
+        "noneYet": "Aún no se ha usado contexto",
+        "hint": "El uso aparece a medida que la pestaña activa crea contexto."
+      },
+      "context": {
+        "noNoteSelected": "No hay nota seleccionada",
+        "boundToTab": "vinculado a esta pestaña de chat",
+        "openNoteToBind": "abre una nota para vincularla a este chat",
+        "active": "activo",
+        "idle": "inactivo",
+        "selectedFile": "Archivo seleccionado",
+        "selectedFiles": "Archivos seleccionados",
+        "filesBadge": "archivos",
+        "modelDetail": "{provider}{reasoning} · estado del proveedor conservado",
+        "modelBadge": "modelo",
+        "attached": "Contexto adjunto",
+        "linkedNotes": "{count} nota(s) vinculada(s) · {permission}",
+        "reasoningEffort": "esfuerzo {value}",
+        "reasoningThinking": "razonamiento {value}",
+        "permissionPlanDescription": "planificar antes de ejecutar herramientas",
+        "permissionSafeDescription": "preguntar antes de editar archivos y escribir mediante MCP",
+        "planMode": "Modo de planificación",
+        "autoApprove": "Aprobar automáticamente",
+        "safeMode": "Modo seguro",
+        "loadedThisSession": "Cargado en esta sesión"
+      },
+      "tabs": {
+        "createFailed": "No se pudo crear la pestaña",
+        "newTab": "Nueva pestaña",
+        "history": "Historial de chat",
+        "switchFailed": "No se pudo cambiar de pestaña",
+        "closeFailed": "No se pudo cerrar la pestaña",
+        "maximumAllowed": "Se permite un máximo de {count} pestañas",
+        "closeTab": "Cerrar pestaña"
+      },
+      "messages": {
+        "interrupted": "Interrumpido",
+        "interruptedHint": "· ¿Qué debería hacer Grimoire en su lugar?",
+        "conversationCompacted": "Conversación compactada",
+        "completed": "Listo",
+        "duration": "* {flavor} durante {duration}",
+        "copied": "¡Copiado!",
+        "renderFailed": "No se pudo renderizar el contenido del mensaje.",
+        "copyMessage": "Copiar mensaje",
+        "awaitingYou": "Esperando tu respuesta"
+      },
+      "errors": {
+        "relevantNotesFailed": "Error al obtener notas relevantes: {error}",
+        "couldNotOpenFile": "No se pudo abrir el archivo: {path}",
+        "openFileFailed": "No se pudo abrir el archivo: {error}",
+        "providerSwitchBound": "No se puede cambiar de proveedor en una sesión vinculada. Inicia una pestaña nueva.",
+        "forkUnsupported": "Este proveedor no admite bifurcaciones.",
+        "initializeFailed": "No se pudo inicializar el servicio de chat",
+        "loadConversationFailed": "No se pudo cargar la conversación",
+        "regenerateFailed": "No se pudo regenerar la respuesta",
+        "deleteConversationFailed": "No se pudo eliminar la conversación",
+        "renameConversationFailed": "No se pudo renombrar la conversación",
+        "initializeAgentFailed": "No se pudo inicializar el servicio de agentes. Inténtalo de nuevo.",
+        "agentUnavailable": "El servicio de agentes no está disponible. Recarga el plugin.",
+        "externalContextUnavailable": "El selector de contexto externo no está disponible.",
+        "forkUnavailable": "La bifurcación no está disponible.",
+        "rewindUnsupported": "Este proveedor no admite retroceder.",
+        "messageNotFound": "No se encontró el mensaje",
+        "agentServiceUnavailable": "El servicio de agentes no está disponible",
+        "unknown": "Error desconocido",
+        "saveFailed": "No se pudo guardar"
+      },
+      "history": {
+        "title": "Historial",
+        "close": "Cerrar historial",
+        "searchPlaceholder": "Buscar chats anteriores...",
+        "empty": "No hay chats anteriores",
+        "noMatches": "No hay coincidencias",
+        "current": "Actual",
+        "openNewTab": "Abrir en una pestaña nueva",
+        "generatingTitle": "Generando título...",
+        "regenerateTitle": "Regenerar título",
+        "today": "Hoy",
+        "yesterday": "Ayer",
+        "earlier": "Anteriores",
+        "sourceCount": "{count} fuentes",
+        "now": "ahora",
+        "openBackgroundTab": "Abrir en pestaña en segundo plano",
+        "switchOpenSession": "Cambiar a la sesión abierta",
+        "rename": "Renombrar",
+        "noneToResume": "No hay conversaciones que reanudar"
+      },
+      "thinking": {
+        "expandAriaLabel": "Razonamiento extendido — haz clic para expandir",
+        "inProgress": "Razonando {seconds}s...",
+        "completed": "Razonó durante {seconds}s",
+        "thought": "Razonamiento"
+      },
+      "ask": {
+        "question": "Pregunta",
+        "needsDetail": "Necesita un detalle",
+        "questionCount": "Grimoire hace {count} pregunta(s) antes de continuar",
+        "single": "una",
+        "multiple": "varias",
+        "optional": "opc.",
+        "answerPlaceholder": "Escribe tu respuesta...",
+        "decideForMe": "Decide por mí",
+        "sendAnswers": "Enviar respuestas",
+        "expand": "Expandir pregunta",
+        "collapse": "Contraer pregunta",
+        "option": "Opción",
+        "questionCountOne": "Grimoire hace {count} pregunta antes de continuar",
+        "questionCountMany": "Grimoire hace {count} preguntas antes de continuar"
+      },
+      "permission": {
+        "required": "Se requiere permiso",
+        "commandPreview": "Vista previa del comando: {command}",
+        "agent": "Agente: {agent}",
+        "reject": "Rechazar",
+        "tool": "herramienta",
+        "runShellCommand": "Grimoire quiere ejecutar un comando de shell",
+        "useTool": "Grimoire quiere usar {tool}",
+        "providerRequestedCommand": "{provider} solicitó permiso para ejecutar este comando.",
+        "shellCommand": "comando de shell"
+      },
+      "plan": {
+        "requestedPermissions": "Permisos solicitados:",
+        "approveCurrentSession": "Aprobar (sesión actual)",
+        "continueFeedbackPlaceholder": "Escribe comentarios para continuar la planificación...",
+        "keyboardHints": "Teclas de flecha para navegar · Intro para seleccionar · Esc para cancelar",
+        "complete": "Plan completo",
+        "reviewBeforeProceeding": "Revisa el plan antes de continuar",
+        "label": "plan",
+        "expand": "Expandir plan",
+        "collapse": "Contraer plan",
+        "implement": "Implementar",
+        "reviseFeedbackPlaceholder": "Escribe comentarios para revisar el plan..."
+      },
+      "images": {
+        "dropHere": "Suelta la imagen aquí",
+        "unsupportedProvider": "Este proveedor no admite adjuntos de imagen.",
+        "sizeLimit": "La imagen supera el límite de {size}.",
+        "unsupportedType": "Tipo de imagen no admitido.",
+        "attachFailed": "No se pudo adjuntar la imagen.",
+        "remove": "Quitar imagen",
+        "fileNotFound": "(Archivo no encontrado)",
+        "permissionDenied": "(Permiso denegado)"
+      },
+      "queue": {
+        "steering": "Redirigiendo...",
+        "steerNow": "Redirigir ahora",
+        "steerFailed": "No se pudo redirigir el mensaje de Codex en cola. Sigue disponible."
+      },
+      "instructions": {
+        "added": "Instrucción añadida al prompt de sistema personalizado",
+        "noneReceived": "No se recibió ninguna instrucción",
+        "processFailed": "No se pudo procesar la respuesta",
+        "refineFailed": "No se pudo refinar la instrucción"
+      },
+      "commands": {
+        "imageUsage": "Uso: /image <prompt>"
+      },
+      "progress": {
+        "working": "Trabajando",
+        "stillWorking": "Aún trabajando",
+        "blocked": "Bloqueado",
+        "completed": "Completado"
+      },
+      "status": {
+        "aria": "Estado: {status}",
+        "initializing": "Inicializando",
+        "running": "en ejecución",
+        "runningEllipsis": "En ejecución...",
+        "completed": "completado",
+        "blocked": "bloqueado",
+        "error": "Error",
+        "orphaned": "Huérfano",
+        "inProgress": "en curso",
+        "errorUpper": "ERROR",
+        "doneUpper": "HECHO"
+      },
+      "subagent": {
+        "task": "Tarea de subagente",
+        "noPrompt": "No se proporcionó ningún prompt",
+        "expandAria": "Tarea de subagente: {description} — Estado: {status} — haz clic para expandir",
+        "result": "Resultado",
+        "prompt": "Prompt",
+        "runningBackground": "En ejecución en segundo plano",
+        "backgroundExpandAria": "Tarea en segundo plano: {description} — {status} — haz clic para expandir",
+        "endedEarly": "La conversación terminó antes de completar la tarea",
+        "backgroundTask": "Tarea en segundo plano"
+      },
+      "tools": {
+        "noChanges": "Sin cambios",
+        "openPage": "Abrir página",
+        "urlUnavailable": "URL no disponible",
+        "findInPage": "Buscar en la página",
+        "query": "Consulta: {query}",
+        "searchWeb": "Buscar en la web",
+        "noResult": "Sin resultados",
+        "noMatches": "No se encontraron coincidencias",
+        "showPreview": "Mostrar vista previa",
+        "showAll": "Mostrar todo",
+        "fileDeleted": "Archivo eliminado",
+        "noTextDiff": "No hay diferencia textual disponible",
+        "tasksUpdated": "Tareas actualizadas",
+        "waitingForAnswer": "Esperando respuesta...",
+        "pattern": "Patrón: {pattern}",
+        "altQuery": "Consulta alternativa: {query}",
+        "moreQueries": "... {count} consultas más",
+        "tasksProgress": "Tareas {completed}/{total}",
+        "tasks": "Tareas",
+        "enteringPlanMode": "Entrando en modo de planificación",
+        "ranCommand": "Ejecutó comando",
+        "runCommand": "Ejecutar comando",
+        "readNote": "Leyó nota",
+        "readingNote": "Leyendo nota",
+        "wroteFile": "Escribió archivo",
+        "writingFile": "Escribiendo archivo",
+        "editedFile": "Editó archivo",
+        "editingFile": "Editando archivo",
+        "globbingFiles": "Buscando archivos con glob",
+        "globbedFiles": "Archivos encontrados con glob",
+        "searchingFiles": "Buscando archivos",
+        "searchedFiles": "Archivos buscados",
+        "listingFiles": "Enumerando archivos",
+        "listedFiles": "Archivos enumerados",
+        "searchingWeb": "Buscando en la web",
+        "searchedWeb": "Búsqueda web completada",
+        "fetchingPage": "Obteniendo página",
+        "fetchedPage": "Página obtenida",
+        "searchingTools": "Buscando herramientas",
+        "searchedTools": "Herramientas buscadas",
+        "applyingPatch": "Aplicando parche",
+        "appliedPatch": "Parche aplicado",
+        "sentInput": "Entrada enviada",
+        "loadedSkill": "Habilidad cargada",
+        "searchingVault": "Buscando en el vault",
+        "searchedVault": "Búsqueda en el vault completada",
+        "runningTools": "Ejecutando herramientas",
+        "ranTools": "Herramientas ejecutadas",
+        "queryCount": "{count} consulta(s)",
+        "stepCount": "{count} paso(s)",
+        "writingEllipsis": "Escribiendo...",
+        "queryCountOne": "{count} consulta",
+        "queryCountMany": "{count} consultas",
+        "stepCountOne": "{count} paso",
+        "stepCountMany": "{count} pasos"
+      },
+      "responseMetadata": {
+        "effort": "Esfuerzo {value}"
+      }
     }
   },
   "settings": {
@@ -221,7 +590,9 @@
     "tabs": {
       "general": "General",
       "claude": "Claude",
-      "codex": "Codex"
+      "codex": "Codex",
+      "scrollBackward": "Desplazar pestañas de configuración hacia atrás",
+      "scrollForward": "Desplazar pestañas de configuración hacia adelante"
     },
     "display": "Pantalla",
     "conversations": "Conversaciones",
@@ -245,7 +616,8 @@
     },
     "mediaFolder": {
       "name": "Carpeta de medios",
-      "desc": "Carpeta que contiene archivos adjuntos/imagenes. Cuando las notas usan ![[image.jpg]], Claude buscará aquí. Dejar vacío para la raíz del depósito."
+      "desc": "Carpeta que contiene archivos adjuntos/imagenes. Cuando las notas usan ![[image.jpg]], Claude buscará aquí. Dejar vacío para la raíz del depósito.",
+      "placeholder": "Adjuntos"
     },
     "systemPrompt": {
       "name": "Prompt de sistema personalizado",
@@ -365,7 +737,8 @@
         "prompt": "Prompt del sistema",
         "promptDesc": "Instrucciones para el agente",
         "promptPlaceholder": "Eres un revisor de código. Analiza el código proporcionado para..."
-      }
+      },
+      "loadFailed": "No se pudo cargar el subagente \"{name}\": {message}"
     },
     "environment": "Entorno",
     "customVariables": {
@@ -389,7 +762,14 @@
         "save": "Guardar",
         "update": "Actualizar",
         "cancel": "Cancelar"
-      }
+      },
+      "insert": "Insertar",
+      "insertFailed": "No se pudo insertar el fragmento",
+      "deleteConfirm": "¿Eliminar el fragmento de entorno \"{name}\"?",
+      "deleteFailed": "No se pudo eliminar el fragmento",
+      "saved": "Se guardó el fragmento de entorno \"{name}\"",
+      "updated": "Se actualizó el fragmento de entorno \"{name}\"",
+      "deleted": "Se eliminó el fragmento de entorno \"{name}\""
     },
     "customModelOverrides": {
       "name": "Anulaciones de modelos personalizados",
@@ -493,6 +873,30 @@
     "providers": {
       "grok": {
         "desc": "CLI agentic de programación de xAI con modo plan, subagentes, skills y MCP."
+      },
+      "claude": {
+        "desc": "CLI agéntica de Anthropic. Opción predeterminada recomendada."
+      },
+      "codex": {
+        "desc": "Agente de programación de OpenAI."
+      },
+      "antigravity": {
+        "desc": "Nueva CLI agéntica multimodelo de Google. Proveedor de Google recomendado."
+      },
+      "gemini": {
+        "desc": "CLI heredada de Gemini para usuarios Standard, Enterprise y de claves API de pago."
+      },
+      "opencode": {
+        "desc": "Código abierto y multivendedor. Ofrece el catálogo de modelos más amplio."
+      },
+      "mimocode": {
+        "desc": "Bifurcación de OpenCode de Xiaomi con memoria persistente y gestión de contexto."
+      },
+      "kimicode": {
+        "desc": "CLI agéntica multiproveedor de MoonshotAI. Compatible con Kimi, OpenAI, Anthropic y Gemini."
+      },
+      "qwen": {
+        "desc": "Alibaba Qwen Code mediante su entorno nativo Agent Client Protocol."
       }
     },
     "grok": {
@@ -576,6 +980,394 @@
       },
       "environment": {
         "desc": "Variables de entorno adicionales pasadas a Grok. `GROK_ENABLE_EXA=1` está habilitado de forma predeterminada."
+      }
+    },
+    "version": {
+      "name": "Versión"
+    },
+    "whatsNew": "Novedades",
+    "noReleaseNotes": "No se incluyen notas de la versión para esta versión de Grimoire.",
+    "learnMore": "Más información",
+    "environmentReview": "Revisar la propiedad del entorno para: {keys}",
+    "search": {
+      "description": "Configura Grimoire, su espacio de trabajo y las integraciones de proveedores.",
+      "providers": "Proveedores",
+      "models": "Modelos",
+      "permissions": "Permisos",
+      "environmentVariables": "Variables de entorno",
+      "projectWorkspace": "Espacio de trabajo del proyecto",
+      "title": "Configuración de Grimoire"
+    },
+    "advanced": {
+      "title": "Configuración avanzada",
+      "generalSummary": "Prompts, atajos de teclado, diagnósticos, variables de entorno y más",
+      "environmentSummary": "Variables de entorno y anulaciones de contexto",
+      "providerSummary": "Comandos, subagentes, entorno y anulaciones de contexto"
+    },
+    "provider": {
+      "enableName": "Activar {provider}",
+      "disabledTitle": "{provider} está desactivado.",
+      "disabledDesc": "Activa este proveedor arriba para usar esta configuración y mostrar sus modelos en el selector de modelos.",
+      "fallbackDesc": "Proveedor {provider}.",
+      "loadModelsFailed": "No se pudieron cargar los modelos del proveedor.",
+      "contextWindowLabel": "Ventana de contexto para {model}"
+    },
+    "providerModelPicker": {
+      "browseModels": "Explorar modelos",
+      "searchPlaceholder": "Filtrar por modelo, proveedor o ID...",
+      "visibleLabel": "Visibles:",
+      "summaryDiscovered": "de {total} detectados - {count} {providerWord}",
+      "providerSingular": "proveedor",
+      "providerPlural": "proveedores",
+      "noDiscovered": "Aún no se han detectado modelos",
+      "loadingModels": "Cargando modelos...",
+      "availableCount": "{count} disponibles",
+      "selectedCount": "Seleccionados ({count})",
+      "clearSelected": "Quitar todos los modelos seleccionados",
+      "notReported": "{provider} no lo informa actualmente",
+      "aliasLabel": "Alias para {model}",
+      "aliasTitle": "Etiqueta personalizada mostrada en el selector de modelos. Déjala vacía para usar la predeterminada.",
+      "removeModel": "Quitar {model}",
+      "allProviders": "Todos los proveedores ({count})",
+      "noMatch": "Ningún modelo coincide con el filtro.",
+      "loadingCatalog": "Cargando el catálogo de modelos de {provider}...",
+      "loadFailed": "No se pudo cargar el catálogo de modelos de {provider}. Revisa la ruta de la CLI y el estado de inicio de sesión, y vuelve a expandir esta sección.",
+      "startToLoad": "Inicia {provider} una vez para cargar su catálogo de modelos. Grimoire te permitirá elegir modelos visibles.",
+      "unavailable": "No disponible",
+      "unavailableTitle": "Modelo configurado no informado actualmente por {provider}"
+    },
+    "sharedEnvironment": {
+      "name": "Entorno compartido",
+      "desc": "Variables de ejecución neutrales al proveedor compartidas entre todos los proveedores. Úsalo para variables de PATH, proxy, certificados y directorios temporales."
+    },
+    "providerTabs": {
+      "environmentVariables": "Variables de entorno",
+      "acp": {
+        "cliPath": {
+          "name": "Ruta de la CLI de {provider}",
+          "desc": "Ruta personalizada al comando local de {provider}. Déjala vacía para detectarlo automáticamente."
+        },
+        "visibleModels": {
+          "name": "Modelos visibles",
+          "desc": "Elige qué modelos de {provider} aparecen en el selector de chat. Filtra por proveedor o tipo para buscar."
+        },
+        "commandsDesc": "{provider} puede detectar automáticamente comandos con barra de Claude a nivel de vault desde .claude/commands/ y habilidades desde .claude/skills/, .codex/skills/ y .agents/skills/. Gestiona esas entradas en la pestaña de configuración de Claude o Codex. Esta opción solo oculta entradas del menú desplegable de {provider}.",
+        "hiddenCommandsDesc": "Oculta comandos y habilidades específicos de {provider} del menú desplegable. Escribe los nombres sin la barra inicial, uno por línea.",
+        "subagentsDesc": "Gestiona los subagentes de {provider} a nivel de vault desde {root} y el directorio heredado {legacyRoot}. Las nuevas entradas se guardan como archivos exclusivos de subagentes y aparecen en el menú @mention.",
+        "environmentDesc": "Solo variables de ejecución propias de {provider}, incluida {environmentVariable}=1. Úsalo para configuración específica del proveedor; coloca las variables compartidas de PATH, proxy y certificados en Entorno compartido."
+      },
+      "antigravity": {
+        "windowsLimitations": {
+          "name": "Limitaciones de la CLI en Windows",
+          "desc": "En Windows, las versiones actuales de agy pueden finalizar correctamente mientras devuelven stdout vacío para la detección de modelos y las respuestas de impresión. Grimoire usa transcripciones, configuración y recuperación alternativa cuando es posible, pero Antigravity puede ser menos fiable en Windows que en macOS o Linux."
+        },
+        "cliPath": {
+          "name": "Ruta de la CLI de Antigravity",
+          "desc": "Ruta personalizada al comando agy local. Déjala vacía para detectarlo automáticamente."
+        },
+        "customModels": {
+          "name": "Modelos personalizados",
+          "desc": "Añade etiquetas de modelos de Antigravity al selector, una por línea. Usa las etiquetas exactas mostradas en el selector de modelos de agy cuando la detección en Windows sea incompleta."
+        },
+        "environmentDesc": "Variables de entorno adicionales transferidas a la CLI de Antigravity, como GOOGLE_CLOUD_PROJECT."
+      },
+      "gemini": {
+        "cliPath": {
+          "name": "Ruta de la CLI de Gemini",
+          "desc": "Ruta personalizada a la CLI local de Gemini. Déjala vacía para iniciar `gemini` desde PATH."
+        },
+        "environmentDesc": "Variables de entorno adicionales transferidas a la CLI de Gemini, como GEMINI_API_KEY o GOOGLE_CLOUD_PROJECT."
+      },
+      "claude": {
+        "advancedSummary": "Comandos, agentes, MCP, entorno y experimentos",
+        "environmentDesc": "Solo variables de ejecución propias de Claude. Úsalo para ANTHROPIC_* y controles específicos de Claude."
+      },
+      "codex": {
+        "installationMethod": {
+          "name": "Método de instalación",
+          "desc": "Cómo debe iniciar Grimoire Codex en Windows. Windows nativo usa una ruta de ejecutable de Windows. WSL inicia la CLI de Linux dentro de una distribución seleccionada.",
+          "nativeWindows": "Windows nativo"
+        },
+        "cliPath": {
+          "name": "Ruta de la CLI de Codex",
+          "desc": "Ruta personalizada a la CLI local de Codex. Déjala vacía para detectarla automáticamente desde PATH.",
+          "descWindows": "Ruta personalizada a la CLI local de Codex. Déjala vacía para detectarla automáticamente desde PATH. Usa la ruta del ejecutable nativo de Windows, normalmente `codex.exe`.",
+          "descWsl": "Comando de Codex del lado de Linux o ruta absoluta para ejecutar dentro de WSL. Déjala vacía para buscar en PATH dentro de la distribución seleccionada.",
+          "wslValidation": "El modo WSL espera un comando de Linux o una ruta absoluta de Linux, no una ruta de ejecutable de Windows."
+        },
+        "wslDistro": {
+          "name": "Anulación de distribución WSL",
+          "desc": "Anulación avanzada opcional. Déjala vacía para inferir la distribución a partir de una ruta de espacio de trabajo de WSL cuando sea posible; de lo contrario, usa la distribución WSL predeterminada."
+        },
+        "customModels": {
+          "name": "Modelos personalizados",
+          "desc": "Añade ID de modelos de Codex adicionales al selector, uno por línea. `OPENAI_MODEL` sigue teniendo prioridad cuando está definido."
+        },
+        "reasoning": {
+          "name": "Resumen de razonamiento",
+          "desc": "Muestra un resumen del proceso de razonamiento del modelo en el bloque de razonamiento.",
+          "auto": "Automático",
+          "concise": "Conciso",
+          "detailed": "Detallado",
+          "off": "Desactivado"
+        },
+        "advancedSummary": "Habilidades, subagentes, MCP y configuración de inicio",
+        "skills": {
+          "name": "Habilidades de Codex",
+          "desc": "Gestiona habilidades de Codex a nivel de vault almacenadas en .codex/skills/ o .agents/skills/. Aquí se excluyen las habilidades de nivel de inicio."
+        },
+        "hiddenSkills": {
+          "name": "Habilidades ocultas",
+          "desc": "Oculta habilidades específicas de Codex del menú desplegable. Escribe los nombres de habilidades sin el $ inicial, uno por línea."
+        },
+        "subagents": {
+          "name": "Subagentes de Codex",
+          "desc": "Gestiona subagentes de Codex a nivel de vault almacenados en .codex/agents/. Cada archivo TOML define un agente personalizado."
+        },
+        "mcp": {
+          "beforeCommand": "Codex gestiona los servidores MCP mediante su propia CLI. Configúralos con ",
+          "afterCommand": " y estarán disponibles en Grimoire. "
+        },
+        "environment": {
+          "name": "Entorno de Codex",
+          "desc": "Solo variables de ejecución propias de Codex. Úsalo para configuraciones OPENAI_* y CODEX_*. Si la detección automática necesita ayuda, añade el directorio de instalación de Codex al PATH del entorno compartido."
+        }
+      },
+      "qwen": {
+        "cliPath": {
+          "name": "Ruta de la CLI de Qwen",
+          "desc": "Ruta personalizada a la CLI local de Qwen. Déjala vacía para iniciar `qwen` desde PATH."
+        },
+        "advancedSummary": "Comandos ocultos, variables de entorno y anulaciones de contexto",
+        "hiddenCommands": {
+          "name": "Comandos ocultos",
+          "desc": "Oculta comandos específicos informados por Qwen Code ACP. Escribe los nombres sin la barra inicial, uno por línea.",
+          "placeholder": "compact\nmemory\nstats"
+        },
+        "environment": {
+          "heading": "Entorno",
+          "name": "Variables de entorno",
+          "desc": "Configura la autenticación de Qwen Code con `qwen` y `/auth`. Se transfieren variables de proveedor opcionales como DASHSCOPE_API_KEY, OPENAI_API_KEY o ANTHROPIC_API_KEY; Grimoire no automatiza el inicio de sesión."
+        }
+      }
+    },
+    "agentEditor": {
+      "title": "Subagentes de {provider}",
+      "noAgents": "No hay subagentes de {provider} en el vault. Haz clic en + para crear uno.",
+      "modalTitleEdit": "Editar subagente de {provider}",
+      "modalTitleAdd": "Añadir subagente de {provider}",
+      "nameDesc": "Nombre del agente de {provider}. Usa segmentos separados por barras para agentes anidados.",
+      "namePlaceholder": "Revisión",
+      "descriptionDesc": "Cuándo debe usar {provider} este subagente",
+      "descriptionPlaceholder": "Revisa el código para comprobar corrección y mantenibilidad",
+      "modelDesc": "Anulación de modelo en formato proveedor/modelo",
+      "variant": "Variante",
+      "variantDesc": "Anulación de variante de modelo",
+      "temperature": "Temperature",
+      "temperatureDesc": "Temperatura de muestreo opcional",
+      "topP": "Top p",
+      "topPDesc": "Valor de muestreo de núcleo opcional",
+      "color": "Color",
+      "colorDesc": "Color hexadecimal o token de tema",
+      "steps": "Pasos",
+      "stepsDesc": "Máximo de iteraciones agénticas antes de forzar salida de solo texto",
+      "hideFromMention": "Ocultar de @mention",
+      "hideFromMentionDesc": "Oculta este subagente del menú de autocompletado @",
+      "disableAgent": "Desactivar agente",
+      "disableAgentDesc": "Desactiva el agente sin eliminar el archivo",
+      "enabledTools": "Herramientas activadas (JSON)",
+      "enabledToolsDesc": "Mapa opcional de herramientas obsoletas, p. ej. {\"write\":false,\"edit\":false}",
+      "permission": "Permisos (JSON)",
+      "permissionDesc": "Configuración de permisos opcional, p. ej. {\"edit\":\"deny\",\"bash\":\"allow\"}",
+      "options": "Opciones (JSON)",
+      "optionsDesc": "Opciones de agente personalizadas opcionales",
+      "promptDesc": "Cuerpo Markdown usado como prompt del agente",
+      "promptPlaceholder": "Revisa los cambios de código con cuidado y señala problemas de corrección, regresiones y cobertura faltante.",
+      "badge": "subagente",
+      "deleteFailed": "No se pudo eliminar el subagente",
+      "unknownError": "Error desconocido",
+      "inherit": "Heredar",
+      "best": "Mejor",
+      "nameRequired": "Se requiere el nombre del agente",
+      "pathSegmentsRequired": "El nombre del agente debe usar segmentos de ruta separados por barras sin barras iniciales ni finales",
+      "segmentEmpty": "Los segmentos de ruta del nombre del agente no pueden estar vacíos ni contener solo espacios",
+      "segmentWhitespace": "Los segmentos de ruta del nombre del agente no pueden empezar ni terminar con espacios",
+      "dotSegments": "El nombre del agente no puede incluir segmentos de ruta \".\" ni \"..\"",
+      "reservedCharacters": "Los segmentos de ruta del nombre del agente no pueden contener caracteres reservados de nombres de archivo de Windows",
+      "invalidNumber": "{label} debe ser un número válido",
+      "invalidPositiveInteger": "{label} debe ser un entero positivo",
+      "invalidJson": "{label} debe ser JSON válido",
+      "invalidJsonObject": "{label} debe ser un objeto JSON",
+      "invalidBooleanMap": "{label} debe asignar nombres de herramientas a valores booleanos"
+    },
+    "codexSkills": {
+      "title": "Habilidades de Codex",
+      "titleEdit": "Editar habilidad de Codex",
+      "titleAdd": "Añadir habilidad de Codex",
+      "directory": "Directorio",
+      "directoryDesc": "Dónde almacenar la habilidad",
+      "name": "Nombre de la habilidad",
+      "nameDesc": "El nombre usado después de $ (p. ej., \"analyze\" para $analyze)",
+      "descriptionDesc": "Descripción opcional mostrada en el menú desplegable",
+      "instructions": "Instrucciones",
+      "instructionsDesc": "Las instrucciones de la habilidad (contenido de SKILL.md)",
+      "instructionsPlaceholder": "Analiza el código para...",
+      "instructionsRequired": "Se requieren instrucciones",
+      "saveFailed": "No se pudo guardar la habilidad de Codex",
+      "noSkills": "No hay habilidades de Codex en el vault. Haz clic en + para crear una.",
+      "badge": "habilidad",
+      "deleted": "Se eliminó la habilidad de Codex \"${name}\"",
+      "deleteFailed": "No se pudo eliminar la habilidad de Codex",
+      "updated": "Se actualizó la habilidad de Codex \"${name}\"",
+      "created": "Se creó la habilidad de Codex \"${name}\""
+    },
+    "codexSubagents": {
+      "title": "Subagentes de Codex",
+      "titleEdit": "Editar subagente de Codex",
+      "titleAdd": "Añadir subagente de Codex",
+      "nameDesc": "Nombre de agente que Codex usa al generar (minúsculas, guiones y guiones bajos)",
+      "descriptionDesc": "Cuándo debe usar Codex este agente",
+      "modelDesc": "Anulación de modelo (déjalo vacío para heredar)",
+      "reasoningEffort": "Esfuerzo de razonamiento",
+      "reasoningEffortDesc": "Nivel de esfuerzo de razonamiento del modelo",
+      "sandboxMode": "Modo sandbox",
+      "sandboxModeDesc": "Restricción de sandbox para este agente",
+      "nicknameCandidates": "Alias candidatos",
+      "nicknameCandidatesDesc": "Alias de visualización separados por comas (p. ej., atlas, delta, echo)",
+      "developerInstructions": "Instrucciones de desarrollador",
+      "developerInstructionsDesc": "Instrucciones principales que definen el comportamiento del agente",
+      "developerInstructionsPlaceholder": "Revisa el código como si fueras su propietario.\nPrioriza la corrección, la seguridad y la cobertura de pruebas faltante.",
+      "developerInstructionsRequired": "Se requieren instrucciones de desarrollador",
+      "nameRequired": "Se requiere el nombre del subagente",
+      "nameTooLong": "El nombre del subagente debe tener {count} caracteres o menos",
+      "nameInvalid": "El nombre del subagente solo puede contener letras minúsculas, números, guiones y guiones bajos",
+      "nicknamesInvalid": "Los alias candidatos solo pueden contener letras ASCII, números, espacios, guiones y guiones bajos",
+      "nicknamesUnique": "Los alias candidatos deben ser únicos",
+      "noAgents": "No hay subagentes de Codex en el vault. Haz clic en + para crear uno.",
+      "deleteFailed": "No se pudo eliminar el subagente",
+      "options": {
+        "inherit": "Heredar",
+        "low": "Bajo",
+        "medium": "Medio",
+        "high": "Alto",
+        "extraHigh": "Muy alto",
+        "readOnly": "Solo lectura",
+        "dangerFullAccess": "Acceso completo peligroso",
+        "workspaceWrite": "Escritura en el espacio de trabajo"
+      }
+    },
+    "slashCommandEditor": {
+      "skill": "Habilidad",
+      "slashCommand": "Comando con barra",
+      "command": "Comando",
+      "titleEdit": "Editar {type}",
+      "titleAdd": "Añadir {type}",
+      "type": "Tipo",
+      "typeDesc": "Comando o habilidad",
+      "name": "Nombre del comando",
+      "nameDesc": "El nombre usado después de / (p. ej., \"review\" para /review)",
+      "descriptionDesc": "Descripción opcional mostrada en el menú desplegable",
+      "argumentHint": "Sugerencia de argumento",
+      "argumentHintDesc": "Texto de marcador de posición para argumentos (p. ej., \"[file] [focus]\")",
+      "modelOverride": "Anulación de modelo",
+      "modelOverrideDesc": "Modelo opcional que usar para este comando",
+      "allowedTools": "Herramientas permitidas",
+      "allowedToolsDesc": "Lista de herramientas permitidas separada por comas (vacío = todas)",
+      "disableModelInvocation": "Desactivar invocación del modelo",
+      "disableModelInvocationDesc": "Evita que el propio modelo invoque este comando",
+      "disableUserInvocation": "Desactivar invocación de usuario",
+      "disableUserInvocationDesc": "Evita que el usuario invoque esta habilidad directamente",
+      "context": "Contexto",
+      "contextDesc": "Ejecutar en un subagente (bifurcación)",
+      "agent": "Agente",
+      "agentDesc": "Tipo de subagente cuando el contexto es una bifurcación",
+      "promptTemplate": "Plantilla de prompt",
+      "promptTemplateDesc": "Usa $ARGUMENTS, $1, $2, @file, !`bash`",
+      "promptTemplatePlaceholder": "Revisa este código para:\n$ARGUMENTS\n\n@$1",
+      "promptRequired": "Se requiere una plantilla de prompt",
+      "commandExists": "Ya existe un comando llamado \"/{name}\"",
+      "saveSkillFailed": "No se pudo guardar la habilidad",
+      "saveCommandFailed": "No se pudo guardar el comando con barra",
+      "catalogUnavailable": "El catálogo de comandos de Claude no está disponible.",
+      "noEntries": "No hay comandos ni habilidades configurados. Haz clic en + para crear uno.",
+      "skillBadge": "habilidad",
+      "convertToSkill": "Convertir en habilidad",
+      "convertFailed": "No se pudo convertir en habilidad",
+      "deleteSkillFailed": "No se pudo eliminar la habilidad",
+      "deleteCommandFailed": "No se pudo eliminar el comando con barra",
+      "updated": "Se actualizó {type} \"/{name}\"",
+      "created": "Se creó {type} \"/{name}\"",
+      "deleted": "Se eliminó {type} \"/{name}\"",
+      "skillExists": "Ya existe una habilidad llamada \"/{name}\"",
+      "converted": "Se convirtió \"/{name}\" en habilidad"
+    },
+    "mcp": {
+      "addStdio": "stdio (comando local)",
+      "addRemote": "http / sse (remoto)",
+      "importClipboard": "Importar desde el portapapeles",
+      "noServers": "No hay servidores MCP configurados. Haz clic en + para añadir uno.",
+      "contextSavingTitle": "Ahorro de contexto: menciona @{server} para activarlo",
+      "verify": "Verificar (mostrar herramientas)",
+      "verificationFailed": "Error de verificación",
+      "reloadFailed": "Se guardó la configuración, pero no se pudo recargar. Los cambios se aplicarán en la próxima sesión.",
+      "saveFailed": "No se pudo guardar el servidor MCP",
+      "clipboardEmpty": "El portapapeles está vacío",
+      "clipboardInvalid": "No se encontró ninguna configuración MCP válida en el portapapeles",
+      "enterServerName": "Escribe un nombre para el servidor",
+      "clipboardReadFailed": "No se pudo leer el portapapeles",
+      "serverExists": "El servidor \"{name}\" ya existe",
+      "serverUpdated": "Se actualizó el servidor MCP \"{name}\"",
+      "serverAdded": "Se añadió el servidor MCP \"{name}\"",
+      "unnamed": "<sin nombre>",
+      "noNewServers": "No se importaron servidores MCP nuevos",
+      "imported": "Se importaron {count} servidor(es) MCP",
+      "importedWithSkipped": "Se importaron {added} servidor(es) MCP ({skipped} omitidos)",
+      "serverEnabled": "Se activó el servidor MCP \"{name}\"",
+      "serverDisabled": "Se desactivó el servidor MCP \"{name}\"",
+      "deleteConfirm": "¿Eliminar el servidor MCP \"{name}\"?",
+      "serverDeleted": "Se eliminó el servidor MCP \"{name}\"",
+      "modal": {
+        "titleEdit": "Editar servidor MCP",
+        "titleAdd": "Añadir servidor MCP",
+        "serverName": "Nombre del servidor",
+        "serverNameDesc": "Identificador único de este servidor",
+        "type": "Tipo",
+        "typeDesc": "Tipo de conexión del servidor",
+        "stdio": "stdio (comando local)",
+        "sse": "SSE (eventos enviados por el servidor)",
+        "http": "HTTP (extremo HTTP)",
+        "enabledDesc": "Indica si este servidor está activo",
+        "contextSaving": "Modo de ahorro de contexto",
+        "contextSavingDesc": "Oculta las herramientas del agente a menos que se mencionen con @ (ahorra ventana de contexto)",
+        "command": "Comando",
+        "commandDesc": "Comando completo con argumentos",
+        "environmentDesc": "KEY=VALUE por línea (opcional)",
+        "url": "URL",
+        "sseUrlDesc": "URL del extremo SSE",
+        "httpUrlDesc": "URL del extremo HTTP",
+        "headers": "Cabeceras",
+        "headersDesc": "Cabeceras HTTP (KEY=VALUE por línea)",
+        "serverNameRequired": "Escribe un nombre de servidor",
+        "serverNameInvalid": "El nombre del servidor solo puede contener letras, números, puntos, guiones y guiones bajos",
+        "commandRequired": "Escribe un comando",
+        "urlRequired": "Escribe una URL"
+      },
+      "test": {
+        "title": "Verificar: {server}",
+        "connecting": "Conectando al servidor MCP...",
+        "connected": "Conexión correcta",
+        "connectedTo": "Conexión correcta con {server}",
+        "connectedToVersion": "Conexión correcta con {server} v{version}",
+        "connectionFailed": "Error de conexión",
+        "availableTools": "Herramientas disponibles ({count})",
+        "noTools": "No hay información de herramientas disponible. Las herramientas se cargarán al usarse en el chat.",
+        "close": "Cerrar",
+        "disableAll": "Desactivar todas",
+        "enableAll": "Activar todas",
+        "updateToolFailed": "No se pudo actualizar la configuración de la herramienta",
+        "permissionDenied": "Permiso denegado. Revisa los permisos de la carpeta .claude/.",
+        "diskFull": "Disco lleno. Libera espacio e inténtalo de nuevo.",
+        "configCorrupted": "El archivo de configuración está dañado. Revisa .claude/mcp.json."
       }
     }
   }

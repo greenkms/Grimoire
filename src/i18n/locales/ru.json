@@ -191,6 +191,9 @@
           "plain": "С возвращением!",
           "named": "С возвращением, {name}!"
         },
+        "version": {
+          "name": "Версия"
+        },
         "whatsNew": {
           "plain": "Что нового?",
           "named": "Что нового, {name}?"
@@ -214,6 +217,372 @@
         "summonContext": "Призови контекст, потом уточняй.",
         "earnKeep": "Пусть эта заметка отработает своё место."
       }
+    },
+    "ui": {
+      "view": {
+        "all": "Все",
+        "chat": "Чат",
+        "context": "Контекст",
+        "contextMemoryTab": "Память контекста · вкладка",
+        "conversation": "Диалог",
+        "current": "Текущий",
+        "currentTabViews": "Виды текущей вкладки",
+        "linked": "Связанные",
+        "shownCount": "Показано: {count}",
+        "sources": "Источники",
+        "sourcesAndActions": "Источники и действия",
+        "sourcesInTab": "Источники во вкладке",
+        "vaultContextMemory": "Память контекста vault",
+        "moreNotes": "Ещё заметок: {count}",
+        "matchScore": "Совпадение: {percent}%"
+      },
+      "composer": {
+        "jumpToLatest": "К последнему сообщению",
+        "placeholder": "Попросите Grimoire отредактировать, найти, сравнить, сгенерировать или выполнить команду...",
+        "send": "Отправить",
+        "sendMessage": "Отправить сообщение",
+        "stopResponse": "Остановить ответ",
+        "resizeInput": "Перетащите, чтобы изменить размер поля ввода"
+      },
+      "model": {
+        "unknown": "Неизвестно",
+        "switching": "Переключение модели…",
+        "noneAvailable": "Нет доступных моделей",
+        "noMatch": "Нет моделей, соответствующих “{query}”",
+        "models": "Модели",
+        "searchAriaLabel": "Поиск моделей",
+        "searchPlaceholder": "Поиск моделей...",
+        "loading": "Загрузка моделей…",
+        "loadFailed": "Не удалось загрузить модели",
+        "changeFailed": "Не удалось сменить модель",
+        "selectTooltip": "Выбрать модель"
+      },
+      "usage": {
+        "label": "Использование",
+        "fiveHourLimit": "Лимит на 5 часов",
+        "namedLimit": "Лимит {name}",
+        "ariaWithPercent": "{plan} {limit}: использовано {percent}%, сброс {reset}",
+        "ariaWithoutPercent": "{plan} {limit}: сброс {reset}",
+        "planUsage": "использование плана",
+        "percentUsed": "использовано {percent}%",
+        "resets": "сброс {reset}",
+        "weeklyPercent": "за неделю: {percent}%",
+        "weeklyUnavailable": "данные за неделю недоступны",
+        "updated": "обновлено {time}"
+      },
+      "toolbar": {
+        "modeChangeFailed": "Не удалось сменить режим",
+        "effort": "Усилия:",
+        "thinking": "Размышления:",
+        "high": "Высокие",
+        "off": "Выкл.",
+        "tokens": "{count} токенов",
+        "effortChangeFailed": "Не удалось изменить уровень усилий",
+        "thinkingChangeFailed": "Не удалось изменить бюджет размышлений",
+        "permissionChangeFailed": "Не удалось изменить режим разрешений",
+        "plan": "ПЛАН",
+        "serviceTierChangeFailed": "Не удалось изменить уровень обслуживания",
+        "toggleFastMode": "Включить/выключить быстрый режим",
+        "modeTooltip": "Рабочий режим",
+        "permissionSafe": "Безопасный",
+        "permissionAuto": "Авто",
+        "permissionPlan": "План",
+        "effortLevels": {
+          "low": "Низкий",
+          "medium": "Средний",
+          "high": "Высокий",
+          "xhigh": "Очень высокий",
+          "max": "Максимальный"
+        }
+      },
+      "navigation": {
+        "scrollTop": "Прокрутить вверх",
+        "previousMessage": "Предыдущий запрос",
+        "directory": "Каталог диалога",
+        "nextMessage": "Следующий запрос",
+        "scrollBottom": "Прокрутить вниз",
+        "empty": "В этом диалоге нет запросов"
+      },
+      "externalContext": {
+        "removeFile": "Удалить внешний файл",
+        "removedInvalid": "Удалены недопустимые пути внешнего контекста ({count}): {paths}",
+        "cannotPersistMissing": "Невозможно сохранить “{path}” — путь больше не существует",
+        "noPath": "Путь не указан. Использование: /add-dir /absolute/path",
+        "absolutePathRequired": "Путь должен быть абсолютным. Использование: /add-dir /absolute/path",
+        "duplicate": "Эта папка уже добавлена как внешний контекст.",
+        "selectTitle": "Выбрать внешний контекст",
+        "pickerFailed": "Не удалось открыть выбор папки.",
+        "conflictInside": "Невозможно добавить “{path}” — он находится внутри существующего пути “{existing}”",
+        "conflictContains": "Невозможно добавить “{path}” — он содержит существующий путь “{existing}”",
+        "header": "Внешние контексты",
+        "empty": "Нажмите значок папки, чтобы добавить",
+        "makeSessionOnly": "Постоянный (нажмите, чтобы сделать только для сеанса)",
+        "makePersistent": "Только для сеанса (нажмите, чтобы сохранить)",
+        "removePath": "Удалить путь",
+        "countTitle": "Внешних контекстов: {count} (нажмите, чтобы добавить)",
+        "files": "Файлы",
+        "addTitle": "Добавить внешние контексты"
+      },
+      "mcp": {
+        "header": "Серверы MCP",
+        "noneConfigured": "Серверы MCP не настроены",
+        "allDisabled": "Все серверы MCP отключены",
+        "contextSaving": "Экономия контекста: можно также включить через @{server}",
+        "enabledCount": "Серверов MCP включено: {count} (нажмите для управления)",
+        "enableTitle": "Серверы MCP (нажмите, чтобы включить)"
+      },
+      "contextUsage": {
+        "approachingLimit": " (Лимит близок, выполните `/compact`, чтобы продолжить)",
+        "ariaUsed": "Использовано окно контекста: {percent}%",
+        "tokens": "{used} / {total} токенов",
+        "left": "осталось {count}",
+        "context": "контекст",
+        "noneYet": "Контекст ещё не использовался",
+        "hint": "Использование отображается по мере формирования контекста активной вкладкой."
+      },
+      "context": {
+        "noNoteSelected": "Заметка не выбрана",
+        "boundToTab": "привязано к этой вкладке чата",
+        "openNoteToBind": "откройте заметку, чтобы привязать её к этому чату",
+        "active": "активно",
+        "idle": "ожидание",
+        "selectedFile": "Выбранный файл",
+        "selectedFiles": "Выбранные файлы",
+        "filesBadge": "файлы",
+        "modelDetail": "{provider}{reasoning} · состояние провайдера сохранено",
+        "modelBadge": "модель",
+        "attached": "Прикреплённый контекст",
+        "linkedNotes": "Связанные заметки: {count} · {permission}",
+        "reasoningEffort": "усилия: {value}",
+        "reasoningThinking": "размышления: {value}",
+        "permissionPlanDescription": "планировать до запуска инструментов",
+        "permissionSafeDescription": "спрашивать перед изменением файлов и записью через MCP",
+        "planMode": "Режим планирования",
+        "autoApprove": "Автоодобрение",
+        "safeMode": "Безопасный режим",
+        "loadedThisSession": "Загружено в этом сеансе"
+      },
+      "tabs": {
+        "createFailed": "Не удалось создать вкладку",
+        "newTab": "Новая вкладка",
+        "history": "История чата",
+        "switchFailed": "Не удалось переключить вкладку",
+        "closeFailed": "Не удалось закрыть вкладку",
+        "maximumAllowed": "Максимум вкладок: {count}",
+        "closeTab": "Закрыть вкладку"
+      },
+      "messages": {
+        "interrupted": "Прервано",
+        "interruptedHint": "· Что Grimoire должен сделать вместо этого?",
+        "conversationCompacted": "Диалог сжат",
+        "completed": "Готово",
+        "duration": "* {flavor} · {duration}",
+        "copied": "Скопировано!",
+        "renderFailed": "Не удалось отобразить содержимое сообщения.",
+        "copyMessage": "Копировать сообщение",
+        "awaitingYou": "Ожидание вас"
+      },
+      "errors": {
+        "relevantNotesFailed": "Не удалось получить релевантные заметки: {error}",
+        "couldNotOpenFile": "Не удалось открыть файл: {path}",
+        "openFileFailed": "Не удалось открыть файл: {error}",
+        "providerSwitchBound": "Нельзя сменить провайдера в привязанном сеансе. Создайте новую вкладку.",
+        "forkUnsupported": "Этот провайдер не поддерживает ветвление.",
+        "initializeFailed": "Не удалось инициализировать чат",
+        "loadConversationFailed": "Не удалось загрузить диалог",
+        "regenerateFailed": "Не удалось перегенерировать ответ",
+        "deleteConversationFailed": "Не удалось удалить диалог",
+        "renameConversationFailed": "Не удалось переименовать диалог",
+        "initializeAgentFailed": "Не удалось инициализировать сервис агентов. Повторите попытку.",
+        "agentUnavailable": "Сервис агентов недоступен. Перезагрузите плагин.",
+        "externalContextUnavailable": "Выбор внешнего контекста недоступен.",
+        "forkUnavailable": "Ветвление недоступно.",
+        "rewindUnsupported": "Этот провайдер не поддерживает перемотку.",
+        "messageNotFound": "Сообщение не найдено",
+        "agentServiceUnavailable": "Сервис агентов недоступен",
+        "unknown": "Неизвестная ошибка",
+        "saveFailed": "Не удалось сохранить"
+      },
+      "history": {
+        "title": "История",
+        "close": "Закрыть историю",
+        "searchPlaceholder": "Искать прошлые чаты...",
+        "empty": "Нет прошлых чатов",
+        "noMatches": "Нет совпадений",
+        "current": "Текущий",
+        "openNewTab": "Открыть в новой вкладке",
+        "generatingTitle": "Создание названия...",
+        "regenerateTitle": "Создать название заново",
+        "today": "Сегодня",
+        "yesterday": "Вчера",
+        "earlier": "Ранее",
+        "sourceCount": "источников: {count}",
+        "now": "сейчас",
+        "openBackgroundTab": "Открыть в фоновой вкладке",
+        "switchOpenSession": "Перейти к открытому сеансу",
+        "rename": "Переименовать",
+        "noneToResume": "Нет диалогов для возобновления"
+      },
+      "thinking": {
+        "expandAriaLabel": "Расширенные размышления — нажмите, чтобы развернуть",
+        "inProgress": "Размышления: {seconds} с...",
+        "completed": "Размышлял {seconds} с",
+        "thought": "Размышление"
+      },
+      "ask": {
+        "question": "Вопрос",
+        "needsDetail": "Нужна деталь",
+        "questionCount": "Grimoire задаёт {count} вопрос(ов) перед продолжением",
+        "single": "один",
+        "multiple": "несколько",
+        "optional": "необ.",
+        "answerPlaceholder": "Введите ответ...",
+        "decideForMe": "Решить за меня",
+        "sendAnswers": "Отправить ответы",
+        "expand": "Развернуть вопрос",
+        "collapse": "Свернуть вопрос",
+        "option": "Вариант",
+        "questionCountOne": "Grimoire задаёт {count} вопрос перед продолжением",
+        "questionCountMany": "Grimoire задаёт {count} вопросов перед продолжением"
+      },
+      "permission": {
+        "required": "Требуется разрешение",
+        "commandPreview": "Предпросмотр команды: {command}",
+        "agent": "Агент: {agent}",
+        "reject": "Отклонить",
+        "tool": "инструмент",
+        "runShellCommand": "Grimoire хочет выполнить команду оболочки",
+        "useTool": "Grimoire хочет использовать {tool}",
+        "providerRequestedCommand": "{provider} запросил разрешение на выполнение этой команды.",
+        "shellCommand": "команда оболочки"
+      },
+      "plan": {
+        "requestedPermissions": "Запрошенные разрешения:",
+        "approveCurrentSession": "Одобрить (текущий сеанс)",
+        "continueFeedbackPlaceholder": "Введите отзыв, чтобы продолжить планирование...",
+        "keyboardHints": "Стрелки — навигация · Enter — выбрать · Esc — отменить",
+        "complete": "План готов",
+        "reviewBeforeProceeding": "Проверьте план перед продолжением",
+        "label": "план",
+        "expand": "Развернуть план",
+        "collapse": "Свернуть план",
+        "implement": "Реализовать",
+        "reviseFeedbackPlaceholder": "Введите отзыв, чтобы изменить план..."
+      },
+      "images": {
+        "dropHere": "Перетащите изображение сюда",
+        "unsupportedProvider": "Этот провайдер не поддерживает вложения изображений.",
+        "sizeLimit": "Размер изображения превышает лимит {size}.",
+        "unsupportedType": "Неподдерживаемый тип изображения.",
+        "attachFailed": "Не удалось прикрепить изображение.",
+        "remove": "Удалить изображение",
+        "fileNotFound": "(Файл не найден)",
+        "permissionDenied": "(Нет разрешения)"
+      },
+      "queue": {
+        "steering": "Перенаправление...",
+        "steerNow": "Перенаправить сейчас",
+        "steerFailed": "Не удалось перенаправить поставленное в очередь сообщение Codex. Оно всё ещё доступно."
+      },
+      "instructions": {
+        "added": "Инструкция добавлена в пользовательский системный промпт",
+        "noneReceived": "Инструкция не получена",
+        "processFailed": "Не удалось обработать ответ",
+        "refineFailed": "Не удалось уточнить инструкцию"
+      },
+      "commands": {
+        "imageUsage": "Использование: /image <prompt>"
+      },
+      "progress": {
+        "working": "Работа",
+        "stillWorking": "Всё ещё работает",
+        "blocked": "Заблокировано",
+        "completed": "Готово"
+      },
+      "status": {
+        "aria": "Статус: {status}",
+        "initializing": "Инициализация",
+        "running": "выполняется",
+        "runningEllipsis": "Выполняется...",
+        "completed": "готово",
+        "blocked": "заблокировано",
+        "error": "Ошибка",
+        "orphaned": "Отсоединено",
+        "inProgress": "в процессе",
+        "errorUpper": "ОШИБКА",
+        "doneUpper": "ГОТОВО"
+      },
+      "subagent": {
+        "task": "Задача подагента",
+        "noPrompt": "Промпт не предоставлен",
+        "expandAria": "Задача подагента: {description} — Статус: {status} — нажмите, чтобы развернуть",
+        "result": "Результат",
+        "prompt": "Промпт",
+        "runningBackground": "Выполняется в фоне",
+        "backgroundExpandAria": "Фоновая задача: {description} — {status} — нажмите, чтобы развернуть",
+        "endedEarly": "Диалог завершился до выполнения задачи",
+        "backgroundTask": "Фоновая задача"
+      },
+      "tools": {
+        "noChanges": "Нет изменений",
+        "openPage": "Открыть страницу",
+        "urlUnavailable": "URL недоступен",
+        "findInPage": "Найти на странице",
+        "query": "Запрос: {query}",
+        "searchWeb": "Поиск в интернете",
+        "noResult": "Нет результата",
+        "noMatches": "Совпадений не найдено",
+        "showPreview": "Показать предпросмотр",
+        "showAll": "Показать все",
+        "fileDeleted": "Файл удалён",
+        "noTextDiff": "Текстовые различия недоступны",
+        "tasksUpdated": "Задачи обновлены",
+        "waitingForAnswer": "Ожидание ответа...",
+        "pattern": "Шаблон: {pattern}",
+        "altQuery": "Альтернативный запрос: {query}",
+        "moreQueries": "... ещё запросов: {count}",
+        "tasksProgress": "Задачи: {completed}/{total}",
+        "tasks": "Задачи",
+        "enteringPlanMode": "Переход в режим планирования",
+        "ranCommand": "Команда выполнена",
+        "runCommand": "Выполнить команду",
+        "readNote": "Прочитана заметка",
+        "readingNote": "Чтение заметки",
+        "wroteFile": "Файл записан",
+        "writingFile": "Запись файла",
+        "editedFile": "Файл изменён",
+        "editingFile": "Изменение файла",
+        "globbingFiles": "Поиск файлов по glob",
+        "globbedFiles": "Файлы найдены по glob",
+        "searchingFiles": "Поиск файлов",
+        "searchedFiles": "Поиск файлов завершён",
+        "listingFiles": "Получение списка файлов",
+        "listedFiles": "Список файлов получен",
+        "searchingWeb": "Поиск в интернете",
+        "searchedWeb": "Поиск в интернете завершён",
+        "fetchingPage": "Загрузка страницы",
+        "fetchedPage": "Страница загружена",
+        "searchingTools": "Поиск инструментов",
+        "searchedTools": "Поиск инструментов завершён",
+        "applyingPatch": "Применение патча",
+        "appliedPatch": "Патч применён",
+        "sentInput": "Ввод отправлен",
+        "loadedSkill": "Навык загружен",
+        "searchingVault": "Поиск в vault",
+        "searchedVault": "Поиск в vault завершён",
+        "runningTools": "Запуск инструментов",
+        "ranTools": "Инструменты выполнены",
+        "queryCount": "Запросов: {count}",
+        "stepCount": "Шагов: {count}",
+        "writingEllipsis": "Запись...",
+        "queryCountOne": "Запросов: {count}",
+        "queryCountMany": "Запросов: {count}",
+        "stepCountOne": "Шагов: {count}",
+        "stepCountMany": "Шагов: {count}"
+      },
+      "responseMetadata": {
+        "effort": "Усилия: {value}"
+      }
     }
   },
   "settings": {
@@ -221,7 +590,9 @@
     "tabs": {
       "general": "Общие",
       "claude": "Claude",
-      "codex": "Codex"
+      "codex": "Codex",
+      "scrollBackward": "Прокрутить вкладки настроек назад",
+      "scrollForward": "Прокрутить вкладки настроек вперёд"
     },
     "display": "Отображение",
     "conversations": "Разговоры",
@@ -245,7 +616,8 @@
     },
     "mediaFolder": {
       "name": "Папка медиафайлов",
-      "desc": "Папка с вложениями/изображениями. Когда заметки используют ![[image.jpg]], Claude будет искать здесь. Оставьте пустым для корня хранилища."
+      "desc": "Папка с вложениями/изображениями. Когда заметки используют ![[image.jpg]], Claude будет искать здесь. Оставьте пустым для корня хранилища.",
+      "placeholder": "Вложения"
     },
     "systemPrompt": {
       "name": "Пользовательский системный промпт",
@@ -365,7 +737,8 @@
         "prompt": "Системный промпт",
         "promptDesc": "Инструкции для агента",
         "promptPlaceholder": "Вы специалист по проверке кода. Проанализируйте предоставленный код на предмет..."
-      }
+      },
+      "loadFailed": "Не удалось загрузить подагента \"{name}\": {message}"
     },
     "environment": "Окружение",
     "customVariables": {
@@ -389,7 +762,14 @@
         "save": "Сохранить",
         "update": "Обновить",
         "cancel": "Отмена"
-      }
+      },
+      "insert": "Вставить",
+      "insertFailed": "Не удалось вставить сниппет",
+      "deleteConfirm": "Удалить сниппет среды \"{name}\"?",
+      "deleteFailed": "Не удалось удалить сниппет",
+      "saved": "Сниппет среды \"{name}\" сохранён",
+      "updated": "Сниппет среды \"{name}\" обновлён",
+      "deleted": "Сниппет среды \"{name}\" удалён"
     },
     "customModelOverrides": {
       "name": "Переопределения пользовательских моделей",
@@ -493,6 +873,30 @@
     "providers": {
       "grok": {
         "desc": "Agentic coding CLI от xAI с plan mode, subagents, skills и MCP."
+      },
+      "claude": {
+        "desc": "Агентская CLI Anthropic. Рекомендуемый вариант по умолчанию."
+      },
+      "codex": {
+        "desc": "Агент OpenAI для программирования."
+      },
+      "antigravity": {
+        "desc": "Новая мультимодельная агентская CLI Google. Рекомендуемый провайдер Google."
+      },
+      "gemini": {
+        "desc": "Устаревшая CLI Gemini для пользователей Standard, Enterprise и платных API-ключей."
+      },
+      "opencode": {
+        "desc": "Открытый и мультивендорный. Предоставляет самый широкий каталог моделей."
+      },
+      "mimocode": {
+        "desc": "Форк OpenCode от Xiaomi с постоянной памятью и управлением контекстом."
+      },
+      "kimicode": {
+        "desc": "Мультипровайдерная агентская CLI MoonshotAI. Поддерживает Kimi, OpenAI, Anthropic и Gemini."
+      },
+      "qwen": {
+        "desc": "Alibaba Qwen Code через собственную среду выполнения Agent Client Protocol."
       }
     },
     "grok": {
@@ -576,6 +980,394 @@
       },
       "environment": {
         "desc": "Дополнительные environment variables, передаваемые Grok. `GROK_ENABLE_EXA=1` включен по умолчанию."
+      }
+    },
+    "version": {
+      "name": "Версия"
+    },
+    "whatsNew": "Что нового",
+    "noReleaseNotes": "Для этой версии Grimoire нет встроенных заметок о выпуске.",
+    "learnMore": "Подробнее",
+    "environmentReview": "Проверить принадлежность среды для: {keys}",
+    "search": {
+      "description": "Настройте Grimoire, его рабочее пространство и интеграции с провайдерами.",
+      "providers": "Провайдеры",
+      "models": "Модели",
+      "permissions": "Разрешения",
+      "environmentVariables": "Переменные среды",
+      "projectWorkspace": "Рабочее пространство проекта",
+      "title": "Настройки Grimoire"
+    },
+    "advanced": {
+      "title": "Расширенные настройки",
+      "generalSummary": "Промпты, горячие клавиши, диагностика, переменные среды и другое",
+      "environmentSummary": "Переменные среды и переопределения контекста",
+      "providerSummary": "Команды, подагенты, среда и переопределения контекста"
+    },
+    "provider": {
+      "enableName": "Включить {provider}",
+      "disabledTitle": "{provider} отключён.",
+      "disabledDesc": "Включите этого провайдера выше, чтобы использовать эти настройки и показывать его модели в селекторе моделей.",
+      "fallbackDesc": "Провайдер {provider}.",
+      "loadModelsFailed": "Не удалось загрузить модели провайдера.",
+      "contextWindowLabel": "Окно контекста для {model}"
+    },
+    "providerModelPicker": {
+      "browseModels": "Просмотреть модели",
+      "searchPlaceholder": "Фильтр по модели, провайдеру или ID...",
+      "visibleLabel": "Видимые:",
+      "summaryDiscovered": "обнаружено: {total} — {count} {providerWord}",
+      "providerSingular": "провайдер",
+      "providerPlural": "провайдеров",
+      "noDiscovered": "Модели ещё не обнаружены",
+      "loadingModels": "Загрузка моделей...",
+      "availableCount": "Доступно: {count}",
+      "selectedCount": "Выбрано ({count})",
+      "clearSelected": "Очистить выбранные модели",
+      "notReported": "Сейчас не сообщается {provider}",
+      "aliasLabel": "Псевдоним для {model}",
+      "aliasTitle": "Пользовательская метка в селекторе моделей. Оставьте пустой, чтобы использовать значение по умолчанию.",
+      "removeModel": "Удалить {model}",
+      "allProviders": "Все провайдеры ({count})",
+      "noMatch": "Нет моделей, соответствующих фильтру.",
+      "loadingCatalog": "Загрузка каталога моделей {provider}...",
+      "loadFailed": "Не удалось загрузить каталог моделей {provider}. Проверьте путь к CLI и состояние входа, затем снова разверните этот раздел.",
+      "startToLoad": "Запустите {provider} один раз, чтобы загрузить каталог моделей. После этого Grimoire позволит выбрать видимые модели.",
+      "unavailable": "Недоступно",
+      "unavailableTitle": "Настроенная модель сейчас не сообщается {provider}"
+    },
+    "sharedEnvironment": {
+      "name": "Общая среда",
+      "desc": "Нейтральные к провайдеру переменные среды выполнения, общие для всех провайдеров. Используйте для PATH, прокси, сертификатов и временных каталогов."
+    },
+    "providerTabs": {
+      "environmentVariables": "Переменные среды",
+      "acp": {
+        "cliPath": {
+          "name": "Путь к CLI {provider}",
+          "desc": "Пользовательский путь к локальной команде {provider}. Оставьте пустым для автопоиска."
+        },
+        "visibleModels": {
+          "name": "Видимые модели",
+          "desc": "Выберите модели {provider}, отображаемые в селекторе чата. Для поиска фильтруйте по провайдеру или типу."
+        },
+        "commandsDesc": "{provider} может автоматически обнаруживать команды Claude уровня vault из .claude/commands/ и навыки из .claude/skills/, .codex/skills/ и .agents/skills/. Управляйте ими на вкладке настроек Claude или Codex. Этот параметр только скрывает элементы из меню {provider}.",
+        "hiddenCommandsDesc": "Скрыть отдельные команды и навыки {provider} из меню. Введите имена без начальной косой черты, по одному в строке.",
+        "subagentsDesc": "Управляйте подагентами {provider} уровня vault из {root} и устаревшего {legacyRoot}. Новые записи сохраняются в файлах только для подагентов и отображаются в меню @mention.",
+        "environmentDesc": "Только переменные среды выполнения, принадлежащие {provider}, включая {environmentVariable}=1. Используйте для настроек провайдера; общие PATH, прокси и сертификаты укажите в Общей среде."
+      },
+      "antigravity": {
+        "windowsLimitations": {
+          "name": "Ограничения CLI в Windows",
+          "desc": "В Windows текущие сборки agy могут успешно завершаться, возвращая пустой stdout при поиске моделей и выводе ответов. Grimoire использует журналы, настройки и запасное восстановление, но Antigravity в Windows может быть менее надёжен, чем в macOS или Linux."
+        },
+        "cliPath": {
+          "name": "Путь к CLI Antigravity",
+          "desc": "Пользовательский путь к локальной команде agy. Оставьте пустым для автопоиска."
+        },
+        "customModels": {
+          "name": "Пользовательские модели",
+          "desc": "Добавьте метки моделей Antigravity в селектор, по одной в строке. При неполном поиске в Windows используйте точные метки из переключателя моделей agy."
+        },
+        "environmentDesc": "Дополнительные переменные среды для CLI Antigravity, например GOOGLE_CLOUD_PROJECT."
+      },
+      "gemini": {
+        "cliPath": {
+          "name": "Путь к CLI Gemini",
+          "desc": "Пользовательский путь к локальной CLI Gemini. Оставьте пустым, чтобы запустить `gemini` из PATH."
+        },
+        "environmentDesc": "Дополнительные переменные среды для CLI Gemini, например GEMINI_API_KEY или GOOGLE_CLOUD_PROJECT."
+      },
+      "claude": {
+        "advancedSummary": "Команды, агенты, MCP, среда и эксперименты",
+        "environmentDesc": "Только переменные среды выполнения Claude. Используйте для ANTHROPIC_* и переключателей Claude."
+      },
+      "codex": {
+        "installationMethod": {
+          "name": "Способ установки",
+          "desc": "Как Grimoire должен запускать Codex в Windows. Нативный Windows использует путь к исполняемому файлу Windows. WSL запускает Linux CLI в выбранном дистрибутиве.",
+          "nativeWindows": "Нативный Windows"
+        },
+        "cliPath": {
+          "name": "Путь к CLI Codex",
+          "desc": "Пользовательский путь к локальной CLI Codex. Оставьте пустым для автопоиска из PATH.",
+          "descWindows": "Пользовательский путь к локальной CLI Codex. Оставьте пустым для автопоиска из PATH. Используйте путь к нативному исполняемому файлу Windows, обычно `codex.exe`.",
+          "descWsl": "Команда Codex на стороне Linux или абсолютный путь для запуска в WSL. Оставьте пустым для поиска в PATH выбранного дистрибутива.",
+          "wslValidation": "Режим WSL ожидает команду Linux или абсолютный путь Linux, а не путь к исполняемому файлу Windows."
+        },
+        "wslDistro": {
+          "name": "Переопределение дистрибутива WSL",
+          "desc": "Необязательное расширенное переопределение. Оставьте пустым, чтобы определить дистрибутив из пути рабочего пространства WSL; иначе используется дистрибутив WSL по умолчанию."
+        },
+        "customModels": {
+          "name": "Пользовательские модели",
+          "desc": "Добавьте ID моделей Codex в селектор, по одному в строке. При заданном значении `OPENAI_MODEL` сохраняет приоритет."
+        },
+        "reasoning": {
+          "name": "Сводка рассуждений",
+          "desc": "Показывать сводку процесса рассуждений модели в блоке размышлений.",
+          "auto": "Авто",
+          "concise": "Кратко",
+          "detailed": "Подробно",
+          "off": "Выкл."
+        },
+        "advancedSummary": "Навыки, подагенты, MCP и настройки запуска",
+        "skills": {
+          "name": "Навыки Codex",
+          "desc": "Управляйте навыками Codex уровня vault, хранящимися в .codex/skills/ или .agents/skills/. Навыки домашнего уровня здесь исключены."
+        },
+        "hiddenSkills": {
+          "name": "Скрытые навыки",
+          "desc": "Скрыть отдельные навыки Codex из меню. Введите имена навыков без начального $, по одному в строке."
+        },
+        "subagents": {
+          "name": "Подагенты Codex",
+          "desc": "Управляйте подагентами Codex уровня vault из .codex/agents/. Каждый файл TOML определяет одного пользовательского агента."
+        },
+        "mcp": {
+          "beforeCommand": "Codex управляет серверами MCP через собственную CLI. Настройте их с помощью ",
+          "afterCommand": ", и они станут доступны в Grimoire. "
+        },
+        "environment": {
+          "name": "Среда Codex",
+          "desc": "Только переменные среды выполнения Codex. Используйте для настроек OPENAI_* и CODEX_*. Если автопоиску нужна помощь, добавьте каталог установки Codex в PATH Общей среды."
+        }
+      },
+      "qwen": {
+        "cliPath": {
+          "name": "Путь к CLI Qwen",
+          "desc": "Пользовательский путь к локальной CLI Qwen. Оставьте пустым, чтобы запустить `qwen` из PATH."
+        },
+        "advancedSummary": "Скрытые команды, переменные среды и переопределения контекста",
+        "hiddenCommands": {
+          "name": "Скрытые команды",
+          "desc": "Скрыть отдельные команды, сообщаемые Qwen Code ACP. Введите имена без начальной косой черты, по одному в строке.",
+          "placeholder": "compact\nmemory\nstats"
+        },
+        "environment": {
+          "heading": "Среда",
+          "name": "Переменные среды",
+          "desc": "Настройте аутентификацию Qwen Code с помощью `qwen` и `/auth`. Необязательные переменные провайдера, например DASHSCOPE_API_KEY, OPENAI_API_KEY или ANTHROPIC_API_KEY, передаются; Grimoire не автоматизирует вход."
+        }
+      }
+    },
+    "agentEditor": {
+      "title": "Подагенты {provider}",
+      "noAgents": "В vault нет подагентов {provider}. Нажмите +, чтобы создать.",
+      "modalTitleEdit": "Изменить подагента {provider}",
+      "modalTitleAdd": "Добавить подагента {provider}",
+      "nameDesc": "Имя агента {provider}. Для вложенных агентов используйте сегменты через косую черту.",
+      "namePlaceholder": "Проверка",
+      "descriptionDesc": "Когда {provider} должен использовать этого подагента",
+      "descriptionPlaceholder": "Проверяет код на корректность и поддерживаемость",
+      "modelDesc": "Переопределение модели в формате провайдер/модель",
+      "variant": "Вариант",
+      "variantDesc": "Переопределение варианта модели",
+      "temperature": "Температура",
+      "temperatureDesc": "Необязательная температура выборки",
+      "topP": "Top p",
+      "topPDesc": "Необязательное значение выборки nucleus",
+      "color": "Цвет",
+      "colorDesc": "Шестнадцатеричный цвет или токен темы",
+      "steps": "Шаги",
+      "stepsDesc": "Максимум агентских итераций до принудительного текстового вывода",
+      "hideFromMention": "Скрыть из @mention",
+      "hideFromMentionDesc": "Скрыть этого подагента из меню автодополнения @",
+      "disableAgent": "Отключить агента",
+      "disableAgentDesc": "Отключить агента без удаления файла",
+      "enabledTools": "Включённые инструменты (JSON)",
+      "enabledToolsDesc": "Необязательная устаревшая карта инструментов, например {\"write\":false,\"edit\":false}",
+      "permission": "Разрешения (JSON)",
+      "permissionDesc": "Необязательная настройка разрешений, например {\"edit\":\"deny\",\"bash\":\"allow\"}",
+      "options": "Параметры (JSON)",
+      "optionsDesc": "Необязательные пользовательские параметры агента",
+      "promptDesc": "Тело Markdown, используемое как промпт агента",
+      "promptPlaceholder": "Внимательно проверьте изменения кода и укажите на ошибки, регрессии и недостающее тестовое покрытие.",
+      "badge": "подагент",
+      "deleteFailed": "Не удалось удалить подагента",
+      "unknownError": "Неизвестная ошибка",
+      "inherit": "Наследовать",
+      "best": "Лучшее",
+      "nameRequired": "Требуется имя агента",
+      "pathSegmentsRequired": "Имя агента должно содержать сегменты пути через косую черту без косых черт в начале и конце",
+      "segmentEmpty": "Сегменты пути имени агента не могут быть пустыми или состоять только из пробелов",
+      "segmentWhitespace": "Сегменты пути имени агента не могут начинаться или заканчиваться пробелами",
+      "dotSegments": "Имя агента не может содержать сегменты пути \".\" или \"..\"",
+      "reservedCharacters": "Сегменты пути имени агента не могут содержать зарезервированные Windows символы имён файлов",
+      "invalidNumber": "{label} должно быть допустимым числом",
+      "invalidPositiveInteger": "{label} должно быть положительным целым числом",
+      "invalidJson": "{label} должно быть допустимым JSON",
+      "invalidJsonObject": "{label} должно быть объектом JSON",
+      "invalidBooleanMap": "{label} должно сопоставлять имена инструментов с логическими значениями"
+    },
+    "codexSkills": {
+      "title": "Навыки Codex",
+      "titleEdit": "Изменить навык Codex",
+      "titleAdd": "Добавить навык Codex",
+      "directory": "Каталог",
+      "directoryDesc": "Где хранить навык",
+      "name": "Имя навыка",
+      "nameDesc": "Имя после $ (например, \"analyze\" для $analyze)",
+      "descriptionDesc": "Необязательное описание в меню",
+      "instructions": "Инструкции",
+      "instructionsDesc": "Инструкции навыка (содержимое SKILL.md)",
+      "instructionsPlaceholder": "Проанализируйте код на...",
+      "instructionsRequired": "Требуются инструкции",
+      "saveFailed": "Не удалось сохранить навык Codex",
+      "noSkills": "В vault нет навыков Codex. Нажмите +, чтобы создать.",
+      "badge": "навык",
+      "deleted": "Навык Codex \"${name}\" удалён",
+      "deleteFailed": "Не удалось удалить навык Codex",
+      "updated": "Навык Codex \"${name}\" обновлён",
+      "created": "Навык Codex \"${name}\" создан"
+    },
+    "codexSubagents": {
+      "title": "Подагенты Codex",
+      "titleEdit": "Изменить подагента Codex",
+      "titleAdd": "Добавить подагента Codex",
+      "nameDesc": "Имя агента, используемое Codex при запуске (строчные буквы, дефисы, подчёркивания)",
+      "descriptionDesc": "Когда Codex должен использовать этого агента",
+      "modelDesc": "Переопределение модели (оставьте пустым для наследования)",
+      "reasoningEffort": "Уровень усилий рассуждения",
+      "reasoningEffortDesc": "Уровень усилий рассуждения модели",
+      "sandboxMode": "Режим песочницы",
+      "sandboxModeDesc": "Ограничение песочницы для этого агента",
+      "nicknameCandidates": "Варианты псевдонима",
+      "nicknameCandidatesDesc": "Псевдонимы для отображения через запятую (например, atlas, delta, echo)",
+      "developerInstructions": "Инструкции разработчика",
+      "developerInstructionsDesc": "Основные инструкции, определяющие поведение агента",
+      "developerInstructionsPlaceholder": "Проверяйте код как владелец.\nОтдавайте приоритет корректности, безопасности и недостающему тестовому покрытию.",
+      "developerInstructionsRequired": "Требуются инструкции разработчика",
+      "nameRequired": "Требуется имя подагента",
+      "nameTooLong": "Имя подагента должно содержать не более {count} символов",
+      "nameInvalid": "Имя подагента может содержать только строчные буквы, цифры, дефисы и подчёркивания",
+      "nicknamesInvalid": "Варианты псевдонима могут содержать только ASCII-буквы, цифры, пробелы, дефисы и подчёркивания",
+      "nicknamesUnique": "Варианты псевдонима должны быть уникальными",
+      "noAgents": "В vault нет подагентов Codex. Нажмите +, чтобы создать.",
+      "deleteFailed": "Не удалось удалить подагента",
+      "options": {
+        "inherit": "Наследовать",
+        "low": "Низкий",
+        "medium": "Средний",
+        "high": "Высокий",
+        "extraHigh": "Очень высокий",
+        "readOnly": "Только чтение",
+        "dangerFullAccess": "Опасный полный доступ",
+        "workspaceWrite": "Запись в рабочее пространство"
+      }
+    },
+    "slashCommandEditor": {
+      "skill": "Навык",
+      "slashCommand": "Команда со слешем",
+      "command": "Команда",
+      "titleEdit": "Изменить: {type}",
+      "titleAdd": "Добавить: {type}",
+      "type": "Тип",
+      "typeDesc": "Команда или навык",
+      "name": "Имя команды",
+      "nameDesc": "Имя после / (например, \"review\" для /review)",
+      "descriptionDesc": "Необязательное описание в меню",
+      "argumentHint": "Подсказка для аргументов",
+      "argumentHintDesc": "Текст-заполнитель для аргументов (например, \"[file] [focus]\")",
+      "modelOverride": "Переопределение модели",
+      "modelOverrideDesc": "Необязательная модель для этой команды",
+      "allowedTools": "Разрешённые инструменты",
+      "allowedToolsDesc": "Список разрешённых инструментов через запятую (пусто = все)",
+      "disableModelInvocation": "Отключить вызов моделью",
+      "disableModelInvocationDesc": "Не позволять модели вызывать эту команду самостоятельно",
+      "disableUserInvocation": "Отключить вызов пользователем",
+      "disableUserInvocationDesc": "Не позволять пользователю вызывать этот навык напрямую",
+      "context": "Контекст",
+      "contextDesc": "Запустить в подагенте (ветвление)",
+      "agent": "Агент",
+      "agentDesc": "Тип подагента, когда контекст — ветвление",
+      "promptTemplate": "Шаблон промпта",
+      "promptTemplateDesc": "Используйте $ARGUMENTS, $1, $2, @file, !`bash`",
+      "promptTemplatePlaceholder": "Проверьте этот код на:\n$ARGUMENTS\n\n@$1",
+      "promptRequired": "Требуется шаблон промпта",
+      "commandExists": "Команда \"/{name}\" уже существует",
+      "saveSkillFailed": "Не удалось сохранить навык",
+      "saveCommandFailed": "Не удалось сохранить команду со слешем",
+      "catalogUnavailable": "Каталог команд Claude недоступен.",
+      "noEntries": "Нет настроенных команд или навыков. Нажмите +, чтобы создать.",
+      "skillBadge": "навык",
+      "convertToSkill": "Преобразовать в навык",
+      "convertFailed": "Не удалось преобразовать в навык",
+      "deleteSkillFailed": "Не удалось удалить навык",
+      "deleteCommandFailed": "Не удалось удалить команду со слешем",
+      "updated": "{type} \"/{name}\" обновлён",
+      "created": "{type} \"/{name}\" создан",
+      "deleted": "{type} \"/{name}\" удалён",
+      "skillExists": "Навык \"/{name}\" уже существует",
+      "converted": "\"/{name}\" преобразован в навык"
+    },
+    "mcp": {
+      "addStdio": "stdio (локальная команда)",
+      "addRemote": "http / sse (удалённый)",
+      "importClipboard": "Импортировать из буфера обмена",
+      "noServers": "Серверы MCP не настроены. Нажмите +, чтобы добавить.",
+      "contextSavingTitle": "Экономия контекста: упомяните @{server}, чтобы включить",
+      "verify": "Проверить (показать инструменты)",
+      "verificationFailed": "Проверка не удалась",
+      "reloadFailed": "Настройка сохранена, но перезагрузка не удалась. Изменения будут применены в следующем сеансе.",
+      "saveFailed": "Не удалось сохранить сервер MCP",
+      "clipboardEmpty": "Буфер обмена пуст",
+      "clipboardInvalid": "В буфере обмена не найдена допустимая конфигурация MCP",
+      "enterServerName": "Введите имя сервера",
+      "clipboardReadFailed": "Не удалось прочитать буфер обмена",
+      "serverExists": "Сервер \"{name}\" уже существует",
+      "serverUpdated": "Сервер MCP \"{name}\" обновлён",
+      "serverAdded": "Сервер MCP \"{name}\" добавлен",
+      "unnamed": "<без имени>",
+      "noNewServers": "Новые серверы MCP не импортированы",
+      "imported": "Импортировано серверов MCP: {count}",
+      "importedWithSkipped": "Импортировано серверов MCP: {added} (пропущено: {skipped})",
+      "serverEnabled": "Сервер MCP \"{name}\" включён",
+      "serverDisabled": "Сервер MCP \"{name}\" отключён",
+      "deleteConfirm": "Удалить сервер MCP \"{name}\"?",
+      "serverDeleted": "Сервер MCP \"{name}\" удалён",
+      "modal": {
+        "titleEdit": "Изменить сервер MCP",
+        "titleAdd": "Добавить сервер MCP",
+        "serverName": "Имя сервера",
+        "serverNameDesc": "Уникальный идентификатор этого сервера",
+        "type": "Тип",
+        "typeDesc": "Тип подключения к серверу",
+        "stdio": "stdio (локальная команда)",
+        "sse": "SSE (события, отправляемые сервером)",
+        "http": "HTTP (конечная точка HTTP)",
+        "enabledDesc": "Активен ли этот сервер",
+        "contextSaving": "Режим экономии контекста",
+        "contextSavingDesc": "Скрывать инструменты от агента, если они не упомянуты через @ (экономит окно контекста)",
+        "command": "Команда",
+        "commandDesc": "Полная команда с аргументами",
+        "environmentDesc": "KEY=VALUE в каждой строке (необязательно)",
+        "url": "URL",
+        "sseUrlDesc": "URL конечной точки SSE",
+        "httpUrlDesc": "URL конечной точки HTTP",
+        "headers": "Заголовки",
+        "headersDesc": "HTTP-заголовки (KEY=VALUE в каждой строке)",
+        "serverNameRequired": "Введите имя сервера",
+        "serverNameInvalid": "Имя сервера может содержать только буквы, цифры, точки, дефисы и подчёркивания",
+        "commandRequired": "Введите команду",
+        "urlRequired": "Введите URL"
+      },
+      "test": {
+        "title": "Проверка: {server}",
+        "connecting": "Подключение к серверу MCP...",
+        "connected": "Подключение установлено",
+        "connectedTo": "Подключение к {server} установлено",
+        "connectedToVersion": "Подключение к {server} v{version} установлено",
+        "connectionFailed": "Не удалось подключиться",
+        "availableTools": "Доступные инструменты ({count})",
+        "noTools": "Сведения об инструментах недоступны. Инструменты будут загружены при использовании в чате.",
+        "close": "Закрыть",
+        "disableAll": "Отключить все",
+        "enableAll": "Включить все",
+        "updateToolFailed": "Не удалось обновить настройку инструмента",
+        "permissionDenied": "Доступ запрещён. Проверьте права доступа к папке .claude/.",
+        "diskFull": "Диск заполнен. Освободите место и повторите попытку.",
+        "configCorrupted": "Файл конфигурации повреждён. Проверьте .claude/mcp.json."
       }
     }
   }

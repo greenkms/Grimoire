@@ -83,6 +83,7 @@ export interface MockElement {
     body?: any;
     addEventListener?: (event: string, handler: (...args: any[]) => void) => void;
     removeEventListener?: (event: string, handler: (...args: any[]) => void) => void;
+    dispatchEvent?: (eventOrType: string | { type: string; [key: string]: any }) => void;
     createElement: (tagName: string) => MockElement;
     createElementNS: (namespace: string, tagName: string) => MockElement;
     getSelection?: () => Selection | null;
@@ -197,6 +198,7 @@ export function createMockEl(tag = 'div'): any {
   };
 
   const currentDocument = (): any => (globalThis as any).document;
+  const documentEventListeners = new Map<string, Array<(...args: any[]) => void>>();
   const ownerDocument = {
     defaultView,
     get activeElement() {
@@ -206,10 +208,34 @@ export function createMockEl(tag = 'div'): any {
       return currentDocument()?.body ?? createMockEl('body');
     },
     addEventListener(event: string, handler: (...args: any[]) => void) {
-      currentDocument()?.addEventListener?.(event, handler);
+      const document = currentDocument();
+      if (document?.addEventListener) {
+        document.addEventListener(event, handler);
+        return;
+      }
+      const handlers = documentEventListeners.get(event) ?? [];
+      handlers.push(handler);
+      documentEventListeners.set(event, handlers);
     },
     removeEventListener(event: string, handler: (...args: any[]) => void) {
-      currentDocument()?.removeEventListener?.(event, handler);
+      const document = currentDocument();
+      if (document?.removeEventListener) {
+        document.removeEventListener(event, handler);
+        return;
+      }
+      const handlers = documentEventListeners.get(event) ?? [];
+      documentEventListeners.set(event, handlers.filter(candidate => candidate !== handler));
+    },
+    dispatchEvent(eventOrType: string | { type: string; [key: string]: any }) {
+      const document = currentDocument();
+      if (document?.dispatchEvent && typeof eventOrType !== 'string') {
+        document.dispatchEvent(eventOrType);
+        return;
+      }
+      const event = typeof eventOrType === 'string' ? { type: eventOrType } : eventOrType;
+      for (const handler of [...(documentEventListeners.get(event.type) ?? [])]) {
+        handler(event);
+      }
     },
     createElement: (tagName: string) => currentDocument()?.createElement?.(tagName) ?? createMockEl(tagName),
     createElementNS: (namespace: string, tagName: string) =>

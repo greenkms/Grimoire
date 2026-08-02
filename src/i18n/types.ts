@@ -67,6 +67,7 @@ export type TranslationKey =
   | 'chat.relevantNotes.label'
   | 'chat.relevantNotes.empty'
   | `chat.greetings.${string}`
+  | `chat.ui.${string}`
 
   // Chat - Fork
   | 'chat.fork.ariaLabel'
@@ -285,5 +286,24 @@ export type TranslationKey =
   // Settings - Language
   | 'settings.language.name'
   | 'settings.language.desc'
+  | 'settings.version.name'
+  | 'settings.whatsNew'
+  | 'settings.noReleaseNotes'
+  | 'settings.learnMore'
+  | 'settings.environmentReview'
+  | 'settings.mediaFolder.placeholder'
+  | 'settings.subagents.loadFailed'
+  | `settings.search.${string}`
+  | `settings.advanced.${string}`
+  | `settings.provider.${string}`
+  | `settings.providerModelPicker.${string}`
+  | `settings.sharedEnvironment.${string}`
+  | `settings.providerTabs.${string}`
+  | `settings.agentEditor.${string}`
+  | `settings.codexSkills.${string}`
+  | `settings.codexSubagents.${string}`
+  | `settings.slashCommandEditor.${string}`
+  | `settings.mcp.${string}`
+  | `settings.envSnippets.${string}`
   | `settings.providers.${string}`
   | `settings.grok.${string}`;

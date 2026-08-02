@@ -191,6 +191,9 @@
           "plain": "おかえりなさい！",
           "named": "おかえりなさい、{name}！"
         },
+        "version": {
+          "name": "バージョン"
+        },
         "whatsNew": {
           "plain": "何か新しいことは？",
           "named": "何か新しいことは、{name}？"
@@ -214,6 +217,372 @@
         "summonContext": "コンテキストを呼び出してから具体的に。",
         "earnKeep": "このノートに居場所を稼がせましょう。"
       }
+    },
+    "ui": {
+      "view": {
+        "all": "すべて",
+        "chat": "チャット",
+        "context": "コンテキスト",
+        "contextMemoryTab": "コンテキストメモリ · タブ",
+        "conversation": "会話",
+        "current": "現在",
+        "currentTabViews": "現在のタブのビュー",
+        "linked": "リンク済み",
+        "shownCount": "{count}件を表示",
+        "sources": "ソース",
+        "sourcesAndActions": "ソースとアクション",
+        "sourcesInTab": "タブ内のソース",
+        "vaultContextMemory": "Vaultコンテキストメモリ",
+        "moreNotes": "+{count}件のノート",
+        "matchScore": "一致率 {percent}%"
+      },
+      "composer": {
+        "jumpToLatest": "最新メッセージへ移動",
+        "placeholder": "Grimoireに編集、検索、比較、生成、またはコマンド実行を依頼...",
+        "send": "送信",
+        "sendMessage": "メッセージを送信",
+        "stopResponse": "応答を停止",
+        "resizeInput": "ドラッグして入力欄のサイズを変更"
+      },
+      "model": {
+        "unknown": "不明",
+        "switching": "モデルを切り替え中…",
+        "noneAvailable": "利用可能なモデルはありません",
+        "noMatch": "“{query}”に一致するモデルはありません",
+        "models": "モデル",
+        "searchAriaLabel": "モデルを検索",
+        "searchPlaceholder": "モデルを検索...",
+        "loading": "モデルを読み込み中…",
+        "loadFailed": "モデルを読み込めませんでした",
+        "changeFailed": "モデルを変更できませんでした",
+        "selectTooltip": "モデルを選択"
+      },
+      "usage": {
+        "label": "使用量",
+        "fiveHourLimit": "5時間制限",
+        "namedLimit": "{name}の制限",
+        "ariaWithPercent": "{plan} {limit}: {percent}%使用、{reset}にリセット",
+        "ariaWithoutPercent": "{plan} {limit}: {reset}にリセット",
+        "planUsage": "プラン使用量",
+        "percentUsed": "{percent}%使用",
+        "resets": "{reset}にリセット",
+        "weeklyPercent": "週次 {percent}%",
+        "weeklyUnavailable": "週次使用量は利用できません",
+        "updated": "{time}に更新"
+      },
+      "toolbar": {
+        "modeChangeFailed": "モードを変更できませんでした",
+        "effort": "推論量:",
+        "thinking": "思考:",
+        "high": "高",
+        "off": "オフ",
+        "tokens": "{count}トークン",
+        "effortChangeFailed": "推論量を変更できませんでした",
+        "thinkingChangeFailed": "思考予算を変更できませんでした",
+        "permissionChangeFailed": "権限モードを変更できませんでした",
+        "plan": "計画",
+        "serviceTierChangeFailed": "サービス階層を変更できませんでした",
+        "toggleFastMode": "高速モードをオン/オフ",
+        "modeTooltip": "作業モード",
+        "permissionSafe": "安全",
+        "permissionAuto": "自動",
+        "permissionPlan": "計画",
+        "effortLevels": {
+          "low": "低",
+          "medium": "中",
+          "high": "高",
+          "xhigh": "非常に高い",
+          "max": "最大"
+        }
+      },
+      "navigation": {
+        "scrollTop": "先頭へスクロール",
+        "previousMessage": "前のプロンプト",
+        "directory": "会話ディレクトリ",
+        "nextMessage": "次のプロンプト",
+        "scrollBottom": "末尾へスクロール",
+        "empty": "この会話にはプロンプトがありません"
+      },
+      "externalContext": {
+        "removeFile": "外部ファイルを削除",
+        "removedInvalid": "無効な外部コンテキストパスを{count}件削除しました: {paths}",
+        "cannotPersistMissing": "“{path}”を保存できません — パスは存在しません",
+        "noPath": "パスが指定されていません。使用法: /add-dir /absolute/path",
+        "absolutePathRequired": "絶対パスが必要です。使用法: /add-dir /absolute/path",
+        "duplicate": "このフォルダはすでに外部コンテキストとして追加されています。",
+        "selectTitle": "外部コンテキストを選択",
+        "pickerFailed": "フォルダ選択を開けませんでした。",
+        "conflictInside": "“{path}”は追加できません — 既存のパス“{existing}”内にあります",
+        "conflictContains": "“{path}”は追加できません — 既存のパス“{existing}”を含みます",
+        "header": "外部コンテキスト",
+        "empty": "フォルダアイコンをクリックして追加",
+        "makeSessionOnly": "永続化済み（クリックで今回のセッションのみ）",
+        "makePersistent": "今回のセッションのみ（クリックで永続化）",
+        "removePath": "パスを削除",
+        "countTitle": "外部コンテキスト {count}件（クリックして追加）",
+        "files": "ファイル",
+        "addTitle": "外部コンテキストを追加"
+      },
+      "mcp": {
+        "header": "MCPサーバー",
+        "noneConfigured": "MCPサーバーが設定されていません",
+        "allDisabled": "すべてのMCPサーバーが無効です",
+        "contextSaving": "コンテキスト節約: @{server}でも有効化できます",
+        "enabledCount": "{count}個のMCPサーバーが有効（クリックして管理）",
+        "enableTitle": "MCPサーバー（クリックして有効化）"
+      },
+      "contextUsage": {
+        "approachingLimit": "（上限が近いため、続行するには `/compact` を実行）",
+        "ariaUsed": "コンテキストウィンドウを{percent}%使用",
+        "tokens": "{used} / {total}トークン",
+        "left": "残り{count}",
+        "context": "コンテキスト",
+        "noneYet": "まだコンテキストは使用されていません",
+        "hint": "アクティブなタブがコンテキストを構築すると使用量が表示されます。"
+      },
+      "context": {
+        "noNoteSelected": "ノートが選択されていません",
+        "boundToTab": "このチャットタブに紐付け済み",
+        "openNoteToBind": "ノートを開いてこのチャットに紐付け",
+        "active": "アクティブ",
+        "idle": "待機中",
+        "selectedFile": "選択したファイル",
+        "selectedFiles": "選択したファイル",
+        "filesBadge": "ファイル",
+        "modelDetail": "{provider}{reasoning} · プロバイダー状態を保持",
+        "modelBadge": "モデル",
+        "attached": "添付コンテキスト",
+        "linkedNotes": "リンク済みノート {count}件 · {permission}",
+        "reasoningEffort": "推論量 {value}",
+        "reasoningThinking": "思考 {value}",
+        "permissionPlanDescription": "ツール実行前に計画",
+        "permissionSafeDescription": "ファイル編集とMCP書き込みの前に確認",
+        "planMode": "計画モード",
+        "autoApprove": "自動承認",
+        "safeMode": "安全モード",
+        "loadedThisSession": "このセッションで読み込み済み"
+      },
+      "tabs": {
+        "createFailed": "タブを作成できませんでした",
+        "newTab": "新規タブ",
+        "history": "チャット履歴",
+        "switchFailed": "タブを切り替えられませんでした",
+        "closeFailed": "タブを閉じられませんでした",
+        "maximumAllowed": "最大{count}個のタブを使用できます",
+        "closeTab": "タブを閉じる"
+      },
+      "messages": {
+        "interrupted": "中断されました",
+        "interruptedHint": "· 代わりにGrimoireに何をさせますか？",
+        "conversationCompacted": "会話を圧縮しました",
+        "completed": "完了",
+        "duration": "* {flavor}、{duration}",
+        "copied": "コピーしました！",
+        "renderFailed": "メッセージ内容をレンダリングできませんでした。",
+        "copyMessage": "メッセージをコピー",
+        "awaitingYou": "入力待ち"
+      },
+      "errors": {
+        "relevantNotesFailed": "関連ノートの取得に失敗しました: {error}",
+        "couldNotOpenFile": "ファイルを開けませんでした: {path}",
+        "openFileFailed": "ファイルを開けませんでした: {error}",
+        "providerSwitchBound": "紐付け済みセッションではプロバイダーを切り替えられません。代わりに新しいタブを開始してください。",
+        "forkUnsupported": "このプロバイダーはforkをサポートしていません。",
+        "initializeFailed": "チャットサービスを初期化できませんでした",
+        "loadConversationFailed": "会話を読み込めませんでした",
+        "regenerateFailed": "応答を再生成できませんでした",
+        "deleteConversationFailed": "会話を削除できませんでした",
+        "renameConversationFailed": "会話の名前を変更できませんでした",
+        "initializeAgentFailed": "エージェントサービスを初期化できませんでした。もう一度お試しください。",
+        "agentUnavailable": "エージェントサービスを利用できません。プラグインを再読み込みしてください。",
+        "externalContextUnavailable": "外部コンテキスト選択は利用できません。",
+        "forkUnavailable": "forkは利用できません。",
+        "rewindUnsupported": "このプロバイダーは巻き戻しをサポートしていません。",
+        "messageNotFound": "メッセージが見つかりません",
+        "agentServiceUnavailable": "エージェントサービスを利用できません",
+        "unknown": "不明なエラー",
+        "saveFailed": "保存できませんでした"
+      },
+      "history": {
+        "title": "履歴",
+        "close": "履歴を閉じる",
+        "searchPlaceholder": "過去のチャットを検索...",
+        "empty": "過去のチャットはありません",
+        "noMatches": "一致なし",
+        "current": "現在",
+        "openNewTab": "新規タブで開く",
+        "generatingTitle": "タイトルを生成中...",
+        "regenerateTitle": "タイトルを再生成",
+        "today": "今日",
+        "yesterday": "昨日",
+        "earlier": "以前",
+        "sourceCount": "ソース {count}件",
+        "now": "今",
+        "openBackgroundTab": "バックグラウンドタブで開く",
+        "switchOpenSession": "開いているセッションに切り替え",
+        "rename": "名前を変更",
+        "noneToResume": "再開する会話はありません"
+      },
+      "thinking": {
+        "expandAriaLabel": "拡張思考 — クリックして展開",
+        "inProgress": "{seconds}秒間思考中...",
+        "completed": "{seconds}秒間思考しました",
+        "thought": "思考"
+      },
+      "ask": {
+        "question": "質問",
+        "needsDetail": "詳細が必要です",
+        "questionCount": "続行前にGrimoireが{count}件質問します",
+        "single": "単一",
+        "multiple": "複数",
+        "optional": "任意",
+        "answerPlaceholder": "回答を入力...",
+        "decideForMe": "任せる",
+        "sendAnswers": "回答を送信",
+        "expand": "質問を展開",
+        "collapse": "質問を折りたたむ",
+        "option": "オプション",
+        "questionCountOne": "続行前にGrimoireが{count}件質問します",
+        "questionCountMany": "続行前にGrimoireが{count}件質問します"
+      },
+      "permission": {
+        "required": "権限が必要です",
+        "commandPreview": "コマンドプレビュー: {command}",
+        "agent": "エージェント: {agent}",
+        "reject": "拒否",
+        "tool": "ツール",
+        "runShellCommand": "Grimoireがシェルコマンドを実行しようとしています",
+        "useTool": "Grimoireが{tool}を使用しようとしています",
+        "providerRequestedCommand": "{provider}がこのコマンドを実行する権限を要求しました。",
+        "shellCommand": "シェルコマンド"
+      },
+      "plan": {
+        "requestedPermissions": "要求された権限:",
+        "approveCurrentSession": "承認（現在のセッション）",
+        "continueFeedbackPlaceholder": "計画を続けるためのフィードバックを入力...",
+        "keyboardHints": "矢印キーで移動 · Enterで選択 · Escでキャンセル",
+        "complete": "計画完了",
+        "reviewBeforeProceeding": "続行前に計画を確認",
+        "label": "計画",
+        "expand": "計画を展開",
+        "collapse": "計画を折りたたむ",
+        "implement": "実装",
+        "reviseFeedbackPlaceholder": "計画を修正するためのフィードバックを入力..."
+      },
+      "images": {
+        "dropHere": "ここに画像をドロップ",
+        "unsupportedProvider": "このプロバイダーは画像添付に対応していません。",
+        "sizeLimit": "画像が{size}の上限を超えています。",
+        "unsupportedType": "未対応の画像形式です。",
+        "attachFailed": "画像を添付できませんでした。",
+        "remove": "画像を削除",
+        "fileNotFound": "（ファイルが見つかりません）",
+        "permissionDenied": "（権限が拒否されました）"
+      },
+      "queue": {
+        "steering": "操作中...",
+        "steerNow": "今すぐ操作",
+        "steerFailed": "キュー内のCodexメッセージを操作できませんでした。メッセージは引き続き利用できます。"
+      },
+      "instructions": {
+        "added": "カスタムシステムプロンプトに指示を追加しました",
+        "noneReceived": "指示を受信していません",
+        "processFailed": "応答を処理できませんでした",
+        "refineFailed": "指示を改善できませんでした"
+      },
+      "commands": {
+        "imageUsage": "使用法: /image <prompt>"
+      },
+      "progress": {
+        "working": "処理中",
+        "stillWorking": "引き続き処理中",
+        "blocked": "ブロック済み",
+        "completed": "完了"
+      },
+      "status": {
+        "aria": "ステータス: {status}",
+        "initializing": "初期化中",
+        "running": "実行中",
+        "runningEllipsis": "実行中...",
+        "completed": "完了",
+        "blocked": "ブロック済み",
+        "error": "エラー",
+        "orphaned": "孤立",
+        "inProgress": "進行中",
+        "errorUpper": "エラー",
+        "doneUpper": "完了"
+      },
+      "subagent": {
+        "task": "サブエージェントタスク",
+        "noPrompt": "プロンプトがありません",
+        "expandAria": "サブエージェントタスク: {description} — ステータス: {status} — クリックして展開",
+        "result": "結果",
+        "prompt": "プロンプト",
+        "runningBackground": "バックグラウンドで実行中",
+        "backgroundExpandAria": "バックグラウンドタスク: {description} — {status} — クリックして展開",
+        "endedEarly": "タスクの完了前に会話が終了しました",
+        "backgroundTask": "バックグラウンドタスク"
+      },
+      "tools": {
+        "noChanges": "変更なし",
+        "openPage": "ページを開く",
+        "urlUnavailable": "URLを利用できません",
+        "findInPage": "ページ内を検索",
+        "query": "クエリ: {query}",
+        "searchWeb": "Webを検索",
+        "noResult": "結果なし",
+        "noMatches": "一致する項目がありません",
+        "showPreview": "プレビューを表示",
+        "showAll": "すべて表示",
+        "fileDeleted": "ファイルを削除しました",
+        "noTextDiff": "テキスト差分はありません",
+        "tasksUpdated": "タスクを更新しました",
+        "waitingForAnswer": "回答を待機中...",
+        "pattern": "パターン: {pattern}",
+        "altQuery": "代替クエリ: {query}",
+        "moreQueries": "... ほか{count}件のクエリ",
+        "tasksProgress": "タスク {completed}/{total}",
+        "tasks": "タスク",
+        "enteringPlanMode": "計画モードに切り替え中",
+        "ranCommand": "コマンドを実行しました",
+        "runCommand": "コマンドを実行",
+        "readNote": "ノートを読み込みました",
+        "readingNote": "ノートを読み込み中",
+        "wroteFile": "ファイルを書き込みました",
+        "writingFile": "ファイルを書き込み中",
+        "editedFile": "ファイルを編集しました",
+        "editingFile": "ファイルを編集中",
+        "globbingFiles": "ファイルをグロブ検索中",
+        "globbedFiles": "ファイルをグロブ検索しました",
+        "searchingFiles": "ファイルを検索中",
+        "searchedFiles": "ファイルを検索しました",
+        "listingFiles": "ファイルを一覧表示中",
+        "listedFiles": "ファイルを一覧表示しました",
+        "searchingWeb": "Webを検索中",
+        "searchedWeb": "Webを検索しました",
+        "fetchingPage": "ページを取得中",
+        "fetchedPage": "ページを取得しました",
+        "searchingTools": "ツールを検索中",
+        "searchedTools": "ツールを検索しました",
+        "applyingPatch": "パッチを適用中",
+        "appliedPatch": "パッチを適用しました",
+        "sentInput": "入力を送信しました",
+        "loadedSkill": "スキルを読み込みました",
+        "searchingVault": "Vaultを検索中",
+        "searchedVault": "Vaultを検索しました",
+        "runningTools": "ツールを実行中",
+        "ranTools": "ツールを実行しました",
+        "queryCount": "{count}件のクエリ",
+        "stepCount": "{count}ステップ",
+        "writingEllipsis": "書き込み中...",
+        "queryCountOne": "{count}件のクエリ",
+        "queryCountMany": "{count}件のクエリ",
+        "stepCountOne": "{count}ステップ",
+        "stepCountMany": "{count}ステップ"
+      },
+      "responseMetadata": {
+        "effort": "推論量 {value}"
+      }
     }
   },
   "settings": {
@@ -221,7 +590,9 @@
     "tabs": {
       "general": "一般",
       "claude": "Claude",
-      "codex": "Codex"
+      "codex": "Codex",
+      "scrollBackward": "設定タブを後方にスクロール",
+      "scrollForward": "設定タブを前方にスクロール"
     },
     "display": "表示",
     "conversations": "会話",
@@ -245,7 +616,8 @@
     },
     "mediaFolder": {
       "name": "メディアフォルダ",
-      "desc": "添付ファイル/画像を格納するフォルダ。ノートが ![[image.jpg]] を使用する場合、Claude はここで探します。空欄でリポジトリのルートを使用。"
+      "desc": "添付ファイル/画像を格納するフォルダ。ノートが ![[image.jpg]] を使用する場合、Claude はここで探します。空欄でリポジトリのルートを使用。",
+      "placeholder": "添付ファイル"
     },
     "systemPrompt": {
       "name": "カスタムシステムプロンプト",
@@ -365,7 +737,8 @@
         "prompt": "システムプロンプト",
         "promptDesc": "エージェントへの指示",
         "promptPlaceholder": "あなたはコードレビュアーです。与えられたコードを分析して..."
-      }
+      },
+      "loadFailed": "サブエージェント\"{name}\"を読み込めませんでした: {message}"
     },
     "environment": "環境",
     "customVariables": {
@@ -389,7 +762,14 @@
         "save": "保存",
         "update": "更新",
         "cancel": "キャンセル"
-      }
+      },
+      "insert": "挿入",
+      "insertFailed": "スニペットを挿入できませんでした",
+      "deleteConfirm": "環境スニペット\"{name}\"を削除しますか？",
+      "deleteFailed": "スニペットを削除できませんでした",
+      "saved": "環境スニペット\"{name}\"を保存しました",
+      "updated": "環境スニペット\"{name}\"を更新しました",
+      "deleted": "環境スニペット\"{name}\"を削除しました"
     },
     "customModelOverrides": {
       "name": "カスタムモデルの上書き",
@@ -493,6 +873,30 @@
     "providers": {
       "grok": {
         "desc": "plan mode、subagents、skills、MCP に対応した xAI の agentic coding CLI。"
+      },
+      "claude": {
+        "desc": "Anthropicのエージェント型CLI。推奨のデフォルトです。"
+      },
+      "codex": {
+        "desc": "OpenAIのコーディングエージェント。"
+      },
+      "antigravity": {
+        "desc": "Googleの新しいマルチモデルエージェントCLI。推奨のGoogleプロバイダーです。"
+      },
+      "gemini": {
+        "desc": "Standard、Enterprise、有料APIキー向けの旧Gemini CLI。"
+      },
+      "opencode": {
+        "desc": "オープンソース、マルチベンダー。最も幅広いモデルカタログを提供します。"
+      },
+      "mimocode": {
+        "desc": "永続メモリとコンテキスト管理を備えたXiaomiのOpenCodeフォーク。"
+      },
+      "kimicode": {
+        "desc": "MoonshotAIのマルチプロバイダーエージェントCLI。Kimi、OpenAI、Anthropic、Geminiに対応。"
+      },
+      "qwen": {
+        "desc": "ネイティブのAgent Client Protocolランタイムを通じたAlibaba Qwen Code。"
       }
     },
     "grok": {
@@ -576,6 +980,394 @@
       },
       "environment": {
         "desc": "Grok に渡す追加の environment variables です。`GROK_ENABLE_EXA=1` は既定で有効です。"
+      }
+    },
+    "version": {
+      "name": "バージョン"
+    },
+    "whatsNew": "新機能",
+    "noReleaseNotes": "このGrimoireバージョンにはリリースノートが含まれていません。",
+    "learnMore": "詳しく見る",
+    "environmentReview": "環境の所有権を確認: {keys}",
+    "search": {
+      "description": "Grimoire、ワークスペース、プロバイダー連携を設定します。",
+      "providers": "プロバイダー",
+      "models": "モデル",
+      "permissions": "権限",
+      "environmentVariables": "環境変数",
+      "projectWorkspace": "プロジェクトワークスペース",
+      "title": "Grimoire設定"
+    },
+    "advanced": {
+      "title": "詳細設定",
+      "generalSummary": "プロンプト、ホットキー、診断、環境変数など",
+      "environmentSummary": "環境変数とコンテキストの上書き",
+      "providerSummary": "コマンド、サブエージェント、環境、コンテキストの上書き"
+    },
+    "provider": {
+      "enableName": "{provider}を有効化",
+      "disabledTitle": "{provider}は無効です。",
+      "disabledDesc": "上でこのプロバイダーを有効にすると、これらの設定とモデル選択を使用できます。",
+      "fallbackDesc": "{provider}プロバイダー。",
+      "loadModelsFailed": "プロバイダーモデルを読み込めませんでした。",
+      "contextWindowLabel": "{model}のコンテキストウィンドウ"
+    },
+    "providerModelPicker": {
+      "browseModels": "モデルを参照",
+      "searchPlaceholder": "モデル、プロバイダー、IDで絞り込み...",
+      "visibleLabel": "表示:",
+      "summaryDiscovered": "{total}件を検出 - {count} {providerWord}",
+      "providerSingular": "プロバイダー",
+      "providerPlural": "プロバイダー",
+      "noDiscovered": "検出されたモデルはまだありません",
+      "loadingModels": "モデルを読み込み中...",
+      "availableCount": "{count}件利用可能",
+      "selectedCount": "選択済み（{count}）",
+      "clearSelected": "選択したすべてのモデルを解除",
+      "notReported": "現在{provider}から報告されていません",
+      "aliasLabel": "{model}のエイリアス",
+      "aliasTitle": "モデル選択に表示するカスタムラベル。既定値を使う場合は空欄にしてください。",
+      "removeModel": "{model}を削除",
+      "allProviders": "すべてのプロバイダー（{count}）",
+      "noMatch": "フィルターに一致するモデルはありません。",
+      "loadingCatalog": "{provider}モデルカタログを読み込み中...",
+      "loadFailed": "{provider}モデルカタログを読み込めませんでした。CLIパスとログイン状態を確認してから、このセクションを再度開いてください。",
+      "startToLoad": "モデルカタログを読み込むには一度{provider}を起動してください。その後、Grimoireで表示するモデルを選べます。",
+      "unavailable": "利用不可",
+      "unavailableTitle": "設定済みのモデルは現在{provider}から報告されていません"
+    },
+    "sharedEnvironment": {
+      "name": "共有環境",
+      "desc": "すべてのプロバイダーで共有するプロバイダー非依存のランタイム変数。PATH、プロキシ、証明書、一時ディレクトリ変数にはこれを使用してください。"
+    },
+    "providerTabs": {
+      "environmentVariables": "環境変数",
+      "acp": {
+        "cliPath": {
+          "name": "{provider} CLIパス",
+          "desc": "ローカルの{provider}コマンドへのカスタムパス。自動検出する場合は空欄にしてください。"
+        },
+        "visibleModels": {
+          "name": "表示するモデル",
+          "desc": "チャット選択に表示する{provider}モデルを選択します。プロバイダーまたはタイプで絞り込めます。"
+        },
+        "commandsDesc": "{provider}は.claude/commands/のVaultレベルClaudeスラッシュコマンドと、.claude/skills/、.codex/skills/、.agents/skills/のスキルを自動検出できます。これらはClaudeまたはCodexの設定タブで管理します。この設定は{provider}のドロップダウンから項目を隠すだけです。",
+        "hiddenCommandsDesc": "特定の{provider}コマンドとスキルをドロップダウンから隠します。先頭のスラッシュを除いた名前を1行に1つ入力してください。",
+        "subagentsDesc": "{root}と旧{legacyRoot}にあるVaultレベルの{provider}サブエージェントを管理します。新しい項目はサブエージェント専用ファイルとして保存され、@mentionメニューに表示されます。",
+        "environmentDesc": "{environmentVariable}=1を含む、{provider}所有のランタイム変数のみ。プロバイダー固有の設定にはこれを使用し、共有のPATH、プロキシ、証明書変数は共有環境に設定してください。"
+      },
+      "antigravity": {
+        "windowsLimitations": {
+          "name": "Windows CLIの制限",
+          "desc": "Windowsでは、現在のagyビルドは正常終了してもモデル検出と出力応答で空のstdoutを返すことがあります。Grimoireは可能な限りトランスクリプト、設定、フォールバック回復を使用しますが、AntigravityはmacOSやLinuxよりWindowsで信頼性が低い場合があります。"
+        },
+        "cliPath": {
+          "name": "Antigravity CLIパス",
+          "desc": "ローカルのagyコマンドへのカスタムパス。自動検出する場合は空欄にしてください。"
+        },
+        "customModels": {
+          "name": "カスタムモデル",
+          "desc": "Antigravityモデルのラベルを1行に1つ選択肢へ追加します。Windowsでの検出が不完全な場合は、agyモデル切替に表示される正確なラベルを使用してください。"
+        },
+        "environmentDesc": "GOOGLE_CLOUD_PROJECTなど、Antigravity CLIに渡す追加の環境変数。"
+      },
+      "gemini": {
+        "cliPath": {
+          "name": "Gemini CLIパス",
+          "desc": "ローカルGemini CLIへのカスタムパス。PATHから`gemini`を起動する場合は空欄にしてください。"
+        },
+        "environmentDesc": "GEMINI_API_KEYやGOOGLE_CLOUD_PROJECTなど、Gemini CLIに渡す追加の環境変数。"
+      },
+      "claude": {
+        "advancedSummary": "コマンド、エージェント、MCP、環境、実験",
+        "environmentDesc": "Claude所有のランタイム変数のみ。ANTHROPIC_*とClaude固有の切替にはこれを使用してください。"
+      },
+      "codex": {
+        "installationMethod": {
+          "name": "インストール方法",
+          "desc": "WindowsでGrimoireがCodexを起動する方法。ネイティブWindowsではWindows実行ファイルのパスを使用し、WSLでは選択したディストリビューション内のLinux CLIを起動します。",
+          "nativeWindows": "ネイティブWindows"
+        },
+        "cliPath": {
+          "name": "Codex CLIパス",
+          "desc": "ローカルCodex CLIへのカスタムパス。PATHから自動検出する場合は空欄にしてください。",
+          "descWindows": "ローカルCodex CLIへのカスタムパス。PATHから自動検出する場合は空欄にしてください。通常は`codex.exe`であるネイティブWindows実行ファイルのパスを使用します。",
+          "descWsl": "WSL内で実行するLinux側のCodexコマンドまたは絶対パス。選択したディストリビューション内でPATH検索する場合は空欄にしてください。",
+          "wslValidation": "WSLモードではWindows実行ファイルのパスではなく、LinuxコマンドまたはLinuxの絶対パスが必要です。"
+        },
+        "wslDistro": {
+          "name": "WSLディストリビューションの上書き",
+          "desc": "任意の詳細上書き。可能な場合はWSLワークスペースパスからディストリビューションを推定するため空欄にし、それ以外では既定のWSLディストリビューションを使用します。"
+        },
+        "customModels": {
+          "name": "カスタムモデル",
+          "desc": "追加のCodexモデルIDを1行に1つ選択肢へ追加します。設定されている場合、`OPENAI_MODEL`が引き続き優先されます。"
+        },
+        "reasoning": {
+          "name": "推論の要約",
+          "desc": "思考ブロックにモデルの推論プロセスの要約を表示します。",
+          "auto": "自動",
+          "concise": "簡潔",
+          "detailed": "詳細",
+          "off": "オフ"
+        },
+        "advancedSummary": "スキル、サブエージェント、MCP、起動設定",
+        "skills": {
+          "name": "Codexスキル",
+          "desc": ".codex/skills/または.agents/skills/に保存されたVaultレベルのCodexスキルを管理します。ホームレベルのスキルはここには含まれません。"
+        },
+        "hiddenSkills": {
+          "name": "非表示のスキル",
+          "desc": "特定のCodexスキルをドロップダウンから隠します。先頭の$を除いたスキル名を1行に1つ入力してください。"
+        },
+        "subagents": {
+          "name": "Codexサブエージェント",
+          "desc": ".codex/agents/に保存されたVaultレベルのCodexサブエージェントを管理します。各TOMLファイルは1つのカスタムエージェントを定義します。"
+        },
+        "mcp": {
+          "beforeCommand": "Codexは独自のCLIでMCPサーバーを管理します。次で設定すると",
+          "afterCommand": "Grimoireで利用できるようになります。"
+        },
+        "environment": {
+          "name": "Codex環境",
+          "desc": "Codex所有のランタイム変数のみ。OPENAI_*およびCODEX_*設定にはこれを使用してください。自動検出に問題がある場合は、Codexのインストールディレクトリを共有環境のPATHに追加してください。"
+        }
+      },
+      "qwen": {
+        "cliPath": {
+          "name": "Qwen CLIパス",
+          "desc": "ローカルQwen CLIへのカスタムパス。PATHから`qwen`を起動する場合は空欄にしてください。"
+        },
+        "advancedSummary": "非表示コマンド、環境変数、コンテキストの上書き",
+        "hiddenCommands": {
+          "name": "非表示のコマンド",
+          "desc": "Qwen Code ACPが報告した特定のコマンドを隠します。先頭のスラッシュを除いた名前を1行に1つ入力してください。",
+          "placeholder": "compact\nmemory\nstats"
+        },
+        "environment": {
+          "heading": "環境",
+          "name": "環境変数",
+          "desc": "`qwen`と`/auth`でQwen Codeの認証を設定します。DASHSCOPE_API_KEY、OPENAI_API_KEY、ANTHROPIC_API_KEYなどの任意のプロバイダー変数は渡されます。Grimoireはサインインを自動化しません。"
+        }
+      }
+    },
+    "agentEditor": {
+      "title": "{provider}サブエージェント",
+      "noAgents": "Vault内に{provider}サブエージェントはありません。+をクリックして作成してください。",
+      "modalTitleEdit": "{provider}サブエージェントを編集",
+      "modalTitleAdd": "{provider}サブエージェントを追加",
+      "nameDesc": "{provider}エージェント名。ネストしたエージェントにはスラッシュ区切りのセグメントを使用します。",
+      "namePlaceholder": "レビュー",
+      "descriptionDesc": "{provider}がこのサブエージェントを使用する条件",
+      "descriptionPlaceholder": "コードの正確性と保守性をレビューします",
+      "modelDesc": "プロバイダー/モデル形式のモデル上書き",
+      "variant": "バリアント",
+      "variantDesc": "モデルバリアントの上書き",
+      "temperature": "温度",
+      "temperatureDesc": "任意のサンプリング温度",
+      "topP": "Top p",
+      "topPDesc": "任意のnucleus sampling値",
+      "color": "色",
+      "colorDesc": "16進カラーまたはテーマトークン",
+      "steps": "ステップ",
+      "stepsDesc": "テキストのみの出力を強制するまでの最大エージェント反復回数",
+      "hideFromMention": "@mentionから隠す",
+      "hideFromMentionDesc": "このサブエージェントを@自動補完メニューから隠す",
+      "disableAgent": "エージェントを無効化",
+      "disableAgentDesc": "ファイルを削除せずにエージェントを無効化",
+      "enabledTools": "有効なツール（JSON）",
+      "enabledToolsDesc": "任意の非推奨ツールマップ。例: {\"write\":false,\"edit\":false}",
+      "permission": "権限（JSON）",
+      "permissionDesc": "任意の権限設定。例: {\"edit\":\"deny\",\"bash\":\"allow\"}",
+      "options": "オプション（JSON）",
+      "optionsDesc": "任意のカスタムエージェントオプション",
+      "promptDesc": "エージェントプロンプトに使用するMarkdown本文",
+      "promptPlaceholder": "コード変更を慎重にレビューし、正確性、リグレッション、不足するカバレッジを指摘してください。",
+      "badge": "サブエージェント",
+      "deleteFailed": "サブエージェントを削除できませんでした",
+      "unknownError": "不明なエラー",
+      "inherit": "継承",
+      "best": "最適",
+      "nameRequired": "エージェント名は必須です",
+      "pathSegmentsRequired": "エージェント名は先頭・末尾のスラッシュなしでスラッシュ区切りのパスセグメントを使用する必要があります",
+      "segmentEmpty": "エージェント名のパスセグメントを空または空白のみにはできません",
+      "segmentWhitespace": "エージェント名のパスセグメントの先頭・末尾を空白にはできません",
+      "dotSegments": "エージェント名に\".\"または\"..\"のパスセグメントを含めることはできません",
+      "reservedCharacters": "エージェント名のパスセグメントにWindowsで予約されたファイル名文字は使用できません",
+      "invalidNumber": "{label}は有効な数値である必要があります",
+      "invalidPositiveInteger": "{label}は正の整数である必要があります",
+      "invalidJson": "{label}は有効なJSONである必要があります",
+      "invalidJsonObject": "{label}はJSONオブジェクトである必要があります",
+      "invalidBooleanMap": "{label}はツール名を真偽値に対応付ける必要があります"
+    },
+    "codexSkills": {
+      "title": "Codexスキル",
+      "titleEdit": "Codexスキルを編集",
+      "titleAdd": "Codexスキルを追加",
+      "directory": "ディレクトリ",
+      "directoryDesc": "スキルの保存場所",
+      "name": "スキル名",
+      "nameDesc": "$の後に使用する名前（例: $analyzeの\"analyze\"）",
+      "descriptionDesc": "ドロップダウンに表示する任意の説明",
+      "instructions": "指示",
+      "instructionsDesc": "スキルの指示（SKILL.mdの内容）",
+      "instructionsPlaceholder": "コードを分析して...",
+      "instructionsRequired": "指示は必須です",
+      "saveFailed": "Codexスキルを保存できませんでした",
+      "noSkills": "Vault内にCodexスキルはありません。+をクリックして作成してください。",
+      "badge": "スキル",
+      "deleted": "Codexスキル\"${name}\"を削除しました",
+      "deleteFailed": "Codexスキルを削除できませんでした",
+      "updated": "Codexスキル\"${name}\"を更新しました",
+      "created": "Codexスキル\"${name}\"を作成しました"
+    },
+    "codexSubagents": {
+      "title": "Codexサブエージェント",
+      "titleEdit": "Codexサブエージェントを編集",
+      "titleAdd": "Codexサブエージェントを追加",
+      "nameDesc": "Codexが起動時に使用するエージェント名（小文字、ハイフン、アンダースコア）",
+      "descriptionDesc": "Codexがこのエージェントを使用する条件",
+      "modelDesc": "モデルの上書き（継承する場合は空欄）",
+      "reasoningEffort": "推論量",
+      "reasoningEffortDesc": "モデルの推論量レベル",
+      "sandboxMode": "サンドボックスモード",
+      "sandboxModeDesc": "このエージェントのサンドボックス制限",
+      "nicknameCandidates": "ニックネーム候補",
+      "nicknameCandidatesDesc": "カンマ区切りの表示ニックネーム（例: atlas, delta, echo）",
+      "developerInstructions": "開発者指示",
+      "developerInstructionsDesc": "エージェントの動作を定義する中核の指示",
+      "developerInstructionsPlaceholder": "所有者のようにコードをレビューします。\n正確性、セキュリティ、不足するテストカバレッジを優先してください。",
+      "developerInstructionsRequired": "開発者指示は必須です",
+      "nameRequired": "サブエージェント名は必須です",
+      "nameTooLong": "サブエージェント名は{count}文字以下にする必要があります",
+      "nameInvalid": "サブエージェント名には小文字、数字、ハイフン、アンダースコアのみ使用できます",
+      "nicknamesInvalid": "ニックネーム候補にはASCII文字、数字、空白、ハイフン、アンダースコアのみ使用できます",
+      "nicknamesUnique": "ニックネーム候補は一意である必要があります",
+      "noAgents": "Vault内にCodexサブエージェントはありません。+をクリックして作成してください。",
+      "deleteFailed": "サブエージェントを削除できませんでした",
+      "options": {
+        "inherit": "継承",
+        "low": "低",
+        "medium": "中",
+        "high": "高",
+        "extraHigh": "非常に高い",
+        "readOnly": "読み取り専用",
+        "dangerFullAccess": "危険なフルアクセス",
+        "workspaceWrite": "ワークスペースへの書き込み"
+      }
+    },
+    "slashCommandEditor": {
+      "skill": "スキル",
+      "slashCommand": "スラッシュコマンド",
+      "command": "コマンド",
+      "titleEdit": "{type}を編集",
+      "titleAdd": "{type}を追加",
+      "type": "種類",
+      "typeDesc": "コマンドまたはスキル",
+      "name": "コマンド名",
+      "nameDesc": "/の後に使用する名前（例: /reviewの\"review\"）",
+      "descriptionDesc": "ドロップダウンに表示する任意の説明",
+      "argumentHint": "引数のヒント",
+      "argumentHintDesc": "引数のプレースホルダーテキスト（例: \"[file] [focus]\"）",
+      "modelOverride": "モデルの上書き",
+      "modelOverrideDesc": "このコマンドで使用する任意のモデル",
+      "allowedTools": "許可するツール",
+      "allowedToolsDesc": "許可するツールのカンマ区切りリスト（空欄 = すべて）",
+      "disableModelInvocation": "モデルによる呼び出しを無効化",
+      "disableModelInvocationDesc": "モデル自身がこのコマンドを呼び出せないようにします",
+      "disableUserInvocation": "ユーザーによる呼び出しを無効化",
+      "disableUserInvocationDesc": "ユーザーがこのスキルを直接呼び出せないようにします",
+      "context": "コンテキスト",
+      "contextDesc": "サブエージェントで実行（fork）",
+      "agent": "エージェント",
+      "agentDesc": "コンテキストがforkの場合のサブエージェントタイプ",
+      "promptTemplate": "プロンプトテンプレート",
+      "promptTemplateDesc": "$ARGUMENTS、$1、$2、@file、!`bash`を使用",
+      "promptTemplatePlaceholder": "このコードを次の観点でレビューしてください:\n$ARGUMENTS\n\n@$1",
+      "promptRequired": "プロンプトテンプレートは必須です",
+      "commandExists": "\"/{name}\"というコマンドはすでに存在します",
+      "saveSkillFailed": "スキルを保存できませんでした",
+      "saveCommandFailed": "スラッシュコマンドを保存できませんでした",
+      "catalogUnavailable": "Claudeコマンドカタログを利用できません。",
+      "noEntries": "コマンドまたはスキルが設定されていません。+をクリックして作成してください。",
+      "skillBadge": "スキル",
+      "convertToSkill": "スキルに変換",
+      "convertFailed": "スキルに変換できませんでした",
+      "deleteSkillFailed": "スキルを削除できませんでした",
+      "deleteCommandFailed": "スラッシュコマンドを削除できませんでした",
+      "updated": "{type} \"/{name}\"を更新しました",
+      "created": "{type} \"/{name}\"を作成しました",
+      "deleted": "{type} \"/{name}\"を削除しました",
+      "skillExists": "\"/{name}\"というスキルはすでに存在します",
+      "converted": "\"/{name}\"をスキルに変換しました"
+    },
+    "mcp": {
+      "addStdio": "stdio（ローカルコマンド）",
+      "addRemote": "http / sse（リモート）",
+      "importClipboard": "クリップボードからインポート",
+      "noServers": "MCPサーバーが設定されていません。+をクリックして追加してください。",
+      "contextSavingTitle": "コンテキスト節約: @{server}に言及して有効化",
+      "verify": "検証（ツールを表示）",
+      "verificationFailed": "検証に失敗しました",
+      "reloadFailed": "設定は保存されましたが、再読み込みに失敗しました。変更は次回のセッションで適用されます。",
+      "saveFailed": "MCPサーバーを保存できませんでした",
+      "clipboardEmpty": "クリップボードは空です",
+      "clipboardInvalid": "クリップボードに有効なMCP設定がありません",
+      "enterServerName": "サーバー名を入力",
+      "clipboardReadFailed": "クリップボードを読み取れませんでした",
+      "serverExists": "サーバー\"{name}\"はすでに存在します",
+      "serverUpdated": "MCPサーバー\"{name}\"を更新しました",
+      "serverAdded": "MCPサーバー\"{name}\"を追加しました",
+      "unnamed": "<名称未設定>",
+      "noNewServers": "新しいMCPサーバーはインポートされませんでした",
+      "imported": "{count}個のMCPサーバーをインポートしました",
+      "importedWithSkipped": "{added}個のMCPサーバーをインポートしました（{skipped}件スキップ）",
+      "serverEnabled": "MCPサーバー\"{name}\"を有効化しました",
+      "serverDisabled": "MCPサーバー\"{name}\"を無効化しました",
+      "deleteConfirm": "MCPサーバー\"{name}\"を削除しますか？",
+      "serverDeleted": "MCPサーバー\"{name}\"を削除しました",
+      "modal": {
+        "titleEdit": "MCPサーバーを編集",
+        "titleAdd": "MCPサーバーを追加",
+        "serverName": "サーバー名",
+        "serverNameDesc": "このサーバーの一意の識別子",
+        "type": "種類",
+        "typeDesc": "サーバー接続タイプ",
+        "stdio": "stdio（ローカルコマンド）",
+        "sse": "SSE（サーバー送信イベント）",
+        "http": "HTTP（HTTPエンドポイント）",
+        "enabledDesc": "このサーバーを有効にするかどうか",
+        "contextSaving": "コンテキスト節約モード",
+        "contextSavingDesc": "@で言及された場合を除き、エージェントからツールを隠します（コンテキストウィンドウを節約）",
+        "command": "コマンド",
+        "commandDesc": "引数を含む完全なコマンド",
+        "environmentDesc": "1行にKEY=VALUE（任意）",
+        "url": "URL",
+        "sseUrlDesc": "SSEエンドポイントURL",
+        "httpUrlDesc": "HTTPエンドポイントURL",
+        "headers": "ヘッダー",
+        "headersDesc": "HTTPヘッダー（1行にKEY=VALUE）",
+        "serverNameRequired": "サーバー名を入力してください",
+        "serverNameInvalid": "サーバー名には文字、数字、ドット、ハイフン、アンダースコアのみ使用できます",
+        "commandRequired": "コマンドを入力してください",
+        "urlRequired": "URLを入力してください"
+      },
+      "test": {
+        "title": "検証: {server}",
+        "connecting": "MCPサーバーに接続中...",
+        "connected": "接続しました",
+        "connectedTo": "{server}に接続しました",
+        "connectedToVersion": "{server} v{version}に接続しました",
+        "connectionFailed": "接続に失敗しました",
+        "availableTools": "利用可能なツール（{count}）",
+        "noTools": "ツール情報はありません。チャットで使用するとツールが読み込まれます。",
+        "close": "閉じる",
+        "disableAll": "すべて無効化",
+        "enableAll": "すべて有効化",
+        "updateToolFailed": "ツール設定を更新できませんでした",
+        "permissionDenied": "権限が拒否されました。.claude/フォルダの権限を確認してください。",
+        "diskFull": "ディスク容量が不足しています。空き容量を確保して再試行してください。",
+        "configCorrupted": "設定ファイルが破損しています。.claude/mcp.jsonを確認してください。"
       }
     }
   }

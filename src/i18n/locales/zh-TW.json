@@ -191,6 +191,9 @@
           "plain": "歡迎回來！",
           "named": "歡迎回來，{name}！"
         },
+        "version": {
+          "name": "版本"
+        },
         "whatsNew": {
           "plain": "有什麼新鮮事？",
           "named": "有什麼新鮮事，{name}？"
@@ -214,6 +217,372 @@
         "summonContext": "先召喚脈絡，再說具體點。",
         "earnKeep": "讓這則筆記證明自己的價值。"
       }
+    },
+    "ui": {
+      "view": {
+        "all": "全部",
+        "chat": "聊天",
+        "context": "脈絡",
+        "contextMemoryTab": "脈絡記憶 · 分頁",
+        "conversation": "對話",
+        "current": "目前",
+        "currentTabViews": "目前分頁檢視",
+        "linked": "已連結",
+        "shownCount": "已顯示 {count} 項",
+        "sources": "來源",
+        "sourcesAndActions": "來源與動作",
+        "sourcesInTab": "分頁中的來源",
+        "vaultContextMemory": "vault 脈絡記憶",
+        "moreNotes": "+{count} 則筆記",
+        "matchScore": "符合度 {percent}%"
+      },
+      "composer": {
+        "jumpToLatest": "跳至最新訊息",
+        "placeholder": "請 Grimoire 編輯、搜尋、比較、生成或執行指令…",
+        "send": "傳送",
+        "sendMessage": "傳送訊息",
+        "stopResponse": "停止回覆",
+        "resizeInput": "拖曳以調整輸入框大小"
+      },
+      "model": {
+        "unknown": "未知",
+        "switching": "正在切換模型…",
+        "noneAvailable": "沒有可用模型",
+        "noMatch": "沒有模型符合「{query}」",
+        "models": "模型",
+        "searchAriaLabel": "搜尋模型",
+        "searchPlaceholder": "搜尋模型…",
+        "loading": "正在載入模型…",
+        "loadFailed": "無法載入模型",
+        "changeFailed": "無法切換模型",
+        "selectTooltip": "選擇模型"
+      },
+      "usage": {
+        "label": "使用量",
+        "fiveHourLimit": "5 小時限制",
+        "namedLimit": "{name} 限制",
+        "ariaWithPercent": "{plan} {limit}：已使用 {percent}%，將於 {reset} 重設",
+        "ariaWithoutPercent": "{plan} {limit}：將於 {reset} 重設",
+        "planUsage": "方案使用量",
+        "percentUsed": "已使用 {percent}%",
+        "resets": "於 {reset} 重設",
+        "weeklyPercent": "每週 {percent}%",
+        "weeklyUnavailable": "每週使用量不可用",
+        "updated": "更新於 {time}"
+      },
+      "toolbar": {
+        "modeChangeFailed": "無法變更模式",
+        "effort": "推理強度：",
+        "thinking": "思考：",
+        "high": "高",
+        "off": "關閉",
+        "tokens": "{count} 個權杖",
+        "effortChangeFailed": "無法變更推理強度",
+        "thinkingChangeFailed": "無法變更思考預算",
+        "permissionChangeFailed": "無法變更權限模式",
+        "plan": "計畫",
+        "serviceTierChangeFailed": "無法變更服務層級",
+        "toggleFastMode": "切換快速模式",
+        "modeTooltip": "工作模式",
+        "permissionSafe": "安全",
+        "permissionAuto": "自動",
+        "permissionPlan": "計畫",
+        "effortLevels": {
+          "low": "輕度",
+          "medium": "中",
+          "high": "高",
+          "xhigh": "極高",
+          "max": "最高"
+        }
+      },
+      "navigation": {
+        "scrollTop": "捲動至頂部",
+        "previousMessage": "上一則提問",
+        "directory": "對話目錄",
+        "nextMessage": "下一則提問",
+        "scrollBottom": "捲動至底部",
+        "empty": "此對話中尚無提問"
+      },
+      "externalContext": {
+        "removeFile": "移除外部檔案",
+        "removedInvalid": "已移除 {count} 個無效外部脈絡路徑：{paths}",
+        "cannotPersistMissing": "無法保留「{path}」— 路徑已不存在",
+        "noPath": "未提供路徑。用法：/add-dir /absolute/path",
+        "absolutePathRequired": "路徑必須為絕對路徑。用法：/add-dir /absolute/path",
+        "duplicate": "此資料夾已新增為外部脈絡。",
+        "selectTitle": "選取外部脈絡",
+        "pickerFailed": "無法開啟資料夾選擇器。",
+        "conflictInside": "無法新增「{path}」— 它位於既有路徑「{existing}」內",
+        "conflictContains": "無法新增「{path}」— 它包含既有路徑「{existing}」",
+        "header": "外部脈絡",
+        "empty": "點擊資料夾圖示以新增",
+        "makeSessionOnly": "持續保留（點擊後僅限此工作階段）",
+        "makePersistent": "僅限此工作階段（點擊後持續保留）",
+        "removePath": "移除路徑",
+        "countTitle": "{count} 個外部脈絡（點擊以新增更多）",
+        "files": "檔案",
+        "addTitle": "新增外部脈絡"
+      },
+      "mcp": {
+        "header": "MCP 伺服器",
+        "noneConfigured": "未設定 MCP 伺服器",
+        "allDisabled": "所有 MCP 伺服器皆已停用",
+        "contextSaving": "節省脈絡：也可透過 @{server} 啟用",
+        "enabledCount": "已啟用 {count} 個 MCP 伺服器（點擊以管理）",
+        "enableTitle": "MCP 伺服器（點擊以啟用）"
+      },
+      "contextUsage": {
+        "approachingLimit": "（即將達到限制，執行 `/compact` 以繼續）",
+        "ariaUsed": "已使用脈絡視窗 {percent}%",
+        "tokens": "{used} / {total} 個權杖",
+        "left": "剩餘 {count}",
+        "context": "脈絡",
+        "noneYet": "尚未使用脈絡",
+        "hint": "使用量會隨作用中分頁建立脈絡而顯示。"
+      },
+      "context": {
+        "noNoteSelected": "未選取筆記",
+        "boundToTab": "已綁定此聊天分頁",
+        "openNoteToBind": "開啟筆記以綁定至此聊天",
+        "active": "使用中",
+        "idle": "閒置",
+        "selectedFile": "已選取檔案",
+        "selectedFiles": "已選取檔案",
+        "filesBadge": "檔案",
+        "modelDetail": "{provider}{reasoning} · 已保留提供者狀態",
+        "modelBadge": "模型",
+        "attached": "已附加脈絡",
+        "linkedNotes": "{count} 則連結筆記 · {permission}",
+        "reasoningEffort": "{value} 推理強度",
+        "reasoningThinking": "{value} 思考",
+        "permissionPlanDescription": "執行工具前先規劃",
+        "permissionSafeDescription": "編輯檔案與寫入 MCP 前先詢問",
+        "planMode": "計畫模式",
+        "autoApprove": "自動核准",
+        "safeMode": "安全模式",
+        "loadedThisSession": "已於此工作階段載入"
+      },
+      "tabs": {
+        "createFailed": "無法建立分頁",
+        "newTab": "新增分頁",
+        "history": "聊天記錄",
+        "switchFailed": "無法切換分頁",
+        "closeFailed": "無法關閉分頁",
+        "maximumAllowed": "最多允許 {count} 個分頁",
+        "closeTab": "關閉分頁"
+      },
+      "messages": {
+        "interrupted": "已中斷",
+        "interruptedHint": "· Grimoire 應改做什麼？",
+        "conversationCompacted": "對話已壓縮",
+        "completed": "已完成",
+        "duration": "* {flavor}，持續 {duration}",
+        "copied": "已複製！",
+        "renderFailed": "無法呈現訊息內容。",
+        "copyMessage": "複製訊息",
+        "awaitingYou": "等待您的回覆"
+      },
+      "errors": {
+        "relevantNotesFailed": "相關筆記載入失敗：{error}",
+        "couldNotOpenFile": "無法開啟檔案：{path}",
+        "openFileFailed": "無法開啟檔案：{error}",
+        "providerSwitchBound": "無法在已綁定的工作階段切換提供者。請改用新分頁。",
+        "forkUnsupported": "此提供者不支援分支。",
+        "initializeFailed": "無法初始化聊天服務",
+        "loadConversationFailed": "無法載入對話",
+        "regenerateFailed": "無法重新生成回覆",
+        "deleteConversationFailed": "無法刪除對話",
+        "renameConversationFailed": "無法重新命名對話",
+        "initializeAgentFailed": "無法初始化代理服務，請再試一次。",
+        "agentUnavailable": "代理服務不可用，請重新載入外掛。",
+        "externalContextUnavailable": "外部脈絡選擇器不可用。",
+        "forkUnavailable": "分支不可用。",
+        "rewindUnsupported": "此提供者不支援倒回。",
+        "messageNotFound": "找不到訊息",
+        "agentServiceUnavailable": "代理服務不可用",
+        "unknown": "未知錯誤",
+        "saveFailed": "無法儲存"
+      },
+      "history": {
+        "title": "歷史記錄",
+        "close": "關閉歷史記錄",
+        "searchPlaceholder": "搜尋過往聊天…",
+        "empty": "沒有過往聊天",
+        "noMatches": "沒有符合項目",
+        "current": "目前",
+        "openNewTab": "在新分頁開啟",
+        "generatingTitle": "正在生成標題…",
+        "regenerateTitle": "重新生成標題",
+        "today": "今天",
+        "yesterday": "昨天",
+        "earlier": "更早",
+        "sourceCount": "{count} 個來源",
+        "now": "現在",
+        "openBackgroundTab": "在背景分頁開啟",
+        "switchOpenSession": "切換至已開啟的工作階段",
+        "rename": "重新命名",
+        "noneToResume": "沒有可繼續的對話"
+      },
+      "thinking": {
+        "expandAriaLabel": "延伸思考 — 點擊以展開",
+        "inProgress": "思考中 {seconds} 秒…",
+        "completed": "已思考 {seconds} 秒",
+        "thought": "思考"
+      },
+      "ask": {
+        "question": "問題",
+        "needsDetail": "需要補充細節",
+        "questionCount": "Grimoire 會在繼續前詢問 {count} 個問題",
+        "single": "單選",
+        "multiple": "多選",
+        "optional": "選填",
+        "answerPlaceholder": "輸入您的回答…",
+        "decideForMe": "替我決定",
+        "sendAnswers": "傳送回答",
+        "expand": "展開問題",
+        "collapse": "收合問題",
+        "option": "選項",
+        "questionCountOne": "Grimoire 會在繼續前詢問 {count} 個問題",
+        "questionCountMany": "Grimoire 會在繼續前詢問 {count} 個問題"
+      },
+      "permission": {
+        "required": "需要權限",
+        "commandPreview": "指令預覽：{command}",
+        "agent": "代理：{agent}",
+        "reject": "拒絕",
+        "tool": "工具",
+        "runShellCommand": "Grimoire 想執行 shell 指令",
+        "useTool": "Grimoire 想使用 {tool}",
+        "providerRequestedCommand": "{provider} 請求執行此指令的權限。",
+        "shellCommand": "shell 指令"
+      },
+      "plan": {
+        "requestedPermissions": "請求的權限：",
+        "approveCurrentSession": "核准（目前工作階段）",
+        "continueFeedbackPlaceholder": "輸入意見以繼續規劃…",
+        "keyboardHints": "方向鍵可瀏覽 · Enter 可選取 · Esc 可取消",
+        "complete": "計畫完成",
+        "reviewBeforeProceeding": "繼續前請檢閱計畫",
+        "label": "計畫",
+        "expand": "展開計畫",
+        "collapse": "收合計畫",
+        "implement": "實作",
+        "reviseFeedbackPlaceholder": "輸入意見以修訂計畫…"
+      },
+      "images": {
+        "dropHere": "將圖片拖放至此",
+        "unsupportedProvider": "此提供者不支援圖片附件。",
+        "sizeLimit": "圖片超過 {size} 限制。",
+        "unsupportedType": "不支援的圖片類型。",
+        "attachFailed": "無法附加圖片。",
+        "remove": "移除圖片",
+        "fileNotFound": "（找不到檔案）",
+        "permissionDenied": "（權限遭拒）"
+      },
+      "queue": {
+        "steering": "正在引導…",
+        "steerNow": "立即引導",
+        "steerFailed": "無法引導佇列中的 Codex 訊息，該訊息仍可使用。"
+      },
+      "instructions": {
+        "added": "已將指示加入自訂系統提示",
+        "noneReceived": "未收到指示",
+        "processFailed": "無法處理回覆",
+        "refineFailed": "無法精煉指示"
+      },
+      "commands": {
+        "imageUsage": "用法：/image <prompt>"
+      },
+      "progress": {
+        "working": "處理中",
+        "stillWorking": "仍在處理中",
+        "blocked": "已阻擋",
+        "completed": "已完成"
+      },
+      "status": {
+        "aria": "狀態：{status}",
+        "initializing": "初始化中",
+        "running": "執行中",
+        "runningEllipsis": "執行中…",
+        "completed": "已完成",
+        "blocked": "已阻擋",
+        "error": "錯誤",
+        "orphaned": "孤立",
+        "inProgress": "進行中",
+        "errorUpper": "錯誤",
+        "doneUpper": "完成"
+      },
+      "subagent": {
+        "task": "子代理工作",
+        "noPrompt": "未提供提示",
+        "expandAria": "子代理工作：{description} — 狀態：{status} — 點擊以展開",
+        "result": "結果",
+        "prompt": "提示",
+        "runningBackground": "在背景執行中",
+        "backgroundExpandAria": "背景工作：{description} — {status} — 點擊以展開",
+        "endedEarly": "工作完成前對話已結束",
+        "backgroundTask": "背景工作"
+      },
+      "tools": {
+        "noChanges": "沒有變更",
+        "openPage": "開啟頁面",
+        "urlUnavailable": "URL 不可用",
+        "findInPage": "在頁面中尋找",
+        "query": "查詢：{query}",
+        "searchWeb": "搜尋網路",
+        "noResult": "沒有結果",
+        "noMatches": "找不到符合項目",
+        "showPreview": "顯示預覽",
+        "showAll": "全部顯示",
+        "fileDeleted": "檔案已刪除",
+        "noTextDiff": "沒有可用的文字 diff",
+        "tasksUpdated": "工作已更新",
+        "waitingForAnswer": "等待回答中…",
+        "pattern": "模式：{pattern}",
+        "altQuery": "替代查詢：{query}",
+        "moreQueries": "…另外 {count} 個查詢",
+        "tasksProgress": "工作 {completed}/{total}",
+        "tasks": "工作",
+        "enteringPlanMode": "正在進入計畫模式",
+        "ranCommand": "已執行指令",
+        "runCommand": "執行指令",
+        "readNote": "已讀取筆記",
+        "readingNote": "正在讀取筆記",
+        "wroteFile": "已寫入檔案",
+        "writingFile": "正在寫入檔案",
+        "editedFile": "已編輯檔案",
+        "editingFile": "正在編輯檔案",
+        "globbingFiles": "正在以 glob 尋找檔案",
+        "globbedFiles": "已透過 glob 找到檔案",
+        "searchingFiles": "正在搜尋檔案",
+        "searchedFiles": "已搜尋檔案",
+        "listingFiles": "正在列出檔案",
+        "listedFiles": "已列出檔案",
+        "searchingWeb": "正在搜尋網路",
+        "searchedWeb": "已搜尋網路",
+        "fetchingPage": "正在擷取頁面",
+        "fetchedPage": "已擷取頁面",
+        "searchingTools": "正在搜尋工具",
+        "searchedTools": "已搜尋工具",
+        "applyingPatch": "正在套用 patch",
+        "appliedPatch": "已套用 patch",
+        "sentInput": "已傳送輸入",
+        "loadedSkill": "已載入技能",
+        "searchingVault": "正在搜尋 vault",
+        "searchedVault": "已搜尋 vault",
+        "runningTools": "正在執行工具",
+        "ranTools": "已執行工具",
+        "queryCount": "{count} 個查詢",
+        "stepCount": "{count} 個步驟",
+        "writingEllipsis": "正在寫入…",
+        "queryCountOne": "{count} 個查詢",
+        "queryCountMany": "{count} 個查詢",
+        "stepCountOne": "{count} 個步驟",
+        "stepCountMany": "{count} 個步驟"
+      },
+      "responseMetadata": {
+        "effort": "推理強度 {value}"
+      }
     }
   },
   "settings": {
@@ -221,7 +590,9 @@
     "tabs": {
       "general": "一般",
       "claude": "Claude",
-      "codex": "Codex"
+      "codex": "Codex",
+      "scrollBackward": "向左捲動設定分頁",
+      "scrollForward": "向右捲動設定分頁"
     },
     "display": "顯示",
     "conversations": "對話",
@@ -245,7 +616,8 @@
     },
     "mediaFolder": {
       "name": "媒體資料夾",
-      "desc": "存放附件/圖片的資料夾。當筆記使用 ![[image.jpg]] 時，Claude 會在此查找。留空使用儲存庫根目錄。"
+      "desc": "存放附件/圖片的資料夾。當筆記使用 ![[image.jpg]] 時，Claude 會在此查找。留空使用儲存庫根目錄。",
+      "placeholder": "附件"
     },
     "systemPrompt": {
       "name": "自訂系統提示詞",
@@ -365,7 +737,8 @@
         "prompt": "系統提示詞",
         "promptDesc": "給代理的指示",
         "promptPlaceholder": "你是一名程式碼審查員。請分析給定的程式碼..."
-      }
+      },
+      "loadFailed": "無法載入子代理「{name}」：{message}"
     },
     "environment": "環境",
     "customVariables": {
@@ -389,7 +762,14 @@
         "save": "保存",
         "update": "更新",
         "cancel": "取消"
-      }
+      },
+      "insert": "插入",
+      "insertFailed": "無法插入片段",
+      "deleteConfirm": "要刪除環境變數片段「{name}」嗎？",
+      "deleteFailed": "無法刪除片段",
+      "saved": "環境變數片段「{name}」已儲存",
+      "updated": "環境變數片段「{name}」已更新",
+      "deleted": "環境變數片段「{name}」已刪除"
     },
     "customModelOverrides": {
       "name": "自訂模型覆寫",
@@ -493,6 +873,30 @@
     "providers": {
       "grok": {
         "desc": "xAI 的 agentic coding CLI，支援 plan mode、subagents、skills 和 MCP。"
+      },
+      "claude": {
+        "desc": "Anthropic 的代理式 CLI。建議作為預設值。"
+      },
+      "codex": {
+        "desc": "OpenAI 的程式設計代理。"
+      },
+      "antigravity": {
+        "desc": "Google 新推出的多模型代理 CLI。建議的 Google 提供者。"
+      },
+      "gemini": {
+        "desc": "供 Standard、Enterprise 及付費 API 金鑰使用者使用的舊版 Gemini CLI。"
+      },
+      "opencode": {
+        "desc": "開放原始碼、多供應商，提供最廣泛的模型目錄。"
+      },
+      "mimocode": {
+        "desc": "小米的 OpenCode 分支，具備持久記憶與脈絡管理功能。"
+      },
+      "kimicode": {
+        "desc": "MoonshotAI 的多提供者代理 CLI，支援 Kimi、OpenAI、Anthropic 與 Gemini。"
+      },
+      "qwen": {
+        "desc": "透過原生 Agent Client Protocol 執行的阿里巴巴 Qwen Code。"
       }
     },
     "grok": {
@@ -576,6 +980,394 @@
       },
       "environment": {
         "desc": "傳遞給 Grok 的額外環境變數。預設啟用 `GROK_ENABLE_EXA=1`。"
+      }
+    },
+    "version": {
+      "name": "版本"
+    },
+    "whatsNew": "最新消息",
+    "noReleaseNotes": "此版本的 Grimoire 未隨附版本說明。",
+    "learnMore": "瞭解更多",
+    "environmentReview": "檢閱下列項目的環境歸屬：{keys}",
+    "search": {
+      "description": "設定 Grimoire、其工作區與提供者整合。",
+      "providers": "提供者",
+      "models": "模型",
+      "permissions": "權限",
+      "environmentVariables": "環境變數",
+      "projectWorkspace": "專案工作區",
+      "title": "Grimoire 設定"
+    },
+    "advanced": {
+      "title": "進階設定",
+      "generalSummary": "提示、快速鍵、診斷、環境變數及更多項目",
+      "environmentSummary": "環境變數與脈絡覆寫",
+      "providerSummary": "指令、子代理、環境與脈絡覆寫"
+    },
+    "provider": {
+      "enableName": "啟用 {provider}",
+      "disabledTitle": "{provider} 已停用。",
+      "disabledDesc": "在上方啟用此提供者，以使用這些設定並在模型選擇器顯示其模型。",
+      "fallbackDesc": "{provider} 提供者。",
+      "loadModelsFailed": "無法載入提供者模型。",
+      "contextWindowLabel": "{model} 的脈絡視窗"
+    },
+    "providerModelPicker": {
+      "browseModels": "瀏覽模型",
+      "searchPlaceholder": "依模型、提供者或 ID 篩選…",
+      "visibleLabel": "可見：",
+      "summaryDiscovered": "已發現 {total} 個，其中 {count} 個 {providerWord}",
+      "providerSingular": "提供者",
+      "providerPlural": "提供者",
+      "noDiscovered": "尚未發現模型",
+      "loadingModels": "正在載入模型…",
+      "availableCount": "{count} 個可用",
+      "selectedCount": "已選取（{count}）",
+      "clearSelected": "清除所有已選取模型",
+      "notReported": "{provider} 目前未回報",
+      "aliasLabel": "{model} 的別名",
+      "aliasTitle": "在模型選擇器顯示的自訂標籤。留空以使用預設值。",
+      "removeModel": "移除 {model}",
+      "allProviders": "所有提供者（{count}）",
+      "noMatch": "沒有模型符合篩選條件。",
+      "loadingCatalog": "正在載入 {provider} 模型目錄…",
+      "loadFailed": "無法載入 {provider} 模型目錄。請檢查 CLI 路徑與登入狀態，然後再次展開此區段。",
+      "startToLoad": "請先啟動一次 {provider} 以載入其模型目錄。之後 Grimoire 可讓您選擇要顯示的模型。",
+      "unavailable": "不可用",
+      "unavailableTitle": "{provider} 目前未回報已設定的模型"
+    },
+    "sharedEnvironment": {
+      "name": "共用環境",
+      "desc": "所有提供者共用、與提供者無關的執行期變數。用於 PATH、Proxy、憑證及暫存目錄變數。"
+    },
+    "providerTabs": {
+      "environmentVariables": "環境變數",
+      "acp": {
+        "cliPath": {
+          "name": "{provider} CLI 路徑",
+          "desc": "本機 {provider} 指令的自訂路徑。留空則自動偵測。"
+        },
+        "visibleModels": {
+          "name": "可見模型",
+          "desc": "選擇要在聊天選擇器顯示的 {provider} 模型。可依提供者或類型篩選。"
+        },
+        "commandsDesc": "{provider} 可自動偵測 .claude/commands/ 中 vault 層級的 Claude slash 指令，以及 .claude/skills/、.codex/skills/ 與 .agents/skills/ 中的技能。請在 Claude 或 Codex 設定分頁管理這些項目。此設定僅會從 {provider} 下拉選單隱藏項目。",
+        "hiddenCommandsDesc": "從下拉選單隱藏指定的 {provider} 指令與技能。每行輸入一個不含開頭斜線的名稱。",
+        "subagentsDesc": "從 {root} 與舊版位置 {legacyRoot} 管理 vault 層級的 {provider} 子代理。新項目會儲存為僅供子代理使用的檔案，並顯示在 @mention 選單。",
+        "environmentDesc": "僅限 {provider} 擁有的執行期變數，包括 {environmentVariable}=1。請用於提供者專屬設定；共用的 PATH、Proxy 與憑證變數請放在共用環境。"
+      },
+      "antigravity": {
+        "windowsLimitations": {
+          "name": "Windows CLI 限制",
+          "desc": "在 Windows 上，目前的 agy 版本可能成功結束，卻為模型探索與列印回覆傳回空白 stdout。Grimoire 會在可能時使用轉錄、設定與備援復原，但 Antigravity 在 Windows 上可能不如 macOS 或 Linux 穩定。"
+        },
+        "cliPath": {
+          "name": "Antigravity CLI 路徑",
+          "desc": "本機 agy 指令的自訂路徑。留空則自動偵測。"
+        },
+        "customModels": {
+          "name": "自訂模型",
+          "desc": "將 Antigravity 模型標籤加入選擇器，每行一個。Windows 探索不完整時，請使用 agy 模型切換器顯示的確切標籤。"
+        },
+        "environmentDesc": "傳遞給 Antigravity CLI 的額外環境變數，例如 GOOGLE_CLOUD_PROJECT。"
+      },
+      "gemini": {
+        "cliPath": {
+          "name": "Gemini CLI 路徑",
+          "desc": "本機 Gemini CLI 的自訂路徑。留空則從 PATH 啟動 `gemini`。"
+        },
+        "environmentDesc": "傳遞給 Gemini CLI 的額外環境變數，例如 GEMINI_API_KEY 或 GOOGLE_CLOUD_PROJECT。"
+      },
+      "claude": {
+        "advancedSummary": "指令、代理、MCP、環境與實驗功能",
+        "environmentDesc": "僅限 Claude 擁有的執行期變數。用於 ANTHROPIC_* 與 Claude 專屬切換設定。"
+      },
+      "codex": {
+        "installationMethod": {
+          "name": "安裝方式",
+          "desc": "Grimoire 在 Windows 上啟動 Codex 的方式。原生 Windows 使用 Windows 可執行檔路徑；WSL 會在選取的發行版本內啟動 Linux CLI。",
+          "nativeWindows": "原生 Windows"
+        },
+        "cliPath": {
+          "name": "Codex CLI 路徑",
+          "desc": "本機 Codex CLI 的自訂路徑。留空則從 PATH 自動偵測。",
+          "descWindows": "本機 Codex CLI 的自訂路徑。留空則從 PATH 自動偵測。請使用原生 Windows 可執行檔路徑，通常為 `codex.exe`。",
+          "descWsl": "要在 WSL 內執行的 Linux 端 Codex 指令或絕對路徑。留空則在選取的發行版本內查詢 PATH。",
+          "wslValidation": "WSL 模式需要 Linux 指令或 Linux 絕對路徑，而非 Windows 可執行檔路徑。"
+        },
+        "wslDistro": {
+          "name": "WSL 發行版本覆寫",
+          "desc": "可選的進階覆寫。留空時會盡可能從 WSL 工作區路徑推斷發行版本；否則使用預設 WSL 發行版本。"
+        },
+        "customModels": {
+          "name": "自訂模型",
+          "desc": "將額外的 Codex 模型 ID 加入選擇器，每行一個。設定時 `OPENAI_MODEL` 仍具有優先權。"
+        },
+        "reasoning": {
+          "name": "推理摘要",
+          "desc": "在思考區塊顯示模型推理過程的摘要。",
+          "auto": "自動",
+          "concise": "精簡",
+          "detailed": "詳細",
+          "off": "關閉"
+        },
+        "advancedSummary": "技能、子代理、MCP 與啟動設定",
+        "skills": {
+          "name": "Codex 技能",
+          "desc": "管理儲存在 .codex/skills/ 或 .agents/skills/ 的 vault 層級 Codex 技能。此處不包含主目錄層級技能。"
+        },
+        "hiddenSkills": {
+          "name": "隱藏技能",
+          "desc": "從下拉選單隱藏指定 Codex 技能。每行輸入一個不含開頭 $ 的技能名稱。"
+        },
+        "subagents": {
+          "name": "Codex 子代理",
+          "desc": "管理儲存在 .codex/agents/ 的 vault 層級 Codex 子代理。每個 TOML 檔案定義一個自訂代理。"
+        },
+        "mcp": {
+          "beforeCommand": "Codex 透過自己的 CLI 管理 MCP 伺服器。請使用 ",
+          "afterCommand": " 設定，之後即可在 Grimoire 中使用。"
+        },
+        "environment": {
+          "name": "Codex 環境",
+          "desc": "僅限 Codex 擁有的執行期變數。用於 OPENAI_* 與 CODEX_* 設定。若自動偵測需要協助，請改將 Codex 安裝目錄加入共用環境的 PATH。"
+        }
+      },
+      "qwen": {
+        "cliPath": {
+          "name": "Qwen CLI 路徑",
+          "desc": "Qwen CLI 的本機路徑。留空則從 PATH 啟動 `qwen`。"
+        },
+        "advancedSummary": "隱藏命令、環境變數與上下文覆寫",
+        "hiddenCommands": {
+          "name": "隱藏的命令",
+          "desc": "隱藏 Qwen Code ACP 回報的指定命令。每行輸入一個不含斜線前綴的名稱。",
+          "placeholder": "compact\nmemory\nstats"
+        },
+        "environment": {
+          "heading": "環境",
+          "name": "環境變數",
+          "desc": "使用 `qwen` 與 `/auth` 設定 Qwen Code 驗證。DASHSCOPE_API_KEY、OPENAI_API_KEY、ANTHROPIC_API_KEY 等選用供應商變數會原樣傳遞；Grimoire 不會自動登入。"
+        }
+      }
+    },
+    "agentEditor": {
+      "title": "{provider} 子代理",
+      "noAgents": "vault 中沒有 {provider} 子代理。點擊 + 以建立一個。",
+      "modalTitleEdit": "編輯 {provider} 子代理",
+      "modalTitleAdd": "新增 {provider} 子代理",
+      "nameDesc": "{provider} 代理名稱。巢狀代理請使用斜線分隔的區段。",
+      "namePlaceholder": "審查",
+      "descriptionDesc": "{provider} 應在何時使用此子代理",
+      "descriptionPlaceholder": "審查程式碼的正確性與可維護性",
+      "modelDesc": "提供者/模型格式的模型覆寫",
+      "variant": "變體",
+      "variantDesc": "模型變體覆寫",
+      "temperature": "溫度",
+      "temperatureDesc": "可選的取樣溫度",
+      "topP": "Top p",
+      "topPDesc": "可選的 nucleus 取樣值",
+      "color": "顏色",
+      "colorDesc": "十六進位顏色或主題權杖",
+      "steps": "步驟",
+      "stepsDesc": "強制只輸出文字前的最大代理迭代次數",
+      "hideFromMention": "從 @mention 隱藏",
+      "hideFromMentionDesc": "從 @ 自動完成選單隱藏此子代理",
+      "disableAgent": "停用代理",
+      "disableAgentDesc": "停用代理但不刪除檔案",
+      "enabledTools": "已啟用工具（JSON）",
+      "enabledToolsDesc": "可選的已棄用工具對應表，例如 {\"write\":false,\"edit\":false}",
+      "permission": "權限（JSON）",
+      "permissionDesc": "可選的權限設定，例如 {\"edit\":\"deny\",\"bash\":\"allow\"}",
+      "options": "選項（JSON）",
+      "optionsDesc": "可選的自訂代理選項",
+      "promptDesc": "作為代理提示使用的 Markdown 內文",
+      "promptPlaceholder": "請仔細審查程式碼變更，並指出正確性、回歸與缺少的測試覆蓋。",
+      "badge": "子代理",
+      "deleteFailed": "無法刪除子代理",
+      "unknownError": "未知錯誤",
+      "inherit": "繼承",
+      "best": "最佳",
+      "nameRequired": "代理名稱為必填",
+      "pathSegmentsRequired": "代理名稱必須使用斜線分隔的路徑區段，且開頭或結尾不得有斜線",
+      "segmentEmpty": "代理名稱的路徑區段不得為空白或僅含空白字元",
+      "segmentWhitespace": "代理名稱的路徑區段開頭或結尾不得含空白字元",
+      "dotSegments": "代理名稱不得包含「.」或「..」路徑區段",
+      "reservedCharacters": "代理名稱的路徑區段不得含有 Windows 保留的檔名字元",
+      "invalidNumber": "{label} 必須是有效數字",
+      "invalidPositiveInteger": "{label} 必須是正整數",
+      "invalidJson": "{label} 必須是有效 JSON",
+      "invalidJsonObject": "{label} 必須是 JSON 物件",
+      "invalidBooleanMap": "{label} 必須將工具名稱對應至布林值"
+    },
+    "codexSkills": {
+      "title": "Codex 技能",
+      "titleEdit": "編輯 Codex 技能",
+      "titleAdd": "新增 Codex 技能",
+      "directory": "目錄",
+      "directoryDesc": "儲存技能的位置",
+      "name": "技能名稱",
+      "nameDesc": "$ 後使用的名稱（例如 $analyze 的 \"analyze\"）",
+      "descriptionDesc": "顯示於下拉選單的可選描述",
+      "instructions": "指示",
+      "instructionsDesc": "技能指示（SKILL.md 內容）",
+      "instructionsPlaceholder": "分析程式碼以尋找…",
+      "instructionsRequired": "必須提供指示",
+      "saveFailed": "無法儲存 Codex 技能",
+      "noSkills": "vault 中沒有 Codex 技能。點擊 + 以建立一個。",
+      "badge": "技能",
+      "deleted": "Codex 技能 \"${name}\" 已刪除",
+      "deleteFailed": "無法刪除 Codex 技能",
+      "updated": "Codex 技能 \"${name}\" 已更新",
+      "created": "Codex 技能 \"${name}\" 已建立"
+    },
+    "codexSubagents": {
+      "title": "Codex 子代理",
+      "titleEdit": "編輯 Codex 子代理",
+      "titleAdd": "新增 Codex 子代理",
+      "nameDesc": "Codex 建立時使用的代理名稱（小寫、連字號、底線）",
+      "descriptionDesc": "Codex 應在何時使用此代理",
+      "modelDesc": "模型覆寫（留空以繼承）",
+      "reasoningEffort": "推理強度",
+      "reasoningEffortDesc": "模型的推理強度等級",
+      "sandboxMode": "沙箱模式",
+      "sandboxModeDesc": "此代理的沙箱限制",
+      "nicknameCandidates": "候選暱稱",
+      "nicknameCandidatesDesc": "以逗號分隔的顯示暱稱（例如 atlas、delta、echo）",
+      "developerInstructions": "開發者指示",
+      "developerInstructionsDesc": "定義代理行為的核心指示",
+      "developerInstructionsPlaceholder": "以擁有者的角度審查程式碼。\n優先考慮正確性、安全性與缺少的測試覆蓋。",
+      "developerInstructionsRequired": "必須提供開發者指示",
+      "nameRequired": "子代理名稱為必填",
+      "nameTooLong": "子代理名稱最多只能有 {count} 個字元",
+      "nameInvalid": "子代理名稱只能包含小寫字母、數字、連字號與底線",
+      "nicknamesInvalid": "候選暱稱只能包含 ASCII 字母、數字、空格、連字號與底線",
+      "nicknamesUnique": "候選暱稱不得重複",
+      "noAgents": "vault 中沒有 Codex 子代理。點擊 + 以建立一個。",
+      "deleteFailed": "無法刪除子代理",
+      "options": {
+        "inherit": "繼承",
+        "low": "低",
+        "medium": "中",
+        "high": "高",
+        "extraHigh": "極高",
+        "readOnly": "唯讀",
+        "dangerFullAccess": "危險：完整存取",
+        "workspaceWrite": "工作區寫入"
+      }
+    },
+    "slashCommandEditor": {
+      "skill": "技能",
+      "slashCommand": "Slash 指令",
+      "command": "指令",
+      "titleEdit": "編輯 {type}",
+      "titleAdd": "新增 {type}",
+      "type": "類型",
+      "typeDesc": "指令或技能",
+      "name": "指令名稱",
+      "nameDesc": "/ 後使用的名稱（例如 /review 的 \"review\"）",
+      "descriptionDesc": "顯示於下拉選單的可選描述",
+      "argumentHint": "引數提示",
+      "argumentHintDesc": "引數的預留位置文字（例如 \"[file] [focus]\"）",
+      "modelOverride": "模型覆寫",
+      "modelOverrideDesc": "此指令可選用的模型",
+      "allowedTools": "允許的工具",
+      "allowedToolsDesc": "以逗號分隔的允許工具清單（留空 = 全部）",
+      "disableModelInvocation": "停用模型呼叫",
+      "disableModelInvocationDesc": "禁止模型自行呼叫此指令",
+      "disableUserInvocation": "停用使用者呼叫",
+      "disableUserInvocationDesc": "禁止使用者直接呼叫此技能",
+      "context": "脈絡",
+      "contextDesc": "在子代理中執行（分支）",
+      "agent": "代理",
+      "agentDesc": "脈絡為分支時的子代理類型",
+      "promptTemplate": "提示模板",
+      "promptTemplateDesc": "使用 $ARGUMENTS、$1、$2、@file、!`bash`",
+      "promptTemplatePlaceholder": "審查此程式碼的：\n$ARGUMENTS\n\n@$1",
+      "promptRequired": "必須提供提示模板",
+      "commandExists": "名為 \"/{name}\" 的指令已存在",
+      "saveSkillFailed": "無法儲存技能",
+      "saveCommandFailed": "無法儲存 Slash 指令",
+      "catalogUnavailable": "Claude 指令目錄不可用。",
+      "noEntries": "未設定指令或技能。點擊 + 以建立一個。",
+      "skillBadge": "技能",
+      "convertToSkill": "轉換為技能",
+      "convertFailed": "無法轉換為技能",
+      "deleteSkillFailed": "無法刪除技能",
+      "deleteCommandFailed": "無法刪除 Slash 指令",
+      "updated": "{type} \"/{name}\" 已更新",
+      "created": "{type} \"/{name}\" 已建立",
+      "deleted": "{type} \"/{name}\" 已刪除",
+      "skillExists": "名為 \"/{name}\" 的技能已存在",
+      "converted": "已將 \"/{name}\" 轉換為技能"
+    },
+    "mcp": {
+      "addStdio": "stdio（本機指令）",
+      "addRemote": "http / sse（遠端）",
+      "importClipboard": "從剪貼簿匯入",
+      "noServers": "未設定 MCP 伺服器。點擊 + 以新增一個。",
+      "contextSavingTitle": "節省脈絡：提及 @{server} 以啟用",
+      "verify": "驗證（顯示工具）",
+      "verificationFailed": "驗證失敗",
+      "reloadFailed": "設定已儲存，但無法重新載入。變更將在下一個工作階段套用。",
+      "saveFailed": "無法儲存 MCP 伺服器",
+      "clipboardEmpty": "剪貼簿是空的",
+      "clipboardInvalid": "剪貼簿中找不到有效的 MCP 設定",
+      "enterServerName": "輸入伺服器名稱",
+      "clipboardReadFailed": "無法讀取剪貼簿",
+      "serverExists": "伺服器 \"{name}\" 已存在",
+      "serverUpdated": "MCP 伺服器 \"{name}\" 已更新",
+      "serverAdded": "MCP 伺服器 \"{name}\" 已新增",
+      "unnamed": "<未命名>",
+      "noNewServers": "未匯入新的 MCP 伺服器",
+      "imported": "已匯入 {count} 個 MCP 伺服器",
+      "importedWithSkipped": "已匯入 {added} 個 MCP 伺服器（略過 {skipped} 個）",
+      "serverEnabled": "MCP 伺服器 \"{name}\" 已啟用",
+      "serverDisabled": "MCP 伺服器 \"{name}\" 已停用",
+      "deleteConfirm": "要刪除 MCP 伺服器 \"{name}\" 嗎？",
+      "serverDeleted": "MCP 伺服器 \"{name}\" 已刪除",
+      "modal": {
+        "titleEdit": "編輯 MCP 伺服器",
+        "titleAdd": "新增 MCP 伺服器",
+        "serverName": "伺服器名稱",
+        "serverNameDesc": "此伺服器的唯一識別字",
+        "type": "類型",
+        "typeDesc": "伺服器連線類型",
+        "stdio": "stdio（本機指令）",
+        "sse": "SSE（伺服器傳送事件）",
+        "http": "HTTP（HTTP 端點）",
+        "enabledDesc": "此伺服器是否啟用",
+        "contextSaving": "節省脈絡模式",
+        "contextSavingDesc": "除非以 @ 提及，否則對代理隱藏工具（節省脈絡視窗）",
+        "command": "指令",
+        "commandDesc": "含引數的完整指令",
+        "environmentDesc": "每行一個 KEY=VALUE（可選）",
+        "url": "URL",
+        "sseUrlDesc": "SSE 端點 URL",
+        "httpUrlDesc": "HTTP 端點 URL",
+        "headers": "標頭",
+        "headersDesc": "HTTP 標頭（每行一個 KEY=VALUE）",
+        "serverNameRequired": "請輸入伺服器名稱",
+        "serverNameInvalid": "伺服器名稱只能包含字母、數字、句點、連字號與底線",
+        "commandRequired": "請輸入指令",
+        "urlRequired": "請輸入 URL"
+      },
+      "test": {
+        "title": "驗證：{server}",
+        "connecting": "正在連線至 MCP 伺服器…",
+        "connected": "已成功連線",
+        "connectedTo": "已成功連線至 {server}",
+        "connectedToVersion": "已成功連線至 {server} v{version}",
+        "connectionFailed": "連線失敗",
+        "availableTools": "可用工具（{count}）",
+        "noTools": "沒有可用的工具資訊。工具會在聊天中使用時載入。",
+        "close": "關閉",
+        "disableAll": "全部停用",
+        "enableAll": "全部啟用",
+        "updateToolFailed": "無法更新工具設定",
+        "permissionDenied": "權限遭拒。請檢查 .claude/ 資料夾權限。",
+        "diskFull": "磁碟已滿。請釋放空間後再試。",
+        "configCorrupted": "設定檔已毀損。請檢查 .claude/mcp.json。"
       }
     }
   }
