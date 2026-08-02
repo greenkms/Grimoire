@@ -2,21 +2,22 @@ import type { App } from 'obsidian';
 import { Modal, Notice, setIcon } from 'obsidian';
 
 import type { McpTestResult, McpTool } from '../../../core/mcp/McpTester';
+import { t } from '../../../i18n/i18n';
 
 function formatToggleError(error: unknown): string {
-  if (!(error instanceof Error)) return 'Failed to update tool setting';
+  if (!(error instanceof Error)) return t('settings.mcp.test.updateToolFailed');
 
   const msg = error.message.toLowerCase();
   if (msg.includes('permission') || msg.includes('eacces')) {
-    return 'Permission denied. Check .claude/ folder permissions.';
+    return t('settings.mcp.test.permissionDenied');
   }
   if (msg.includes('enospc') || msg.includes('disk full') || msg.includes('no space')) {
-    return 'Disk full. Free up space and try again.';
+    return t('settings.mcp.test.diskFull');
   }
   if (msg.includes('json') || msg.includes('syntax')) {
-    return 'Config file corrupted. Check .claude/mcp.json';
+    return t('settings.mcp.test.configCorrupted');
   }
-  return error.message || 'Failed to update tool setting';
+  return error.message || t('settings.mcp.test.updateToolFailed');
 }
 
 function appendSpinnerSvg(container: HTMLElement): void {
@@ -68,7 +69,7 @@ export class McpTestModal extends Modal {
   }
 
   onOpen() {
-    this.setTitle(`Verify: ${this.serverName}`);
+    this.setTitle(t('settings.mcp.test.title', { server: this.serverName }));
     this.modalEl.addClass('grimoire-mcp-test-modal');
     this.contentEl_ = this.contentEl;
     this.renderLoading();
@@ -95,7 +96,7 @@ export class McpTestModal extends Modal {
     const spinnerEl = loadingEl.createDiv({ cls: 'grimoire-mcp-test-spinner' });
     appendSpinnerSvg(spinnerEl);
 
-    loadingEl.createSpan({ text: 'Connecting to MCP server...' });
+    loadingEl.createSpan({ text: t('settings.mcp.test.connecting') });
   }
 
   private render() {
@@ -120,16 +121,17 @@ export class McpTestModal extends Modal {
 
     const textEl = statusEl.createSpan({ cls: 'grimoire-mcp-test-text' });
     if (this.result.success) {
-      let statusText = 'Connected successfully';
-      if (this.result.serverName) {
-        statusText += ` to ${this.result.serverName}`;
-        if (this.result.serverVersion) {
-          statusText += ` v${this.result.serverVersion}`;
-        }
-      }
+      const statusText = this.result.serverName
+        ? (this.result.serverVersion
+          ? t('settings.mcp.test.connectedToVersion', {
+            server: this.result.serverName,
+            version: this.result.serverVersion,
+          })
+          : t('settings.mcp.test.connectedTo', { server: this.result.serverName }))
+        : t('settings.mcp.test.connected');
       textEl.setText(statusText);
     } else {
-      textEl.setText('Connection failed');
+      textEl.setText(t('settings.mcp.test.connectionFailed'));
     }
 
     if (this.result.error) {
@@ -144,7 +146,7 @@ export class McpTestModal extends Modal {
       const toolsSection = this.contentEl_.createDiv({ cls: 'grimoire-mcp-test-tools' });
 
       const toolsHeader = toolsSection.createDiv({ cls: 'grimoire-mcp-test-tools-header' });
-      toolsHeader.setText(`Available Tools (${this.result.tools.length})`);
+      toolsHeader.setText(t('settings.mcp.test.availableTools', { count: this.result.tools.length }));
 
       const toolsList = toolsSection.createDiv({ cls: 'grimoire-mcp-test-tools-list' });
 
@@ -153,7 +155,7 @@ export class McpTestModal extends Modal {
       }
     } else if (this.result.success) {
       const noToolsEl = this.contentEl_.createDiv({ cls: 'grimoire-mcp-test-no-tools' });
-      noToolsEl.setText('No tools information available. Tools will be loaded when used in chat.');
+      noToolsEl.setText(t('settings.mcp.test.noTools'));
     }
 
     const buttonContainer = this.contentEl_.createDiv({ cls: 'grimoire-mcp-test-buttons' });
@@ -169,7 +171,7 @@ export class McpTestModal extends Modal {
     }
 
     const closeBtn = buttonContainer.createEl('button', {
-      text: 'Close',
+      text: t('settings.mcp.test.close'),
       cls: 'mod-cta',
     });
     closeBtn.addEventListener('click', () => this.close());
@@ -269,13 +271,11 @@ export class McpTestModal extends Modal {
     if (!this.toggleAllBtn || !this.result) return;
 
     const allEnabled = this.disabledTools.size === 0;
-    const allDisabled = this.disabledTools.size === this.result.tools.length;
-
     if (allEnabled) {
-      this.toggleAllBtn.setText('Disable all');
+      this.toggleAllBtn.setText(t('settings.mcp.test.disableAll'));
       this.toggleAllBtn.toggleClass('is-destructive', true);
     } else {
-      this.toggleAllBtn.setText(allDisabled ? 'Enable All' : 'Enable All');
+      this.toggleAllBtn.setText(t('settings.mcp.test.enableAll'));
       this.toggleAllBtn.toggleClass('is-destructive', false);
     }
   }

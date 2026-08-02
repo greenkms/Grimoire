@@ -51,6 +51,18 @@ function createSettingsApp(): any {
   };
 }
 
+function renderDeclarativeSettings(
+  tab: GrimoireSettingTab,
+  settingEl: any = createMockEl('div'),
+): { group: { addClass: jest.Mock }; settingEl: any } {
+  const [definition] = tab.getSettingDefinitions();
+  const group = { addClass: jest.fn() };
+  if ('render' in definition && typeof definition.render === 'function') {
+    definition.render({ settingEl } as any, group as any);
+  }
+  return { group, settingEl };
+}
+
 describe('GrimoireSettingTab general tab settings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -66,7 +78,8 @@ describe('GrimoireSettingTab general tab settings', () => {
 
     (tab as any).renderGeneralTab(container);
 
-    expect(collectText(container)).not.toContain('Appearance theme');
+    expect(collectText(container)).not.toContain('Theme');
+    expect(collectText(container)).not.toContain('Follows Obsidian');
     expect(container.querySelector('.grimoire-theme-card')).toBeNull();
   });
 
@@ -74,33 +87,36 @@ describe('GrimoireSettingTab general tab settings', () => {
     const plugin = createSettingsPlugin();
     const app = createSettingsApp();
     const tab = new GrimoireSettingTab(app, plugin);
-    (tab as any).containerEl = createMockEl('div');
+    const { settingEl } = renderDeclarativeSettings(tab);
 
-    tab.display();
-
-    const versionEl = (tab as any).containerEl.querySelector('.grimoire-settings-version');
+    const versionEl = settingEl.querySelector('.grimoire-settings-version-row');
+    expect(collectText(versionEl)).toContain('Version');
     expect(collectText(versionEl)).toContain('Grimoire v9.8.7-test');
     expect(versionEl?.querySelector('.grimoire-settings-whats-new')?.textContent).toBe('What\'s new');
   });
 
-  it('indexes the existing settings UI through the Obsidian 1.13 declarative API', () => {
+  it('keeps the custom settings page searchable without inheriting the outer setting-group styles', () => {
     const plugin = createSettingsPlugin();
     const tab = new GrimoireSettingTab(createSettingsApp(), plugin);
 
     const [definition] = tab.getSettingDefinitions();
-
-    expect(definition).toEqual(expect.objectContaining({
+    expect(definition).toMatchObject({
       name: 'Grimoire settings',
-      aliases: expect.arrayContaining(['Debug logging', 'Grok Build', 'Maximum chat tabs']),
-    }));
-    expect('render' in definition!).toBe(true);
+      desc: 'Configure Grimoire, its workspace, and provider integrations.',
+    });
+    expect('aliases' in definition ? definition.aliases : []).toEqual(expect.arrayContaining([
+      'Maximum chat tabs',
+      'Claude Code',
+      'Project workspace',
+    ]));
+    expect('render' in definition).toBe(true);
 
     const settingEl = createMockEl('div');
     settingEl.addClass('setting-item');
-    if (definition && 'render' in definition && definition.render) {
-      definition.render({ settingEl } as any, {} as any);
-    }
+    const { group } = renderDeclarativeSettings(tab, settingEl);
 
+    expect(Object.prototype.hasOwnProperty.call(GrimoireSettingTab.prototype, 'display')).toBe(false);
+    expect(group.addClass).toHaveBeenCalledWith('grimoire-settings-root-group');
     expect(settingEl.hasClass('setting-item')).toBe(false);
     expect(settingEl.hasClass('grimoire-settings')).toBe(true);
     expect(collectText(settingEl)).toContain('Maximum chat tabs');
@@ -110,11 +126,9 @@ describe('GrimoireSettingTab general tab settings', () => {
     const plugin = createSettingsPlugin();
     const app = createSettingsApp();
     const tab = new GrimoireSettingTab(app, plugin);
-    (tab as any).containerEl = createMockEl('div');
+    const { settingEl } = renderDeclarativeSettings(tab);
 
-    tab.display();
-
-    const button = (tab as any).containerEl.querySelector('.grimoire-settings-whats-new');
+    const button = settingEl.querySelector('.grimoire-settings-whats-new');
     button?.dispatchEvent('click');
     await Promise.resolve();
     await Promise.resolve();
@@ -134,11 +148,9 @@ describe('GrimoireSettingTab general tab settings', () => {
     const plugin = createSettingsPlugin();
     const app = createSettingsApp();
     const tab = new GrimoireSettingTab(app, plugin);
-    (tab as any).containerEl = createMockEl('div');
+    const { settingEl } = renderDeclarativeSettings(tab);
 
-    tab.display();
-
-    const button = (tab as any).containerEl.querySelector('.grimoire-settings-whats-new');
+    const button = settingEl.querySelector('.grimoire-settings-whats-new');
     button?.dispatchEvent('click');
     await Promise.resolve();
     await Promise.resolve();
@@ -219,25 +231,23 @@ describe('GrimoireSettingTab provider tabs', () => {
     const plugin = createSettingsPlugin();
     const app: any = { hotkeyManager: {} };
     const tab = new GrimoireSettingTab(app, plugin);
-    (tab as any).containerEl = createMockEl('div');
-
-    tab.display();
+    const { settingEl } = renderDeclarativeSettings(tab);
 
     const tabLabels = Array.from(
-      (tab as any).containerEl.querySelectorAll('.grimoire-settings-tab'),
+      settingEl.querySelectorAll('.grimoire-settings-tab'),
     ).map((button: any) => button.textContent?.trim() ?? '');
 
     expect(tabLabels[0]).toBe('General');
     expect(tabLabels.slice(1)).toEqual([
-      'Claude Code',
+      'Claude',
       'Codex',
       'OpenCode',
-      'Grok Build',
-      'MiMo Code',
-      'Kimi Code',
+      'Grok',
+      'MiMo',
+      'Kimi',
       'Antigravity',
-      'Gemini CLI (Legacy)',
-      'Qwen Code',
+      'Gemini',
+      'Qwen',
     ]);
     expect(ProviderRegistry.getRegisteredProviderIds()).toEqual([
       'claude',
@@ -255,8 +265,7 @@ describe('GrimoireSettingTab provider tabs', () => {
   it('renders accessible overflow controls and updates their boundary state', () => {
     const tab = new GrimoireSettingTab(createSettingsApp(), createSettingsPlugin());
     const container = createMockEl('div') as any;
-    (tab as any).containerEl = container;
-    tab.display();
+    renderDeclarativeSettings(tab, container);
 
     const tabBar = container.querySelector('.grimoire-settings-tabs') as any;
     const viewport = container.querySelector('.grimoire-settings-tabs-viewport') as any;
@@ -288,8 +297,7 @@ describe('GrimoireSettingTab provider tabs', () => {
   it('uses wheel movement only when the overflowing tab list moves', () => {
     const tab = new GrimoireSettingTab(createSettingsApp(), createSettingsPlugin());
     const container = createMockEl('div') as any;
-    (tab as any).containerEl = container;
-    tab.display();
+    renderDeclarativeSettings(tab, container);
 
     const viewport = container.querySelector('.grimoire-settings-tabs-viewport') as any;
     viewport.clientWidth = 100;
@@ -308,8 +316,7 @@ describe('GrimoireSettingTab provider tabs', () => {
   it('activates, focuses, and reveals keyboard-selected tabs', () => {
     const tab = new GrimoireSettingTab(createSettingsApp(), createSettingsPlugin());
     const container = createMockEl('div') as any;
-    (tab as any).containerEl = container;
-    tab.display();
+    renderDeclarativeSettings(tab, container);
 
     const buttons = Array.from(container.querySelectorAll('.grimoire-settings-tab')) as any[];
     const reveal = jest.fn();

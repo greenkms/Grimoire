@@ -10,6 +10,7 @@ import type {
   McpStdioServerConfig,
 } from '../../../core/types';
 import { DEFAULT_MCP_SERVER, getMcpServerType } from '../../../core/types';
+import { t } from '../../../i18n/i18n';
 import { parseCommand } from '../../../utils/mcp';
 
 export class McpServerModal extends Modal {
@@ -71,14 +72,14 @@ export class McpServerModal extends Modal {
   }
 
   onOpen() {
-    this.setTitle(this.existingServer ? 'Edit MCP Server' : 'Add MCP Server');
+    this.setTitle(this.existingServer ? t('settings.mcp.modal.titleEdit') : t('settings.mcp.modal.titleAdd'));
     this.modalEl.addClass('grimoire-mcp-modal');
 
     const { contentEl } = this;
 
     new Setting(contentEl)
-      .setName('Server name')
-      .setDesc('Unique identifier for this server')
+      .setName(t('settings.mcp.modal.serverName'))
+      .setDesc(t('settings.mcp.modal.serverNameDesc'))
       .addText((text) => {
         this.nameInputEl = text.inputEl;
         text.setValue(this.serverName);
@@ -90,12 +91,12 @@ export class McpServerModal extends Modal {
       });
 
     new Setting(contentEl)
-      .setName('Type')
-      .setDesc('Server connection type')
+      .setName(t('settings.mcp.modal.type'))
+      .setDesc(t('settings.mcp.modal.typeDesc'))
       .addDropdown((dropdown) => {
-        dropdown.addOption('stdio', 'Stdio (local command)');
-        dropdown.addOption('sse', 'Sse (server-sent events)');
-        dropdown.addOption('http', 'HTTP (HTTP endpoint)');
+        dropdown.addOption('stdio', t('settings.mcp.modal.stdio'));
+        dropdown.addOption('sse', t('settings.mcp.modal.sse'));
+        dropdown.addOption('http', t('settings.mcp.modal.http'));
         dropdown.setValue(this.serverType);
         dropdown.onChange((value) => {
           this.serverType = value as McpServerType;
@@ -107,8 +108,8 @@ export class McpServerModal extends Modal {
     this.renderTypeFields();
 
     new Setting(contentEl)
-      .setName('Enabled')
-      .setDesc('Whether this server is active')
+      .setName(t('common.enabled'))
+      .setDesc(t('settings.mcp.modal.enabledDesc'))
       .addToggle((toggle) => {
         toggle.setValue(this.enabled);
         toggle.onChange((value) => {
@@ -117,8 +118,8 @@ export class McpServerModal extends Modal {
       });
 
     new Setting(contentEl)
-      .setName('Context-saving mode')
-      .setDesc('Hide tools from agent unless @-mentioned (saves context window)')
+      .setName(t('settings.mcp.modal.contextSaving'))
+      .setDesc(t('settings.mcp.modal.contextSavingDesc'))
       .addToggle((toggle) => {
         toggle.setValue(this.contextSaving);
         toggle.onChange((value) => {
@@ -129,13 +130,13 @@ export class McpServerModal extends Modal {
     const buttonContainer = contentEl.createDiv({ cls: 'grimoire-mcp-buttons' });
 
     const cancelBtn = buttonContainer.createEl('button', {
-      text: 'Cancel',
+      text: t('common.cancel'),
       cls: 'grimoire-cancel-btn',
     });
     cancelBtn.addEventListener('click', () => this.close());
 
     const saveBtn = buttonContainer.createEl('button', {
-      text: this.existingServer ? 'Update' : 'Add',
+      text: this.existingServer ? t('settings.envSnippets.modal.update') : t('common.add'),
       cls: 'grimoire-save-btn mod-cta',
     });
     saveBtn.addEventListener('click', () => this.save());
@@ -156,8 +157,8 @@ export class McpServerModal extends Modal {
     if (!this.typeFieldsEl) return;
 
     const cmdSetting = new Setting(this.typeFieldsEl)
-      .setName('Command')
-      .setDesc('Full command with arguments');
+      .setName(t('settings.mcp.modal.command'))
+      .setDesc(t('settings.mcp.modal.commandDesc'));
     cmdSetting.settingEl.addClass('grimoire-mcp-cmd-setting');
 
     const cmdTextarea = cmdSetting.controlEl.createEl('textarea', {
@@ -171,8 +172,8 @@ export class McpServerModal extends Modal {
     });
 
     const envSetting = new Setting(this.typeFieldsEl)
-      .setName('Environment variables')
-      .setDesc('Key=value per line (optional)');
+      .setName(t('settings.providerTabs.environmentVariables'))
+      .setDesc(t('settings.mcp.modal.environmentDesc'));
     envSetting.settingEl.addClass('grimoire-mcp-env-setting');
 
     const envTextarea = envSetting.controlEl.createEl('textarea', {
@@ -190,8 +191,8 @@ export class McpServerModal extends Modal {
     if (!this.typeFieldsEl) return;
 
     new Setting(this.typeFieldsEl)
-      .setName('URL')
-      .setDesc(this.serverType === 'sse' ? 'SSE endpoint URL' : 'HTTP endpoint URL')
+      .setName(t('settings.mcp.modal.url'))
+      .setDesc(this.serverType === 'sse' ? t('settings.mcp.modal.sseUrlDesc') : t('settings.mcp.modal.httpUrlDesc'))
       .addText((text) => {
         text.setValue(this.url);
         text.setPlaceholder('HTTP://localhost:3000/sse');
@@ -202,8 +203,8 @@ export class McpServerModal extends Modal {
       });
 
     const headersSetting = new Setting(this.typeFieldsEl)
-      .setName('Headers')
-      .setDesc('HTTP headers (key=value per line)');
+      .setName(t('settings.mcp.modal.headers'))
+      .setDesc(t('settings.mcp.modal.headersDesc'));
     headersSetting.settingEl.addClass('grimoire-mcp-env-setting');
 
     const headersTextarea = headersSetting.controlEl.createEl('textarea', {
@@ -231,13 +232,13 @@ export class McpServerModal extends Modal {
   private save() {
     const name = this.serverName.trim();
     if (!name) {
-      new Notice('Please enter a server name');
+      new Notice(t('settings.mcp.modal.serverNameRequired'));
       this.nameInputEl?.focus();
       return;
     }
 
     if (!/^[a-zA-Z0-9._-]+$/.test(name)) {
-      new Notice('Server name can only contain letters, numbers, dots, hyphens, and underscores');
+      new Notice(t('settings.mcp.modal.serverNameInvalid'));
       this.nameInputEl?.focus();
       return;
     }
@@ -247,7 +248,7 @@ export class McpServerModal extends Modal {
     if (this.serverType === 'stdio') {
       const fullCommand = this.command.trim();
       if (!fullCommand) {
-        new Notice('Please enter a command');
+        new Notice(t('settings.mcp.modal.commandRequired'));
         return;
       }
 
@@ -267,7 +268,7 @@ export class McpServerModal extends Modal {
     } else {
       const url = this.url.trim();
       if (!url) {
-        new Notice('Please enter a URL');
+        new Notice(t('settings.mcp.modal.urlRequired'));
         return;
       }
 

@@ -7,18 +7,18 @@ import { McpSettingsManager } from '@/features/settings/ui/McpSettingsManager';
 const docAdd = jest.fn();
 const docRemove = jest.fn();
 
-function createManager() {
+function createManager(servers: any[] = []) {
   const container = createMockEl();
   const manager = new McpSettingsManager(container as any, {
     app: {} as any,
     mcpStorage: {
-      load: jest.fn().mockResolvedValue([]),
+      load: jest.fn().mockResolvedValue(servers),
       save: jest.fn().mockResolvedValue(undefined),
     } as any,
     broadcastMcpReload: jest.fn().mockResolvedValue(undefined),
   });
 
-  return { manager };
+  return { container, manager };
 }
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
@@ -61,5 +61,24 @@ describe('McpSettingsManager document click listener lifecycle', () => {
 
     expect(docRemove).toHaveBeenCalledTimes(1);
     expect(docAdd).not.toHaveBeenCalled();
+  });
+
+  it('exposes MCP enablement as toggle state instead of a reversed state label', async () => {
+    const { container } = createManager([
+      {
+        name: 'filesystem',
+        config: { command: 'filesystem-server' },
+        enabled: true,
+        contextSaving: false,
+      },
+    ]);
+    await flush();
+
+    const toggle = (container as any).querySelectorAll('.grimoire-mcp-action-btn').find(
+      (button: any) => button.getAttribute('aria-label') === 'filesystem',
+    );
+
+    expect(toggle?.getAttribute('aria-pressed')).toBe('true');
+    expect(toggle?.getAttribute('title')).toBe('Enabled');
   });
 });

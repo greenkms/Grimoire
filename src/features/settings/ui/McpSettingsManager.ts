@@ -6,6 +6,7 @@ import { testMcpServer } from '../../../core/mcp/McpTester';
 import type { AppMcpStorage } from '../../../core/providers/types';
 import type { ManagedMcpServer, McpServerConfig, McpServerType } from '../../../core/types';
 import { DEFAULT_MCP_SERVER, getMcpServerType } from '../../../core/types';
+import { t } from '../../../i18n/i18n';
 import { confirmDelete } from '../../../shared/modals/ConfirmModal';
 import { McpServerModal } from './McpServerModal';
 import { McpTestModal } from './McpTestModal';
@@ -41,12 +42,12 @@ export class McpSettingsManager {
     this.containerEl.empty();
 
     const headerEl = this.containerEl.createDiv({ cls: 'grimoire-mcp-header' });
-    headerEl.createSpan({ text: 'MCP Servers', cls: 'grimoire-mcp-label' });
+    headerEl.createSpan({ text: t('settings.mcpServers.name'), cls: 'grimoire-mcp-label' });
 
     const addContainer = headerEl.createDiv({ cls: 'grimoire-mcp-add-container' });
     const addBtn = addContainer.createEl('button', {
       cls: 'grimoire-settings-action-btn',
-      attr: { 'aria-label': 'Add' },
+      attr: { 'aria-label': t('common.add') },
     });
     setIcon(addBtn, 'plus');
 
@@ -54,7 +55,7 @@ export class McpSettingsManager {
 
     const stdioOption = dropdown.createDiv({ cls: 'grimoire-mcp-add-option' });
     setIcon(stdioOption.createSpan({ cls: 'grimoire-mcp-add-option-icon' }), 'terminal');
-    stdioOption.createSpan({ text: 'stdio (local command)' });
+    stdioOption.createSpan({ text: t('settings.mcp.addStdio') });
     stdioOption.addEventListener('click', () => {
       dropdown.removeClass('is-visible');
       this.openModal(null, 'stdio');
@@ -62,7 +63,7 @@ export class McpSettingsManager {
 
     const httpOption = dropdown.createDiv({ cls: 'grimoire-mcp-add-option' });
     setIcon(httpOption.createSpan({ cls: 'grimoire-mcp-add-option-icon' }), 'globe');
-    httpOption.createSpan({ text: 'http / sse (remote)' });
+    httpOption.createSpan({ text: t('settings.mcp.addRemote') });
     httpOption.addEventListener('click', () => {
       dropdown.removeClass('is-visible');
       this.openModal(null, 'http');
@@ -70,7 +71,7 @@ export class McpSettingsManager {
 
     const importOption = dropdown.createDiv({ cls: 'grimoire-mcp-add-option' });
     setIcon(importOption.createSpan({ cls: 'grimoire-mcp-add-option-icon' }), 'clipboard-paste');
-    importOption.createSpan({ text: 'Import from clipboard' });
+    importOption.createSpan({ text: t('settings.mcp.importClipboard') });
     importOption.addEventListener('click', () => {
       dropdown.removeClass('is-visible');
       void this.importFromClipboard();
@@ -92,7 +93,7 @@ export class McpSettingsManager {
 
     if (this.servers.length === 0) {
       const emptyEl = this.containerEl.createDiv({ cls: 'grimoire-mcp-empty' });
-      emptyEl.setText('No mcp servers configured. Click "add" to add one.');
+      emptyEl.setText(t('settings.mcp.noServers'));
       return;
     }
 
@@ -127,7 +128,7 @@ export class McpSettingsManager {
     if (server.contextSaving) {
       const csEl = nameRow.createSpan({ cls: 'grimoire-mcp-context-saving-badge' });
       csEl.setText('@');
-      csEl.setAttribute('title', 'Context-saving: mention with @' + server.name + ' to enable');
+      csEl.setAttribute('title', t('settings.mcp.contextSavingTitle', { server: server.name }));
     }
 
     const previewEl = infoEl.createDiv({ cls: 'grimoire-mcp-preview' });
@@ -141,7 +142,7 @@ export class McpSettingsManager {
 
     const testBtn = actionsEl.createEl('button', {
       cls: 'grimoire-mcp-action-btn',
-      attr: { 'aria-label': 'Verify (show tools)' },
+      attr: { 'aria-label': t('settings.mcp.verify') },
     });
     setIcon(testBtn, 'zap');
     testBtn.addEventListener('click', () => {
@@ -150,7 +151,11 @@ export class McpSettingsManager {
 
     const toggleBtn = actionsEl.createEl('button', {
       cls: 'grimoire-mcp-action-btn',
-      attr: { 'aria-label': server.enabled ? 'Disable' : 'Enable' },
+      attr: {
+        'aria-label': server.name,
+        'aria-pressed': String(server.enabled),
+        title: server.enabled ? t('common.enabled') : t('common.disabled'),
+      },
     });
     setIcon(toggleBtn, server.enabled ? 'toggle-right' : 'toggle-left');
     toggleBtn.addEventListener('click', () => {
@@ -159,14 +164,14 @@ export class McpSettingsManager {
 
     const editBtn = actionsEl.createEl('button', {
       cls: 'grimoire-mcp-action-btn',
-      attr: { 'aria-label': 'Edit' },
+      attr: { 'aria-label': t('common.edit') },
     });
     setIcon(editBtn, 'pencil');
     editBtn.addEventListener('click', () => this.openModal(server));
 
     const deleteBtn = actionsEl.createEl('button', {
       cls: 'grimoire-mcp-action-btn grimoire-mcp-delete-btn',
-      attr: { 'aria-label': 'Delete' },
+      attr: { 'aria-label': t('common.delete') },
     });
     setIcon(deleteBtn, 'trash-2');
     deleteBtn.addEventListener('click', () => {
@@ -192,7 +197,7 @@ export class McpSettingsManager {
       const result = await testMcpServer(server);
       modal.setResult(result);
     } catch (error) {
-      modal.setError(error instanceof Error ? error.message : 'Verification failed');
+      modal.setError(error instanceof Error ? error.message : t('settings.mcp.verificationFailed'));
     }
   }
 
@@ -215,7 +220,7 @@ export class McpSettingsManager {
       await this.broadcastMcpReload();
     } catch {
       // Save succeeded but reload failed - don't rollback since disk has correct state
-      new Notice('Setting saved but reload failed. Changes will apply on next session.');
+      new Notice(t('settings.mcp.reloadFailed'));
     }
   }
 
@@ -260,7 +265,7 @@ export class McpSettingsManager {
       existing,
       (server) => {
         void this.saveServer(server, existing).catch((error: unknown) => {
-          new Notice(error instanceof Error ? error.message : 'Failed to save MCP server');
+          new Notice(error instanceof Error ? error.message : t('settings.mcp.saveFailed'));
         });
       },
       initialType
@@ -272,13 +277,13 @@ export class McpSettingsManager {
     try {
       const text = await navigator.clipboard.readText();
       if (!text.trim()) {
-        new Notice('Clipboard is empty');
+        new Notice(t('settings.mcp.clipboardEmpty'));
         return;
       }
 
       const parsed = tryParseClipboardConfig(text);
       if (!parsed || parsed.servers.length === 0) {
-        new Notice('No valid mcp configuration found in clipboard');
+        new Notice(t('settings.mcp.clipboardInvalid'));
         return;
       }
 
@@ -290,7 +295,7 @@ export class McpSettingsManager {
           null,
           (savedServer) => {
             void this.saveServer(savedServer, null).catch((error: unknown) => {
-              new Notice(error instanceof Error ? error.message : 'Failed to save MCP server');
+              new Notice(error instanceof Error ? error.message : t('settings.mcp.saveFailed'));
             });
           },
           type,
@@ -298,14 +303,14 @@ export class McpSettingsManager {
         );
         modal.open();
         if (parsed.needsName) {
-          new Notice('Enter a name for the server');
+          new Notice(t('settings.mcp.enterServerName'));
         }
         return;
       }
 
       await this.importServers(parsed.servers);
     } catch {
-      new Notice('Failed to read clipboard');
+      new Notice(t('settings.mcp.clipboardReadFailed'));
     }
   }
 
@@ -316,7 +321,7 @@ export class McpSettingsManager {
         if (server.name !== existing.name) {
           const conflict = this.servers.find((s) => s.name === server.name);
           if (conflict) {
-            new Notice(`Server "${server.name}" already exists`);
+            new Notice(t('settings.mcp.serverExists', { name: server.name }));
             return;
           }
         }
@@ -325,7 +330,7 @@ export class McpSettingsManager {
     } else {
       const conflict = this.servers.find((s) => s.name === server.name);
       if (conflict) {
-        new Notice(`Server "${server.name}" already exists`);
+        new Notice(t('settings.mcp.serverExists', { name: server.name }));
         return;
       }
       this.servers.push(server);
@@ -334,7 +339,9 @@ export class McpSettingsManager {
     await this.mcpStorage.save(this.servers);
     await this.broadcastMcpReload();
     this.render();
-    new Notice(existing ? `MCP server "${server.name}" updated` : `MCP server "${server.name}" added`);
+    new Notice(existing
+      ? t('settings.mcp.serverUpdated', { name: server.name })
+      : t('settings.mcp.serverAdded', { name: server.name }));
   }
 
   private async importServers(servers: Array<{ name: string; config: McpServerConfig }>) {
@@ -344,7 +351,7 @@ export class McpSettingsManager {
     for (const server of servers) {
       const name = server.name.trim();
       if (!name || !/^[a-zA-Z0-9._-]+$/.test(name)) {
-        skipped.push(server.name || '<unnamed>');
+        skipped.push(server.name || t('settings.mcp.unnamed'));
         continue;
       }
 
@@ -364,7 +371,7 @@ export class McpSettingsManager {
     }
 
     if (added.length === 0) {
-      new Notice('No new mcp servers imported');
+      new Notice(t('settings.mcp.noNewServers'));
       return;
     }
 
@@ -372,11 +379,9 @@ export class McpSettingsManager {
     await this.broadcastMcpReload();
     this.render();
 
-    let message = `Imported ${added.length} MCP server${added.length > 1 ? 's' : ''}`;
-    if (skipped.length > 0) {
-      message += ` (${skipped.length} skipped)`;
-    }
-    new Notice(message);
+    new Notice(skipped.length > 0
+      ? t('settings.mcp.importedWithSkipped', { added: added.length, skipped: skipped.length })
+      : t('settings.mcp.imported', { count: added.length }));
   }
 
   private async toggleServer(server: ManagedMcpServer) {
@@ -384,11 +389,13 @@ export class McpSettingsManager {
     await this.mcpStorage.save(this.servers);
     await this.broadcastMcpReload();
     this.render();
-    new Notice(`MCP server "${server.name}" ${server.enabled ? 'enabled' : 'disabled'}`);
+    new Notice(server.enabled
+      ? t('settings.mcp.serverEnabled', { name: server.name })
+      : t('settings.mcp.serverDisabled', { name: server.name }));
   }
 
   private async deleteServer(server: ManagedMcpServer) {
-    if (!(await confirmDelete(this.app, `Delete MCP server "${server.name}"?`))) {
+    if (!(await confirmDelete(this.app, t('settings.mcp.deleteConfirm', { name: server.name })))) {
       return;
     }
 
@@ -396,7 +403,7 @@ export class McpSettingsManager {
     await this.mcpStorage.save(this.servers);
     await this.broadcastMcpReload();
     this.render();
-    new Notice(`MCP server "${server.name}" deleted`);
+    new Notice(t('settings.mcp.serverDeleted', { name: server.name }));
   }
 
   /** Refresh the server list (call after external changes). */

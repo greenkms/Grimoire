@@ -1,5 +1,7 @@
 import { setIcon } from 'obsidian';
 
+import { t } from '../../../i18n/i18n';
+
 export interface AdvancedSectionOptions {
   count: number;
   id: string;
@@ -37,7 +39,7 @@ export function renderAdvancedSection(
   setIcon(chevron, 'chevron-right');
 
   const copy = toggle.createSpan({ cls: 'grimoire-adv-copy' });
-  copy.createSpan({ cls: 'grimoire-adv-title', text: 'Advanced settings' });
+  copy.createSpan({ cls: 'grimoire-adv-title', text: t('settings.advanced.title') });
   copy.createSpan({ cls: 'grimoire-adv-summary', text: opts.summary });
   toggle.createSpan({ cls: 'grimoire-adv-count', text: String(opts.count) });
 

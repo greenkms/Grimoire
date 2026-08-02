@@ -2,6 +2,7 @@ import { Setting } from 'obsidian';
 
 import { getEnvironmentReviewKeysForScope } from '../../../core/providers/providerEnvironment';
 import type { EnvironmentScope } from '../../../core/types/settings';
+import { t } from '../../../i18n/i18n';
 import type GrimoirePlugin from '../../../main';
 import { EnvSnippetManager } from './EnvSnippetManager';
 
@@ -47,7 +48,7 @@ export function renderEnvironmentSettingsSection(
       return;
     }
 
-    reviewEl.setText(`Review environment ownership for: ${reviewKeys.join(', ')}`);
+    reviewEl.setText(t('settings.environmentReview', { keys: reviewKeys.join(', ') }));
     reviewEl.toggleClass('grimoire-hidden', false);
   };
 
