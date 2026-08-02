@@ -461,8 +461,12 @@ body.grimoire-dragging-ns {
 .grimoire-container--chat-window .grimoire-composer-shell {
   position: relative;
   display: grid;
-  gap: 10px;
-  padding: 11px;
+  container-name: grimoire-composer;
+  container-type: inline-size;
+  width: 100%;
+  margin: 0;
+  gap: 7px;
+  padding: 8px;
   border: 0;
   border-radius: var(--grimoire-radius-3);
   background: var(--grimoire-sink);
@@ -490,7 +494,7 @@ body.grimoire-dragging-ns {
 
 .grimoire-container--chat-window .grimoire-input-wrapper {
   height: var(--grimoire-input-wrapper-height, auto);
-  min-height: 112px;
+  min-height: 106px;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -504,7 +508,7 @@ body.grimoire-dragging-ns {
 }
 
 .grimoire-container--chat-window .grimoire-context-row {
-  padding: 0;
+  padding: 0 2px 5px;
   gap: 5px;
 }
 
@@ -517,12 +521,12 @@ body.grimoire-dragging-ns {
 }
 
 .grimoire-container--chat-window .grimoire-input-toolbar {
-  display: grid;
-  align-items: stretch;
-  justify-content: stretch;
-  gap: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 5px;
   width: 100%;
-  min-height: 31px;
+  min-height: 28px;
   padding: 0;
   border-top: 0;
   overflow: visible;
@@ -538,35 +542,48 @@ body.grimoire-dragging-ns {
   align-items: center;
   width: 100%;
   min-width: 0;
+  flex-wrap: nowrap;
 }
 
 .grimoire-container--chat-window .grimoire-input-toolbar-model-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 7px;
+  display: flex;
+  gap: 5px;
+  overflow: visible;
 }
 
 .grimoire-container--chat-window .grimoire-input-toolbar-actions-row {
-  gap: 7px;
+  gap: 5px;
+  flex-wrap: nowrap;
+  row-gap: 5px;
+}
+
+.grimoire-container--chat-window .grimoire-input-toolbar-config-actions {
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: nowrap;
+  align-items: center;
+  min-width: 0;
+  gap: 5px;
 }
 
 .grimoire-container--chat-window .grimoire-model-context-stack {
   flex: 0 1 auto;
-  width: auto;
-  max-width: 100%;
+  width: fit-content;
+  min-width: 96px;
+  max-width: 420px;
   overflow: visible;
 }
 
 .grimoire-container--chat-window .grimoire-model-btn {
-  min-width: 0;
-  max-width: min(100%, 178px);
-  border-radius: var(--grimoire-radius-1);
+  min-width: 96px;
+  max-width: min(100%, 260px);
+  border-radius: var(--grimoire-radius-2);
 }
 
 .grimoire-container--chat-window .grimoire-model-label {
   overflow: hidden;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 400;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -580,27 +597,67 @@ body.grimoire-dragging-ns {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: 7px;
+  gap: 5px;
   margin-inline-start: auto;
 }
 
-.grimoire-send-button {
+@container grimoire-composer (max-width: 520px) {
+  .grimoire-container--chat-window .grimoire-input-toolbar-config-actions {
+    flex-wrap: wrap;
+  }
+}
+
+@container grimoire-composer (max-width: 380px) {
+  .grimoire-container--chat-window .grimoire-input-toolbar-actions-row {
+    display: grid;
+    grid-template-areas:
+      "model model"
+      "controls send";
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .grimoire-container--chat-window .grimoire-model-context-stack {
+    grid-area: model;
+    width: 100%;
+    max-width: 100%;
+    padding-inline-end: 0;
+    border-inline-end: 0;
+  }
+
+  .grimoire-container--chat-window .grimoire-input-toolbar-config-actions {
+    grid-area: controls;
+    flex-wrap: wrap;
+  }
+
+  .grimoire-container--chat-window .grimoire-send-actions {
+    grid-area: send;
+    align-self: end;
+    margin-inline-start: 0;
+  }
+}
+
+.grimoire-container--chat-window button.grimoire-send-button {
   flex: 0 0 auto;
   justify-self: end;
-  height: 31px;
-  padding: 0 12px;
+  height: 28px;
+  padding: 0 9px;
   border: 0;
   border-radius: var(--grimoire-radius-1);
-  background: var(--grimoire-brand);
-  color: var(--text-on-accent);
-  font-weight: 760;
+  background: var(--grimoire-accent-soft);
+  color: var(--grimoire-accent-text);
+  font-size: 12px;
+  font-weight: 400;
   line-height: 1;
-  box-shadow: 0 8px 20px rgba(var(--grimoire-brand-rgb), 0.2);
+  box-shadow: none;
   cursor: pointer;
 }
 
-.grimoire-send-button:hover {
-  filter: brightness(1.05);
+.grimoire-container--chat-window button.grimoire-send-button:hover {
+  border: 0;
+  background: rgba(var(--grimoire-brand-rgb), 0.22);
+  color: var(--grimoire-accent-text);
+  filter: none;
 }
 
 .grimoire-stop-button {
@@ -608,14 +665,14 @@ body.grimoire-dragging-ns {
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  width: 31px;
-  height: 31px;
+  width: 28px;
+  height: 28px;
   padding: 0;
   border: 1px solid var(--background-modifier-border);
   border-radius: var(--grimoire-radius-1);
   background: var(--background-modifier-error);
   color: var(--text-on-accent);
-  box-shadow: 0 8px 20px rgba(220, 80, 80, 0.18);
+  box-shadow: none;
   cursor: pointer;
 }
 

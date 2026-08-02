@@ -1,5 +1,7 @@
 import { setIcon } from 'obsidian';
 
+import { t } from '../../../../../i18n/i18n';
+
 export interface FileChipsViewCallbacks {
   onRemoveAttachment: (path: string) => void;
   onOpenFile: (path: string) => void;
@@ -55,7 +57,7 @@ export class FileChipsView {
 
     const removeEl = chipEl.createSpan({ cls: 'grimoire-file-chip-remove' });
     removeEl.setText('\u00D7');
-    removeEl.setAttribute('aria-label', 'Remove');
+      removeEl.setAttribute('aria-label', t('common.remove'));
 
     chipEl.addEventListener('click', (e) => {
       if (!(e.target as HTMLElement).closest('.grimoire-file-chip-remove')) {

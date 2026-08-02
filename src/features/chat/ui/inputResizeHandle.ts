@@ -1,4 +1,6 @@
-export const INPUT_WRAPPER_MIN_HEIGHT = 140;
+import { t } from '../../../i18n/i18n';
+
+export const INPUT_WRAPPER_MIN_HEIGHT = 106;
 export const INPUT_WRAPPER_MAX_HEIGHT_RATIO = 0.7;
 
 export interface InputResizeHandleOptions {
@@ -12,7 +14,7 @@ export function createInputResizeHandle({
 }: InputResizeHandleOptions): () => void {
   const doc = inputWrapper.ownerDocument;
   const handle = inputWrapper.createDiv({ cls: 'grimoire-input-resize-handle' });
-  handle.setAttribute('aria-label', 'Drag to resize input');
+  handle.setAttribute('aria-label', t('chat.ui.composer.resizeInput'));
   inputWrapper.insertBefore(handle, inputWrapper.firstChild);
 
   let isDragging = false;

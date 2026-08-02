@@ -56,6 +56,44 @@ Claude Code, Codex, OpenCode, MiMoCode, Kimi Code, Qwen Code, Antigravity CLI, a
 Read the nearest `AGENTS.md` before changing provider-specific or path-specific
 code. These files contain durable implementation constraints for their directories.
 
+## UI And Product Design
+
+Grimoire UI changes must preserve the product hierarchy across realistic Obsidian
+pane sizes. Compactness is useful only when controls remain identifiable and the
+primary task stays clear.
+
+- Treat a named design handoff as the source of truth. When no handoff exists,
+  extend established Grimoire components, spacing, typography, and Obsidian theme
+  tokens instead of introducing a parallel visual language.
+- Design responsive states deliberately. Wrap semantic groups into a stable
+  narrow layout rather than allowing flex shrink to collapse labels, isolate a
+  primary action on an otherwise empty row, or reorder controls accidentally.
+- Never reduce an information-bearing control to an unexplained icon or color dot.
+  When truncation is unavoidable, keep the distinguishing part visible and expose
+  the complete value through an accessible label and tooltip.
+- Test dynamic content with long model names, provider namespaces, file paths,
+  localized strings, attachments, usage indicators, and multiple simultaneous
+  toolbar controls. Content must not overlap, clip adjacent content, or become
+  indistinguishable.
+- Keep persistent actions such as Send visible and visually associated with their
+  supporting controls at every supported width. Prefer container-aware layout
+  rules because an Obsidian pane can be narrow inside a wide application window.
+- Use Obsidian and Grimoire design tokens for colors and surfaces. Provider marks
+  must use the resolved provider's brand token and remain correct across default,
+  hover, selected, and open states.
+- Preserve keyboard access, focus treatment, Escape and outside-click behavior,
+  semantic labels, and cleanup of document-level listeners when components are
+  destroyed.
+
+When a pull request changes the UI, include current screenshots of the changed
+states in the PR description. Prefer a before-and-after comparison and include a
+narrow-pane screenshot when responsive behavior is affected.
+
+For meaningful UI changes, verify at least one wide and two narrow pane widths.
+Exercise the longest realistic labels and relevant open, selected, attachment,
+loading, and empty states. Build success and CSS string tests do not replace
+visual verification inside Obsidian.
+
 ## Security And Permission Modes
 
 Provider responses, model output, session notifications, tool arguments, paths, and

@@ -116,18 +116,21 @@ function getAppendixSections(appendices?: string[]): string {
 }
 
 export function getOrchestratorModeInstructions(): string {
-  return `## Grimoire Orchestrator Mode
+  return `## Grimoire Parallel Workers Mode
 
-You are preparing an orchestration plan for the user to approve before any work begins.
+You are preparing a parallel worker plan for the user to approve before any work begins.
 
 Rules:
 - Emit exactly one fenced JSON block and no surrounding prose.
 - The fenced JSON block must contain a single object matching this shape:
-- Create 2 to 5 tasks. Each task must be independently executable by a worker.
+- Create 2 to 5 tasks that can run at the same time in isolated worker tabs.
+- Every task must be fully self-contained and independently executable.
+- A task must not depend on, wait for, or require the output of another task.
+- If work requires sequential coordination, keep that work together in one task.
 
 \`\`\`json
 {
-  "type": "orchestrator_plan",
+  "type": "parallel_worker_plan",
   "tasks": [
     {
       "id": "short-stable-task-id",

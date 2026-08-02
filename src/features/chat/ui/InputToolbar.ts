@@ -1,4 +1,4 @@
-import { Notice, setIcon } from 'obsidian';
+import { Notice, setIcon, setTooltip } from 'obsidian';
 import * as os from 'os';
 import * as path from 'path';
 
@@ -24,6 +24,7 @@ import { t } from '../../../i18n/i18n';
 import { appendCheckIcon, appendMcpIcon, createProviderIconSvg } from '../../../shared/icons';
 import { filterValidPaths, findConflictingPath, isDuplicatePath, isValidContextPath, validateContextPath } from '../../../utils/externalContext';
 import { expandHomePath, normalizePathForFilesystem } from '../../../utils/path';
+import { localizeReasoningLevel } from '../utils/reasoningDisplay';
 
 interface ElectronOpenDialogResult {
   canceled: boolean;
@@ -45,7 +46,7 @@ function runToolbarAction(action: () => Promise<void>, failureMessage: string): 
 function formatModelFallbackLabel(model: string): string {
   const trimmed = model.trim();
   if (!trimmed) {
-    return 'Unknown';
+    return t('chat.ui.model.unknown');
   }
   if (/^gpt-/i.test(trimmed)) {
     return trimmed.replace(/^gpt-/i, 'GPT-').replace(/-([a-z])/gi, (_, letter: string) => ` ${letter.toUpperCase()}`);
@@ -63,6 +64,21 @@ function formatModelButtonLabel(label: string): string {
   }
 
   return trimmed.slice(slashIndex + 1).trim() || trimmed;
+}
+
+function splitModelOptionLabel(label: string): { detail: string | null; label: string } {
+  const trimmed = label.trim();
+  const slashIndex = trimmed.lastIndexOf('/');
+  if (slashIndex <= 0 || slashIndex >= trimmed.length - 1) {
+    return { detail: null, label: trimmed };
+  }
+
+  const detail = trimmed.slice(0, slashIndex).trim();
+  const modelLabel = trimmed.slice(slashIndex + 1).trim();
+  return {
+    detail: detail || null,
+    label: modelLabel || trimmed,
+  };
 }
 
 const PLAN_USAGE_WARN_THRESHOLD = 80;
@@ -135,7 +151,7 @@ function formatQuotaBadgeLabel(label: string): string {
 
   const trimmed = label.trim();
   if (!trimmed) {
-    return 'Usage';
+    return t('chat.ui.usage.label');
   }
 
   return trimmed.length <= 4 ? trimmed.toUpperCase() : trimmed;
@@ -143,10 +159,10 @@ function formatQuotaBadgeLabel(label: string): string {
 
 function formatQuotaLimitDescription(window: ProviderPlanUsageWindow): string {
   if (FIVE_HOUR_WINDOW_PATTERN.test(window.label)) {
-    return '5-hour limit';
+    return t('chat.ui.usage.fiveHourLimit');
   }
 
-  return `${window.label} limit`;
+  return t('chat.ui.usage.namedLimit', { name: window.label });
 }
 
 function findWeeklyWindow(usage: ProviderPlanUsage): ProviderPlanUsageWindow | null {
@@ -191,8 +207,17 @@ function isUsageWindowHot(window: ProviderPlanUsageWindow): boolean {
 function formatQuotaAriaLabel(plan: string, window: ProviderPlanUsageWindow): string {
   const limitDescription = formatQuotaLimitDescription(window);
   return isUsagePctKnown(window)
-    ? `${plan} ${limitDescription}: ${window.pct}% used, resets ${window.reset}`
-    : `${plan} ${limitDescription}: resets ${window.reset}`;
+    ? t('chat.ui.usage.ariaWithPercent', {
+      plan,
+      limit: limitDescription,
+      percent: window.pct,
+      reset: window.reset,
+    })
+    : t('chat.ui.usage.ariaWithoutPercent', {
+      plan,
+      limit: limitDescription,
+      reset: window.reset,
+    });
 }
 
 function areUsageIndicatorsEnabled(settings: Partial<ToolbarSettings> | null | undefined): boolean {
@@ -365,10 +390,14 @@ export class ModelSelector {
 
     this.buttonEl.empty();
 
+    const providerId = modelInfo
+      ? this.resolveProviderIdForModel(modelInfo)
+      : this.callbacks.resolveProviderForModel?.(currentModel) ?? this.callbacks.getProviderId?.() ?? null;
     const icon = modelInfo?.providerIcon ?? this.callbacks.getUIConfig().getProviderIcon?.();
     if (icon) {
       this.buttonEl.appendChild(createProviderIconSvg(icon, {
         className: 'grimoire-model-button-provider-icon',
+        ...(providerId ? { dataProvider: providerId } : {}),
         height: 13,
         ownerDocument: this.buttonEl.ownerDocument,
         width: 13,
@@ -376,9 +405,13 @@ export class ModelSelector {
     }
 
     const labelEl = this.buttonEl.createSpan({ cls: 'grimoire-model-label' });
-    labelEl.setText(modelInfo ? formatModelButtonLabel(modelInfo.label) : formatModelFallbackLabel(currentModel));
+    const fullLabel = modelInfo?.label.trim() || formatModelFallbackLabel(currentModel);
+    labelEl.setText(modelInfo ? formatModelButtonLabel(modelInfo.label) : fullLabel);
     const chevronEl = this.buttonEl.createSpan({ cls: 'grimoire-model-chevron' });
     setIcon(chevronEl, 'chevron-up');
+    this.buttonEl.removeAttribute('title');
+    this.buttonEl.setAttribute('aria-label', `${t('chat.ui.model.selectTooltip')}: ${fullLabel}`);
+    setTooltip(this.buttonEl, fullLabel, { placement: 'top' });
   }
 
   renderOptions() {
@@ -390,7 +423,7 @@ export class ModelSelector {
     if (this.pendingModel) {
       this.dropdownEl.addClass('grimoire-model-dropdown--loading');
       const loadingEl = this.dropdownEl.createDiv({ cls: 'grimoire-model-loading' });
-      loadingEl.setText('Switching model\u2026');
+      loadingEl.setText(t('chat.ui.model.switching'));
       return;
     }
 
@@ -402,14 +435,14 @@ export class ModelSelector {
 
     if (models.length === 0) {
       const emptyEl = this.dropdownEl.createDiv({ cls: 'grimoire-model-empty' });
-      emptyEl.setText('No models available');
+      emptyEl.setText(t('chat.ui.model.noneAvailable'));
       return;
     }
 
     const filteredModels = this.filterModels(models);
     if (filteredModels.length === 0) {
       const emptyEl = this.dropdownEl.createDiv({ cls: 'grimoire-model-empty' });
-      emptyEl.setText(`No models match "${this.searchQuery}"`);
+      emptyEl.setText(t('chat.ui.model.noMatch', { query: this.searchQuery }));
       return;
     }
 
@@ -425,7 +458,7 @@ export class ModelSelector {
     const groups: Array<{ name: string; models: ProviderUIOption[] }> = [];
     const groupsByName = new Map<string, ProviderUIOption[]>();
     for (const model of filteredModels) {
-      const group = model.group || 'Models';
+      const group = model.group || t('chat.ui.model.models');
       let groupModels = groupsByName.get(group);
       if (!groupModels) {
         groupModels = [];
@@ -455,23 +488,27 @@ export class ModelSelector {
         },
       });
 
+      const providerId = this.resolveGroupProviderId(group.models);
       const firstIcon = group.models[0]?.providerIcon ?? this.callbacks.getUIConfig().getProviderIcon?.();
       if (firstIcon) {
         headerEl.appendChild(createProviderIconSvg(firstIcon, {
           className: 'grimoire-model-group-provider-icon',
+          ...(providerId ? { dataProvider: providerId } : {}),
           height: 7,
           ownerDocument: headerEl.ownerDocument,
           width: 7,
         }));
       } else {
-        headerEl.createSpan({ cls: 'grimoire-model-group-provider-icon' });
+        const providerIconEl = headerEl.createSpan({ cls: 'grimoire-model-group-provider-icon' });
+        if (providerId) {
+          providerIconEl.dataset.provider = providerId;
+        }
       }
       headerEl.createSpan({ cls: 'grimoire-model-group-label', text: group.name });
       headerEl.createSpan({ cls: 'grimoire-model-group-count', text: String(group.models.length) });
       headerEl.createSpan({ cls: 'grimoire-model-group-chevron' });
 
       const groupBodyEl = groupEl.createDiv({ cls: 'grimoire-model-group-options' });
-      const providerId = this.resolveGroupProviderId(group.models);
       if (providerId) {
         this.renderPlanUsageReadout(groupBodyEl, this.callbacks.getProviderUsage?.(providerId) ?? null);
       }
@@ -590,7 +627,10 @@ export class ModelSelector {
     });
     const headerEl = readoutEl.createDiv({ cls: 'grimoire-plan-usage-readout-header' });
     headerEl.createSpan({ cls: 'grimoire-plan-usage-readout-plan', text: usage.plan });
-    headerEl.createSpan({ cls: 'grimoire-plan-usage-readout-caption', text: 'plan usage' });
+    headerEl.createSpan({
+      cls: 'grimoire-plan-usage-readout-caption',
+      text: t('chat.ui.usage.planUsage'),
+    });
 
     for (const window of windows) {
       const rowEl = readoutEl.createDiv({ cls: 'grimoire-plan-usage-readout-row' });
@@ -621,8 +661,8 @@ export class ModelSelector {
     this.searchInputEl = searchEl.createEl('input', {
       cls: 'grimoire-model-search-input',
       attr: {
-        'aria-label': 'Search models',
-        placeholder: 'Search models...',
+        'aria-label': t('chat.ui.model.searchAriaLabel'),
+        placeholder: t('chat.ui.model.searchPlaceholder'),
         type: 'search',
       },
     });
@@ -642,7 +682,7 @@ export class ModelSelector {
     const loadingEl = this.dropdownEl.createDiv({
       cls: 'grimoire-model-catalog-loading grimoire-model-loading',
     });
-    loadingEl.setText('Loading models\u2026');
+    loadingEl.setText(t('chat.ui.model.loading'));
   }
 
   private renderCatalogRefreshError(): void {
@@ -653,7 +693,7 @@ export class ModelSelector {
     const errorEl = this.dropdownEl.createDiv({
       cls: 'grimoire-model-catalog-error grimoire-model-loading',
     });
-    errorEl.setText('Couldn\u2019t load models');
+    errorEl.setText(t('chat.ui.model.loadFailed'));
   }
 
   private filterModels(models: ProviderUIOption[]): ProviderUIOption[] {
@@ -698,10 +738,13 @@ export class ModelSelector {
       }));
     }
 
+    const displayLabel = splitModelOptionLabel(model.label);
     const copyEl = option.createSpan({ cls: 'grimoire-model-option-copy' });
-    copyEl.createSpan({ cls: 'grimoire-model-option-label', text: model.label });
+    copyEl.createSpan({ cls: 'grimoire-model-option-label', text: displayLabel.label });
+    if (displayLabel.detail) {
+      copyEl.createSpan({ cls: 'grimoire-model-option-detail', text: displayLabel.detail });
+    }
     if (model.description) {
-      copyEl.createSpan({ cls: 'grimoire-model-option-detail', text: model.description });
       option.setAttribute('title', `${model.label}\n${model.description}`);
     } else {
       option.setAttribute('title', model.label);
@@ -719,7 +762,7 @@ export class ModelSelector {
           this.pendingModel = null;
         } catch {
           this.pendingModel = previousPendingModel;
-          new Notice('Failed to change model');
+          new Notice(t('chat.ui.model.changeFailed'));
         }
         this.updateDisplay();
         this.renderOptions();
@@ -809,19 +852,21 @@ export class PlanUsageBadge {
     if (this.fillEl) {
       this.fillEl.style.width = `${window.pct}%`;
     }
-    this.valueEl?.setText(isUsagePctKnown(window) ? `${window.pct}% used` : '—');
+    this.valueEl?.setText(formatUsagePct(window));
 
     const weeklyWindow = findWeeklyWindow(usage);
     const secondaryParts = [
-      ...(isUsagePctKnown(window) ? [`${window.pct}% used`] : []),
-      `resets ${window.reset}`,
+      ...(isUsagePctKnown(window) ? [t('chat.ui.usage.percentUsed', { percent: window.pct })] : []),
+      t('chat.ui.usage.resets', { reset: window.reset }),
     ];
     if (weeklyWindow) {
-      secondaryParts.push(isUsagePctKnown(weeklyWindow) ? `weekly ${weeklyWindow.pct}%` : 'weekly usage unavailable');
+      secondaryParts.push(isUsagePctKnown(weeklyWindow)
+        ? t('chat.ui.usage.weeklyPercent', { percent: weeklyWindow.pct })
+        : t('chat.ui.usage.weeklyUnavailable'));
     }
     const updatedAt = formatUsageUpdatedAt(usage.updatedAt);
     if (updatedAt) {
-      secondaryParts.push(`updated ${updatedAt}`);
+      secondaryParts.push(t('chat.ui.usage.updated', { time: updatedAt }));
     }
 
     const limitDescription = formatQuotaLimitDescription(window);
@@ -886,10 +931,10 @@ export class ModeSelector {
     this.toggleEl = this.container.createDiv({ cls: 'grimoire-toggle-switch' });
 
     this.labelEl.addEventListener('click', () => {
-      runToolbarAction(() => this.toggle(), 'Failed to change mode');
+      runToolbarAction(() => this.toggle(), t('chat.ui.toolbar.modeChangeFailed'));
     });
     this.toggleEl.addEventListener('click', () => {
-      runToolbarAction(() => this.toggle(), 'Failed to change mode');
+      runToolbarAction(() => this.toggle(), t('chat.ui.toolbar.modeChangeFailed'));
     });
 
     this.updateDisplay();
@@ -963,11 +1008,17 @@ export class ThinkingBudgetSelector {
   private budgetEl: HTMLElement | null = null;
   private budgetGearsEl: HTMLElement | null = null;
   private callbacks: ToolbarCallbacks;
+  private outsideClickHandler: ((event: MouseEvent) => void) | null = null;
+  private escapeHandler: ((event: KeyboardEvent) => void) | null = null;
 
   constructor(parentEl: HTMLElement, callbacks: ToolbarCallbacks) {
     this.callbacks = callbacks;
     this.container = parentEl.createDiv({ cls: 'grimoire-thinking-selector' });
     this.render();
+  }
+
+  destroy(): void {
+    this.closeMenus();
   }
 
   private render() {
@@ -976,13 +1027,13 @@ export class ThinkingBudgetSelector {
     // Effort selector (for adaptive thinking models)
     this.effortEl = this.container.createDiv({ cls: 'grimoire-thinking-effort' });
     const effortLabel = this.effortEl.createSpan({ cls: 'grimoire-thinking-label-text' });
-    effortLabel.setText('Effort:');
+    effortLabel.setText(t('chat.ui.toolbar.effort'));
     this.effortGearsEl = this.effortEl.createDiv({ cls: 'grimoire-thinking-gears' });
 
     // Legacy budget selector (for custom models)
     this.budgetEl = this.container.createDiv({ cls: 'grimoire-thinking-budget' });
     const budgetLabel = this.budgetEl.createSpan({ cls: 'grimoire-thinking-label-text' });
-    budgetLabel.setText('Thinking:');
+    budgetLabel.setText(t('chat.ui.toolbar.thinking'));
     this.budgetGearsEl = this.budgetEl.createDiv({ cls: 'grimoire-thinking-gears' });
 
     this.updateDisplay();
@@ -1000,29 +1051,46 @@ export class ThinkingBudgetSelector {
     const currentInfo = options.find(e => e.value === currentEffort);
 
     const currentEl = this.effortGearsEl.createDiv({ cls: 'grimoire-thinking-current' });
-    currentEl.setText(currentInfo?.label || options[0]?.label || 'High');
-    this.bindThinkingCurrent(this.effortGearsEl, currentEl);
+    const currentLabel = currentInfo?.label || options[0]?.label || t('chat.ui.toolbar.high');
+    currentEl.setText(localizeReasoningLevel(currentEffort, currentLabel));
+    this.bindThinkingCurrent(
+      this.effortGearsEl,
+      currentEl,
+      t('chat.ui.toolbar.effort').replace(/[：:]\s*$/, ''),
+    );
 
     const optionsEl = this.effortGearsEl.createDiv({ cls: 'grimoire-thinking-options' });
     optionsEl.setAttribute('role', 'listbox');
 
     for (const effort of [...options].reverse()) {
       const gearEl = optionsEl.createDiv({ cls: 'grimoire-thinking-gear' });
-      gearEl.setText(effort.label);
+      gearEl.setText(localizeReasoningLevel(effort.value, effort.label));
       gearEl.setAttribute('role', 'option');
+      gearEl.setAttribute('tabindex', '0');
       gearEl.setAttribute('aria-selected', String(effort.value === currentEffort));
 
       if (effort.value === currentEffort) {
         gearEl.addClass('selected');
       }
 
+      const selectEffort = (): void => {
+        runToolbarAction(async () => {
+          this.closeMenus();
+          await this.callbacks.onEffortLevelChange(effort.value);
+          this.updateDisplay();
+        }, t('chat.ui.toolbar.effortChangeFailed'));
+      };
       gearEl.addEventListener('click', (e) => {
         e.stopPropagation();
-        runToolbarAction(async () => {
-          await this.callbacks.onEffortLevelChange(effort.value);
-          this.effortGearsEl?.removeClass('open');
-          this.updateDisplay();
-        }, 'Failed to change effort level');
+        selectEffort();
+      });
+      gearEl.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') {
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        selectEffort();
       });
     }
   }
@@ -1039,48 +1107,121 @@ export class ThinkingBudgetSelector {
     const currentBudgetInfo = options.find(b => b.value === currentBudget);
 
     const currentEl = this.budgetGearsEl.createDiv({ cls: 'grimoire-thinking-current' });
-    currentEl.setText(currentBudgetInfo?.label || options[0]?.label || 'Off');
-    this.bindThinkingCurrent(this.budgetGearsEl, currentEl);
+    const currentLabel = currentBudgetInfo?.label || options[0]?.label || t('chat.ui.toolbar.off');
+    currentEl.setText(localizeReasoningLevel(currentBudget, currentLabel));
+    this.bindThinkingCurrent(
+      this.budgetGearsEl,
+      currentEl,
+      t('chat.ui.toolbar.thinking').replace(/[：:]\s*$/, ''),
+    );
 
     const optionsEl = this.budgetGearsEl.createDiv({ cls: 'grimoire-thinking-options' });
     optionsEl.setAttribute('role', 'listbox');
 
     for (const budget of [...options].reverse()) {
       const gearEl = optionsEl.createDiv({ cls: 'grimoire-thinking-gear' });
-      gearEl.setText(budget.label);
+      gearEl.setText(localizeReasoningLevel(budget.value, budget.label));
       gearEl.setAttribute('role', 'option');
+      gearEl.setAttribute('tabindex', '0');
       gearEl.setAttribute('aria-selected', String(budget.value === currentBudget));
       const tokens = budget.tokens ?? 0;
-      gearEl.setAttribute('title', tokens > 0 ? `${tokens.toLocaleString()} tokens` : 'Disabled');
+      gearEl.setAttribute('title', tokens > 0
+        ? t('chat.ui.toolbar.tokens', { count: tokens.toLocaleString() })
+        : t('common.disabled'));
 
       if (budget.value === currentBudget) {
         gearEl.addClass('selected');
       }
 
+      const selectBudget = (): void => {
+        runToolbarAction(async () => {
+          this.closeMenus();
+          await this.callbacks.onThinkingBudgetChange(budget.value);
+          this.updateDisplay();
+        }, t('chat.ui.toolbar.thinkingChangeFailed'));
+      };
       gearEl.addEventListener('click', (e) => {
         e.stopPropagation();
-        runToolbarAction(async () => {
-          await this.callbacks.onThinkingBudgetChange(budget.value);
-          this.budgetGearsEl?.removeClass('open');
-          this.updateDisplay();
-        }, 'Failed to change thinking budget');
+        selectBudget();
+      });
+      gearEl.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') {
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        selectBudget();
       });
     }
   }
 
-  private bindThinkingCurrent(gearsEl: HTMLElement, currentEl: HTMLElement): void {
+  private bindThinkingCurrent(
+    gearsEl: HTMLElement,
+    currentEl: HTMLElement,
+    tooltip: string,
+  ): void {
     currentEl.setAttribute('role', 'button');
+    currentEl.setAttribute('tabindex', '0');
     currentEl.setAttribute('aria-haspopup', 'listbox');
     currentEl.setAttribute('aria-expanded', String(gearsEl.hasClass('open')));
+    currentEl.setAttribute('aria-label', tooltip);
+    setTooltip(currentEl, tooltip, { placement: 'top' });
     currentEl.addEventListener('click', (event) => {
       event.stopPropagation();
       const open = !gearsEl.hasClass('open');
-      gearsEl.toggleClass('open', open);
-      currentEl.setAttribute('aria-expanded', String(open));
+      this.setOpen(gearsEl, currentEl, open);
+    });
+    currentEl.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      const open = !gearsEl.hasClass('open');
+      this.setOpen(gearsEl, currentEl, open);
     });
   }
 
+  private setOpen(gearsEl: HTMLElement, currentEl: HTMLElement, open: boolean): void {
+    this.closeMenus();
+    if (!open) {
+      return;
+    }
+
+    gearsEl.addClass('open');
+    currentEl.setAttribute('aria-expanded', 'true');
+    this.outsideClickHandler = (event: MouseEvent) => {
+      if (!this.container.contains(event.target as Node)) {
+        this.closeMenus();
+      }
+    };
+    this.escapeHandler = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        this.closeMenus();
+        currentEl.focus();
+      }
+    };
+    this.container.ownerDocument.addEventListener('click', this.outsideClickHandler, true);
+    this.container.ownerDocument.addEventListener('keydown', this.escapeHandler);
+  }
+
+  private closeMenus(): void {
+    for (const gearsEl of [this.effortGearsEl, this.budgetGearsEl]) {
+      gearsEl?.removeClass('open');
+      gearsEl?.querySelector('.grimoire-thinking-current')?.setAttribute('aria-expanded', 'false');
+    }
+    if (this.outsideClickHandler) {
+      this.container.ownerDocument.removeEventListener('click', this.outsideClickHandler, true);
+      this.outsideClickHandler = null;
+    }
+    if (this.escapeHandler) {
+      this.container.ownerDocument.removeEventListener('keydown', this.escapeHandler);
+      this.escapeHandler = null;
+    }
+  }
+
   updateDisplay() {
+    this.closeMenus();
     const capabilities = this.callbacks.getCapabilities();
     if (capabilities.reasoningControl === 'none') {
       this.effortEl?.addClass('grimoire-hidden');
@@ -1121,15 +1262,22 @@ export class ThinkingBudgetSelector {
 
 export class PermissionToggle {
   private container: HTMLElement;
-  private toggleEl: HTMLElement | null = null;
+  private gearsEl: HTMLElement | null = null;
   private labelEl: HTMLElement | null = null;
+  private optionsEl: HTMLElement | null = null;
   private callbacks: ToolbarCallbacks;
   private visible = true;
+  private outsideClickHandler: ((event: MouseEvent) => void) | null = null;
+  private escapeHandler: ((event: KeyboardEvent) => void) | null = null;
 
   constructor(parentEl: HTMLElement, callbacks: ToolbarCallbacks) {
     this.callbacks = callbacks;
     this.container = parentEl.createDiv({ cls: 'grimoire-permission-toggle' });
     this.render();
+  }
+
+  destroy(): void {
+    this.closeMenu();
   }
 
   setVisible(visible: boolean): void {
@@ -1140,17 +1288,29 @@ export class PermissionToggle {
   private render() {
     this.container.empty();
 
-    this.labelEl = this.container.createSpan({ cls: 'grimoire-permission-label' });
-    this.toggleEl = this.container.createDiv({ cls: 'grimoire-toggle-switch' });
+    this.gearsEl = this.container.createDiv({ cls: 'grimoire-permission-gears' });
+    this.labelEl = this.gearsEl.createSpan({ cls: 'grimoire-permission-label' });
+    this.labelEl.setAttribute('role', 'button');
+    this.labelEl.setAttribute('tabindex', '0');
+    this.labelEl.setAttribute('aria-haspopup', 'listbox');
+    this.labelEl.addEventListener('click', (event) => {
+      event?.stopPropagation();
+      const open = !this.gearsEl?.hasClass('open');
+      this.setOpen(open);
+    });
+    this.labelEl.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      const open = !this.gearsEl?.hasClass('open');
+      this.setOpen(open);
+    });
+    this.optionsEl = this.gearsEl.createDiv({ cls: 'grimoire-permission-options' });
+    this.optionsEl.setAttribute('role', 'listbox');
 
     this.updateDisplay();
-
-    this.labelEl.addEventListener('click', () => {
-      runToolbarAction(() => this.toggle(), 'Failed to change permission mode');
-    });
-    this.toggleEl.addEventListener('click', () => {
-      runToolbarAction(() => this.toggle(), 'Failed to change permission mode');
-    });
   }
 
   private getToggleConfig(): ProviderPermissionModeToggleConfig | null {
@@ -1159,7 +1319,9 @@ export class PermissionToggle {
   }
 
   updateDisplay() {
-    if (!this.toggleEl || !this.labelEl) return;
+    if (!this.gearsEl || !this.labelEl || !this.optionsEl) return;
+
+    this.closeMenu();
 
     const toggleConfig = this.getToggleConfig();
     const capabilities = this.callbacks.getCapabilities();
@@ -1171,46 +1333,89 @@ export class PermissionToggle {
     this.container.removeClass('grimoire-hidden');
     const mode = this.callbacks.getSettings().permissionMode;
     const planValue = toggleConfig.planValue;
-    const planLabel = toggleConfig.planLabel ?? 'PLAN';
     const canShowPlan = Boolean(planValue) && capabilities.supportsPlanMode;
+    const options = [
+      { label: t('chat.ui.toolbar.permissionSafe'), value: toggleConfig.inactiveValue },
+      { label: t('chat.ui.toolbar.permissionAuto'), value: toggleConfig.activeValue },
+      ...(canShowPlan && planValue
+        ? [{ label: t('chat.ui.toolbar.permissionPlan'), value: planValue }]
+        : []),
+    ];
+    const currentOption = options.find(option => option.value === mode) ?? options[0];
 
-    if (canShowPlan && planValue && mode === planValue) {
-      this.toggleEl.removeClass('grimoire-hidden');
-      this.toggleEl.removeClass('active');
-      this.toggleEl.addClass('plan-active');
-      this.labelEl.setText(planLabel);
-      this.labelEl.addClass('plan-active');
-      this.labelEl.setAttribute('role', 'button');
-      this.labelEl.setAttribute('aria-pressed', 'true');
-    } else {
-      this.toggleEl.removeClass('grimoire-hidden');
-      this.toggleEl.removeClass('plan-active');
-      this.labelEl.removeClass('plan-active');
-      if (mode === toggleConfig.activeValue) {
-        this.toggleEl.addClass('active');
-        this.labelEl.setText(toggleConfig.activeLabel);
-      } else {
-        this.toggleEl.removeClass('active');
-        this.labelEl.setText(toggleConfig.inactiveLabel);
-      }
-      this.labelEl.setAttribute('role', 'button');
-      this.labelEl.setAttribute('aria-pressed', String(mode !== toggleConfig.activeValue));
+    this.labelEl.setText(currentOption.label);
+    this.labelEl.toggleClass('active', mode === toggleConfig.activeValue);
+    this.labelEl.toggleClass('plan-active', Boolean(planValue) && mode === planValue);
+    this.labelEl.setAttribute('aria-expanded', String(this.gearsEl.hasClass('open')));
+    this.labelEl.removeAttribute('title');
+    setTooltip(this.labelEl, t('chat.ui.toolbar.modeTooltip'), { placement: 'top' });
+
+    this.optionsEl.empty();
+    for (const option of [...options].reverse()) {
+      const optionEl = this.optionsEl.createDiv({
+        cls: 'grimoire-permission-option',
+        text: option.label,
+      });
+      optionEl.setAttribute('role', 'option');
+      optionEl.setAttribute('tabindex', '0');
+      optionEl.setAttribute('aria-selected', String(option.value === mode));
+      optionEl.toggleClass('selected', option.value === mode);
+      const selectOption = (): void => {
+        runToolbarAction(async () => {
+          this.closeMenu();
+          await this.callbacks.onPermissionModeChange(option.value);
+          this.updateDisplay();
+        }, t('chat.ui.toolbar.permissionChangeFailed'));
+      };
+      optionEl.addEventListener('click', (event) => {
+        event?.stopPropagation();
+        selectOption();
+      });
+      optionEl.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') {
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        selectOption();
+      });
     }
   }
 
-  private async toggle() {
-    const toggleConfig = this.getToggleConfig();
-    if (!toggleConfig) return;
+  private setOpen(open: boolean): void {
+    this.closeMenu();
+    if (!open || !this.gearsEl || !this.labelEl) {
+      return;
+    }
 
-    const current = this.callbacks.getSettings().permissionMode;
-    const capabilities = this.callbacks.getCapabilities();
-    const newMode = getNextPermissionMode(
-      current,
-      toggleConfig,
-      capabilities.supportsPlanMode,
-    );
-    await this.callbacks.onPermissionModeChange(newMode);
-    this.updateDisplay();
+    this.gearsEl.addClass('open');
+    this.labelEl.setAttribute('aria-expanded', 'true');
+    this.outsideClickHandler = (event: MouseEvent) => {
+      if (!this.container.contains(event.target as Node)) {
+        this.closeMenu();
+      }
+    };
+    this.escapeHandler = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        this.closeMenu();
+        this.labelEl?.focus();
+      }
+    };
+    this.container.ownerDocument.addEventListener('click', this.outsideClickHandler, true);
+    this.container.ownerDocument.addEventListener('keydown', this.escapeHandler);
+  }
+
+  private closeMenu(): void {
+    this.gearsEl?.removeClass('open');
+    this.labelEl?.setAttribute('aria-expanded', 'false');
+    if (this.outsideClickHandler) {
+      this.container.ownerDocument.removeEventListener('click', this.outsideClickHandler, true);
+      this.outsideClickHandler = null;
+    }
+    if (this.escapeHandler) {
+      this.container.ownerDocument.removeEventListener('keydown', this.escapeHandler);
+      this.escapeHandler = null;
+    }
   }
 }
 
@@ -1253,7 +1458,7 @@ export class ServiceTierToggle {
     this.updateDisplay();
 
     this.buttonEl.addEventListener('click', () => {
-      runToolbarAction(() => this.toggle(), 'Failed to change service tier');
+      runToolbarAction(() => this.toggle(), t('chat.ui.toolbar.serviceTierChangeFailed'));
     });
   }
 
@@ -1280,7 +1485,7 @@ export class ServiceTierToggle {
       this.buttonEl.removeClass('active');
     }
 
-    this.container.setAttribute('title', 'Toggle on/off fast mode');
+    this.container.setAttribute('title', t('chat.ui.toolbar.toggleFastMode'));
   }
 
   private async toggle() {
@@ -1302,6 +1507,7 @@ export type AddExternalContextResult =
 
 export class ExternalContextSelector {
   private container: HTMLElement;
+  private buttonEl: HTMLElement | null = null;
   private iconEl: HTMLElement | null = null;
   private labelEl: HTMLElement | null = null;
   private badgeEl: HTMLElement | null = null;
@@ -1355,7 +1561,10 @@ export class ExternalContextSelector {
     // If invalid paths were removed, notify user and save updated list
     if (invalidPaths.length > 0) {
       const pathNames = invalidPaths.map(p => this.shortenPath(p)).join(', ');
-      new Notice(`Removed ${invalidPaths.length} invalid external context path(s): ${pathNames}`, 5000);
+      new Notice(t('chat.ui.externalContext.removedInvalid', {
+        count: invalidPaths.length,
+        paths: pathNames,
+      }), 5000);
       this.onPersistenceChangeCallback?.([...this.persistentPaths]);
     }
   }
@@ -1366,7 +1575,9 @@ export class ExternalContextSelector {
     } else {
       // Validate path still exists before persisting
       if (!isValidContextPath(path)) {
-        new Notice(`Cannot persist "${this.shortenPath(path)}" - path no longer exists`, 4000);
+        new Notice(t('chat.ui.externalContext.cannotPersistMissing', {
+          path: this.shortenPath(path),
+        }), 4000);
         return;
       }
       this.persistentPaths.add(path);
@@ -1419,7 +1630,7 @@ export class ExternalContextSelector {
   addExternalContext(pathInput: string): AddExternalContextResult {
     const trimmed = pathInput?.trim();
     if (!trimmed) {
-      return { success: false, error: 'No path provided. Usage: /add-dir /absolute/path' };
+      return { success: false, error: t('chat.ui.externalContext.noPath') };
     }
 
     // Strip surrounding quotes if present (e.g., "/path/with spaces")
@@ -1434,7 +1645,7 @@ export class ExternalContextSelector {
     const normalizedPath = normalizePathForFilesystem(expandedPath);
 
     if (!path.isAbsolute(normalizedPath)) {
-      return { success: false, error: 'Path must be absolute. Usage: /add-dir /absolute/path' };
+      return { success: false, error: t('chat.ui.externalContext.absolutePathRequired') };
     }
 
     // Validate path exists and is a file or directory with specific error messages
@@ -1445,7 +1656,7 @@ export class ExternalContextSelector {
 
     // Check for duplicate (normalized comparison for cross-platform support)
     if (isDuplicatePath(normalizedPath, this.externalContextPaths)) {
-      return { success: false, error: 'This folder is already added as an external context.' };
+      return { success: false, error: t('chat.ui.externalContext.duplicate') };
     }
 
     // Check for nested/overlapping paths
@@ -1483,18 +1694,18 @@ export class ExternalContextSelector {
   private render() {
     this.container.empty();
 
-    const iconWrapper = this.container.createDiv({ cls: 'grimoire-external-context-icon-wrapper' });
+    this.buttonEl = this.container.createDiv({ cls: 'grimoire-external-context-icon-wrapper' });
 
-    this.iconEl = iconWrapper.createDiv({ cls: 'grimoire-external-context-icon' });
-    setIcon(this.iconEl, 'folder');
-    this.labelEl = iconWrapper.createSpan({ cls: 'grimoire-external-context-label' });
+    this.iconEl = this.buttonEl.createDiv({ cls: 'grimoire-external-context-icon' });
+    setIcon(this.iconEl, 'paperclip');
+    this.labelEl = this.buttonEl.createSpan({ cls: 'grimoire-external-context-label' });
 
-    this.badgeEl = iconWrapper.createDiv({ cls: 'grimoire-external-context-badge' });
+    this.badgeEl = this.buttonEl.createDiv({ cls: 'grimoire-external-context-badge' });
 
     this.updateDisplay();
 
     // Click to open native folder picker
-    iconWrapper.addEventListener('click', (e) => {
+    this.buttonEl.addEventListener('click', (e) => {
       e.stopPropagation();
       void this.openFolderPicker();
     });
@@ -1550,7 +1761,7 @@ export class ExternalContextSelector {
       }
       const result = await remote.dialog.showOpenDialog({
         properties: ['openFile', 'openDirectory'],
-        title: 'Select External Context',
+        title: t('chat.ui.externalContext.selectTitle'),
       });
 
       if (!result.canceled && result.filePaths.length > 0) {
@@ -1558,7 +1769,7 @@ export class ExternalContextSelector {
 
         // Check for duplicate (normalized comparison for cross-platform support)
         if (isDuplicatePath(selectedPath, this.externalContextPaths)) {
-          new Notice('This folder is already added as an external context.', 3000);
+          new Notice(t('chat.ui.externalContext.duplicate'), 3000);
           return;
         }
 
@@ -1578,7 +1789,7 @@ export class ExternalContextSelector {
         this.renderDropdown();
       }
     } catch {
-      new Notice('Unable to open folder picker.', 5000);
+      new Notice(t('chat.ui.externalContext.pickerFailed'), 5000);
     }
   }
 
@@ -1587,8 +1798,8 @@ export class ExternalContextSelector {
     const shortNew = this.shortenPath(newPath);
     const shortExisting = this.shortenPath(conflict.path);
     return conflict.type === 'parent'
-      ? `Cannot add "${shortNew}" - it's inside existing path "${shortExisting}"`
-      : `Cannot add "${shortNew}" - it contains existing path "${shortExisting}"`;
+      ? t('chat.ui.externalContext.conflictInside', { path: shortNew, existing: shortExisting })
+      : t('chat.ui.externalContext.conflictContains', { path: shortNew, existing: shortExisting });
   }
 
   private renderDropdown() {
@@ -1598,14 +1809,14 @@ export class ExternalContextSelector {
 
     // Header
     const headerEl = this.dropdownEl.createDiv({ cls: 'grimoire-external-context-header' });
-    headerEl.setText('External contexts');
+    headerEl.setText(t('chat.ui.externalContext.header'));
 
     // Path list
     const listEl = this.dropdownEl.createDiv({ cls: 'grimoire-external-context-list' });
 
     if (this.externalContextPaths.length === 0) {
       const emptyEl = listEl.createDiv({ cls: 'grimoire-external-context-empty' });
-      emptyEl.setText('Click folder icon to add');
+      emptyEl.setText(t('chat.ui.externalContext.empty'));
     } else {
       for (const pathStr of this.externalContextPaths) {
         const itemEl = listEl.createDiv({ cls: 'grimoire-external-context-item' });
@@ -1623,7 +1834,9 @@ export class ExternalContextSelector {
           lockBtn.addClass('locked');
         }
         setIcon(lockBtn, isPersistent ? 'lock' : 'unlock');
-        lockBtn.setAttribute('title', isPersistent ? 'Persistent (click to make session-only)' : 'Session-only (click to persist)');
+        lockBtn.setAttribute('title', isPersistent
+          ? t('chat.ui.externalContext.makeSessionOnly')
+          : t('chat.ui.externalContext.makePersistent'));
         lockBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           this.togglePersistence(pathStr);
@@ -1631,7 +1844,7 @@ export class ExternalContextSelector {
 
         const removeBtn = itemEl.createSpan({ cls: 'grimoire-external-context-remove' });
         setIcon(removeBtn, 'x');
-        removeBtn.setAttribute('title', 'Remove path');
+        removeBtn.setAttribute('title', t('chat.ui.externalContext.removePath'));
         removeBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           this.removePath(pathStr);
@@ -1665,20 +1878,24 @@ export class ExternalContextSelector {
   }
 
   updateDisplay() {
-    if (!this.iconEl || !this.labelEl || !this.badgeEl) return;
+    if (!this.buttonEl || !this.iconEl || !this.labelEl || !this.badgeEl) return;
+
+    this.container.removeAttribute('title');
+    this.iconEl.removeAttribute('title');
+    this.labelEl.removeAttribute('title');
 
     const count = this.externalContextPaths.length;
     const firstPath = this.externalContextPaths[0] ?? '';
+    this.buttonEl.toggleClass('active', count > 0);
 
     if (count > 0) {
       this.iconEl.addClass('active');
       const title = count === 1
         ? firstPath
-        : `${count} external contexts (click to add more)`;
-      this.labelEl.setText('Files');
-      this.labelEl.setAttribute('title', title);
-      this.iconEl.setAttribute('title', title);
-      this.container.setAttribute('title', title);
+        : t('chat.ui.externalContext.countTitle', { count });
+      this.labelEl.setText(t('chat.ui.externalContext.files'));
+      this.buttonEl.setAttribute('aria-label', title);
+      setTooltip(this.buttonEl, title, { placement: 'top' });
 
       // Show badge only when more than 1 path
       if (count > 1) {
@@ -1689,10 +1906,10 @@ export class ExternalContextSelector {
       }
     } else {
       this.iconEl.removeClass('active');
-      this.iconEl.setAttribute('title', 'Add external contexts (click)');
-      this.labelEl.setText('Files');
-      this.labelEl.setAttribute('title', 'Add external contexts (click)');
-      this.container.setAttribute('title', 'Add external contexts (click)');
+      this.labelEl.setText(t('chat.ui.externalContext.files'));
+      const title = t('chat.ui.externalContext.addTitle');
+      this.buttonEl.setAttribute('aria-label', title);
+      setTooltip(this.buttonEl, title, { placement: 'top' });
       this.badgeEl.removeClass('visible');
     }
   }
@@ -1811,7 +2028,7 @@ export class McpServerSelector {
 
     // Header
     const headerEl = this.dropdownEl.createDiv({ cls: 'grimoire-mcp-selector-header' });
-    headerEl.setText('Mcp servers');
+    headerEl.setText(t('chat.ui.mcp.header'));
 
     // Server list
     const listEl = this.dropdownEl.createDiv({ cls: 'grimoire-mcp-selector-list' });
@@ -1821,7 +2038,9 @@ export class McpServerSelector {
 
     if (servers.length === 0) {
       const emptyEl = listEl.createDiv({ cls: 'grimoire-mcp-selector-empty' });
-      emptyEl.setText(allServers.length === 0 ? 'No MCP servers configured' : 'All MCP servers disabled');
+      emptyEl.setText(allServers.length === 0
+        ? t('chat.ui.mcp.noneConfigured')
+        : t('chat.ui.mcp.allDisabled'));
       return;
     }
 
@@ -1855,7 +2074,7 @@ export class McpServerSelector {
     if (server.contextSaving) {
       const csEl = infoEl.createSpan({ cls: 'grimoire-mcp-selector-cs-badge' });
       csEl.setText('@');
-      csEl.setAttribute('title', 'Context-saving: can also enable via @' + server.name);
+      csEl.setAttribute('title', t('chat.ui.mcp.contextSaving', { server: server.name }));
     }
 
     // Click to toggle (use mousedown for more reliable capture)
@@ -1905,7 +2124,7 @@ export class McpServerSelector {
 
     if (count > 0) {
       this.iconEl.addClass('active');
-      this.iconEl.setAttribute('title', `${count} MCP server${count > 1 ? 's' : ''} enabled (click to manage)`);
+      this.iconEl.setAttribute('title', t('chat.ui.mcp.enabledCount', { count }));
 
       // Show badge only when more than 1
       if (count > 1) {
@@ -1916,7 +2135,7 @@ export class McpServerSelector {
       }
     } else {
       this.iconEl.removeClass('active');
-      this.iconEl.setAttribute('title', 'Mcp servers (click to enable)');
+      this.iconEl.setAttribute('title', t('chat.ui.mcp.enableTitle'));
       this.badgeEl.removeClass('visible');
     }
   }
@@ -1981,24 +2200,24 @@ export class ContextUsageMeter {
       this.container.removeClass('warning');
     }
 
-    // Set tooltip with detailed usage
-    let tooltip = `${this.formatTokens(usage.contextTokens)} / ${this.formatTokens(usage.contextWindow)}`;
-    if (usage.percentage > 80) {
-      tooltip += ' (Approaching limit, run `/compact` to continue)';
-    }
-    this.container.setAttribute('data-tooltip', tooltip);
-    this.container.setAttribute('aria-label', `Context window ${usage.percentage}% used`);
+    // Keep only the custom detailed tooltip; Obsidian's data-tooltip would
+    // render a second black percentage tooltip on top of it.
+    this.container.removeAttribute('data-tooltip');
+    this.container.removeAttribute('aria-label');
 
     if (this.tipEl) {
       const tokensLeft = Math.max(0, usage.contextWindow - usage.contextTokens);
       this.tipEl.empty();
       this.tipEl.createDiv({
         cls: 'grimoire-context-meter-tip-primary',
-        text: `${this.formatTokens(usage.contextTokens)} / ${this.formatTokens(usage.contextWindow)} tokens`,
+        text: t('chat.ui.contextUsage.tokens', {
+          used: this.formatTokens(usage.contextTokens),
+          total: this.formatTokens(usage.contextWindow),
+        }),
       });
       this.tipEl.createDiv({
         cls: 'grimoire-context-meter-tip-secondary',
-        text: `${this.formatTokens(tokensLeft)} left`,
+        text: t('chat.ui.contextUsage.left', { count: this.formatTokens(tokensLeft) }),
       });
     }
   }
@@ -2008,18 +2227,22 @@ export class ContextUsageMeter {
     this.container.removeClass('warning');
     this.container.setCssProps({ '--grimoire-context-meter-pct': '0' });
     this.percentEl?.setText('0%');
-    const windowLabel = contextWindow ? this.formatTokens(contextWindow) : 'context';
-    this.container.setAttribute('data-tooltip', contextWindow ? `0 / ${windowLabel}` : 'No context used yet');
-    this.container.setAttribute('aria-label', 'Context window 0% used');
+    const windowLabel = contextWindow ? this.formatTokens(contextWindow) : t('chat.ui.contextUsage.context');
+    this.container.removeAttribute('data-tooltip');
+    this.container.removeAttribute('aria-label');
     if (this.tipEl) {
       this.tipEl.empty();
       this.tipEl.createDiv({
         cls: 'grimoire-context-meter-tip-primary',
-        text: contextWindow ? `0 / ${windowLabel} tokens` : 'No context used yet',
+        text: contextWindow
+          ? t('chat.ui.contextUsage.tokens', { used: 0, total: windowLabel })
+          : t('chat.ui.contextUsage.noneYet'),
       });
       this.tipEl.createDiv({
         cls: 'grimoire-context-meter-tip-secondary',
-        text: contextWindow ? `${windowLabel} left` : 'Usage appears as the active tab builds context.',
+        text: contextWindow
+          ? t('chat.ui.contextUsage.left', { count: windowLabel })
+          : t('chat.ui.contextUsage.hint'),
       });
     }
   }
@@ -2063,8 +2286,9 @@ export class OrchestratorToggle {
 
     this.buttonEl.toggleClass('active', this.callbacks.getOrchestratorMode?.() ?? false);
     this.buttonEl.setAttribute('aria-pressed', String(this.callbacks.getOrchestratorMode?.() ?? false));
-    this.container.setAttribute('title', t('chat.orchestrator.toggleTitle'));
+    this.container.removeAttribute('title');
     this.buttonEl.setAttribute('aria-label', t('chat.orchestrator.toggleAriaLabel'));
+    setTooltip(this.buttonEl, t('chat.orchestrator.toggleTitle'), { placement: 'top' });
   }
 
   private async toggle(): Promise<void> {
@@ -2139,21 +2363,23 @@ export function createInputToolbar(
   projectWorkspaceSelector: ProjectWorkspaceSelector;
   relevantNotesContainerEl: HTMLElement;
 } {
-  const modelRowEl = parentEl.createDiv({ cls: 'grimoire-input-toolbar-row grimoire-input-toolbar-model-row' });
-  const actionsRowEl = parentEl.createDiv({ cls: 'grimoire-input-toolbar-row grimoire-input-toolbar-actions-row' });
-  const modelContextStackEl = modelRowEl.createDiv({ cls: 'grimoire-model-context-stack' });
+  const actionsRowEl = parentEl.createDiv({
+    cls: 'grimoire-input-toolbar-row grimoire-input-toolbar-model-row grimoire-input-toolbar-actions-row',
+  });
+  const modelContextStackEl = actionsRowEl.createDiv({ cls: 'grimoire-model-context-stack' });
   const modelSelector = new ModelSelector(modelContextStackEl, callbacks);
   const planUsageBadge = new PlanUsageBadge(modelContextStackEl, callbacks);
   const relevantNotesContainerEl = modelContextStackEl.createDiv({ cls: 'grimoire-relevant-notes-slot' });
-  const thinkingBudgetSelector = new ThinkingBudgetSelector(actionsRowEl, callbacks);
-  const serviceTierToggle = new ServiceTierToggle(actionsRowEl, callbacks);
-  const contextUsageMeter = new ContextUsageMeter(actionsRowEl);
-  const externalContextSelector = new ExternalContextSelector(actionsRowEl, callbacks);
-  const mcpServerSelector = new McpServerSelector(actionsRowEl);
-  const permissionToggle = new PermissionToggle(actionsRowEl, callbacks);
-  const modeSelector = new ModeSelector(actionsRowEl, callbacks);
-  const orchestratorToggle = new OrchestratorToggle(actionsRowEl, callbacks);
-  const projectWorkspaceSelector = new ProjectWorkspaceSelector(actionsRowEl, callbacks);
+  const configActionsEl = actionsRowEl.createDiv({ cls: 'grimoire-input-toolbar-config-actions' });
+  const thinkingBudgetSelector = new ThinkingBudgetSelector(configActionsEl, callbacks);
+  const serviceTierToggle = new ServiceTierToggle(configActionsEl, callbacks);
+  const contextUsageMeter = new ContextUsageMeter(configActionsEl);
+  const externalContextSelector = new ExternalContextSelector(configActionsEl, callbacks);
+  const mcpServerSelector = new McpServerSelector(configActionsEl);
+  const permissionToggle = new PermissionToggle(configActionsEl, callbacks);
+  const modeSelector = new ModeSelector(configActionsEl, callbacks);
+  const orchestratorToggle = new OrchestratorToggle(configActionsEl, callbacks);
+  const projectWorkspaceSelector = new ProjectWorkspaceSelector(configActionsEl, callbacks);
 
   return {
     modelSelector,

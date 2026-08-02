@@ -452,7 +452,7 @@ describe('StreamController - Text Content', () => {
       const msg = createTestMessage();
       msg.content = `\`\`\`json
 {
-  "type": "orchestrator_plan",
+  "type": "parallel_worker_plan",
   "tasks": [
     {
       "id": "research",
@@ -468,6 +468,8 @@ describe('StreamController - Text Content', () => {
 }
 \`\`\``;
       const contentEl = createMockEl();
+      const rawPayloadEl = contentEl.createDiv({ cls: 'grimoire-text-block', text: msg.content });
+      rawPayloadEl.remove = jest.fn();
       deps.state.currentContentEl = contentEl;
       deps.isOrchestratorMode = jest.fn().mockReturnValue(true);
       deps.onOrchestratorPlanDetected = jest.fn();
@@ -477,19 +479,28 @@ describe('StreamController - Text Content', () => {
       expect(deps.onOrchestratorPlanDetected).toHaveBeenCalledWith(
         contentEl,
         expect.objectContaining({
-          type: 'orchestrator_plan',
+          type: 'parallel_worker_plan',
           tasks: expect.arrayContaining([
             expect.objectContaining({ id: 'research' }),
             expect.objectContaining({ id: 'tests' }),
           ]),
         }),
       );
+      expect(msg.content).toBe('');
+      expect(msg.contentBlocks).toContainEqual(expect.objectContaining({
+        type: 'parallel_worker_plan',
+        tasks: expect.arrayContaining([
+          expect.objectContaining({ id: 'research' }),
+          expect.objectContaining({ id: 'tests' }),
+        ]),
+      }));
+      expect(rawPayloadEl.remove).toHaveBeenCalled();
     });
 
     it('does not detect orchestrator plans when orchestrator mode is inactive', async () => {
       const msg = createTestMessage();
       msg.content = `\`\`\`json
-{"type":"orchestrator_plan","tasks":[{"id":"a","description":"Task A","prompt":"Do A"},{"id":"b","description":"Task B","prompt":"Do B"}]}
+{"type":"parallel_worker_plan","tasks":[{"id":"a","description":"Task A","prompt":"Do A"},{"id":"b","description":"Task B","prompt":"Do B"}]}
 \`\`\``;
       deps.state.currentContentEl = createMockEl();
       deps.isOrchestratorMode = jest.fn().mockReturnValue(false);
@@ -500,15 +511,6 @@ describe('StreamController - Text Content', () => {
       expect(deps.onOrchestratorPlanDetected).not.toHaveBeenCalled();
     });
 
-    it('reports worker completion on done', async () => {
-      const msg = createTestMessage();
-      msg.content = 'Worker result';
-      deps.onWorkerDone = jest.fn();
-
-      await controller.handleStreamChunk({ type: 'done' }, msg);
-
-      expect(deps.onWorkerDone).toHaveBeenCalledWith('Worker result', false);
-    });
   });
 
   describe('Usage handling', () => {

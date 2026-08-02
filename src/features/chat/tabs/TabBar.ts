@@ -91,7 +91,7 @@ export class TabBar {
 
   private getAccessibleTitle(item: TabBarItem): string {
     if (item.isOrchestrator) {
-      return `Orchestrator: ${item.title}`;
+      return `Parallel workers: ${item.title}`;
     }
     if (item.isWorker) {
       return `Worker: ${item.title}`;

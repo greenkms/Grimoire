@@ -75,12 +75,18 @@
       "copyFailed": "Falha ao copiar para a área de transferência"
     },
     "orchestrator": {
-      "planTitle": "Plano do orquestrador",
-      "workerCount": "Trabalhadores: {count}",
-      "spawnWorkers": "Iniciar trabalhadores",
-      "toggleTitle": "Modo orquestrador",
-      "toggleAriaLabel": "Alternar modo orquestrador",
-      "toggleFailed": "Falha ao alternar o modo orquestrador"
+      "planTitle": "Tarefas independentes para esta nota",
+      "planEyebrow": "Trabalhadores paralelos",
+      "planSummary": "Foram preparadas {count} tarefas independentes. Cada uma é executada em sua própria aba e não compartilha contexto nem resultados com as outras.",
+      "badge": "Trabalhadores paralelos",
+      "workerCount": "{count} de {total} selecionadas",
+      "spawnWorkers": "Abrir abas dos trabalhadores",
+      "parallel": "Independente",
+      "toggleTask": "Incluir tarefa: {task}",
+      "workerTabsHint": "Um trabalhador independente por aba · sem contexto compartilhado",
+      "toggleTitle": "Trabalhadores paralelos",
+      "toggleAriaLabel": "Alternar trabalhadores paralelos",
+      "toggleFailed": "Falha ao alternar os trabalhadores paralelos"
     },
     "vaultSearch": {
       "toolName": "Busca no cofre",
@@ -315,7 +321,7 @@
         "conflictInside": "Não é possível adicionar “{path}” — ele está dentro do caminho existente “{existing}”",
         "conflictContains": "Não é possível adicionar “{path}” — ele contém o caminho existente “{existing}”",
         "header": "Contextos externos",
-        "empty": "Clique no ícone de pasta para adicionar um",
+        "empty": "Clique para adicionar um",
         "makeSessionOnly": "Persistente (clique para usar apenas nesta sessão)",
         "makePersistent": "Somente nesta sessão (clique para manter)",
         "removePath": "Remover caminho",

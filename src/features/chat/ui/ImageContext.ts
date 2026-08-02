@@ -2,6 +2,7 @@ import { Notice } from 'obsidian';
 import * as path from 'path';
 
 import type { ImageAttachment, ImageMediaType } from '../../../core/types';
+import { t } from '../../../i18n/i18n';
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
@@ -103,7 +104,7 @@ export class ImageContextManager {
     svg.createSvg('line', {
       attr: { x1: '12', y1: '3', x2: '12', y2: '15' },
     });
-    dropContent.createSpan({ text: 'Drop image here' });
+    dropContent.createSpan({ text: t('chat.ui.images.dropHere') });
 
     const dropZone = inputWrapper;
 
@@ -204,18 +205,18 @@ export class ImageContextManager {
 
   private async addImageFromFile(file: File, source: 'paste' | 'drop'): Promise<boolean> {
     if (!this.enabled) {
-      new Notice('Image attachments are not supported by this provider.');
+      new Notice(t('chat.ui.images.unsupportedProvider'));
       return false;
     }
 
     if (file.size > MAX_IMAGE_SIZE) {
-      this.notifyImageError(`Image exceeds ${this.formatSize(MAX_IMAGE_SIZE)} limit.`);
+      this.notifyImageError(t('chat.ui.images.sizeLimit', { size: this.formatSize(MAX_IMAGE_SIZE) }));
       return false;
     }
 
     const mediaType = this.getMediaType(file.name) || (file.type as ImageMediaType);
     if (!mediaType) {
-      this.notifyImageError('Unsupported image type.');
+      this.notifyImageError(t('chat.ui.images.unsupportedType'));
       return false;
     }
 
@@ -236,7 +237,7 @@ export class ImageContextManager {
       this.callbacks.onImagesChanged();
       return true;
     } catch (error) {
-      this.notifyImageError('Failed to attach image.', error);
+      this.notifyImageError(t('chat.ui.images.attachFailed'), error);
       return false;
     }
   }
@@ -289,7 +290,7 @@ export class ImageContextManager {
 
     const removeEl = previewEl.createSpan({ cls: 'grimoire-image-remove' });
     removeEl.setText('\u00D7');
-    removeEl.setAttribute('aria-label', 'Remove image');
+    removeEl.setAttribute('aria-label', t('chat.ui.images.remove'));
 
     removeEl.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -358,9 +359,9 @@ export class ImageContextManager {
     let userMessage = message;
     if (error instanceof Error) {
       if (error.message.includes('ENOENT') || error.message.includes('no such file')) {
-        userMessage = `${message} (File not found)`;
+        userMessage = `${message} ${t('chat.ui.images.fileNotFound')}`;
       } else if (error.message.includes('EACCES') || error.message.includes('permission denied')) {
-        userMessage = `${message} (Permission denied)`;
+        userMessage = `${message} ${t('chat.ui.images.permissionDenied')}`;
       }
     }
     new Notice(userMessage);

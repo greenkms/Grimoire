@@ -9,6 +9,7 @@ export {
   type ForkSource,
   type ImageAttachment,
   type ImageMediaType,
+  type OrchestratorPlanTaskContent,
   type PersistedAssistantResponseMetadata,
   type PersistedVaultSearchContext,
   type ProgressItem,

@@ -48,7 +48,11 @@ import { hasStreamingMathDelimiters } from '../../../utils/markdownMath';
 import { getVaultPath, normalizePathForVault } from '../../../utils/path';
 import { FLAVOR_TEXTS } from '../constants';
 import type { MessageRenderer, RenderContentOptions } from '../rendering/MessageRenderer';
-import { type OrchestratorPlan, parseOrchestratorPlan } from '../rendering/orchestratorPlanParser';
+import {
+  type OrchestratorPlan,
+  parseOrchestratorPlan,
+  stripOrchestratorPlanPayload,
+} from '../rendering/orchestratorPlanParser';
 import {
   cleanupProgressBlock,
   createProgressBlock,
@@ -99,10 +103,8 @@ export interface StreamControllerDeps {
   getActiveProviderSettings?: () => Record<string, unknown>;
   /** True when this tab should treat the final assistant response as an orchestrator plan. */
   isOrchestratorMode?: () => boolean;
-  /** Render an inline approval control for a parsed orchestration plan. */
+  /** Render an inline approval control for a parsed parallel-worker plan. */
   onOrchestratorPlanDetected?: (containerEl: HTMLElement, plan: OrchestratorPlan) => void;
-  /** Notify orchestration state that this worker tab finished. */
-  onWorkerDone?: (result: string, isError: boolean) => void;
   /** Observe provider tool calls that may load files into runtime context. */
   recordRuntimeToolCall?: (toolCall: ToolCallInfo) => void;
 }
@@ -142,11 +144,9 @@ export class StreamController {
 
   setOrchestratorCallbacks(
     onOrchestratorPlanDetected?: (containerEl: HTMLElement, plan: OrchestratorPlan) => void,
-    onWorkerDone?: (result: string, isError: boolean) => void,
     isOrchestratorMode?: () => boolean,
   ): void {
     this.deps.onOrchestratorPlanDetected = onOrchestratorPlanDetected;
-    this.deps.onWorkerDone = onWorkerDone;
     this.deps.isOrchestratorMode = isOrchestratorMode;
   }
 
@@ -323,7 +323,6 @@ export class StreamController {
 
   private handleDone(msg: ChatMessage): void {
     this.maybeHandleOrchestratorPlan(msg);
-    this.maybeReportWorkerDone(msg);
   }
 
   private maybeHandleOrchestratorPlan(msg: ChatMessage): void {
@@ -341,16 +340,40 @@ export class StreamController {
       return;
     }
 
+    this.replaceOrchestratorPayloadWithPlanBlock(msg, plan);
     this.deps.onOrchestratorPlanDetected(this.deps.state.currentContentEl, plan);
   }
 
-  private maybeReportWorkerDone(msg: ChatMessage): void {
-    if (!this.deps.onWorkerDone) {
-      return;
-    }
+  private replaceOrchestratorPayloadWithPlanBlock(
+    msg: ChatMessage,
+    plan: OrchestratorPlan,
+  ): void {
+    msg.content = stripOrchestratorPlanPayload(msg.content);
 
-    const isError = msg.toolCalls?.some((toolCall) => toolCall.status === 'error') ?? false;
-    this.deps.onWorkerDone(msg.content ?? '', isError);
+    const preservedBlocks = (msg.contentBlocks ?? []).flatMap((block): ContentBlock[] => {
+      if (block.type === 'parallel_worker_plan') {
+        return [];
+      }
+      if (block.type !== 'text') {
+        return [block];
+      }
+
+      const content = stripOrchestratorPlanPayload(block.content);
+      return content ? [{ ...block, content }] : [];
+    });
+    preservedBlocks.push({
+      type: 'parallel_worker_plan',
+      tasks: plan.tasks,
+      ...(msg.responseMetadata?.modelLabel
+        ? { modelLabel: msg.responseMetadata.modelLabel }
+        : {}),
+      providerId: msg.responseMetadata?.providerId ?? this.getActiveProviderId(),
+    });
+    msg.contentBlocks = preservedBlocks;
+
+    this.deps.state.currentContentEl
+      ?.querySelectorAll<HTMLElement>('.grimoire-text-block')
+      .forEach((element) => element.remove());
   }
 
   /**

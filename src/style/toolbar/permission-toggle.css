@@ -1,96 +1,105 @@
-/* Permission Mode Toggle */
+/* Permission/work mode selector */
 .grimoire-permission-toggle {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-left: auto;
-  padding-left: 12px;
-  padding-right: 8px;
+  flex: 0 0 auto;
+}
+
+.grimoire-permission-gears {
+  position: relative;
+  display: flex;
+  align-items: center;
+  z-index: 1;
+}
+
+.grimoire-permission-gears.open {
+  z-index: 10003;
 }
 
 .grimoire-permission-label {
-  font-size: 11px;
-  color: var(--text-muted);
-  min-width: 28px;
-}
-
-.grimoire-toggle-switch {
-  width: 32px;
-  height: 18px;
-  border-radius: 9px;
-  background: var(--background-modifier-border);
-  cursor: pointer;
-  position: relative;
-  transition: background 0.2s ease;
-  flex-shrink: 0;
-}
-
-.grimoire-toggle-switch::after {
-  content: '';
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--text-muted);
-  top: 2px;
-  left: 2px;
-  transition: transform 0.2s ease, background 0.2s ease;
-}
-
-.grimoire-toggle-switch:hover {
-  background: var(--background-modifier-hover);
-}
-
-.grimoire-toggle-switch.active {
-  background: rgba(var(--grimoire-brand-rgb), 0.3);
-}
-
-.grimoire-toggle-switch.active::after {
-  transform: translateX(14px);
-  background: var(--grimoire-brand);
-}
-
-.grimoire-toggle-switch.plan-active {
-  background: var(--background-modifier-border);
-}
-
-.grimoire-toggle-switch.plan-active::after {
-  transform: translateX(7px);
-  background: var(--text-muted);
-}
-
-.grimoire-container--chat-window .grimoire-permission-toggle {
-  flex: 0 0 auto;
-  gap: 0;
-  margin-left: 0;
-  padding: 0;
-}
-
-.grimoire-container--chat-window .grimoire-permission-label {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
   max-width: 92px;
-  height: 24px;
+  height: 28px;
   min-width: 0;
   overflow: hidden;
   padding: 0 9px;
-  border: 0;
+  border: 1px solid transparent;
   border-radius: var(--grimoire-radius-2);
-  background: var(--grimoire-accent-soft);
-  color: var(--grimoire-accent-text);
+  background: var(--grimoire-raise);
+  color: var(--grimoire-workbench-muted);
   font-family: var(--font-monospace);
   font-size: 11px;
+  font-weight: 400;
   line-height: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
   cursor: pointer;
 }
 
-.grimoire-container--chat-window .grimoire-permission-label:hover {
-  filter: brightness(1.08);
+.grimoire-permission-label:hover {
+  background: var(--grimoire-raise-2);
+  color: var(--text-normal);
 }
 
-.grimoire-container--chat-window .grimoire-toggle-switch {
-  display: none;
+.grimoire-permission-label.active,
+.grimoire-permission-label.plan-active,
+.grimoire-permission-gears.open .grimoire-permission-label {
+  border-color: var(--grimoire-accent-line);
+  background: var(--grimoire-accent-soft);
+  color: var(--grimoire-accent-text);
+}
+
+.grimoire-permission-options {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-width: 92px;
+  gap: 2px;
+  padding: 4px;
+  overflow: hidden;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--grimoire-radius-2);
+  background: var(--background-primary);
+  box-shadow: var(--shadow-s, 0 6px 18px rgba(0, 0, 0, 0.22));
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  z-index: 10004;
+}
+
+.grimoire-permission-gears.open .grimoire-permission-options {
+  opacity: 1;
+  visibility: visible;
+  animation: grimoire-pop 0.14s ease-out;
+}
+
+.grimoire-permission-option {
+  display: flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 8px;
+  border-radius: var(--grimoire-radius-1);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.grimoire-permission-option:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.grimoire-permission-option.selected {
+  background: var(--grimoire-accent-soft);
+  color: var(--grimoire-accent-text);
 }

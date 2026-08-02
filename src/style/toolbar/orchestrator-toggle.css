@@ -44,17 +44,23 @@
 }
 
 .grimoire-container--chat-window .grimoire-orchestrator-button {
-  width: 24px;
-  height: 24px;
-  border: 0;
-  border-radius: var(--grimoire-radius-1);
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: var(--grimoire-radius-2);
   background: var(--grimoire-raise);
   color: var(--grimoire-workbench-muted);
 }
 
-.grimoire-container--chat-window .grimoire-orchestrator-button:hover,
+.grimoire-container--chat-window .grimoire-orchestrator-button:hover {
+  background: var(--grimoire-raise-2);
+  color: var(--text-normal);
+}
+
 .grimoire-container--chat-window .grimoire-orchestrator-button.active {
+  border-color: var(--grimoire-accent-line);
   background: var(--grimoire-accent-soft);
   color: var(--grimoire-accent-text);
-  box-shadow: inset 0 0 0 1px var(--grimoire-accent-line);
+  box-shadow: none;
 }

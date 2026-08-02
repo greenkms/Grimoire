@@ -108,9 +108,9 @@ describe('buildOpencodePromptText', () => {
       text: 'Plan this work',
     });
 
-    expect(prompt).toContain('## Grimoire Orchestrator Mode');
-    expect(prompt).toContain('"type": "orchestrator_plan"');
-    expect(prompt.indexOf('## Grimoire Orchestrator Mode')).toBeLessThan(
+    expect(prompt).toContain('## Grimoire Parallel Workers Mode');
+    expect(prompt).toContain('"type": "parallel_worker_plan"');
+    expect(prompt.indexOf('## Grimoire Parallel Workers Mode')).toBeLessThan(
       prompt.indexOf('Plan this work'),
     );
   });

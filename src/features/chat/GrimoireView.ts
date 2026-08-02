@@ -23,7 +23,6 @@ import {
   type OrchestratorPlanDecision,
 } from './rendering/InlineOrchestratorPlan';
 import type { OrchestratorPlan } from './rendering/orchestratorPlanParser';
-import { OrchestratorService } from './services/OrchestratorService';
 import { getTabProviderId, getTabSettingsSnapshot, getTabTitle, onProviderAvailabilityChanged, updatePlanModeUI } from './tabs/Tab';
 import { TabBar } from './tabs/TabBar';
 import { TabManager } from './tabs/TabManager';
@@ -31,6 +30,7 @@ import type { ClosedTabSnapshot, TabData, TabId } from './tabs/types';
 import { normalizeMaxTabs } from './tabs/types';
 import { ContextUsageMeter, getNextPermissionMode } from './ui/InputToolbar';
 import { requestTabRename } from './ui/RenameTabModal';
+import { buildAssistantResponseMetadata } from './utils/assistantResponseMetadata';
 import { recalculateUsageForModel } from './utils/usageInfo';
 
 type LoadableView = {
@@ -106,7 +106,6 @@ export class GrimoireView extends ItemView {
   private tabBarContainerEl: HTMLElement | null = null;
   private tabContentEl: HTMLElement | null = null;
   private navRowContent: HTMLElement | null = null;
-  private orchestratorService: OrchestratorService | null = null;
   private whatsNewHostEl: HTMLElement | null = null;
   private closeToastHostEl: HTMLElement | null = null;
   private closeToastTimers = new Set<number>();
@@ -289,13 +288,6 @@ export class GrimoireView extends ItemView {
       this.whatsNewHostEl = this.tabContentEl.createDiv({ cls: 'grimoire-whats-new-host' });
       this.showPendingWhatsNew();
       this.historyDropdown = this.buildHistorySheet(shellEl);
-      this.orchestratorService = new OrchestratorService({
-        sendToTab: (tabId, message) => {
-          const tab = this.tabManager?.getTab(tabId);
-          if (!tab) return;
-          void tab.controllers.inputController?.sendMessage({ content: message });
-        },
-      });
       await this.recordOpenEvent('shell.ready');
 
       this.tabManager = new TabManager(
@@ -319,8 +311,7 @@ export class GrimoireView extends ItemView {
             this.syncProviderBrandColor();
             this.syncHeaderContextUsage();
           },
-          onTabClosed: (tabId) => {
-            this.orchestratorService?.handleTabClosed(tabId);
+          onTabClosed: () => {
             this.updateTabBar();
             this.persistTabState();
             this.syncHeaderContextUsage();
@@ -896,9 +887,6 @@ export class GrimoireView extends ItemView {
       isWorker
         ? undefined
         : (containerEl, plan) => this.renderOrchestratorApproval(tab, containerEl, plan),
-      isWorker
-        ? (result, isError) => this.orchestratorService?.reportResult(tab.id, result, isError)
-        : undefined,
       () => tab.orchestratorMode,
     );
   }
@@ -908,11 +896,18 @@ export class GrimoireView extends ItemView {
     containerEl: HTMLElement,
     plan: OrchestratorPlan,
   ): void {
+    const providerId = getTabProviderId(tab, this.plugin);
+    const settings = getTabSettingsSnapshot(tab, this.plugin);
+    const metadata = buildAssistantResponseMetadata(providerId, settings);
     const inlinePlan = new InlineOrchestratorPlan(
       containerEl,
       plan,
       (decision) => {
         void this.handleOrchestratorDecision(tab, decision);
+      },
+      {
+        providerId,
+        ...(metadata.modelLabel ? { modelLabel: metadata.modelLabel } : {}),
       },
     );
     inlinePlan.render();
@@ -934,11 +929,6 @@ export class GrimoireView extends ItemView {
 
       workerTab.orchestratorMode = false;
       this.wireOrchestratorCallbacks(workerTab);
-      this.orchestratorService?.registerWorker(
-        orchestratorTab.id,
-        workerTab.id,
-        task.description,
-      );
       void workerTab.controllers.inputController?.sendMessage({ content: task.prompt });
     }
 

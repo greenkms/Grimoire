@@ -75,12 +75,18 @@
       "copyFailed": "Failed to copy to clipboard"
     },
     "orchestrator": {
-      "planTitle": "Orchestrator plan",
-      "workerCount": "Workers: {count}",
-      "spawnWorkers": "Spawn workers",
-      "toggleTitle": "Orchestrator mode",
-      "toggleAriaLabel": "Toggle orchestrator mode",
-      "toggleFailed": "Failed to toggle orchestrator mode"
+      "planTitle": "Independent tasks for this note",
+      "planEyebrow": "Parallel workers",
+      "planSummary": "Prepared {count} independent tasks. Each runs in its own tab and does not share context or results with the others.",
+      "badge": "Parallel workers",
+      "workerCount": "{count} of {total} selected",
+      "spawnWorkers": "Open worker tabs",
+      "parallel": "Independent",
+      "toggleTask": "Include {task}",
+      "workerTabsHint": "One independent worker per tab · no shared context",
+      "toggleTitle": "Parallel workers",
+      "toggleAriaLabel": "Toggle parallel workers",
+      "toggleFailed": "Failed to toggle parallel workers"
     },
     "vaultSearch": {
       "toolName": "Vault search",
@@ -315,7 +321,7 @@
         "conflictInside": "Cannot add “{path}” — it is inside existing path “{existing}”",
         "conflictContains": "Cannot add “{path}” — it contains existing path “{existing}”",
         "header": "External contexts",
-        "empty": "Click the folder icon to add one",
+        "empty": "Click to add one",
         "makeSessionOnly": "Persistent (click to make session-only)",
         "makePersistent": "Session-only (click to persist)",
         "removePath": "Remove path",

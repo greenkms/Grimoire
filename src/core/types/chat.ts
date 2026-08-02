@@ -38,6 +38,12 @@ export interface ProgressItem {
   status: 'pending' | 'in_progress' | 'completed';
 }
 
+export interface OrchestratorPlanTaskContent {
+  id: string;
+  description: string;
+  prompt: string;
+}
+
 export type ContentBlock =
   | { type: 'text'; content: string; phase?: AssistantTextPhase }
   | { type: 'tool_use'; toolId: string }
@@ -51,6 +57,12 @@ export type ContentBlock =
     durationSeconds?: number;
   }
   | { type: 'subagent'; subagentId: string; mode?: SubagentMode }
+  | {
+    type: 'parallel_worker_plan';
+    tasks: OrchestratorPlanTaskContent[];
+    modelLabel?: string;
+    providerId?: ProviderId;
+  }
   | { type: 'context_compacted' };
 
 /** Chat message with content, tool calls, and attachments. */
@@ -133,7 +145,7 @@ export interface Conversation {
   titleGenerationStatus?: 'pending' | 'success' | 'failed';
   /** UI-enabled MCP servers for this session (context-saving servers activated via selector). */
   enabledMcpServers?: string[];
-  /** Whether this conversation asks providers for approved multi-worker orchestration plans. */
+  /** Whether this conversation asks providers for an approved parallel-worker plan. */
   orchestratorMode?: boolean;
   /** Assistant checkpoint identifier for resumeAtMessageId after rewind. */
   resumeAtMessageId?: string;
