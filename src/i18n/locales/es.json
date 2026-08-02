@@ -1178,7 +1178,7 @@
       "modelDesc": "Anulación de modelo en formato proveedor/modelo",
       "variant": "Variante",
       "variantDesc": "Anulación de variante de modelo",
-      "temperature": "Temperature",
+      "temperature": "Temperatura",
       "temperatureDesc": "Temperatura de muestreo opcional",
       "topP": "Top p",
       "topPDesc": "Valor de muestreo de núcleo opcional",

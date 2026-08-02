@@ -124,6 +124,7 @@ const localizedKeys = [
   'settings.subagents.modal.prompt',
   'settings.subagents.modal.promptDesc',
   'settings.subagents.modal.promptPlaceholder',
+  'settings.agentEditor.temperature',
   'settings.enableBangBash.name',
   'settings.enableBangBash.desc',
   'settings.enableBangBash.validation.noNode',

@@ -6,6 +6,7 @@ import { Notice } from 'obsidian';
 import { readBundledChangelog } from '@/app/changelog/source';
 import { DEFAULT_GRIMOIRE_SETTINGS } from '@/app/settings/defaultSettings';
 import { ProviderRegistry } from '@/core/providers/ProviderRegistry';
+import { ProviderWorkspaceRegistry } from '@/core/providers/ProviderWorkspaceRegistry';
 import { GrimoireSettingTab } from '@/features/settings/GrimoireSettings';
 import { setLocale } from '@/i18n/i18n';
 import { showWhatsNewModal } from '@/shared/modals/WhatsNewModal';
@@ -224,7 +225,28 @@ describe('GrimoireSettingTab general tab settings', () => {
 
 describe('GrimoireSettingTab provider tabs', () => {
   beforeEach(() => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
     setLocale('en');
+  });
+
+  it('rolls back a provider toggle when its model catalog cannot start', async () => {
+    const plugin = createSettingsPlugin();
+    const tab = new GrimoireSettingTab(createSettingsApp(), plugin);
+    const refreshModels = jest.fn().mockRejectedValue(
+      Object.assign(new Error('spawn qwen ENOENT'), { code: 'ENOENT' }),
+    );
+    jest.spyOn(ProviderWorkspaceRegistry, 'getModelCatalog').mockReturnValue({
+      isAvailable: () => true,
+      refreshModels,
+    });
+
+    await (tab as any).updateProviderEnabled('qwen', true);
+
+    expect(refreshModels).toHaveBeenCalledTimes(1);
+    expect(ProviderRegistry.isEnabled('qwen', plugin.settings)).toBe(false);
+    expect(plugin.saveSettings).toHaveBeenCalledTimes(1);
+    expect(Notice).toHaveBeenCalledWith('Could not load provider models.');
   });
 
   it('renders provider settings tabs in registry order after General', () => {

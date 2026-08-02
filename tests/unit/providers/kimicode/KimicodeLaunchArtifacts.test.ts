@@ -154,7 +154,7 @@ describe('prepareKimicodeLaunchArtifacts', () => {
       default_agent: 'build',
       providers: {
         anthropic: {
-          api_key: 'test-provider-key',
+          api_key: 'anthropic-key',
         },
       },
     }), 'utf8');
@@ -181,7 +181,7 @@ describe('prepareKimicodeLaunchArtifacts', () => {
       default_agent: 'build',
       providers: {
         anthropic: {
-          api_key: 'test-provider-key',
+          api_key: 'anthropic-key',
         },
       },
       username: 'Test User',
