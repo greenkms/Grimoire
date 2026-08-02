@@ -298,7 +298,7 @@
       "navigation": {
         "scrollTop": "Scroll to top",
         "previousMessage": "Previous prompt",
-        "directory": "Conversation directory",
+        "directory": "Thread outline",
         "nextMessage": "Next prompt",
         "scrollBottom": "Scroll to bottom",
         "empty": "No prompts in this conversation"
@@ -369,7 +369,21 @@
         "switchFailed": "Failed to switch tab",
         "closeFailed": "Failed to close tab",
         "maximumAllowed": "Maximum {count} tabs allowed",
-        "closeTab": "Close tab"
+        "closeTab": "Close tab",
+        "closeOthers": "Close others",
+        "closeRight": "Close tabs to the right",
+        "rename": "Rename…",
+        "renameTitle": "Rename tab",
+        "name": "Tab name",
+        "charactersLeft": "{count} characters left",
+        "resetName": "Reset to current name",
+        "duplicate": "Duplicate",
+        "duplicateTitle": "Copy of {title}",
+        "duplicateFailed": "Failed to duplicate tab",
+        "closed": "Closed {title}",
+        "closedMany": "Closed {count} tabs",
+        "undo": "Undo",
+        "restoreFailed": "Failed to restore tab"
       },
       "messages": {
         "interrupted": "Interrupted",

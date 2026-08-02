@@ -881,7 +881,7 @@ function syncContextSummary(tab: TabData, plugin: GrimoirePlugin): void {
     contextSummaryEl,
     getPermissionTitle(providerId, permissionMode),
     getPermissionSummary(providerId, permissionMode),
-    formatPermissionBadge(permissionMode),
+    getPermissionTitle(providerId, permissionMode),
     permissionMode !== 'full_access',
   );
 }
@@ -981,7 +981,9 @@ function getPermissionSummary(providerId: ProviderId, permissionMode: string): s
       return t('chat.ui.context.autoApprove');
     }
     if (permissionMode === toggle.inactiveValue) {
-      return t('chat.ui.context.permissionSafeDescription');
+      return toggle.inactiveLabel === 'Blocked'
+        ? toggle.inactiveDescription ?? t('chat.ui.context.permissionSafeDescription')
+        : t('chat.ui.context.permissionSafeDescription');
     }
     if (permissionMode === toggle.planValue) {
       return t('chat.ui.context.permissionPlanDescription');
@@ -1003,7 +1005,9 @@ function getPermissionTitle(providerId: ProviderId, permissionMode: string): str
       return t('chat.ui.toolbar.permissionAuto');
     }
     if (permissionMode === toggle.inactiveValue) {
-      return t('chat.ui.toolbar.permissionSafe');
+      return toggle.inactiveLabel === 'Blocked'
+        ? t('chat.ui.status.blocked')
+        : t('chat.ui.toolbar.permissionSafe');
     }
     if (permissionMode === toggle.planValue) {
       return t('chat.ui.toolbar.permissionPlan');
@@ -1021,16 +1025,6 @@ function getPermissionTitle(providerId: ProviderId, permissionMode: string): str
 function getPermissionInlineLabel(providerId: ProviderId, permissionMode: string): string {
   const title = getPermissionTitle(providerId, permissionMode);
   return title.toLowerCase();
-}
-
-function formatPermissionBadge(permissionMode: string): string {
-  if (permissionMode === 'full_access') {
-    return t('chat.ui.toolbar.permissionAuto');
-  }
-  if (permissionMode === 'plan') {
-    return t('chat.ui.toolbar.permissionPlan');
-  }
-  return t('chat.ui.toolbar.permissionSafe');
 }
 
 /**
@@ -3106,8 +3100,6 @@ export async function destroyTab(tab: TabData): Promise<void> {
   tab.ui.statusPanel?.destroy();
   tab.ui.statusPanel = null;
   tab.ui.modelSelector?.destroy();
-  tab.ui.thinkingBudgetSelector?.destroy();
-  tab.ui.permissionToggle?.destroy();
   tab.ui.navigationSidebar?.destroy();
   tab.ui.navigationSidebar = null;
 
@@ -3130,6 +3122,9 @@ export async function destroyTab(tab: TabData): Promise<void> {
  * Uses synchronous access since we only need the title, not messages.
  */
 export function getTabTitle(tab: TabData, plugin: GrimoirePlugin): string {
+  if (tab.titleOverride) {
+    return tab.titleOverride;
+  }
   if (tab.conversationId) {
     const conversation = plugin.getConversationSync(tab.conversationId);
     if (conversation?.title) {

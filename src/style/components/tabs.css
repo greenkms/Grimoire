@@ -52,14 +52,37 @@
 }
 
 .grimoire-tab-badge-streaming::before {
-  content: "";
-  position: absolute;
-  top: 3px;
-  right: 3px;
-  width: 5px;
-  height: 5px;
+  display: none;
+}
+
+.grimoire-tab-activity-dot {
+  display: none;
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
   border-radius: 50%;
   background: var(--grimoire-ok);
+}
+
+.grimoire-tab-badge-streaming,
+.grimoire-tab-badge-attention {
+  width: 38px;
+  gap: 5px;
+}
+
+.grimoire-tab-badge-streaming .grimoire-tab-activity-dot,
+.grimoire-tab-badge-attention .grimoire-tab-activity-dot {
+  display: block;
+}
+
+.grimoire-tab-badge-attention .grimoire-tab-activity-dot {
+  background: var(--text-warning);
+}
+
+.grimoire-tab-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .grimoire-tab-badge-streaming[data-provider="claude"] {
@@ -92,6 +115,81 @@
 
 .grimoire-tab-badge-idle {
   color: var(--grimoire-workbench-muted);
+}
+
+.grimoire-tab-close-toast-stack {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  left: 12px;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.grimoire-tab-close-toast {
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: min(420px, 100%);
+  overflow: hidden;
+  padding: 9px 12px 11px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 9px;
+  background: var(--background-secondary);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  color: var(--text-normal);
+  font-size: var(--font-ui-small);
+  pointer-events: auto;
+}
+
+.grimoire-tab-close-toast-message {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-tab-close-toast-separator {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+}
+
+button.grimoire-tab-close-toast-undo {
+  flex: 0 0 auto;
+  min-height: 0;
+  padding: 0 3px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--interactive-accent);
+  font: inherit;
+  font-weight: 650;
+}
+
+button.grimoire-tab-close-toast-undo:hover,
+button.grimoire-tab-close-toast-undo:focus-visible {
+  background: transparent;
+  box-shadow: none;
+  color: var(--interactive-accent-hover);
+}
+
+.grimoire-tab-close-toast-progress {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--interactive-accent);
+  transform-origin: left;
+  animation: grimoire-tab-close-toast-countdown 6s linear forwards;
+}
+
+@keyframes grimoire-tab-close-toast-countdown {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
 }
 
 .grimoire-panel-tabs {

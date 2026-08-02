@@ -7,7 +7,8 @@ import type { TabBarItem } from '@/features/chat/tabs/types';
 function createMockCallbacks(): TabBarCallbacks {
   return {
     onTabClick: jest.fn(),
-    onTabClose: jest.fn(),
+    onTabContextMenu: jest.fn(),
+    onTabMiddleClick: jest.fn(),
     onNewTab: jest.fn(),
   };
 }
@@ -87,7 +88,7 @@ describe('TabBar', () => {
 
       tabBar.update([createTabBarItem({ index: 5 })]);
 
-      expect(containerEl._children[0].textContent).toBe('5');
+      expect(containerEl._children[0].querySelector('.grimoire-tab-number')?.textContent).toBe('5');
     });
 
     it('should set aria-label tooltip from item title', () => {
@@ -176,7 +177,7 @@ describe('TabBar', () => {
       expect(containerEl._children[0]._classList.has('grimoire-tab-badge-attention')).toBe(true);
     });
 
-    it('should prioritize active over attention', () => {
+    it('should preserve attention activity on the active tab', () => {
       const containerEl = createMockEl();
       const callbacks = createMockCallbacks();
       const tabBar = new TabBar(containerEl, callbacks);
@@ -184,7 +185,7 @@ describe('TabBar', () => {
       tabBar.update([createTabBarItem({ isActive: true, needsAttention: true })]);
 
       expect(containerEl._children[0]._classList.has('grimoire-tab-badge-active')).toBe(true);
-      expect(containerEl._children[0]._classList.has('grimoire-tab-badge-attention')).toBe(false);
+      expect(containerEl._children[0]._classList.has('grimoire-tab-badge-attention')).toBe(true);
     });
 
     it('should prioritize attention over streaming', () => {
@@ -198,7 +199,7 @@ describe('TabBar', () => {
       expect(containerEl._children[0]._classList.has('grimoire-tab-badge-streaming')).toBe(false);
     });
 
-    it('should prioritize active over streaming', () => {
+    it('should preserve streaming activity on the active tab', () => {
       const containerEl = createMockEl();
       const callbacks = createMockCallbacks();
       const tabBar = new TabBar(containerEl, callbacks);
@@ -206,7 +207,7 @@ describe('TabBar', () => {
       tabBar.update([createTabBarItem({ isActive: true, isStreaming: true })]);
 
       expect(containerEl._children[0]._classList.has('grimoire-tab-badge-active')).toBe(true);
-      expect(containerEl._children[0]._classList.has('grimoire-tab-badge-streaming')).toBe(false);
+      expect(containerEl._children[0]._classList.has('grimoire-tab-badge-streaming')).toBe(true);
     });
   });
 
@@ -231,21 +232,46 @@ describe('TabBar', () => {
 
       tabBar.update([createTabBarItem({ id: 'closeable-tab', canClose: true })]);
 
-      expect(containerEl._children[0]._children).toHaveLength(0);
+      expect(containerEl._children[0].querySelector('.grimoire-tab-number')).not.toBeNull();
+      expect(containerEl._children[0].querySelector('.grimoire-tab-activity-dot')).not.toBeNull();
     });
 
-    it('should close a closeable tab on right-click', () => {
+    it('should open the tab menu on right-click', () => {
       const containerEl = createMockEl();
       const callbacks = createMockCallbacks();
       const tabBar = new TabBar(containerEl, callbacks);
 
       tabBar.update([createTabBarItem({ id: 'closeable-tab', canClose: true })]);
 
-      const mockEvent = { preventDefault: jest.fn() };
+      const mockEvent = { preventDefault: jest.fn() } as unknown as MouseEvent;
       containerEl._children[0].dispatchEvent('contextmenu', mockEvent);
 
       expect(mockEvent.preventDefault).toHaveBeenCalled();
-      expect(callbacks.onTabClose).toHaveBeenCalledWith('closeable-tab');
+      expect(callbacks.onTabContextMenu).toHaveBeenCalledWith('closeable-tab', mockEvent);
+    });
+
+    it('closes a closeable tab on middle-click', () => {
+      const containerEl = createMockEl();
+      const callbacks = createMockCallbacks();
+      const tabBar = new TabBar(containerEl, callbacks);
+
+      tabBar.update([createTabBarItem({ id: 'closeable-tab', canClose: true })]);
+      const mockEvent = { button: 1, preventDefault: jest.fn() };
+      containerEl._children[0].dispatchEvent('auxclick', mockEvent);
+
+      expect(mockEvent.preventDefault).toHaveBeenCalled();
+      expect(callbacks.onTabMiddleClick).toHaveBeenCalledWith('closeable-tab');
+    });
+
+    it('keeps the last tab open on middle-click', () => {
+      const containerEl = createMockEl();
+      const callbacks = createMockCallbacks();
+      const tabBar = new TabBar(containerEl, callbacks);
+
+      tabBar.update([createTabBarItem({ id: 'last-tab', canClose: false })]);
+      containerEl._children[0].dispatchEvent('auxclick', { button: 1, preventDefault: jest.fn() });
+
+      expect(callbacks.onTabMiddleClick).not.toHaveBeenCalled();
     });
   });
 

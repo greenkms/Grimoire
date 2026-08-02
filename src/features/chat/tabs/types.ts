@@ -77,6 +77,9 @@ export interface TabManagerInterface {
 /** Tab identifier type. */
 export type TabId = string;
 
+/** Keeps custom tab names readable in menus, toasts, and persisted state. */
+export const MAX_TAB_TITLE_LENGTH = 100;
+
 export type TabPanelView = 'chat' | 'sources' | 'context';
 
 /** Generates a unique tab ID. */
@@ -239,6 +242,9 @@ export interface TabData {
   /** Conversation ID bound to this tab (null for new/empty tabs). */
   conversationId: string | null;
 
+  /** Optional user-defined title for an unbound tab. */
+  titleOverride?: string | null;
+
   /** Per-tab chat runtime instance for independent streaming. */
   service: ChatRuntime | null;
 
@@ -286,7 +292,24 @@ export interface PersistedTabState {
   conversationId: string | null;
   draftModel?: string | null;
   draftSettings?: Record<string, unknown> | null;
+  titleOverride?: string | null;
   orchestratorMode?: boolean;
+}
+
+/** Serializable state required to restore a recently closed tab. */
+export interface ClosedTabSnapshot {
+  tabId: TabId;
+  index: number;
+  title: string;
+  wasActive: boolean;
+  conversationId: string | null;
+  draftModel: string | null;
+  draftSettings: Record<string, unknown> | null;
+  titleOverride: string | null;
+  orchestratorMode: boolean;
+  orchestratorTabId?: TabId | null;
+  workerTabIds?: TabId[];
+  inputValue: string;
 }
 
 /**
@@ -309,6 +332,9 @@ export interface TabManagerCallbacks {
 
   /** Called when a tab is closed. */
   onTabClosed?: (tabId: TabId) => void;
+
+  /** Called when tab order changes. */
+  onTabOrderChanged?: () => void;
 
   /** Called when tab streaming state changes. */
   onTabStreamingChanged?: (tabId: TabId, isStreaming: boolean) => void;

@@ -298,7 +298,7 @@
       "navigation": {
         "scrollTop": "Nach oben scrollen",
         "previousMessage": "Vorherige Eingabe",
-        "directory": "Unterhaltungsverzeichnis",
+        "directory": "Gesprächsübersicht",
         "nextMessage": "Nächste Eingabe",
         "scrollBottom": "Nach unten scrollen",
         "empty": "Keine Eingaben in dieser Unterhaltung"
@@ -369,7 +369,21 @@
         "switchFailed": "Tab konnte nicht gewechselt werden",
         "closeFailed": "Tab konnte nicht geschlossen werden",
         "maximumAllowed": "Maximal {count} Tabs erlaubt",
-        "closeTab": "Tab schließen"
+        "closeTab": "Tab schließen",
+        "closeOthers": "Andere Tabs schließen",
+        "closeRight": "Tabs rechts schließen",
+        "rename": "Umbenennen…",
+        "renameTitle": "Tab umbenennen",
+        "name": "Tabname",
+        "charactersLeft": "Noch {count} Zeichen",
+        "resetName": "Aktuellen Namen wiederherstellen",
+        "duplicate": "Duplizieren",
+        "duplicateTitle": "Kopie von {title}",
+        "duplicateFailed": "Tab konnte nicht dupliziert werden",
+        "closed": "{title} geschlossen",
+        "closedMany": "{count} Tabs geschlossen",
+        "undo": "Rückgängig",
+        "restoreFailed": "Tab konnte nicht wiederhergestellt werden"
       },
       "messages": {
         "interrupted": "Unterbrochen",

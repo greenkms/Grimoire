@@ -298,7 +298,7 @@
       "navigation": {
         "scrollTop": "滚动至顶部",
         "previousMessage": "上一条提问",
-        "directory": "会话目录",
+        "directory": "对话大纲",
         "nextMessage": "下一条提问",
         "scrollBottom": "滚动至底部",
         "empty": "此会话中还没有提问"
@@ -369,7 +369,21 @@
         "switchFailed": "切换标签页失败",
         "closeFailed": "关闭标签页失败",
         "maximumAllowed": "最多允许打开 {count} 个标签页",
-        "closeTab": "关闭标签页"
+        "closeTab": "关闭标签页",
+        "closeOthers": "关闭其他标签页",
+        "closeRight": "关闭右侧标签页",
+        "rename": "重命名…",
+        "renameTitle": "重命名标签页",
+        "name": "标签页名称",
+        "charactersLeft": "还可输入 {count} 个字符",
+        "resetName": "恢复当前名称",
+        "duplicate": "复制",
+        "duplicateTitle": "{title} 的副本",
+        "duplicateFailed": "无法复制标签页",
+        "closed": "已关闭 {title}",
+        "closedMany": "已关闭 {count} 个标签页",
+        "undo": "撤销",
+        "restoreFailed": "无法恢复标签页"
       },
       "messages": {
         "interrupted": "已中断",

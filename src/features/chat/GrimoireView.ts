@@ -1,5 +1,5 @@
 import type { EventRef, WorkspaceLeaf } from 'obsidian';
-import { ItemView, Notice, Scope } from 'obsidian';
+import { ItemView, Menu, Notice, Platform, Scope } from 'obsidian';
 
 import { GRIMOIRE_CHANGELOG_URL } from '../../app/changelog/source';
 import { getHiddenProviderCommandSet } from '../../core/providers/commands/hiddenCommands';
@@ -24,12 +24,13 @@ import {
 } from './rendering/InlineOrchestratorPlan';
 import type { OrchestratorPlan } from './rendering/orchestratorPlanParser';
 import { OrchestratorService } from './services/OrchestratorService';
-import { getTabProviderId, getTabSettingsSnapshot, onProviderAvailabilityChanged, updatePlanModeUI } from './tabs/Tab';
+import { getTabProviderId, getTabSettingsSnapshot, getTabTitle, onProviderAvailabilityChanged, updatePlanModeUI } from './tabs/Tab';
 import { TabBar } from './tabs/TabBar';
 import { TabManager } from './tabs/TabManager';
-import type { TabData, TabId } from './tabs/types';
+import type { ClosedTabSnapshot, TabData, TabId } from './tabs/types';
 import { normalizeMaxTabs } from './tabs/types';
 import { ContextUsageMeter, getNextPermissionMode } from './ui/InputToolbar';
+import { requestTabRename } from './ui/RenameTabModal';
 import { recalculateUsageForModel } from './utils/usageInfo';
 
 type LoadableView = {
@@ -107,6 +108,9 @@ export class GrimoireView extends ItemView {
   private navRowContent: HTMLElement | null = null;
   private orchestratorService: OrchestratorService | null = null;
   private whatsNewHostEl: HTMLElement | null = null;
+  private closeToastHostEl: HTMLElement | null = null;
+  private closeToastTimers = new Set<number>();
+  private closingTabIds = new Set<TabId>();
 
   // DOM Elements
   private viewContainerEl: HTMLElement | null = null;
@@ -274,6 +278,7 @@ export class GrimoireView extends ItemView {
       }, 'info');
 
       const shellEl = this.viewContainerEl.createDiv({ cls: 'grimoire-chat-window-shell' });
+      this.closeToastHostEl = shellEl.createDiv({ cls: 'grimoire-tab-close-toast-stack' });
       const header = shellEl.createDiv({ cls: 'grimoire-header grimoire-session-strip' });
       this.buildHeader(header);
 
@@ -320,11 +325,18 @@ export class GrimoireView extends ItemView {
             this.persistTabState();
             this.syncHeaderContextUsage();
           },
+          onTabOrderChanged: () => {
+            this.updateTabBar();
+            this.persistTabState();
+          },
           onTabStreamingChanged: () => {
             this.updateTabBar();
             this.syncHeaderContextUsage();
           },
-          onTabTitleChanged: () => this.updateTabBar(),
+          onTabTitleChanged: () => {
+            this.updateTabBar();
+            this.updateHistoryDropdown();
+          },
           onTabAttentionChanged: () => this.updateTabBar(),
           onTabConversationChanged: () => {
             this.updateTabBar();
@@ -383,6 +395,10 @@ export class GrimoireView extends ItemView {
       this.plugin.app.vault.offref(ref);
     }
     this.eventRefs = [];
+
+    for (const timer of this.closeToastTimers) window.clearTimeout(timer);
+    this.closeToastTimers.clear();
+    this.closeToastHostEl = null;
 
     await this.persistTabStateImmediate();
 
@@ -446,8 +462,11 @@ export class GrimoireView extends ItemView {
     this.tabBarContainerEl = wrapper.createDiv({ cls: 'grimoire-tab-bar-container' });
     this.tabBar = new TabBar(this.tabBarContainerEl, {
       onTabClick: (tabId) => this.handleTabClick(tabId),
-      onTabClose: (tabId) => {
-        void this.handleTabClose(tabId);
+      onTabContextMenu: (tabId, event) => {
+        this.showTabContextMenu(tabId, event);
+      },
+      onTabMiddleClick: (tabId) => {
+        void this.requestTabClose(tabId);
       },
       onNewTab: () => {
         void this.createNewTab().catch(() => new Notice(t('chat.ui.tabs.createFailed')));
@@ -549,16 +568,136 @@ export class GrimoireView extends ItemView {
     }
   }
 
-  private async handleTabClose(tabId: TabId): Promise<void> {
-    try {
-      const tab = this.tabManager?.getTab(tabId);
-      // If streaming, treat close like user interrupt (force close cancels the stream)
-      const force = tab?.state.isStreaming ?? false;
-      await this.tabManager?.closeTab(tabId, force);
-      this.updateTabBarVisibility();
-    } catch {
-      new Notice(t('chat.ui.tabs.closeFailed'));
+  async requestTabClose(tabId: TabId): Promise<void> {
+    await this.closeTabsWithUndo([tabId]);
+  }
+
+  private async closeTabsWithUndo(tabIds: TabId[]): Promise<void> {
+    const manager = this.tabManager;
+    if (!manager) return;
+    const positions = new Map(manager.getTabIds().map((id, index) => [id, index]));
+    const candidates = [...new Set(tabIds)]
+      .filter(id => !this.closingTabIds.has(id))
+      .sort((a, b) => (positions.get(b) ?? 0) - (positions.get(a) ?? 0));
+    const snapshots: ClosedTabSnapshot[] = [];
+
+    for (const candidate of candidates) {
+      this.closingTabIds.add(candidate);
+      try {
+        const snapshot = await manager.closeTabForUndo(candidate);
+        if (snapshot) snapshots.push(snapshot);
+      } catch {
+        new Notice(t('chat.ui.tabs.closeFailed'));
+      } finally {
+        this.closingTabIds.delete(candidate);
+      }
     }
+
+    if (snapshots.length > 0) this.showClosedTabToast(snapshots);
+    this.updateTabBarVisibility();
+  }
+
+  private showTabContextMenu(tabId: TabId, event: MouseEvent): void {
+    const manager = this.tabManager;
+    const tab = manager?.getTab(tabId);
+    if (!manager || !tab) return;
+    const tabIds = manager.getTabIds();
+    const index = tabIds.indexOf(tabId);
+    const canClose = tabIds.length > 1;
+    const hasTabsToRight = index >= 0 && index < tabIds.length - 1;
+    const hotkey = Platform.isMacOS ? '⌘W' : 'Ctrl+W';
+    const menu = new Menu();
+
+    menu.addItem(item => item
+      .setTitle(getTabTitle(tab, this.plugin).toUpperCase())
+      .setIsLabel(true));
+    menu.addItem(item => item
+      .setTitle(`${t('chat.ui.tabs.closeTab')} (${hotkey})`)
+      .setDisabled(!canClose)
+      .onClick(() => { void this.requestTabClose(tabId); }));
+    menu.addItem(item => item
+      .setTitle(t('chat.ui.tabs.closeOthers'))
+      .setDisabled(!canClose)
+      .onClick(() => { void this.closeTabsWithUndo(tabIds.filter(id => id !== tabId)); }));
+    menu.addItem(item => item
+      .setTitle(t('chat.ui.tabs.closeRight'))
+      .setDisabled(!hasTabsToRight)
+      .onClick(() => { void this.closeTabsWithUndo(tabIds.slice(index + 1)); }));
+    menu.addSeparator();
+    menu.addItem(item => item
+      .setTitle(t('chat.ui.tabs.rename'))
+      .onClick(() => { void this.renameTab(tabId); }));
+    menu.addItem(item => item
+      .setTitle(t('chat.ui.tabs.duplicate'))
+      .setDisabled(!manager.canCreateTab())
+      .onClick(() => { void this.duplicateTab(tabId); }));
+    menu.showAtMouseEvent(event);
+  }
+
+  private async renameTab(tabId: TabId): Promise<void> {
+    const manager = this.tabManager;
+    const tab = manager?.getTab(tabId);
+    if (!manager || !tab) return;
+    const title = await requestTabRename(this.app, getTabTitle(tab, this.plugin));
+    if (title === null) return;
+    await manager.renameTab(tabId, title);
+  }
+
+  private async duplicateTab(tabId: TabId): Promise<void> {
+    try {
+      const duplicated = await this.tabManager?.duplicateTab(tabId);
+      if (!duplicated) {
+        new Notice(t('chat.ui.tabs.maximumAllowed', {
+          count: normalizeMaxTabs(this.plugin.settings.maxTabs),
+        }));
+      }
+    } catch {
+      new Notice(t('chat.ui.tabs.duplicateFailed'));
+    }
+  }
+
+  private showClosedTabToast(snapshots: ClosedTabSnapshot[]): void {
+    const host = this.closeToastHostEl;
+    if (!host) return;
+    const toast = host.createDiv({ cls: 'grimoire-tab-close-toast' });
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
+    toast.createSpan({
+      cls: 'grimoire-tab-close-toast-message',
+      text: snapshots.length === 1
+        ? t('chat.ui.tabs.closed', { title: snapshots[0].title })
+        : t('chat.ui.tabs.closedMany', { count: snapshots.length }),
+    });
+    toast.createSpan({
+      cls: 'grimoire-tab-close-toast-separator',
+      text: ' · ',
+      attr: { 'aria-hidden': 'true' },
+    });
+    const undo = toast.createEl('button', {
+      cls: 'grimoire-tab-close-toast-undo',
+      text: t('chat.ui.tabs.undo'),
+      attr: { type: 'button' },
+    });
+    toast.createDiv({ cls: 'grimoire-tab-close-toast-progress' });
+
+    const removeToast = () => {
+      toast.remove();
+      this.closeToastTimers.delete(timer);
+    };
+    const timer = window.setTimeout(removeToast, 6000);
+    this.closeToastTimers.add(timer);
+
+    undo.addEventListener('click', () => {
+      window.clearTimeout(timer);
+      this.closeToastTimers.delete(timer);
+      undo.disabled = true;
+      void this.tabManager?.restoreClosedTabs(snapshots)
+        .then(() => toast.remove())
+        .catch(() => {
+          toast.remove();
+          new Notice(t('chat.ui.tabs.restoreFailed'));
+        });
+    });
   }
 
   async createNewTab(): Promise<void> {
@@ -860,6 +999,13 @@ export class GrimoireView extends ItemView {
         if (activeTab?.state.isStreaming) {
           activeTab.controllers.inputController?.cancelStreaming();
         }
+      }
+      return false;
+    });
+    this.scope.register(['Mod'], 'w', (e: KeyboardEvent) => {
+      if (!e.isComposing && (this.tabManager?.getTabCount() ?? 0) > 1) {
+        const activeTabId = this.tabManager?.getActiveTabId();
+        if (activeTabId) void this.requestTabClose(activeTabId);
       }
       return false;
     });

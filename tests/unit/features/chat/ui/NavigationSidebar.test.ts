@@ -84,6 +84,14 @@ class MockElement {
     return this.classList.toArray().join(' ');
   }
 
+  addClass(...classes: string[]): void {
+    this.classList.add(...classes);
+  }
+
+  hasClass(className: string): boolean {
+    return this.classList.contains(className);
+  }
+
   get scrollHeight(): number {
     return this._scrollHeight;
   }
@@ -133,6 +141,10 @@ class MockElement {
     return this.attributes[name] ?? null;
   }
 
+  removeAttribute(name: string): void {
+    delete this.attributes[name];
+  }
+
   addEventListener(type: string, listener: Listener, _options?: any): void {
     if (!this.listeners[type]) {
       this.listeners[type] = [];
@@ -163,6 +175,19 @@ class MockElement {
 
   createDiv(options?: { cls?: string; text?: string; attr?: Record<string, string> }): MockElement {
     const el = new MockElement('div');
+    if (options?.cls) el.className = options.cls;
+    if (options?.text) el.textContent = options.text;
+    if (options?.attr) {
+      for (const [key, value] of Object.entries(options.attr)) {
+        el.setAttribute(key, value);
+      }
+    }
+    this.appendChild(el);
+    return el;
+  }
+
+  createSpan(options?: { cls?: string; text?: string; attr?: Record<string, string> }): MockElement {
+    const el = new MockElement('span');
     if (options?.cls) el.className = options.cls;
     if (options?.text) el.textContent = options.text;
     if (options?.attr) {
@@ -274,7 +299,7 @@ describe('NavigationSidebar', () => {
 
       expect(buttons[0].getAttribute('aria-label')).toBe('Scroll to top');
       expect(buttons[1].getAttribute('aria-label')).toBe('Previous prompt');
-      expect(buttons[2].getAttribute('aria-label')).toBe('Conversation directory');
+      expect(buttons[2].getAttribute('aria-label')).toBe('Thread outline');
       expect(buttons[3].getAttribute('aria-label')).toBe('Next prompt');
       expect(buttons[4].getAttribute('aria-label')).toBe('Scroll to bottom');
     });
@@ -290,7 +315,7 @@ describe('NavigationSidebar', () => {
 
       expect(buttons[0].getAttribute('data-icon')).toBe('chevrons-up');
       expect(buttons[1].getAttribute('data-icon')).toBe('chevron-up');
-      expect(buttons[2].getAttribute('data-icon')).toBe('list-tree');
+      expect(buttons[2].getAttribute('data-icon')).toBe('logs');
       expect(buttons[3].getAttribute('data-icon')).toBe('chevron-down');
       expect(buttons[4].getAttribute('data-icon')).toBe('chevrons-down');
     });
@@ -304,7 +329,7 @@ describe('NavigationSidebar', () => {
 
       const buttons = parentEl.querySelector('.grimoire-nav-sidebar')!.children;
       expect(buttons[0].getAttribute('aria-label')).toBe('滚动至顶部');
-      expect(buttons[2].getAttribute('aria-label')).toBe('会话目录');
+      expect(buttons[2].getAttribute('aria-label')).toBe('对话大纲');
       expect(buttons[4].getAttribute('aria-label')).toBe('滚动至底部');
     });
   });
@@ -599,10 +624,17 @@ describe('NavigationSidebar', () => {
       const items = parent.querySelector('.grimoire-nav-directory-list')!.children;
       expect(directory).not.toBeNull();
       expect(directoryButton.getAttribute('aria-expanded')).toBe('true');
-      expect(items.map(item => item.textContent)).toEqual([
-        '1. First prompt',
-        '2. Second prompt with more detail',
+      expect(items.map(item => item.querySelector('.grimoire-nav-directory-number')?.textContent)).toEqual([
+        '01',
+        '02',
       ]);
+      expect(items.map(item => item.querySelector('.grimoire-nav-directory-label')?.textContent)).toEqual([
+        'First prompt',
+        'Second prompt with more detail',
+      ]);
+      expect(items[0].hasClass('is-active')).toBe(true);
+      expect(items[0].getAttribute('aria-current')).toBe('location');
+      expect(items[1].hasClass('is-active')).toBe(false);
 
       items[1].click();
       expect(scrollEl.scrollToCalls.at(-1)?.top).toBe(610);
@@ -621,8 +653,70 @@ describe('NavigationSidebar', () => {
 
       parentEl.querySelector('.grimoire-nav-sidebar')!.children[2].click();
 
-      expect(parentEl.querySelector('.grimoire-nav-directory-title')?.textContent).toBe('会话目录');
+      expect(parentEl.querySelector('.grimoire-nav-directory-title')?.textContent).toBe('对话大纲');
       expect(parentEl.querySelector('.grimoire-nav-directory-empty')?.textContent).toBe('此会话中还没有提问');
+    });
+
+    it('highlights the prompt nearest the current scroll position', () => {
+      const parent = new MockElement('div');
+      const scrollEl = parent.createDiv({ cls: 'grimoire-chat-scroll' });
+      const messageListEl = scrollEl.createDiv({ cls: 'grimoire-messages' });
+      scrollEl.scrollHeight = 1800;
+      scrollEl.clientHeight = 500;
+      scrollEl.scrollTop = 650;
+
+      const first = messageListEl.createDiv({ cls: 'grimoire-message-user' });
+      first.textContent = 'First prompt';
+      first.offsetTop = 120;
+      const second = messageListEl.createDiv({ cls: 'grimoire-message-user' });
+      second.textContent = 'Second prompt';
+      second.offsetTop = 620;
+
+      sidebar = new NavigationSidebar(
+        parent as unknown as HTMLElement,
+        scrollEl as unknown as HTMLElement,
+        messageListEl as unknown as HTMLElement,
+      );
+
+      parent.querySelector('.grimoire-nav-sidebar')!.children[2].click();
+
+      const items = parent.querySelector('.grimoire-nav-directory-list')!.children;
+      expect(items[0].hasClass('is-active')).toBe(false);
+      expect(items[1].hasClass('is-active')).toBe(true);
+      expect(items[1].getAttribute('aria-current')).toBe('location');
+    });
+
+    it('updates the open outline highlight when navigating to the next prompt', () => {
+      const parent = new MockElement('div');
+      const scrollEl = parent.createDiv({ cls: 'grimoire-chat-scroll' });
+      const messageListEl = scrollEl.createDiv({ cls: 'grimoire-messages' });
+      scrollEl.scrollHeight = 1800;
+      scrollEl.clientHeight = 500;
+
+      const first = messageListEl.createDiv({ cls: 'grimoire-message-user' });
+      first.textContent = 'First prompt';
+      first.offsetTop = 0;
+      const second = messageListEl.createDiv({ cls: 'grimoire-message-user' });
+      second.textContent = 'Second prompt';
+      second.offsetTop = 620;
+
+      sidebar = new NavigationSidebar(
+        parent as unknown as HTMLElement,
+        scrollEl as unknown as HTMLElement,
+        messageListEl as unknown as HTMLElement,
+      );
+
+      const controls = parent.querySelector('.grimoire-nav-sidebar')!.children;
+      controls[2].click();
+      const items = parent.querySelector('.grimoire-nav-directory-list')!.children;
+      expect(items[0].hasClass('is-active')).toBe(true);
+
+      controls[3].click();
+
+      expect(items[0].hasClass('is-active')).toBe(false);
+      expect(items[0].getAttribute('aria-current')).toBeNull();
+      expect(items[1].hasClass('is-active')).toBe(true);
+      expect(items[1].getAttribute('aria-current')).toBe('location');
     });
   });
 

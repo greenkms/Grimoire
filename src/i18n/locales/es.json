@@ -298,7 +298,7 @@
       "navigation": {
         "scrollTop": "Ir arriba",
         "previousMessage": "Solicitud anterior",
-        "directory": "Directorio de conversación",
+        "directory": "Esquema de la conversación",
         "nextMessage": "Siguiente solicitud",
         "scrollBottom": "Ir abajo",
         "empty": "No hay solicitudes en esta conversación"
@@ -369,7 +369,21 @@
         "switchFailed": "No se pudo cambiar de pestaña",
         "closeFailed": "No se pudo cerrar la pestaña",
         "maximumAllowed": "Se permite un máximo de {count} pestañas",
-        "closeTab": "Cerrar pestaña"
+        "closeTab": "Cerrar pestaña",
+        "closeOthers": "Cerrar las demás",
+        "closeRight": "Cerrar pestañas a la derecha",
+        "rename": "Renombrar…",
+        "renameTitle": "Renombrar pestaña",
+        "name": "Nombre de la pestaña",
+        "charactersLeft": "Quedan {count} caracteres",
+        "resetName": "Restablecer el nombre actual",
+        "duplicate": "Duplicar",
+        "duplicateTitle": "Copia de {title}",
+        "duplicateFailed": "No se pudo duplicar la pestaña",
+        "closed": "Se cerró {title}",
+        "closedMany": "Se cerraron {count} pestañas",
+        "undo": "Deshacer",
+        "restoreFailed": "No se pudo restaurar la pestaña"
       },
       "messages": {
         "interrupted": "Interrumpido",

@@ -1,0 +1,127 @@
+.grimoire-rename-tab-modal {
+  width: min(520px, calc(100vw - 32px));
+}
+
+.grimoire-rename-tab-modal .modal-content {
+  padding-bottom: 18px;
+}
+
+.grimoire-rename-tab-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.grimoire-rename-tab-label {
+  margin: 8px 2px 7px;
+  color: var(--text-faint);
+  font-family: var(--font-monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.grimoire-rename-tab-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 9px;
+  background: var(--background-primary);
+  box-shadow: 0 0 0 3px transparent;
+  transition: border-color 0.14s ease, box-shadow 0.14s ease;
+}
+
+.grimoire-rename-tab-field:focus-within {
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--interactive-accent) 20%, transparent);
+}
+
+.grimoire-rename-tab-input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 42px;
+  min-width: 0;
+  padding: 0 42px 0 12px;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-normal);
+  font: inherit;
+  line-height: 1;
+}
+
+.grimoire-rename-tab-input:focus {
+  border: 0;
+  box-shadow: none;
+  outline: none;
+}
+
+button.grimoire-rename-tab-reset {
+  position: absolute;
+  right: 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 6px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-muted);
+}
+
+button.grimoire-rename-tab-reset:hover,
+button.grimoire-rename-tab-reset:focus-visible {
+  background: var(--background-modifier-hover);
+  box-shadow: none;
+  color: var(--text-normal);
+}
+
+button.grimoire-rename-tab-reset svg {
+  width: 16px;
+  height: 16px;
+}
+
+.grimoire-rename-tab-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.grimoire-rename-tab-counter {
+  color: var(--text-faint);
+  font-family: var(--font-monospace);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.grimoire-rename-tab-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grimoire-rename-tab-actions button {
+  min-height: 34px;
+  padding: 6px 14px;
+}
+
+@media (max-width: 420px) {
+  .grimoire-rename-tab-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .grimoire-rename-tab-actions {
+    justify-content: flex-end;
+  }
+}

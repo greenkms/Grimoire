@@ -298,7 +298,7 @@
       "navigation": {
         "scrollTop": "Rolar para o topo",
         "previousMessage": "Prompt anterior",
-        "directory": "Pasta da conversa",
+        "directory": "Estrutura da conversa",
         "nextMessage": "Próximo prompt",
         "scrollBottom": "Rolar para baixo",
         "empty": "Não há prompts nesta conversa"
@@ -369,7 +369,21 @@
         "switchFailed": "Não foi possível trocar de aba",
         "closeFailed": "Não foi possível fechar a aba",
         "maximumAllowed": "Máximo de {count} abas permitido",
-        "closeTab": "Fechar aba"
+        "closeTab": "Fechar aba",
+        "closeOthers": "Fechar as outras",
+        "closeRight": "Fechar abas à direita",
+        "rename": "Renomear…",
+        "renameTitle": "Renomear aba",
+        "name": "Nome da aba",
+        "charactersLeft": "{count} caracteres restantes",
+        "resetName": "Restaurar o nome atual",
+        "duplicate": "Duplicar",
+        "duplicateTitle": "Cópia de {title}",
+        "duplicateFailed": "Não foi possível duplicar a aba",
+        "closed": "A aba {title} foi fechada",
+        "closedMany": "{count} abas foram fechadas",
+        "undo": "Desfazer",
+        "restoreFailed": "Não foi possível restaurar a aba"
       },
       "messages": {
         "interrupted": "Interrompido",

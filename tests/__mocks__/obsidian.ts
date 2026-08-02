@@ -450,6 +450,8 @@ class MockMenuItem {
     return this;
   });
 
+  setIsLabel = jest.fn((_isLabel: boolean) => this);
+
   onClick = jest.fn((handler: () => void) => {
     this.clickHandler = handler;
     return this;
@@ -470,6 +472,10 @@ export class Menu {
     const item = new MockMenuItem();
     callback(item);
     this.items.push(item);
+    return this;
+  }
+
+  addSeparator(): this {
     return this;
   }
 }

@@ -49,7 +49,7 @@ export class NavigationSidebar {
     );
     this.directoryBtn = this.createButton(
       'grimoire-nav-btn-directory',
-      'list-tree',
+      'logs',
       t('chat.ui.navigation.directory'),
     );
     this.directoryBtn.setAttribute('aria-haspopup', 'dialog');
@@ -107,6 +107,7 @@ export class NavigationSidebar {
   private applyVisibility(): void {
     const isScrollable = this.scrollEl.scrollHeight > this.scrollEl.clientHeight + 50;
     if (!isScrollable) this.closeDirectory();
+    if (isScrollable) this.updateDirectoryActiveState();
     if (this.isVisible === isScrollable) return;
     this.isVisible = isScrollable;
     this.container.classList.toggle('visible', isScrollable);
@@ -122,6 +123,7 @@ export class NavigationSidebar {
 
   private openDirectory(): void {
     const entries = this.getDirectoryEntries();
+    const activeIndex = this.getActiveDirectoryIndex(entries);
     const popover = this.parentEl.createDiv({ cls: 'grimoire-nav-directory' });
     popover.setAttribute('role', 'dialog');
     popover.createDiv({
@@ -139,8 +141,20 @@ export class NavigationSidebar {
       entries.forEach((entry, index) => {
         const item = list.createDiv({
           cls: 'grimoire-nav-directory-item',
-          text: `${index + 1}. ${entry.title}`,
         });
+        const isActive = index === activeIndex;
+        if (isActive) item.addClass('is-active');
+        if (isActive) item.setAttribute('aria-current', 'location');
+        item.setAttribute('aria-label', `${index + 1}. ${entry.title}`);
+        item.createSpan({
+          cls: 'grimoire-nav-directory-number',
+          text: String(index + 1).padStart(2, '0'),
+        });
+        const label = item.createSpan({
+          cls: 'grimoire-nav-directory-label',
+          text: entry.title,
+        });
+        label.setAttribute('title', entry.title);
         item.setAttribute('role', 'button');
         item.setAttribute('tabindex', '0');
         const activate = () => {
@@ -173,6 +187,33 @@ export class NavigationSidebar {
       element,
       title: this.getDirectoryTitle(element),
     })).filter((entry) => entry.title.length > 0);
+  }
+
+  private getActiveDirectoryIndex(entries: DirectoryEntry[]): number {
+    const viewportAnchor = this.scrollEl.scrollTop + 30;
+    let activeIndex = 0;
+    entries.forEach((entry, index) => {
+      if (entry.element.offsetTop <= viewportAnchor) activeIndex = index;
+    });
+    return activeIndex;
+  }
+
+  private updateDirectoryActiveState(): void {
+    if (!this.directoryPopover) return;
+    const entries = this.getDirectoryEntries();
+    const activeIndex = this.getActiveDirectoryIndex(entries);
+    const items = Array.from(
+      this.directoryPopover.querySelectorAll<HTMLElement>('.grimoire-nav-directory-item'),
+    );
+    items.forEach((item, index) => {
+      const isActive = index === activeIndex;
+      item.classList.toggle('is-active', isActive);
+      if (isActive) {
+        item.setAttribute('aria-current', 'location');
+      } else {
+        item.removeAttribute('aria-current');
+      }
+    });
   }
 
   private getDirectoryTitle(messageEl: HTMLElement): string {
@@ -208,6 +249,7 @@ export class NavigationSidebar {
 
   private scrollTo(top: number): void {
     this.scrollEl.scrollTo({ top, behavior: 'smooth' });
+    this.updateDirectoryActiveState();
   }
 
   destroy(): void {

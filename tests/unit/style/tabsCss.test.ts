@@ -11,6 +11,32 @@ function getRule(css: string, selector: string): string {
 }
 
 describe('tabs.css', () => {
+  it('shows provider-colored activity dots without replacing the tab number', () => {
+    const css = readTabsCss();
+
+    expect(getRule(css, '.grimoire-tab-activity-dot')).toContain('display: none');
+    expect(css).toContain(`.grimoire-tab-badge-streaming .grimoire-tab-activity-dot,
+.grimoire-tab-badge-attention .grimoire-tab-activity-dot {
+  display: block;
+}`);
+    expect(getRule(css, '.grimoire-tab-badge-streaming[data-provider="codex"]'))
+      .toContain('--grimoire-ok: var(--grimoire-provider-codex');
+    expect(getRule(css, '.grimoire-tab-number')).toContain('display: inline-flex');
+  });
+
+  it('keeps the six-second undo toast inside the panel edge', () => {
+    const css = readTabsCss();
+
+    const stackRule = getRule(css, '.grimoire-tab-close-toast-stack');
+    expect(stackRule).toContain('right: 12px');
+    expect(stackRule).toContain('bottom: 12px');
+    expect(stackRule).toContain('left: 12px');
+    expect(getRule(css, '.grimoire-tab-close-toast-progress'))
+      .toContain('animation: grimoire-tab-close-toast-countdown 6s linear forwards');
+    expect(getRule(css, '.grimoire-tab-close-toast-separator'))
+      .toContain('color: var(--text-muted)');
+  });
+
   it('keeps focused panel buttons visually flat until selected', () => {
     const css = readTabsCss();
 

@@ -24,8 +24,37 @@ describe('nav-sidebar.css', () => {
     const css = readNavigationCss();
     const directory = getRule(css, '.grimoire-nav-directory');
 
-    expect(directory).toContain('background: var(--background-primary)');
+    expect(directory).toContain('background: var(--background-secondary)');
     expect(directory).toContain('border: 1px solid var(--background-modifier-border)');
-    expect(directory).toContain('box-shadow: 0 4px 12px');
+    expect(directory).toContain('box-shadow: 0 10px 30px');
+  });
+
+  it('keeps the outline button visible and accents it while open', () => {
+    const css = readNavigationCss();
+
+    expect(getRule(css, '.grimoire-nav-btn-directory')).toContain('opacity: 0.48');
+    expect(getRule(css, '.grimoire-nav-btn-directory[aria-expanded="true"]')).toContain(
+      'color: var(--interactive-accent)',
+    );
+  });
+
+  it('styles numbered outline rows with a clear current prompt', () => {
+    const css = readNavigationCss();
+
+    expect(getRule(css, '.grimoire-nav-directory-item')).toContain('grid-template-columns: 30px minmax(0, 1fr)');
+    expect(getRule(css, '.grimoire-nav-directory-item.is-active .grimoire-nav-directory-number')).toContain(
+      'color: var(--interactive-accent)',
+    );
+  });
+
+  it('keeps the thread outline compact', () => {
+    const css = readNavigationCss();
+    const directory = getRule(css, '.grimoire-nav-directory');
+    const row = getRule(css, '.grimoire-nav-directory-item');
+
+    expect(directory).toContain('width: min(280px, calc(100% - 56px))');
+    expect(directory).toContain('padding: 10px 12px');
+    expect(row).toContain('min-height: 30px');
+    expect(row).toContain('padding: 3px 6px');
   });
 });

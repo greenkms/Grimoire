@@ -231,11 +231,12 @@ export default class GrimoirePlugin extends Plugin {
 
           const tabManager = view.getTabManager();
           if (!tabManager) return false;
+          if (tabManager.getTabCount() <= 1) return false;
 
           if (!checking) {
             const activeTabId = tabManager.getActiveTabId();
             if (activeTabId) {
-              void tabManager.closeTab(activeTabId);
+              void view.requestTabClose(activeTabId);
             }
           }
           return true;

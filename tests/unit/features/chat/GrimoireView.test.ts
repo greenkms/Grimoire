@@ -366,12 +366,15 @@ describe('GrimoireView Escape handling', () => {
 
   function createEscapeHarness(options: {
     isStreaming: boolean;
+    tabCount?: number;
   }): {
     cancelStreaming: jest.Mock;
     eventRefs: unknown[];
+    requestTabClose: jest.Mock;
     view: any;
   } {
     const cancelStreaming = jest.fn();
+    const requestTabClose = jest.fn().mockResolvedValue(undefined);
     const eventRefs: unknown[] = [];
     const parentScope = new Scope();
     const view = Object.create(GrimoireView.prototype) as any;
@@ -415,9 +418,12 @@ describe('GrimoireView Escape handling', () => {
           },
         },
       }),
+      getTabCount: jest.fn().mockReturnValue(options.tabCount ?? 2),
+      getActiveTabId: jest.fn().mockReturnValue('active-tab'),
     };
+    view.requestTabClose = requestTabClose;
 
-    return { cancelStreaming, eventRefs, view };
+    return { cancelStreaming, eventRefs, requestTabClose, view };
   }
 
   it('registers Escape on the Obsidian view scope instead of document keydown capture', () => {
@@ -470,6 +476,38 @@ describe('GrimoireView Escape handling', () => {
     } as KeyboardEvent);
 
     expect(cancelStreaming).not.toHaveBeenCalled();
+    expect(result).toBe(false);
+  });
+
+  it('closes the active Grimoire tab with Mod+W', () => {
+    const { requestTabClose, view } = createEscapeHarness({
+      isStreaming: false,
+      tabCount: 3,
+    });
+
+    view.wireEventHandlers();
+    const closeHandler = view.scope.handlers.find((handler: any) => (
+      handler.key === 'w' && handler.modifiers?.includes('Mod')
+    ));
+    const result = closeHandler.func({ key: 'w', isComposing: false } as KeyboardEvent);
+
+    expect(requestTabClose).toHaveBeenCalledWith('active-tab');
+    expect(result).toBe(false);
+  });
+
+  it('keeps the last Grimoire tab open while consuming Mod+W', () => {
+    const { requestTabClose, view } = createEscapeHarness({
+      isStreaming: false,
+      tabCount: 1,
+    });
+
+    view.wireEventHandlers();
+    const closeHandler = view.scope.handlers.find((handler: any) => (
+      handler.key === 'w' && handler.modifiers?.includes('Mod')
+    ));
+    const result = closeHandler.func({ key: 'w', isComposing: false } as KeyboardEvent);
+
+    expect(requestTabClose).not.toHaveBeenCalled();
     expect(result).toBe(false);
   });
 });
