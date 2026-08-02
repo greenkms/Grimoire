@@ -1416,6 +1416,44 @@ describe('MessageRenderer', () => {
     )).toBe(false);
   });
 
+  it('uses a plausible stored timestamp when legacy messages have no completedAt', () => {
+    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(new Date(2026, 7, 2, 18, 0).getTime());
+    try {
+      const messagesEl = createMockEl();
+      const { renderer } = createRenderer(messagesEl);
+      jest.spyOn(renderer, 'renderContent').mockResolvedValue(undefined);
+      const userTimestamp = new Date(2026, 7, 2, 17, 11).getTime();
+      const assistantTimestamp = new Date(2026, 7, 2, 17, 12).getTime();
+
+      renderer.renderStoredMessage({
+        id: 'legacy-user-with-valid-time',
+        role: 'user',
+        content: 'Legacy question',
+        timestamp: userTimestamp,
+      });
+      renderer.renderStoredMessage({
+        id: 'legacy-assistant-with-valid-time',
+        role: 'assistant',
+        content: 'Legacy answer',
+        timestamp: assistantTimestamp,
+        contentBlocks: [{ type: 'text', content: 'Legacy answer' }],
+      });
+
+      const userMessage = messagesEl.querySelectorAll('.grimoire-message-user')[0];
+      expect(userMessage?.querySelector('.grimoire-message-completion-time')?.textContent)
+        .toContain('17:11');
+
+      const assistantMessage = messagesEl.querySelectorAll('.grimoire-message-assistant')[0];
+      expect(assistantMessage?.querySelector('.grimoire-message-completion-time')?.textContent)
+        .toContain('17:12');
+      expect(assistantMessage?.querySelector('.grimoire-text-block')?.hasClass(
+        'grimoire-text-block--with-completion-time'
+      )).toBe(true);
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
   // ============================================
   // Scroll utilities
   // ============================================

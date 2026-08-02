@@ -53,6 +53,8 @@ export interface MessageRendererScrollOptions {
   onAutoScrollSuppressed?: () => void;
 }
 
+const EARLIEST_PLAUSIBLE_MESSAGE_TIMESTAMP = Date.UTC(2000, 0, 1);
+
 function runRendererAction(action: () => Promise<void>): void {
   void action().catch(() => {
     // UI actions already surface expected failures locally.
@@ -383,7 +385,7 @@ export class MessageRenderer {
         const textEl = contentEl.createDiv({ cls: 'grimoire-text-block' });
         void this.renderContent(textEl, textToShow);
         this.renderUserVaultSearchSources(contentEl, msg);
-        this.addUserCopyButton(msgEl, textToShow, msg.completedAt);
+        this.addUserCopyButton(msgEl, textToShow, this.getStoredMessageDisplayTime(msg));
       }
       if (msg.userMessageId && this.isRewindEligible(allMessages, index)) {
         if (this.rewindCallback) {
@@ -399,10 +401,25 @@ export class MessageRenderer {
       if (msg.isInterrupt) {
         this.appendInterruptIndicator(contentEl);
       }
-      if (msg.completedAt !== undefined) {
-        this.applyAssistantCompletionTime(msgEl, msg.completedAt);
+      const displayTime = this.getStoredMessageDisplayTime(msg);
+      if (displayTime !== undefined) {
+        this.applyAssistantCompletionTime(msgEl, displayTime);
       }
     }
+  }
+
+  private getStoredMessageDisplayTime(msg: ChatMessage): number | undefined {
+    const completedAt = msg.completedAt;
+    if (
+      typeof completedAt === 'number'
+      && Number.isFinite(completedAt)
+      && completedAt >= EARLIEST_PLAUSIBLE_MESSAGE_TIMESTAMP
+    ) {
+      return completedAt;
+    }
+    return Number.isFinite(msg.timestamp) && msg.timestamp >= EARLIEST_PLAUSIBLE_MESSAGE_TIMESTAMP
+      ? msg.timestamp
+      : undefined;
   }
 
   private renderAssistantResponseMetadata(contentEl: HTMLElement, msg: ChatMessage): void {

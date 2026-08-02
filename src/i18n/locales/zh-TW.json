@@ -298,7 +298,7 @@
       "navigation": {
         "scrollTop": "捲動至頂部",
         "previousMessage": "上一則提問",
-        "directory": "對話目錄",
+        "directory": "對話大綱",
         "nextMessage": "下一則提問",
         "scrollBottom": "捲動至底部",
         "empty": "此對話中尚無提問"
@@ -369,7 +369,21 @@
         "switchFailed": "無法切換分頁",
         "closeFailed": "無法關閉分頁",
         "maximumAllowed": "最多允許 {count} 個分頁",
-        "closeTab": "關閉分頁"
+        "closeTab": "關閉分頁",
+        "closeOthers": "關閉其他分頁",
+        "closeRight": "關閉右側分頁",
+        "rename": "重新命名…",
+        "renameTitle": "重新命名分頁",
+        "name": "分頁名稱",
+        "charactersLeft": "還可輸入 {count} 個字元",
+        "resetName": "還原目前名稱",
+        "duplicate": "複製",
+        "duplicateTitle": "{title} 的副本",
+        "duplicateFailed": "無法複製分頁",
+        "closed": "已關閉 {title}",
+        "closedMany": "已關閉 {count} 個分頁",
+        "undo": "復原",
+        "restoreFailed": "無法還原分頁"
       },
       "messages": {
         "interrupted": "已中斷",

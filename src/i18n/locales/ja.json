@@ -298,7 +298,7 @@
       "navigation": {
         "scrollTop": "先頭へスクロール",
         "previousMessage": "前のプロンプト",
-        "directory": "会話ディレクトリ",
+        "directory": "スレッドの概要",
         "nextMessage": "次のプロンプト",
         "scrollBottom": "末尾へスクロール",
         "empty": "この会話にはプロンプトがありません"
@@ -369,7 +369,21 @@
         "switchFailed": "タブを切り替えられませんでした",
         "closeFailed": "タブを閉じられませんでした",
         "maximumAllowed": "最大{count}個のタブを使用できます",
-        "closeTab": "タブを閉じる"
+        "closeTab": "タブを閉じる",
+        "closeOthers": "他のタブを閉じる",
+        "closeRight": "右側のタブを閉じる",
+        "rename": "名前を変更…",
+        "renameTitle": "タブ名を変更",
+        "name": "タブ名",
+        "charactersLeft": "残り{count}文字",
+        "resetName": "現在の名前に戻す",
+        "duplicate": "複製",
+        "duplicateTitle": "{title} のコピー",
+        "duplicateFailed": "タブを複製できませんでした",
+        "closed": "{title} を閉じました",
+        "closedMany": "{count} 個のタブを閉じました",
+        "undo": "元に戻す",
+        "restoreFailed": "タブを復元できませんでした"
       },
       "messages": {
         "interrupted": "中断されました",

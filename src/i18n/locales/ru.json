@@ -298,7 +298,7 @@
       "navigation": {
         "scrollTop": "Прокрутить вверх",
         "previousMessage": "Предыдущий запрос",
-        "directory": "Каталог диалога",
+        "directory": "Структура диалога",
         "nextMessage": "Следующий запрос",
         "scrollBottom": "Прокрутить вниз",
         "empty": "В этом диалоге нет запросов"
@@ -369,7 +369,21 @@
         "switchFailed": "Не удалось переключить вкладку",
         "closeFailed": "Не удалось закрыть вкладку",
         "maximumAllowed": "Максимум вкладок: {count}",
-        "closeTab": "Закрыть вкладку"
+        "closeTab": "Закрыть вкладку",
+        "closeOthers": "Закрыть остальные",
+        "closeRight": "Закрыть вкладки справа",
+        "rename": "Переименовать…",
+        "renameTitle": "Переименовать вкладку",
+        "name": "Название вкладки",
+        "charactersLeft": "Осталось символов: {count}",
+        "resetName": "Вернуть текущее название",
+        "duplicate": "Дублировать",
+        "duplicateTitle": "Копия {title}",
+        "duplicateFailed": "Не удалось дублировать вкладку",
+        "closed": "Вкладка «{title}» закрыта",
+        "closedMany": "Закрыто: {count} вкладок",
+        "undo": "Отменить",
+        "restoreFailed": "Не удалось восстановить вкладку"
       },
       "messages": {
         "interrupted": "Прервано",

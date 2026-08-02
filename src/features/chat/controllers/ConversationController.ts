@@ -1,4 +1,4 @@
-import { Menu, Notice, setIcon } from 'obsidian';
+import { Menu, Notice, setIcon, setTooltip } from 'obsidian';
 
 import { ProviderRegistry } from '../../../core/providers/ProviderRegistry';
 import type { ProviderId, TitleGenerationService } from '../../../core/providers/types';
@@ -337,7 +337,7 @@ export class ConversationController {
 
     const agentServiceForCheck = this.getAgentService();
     if (agentServiceForCheck && !agentServiceForCheck.getCapabilities().supportsRewind) {
-      new Notice(t('chat.rewind.failed', { error: 'Rewind is not supported by this provider.' }));
+      new Notice(t('chat.rewind.failed', { error: t('chat.ui.errors.rewindUnsupported') }));
       return;
     }
 
@@ -349,7 +349,7 @@ export class ConversationController {
     const msgs = state.messages;
     const userIdx = msgs.findIndex(m => m.id === userMessageId);
     if (userIdx === -1) {
-      new Notice(t('chat.rewind.failed', { error: 'Message not found' }));
+      new Notice(t('chat.rewind.failed', { error: t('chat.ui.errors.messageNotFound') }));
       return;
     }
     const userMsg = msgs[userIdx];
@@ -381,7 +381,7 @@ export class ConversationController {
 
     const agentService = this.getAgentService();
     if (!agentService) {
-      new Notice(t('chat.rewind.failed', { error: 'Agent service not available' }));
+      new Notice(t('chat.rewind.failed', { error: t('chat.ui.errors.agentServiceUnavailable') }));
       return;
     }
 
@@ -389,11 +389,11 @@ export class ConversationController {
     try {
       result = await agentService.rewind(userMsg.userMessageId, prevAssistantUuid, mode);
     } catch (e) {
-      new Notice(t('chat.rewind.failed', { error: e instanceof Error ? e.message : 'Unknown error' }));
+      new Notice(t('chat.rewind.failed', { error: e instanceof Error ? e.message : t('chat.ui.errors.unknown') }));
       return;
     }
     if (!result.canRewind) {
-      new Notice(t('chat.rewind.cannot', { error: result.error ?? 'Unknown error' }));
+      new Notice(t('chat.rewind.cannot', { error: result.error ?? t('chat.ui.errors.unknown') }));
       return;
     }
 
@@ -412,7 +412,7 @@ export class ConversationController {
     try {
       await this.save(false, { resumeAtMessageId: prevAssistantUuid });
     } catch (e) {
-      saveError = e instanceof Error ? e.message : 'Failed to save';
+      saveError = e instanceof Error ? e.message : t('chat.ui.errors.saveFailed');
     }
 
     if (saveError) {
@@ -628,7 +628,7 @@ export class ConversationController {
     const allConversations = plugin.getConversationList();
 
     const dropdownHeader = container.createDiv({ cls: 'grimoire-history-header' });
-    dropdownHeader.createEl('strong', { cls: 'grimoire-history-title', text: 'History' });
+    dropdownHeader.createEl('strong', { cls: 'grimoire-history-title', text: t('chat.ui.history.title') });
     dropdownHeader.createSpan({
       cls: 'grimoire-history-count',
       text: String(allConversations.length),
@@ -653,7 +653,7 @@ export class ConversationController {
       cls: 'grimoire-history-close',
       attr: {
         type: 'button',
-        'aria-label': 'Close history',
+        'aria-label': t('chat.ui.history.close'),
       },
     });
     setIcon(closeBtn, 'x');
@@ -669,7 +669,7 @@ export class ConversationController {
       cls: 'grimoire-history-search-input',
       attr: {
         type: 'search',
-        placeholder: 'Search past chats...',
+        placeholder: t('chat.ui.history.searchPlaceholder'),
         autocomplete: 'off',
       },
     });
@@ -679,7 +679,7 @@ export class ConversationController {
       list.empty();
 
       if (allConversations.length === 0) {
-        list.createDiv({ cls: 'grimoire-history-empty', text: 'No past chats' });
+        list.createDiv({ cls: 'grimoire-history-empty', text: t('chat.ui.history.empty') });
         return;
       }
 
@@ -689,13 +689,13 @@ export class ConversationController {
         .sort((a, b) => this.getHistoryTimestamp(b) - this.getHistoryTimestamp(a));
 
       if (conversations.length === 0) {
-        list.createDiv({ cls: 'grimoire-history-empty', text: 'No matches' });
+        list.createDiv({ cls: 'grimoire-history-empty', text: t('chat.ui.history.noMatches') });
         return;
       }
 
       for (const group of this.groupHistoryConversations(conversations)) {
         const groupEl = list.createDiv({ cls: 'grimoire-history-group' });
-        groupEl.createDiv({ cls: 'grimoire-history-group-label', text: group.label });
+        groupEl.createDiv({ cls: 'grimoire-history-group-label', text: this.getHistoryGroupDisplayLabel(group.label) });
 
         for (const conv of group.conversations) {
           this.renderHistoryConversationRow(groupEl, conv, options, state.currentConversationId);
@@ -761,8 +761,14 @@ export class ConversationController {
 
     item.createSpan({
       cls: 'grimoire-history-item-time',
-      text: isCurrent ? 'Current' : this.formatRelativeTime(this.getHistoryTimestamp(conv)),
+      text: isCurrent ? t('chat.ui.history.current') : this.formatRelativeTime(this.getHistoryTimestamp(conv)),
     });
+
+    const canOpenInNewTab = !!options.onOpenConversationInNewTab;
+    const openInNewTab = () => this.runHistoryAction(
+      () => options.onOpenConversationInNewTab?.(conv.id, true),
+      t('chat.ui.errors.loadConversationFailed'),
+    );
 
     if (!isCurrent) {
       item.addEventListener('click', (e) => {
@@ -772,9 +778,9 @@ export class ConversationController {
           runConversationAction(
             () => this.runHistoryAction(
               () => options.onOpenConversationInNewTab?.(conv.id, true),
-              'Failed to load conversation',
+              t('chat.ui.errors.loadConversationFailed'),
             ),
-            'Failed to load conversation',
+            t('chat.ui.errors.loadConversationFailed'),
           );
           return;
         }
@@ -782,9 +788,9 @@ export class ConversationController {
         runConversationAction(
           () => this.runHistoryAction(
             () => options.onSelectConversation(conv.id),
-            'Failed to load conversation',
+            t('chat.ui.errors.loadConversationFailed'),
           ),
-          'Failed to load conversation',
+          t('chat.ui.errors.loadConversationFailed'),
         );
       });
 
@@ -796,9 +802,9 @@ export class ConversationController {
           runConversationAction(
             () => this.runHistoryAction(
               () => options.onOpenConversationInNewTab?.(conv.id, true),
-              'Failed to load conversation',
+              t('chat.ui.errors.loadConversationFailed'),
             ),
-            'Failed to load conversation',
+            t('chat.ui.errors.loadConversationFailed'),
           );
         });
       }
@@ -812,50 +818,59 @@ export class ConversationController {
 
     const actions = item.createDiv({ cls: 'grimoire-history-item-actions' });
 
-    if (!isCurrent && options.onOpenConversationInNewTab && openState === 'closed') {
-      const openBtn = actions.createEl('button', { cls: 'grimoire-action-btn grimoire-history-new-tab-btn' });
+    if (canOpenInNewTab) {
+      const openBtn = actions.createEl('button', {
+        cls: 'grimoire-action-btn grimoire-history-new-tab-btn',
+        attr: { type: 'button' },
+      });
       setIcon(openBtn, 'external-link');
-      openBtn.setAttribute('aria-label', 'Open in new tab');
+      openBtn.setAttribute('aria-label', t('chat.ui.history.openNewTab'));
+      setTooltip(openBtn, t('chat.ui.history.openNewTab'), { placement: 'top' });
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        runConversationAction(
-          () => this.runHistoryAction(
-            () => options.onOpenConversationInNewTab?.(conv.id, true),
-            'Failed to load conversation',
-          ),
-          'Failed to load conversation',
-        );
+        runConversationAction(openInNewTab, t('chat.ui.errors.loadConversationFailed'));
       });
     }
 
     if (conv.titleGenerationStatus === 'pending') {
       const loadingEl = actions.createSpan({ cls: 'grimoire-action-btn grimoire-action-loading' });
       setIcon(loadingEl, 'loader-2');
-      loadingEl.setAttribute('aria-label', 'Generating title...');
+      loadingEl.setAttribute('aria-label', t('chat.ui.history.generatingTitle'));
     } else if (conv.titleGenerationStatus === 'failed') {
       const regenerateBtn = actions.createEl('button', { cls: 'grimoire-action-btn grimoire-history-regenerate-btn' });
       setIcon(regenerateBtn, 'refresh-cw');
-      regenerateBtn.setAttribute('aria-label', 'Regenerate title');
+      regenerateBtn.setAttribute('aria-label', t('chat.ui.history.regenerateTitle'));
       regenerateBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         runConversationAction(
           () => this.regenerateTitle(conv.id),
-          'Failed to regenerate response',
+          t('chat.ui.errors.regenerateFailed'),
         );
       });
     }
 
+    const renameBtn = actions.createEl('button', {
+      cls: 'grimoire-action-btn grimoire-history-rename-btn',
+    });
+    setIcon(renameBtn, 'pencil');
+    renameBtn.setAttribute('aria-label', t('chat.ui.history.rename'));
+    renameBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.showRenameInput(item, conv.id, conv.title, options);
+    });
+
     const deleteBtn = actions.createEl('button', { cls: 'grimoire-action-btn grimoire-delete-btn' });
     setIcon(deleteBtn, 'trash-2');
-    deleteBtn.setAttribute('aria-label', 'Delete');
+    deleteBtn.setAttribute('aria-label', t('common.delete'));
     deleteBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       runConversationAction(
         () => this.runHistoryAction(
           () => this.deleteHistoryConversation(conv.id, options),
-          'Failed to delete conversation',
+          t('chat.ui.errors.deleteConversationFailed'),
         ),
-        'Failed to delete conversation',
+        t('chat.ui.errors.deleteConversationFailed'),
       );
     });
   }
@@ -903,6 +918,12 @@ export class ConversationController {
     return 'Earlier';
   }
 
+  private getHistoryGroupDisplayLabel(label: 'Today' | 'Yesterday' | 'Earlier'): string {
+    if (label === 'Today') return t('chat.ui.history.today');
+    if (label === 'Yesterday') return t('chat.ui.history.yesterday');
+    return t('chat.ui.history.earlier');
+  }
+
   private formatHistoryMeta(conv: ConversationMeta): string {
     const parts: string[] = [];
     const modelLabel = conv.modelLabel?.trim();
@@ -919,7 +940,7 @@ export class ConversationController {
       parts.push(preview);
     }
     if (sourceCount > 0) {
-      parts.push(`${sourceCount} src`);
+      parts.push(t('chat.ui.history.sourceCount', { count: sourceCount }));
     }
     if (usagePercentage !== null) {
       parts.push(`${usagePercentage}%`);
@@ -952,7 +973,7 @@ export class ConversationController {
     const hourMs = 60 * minuteMs;
     const dayMs = 24 * hourMs;
 
-    if (diffMs < minuteMs) return 'now';
+    if (diffMs < minuteMs) return t('chat.ui.history.now');
     if (diffMs < hourMs) return `${Math.floor(diffMs / minuteMs)}m`;
     if (diffMs < dayMs) return `${Math.floor(diffMs / hourMs)}h`;
     if (diffMs < 7 * dayMs) return `${Math.floor(diffMs / dayMs)}d`;
@@ -988,28 +1009,28 @@ export class ConversationController {
     if (!isCurrent) {
       if (openState === 'closed' && options.onOpenConversationInNewTab) {
         menu.addItem((menuItem) => menuItem
-          .setTitle('Open in new tab')
+          .setTitle(t('chat.ui.history.openNewTab'))
           .onClick(() => {
             void this.runHistoryAction(
               () => options.onOpenConversationInNewTab?.(conversationId, true),
-              'Failed to load conversation',
+              t('chat.ui.errors.loadConversationFailed'),
             );
           }));
         menu.addItem((menuItem) => menuItem
-          .setTitle('Open in background tab')
+          .setTitle(t('chat.ui.history.openBackgroundTab'))
           .onClick(() => {
             void this.runHistoryAction(
               () => options.onOpenConversationInNewTab?.(conversationId, false),
-              'Failed to load conversation',
+              t('chat.ui.errors.loadConversationFailed'),
             );
           }));
       } else if (openState === 'open') {
         menu.addItem((menuItem) => menuItem
-          .setTitle('Switch to open session')
+          .setTitle(t('chat.ui.history.switchOpenSession'))
           .onClick(() => {
             void this.runHistoryAction(
               () => options.onSelectConversation(conversationId),
-              'Failed to load conversation',
+              t('chat.ui.errors.loadConversationFailed'),
             );
           }));
       }
@@ -1017,26 +1038,26 @@ export class ConversationController {
 
     if (conv.titleGenerationStatus === 'failed') {
       menu.addItem((menuItem) => menuItem
-        .setTitle('Regenerate title')
+        .setTitle(t('chat.ui.history.regenerateTitle'))
         .onClick(() => {
           runConversationAction(
             () => this.regenerateTitle(conv.id),
-            'Failed to regenerate response',
+            t('chat.ui.errors.regenerateFailed'),
           );
         }));
     }
 
     menu.addItem((menuItem) => menuItem
-      .setTitle('Rename')
+      .setTitle(t('chat.ui.history.rename'))
       .onClick(() => {
-        this.showRenameInput(item, conversationId, conv.title);
+        this.showRenameInput(item, conversationId, conv.title, options);
       }));
     menu.addItem((menuItem) => menuItem
-      .setTitle('Delete')
+      .setTitle(t('common.delete'))
       .onClick(() => {
         void this.runHistoryAction(
           () => this.deleteHistoryConversation(conversationId, options),
-          'Failed to delete conversation',
+          t('chat.ui.errors.deleteConversationFailed'),
         );
       }));
 
@@ -1059,7 +1080,12 @@ export class ConversationController {
   }
 
   /** Shows inline rename input for a conversation. */
-  private showRenameInput(item: HTMLElement, convId: string, currentTitle: string): void {
+  private showRenameInput(
+    item: HTMLElement,
+    convId: string,
+    currentTitle: string,
+    options: HistoryRenderOptions,
+  ): void {
     const titleEl = item.querySelector('.grimoire-history-item-title') as HTMLElement;
     if (!titleEl) return;
 
@@ -1071,26 +1097,36 @@ export class ConversationController {
     titleEl.replaceWith(input);
     input.focus();
     input.select();
+    input.addEventListener('click', (event) => event.stopPropagation());
 
+    let settled = false;
+    let cancelled = false;
     const finishRename = async () => {
+      if (settled) return;
+      settled = true;
+
+      if (cancelled) {
+        options.onRerender();
+        return;
+      }
+
+      const newTitle = input.value.trim() || currentTitle;
       try {
-        const newTitle = input.value.trim() || currentTitle;
         await this.deps.plugin.renameConversation(convId, newTitle);
-        this.updateHistoryDropdown();
-      } catch {
-        new Notice('Failed to rename conversation');
+      } finally {
+        options.onRerender();
       }
     };
 
     input.addEventListener('blur', () => {
-      runConversationAction(finishRename, 'Failed to rename conversation');
+      runConversationAction(finishRename, t('chat.ui.errors.renameConversationFailed'));
     });
     input.addEventListener('keydown', (e) => {
       // Check !e.isComposing for IME support (Chinese, Japanese, Korean, etc.)
       if (e.key === 'Enter' && !e.isComposing) {
         input.blur();
       } else if (e.key === 'Escape' && !e.isComposing) {
-        input.value = currentTitle;
+        cancelled = true;
         input.blur();
       }
     });

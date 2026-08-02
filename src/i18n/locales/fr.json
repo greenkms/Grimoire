@@ -298,7 +298,7 @@
       "navigation": {
         "scrollTop": "Faire défiler vers le haut",
         "previousMessage": "Invite précédente",
-        "directory": "Dossier de conversation",
+        "directory": "Plan de la discussion",
         "nextMessage": "Invite suivante",
         "scrollBottom": "Faire défiler vers le bas",
         "empty": "Aucune invite dans cette conversation"
@@ -369,7 +369,21 @@
         "switchFailed": "Impossible de changer d’onglet",
         "closeFailed": "Impossible de fermer l’onglet",
         "maximumAllowed": "Maximum de {count} onglets autorisés",
-        "closeTab": "Fermer l’onglet"
+        "closeTab": "Fermer l’onglet",
+        "closeOthers": "Fermer les autres",
+        "closeRight": "Fermer les onglets à droite",
+        "rename": "Renommer…",
+        "renameTitle": "Renommer l’onglet",
+        "name": "Nom de l’onglet",
+        "charactersLeft": "{count} caractères restants",
+        "resetName": "Rétablir le nom actuel",
+        "duplicate": "Dupliquer",
+        "duplicateTitle": "Copie de {title}",
+        "duplicateFailed": "Impossible de dupliquer l’onglet",
+        "closed": "{title} fermé",
+        "closedMany": "{count} onglets fermés",
+        "undo": "Annuler",
+        "restoreFailed": "Impossible de restaurer l’onglet"
       },
       "messages": {
         "interrupted": "Interrompu",

@@ -231,11 +231,12 @@ export default class GrimoirePlugin extends Plugin {
 
           const tabManager = view.getTabManager();
           if (!tabManager) return false;
+          if (tabManager.getTabCount() <= 1) return false;
 
           if (!checking) {
             const activeTabId = tabManager.getActiveTabId();
             if (activeTabId) {
-              void tabManager.closeTab(activeTabId);
+              void view.requestTabClose(activeTabId);
             }
           }
           return true;
@@ -898,6 +899,10 @@ export default class GrimoirePlugin extends Plugin {
     await this.storage.sessions.saveMetadata(
       this.storage.sessions.toSessionMetadata(conversation)
     );
+
+    for (const view of this.getAllViews()) {
+      view.getTabManager()?.notifyConversationRenamed?.(id, conversation.title);
+    }
   }
 
   async updateConversation(id: string, updates: Partial<Conversation>): Promise<void> {

@@ -317,7 +317,7 @@
   background: var(--background-primary);
   color: var(--text-normal);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .grimoire-rename-input:focus {

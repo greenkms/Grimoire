@@ -185,6 +185,7 @@ function createMockTabData(overrides: Record<string, any> = {}): any {
     },
     dom: {
       contentEl: createMockEl(),
+      inputEl: { value: '' },
     },
     ui: {
       externalContextSelector: null,
@@ -546,6 +547,149 @@ describe('TabManager - Tab Lifecycle', () => {
   });
 });
 
+describe('TabManager - Browser-style tab actions', () => {
+  let callbacks: TabManagerCallbacks;
+
+  beforeEach(() => {
+    callbacks = {
+      onTabCreated: jest.fn(),
+      onTabSwitched: jest.fn(),
+      onTabClosed: jest.fn(),
+      onTabStreamingChanged: jest.fn(),
+      onTabTitleChanged: jest.fn(),
+      onTabAttentionChanged: jest.fn(),
+      onTabOrderChanged: jest.fn(),
+    };
+  });
+
+  it('restores a closed tab at its original position with its draft', async () => {
+    const manager = createManager({ callbacks });
+    let counter = 0;
+    mockCreateTab.mockImplementation((config: any) => createMockTabData({
+      id: config.tabId ?? `tab-${++counter}`,
+      conversationId: config.conversation?.id ?? null,
+    }));
+
+    await manager.createTab();
+    const middle = await manager.createTab();
+    await manager.createTab();
+    middle!.dom.inputEl.value = 'unfinished thought';
+    await manager.switchToTab(middle!.id);
+
+    const snapshot = await manager.closeTabForUndo(middle!.id);
+
+    expect(snapshot).toEqual(expect.objectContaining({
+      tabId: middle!.id,
+      index: 1,
+      wasActive: true,
+      inputValue: 'unfinished thought',
+    }));
+    expect(manager.getTabIds()).toEqual(['tab-1', 'tab-3']);
+
+    const restored = await manager.restoreClosedTabs([snapshot!]);
+
+    expect(restored).toHaveLength(1);
+    expect(manager.getTabIds()).toEqual(['tab-1', 'tab-2', 'tab-3']);
+    expect(manager.getTab('tab-2')?.dom.inputEl.value).toBe('unfinished thought');
+    expect(manager.getActiveTabId()).toBe('tab-2');
+  });
+
+  it('renames blank tabs locally and conversation tabs through storage', async () => {
+    const renameConversation = jest.fn().mockResolvedValue(undefined);
+    const plugin = createMockPlugin({ renameConversation });
+    const manager = createManager({ plugin, callbacks });
+    let counter = 0;
+    mockCreateTab.mockImplementation((config: any) => createMockTabData({
+      id: `tab-${++counter}`,
+      conversationId: config.conversation?.id ?? null,
+    }));
+
+    const blank = await manager.createTab();
+    await manager.renameTab(blank!.id, '  Research  ');
+
+    expect(blank!.titleOverride).toBe('Research');
+    expect(callbacks.onTabTitleChanged).toHaveBeenCalledWith(blank!.id, 'Test Tab');
+
+    plugin.getConversationById.mockResolvedValue({ id: 'conv-1' });
+    const bound = await manager.createTab('conv-1');
+    await manager.renameTab(bound!.id, '  Finished research  ');
+
+    expect(renameConversation).toHaveBeenCalledWith('conv-1', 'Finished research');
+
+    await manager.renameTab(bound!.id, `  ${'x'.repeat(120)}  `);
+    expect(renameConversation).toHaveBeenLastCalledWith('conv-1', 'x'.repeat(100));
+  });
+
+  it('duplicates a bound tab into an independent conversation next to the source', async () => {
+    const original = {
+      id: 'conv-1',
+      providerId: 'codex',
+      model: 'gpt-5.6',
+      currentNote: 'Notes/Test.md',
+      externalContextPaths: ['Notes'],
+      usage: { inputTokens: 12 },
+      enabledMcpServers: ['vault'],
+      orchestratorMode: false,
+    };
+    const createConversation = jest.fn().mockResolvedValue({
+      id: 'conv-copy',
+      providerId: 'codex',
+      model: 'gpt-5.6',
+    });
+    const updateConversation = jest.fn().mockResolvedValue(undefined);
+    const deleteConversation = jest.fn().mockResolvedValue(undefined);
+    const plugin = createMockPlugin({
+      getConversationById: jest.fn().mockImplementation(async (id: string) => (
+        id === 'conv-1' ? original : { ...original, id }
+      )),
+      getConversationSync: jest.fn().mockReturnValue(original),
+      createConversation,
+      updateConversation,
+      deleteConversation,
+    });
+    const manager = createManager({ plugin, callbacks });
+    let counter = 0;
+    mockCreateTab.mockImplementation((config: any) => createMockTabData({
+      id: `tab-${++counter}`,
+      conversationId: config.conversation?.id ?? null,
+      state: {
+        messages: config.conversation?.id === 'conv-1'
+          ? [{ id: 'message-1', role: 'user', content: 'Copy me' }]
+          : [],
+      },
+    }));
+
+    const source = await manager.createTab('conv-1');
+    await manager.createTab();
+    const duplicate = await manager.duplicateTab(source!.id);
+
+    expect(createConversation).toHaveBeenCalledWith({
+      providerId: 'codex',
+      model: 'gpt-5.6',
+    });
+    expect(updateConversation).toHaveBeenCalledWith(
+      'conv-copy',
+      expect.objectContaining({
+        title: 'Copy of Test Tab',
+        messages: [{ id: 'message-1', role: 'user', content: 'Copy me' }],
+      }),
+    );
+    expect(duplicate?.conversationId).toBe('conv-copy');
+    expect(manager.getTabIds()).toEqual([source!.id, duplicate!.id, 'tab-2']);
+    expect(deleteConversation).not.toHaveBeenCalled();
+  });
+
+  it('does not duplicate a tab when the configured tab cap is reached', async () => {
+    const manager = createManager({
+      plugin: createMockPlugin({ settings: { maxTabs: 1 } }),
+    });
+    const tab = await manager.createTab();
+
+    await expect(manager.duplicateTab(tab!.id)).resolves.toBeNull();
+    expect(manager.getTabCount()).toBe(1);
+  });
+});
+
 describe('TabManager - Tab Queries', () => {
   let manager: TabManager;
 
@@ -774,6 +918,23 @@ describe('TabManager - Conversation Management', () => {
       );
     });
 
+    it('should focus the existing tab when a new-tab request targets an open conversation', async () => {
+      const tabWithConv = createMockTabData({
+        id: 'tab-with-conv',
+        conversationId: 'conv-123',
+      });
+      mockCreateTab.mockReturnValueOnce(tabWithConv);
+      await manager.createTab();
+      plugin.getConversationById.mockResolvedValue({ id: 'conv-123' });
+
+      const createCallCount = mockCreateTab.mock.calls.length;
+      const switchSpy = jest.spyOn(manager, 'switchToTab');
+      await manager.openConversation('conv-123', { preferNewTab: true, activate: true });
+
+      expect(mockCreateTab).toHaveBeenCalledTimes(createCallCount);
+      expect(switchSpy).toHaveBeenCalledWith('tab-with-conv');
+    });
+
     it('should create a background tab without switching focus', async () => {
       plugin.getConversationById.mockResolvedValue({ id: 'conv-background' });
       const initialActiveTabId = manager.getActiveTabId();
@@ -791,15 +952,17 @@ describe('TabManager - Conversation Management', () => {
       expect(manager.getActiveTabId()).toBe(initialActiveTabId);
     });
 
-    it('should check for cross-view duplicates', async () => {
+    it('should check for cross-view duplicates before honoring a new-tab request', async () => {
       plugin.findConversationAcrossViews.mockReturnValue({
         view: { leaf: { id: 'other-leaf' }, getTabManager: () => ({ switchToTab: jest.fn() }) },
         tabId: 'other-tab',
       });
 
-      await manager.openConversation('conv-123');
+      const createCallCount = mockCreateTab.mock.calls.length;
+      await manager.openConversation('conv-123', { preferNewTab: true });
 
       expect(plugin.app.workspace.revealLeaf).toHaveBeenCalledWith({ id: 'other-leaf' });
+      expect(mockCreateTab).toHaveBeenCalledTimes(createCallCount);
     });
   });
 
@@ -2415,7 +2578,7 @@ describe('TabManager - closeTab Edge Cases', () => {
     expect(manager.getTabCount()).toBe(1);
   });
 
-  it('should create new blank tab (stays cold) when closing the last tab with conversation', async () => {
+  it('should keep the last conversation tab open', async () => {
     const callbacks: TabManagerCallbacks = {
       onTabCreated: jest.fn(),
       onTabClosed: jest.fn(),
@@ -2432,15 +2595,13 @@ describe('TabManager - closeTab Edge Cases', () => {
 
     jest.clearAllMocks();
 
-    // Close the only tab (has conversationId so it bypasses the last-empty-tab guard)
     const result = await manager.closeTab('tab-1');
 
-    expect(result).toBe(true);
-    expect(manager.getTabCount()).toBe(1); // New tab was created
-    expect(mockCreateTab).toHaveBeenCalled();
-    // No pre-warm: replacement blank tabs stay cold until send
+    expect(result).toBe(false);
+    expect(manager.getTabCount()).toBe(1);
+    expect(mockCreateTab).not.toHaveBeenCalled();
     expect(mockInitializeTabService).not.toHaveBeenCalled();
-    expect(callbacks.onTabClosed).toHaveBeenCalledWith('tab-1');
+    expect(callbacks.onTabClosed).not.toHaveBeenCalled();
   });
 });
 

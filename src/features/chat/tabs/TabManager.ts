@@ -9,7 +9,7 @@ import type {
   ProviderTabWarmupMode,
 } from '../../../core/providers/types';
 import type { ChatRuntime } from '../../../core/runtime/ChatRuntime';
-import type { Conversation, SlashCommand } from '../../../core/types';
+import type { ChatMessage, Conversation, SlashCommand } from '../../../core/types';
 import { t } from '../../../i18n/i18n';
 import type GrimoirePlugin from '../../../main';
 import { chooseForkTarget } from '../../../shared/modals/ForkTargetModal';
@@ -30,6 +30,8 @@ import {
   wireTabInputEvents,
 } from './Tab';
 import {
+  type ClosedTabSnapshot,
+  MAX_TAB_TITLE_LENGTH,
   normalizeMaxTabs,
   type PersistedTabManagerState,
   type PersistedTabState,
@@ -53,7 +55,13 @@ type CreateTabOptions = {
   draftModel?: string;
   draftSettings?: Record<string, unknown>;
   orchestratorMode?: boolean;
+  titleOverride?: string | null;
 };
+
+function cloneValue<T>(value: T): T {
+  if (typeof structuredClone === 'function') return structuredClone(value);
+  return JSON.parse(JSON.stringify(value)) as T;
+}
 
 type OpenConversationOptions = {
   preferNewTab?: boolean;
@@ -199,7 +207,7 @@ export class TabManager implements TabManagerInterface {
       return null;
     }
 
-    const { activate = true, draftModel, draftSettings, orchestratorMode } = options;
+    const { activate = true, draftModel, draftSettings, orchestratorMode, titleOverride } = options;
 
     const conversation = conversationId
       ? await this.plugin.getConversationById(conversationId)
@@ -235,6 +243,7 @@ export class TabManager implements TabManagerInterface {
         this.callbacks.onTabConversationChanged?.(tab.id, conversationId);
       },
     });
+    tab.titleOverride = titleOverride ?? null;
 
     // Initialize UI components with provider catalog
     initializeTabUI(tab, this.plugin, {
@@ -384,9 +393,8 @@ export class TabManager implements TabManagerInterface {
       return false;
     }
 
-    // If this is the last tab and it's already empty (no conversation),
-    // don't close it - it's already a blank draft container.
-    if (this.tabs.size === 1 && !tab.conversationId && tab.state.messages.length === 0) {
+    // Keep one tab open, matching browser-style tab controls.
+    if (this.tabs.size <= 1) {
       return false;
     }
 
@@ -426,6 +434,144 @@ export class TabManager implements TabManagerInterface {
     return true;
   }
 
+  async closeTabForUndo(tabId: TabId): Promise<ClosedTabSnapshot | null> {
+    const tab = this.tabs.get(tabId);
+    if (!tab || this.tabs.size <= 1) return null;
+
+    const tabIds = Array.from(this.tabs.keys());
+    const snapshot: ClosedTabSnapshot = {
+      tabId: tab.id,
+      index: tabIds.indexOf(tab.id),
+      title: getTabTitle(tab, this.plugin),
+      wasActive: this.activeTabId === tab.id,
+      conversationId: tab.conversationId,
+      draftModel: tab.draftModel,
+      draftSettings: tab.draftSettings ? cloneValue(tab.draftSettings) : null,
+      titleOverride: tab.titleOverride ?? null,
+      orchestratorMode: tab.orchestratorMode,
+      orchestratorTabId: tab.orchestratorTabId,
+      workerTabIds: tab.workerTabIds ? [...tab.workerTabIds] : undefined,
+      inputValue: tab.dom.inputEl.value,
+    };
+
+    const closed = await this.closeTab(tab.id, tab.state.isStreaming);
+    return closed ? snapshot : null;
+  }
+
+  async restoreClosedTabs(snapshots: ClosedTabSnapshot[]): Promise<TabData[]> {
+    const restored: TabData[] = [];
+    const ordered = [...snapshots].sort((a, b) => a.index - b.index);
+
+    for (const snapshot of ordered) {
+      const tab = await this.createTab(snapshot.conversationId, snapshot.tabId, {
+        activate: false,
+        bypassTabLimit: true,
+        draftModel: snapshot.draftModel ?? undefined,
+        draftSettings: snapshot.draftSettings ?? undefined,
+        orchestratorMode: snapshot.orchestratorMode,
+        titleOverride: snapshot.titleOverride,
+      });
+      if (!tab) continue;
+
+      tab.orchestratorTabId = snapshot.orchestratorTabId;
+      tab.workerTabIds = snapshot.workerTabIds ? [...snapshot.workerTabIds] : undefined;
+      tab.dom.inputEl.value = snapshot.inputValue;
+      this.moveTabToIndex(tab.id, snapshot.index);
+      restored.push(tab);
+    }
+
+    const previouslyActive = ordered.find(snapshot => snapshot.wasActive);
+    if (previouslyActive && this.tabs.has(previouslyActive.tabId)) {
+      await this.switchToTab(previouslyActive.tabId);
+    }
+    this.callbacks.onTabOrderChanged?.();
+    return restored;
+  }
+
+  async renameTab(tabId: TabId, title: string): Promise<void> {
+    const tab = this.tabs.get(tabId);
+    if (!tab) return;
+    const normalized = title.trim().slice(0, MAX_TAB_TITLE_LENGTH);
+    if (!normalized) return;
+
+    if (tab.conversationId) {
+      await this.plugin.renameConversation(tab.conversationId, normalized);
+      return;
+    }
+
+    tab.titleOverride = normalized;
+    this.callbacks.onTabTitleChanged?.(tab.id, getTabTitle(tab, this.plugin));
+  }
+
+  async duplicateTab(tabId: TabId): Promise<TabData | null> {
+    const source = this.tabs.get(tabId);
+    if (!source || !this.canCreateTab()) return null;
+    const sourceIndex = Array.from(this.tabs.keys()).indexOf(tabId);
+
+    if (!source.conversationId) {
+      const duplicate = await this.createTab(null, undefined, {
+        draftModel: source.draftModel ?? undefined,
+        draftSettings: source.draftSettings ? cloneValue(source.draftSettings) : undefined,
+        orchestratorMode: source.orchestratorMode,
+        titleOverride: this.buildDuplicateTitle(getTabTitle(source, this.plugin)),
+      });
+      if (!duplicate) return null;
+      duplicate.dom.inputEl.value = source.dom.inputEl.value;
+      this.moveTabToIndex(duplicate.id, sourceIndex + 1);
+      return duplicate;
+    }
+
+    await source.controllers.conversationController?.save();
+    const original = this.plugin.getConversationSync(source.conversationId);
+    if (!original) return null;
+    const duplicateConversation = await this.plugin.createConversation({
+      providerId: original.providerId,
+      model: original.model,
+    });
+
+    try {
+      await this.plugin.updateConversation(duplicateConversation.id, {
+        title: this.buildDuplicateTitle(getTabTitle(source, this.plugin)),
+        messages: cloneValue<ChatMessage[]>(source.state.messages),
+        currentNote: original.currentNote,
+        externalContextPaths: original.externalContextPaths,
+        usage: original.usage,
+        enabledMcpServers: original.enabledMcpServers,
+        orchestratorMode: original.orchestratorMode,
+        model: original.model,
+      });
+      const duplicate = await this.createTab(duplicateConversation.id);
+      if (!duplicate) {
+        await this.plugin.deleteConversation(duplicateConversation.id);
+        return null;
+      }
+      this.moveTabToIndex(duplicate.id, sourceIndex + 1);
+      return duplicate;
+    } catch (error) {
+      await this.plugin.deleteConversation(duplicateConversation.id).catch(() => {});
+      throw error;
+    }
+  }
+
+  private buildDuplicateTitle(sourceTitle: string): string {
+    const base = t('chat.ui.tabs.duplicateTitle', { title: sourceTitle });
+    const existing = new Set(this.plugin.getConversationList().map(conversation => conversation.title));
+    if (!existing.has(base)) return base;
+    let suffix = 2;
+    while (existing.has(`${base} ${suffix}`)) suffix++;
+    return `${base} ${suffix}`;
+  }
+
+  private moveTabToIndex(tabId: TabId, index: number): void {
+    const entries = Array.from(this.tabs.entries());
+    const currentIndex = entries.findIndex(([id]) => id === tabId);
+    if (currentIndex === -1) return;
+    const [entry] = entries.splice(currentIndex, 1);
+    entries.splice(Math.max(0, Math.min(index, entries.length)), 0, entry);
+    this.tabs = new Map(entries);
+    this.callbacks.onTabOrderChanged?.();
+  }
+
   // ============================================
   // Tab Queries
   // ============================================
@@ -440,6 +586,10 @@ export class TabManager implements TabManagerInterface {
     return this.activeTabId;
   }
 
+  getTabIds(): TabId[] {
+    return Array.from(this.tabs.keys());
+  }
+
   /** Gets a tab by ID. */
   getTab(tabId: TabId): TabData | null {
     return this.tabs.get(tabId) ?? null;
@@ -448,6 +598,15 @@ export class TabManager implements TabManagerInterface {
   /** Gets all tabs. */
   getAllTabs(): TabData[] {
     return Array.from(this.tabs.values());
+  }
+
+  /** Refreshes tab-bar titles for every tab displaying a renamed conversation. */
+  notifyConversationRenamed(conversationId: string, title: string): void {
+    for (const tab of this.tabs.values()) {
+      if (tab.conversationId === conversationId) {
+        this.callbacks.onTabTitleChanged?.(tab.id, title);
+      }
+    }
   }
 
   /** Gets the number of tabs. */
@@ -478,7 +637,7 @@ export class TabManager implements TabManagerInterface {
         isActive: tab.id === this.activeTabId,
         isStreaming: tab.state.isStreaming,
         needsAttention: tab.state.needsAttention,
-        canClose: this.tabs.size > 1 || !tab.state.isStreaming,
+        canClose: this.tabs.size > 1,
         isOrchestrator: (tab.workerTabIds?.length ?? 0) > 0,
         isWorker: tab.orchestratorTabId != null,
       });
@@ -526,18 +685,19 @@ export class TabManager implements TabManagerInterface {
       return;
     }
 
-    // Open in current tab or new tab
+    // A conversation may only be mounted once. Two tabs bound to the same
+    // stored conversation can race while saving and overwrite newer messages.
     if (preferNewTab && this.canCreateTab()) {
       await this.createTab(conversationId, undefined, { activate });
-    } else {
-      // Open in current tab
-      // Note: Don't set tab.conversationId here - the onConversationIdChanged callback
-      // will sync it after successful switch. Setting it before switchTo() would cause
-      // incorrect tab metadata if switchTo() returns early (streaming/switching/creating).
-      const activeTab = this.getActiveTab();
-      if (activeTab) {
-        await activeTab.controllers.conversationController?.switchTo(conversationId);
-      }
+      return;
+    }
+
+    // Open in current tab or new tab
+    // Open in current tab. Note: Don't set tab.conversationId here - the
+    // onConversationIdChanged callback will sync it after successful switch.
+    const activeTab = this.getActiveTab();
+    if (activeTab) {
+      await activeTab.controllers.conversationController?.switchTo(conversationId);
     }
   }
 
@@ -703,6 +863,7 @@ export class TabManager implements TabManagerInterface {
         ...(tab.lifecycleState === 'blank' && tab.draftSettings
           ? { draftSettings: tab.draftSettings }
           : {}),
+        ...(tab.titleOverride ? { titleOverride: tab.titleOverride } : {}),
         ...(tab.lifecycleState === 'blank' && tab.orchestratorMode
           ? { orchestratorMode: true }
           : {}),
@@ -736,6 +897,7 @@ export class TabManager implements TabManagerInterface {
             activate: false,
             ...(typeof tabState.draftModel === 'string' ? { draftModel: tabState.draftModel } : {}),
             ...(tabState.draftSettings ? { draftSettings: tabState.draftSettings } : {}),
+            ...(tabState.titleOverride ? { titleOverride: tabState.titleOverride } : {}),
             ...(tabState.orchestratorMode === true ? { orchestratorMode: true } : {}),
           });
           if (tab) {
