@@ -1,7 +1,7 @@
 import '@/providers';
 
 import { createMockEl } from '@test/helpers/mockElement';
-import { Menu } from 'obsidian';
+import { Menu, setIcon, setTooltip } from 'obsidian';
 
 import {
   TOOL_AGENT_OUTPUT,
@@ -1304,11 +1304,14 @@ describe('MessageRenderer', () => {
     expect(textEl.children.length).toBe(2);
     const copyBtn = textEl.children[0];
     expect(copyBtn.hasClass('grimoire-text-copy-btn')).toBe(true);
+    expect(copyBtn.getAttribute('aria-label')).toBe('Copy response');
+    expect(setTooltip).toHaveBeenCalledWith(copyBtn, 'Copy response', { placement: 'top' });
     expect(textEl.children[1].hasClass('grimoire-message-completion-time')).toBe(true);
   });
 
-  it('shows the localized completion date and time beside the last assistant copy button', () => {
+  it('shows a compact localized completion date beside the last assistant copy button', () => {
     setLocale('zh-CN');
+    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(new Date(2026, 7, 2, 12, 0).getTime());
     try {
       const messagesEl = createMockEl();
       const { renderer } = createRenderer(messagesEl);
@@ -1330,16 +1333,25 @@ describe('MessageRenderer', () => {
       const textBlocks = messagesEl.querySelectorAll('.grimoire-text-block');
       expect(textBlocks[0]?.hasClass('grimoire-text-block--with-completion-time')).toBe(false);
       expect(textBlocks[1]?.hasClass('grimoire-text-block--with-completion-time')).toBe(true);
-      const completionTime = textBlocks[1]?.querySelector('.grimoire-message-completion-time')?.textContent ?? '';
-      expect(completionTime).toContain('2026');
+      const completionEl = textBlocks[1]?.querySelector('.grimoire-message-completion-time');
+      const completionTime = completionEl?.textContent ?? '';
+      expect(completionTime).toContain('7月31日');
       expect(completionTime).toContain('09:05');
+      expect(completionTime).not.toContain('2026');
+      expect(setTooltip).toHaveBeenCalledWith(
+        completionEl,
+        expect.stringContaining('2026'),
+        { placement: 'top' }
+      );
     } finally {
+      nowSpy.mockRestore();
       setLocale('en');
     }
   });
 
   it('places the user completion time before the user copy button', () => {
     setLocale('zh-CN');
+    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(new Date(2026, 6, 31, 12, 0).getTime());
     try {
       const messagesEl = createMockEl();
       const { renderer } = createRenderer(messagesEl);
@@ -1364,9 +1376,44 @@ describe('MessageRenderer', () => {
       expect(completionIndex).toBeGreaterThanOrEqual(0);
       expect(copyIndex).toBeGreaterThan(completionIndex ?? -1);
       expect(toolbar?.querySelector('.grimoire-message-completion-time')?.textContent).toContain('10:26');
+      expect(toolbar?.querySelector('.grimoire-message-completion-time')?.textContent).not.toContain('2026');
+      const copyBtn = toolbar?.querySelector('.grimoire-user-msg-copy-btn');
+      expect(copyBtn?.getAttribute('aria-label')).toBe('复制消息');
+      expect(setTooltip).toHaveBeenCalledWith(copyBtn, '复制消息', { placement: 'top' });
     } finally {
+      nowSpy.mockRestore();
       setLocale('en');
     }
+  });
+
+  it('does not invent completion dates for legacy messages without completedAt', () => {
+    const messagesEl = createMockEl();
+    const { renderer } = createRenderer(messagesEl);
+    jest.spyOn(renderer, 'renderContent').mockResolvedValue(undefined);
+
+    renderer.renderStoredMessage({
+      id: 'legacy-user',
+      role: 'user',
+      content: 'Legacy question',
+      timestamp: 1000,
+    });
+    renderer.renderStoredMessage({
+      id: 'legacy-assistant',
+      role: 'assistant',
+      content: 'Legacy answer',
+      timestamp: 2000,
+      contentBlocks: [{ type: 'text', content: 'Legacy answer' }],
+    });
+
+    const userMessage = messagesEl.querySelectorAll('.grimoire-message-user')[0];
+    expect(userMessage?.querySelector('.grimoire-user-msg-copy-btn')).toBeDefined();
+    expect(userMessage?.querySelector('.grimoire-message-completion-time')).toBeFalsy();
+
+    const assistantMessage = messagesEl.querySelectorAll('.grimoire-message-assistant')[0];
+    expect(assistantMessage?.querySelector('.grimoire-text-copy-btn')).toBeDefined();
+    expect(assistantMessage?.querySelector('.grimoire-text-block')?.hasClass(
+      'grimoire-text-block--with-completion-time'
+    )).toBe(false);
   });
 
   // ============================================
@@ -1687,7 +1734,9 @@ describe('MessageRenderer', () => {
       await clickHandlers![0]({ stopPropagation: jest.fn() });
 
       expect(writeTextMock).toHaveBeenCalledWith('markdown content');
-      expect(copyBtn.textContent).toBe('Copied!');
+      expect(copyBtn.textContent).toBe('');
+      expect(setIcon).toHaveBeenCalledWith(copyBtn, 'check');
+      expect(copyBtn.getAttribute('aria-label')).toBe('Copied!');
       expect(copyBtn.classList.contains('copied')).toBe(true);
     });
 
@@ -2095,14 +2144,14 @@ describe('MessageRenderer', () => {
 
       // First click
       await clickHandlers![0]({ stopPropagation: jest.fn() });
-      expect(copyBtn.textContent).toBe('Copied!');
+      expect(setIcon).toHaveBeenLastCalledWith(copyBtn, 'check');
 
       // Second rapid click before timeout expires
       await clickHandlers![0]({ stopPropagation: jest.fn() });
 
       // clearTimeout should have been called for the first pending timeout
       expect(clearTimeoutSpy).toHaveBeenCalled();
-      expect(copyBtn.textContent).toBe('Copied!');
+      expect(setIcon).toHaveBeenLastCalledWith(copyBtn, 'check');
 
       clearTimeoutSpy.mockRestore();
     });
@@ -2119,7 +2168,7 @@ describe('MessageRenderer', () => {
 
       // Click to copy
       await clickHandlers![0]({ stopPropagation: jest.fn() });
-      expect(copyBtn.textContent).toBe('Copied!');
+      expect(setIcon).toHaveBeenLastCalledWith(copyBtn, 'check');
       expect(copyBtn.classList.contains('copied')).toBe(true);
 
       // Advance timers by 1500ms (the feedback duration)
@@ -2127,6 +2176,8 @@ describe('MessageRenderer', () => {
 
       // Icon should be restored and copied class removed
       expect(copyBtn.innerHTML).toBe(originalInnerHTML);
+      expect(setIcon).toHaveBeenLastCalledWith(copyBtn, 'copy');
+      expect(copyBtn.getAttribute('aria-label')).toBe('Copy response');
       expect(copyBtn.classList.contains('copied')).toBe(false);
     });
   });

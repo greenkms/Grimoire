@@ -4,8 +4,8 @@
 
 .grimoire-ask-anchor {
   position: absolute;
-  left: var(--grimoire-window-padding-x, 13px);
-  right: var(--grimoire-window-padding-x, 13px);
+  left: var(--grimoire-window-padding-x, 7px);
+  right: var(--grimoire-window-padding-x, 7px);
   bottom: 13px;
   z-index: 40;
   outline: none;
@@ -456,9 +456,9 @@
 
 .grimoire-permission-anchor {
   position: absolute;
-  right: var(--grimoire-window-padding-x, 13px);
+  right: var(--grimoire-window-padding-x, 7px);
   bottom: 13px;
-  left: var(--grimoire-window-padding-x, 13px);
+  left: var(--grimoire-window-padding-x, 7px);
   z-index: 40;
   outline: none;
 }

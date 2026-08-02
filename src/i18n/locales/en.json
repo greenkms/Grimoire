@@ -380,6 +380,7 @@
         "copied": "Copied!",
         "renderFailed": "Failed to render message content.",
         "copyMessage": "Copy message",
+        "copyResponse": "Copy response",
         "awaitingYou": "Awaiting you"
       },
       "errors": {

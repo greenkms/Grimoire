@@ -380,6 +380,7 @@
         "copied": "Kopiert!",
         "renderFailed": "Nachrichteninhalt konnte nicht gerendert werden.",
         "copyMessage": "Nachricht kopieren",
+        "copyResponse": "Antwort kopieren",
         "awaitingYou": "Wartet auf dich"
       },
       "errors": {

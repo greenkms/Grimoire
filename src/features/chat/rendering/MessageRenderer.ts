@@ -1,5 +1,5 @@
 import type { App, Component } from 'obsidian';
-import { MarkdownRenderer, Menu, Notice, setIcon, TFile } from 'obsidian';
+import { MarkdownRenderer, Menu, Notice, setIcon, setTooltip, TFile } from 'obsidian';
 
 import { DEFAULT_CHAT_PROVIDER_ID, type ProviderCapabilities } from '../../../core/providers/types';
 import type { ChatRewindMode } from '../../../core/runtime/types';
@@ -249,7 +249,7 @@ export class MessageRenderer {
         const textEl = contentEl.createDiv({ cls: 'grimoire-text-block' });
         void this.renderContent(textEl, textToShow);
         this.renderUserVaultSearchSources(contentEl, msg);
-        this.addUserCopyButton(msgEl, textToShow, msg.completedAt ?? msg.timestamp);
+        this.addUserCopyButton(msgEl, textToShow, msg.completedAt);
       }
       this.liveMessageEls.set(msg.id, msgEl);
     } else if (msg.role === 'assistant') {
@@ -292,7 +292,7 @@ export class MessageRenderer {
     }
 
     if (textToShow) {
-      this.addUserCopyButton(msgEl, textToShow, msg.completedAt ?? msg.timestamp);
+      this.addUserCopyButton(msgEl, textToShow, msg.completedAt);
     }
   }
 
@@ -383,7 +383,7 @@ export class MessageRenderer {
         const textEl = contentEl.createDiv({ cls: 'grimoire-text-block' });
         void this.renderContent(textEl, textToShow);
         this.renderUserVaultSearchSources(contentEl, msg);
-        this.addUserCopyButton(msgEl, textToShow, msg.completedAt ?? msg.timestamp);
+        this.addUserCopyButton(msgEl, textToShow, msg.completedAt);
       }
       if (msg.userMessageId && this.isRewindEligible(allMessages, index)) {
         if (this.rewindCallback) {
@@ -399,7 +399,9 @@ export class MessageRenderer {
       if (msg.isInterrupt) {
         this.appendInterruptIndicator(contentEl);
       }
-      this.applyAssistantCompletionTime(msgEl, msg.completedAt ?? msg.timestamp);
+      if (msg.completedAt !== undefined) {
+        this.applyAssistantCompletionTime(msgEl, msg.completedAt);
+      }
     }
   }
 
@@ -996,13 +998,15 @@ export class MessageRenderer {
 
   /**
    * Adds a copy button to a text block.
-   * Button shows clipboard icon on hover, changes to "copied!" on click.
+   * Button keeps a fixed footprint and changes to a check icon on click.
    * @param textEl The rendered text element
    * @param markdown The original markdown content to copy
    */
   addTextCopyButton(textEl: HTMLElement, markdown: string): void {
     const copyBtn = textEl.createSpan({ cls: 'grimoire-text-copy-btn' });
+    const copyLabel = t('chat.ui.messages.copyResponse');
     setIcon(copyBtn, 'copy');
+    this.setCopyButtonTooltip(copyBtn, copyLabel);
     textEl.createSpan({ cls: 'grimoire-message-completion-time' });
 
     let feedbackTimeout: number | null = null;
@@ -1023,15 +1027,17 @@ export class MessageRenderer {
           window.clearTimeout(feedbackTimeout);
         }
 
-        // Show "copied!" feedback
+        // Keep the button footprint stable while showing copy feedback.
         copyBtn.empty();
-        copyBtn.setText(t('chat.ui.messages.copied'));
+        setIcon(copyBtn, 'check');
         copyBtn.classList.add('copied');
+        this.setCopyButtonTooltip(copyBtn, t('chat.ui.messages.copied'));
 
         feedbackTimeout = window.setTimeout(() => {
           copyBtn.empty();
           setIcon(copyBtn, 'copy');
           copyBtn.classList.remove('copied');
+          this.setCopyButtonTooltip(copyBtn, copyLabel);
           feedbackTimeout = null;
         }, 1500);
       });
@@ -1043,7 +1049,8 @@ export class MessageRenderer {
       ?? this.messagesEl.querySelector<HTMLElement>(`[data-message-id="${msg.id}"]`);
     if (!msgEl) return;
 
-    const completedAt = msg.completedAt ?? msg.timestamp;
+    const completedAt = msg.completedAt;
+    if (completedAt === undefined) return;
     if (msg.role === 'assistant') {
       this.applyAssistantCompletionTime(msgEl, completedAt);
       this.liveMessageEls.delete(msg.id);
@@ -1070,19 +1077,46 @@ export class MessageRenderer {
     if (!completionEl) return;
 
     completionEl.setText(this.formatMessageCompletionTime(completedAt));
+    setTooltip(completionEl, this.formatMessageCompletionTitle(completedAt), { placement: 'top' });
     lastTextBlock.addClass('grimoire-text-block--with-completion-time');
   }
 
   private formatMessageCompletionTime(timestamp: number): string {
     if (!Number.isFinite(timestamp)) return '';
+    const completedDate = new Date(timestamp);
+    const now = new Date(Date.now());
+    const isSameDay = completedDate.getFullYear() === now.getFullYear()
+      && completedDate.getMonth() === now.getMonth()
+      && completedDate.getDate() === now.getDate();
+    const isSameYear = completedDate.getFullYear() === now.getFullYear();
+    const dateOptions: Intl.DateTimeFormatOptions = isSameDay
+      ? {}
+      : {
+        ...(isSameYear ? {} : { year: 'numeric' as const }),
+        month: 'short',
+        day: 'numeric',
+      };
+
     return new Intl.DateTimeFormat(getLocale(), {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
+      ...dateOptions,
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
-    }).format(new Date(timestamp)).replace(/,\s*/, ' ');
+    }).format(completedDate).replace(/,\s*/g, ' ');
+  }
+
+  private formatMessageCompletionTitle(timestamp: number): string {
+    if (!Number.isFinite(timestamp)) return '';
+    return new Intl.DateTimeFormat(getLocale(), {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+      hour12: false,
+    }).format(new Date(timestamp));
+  }
+
+  private setCopyButtonTooltip(copyBtn: HTMLElement, label: string): void {
+    copyBtn.setAttribute('aria-label', label);
+    setTooltip(copyBtn, label, { placement: 'top' });
   }
 
   refreshActionButtons(msg: ChatMessage, allMessages?: ChatMessage[], index?: number): void {
@@ -1119,14 +1153,18 @@ export class MessageRenderer {
     const completionEl = toolbar.querySelector<HTMLElement>('.grimoire-message-completion-time')
       ?? toolbar.createSpan({ cls: 'grimoire-message-completion-time' });
     completionEl.setText(this.formatMessageCompletionTime(completedAt));
+    setTooltip(completionEl, this.formatMessageCompletionTitle(completedAt), { placement: 'top' });
   }
 
-  private addUserCopyButton(msgEl: HTMLElement, content: string, completedAt: number): void {
+  private addUserCopyButton(msgEl: HTMLElement, content: string, completedAt?: number): void {
     const toolbar = this.getOrCreateActionsToolbar(msgEl);
-    this.ensureUserCompletionTime(msgEl, completedAt);
+    if (completedAt !== undefined) {
+      this.ensureUserCompletionTime(msgEl, completedAt);
+    }
     const copyBtn = toolbar.createSpan({ cls: 'grimoire-user-msg-copy-btn' });
+    const copyLabel = t('chat.ui.messages.copyMessage');
     setIcon(copyBtn, 'copy');
-    copyBtn.setAttribute('aria-label', t('chat.ui.messages.copyMessage'));
+    this.setCopyButtonTooltip(copyBtn, copyLabel);
 
     let feedbackTimeout: number | null = null;
 
@@ -1140,12 +1178,14 @@ export class MessageRenderer {
         }
         if (feedbackTimeout) window.clearTimeout(feedbackTimeout);
         copyBtn.empty();
-        copyBtn.setText(t('chat.ui.messages.copied'));
+        setIcon(copyBtn, 'check');
         copyBtn.classList.add('copied');
+        this.setCopyButtonTooltip(copyBtn, t('chat.ui.messages.copied'));
         feedbackTimeout = window.setTimeout(() => {
           copyBtn.empty();
           setIcon(copyBtn, 'copy');
           copyBtn.classList.remove('copied');
+          this.setCopyButtonTooltip(copyBtn, copyLabel);
           feedbackTimeout = null;
         }, 1500);
       });

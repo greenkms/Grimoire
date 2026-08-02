@@ -203,7 +203,7 @@
 
 /* Reserve room for the date/action row positioned below the question bubble. */
 .grimoire-container--chat-window .grimoire-message-user {
-  margin-bottom: 12px;
+  margin-bottom: 18px;
 }
 
 /* Text selection in user messages - visible highlight */
@@ -241,6 +241,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-bottom: 4px;
   color: var(--grimoire-workbench-faint);
   font-family: var(--font-monospace);
   font-size: 9.5px;
@@ -356,12 +357,7 @@
 }
 
 .grimoire-text-copy-btn.copied {
-  width: auto;
-  min-width: 54px;
-  padding: 3px 6px;
   color: var(--text-accent);
-  font-size: 11px;
-  font-family: var(--font-monospace);
 }
 
 .grimoire-message-completion-time {
@@ -377,9 +373,9 @@
 .grimoire-text-block > .grimoire-message-completion-time {
   position: absolute;
   bottom: 7px;
-  inset-inline-end: 42px;
+  inset-inline-start: 32px;
   display: none;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 .grimoire-text-block--with-completion-time {
@@ -390,8 +386,9 @@
   display: inline-block;
 }
 
-.grimoire-text-copy-btn.copied + .grimoire-message-completion-time {
-  inset-inline-end: 78px;
+.grimoire-text-block--with-completion-time > .grimoire-text-copy-btn {
+  inset-inline-start: 0;
+  inset-inline-end: auto;
 }
 
 .grimoire-text-block+.grimoire-tool-call {
@@ -517,7 +514,7 @@
 /* Action buttons toolbar below user messages */
 .grimoire-user-msg-actions {
   position: absolute;
-  bottom: -20px;
+  bottom: -24px;
   right: 0;
   display: flex;
   gap: 12px;
@@ -545,8 +542,6 @@
 
 .grimoire-user-msg-actions span.copied {
   color: var(--text-accent);
-  font-size: 11px;
-  font-family: var(--font-monospace);
 }
 
 .grimoire-user-msg-actions .grimoire-message-completion-time {

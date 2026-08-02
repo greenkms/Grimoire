@@ -327,7 +327,7 @@
   align-items: center;
   gap: 10px;
   min-height: 34px;
-  padding: 4px 8px 4px 4px;
+  padding: 4px 8px 4px 0;
   border-radius: var(--grimoire-radius-2);
   cursor: pointer;
   overflow: hidden;
@@ -496,9 +496,9 @@
 }
 
 .grimoire-tool-step > .grimoire-tool-content {
-  margin: 1px 0 5px 36px;
+  margin: 1px 0 5px;
   box-sizing: border-box;
-  max-width: calc(100% - 36px);
+  max-width: 100%;
   max-height: min(52vh, 520px);
   padding: 0;
   border: 0;
