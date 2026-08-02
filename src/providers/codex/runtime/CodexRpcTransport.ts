@@ -20,6 +20,7 @@ export class CodexRpcTransport {
   private notificationHandlers = new Map<string, NotificationHandler>();
   private serverRequestHandlers = new Map<string, ServerRequestHandler>();
   private disposed = false;
+  private disposeError: Error | null = null;
 
   constructor(private readonly proc: CodexAppServerProcess) {}
 
@@ -27,12 +28,22 @@ export class CodexRpcTransport {
     const rl = createInterface({ input: this.proc.stdout });
     rl.on('line', (line) => this.handleLine(line));
 
-    this.proc.onExit(() => {
-      this.rejectAllPending(new Error('App-server process exited'));
+    this.proc.onExit((_code, _signal, error) => {
+      this.disposed = true;
+      this.disposeError = error ?? new Error('App-server process exited');
+      this.rejectAllPending(this.disposeError);
     });
   }
 
   request<T = unknown>(method: string, params: unknown, timeoutMs = DEFAULT_TIMEOUT_MS): Promise<T> {
+    // Fail fast rather than queueing a request the dead process can never
+    // answer — otherwise the caller waits out the full timeout.
+    if (this.disposed) {
+      return Promise.reject(
+        this.disposeError ?? new Error('App-server transport is closed'),
+      );
+    }
+
     const id = this.nextId++;
     const msg = { jsonrpc: '2.0' as const, id, method, params };
 

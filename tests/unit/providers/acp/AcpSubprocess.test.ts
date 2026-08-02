@@ -153,3 +153,53 @@ describe('AcpSubprocess', () => {
     await shutdownPromise;
   });
 });
+
+describe('AcpSubprocess spawn failure', () => {
+  it('replays the close error to listeners that subscribe after the failure', () => {
+    const proc = createMockProcess();
+    spawnMock.mockReturnValue(proc);
+    const subprocess = new AcpSubprocess(createLaunchSpec());
+    subprocess.start();
+
+    // ENOENT is emitted on the next tick — before the transport subscribes.
+    const enoent = Object.assign(new Error('spawn opencode.cmd ENOENT'), { code: 'ENOENT' });
+    proc.emit('error', enoent);
+
+    const listener = jest.fn();
+    subprocess.onClose(listener);
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    const received = listener.mock.calls[0][0] as Error;
+    expect(received).toBeInstanceOf(Error);
+    expect(received.message).toContain('command not found');
+    expect(received.message).toContain('opencode.cmd');
+  });
+
+  it('still notifies listeners that subscribed before the failure', () => {
+    const proc = createMockProcess();
+    spawnMock.mockReturnValue(proc);
+    const subprocess = new AcpSubprocess(createLaunchSpec());
+    subprocess.start();
+
+    const listener = jest.fn();
+    subprocess.onClose(listener);
+    proc.emit('error', Object.assign(new Error('spawn failed'), { code: 'EACCES' }));
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect((listener.mock.calls[0][0] as Error).message).toBe('spawn failed');
+  });
+
+  it('replays a non-zero exit to late subscribers', () => {
+    const proc = createMockProcess();
+    spawnMock.mockReturnValue(proc);
+    const subprocess = new AcpSubprocess(createLaunchSpec());
+    subprocess.start();
+
+    proc.emit('exit', 1, null);
+
+    const listener = jest.fn();
+    subprocess.onClose(listener);
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect((listener.mock.calls[0][0] as Error).message).toContain('code 1');
+  });
+});

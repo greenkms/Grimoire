@@ -230,3 +230,56 @@ describe('CodexAppServerProcess', () => {
     });
   });
 });
+
+describe('CodexAppServerProcess spawn failure', () => {
+  let mockProc: ChildProcess;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockProc = createMockProcess();
+    mockSpawn.mockReturnValue(mockProc);
+  });
+
+  it('reports a spawn error to exit listeners instead of swallowing it', () => {
+    const server = new CodexAppServerProcess(createLaunchSpec());
+    server.start();
+
+    const onExit = jest.fn();
+    server.onExit(onExit);
+
+    mockProc.emit('error', Object.assign(new Error('spawn codex ENOENT'), { code: 'ENOENT' }));
+
+    expect(onExit).toHaveBeenCalledTimes(1);
+    const error = onExit.mock.calls[0][2] as Error;
+    expect(error).toBeInstanceOf(Error);
+    expect(error.message).toContain('command not found');
+    expect(server.isAlive()).toBe(false);
+  });
+
+  it('replays termination to listeners that subscribe after the failure', () => {
+    const server = new CodexAppServerProcess(createLaunchSpec());
+    server.start();
+
+    // ENOENT arrives before the transport subscribes.
+    mockProc.emit('error', Object.assign(new Error('spawn codex ENOENT'), { code: 'ENOENT' }));
+
+    const onExit = jest.fn();
+    server.onExit(onExit);
+
+    expect(onExit).toHaveBeenCalledTimes(1);
+    expect((onExit.mock.calls[0][2] as Error).message).toContain('command not found');
+  });
+
+  it('notifies exit listeners only once when error is followed by exit', () => {
+    const server = new CodexAppServerProcess(createLaunchSpec());
+    server.start();
+
+    const onExit = jest.fn();
+    server.onExit(onExit);
+
+    mockProc.emit('error', new Error('boom'));
+    mockProc.emit('exit', 1, null);
+
+    expect(onExit).toHaveBeenCalledTimes(1);
+  });
+});
