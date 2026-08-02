@@ -75,12 +75,18 @@
       "copyFailed": "No se pudo copiar al portapapeles"
     },
     "orchestrator": {
-      "planTitle": "Plan del orquestador",
-      "workerCount": "Trabajadores: {count}",
-      "spawnWorkers": "Iniciar trabajadores",
-      "toggleTitle": "Modo orquestador",
-      "toggleAriaLabel": "Cambiar modo orquestador",
-      "toggleFailed": "No se pudo cambiar el modo orquestador"
+      "planTitle": "Tareas independientes para esta nota",
+      "planEyebrow": "Trabajadores en paralelo",
+      "planSummary": "Se prepararon {count} tareas independientes. Cada una se ejecuta en su propia pestaña y no comparte contexto ni resultados con las demás.",
+      "badge": "Trabajadores en paralelo",
+      "workerCount": "{count} de {total} seleccionadas",
+      "spawnWorkers": "Abrir pestañas de trabajadores",
+      "parallel": "Independiente",
+      "toggleTask": "Incluir tarea: {task}",
+      "workerTabsHint": "Un trabajador independiente por pestaña · sin contexto compartido",
+      "toggleTitle": "Trabajadores en paralelo",
+      "toggleAriaLabel": "Alternar trabajadores en paralelo",
+      "toggleFailed": "No se pudieron alternar los trabajadores en paralelo"
     },
     "vaultSearch": {
       "toolName": "Búsqueda en la bóveda",
@@ -315,7 +321,7 @@
         "conflictInside": "No se puede añadir “{path}” — está dentro de la ruta existente “{existing}”",
         "conflictContains": "No se puede añadir “{path}” — contiene la ruta existente “{existing}”",
         "header": "Contextos externos",
-        "empty": "Haz clic en el icono de carpeta para añadir uno",
+        "empty": "Haz clic para añadir uno",
         "makeSessionOnly": "Persistente (haz clic para hacerlo solo de sesión)",
         "makePersistent": "Solo de sesión (haz clic para conservarlo)",
         "removePath": "Quitar ruta",

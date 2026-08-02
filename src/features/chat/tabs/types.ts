@@ -269,7 +269,7 @@ export interface TabData {
   /** Per-tab renderer. */
   renderer: MessageRenderer | null;
 
-  /** Whether this tab should ask the provider to produce orchestration plans. */
+  /** Whether this tab should ask the provider to produce parallel-worker plans. */
   orchestratorMode: boolean;
 
   /** Set on worker tabs: the tab ID of the orchestrator that spawned this tab. */

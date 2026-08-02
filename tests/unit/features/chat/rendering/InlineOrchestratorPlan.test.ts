@@ -5,7 +5,7 @@ import type { OrchestratorPlan } from '@/features/chat/rendering/orchestratorPla
 import { setLocale } from '@/i18n/i18n';
 
 const plan: OrchestratorPlan = {
-  type: 'orchestrator_plan' as const,
+  type: 'parallel_worker_plan' as const,
   tasks: [
     {
       id: 'parser',
@@ -34,10 +34,12 @@ function collectClasses(el: MockElement): string[] {
   ];
 }
 
-function renderPlan() {
+function renderPlan(
+  presentation: ConstructorParameters<typeof InlineOrchestratorPlan>[3] = {},
+) {
   const container = createMockEl();
   const resolve = jest.fn<void, [unknown]>();
-  const widget = new InlineOrchestratorPlan(container as HTMLElement, plan, resolve);
+  const widget = new InlineOrchestratorPlan(container as HTMLElement, plan, resolve, presentation);
 
   widget.render();
 
@@ -58,7 +60,9 @@ describe('InlineOrchestratorPlan', () => {
 
     expect(text).toContain('Add provider-neutral parser');
     expect(text).toContain('Render inline approval controls');
-    expect(text).toContain('Spawn workers');
+    expect(text).toContain('Independent tasks for this note');
+    expect(text).toContain('2 of 2 selected');
+    expect(text).toContain('Open worker tabs');
     expect(text).toContain('Cancel');
     expect(root.querySelectorAll('.grimoire-orchestrator-plan-task')).toHaveLength(2);
 
@@ -72,10 +76,43 @@ describe('InlineOrchestratorPlan', () => {
     const { root } = renderPlan();
     const text = collectText(root);
 
-    expect(text).toContain('План оркестратора');
-    expect(text).toContain('Исполнителей: 2');
-    expect(text).toContain('Запустить исполнителей');
+    expect(text).toContain('Независимые задачи для этой заметки');
+    expect(text).toContain('Выбрано 2 из 2');
+    expect(text).toContain('Открыть вкладки исполнителей');
     expect(text).toContain('Отмена');
+  });
+
+  it('shows the inherited model on every worker row', () => {
+    const { root } = renderPlan({ modelLabel: 'GPT-5.6-Luna', providerId: 'codex' });
+
+    expect(root.querySelectorAll('.grimoire-orchestrator-plan-model')).toHaveLength(2);
+    expect(collectText(root)).toContain('GPT-5.6-Luna');
+  });
+
+  it('spawns only selected tasks and keeps the count in sync', () => {
+    const { resolve, root } = renderPlan();
+    const toggles = root.querySelectorAll('.grimoire-orchestrator-plan-task-toggle');
+
+    toggles[0].click();
+    expect(collectText(root)).toContain('1 of 2 selected');
+
+    root.querySelector('.grimoire-orchestrator-plan-spawn-button')!.click();
+    expect(resolve).toHaveBeenCalledWith({
+      type: 'spawn_workers',
+      plan: {
+        ...plan,
+        tasks: [plan.tasks[1]],
+      },
+    });
+  });
+
+  it('disables spawning when every task is deselected', () => {
+    const { root } = renderPlan();
+    const toggles = root.querySelectorAll('.grimoire-orchestrator-plan-task-toggle');
+
+    toggles.forEach((toggle: MockElement) => toggle.click());
+
+    expect(root.querySelector('.grimoire-orchestrator-plan-spawn-button')!.disabled).toBe(true);
   });
 
   it('resolves with spawn_workers and disables both buttons after spawning', () => {

@@ -857,8 +857,8 @@ describe('CodexChatRuntime', () => {
 
       const threadStartCall = findCall('thread/start');
       expect(threadStartCall).toBeDefined();
-      expect(threadStartCall[1].baseInstructions).toContain('## Grimoire Orchestrator Mode');
-      expect(threadStartCall[1].baseInstructions).toContain('"type": "orchestrator_plan"');
+      expect(threadStartCall[1].baseInstructions).toContain('## Grimoire Parallel Workers Mode');
+      expect(threadStartCall[1].baseInstructions).toContain('"type": "parallel_worker_plan"');
     });
 
     it('captures thread ID and session file path', async () => {
@@ -938,7 +938,7 @@ describe('CodexChatRuntime', () => {
       const turnStartCall = findCall('turn/start');
       expect(turnStartCall).toBeDefined();
       expect(turnStartCall[1].collaborationMode.settings.developer_instructions)
-        .toContain('## Grimoire Orchestrator Mode');
+        .toContain('## Grimoire Parallel Workers Mode');
     });
   });
 

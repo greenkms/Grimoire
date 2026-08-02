@@ -19,16 +19,22 @@ describe('input.css', () => {
     expect(rule).toContain('max-height: var(--grimoire-textarea-max-height, none)');
   });
 
-  it('uses a two-row composer hierarchy before controls can collapse the model label', () => {
+  it('keeps the compact toolbar on one row until the pane is genuinely narrow', () => {
     const css = readInputCss();
     const actionsRule = getRule(css, '.grimoire-container--chat-window .grimoire-input-toolbar-actions-row');
     const configRule = getRule(css, '.grimoire-container--chat-window .grimoire-input-toolbar-config-actions');
+    const modelStackRule = getRule(css, '.grimoire-container--chat-window .grimoire-model-context-stack');
     const sendRule = getRule(css, '.grimoire-send-actions');
 
     expect(actionsRule).toContain('flex-wrap: nowrap');
     expect(configRule).toContain('flex: 0 1 auto');
+    expect(modelStackRule).toContain('flex: 0 1 auto');
+    expect(modelStackRule).toContain('width: fit-content');
+    expect(modelStackRule).not.toContain('border-inline-end');
     expect(sendRule).toContain('margin-inline-start: auto');
-    expect(css).toContain('@container grimoire-composer (max-width: 600px)');
+    expect(css).toContain('@container grimoire-composer (max-width: 520px)');
+    expect(css).toMatch(/@container grimoire-composer \(max-width: 520px\)[\s\S]*?\.grimoire-input-toolbar-config-actions[\s\S]*?flex-wrap: wrap/);
+    expect(css).toContain('@container grimoire-composer (max-width: 380px)');
     expect(css).toContain('grid-template-areas:');
     expect(css).toContain('"model model"');
     expect(css).toContain('"controls send"');

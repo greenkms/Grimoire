@@ -120,7 +120,7 @@ describe('TabBar', () => {
 
       tabBar.update([createTabBarItem({ title: 'Research plan', isOrchestrator: true })]);
 
-      expect(containerEl._children[0].getAttribute('aria-label')).toBe('Orchestrator: Research plan');
+      expect(containerEl._children[0].getAttribute('aria-label')).toBe('Parallel workers: Research plan');
       expect(containerEl._children[0].getAttribute('data-orchestrator')).toBe('true');
     });
 

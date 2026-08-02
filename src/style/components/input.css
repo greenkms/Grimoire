@@ -567,15 +567,15 @@ body.grimoire-dragging-ns {
 }
 
 .grimoire-container--chat-window .grimoire-model-context-stack {
-  flex: 1 1 260px;
-  width: auto;
-  min-width: 132px;
+  flex: 0 1 auto;
+  width: fit-content;
+  min-width: 96px;
   max-width: 420px;
   overflow: visible;
 }
 
 .grimoire-container--chat-window .grimoire-model-btn {
-  min-width: 132px;
+  min-width: 96px;
   max-width: min(100%, 260px);
   border-radius: var(--grimoire-radius-2);
 }
@@ -601,7 +601,13 @@ body.grimoire-dragging-ns {
   margin-inline-start: auto;
 }
 
-@container grimoire-composer (max-width: 600px) {
+@container grimoire-composer (max-width: 520px) {
+  .grimoire-container--chat-window .grimoire-input-toolbar-config-actions {
+    flex-wrap: wrap;
+  }
+}
+
+@container grimoire-composer (max-width: 380px) {
   .grimoire-container--chat-window .grimoire-input-toolbar-actions-row {
     display: grid;
     grid-template-areas:
@@ -615,6 +621,8 @@ body.grimoire-dragging-ns {
     grid-area: model;
     width: 100%;
     max-width: 100%;
+    padding-inline-end: 0;
+    border-inline-end: 0;
   }
 
   .grimoire-container--chat-window .grimoire-input-toolbar-config-actions {

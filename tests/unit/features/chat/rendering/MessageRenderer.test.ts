@@ -625,6 +625,33 @@ describe('MessageRenderer', () => {
     expect(renderContentSpy).toHaveBeenCalledWith(expect.anything(), 'Real content');
   });
 
+  it('replays a stored orchestrator plan without exposing its JSON payload', () => {
+    const messagesEl = createMockEl();
+    const { renderer } = createRenderer(messagesEl, 'codex');
+
+    const msg: ChatMessage = {
+      id: 'orchestrator-plan',
+      role: 'assistant',
+      content: '',
+      timestamp: Date.now(),
+      contentBlocks: [{
+        type: 'parallel_worker_plan',
+        providerId: 'codex',
+        modelLabel: 'GPT-5.6-Luna',
+        tasks: [
+          { id: 'inspect', description: 'Inspect the note', prompt: 'Inspect it' },
+          { id: 'review', description: 'Review conventions', prompt: 'Review them' },
+        ],
+      }],
+    };
+
+    renderer.renderStoredMessage(msg);
+
+    expect(messagesEl.querySelector('.grimoire-orchestrator-plan-inline')).toBeTruthy();
+    expect(messagesEl.querySelectorAll('.grimoire-orchestrator-plan-task')).toHaveLength(2);
+    expect(messagesEl.querySelector('.grimoire-orchestrator-plan-approval')).toBeNull();
+  });
+
   it('does not render stored Codex write_stdin transport tools', () => {
     const messagesEl = createMockEl();
     const { renderer } = createRenderer(messagesEl, 'codex');

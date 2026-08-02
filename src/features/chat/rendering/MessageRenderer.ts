@@ -22,6 +22,7 @@ import { findRewindContext } from '../rewind';
 import { renderVaultSearchSources } from '../ui/VaultSearchSources';
 import { getAssistantResponseProviderLabel } from '../utils/assistantResponseMetadata';
 import { localizeReasoningLevel } from '../utils/reasoningDisplay';
+import { InlineOrchestratorPlan } from './InlineOrchestratorPlan';
 import { renderStoredProgressBlock } from './ProgressBlockRenderer';
 import { resolveSubagentLifecycleAdapter } from './subagentLifecycleResolution';
 import {
@@ -462,6 +463,7 @@ export class MessageRenderer {
         if (block.type === 'text' && block.content.trim().length > 0) return true;
         if (block.type === 'context_compacted') return true;
         if (block.type === 'subagent') return true;
+        if (block.type === 'parallel_worker_plan' && block.tasks.length > 0) return true;
         if (block.type === 'tool_use') {
           const toolCall = msg.toolCalls?.find(tc => tc.id === block.toolId);
           if (toolCall && this.shouldRenderToolCall(toolCall)) return true;
@@ -608,6 +610,19 @@ export class MessageRenderer {
 
           this.renderTaskSubagent(contentEl, taskToolCall, block.mode);
           renderedToolIds.add(taskToolCall.id);
+        } else if (block.type === 'parallel_worker_plan') {
+          flushPendingToolGroup();
+          const plan = new InlineOrchestratorPlan(
+            contentEl,
+            { type: 'parallel_worker_plan', tasks: block.tasks },
+            () => {},
+            {
+              interactive: false,
+              modelLabel: block.modelLabel,
+              providerId: block.providerId,
+            },
+          );
+          plan.render();
         }
       }
       flushPendingToolGroup();

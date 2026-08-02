@@ -682,7 +682,8 @@ describe('Tab - Creation', () => {
       expect(tab.dom.contextRuntimeEl.hasClass('grimoire-context-runtime-panel')).toBe(true);
       expect(tab.dom.sourceCardsEl.hasClass('grimoire-source-card-stack')).toBe(true);
       expect(tab.dom.composerSurfaceEl.contains(tab.dom.inputContainerEl)).toBe(true);
-      expect(tab.dom.composerSurfaceEl.querySelector('.grimoire-composer-version')).toBeNull();
+      expect(tab.dom.composerSurfaceEl.querySelector('.grimoire-composer-version')?.textContent)
+        .toBe('Grimoire v9.8.7-test');
       expect(tab.dom.chatStageEl.contains(tab.dom.messagesEl)).toBe(true);
       expect(tab.dom.sourceRailEl.contains(tab.dom.statusPanelContainerEl)).toBe(true);
     });

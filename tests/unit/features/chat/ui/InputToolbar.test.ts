@@ -1,6 +1,6 @@
 import { createMockEl } from '@test/helpers/mockElement';
 import { readFileSync } from 'fs';
-import { setTooltip } from 'obsidian';
+import { setIcon, setTooltip } from 'obsidian';
 
 import type { UsageInfo } from '@/core/types';
 import {
@@ -566,6 +566,30 @@ describe('ModelSelector', () => {
     expect(groups[1]?.querySelector('.grimoire-model-group-count')?.textContent).toBe('1');
   });
 
+  it('marks model group dots with provider ids instead of deriving colors from labels', () => {
+    const groupedModels = [
+      { value: 'mimocode:fast', label: 'Fast', group: 'MiMo Code', providerId: 'mimocode' },
+      { value: 'grok:code', label: 'Code', group: 'Grok Build', providerId: 'grok' },
+    ];
+    const uiConfig = {
+      ...createMockUIConfig(),
+      getModelOptions: jest.fn().mockReturnValue(groupedModels),
+      getProviderIcon: jest.fn().mockReturnValue({
+        viewBox: '0 0 1 1',
+        path: 'M0 0h1v1H0z',
+      }),
+    };
+    callbacks.getUIConfig.mockReturnValue(uiConfig);
+
+    selector.renderOptions();
+
+    const groups = Array.from(parentEl.querySelectorAll('.grimoire-model-group-section')) as any[];
+    const providers = groups.map(group =>
+      group.querySelector('.grimoire-model-group-provider-icon')?.getAttribute('data-provider')
+    );
+    expect(providers).toEqual(['grok', 'mimocode']);
+  });
+
   it('sorts provider model groups alphabetically by label', () => {
     const groupedModels = [
       { value: 'antigravity', label: 'Antigravity', group: 'Antigravity' },
@@ -903,7 +927,7 @@ describe('PlanUsageBadge', () => {
     expect(container?.hasClass('grimoire-hidden')).toBe(false);
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-label')?.textContent).toBe('5H');
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-fill')?.style.width).toBe('47%');
-    expect(parentEl.querySelector('.grimoire-plan-usage-badge-value')?.textContent).toBe('47% used');
+    expect(parentEl.querySelector('.grimoire-plan-usage-badge-value')?.textContent).toBe('47%');
     expect(container?.getAttribute('aria-label')).toBe('Max 20x 5-hour limit: 47% used, resets 3:20p');
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-tip-secondary')?.textContent)
       .toContain('47% used · resets 3:20p · weekly 71% · updated ');
@@ -924,7 +948,7 @@ describe('PlanUsageBadge', () => {
     expect(container?.hasClass('grimoire-hidden')).toBe(false);
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-label')?.textContent).toBe('Credits');
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-fill')?.style.width).toBe('6%');
-    expect(parentEl.querySelector('.grimoire-plan-usage-badge-value')?.textContent).toBe('6% used');
+    expect(parentEl.querySelector('.grimoire-plan-usage-badge-value')?.textContent).toBe('6%');
     expect(container?.getAttribute('aria-label')).toBe('SuperGrok Credits limit: 6% used, resets Jul 1');
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-tip-primary')?.textContent).toBe('SuperGrok · Credits limit');
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-tip-secondary')?.textContent).toBe('6% used · resets Jul 1');
@@ -996,7 +1020,7 @@ describe('PlanUsageBadge', () => {
     const container = parentEl.querySelector('.grimoire-plan-usage-badge');
     expect(container?.hasClass('grimoire-plan-usage-badge--spend')).toBe(false);
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-label')?.textContent).toBe('5H');
-    expect(parentEl.querySelector('.grimoire-plan-usage-badge-value')?.textContent).toBe('11% used');
+    expect(parentEl.querySelector('.grimoire-plan-usage-badge-value')?.textContent).toBe('11%');
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-tip-primary')?.textContent).toBe('Claude Code · 5-hour limit');
   });
 
@@ -1166,6 +1190,29 @@ describe('ThinkingBudgetSelector', () => {
 
       expect(gears?.hasClass('open')).toBe(false);
       expect(current?.getAttribute('aria-expanded')).toBe('false');
+    });
+
+    it('should expose the effort menu and options to the keyboard', async () => {
+      const current = parentEl.querySelector('.grimoire-thinking-current');
+      const gears = parentEl.querySelector('.grimoire-thinking-gears');
+      const mediumGear = parentEl.querySelector('.grimoire-thinking-options')?.children
+        .find((gear: any) => gear.textContent === 'Medium');
+
+      expect(current?.getAttribute('tabindex')).toBe('0');
+      expect(mediumGear?.getAttribute('tabindex')).toBe('0');
+      await current?.dispatchEvent('keydown', {
+        key: 'Enter',
+        preventDefault: jest.fn(),
+        stopPropagation: jest.fn(),
+      });
+      expect(gears?.hasClass('open')).toBe(true);
+
+      await mediumGear?.dispatchEvent('keydown', {
+        key: ' ',
+        preventDefault: jest.fn(),
+        stopPropagation: jest.fn(),
+      });
+      expect(callbacks.onEffortLevelChange).toHaveBeenCalledWith('medium');
     });
 
     it('should close effort options after clicking outside the selector', async () => {
@@ -1342,6 +1389,27 @@ describe('PermissionToggle', () => {
     expect(gears?.hasClass('open')).toBe(true);
     expect(label?.getAttribute('aria-expanded')).toBe('true');
     expect(callbacks.onPermissionModeChange).not.toHaveBeenCalled();
+  });
+
+  it('should expose the mode menu and options to the keyboard', async () => {
+    const label = parentEl.querySelector('.grimoire-permission-label');
+    const autoOption = findOption(parentEl, 'Auto');
+
+    expect(label?.getAttribute('tabindex')).toBe('0');
+    expect(autoOption?.getAttribute('tabindex')).toBe('0');
+    await label?.dispatchEvent('keydown', {
+      key: ' ',
+      preventDefault: jest.fn(),
+      stopPropagation: jest.fn(),
+    });
+    expect(parentEl.querySelector('.grimoire-permission-gears')?.hasClass('open')).toBe(true);
+
+    await autoOption?.dispatchEvent('keydown', {
+      key: 'Enter',
+      preventDefault: jest.fn(),
+      stopPropagation: jest.fn(),
+    });
+    expect(callbacks.onPermissionModeChange).toHaveBeenCalledWith('full_access');
   });
 
   it('should close the mode options after clicking outside the selector', async () => {
@@ -1886,6 +1954,18 @@ describe('ExternalContextSelector', () => {
     jest.clearAllMocks();
   });
 
+  it('uses a compact paperclip action while preserving the accessible tooltip', () => {
+    const parentEl = createMockEl();
+    const selector = new (require('@/features/chat/ui/InputToolbar').ExternalContextSelector)(parentEl);
+    const buttonEl = parentEl.querySelector('.grimoire-external-context-icon-wrapper');
+    const iconEl = parentEl.querySelector('.grimoire-external-context-icon');
+
+    expect(selector).toBeDefined();
+    expect(setIcon).toHaveBeenCalledWith(iconEl, 'paperclip');
+    expect(buttonEl?.getAttribute('aria-label')).toBe('Add external contexts');
+    expect(setTooltip).toHaveBeenCalledWith(buttonEl, 'Add external contexts', { placement: 'top' });
+  });
+
   it('opens a picker that allows selecting files as well as directories', async () => {
     const remote = {
       dialog: {
@@ -1949,8 +2029,8 @@ describe('OrchestratorToggle', () => {
 
     const button = parentEl.querySelector('.grimoire-orchestrator-button');
     expect(parentEl.querySelector('.grimoire-orchestrator-toggle')?.getAttribute('title')).toBeNull();
-    expect(button?.getAttribute('aria-label')).toBe('Переключить режим оркестратора');
-    expect(setTooltip).toHaveBeenCalledWith(button, 'Режим оркестратора', { placement: 'top' });
+    expect(button?.getAttribute('aria-label')).toBe('Переключить параллельных исполнителей');
+    expect(setTooltip).toHaveBeenCalledWith(button, 'Параллельные исполнители', { placement: 'top' });
   });
 });
 

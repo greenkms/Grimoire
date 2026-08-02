@@ -64,8 +64,8 @@ describe('model-selector.css', () => {
     const selectorRule = getRule(css, '.grimoire-container--chat-window .grimoire-model-selector');
     const buttonRule = getRule(css, '.grimoire-container--chat-window .grimoire-model-btn');
 
-    expect(selectorRule).toContain('min-width: 132px');
-    expect(buttonRule).toContain('min-width: 132px');
+    expect(selectorRule).toContain('min-width: 96px');
+    expect(buttonRule).toContain('min-width: 96px');
     expect(buttonRule).toContain('max-width: min(100%, 260px)');
   });
 
@@ -78,6 +78,15 @@ describe('model-selector.css', () => {
     expect(css).toContain('color: var(--grimoire-provider-opencode, #e0b341)');
   });
 
+  it('colors provider group dots from provider ids rather than display-name classes', () => {
+    const css = readModelSelectorCss();
+
+    expect(css).toContain('.grimoire-model-group-provider-icon[data-provider="mimocode"]');
+    expect(css).toContain('color: var(--grimoire-provider-mimocode, #ff6a00)');
+    expect(css).toContain('.grimoire-model-group-provider-icon[data-provider="grok"]');
+    expect(css).not.toContain('.grimoire-model-group-section--mimocode .grimoire-model-group-provider-icon');
+  });
+
   it('gives model choices room and preserves distinguishing secondary context', () => {
     const css = readModelSelectorCss();
     const dropdownRule = getRule(css, '.grimoire-container--chat-window .grimoire-model-dropdown');
@@ -86,5 +95,22 @@ describe('model-selector.css', () => {
     expect(dropdownRule).toContain('width: min(360px, calc(100vw - 24px))');
     expect(detailRule).not.toContain('display: none');
     expect(detailRule).toContain('font-size: 10px');
+    expect(detailRule).toContain('color: var(--text-muted)');
+
+    const labelRule = getLastRule(css, '.grimoire-model-option-label');
+    expect(labelRule).toContain('color: var(--text-normal)');
+    expect(labelRule).toContain('font-weight: 500');
+  });
+
+  it('keeps the plan usage badge compact while the tooltip carries its full context', () => {
+    const css = readModelSelectorCss();
+    const badgeRule = getRule(css, '.grimoire-plan-usage-badge');
+    const labelRule = getRule(css, '.grimoire-plan-usage-badge-label');
+    const meterRule = getRule(css, '.grimoire-plan-usage-badge-meter');
+
+    expect(badgeRule).toContain('gap: 5px');
+    expect(badgeRule).toContain('padding: 0 6px');
+    expect(labelRule).toContain('display: none');
+    expect(meterRule).toContain('width: 18px');
   });
 });

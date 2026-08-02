@@ -22,8 +22,9 @@
   --gs-dot-antigravity: #5b8def;
   --gs-dot-gemini: #669df6;
   --gs-dot-opencode: #e0b341;
-  --gs-dot-mimocode: #FF6A00;
-  --gs-dot-kimicode: #7C3AED;
+  --gs-dot-mimocode: #ff6a00;
+  --gs-dot-kimicode: #7c3aed;
+  --gs-dot-grok: var(--text-faint);
 }
 
 /* ── Layout: centered single column ── */
@@ -388,6 +389,10 @@
 
 .grimoire-provider-row--kimicode {
   --gs-provider-dot: var(--gs-dot-kimicode);
+}
+
+.grimoire-provider-row--grok {
+  --gs-provider-dot: var(--gs-dot-grok);
 }
 
 /* ── Provider-disabled notice → .note-card ── */

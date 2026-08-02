@@ -283,6 +283,18 @@
   background: var(--grimoire-provider-opencode);
 }
 
+.grimoire-assistant-response-meta[data-provider="mimocode"] .grimoire-assistant-response-dot {
+  background: var(--grimoire-provider-mimocode);
+}
+
+.grimoire-assistant-response-meta[data-provider="kimicode"] .grimoire-assistant-response-dot {
+  background: var(--grimoire-provider-kimicode);
+}
+
+.grimoire-assistant-response-meta[data-provider="grok"] .grimoire-assistant-response-dot {
+  background: var(--grimoire-provider-grok);
+}
+
 .grimoire-assistant-response-separator {
   color: var(--grimoire-workbench-muted);
 }

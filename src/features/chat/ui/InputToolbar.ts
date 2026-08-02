@@ -488,23 +488,27 @@ export class ModelSelector {
         },
       });
 
+      const providerId = this.resolveGroupProviderId(group.models);
       const firstIcon = group.models[0]?.providerIcon ?? this.callbacks.getUIConfig().getProviderIcon?.();
       if (firstIcon) {
         headerEl.appendChild(createProviderIconSvg(firstIcon, {
           className: 'grimoire-model-group-provider-icon',
+          ...(providerId ? { dataProvider: providerId } : {}),
           height: 7,
           ownerDocument: headerEl.ownerDocument,
           width: 7,
         }));
       } else {
-        headerEl.createSpan({ cls: 'grimoire-model-group-provider-icon' });
+        const providerIconEl = headerEl.createSpan({ cls: 'grimoire-model-group-provider-icon' });
+        if (providerId) {
+          providerIconEl.dataset.provider = providerId;
+        }
       }
       headerEl.createSpan({ cls: 'grimoire-model-group-label', text: group.name });
       headerEl.createSpan({ cls: 'grimoire-model-group-count', text: String(group.models.length) });
       headerEl.createSpan({ cls: 'grimoire-model-group-chevron' });
 
       const groupBodyEl = groupEl.createDiv({ cls: 'grimoire-model-group-options' });
-      const providerId = this.resolveGroupProviderId(group.models);
       if (providerId) {
         this.renderPlanUsageReadout(groupBodyEl, this.callbacks.getProviderUsage?.(providerId) ?? null);
       }
@@ -848,9 +852,7 @@ export class PlanUsageBadge {
     if (this.fillEl) {
       this.fillEl.style.width = `${window.pct}%`;
     }
-    this.valueEl?.setText(isUsagePctKnown(window)
-      ? t('chat.ui.usage.percentUsed', { percent: window.pct })
-      : '—');
+    this.valueEl?.setText(formatUsagePct(window));
 
     const weeklyWindow = findWeeklyWindow(usage);
     const secondaryParts = [
@@ -1064,19 +1066,31 @@ export class ThinkingBudgetSelector {
       const gearEl = optionsEl.createDiv({ cls: 'grimoire-thinking-gear' });
       gearEl.setText(localizeReasoningLevel(effort.value, effort.label));
       gearEl.setAttribute('role', 'option');
+      gearEl.setAttribute('tabindex', '0');
       gearEl.setAttribute('aria-selected', String(effort.value === currentEffort));
 
       if (effort.value === currentEffort) {
         gearEl.addClass('selected');
       }
 
-      gearEl.addEventListener('click', (e) => {
-        e.stopPropagation();
+      const selectEffort = (): void => {
         runToolbarAction(async () => {
           this.closeMenus();
           await this.callbacks.onEffortLevelChange(effort.value);
           this.updateDisplay();
         }, t('chat.ui.toolbar.effortChangeFailed'));
+      };
+      gearEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectEffort();
+      });
+      gearEl.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') {
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        selectEffort();
       });
     }
   }
@@ -1108,6 +1122,7 @@ export class ThinkingBudgetSelector {
       const gearEl = optionsEl.createDiv({ cls: 'grimoire-thinking-gear' });
       gearEl.setText(localizeReasoningLevel(budget.value, budget.label));
       gearEl.setAttribute('role', 'option');
+      gearEl.setAttribute('tabindex', '0');
       gearEl.setAttribute('aria-selected', String(budget.value === currentBudget));
       const tokens = budget.tokens ?? 0;
       gearEl.setAttribute('title', tokens > 0
@@ -1118,13 +1133,24 @@ export class ThinkingBudgetSelector {
         gearEl.addClass('selected');
       }
 
-      gearEl.addEventListener('click', (e) => {
-        e.stopPropagation();
+      const selectBudget = (): void => {
         runToolbarAction(async () => {
           this.closeMenus();
           await this.callbacks.onThinkingBudgetChange(budget.value);
           this.updateDisplay();
         }, t('chat.ui.toolbar.thinkingChangeFailed'));
+      };
+      gearEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectBudget();
+      });
+      gearEl.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') {
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        selectBudget();
       });
     }
   }
@@ -1135,11 +1161,21 @@ export class ThinkingBudgetSelector {
     tooltip: string,
   ): void {
     currentEl.setAttribute('role', 'button');
+    currentEl.setAttribute('tabindex', '0');
     currentEl.setAttribute('aria-haspopup', 'listbox');
     currentEl.setAttribute('aria-expanded', String(gearsEl.hasClass('open')));
     currentEl.setAttribute('aria-label', tooltip);
     setTooltip(currentEl, tooltip, { placement: 'top' });
     currentEl.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const open = !gearsEl.hasClass('open');
+      this.setOpen(gearsEl, currentEl, open);
+    });
+    currentEl.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') {
+        return;
+      }
+      event.preventDefault();
       event.stopPropagation();
       const open = !gearsEl.hasClass('open');
       this.setOpen(gearsEl, currentEl, open);
@@ -1162,6 +1198,7 @@ export class ThinkingBudgetSelector {
     this.escapeHandler = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         this.closeMenus();
+        currentEl.focus();
       }
     };
     this.container.ownerDocument.addEventListener('click', this.outsideClickHandler, true);
@@ -1261,6 +1298,15 @@ export class PermissionToggle {
       const open = !this.gearsEl?.hasClass('open');
       this.setOpen(open);
     });
+    this.labelEl.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      const open = !this.gearsEl?.hasClass('open');
+      this.setOpen(open);
+    });
     this.optionsEl = this.gearsEl.createDiv({ cls: 'grimoire-permission-options' });
     this.optionsEl.setAttribute('role', 'listbox');
 
@@ -1311,15 +1357,27 @@ export class PermissionToggle {
         text: option.label,
       });
       optionEl.setAttribute('role', 'option');
+      optionEl.setAttribute('tabindex', '0');
       optionEl.setAttribute('aria-selected', String(option.value === mode));
       optionEl.toggleClass('selected', option.value === mode);
-      optionEl.addEventListener('click', (event) => {
-        event?.stopPropagation();
+      const selectOption = (): void => {
         runToolbarAction(async () => {
           this.closeMenu();
           await this.callbacks.onPermissionModeChange(option.value);
           this.updateDisplay();
         }, t('chat.ui.toolbar.permissionChangeFailed'));
+      };
+      optionEl.addEventListener('click', (event) => {
+        event?.stopPropagation();
+        selectOption();
+      });
+      optionEl.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') {
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        selectOption();
       });
     }
   }
@@ -1340,6 +1398,7 @@ export class PermissionToggle {
     this.escapeHandler = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         this.closeMenu();
+        this.labelEl?.focus();
       }
     };
     this.container.ownerDocument.addEventListener('click', this.outsideClickHandler, true);
@@ -1638,7 +1697,7 @@ export class ExternalContextSelector {
     this.buttonEl = this.container.createDiv({ cls: 'grimoire-external-context-icon-wrapper' });
 
     this.iconEl = this.buttonEl.createDiv({ cls: 'grimoire-external-context-icon' });
-    setIcon(this.iconEl, 'folder');
+    setIcon(this.iconEl, 'paperclip');
     this.labelEl = this.buttonEl.createSpan({ cls: 'grimoire-external-context-label' });
 
     this.badgeEl = this.buttonEl.createDiv({ cls: 'grimoire-external-context-badge' });

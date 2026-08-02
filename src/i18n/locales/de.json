@@ -75,12 +75,18 @@
       "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen"
     },
     "orchestrator": {
-      "planTitle": "Orchestrator-Plan",
-      "workerCount": "Worker: {count}",
-      "spawnWorkers": "Worker starten",
-      "toggleTitle": "Orchestrator-Modus",
-      "toggleAriaLabel": "Orchestrator-Modus umschalten",
-      "toggleFailed": "Orchestrator-Modus konnte nicht umgeschaltet werden"
+      "planTitle": "Unabhängige Aufgaben für diese Notiz",
+      "planEyebrow": "Parallele Worker",
+      "planSummary": "Es wurden {count} unabhängige Aufgaben vorbereitet. Jede läuft in einem eigenen Tab und teilt weder Kontext noch Ergebnisse mit den anderen.",
+      "badge": "Parallele Worker",
+      "workerCount": "{count} von {total} ausgewählt",
+      "spawnWorkers": "Worker-Tabs öffnen",
+      "parallel": "Unabhängig",
+      "toggleTask": "Aufgabe einschließen: {task}",
+      "workerTabsHint": "Ein unabhängiger Worker pro Tab · kein gemeinsamer Kontext",
+      "toggleTitle": "Parallele Worker",
+      "toggleAriaLabel": "Parallele Worker umschalten",
+      "toggleFailed": "Parallele Worker konnten nicht umgeschaltet werden"
     },
     "vaultSearch": {
       "toolName": "Tresorsuche",
@@ -315,7 +321,7 @@
         "conflictInside": "„{path}“ kann nicht hinzugefügt werden — er liegt innerhalb des vorhandenen Pfads „{existing}“",
         "conflictContains": "„{path}“ kann nicht hinzugefügt werden — er enthält den vorhandenen Pfad „{existing}“",
         "header": "Externe Kontexte",
-        "empty": "Klicke auf das Ordnersymbol, um einen hinzuzufügen",
+        "empty": "Klicken, um einen hinzuzufügen",
         "makeSessionOnly": "Dauerhaft (klicken für nur diese Sitzung)",
         "makePersistent": "Nur diese Sitzung (klicken, um dauerhaft zu speichern)",
         "removePath": "Pfad entfernen",

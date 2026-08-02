@@ -7,6 +7,27 @@ function getRule(css: string, selector: string): string {
 }
 
 describe('chat toolbar selector CSS', () => {
+  it('renders Files as a compact icon action', () => {
+    const css = readFileSync('src/style/toolbar/external-context.css', 'utf8');
+    const buttonRule = getRule(
+      css,
+      '.grimoire-container--chat-window .grimoire-external-context-icon-wrapper',
+    );
+    const iconRule = getRule(
+      css,
+      '.grimoire-container--chat-window .grimoire-external-context-icon',
+    );
+    const labelRule = getRule(
+      css,
+      '.grimoire-container--chat-window .grimoire-external-context-label',
+    );
+
+    expect(buttonRule).toContain('width: 28px');
+    expect(buttonRule).toContain('min-width: 28px');
+    expect(iconRule).toContain('display: inline-flex');
+    expect(labelRule).toContain('display: none');
+  });
+
   it('uses the same menu surface and option geometry for reasoning and work mode', () => {
     const thinkingCss = readFileSync('src/style/toolbar/thinking-selector.css', 'utf8');
     const permissionCss = readFileSync('src/style/toolbar/permission-toggle.css', 'utf8');

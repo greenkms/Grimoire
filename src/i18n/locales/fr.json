@@ -75,12 +75,18 @@
       "copyFailed": "Échec de la copie dans le presse-papiers"
     },
     "orchestrator": {
-      "planTitle": "Plan de l'orchestrateur",
-      "workerCount": "Exécutants : {count}",
-      "spawnWorkers": "Lancer les exécutants",
-      "toggleTitle": "Mode orchestrateur",
-      "toggleAriaLabel": "Changer le mode orchestrateur",
-      "toggleFailed": "Impossible de changer le mode orchestrateur"
+      "planTitle": "Tâches indépendantes pour cette note",
+      "planEyebrow": "Agents parallèles",
+      "planSummary": "{count} tâches indépendantes ont été préparées. Chaque tâche s’exécute dans son propre onglet et ne partage ni contexte ni résultats avec les autres.",
+      "badge": "Agents parallèles",
+      "workerCount": "{count} sur {total} sélectionnées",
+      "spawnWorkers": "Ouvrir les onglets des agents",
+      "parallel": "Indépendant",
+      "toggleTask": "Inclure la tâche : {task}",
+      "workerTabsHint": "Un agent indépendant par onglet · aucun contexte partagé",
+      "toggleTitle": "Agents parallèles",
+      "toggleAriaLabel": "Basculer les agents parallèles",
+      "toggleFailed": "Impossible de basculer les agents parallèles"
     },
     "vaultSearch": {
       "toolName": "Recherche dans le coffre",
@@ -315,7 +321,7 @@
         "conflictInside": "Impossible d’ajouter « {path} » : il se trouve dans le chemin existant « {existing} »",
         "conflictContains": "Impossible d’ajouter « {path} » : il contient le chemin existant « {existing} »",
         "header": "Contextes externes",
-        "empty": "Cliquez sur l’icône de dossier pour en ajouter un",
+        "empty": "Cliquez pour en ajouter un",
         "makeSessionOnly": "Persistant (cliquer pour limiter à la session)",
         "makePersistent": "Session uniquement (cliquer pour conserver)",
         "removePath": "Retirer le chemin",
