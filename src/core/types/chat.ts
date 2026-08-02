@@ -61,6 +61,8 @@ export interface ChatMessage {
   /** Display-only content (e.g., "/tests" when content is the expanded prompt). */
   displayContent?: string;
   timestamp: number;
+  /** Timestamp when this displayed user turn or assistant response finished. */
+  completedAt?: number;
   toolCalls?: ToolCallInfo[];
   contentBlocks?: ContentBlock[];
   currentNote?: string;

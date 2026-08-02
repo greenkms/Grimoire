@@ -3,6 +3,7 @@ import { setIcon } from 'obsidian';
 import { getToolIcon } from '../../../core/tools/toolIcons';
 import type { ToolCallInfo, ToolDiffData } from '../../../core/types';
 import type { DiffLine } from '../../../core/types/diff';
+import { t } from '../../../i18n/i18n';
 import { setupCollapsible } from './collapsible';
 import { renderDiffContent, renderDiffStats } from './DiffRenderer';
 import { fileNameOnly } from './ToolCallRenderer';
@@ -73,7 +74,7 @@ export function createWriteEditBlock(
   const statsEl = headerEl.createDiv({ cls: 'grimoire-write-edit-stats' });
 
   const statusEl = headerEl.createDiv({ cls: 'grimoire-write-edit-status status-running' });
-  statusEl.setAttribute('aria-label', 'Status: running');
+  statusEl.setAttribute('aria-label', t('chat.ui.status.aria', { status: t('chat.ui.status.running') }));
 
   // Content area (collapsed by default)
   const contentEl = wrapperEl.createDiv({ cls: 'grimoire-write-edit-content' });
@@ -81,7 +82,7 @@ export function createWriteEditBlock(
   // Initial loading state
   const loadingRow = contentEl.createDiv({ cls: 'grimoire-write-edit-diff-row' });
   const loadingEl = loadingRow.createDiv({ cls: 'grimoire-write-edit-loading' });
-  loadingEl.setText('Writing...');
+  loadingEl.setText(t('chat.ui.tools.writingEllipsis'));
 
   // Create state object
   const state: WriteEditState = {
@@ -126,21 +127,21 @@ export function finalizeWriteEditBlock(state: WriteEditState, isError: boolean):
   if (isError) {
     state.statusEl.addClass('status-error');
     setIcon(state.statusEl, 'x');
-    state.statusEl.setAttribute('aria-label', 'Status: error');
+    state.statusEl.setAttribute('aria-label', t('chat.ui.status.aria', { status: t('chat.ui.status.error') }));
 
     // Show error in content if no diff was shown
     if (!state.diffLines) {
       state.contentEl.empty();
       const row = state.contentEl.createDiv({ cls: 'grimoire-write-edit-diff-row' });
       const errorEl = row.createDiv({ cls: 'grimoire-write-edit-error' });
-      errorEl.setText(state.toolCall.result || 'Error');
+    errorEl.setText(state.toolCall.result || t('chat.ui.status.error'));
     }
   } else if (!state.diffLines) {
     // Success but no diff data - clear the "Writing..." loading text and show DONE
     state.contentEl.empty();
     const row = state.contentEl.createDiv({ cls: 'grimoire-write-edit-diff-row' });
     const doneEl = row.createDiv({ cls: 'grimoire-write-edit-done-text' });
-    doneEl.setText('DONE');
+  doneEl.setText(t('chat.ui.status.doneUpper'));
   }
 
   // Update wrapper class
@@ -205,7 +206,7 @@ export function renderStoredWriteEdit(parentEl: HTMLElement, toolCall: ToolCallI
     errorEl.setText(toolCall.result);
   } else {
     const doneEl = row.createDiv({ cls: 'grimoire-write-edit-done-text' });
-    doneEl.setText(isError ? 'ERROR' : 'DONE');
+  doneEl.setText(isError ? t('chat.ui.status.errorUpper') : t('chat.ui.status.doneUpper'));
   }
 
   // Setup collapsible behavior (handles click, keyboard, ARIA, CSS)

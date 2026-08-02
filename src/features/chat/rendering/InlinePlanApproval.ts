@@ -2,13 +2,12 @@ import { setIcon } from 'obsidian';
 
 import { getToolIcon } from '../../../core/tools/toolIcons';
 import { TOOL_ENTER_PLAN_MODE } from '../../../core/tools/toolNames';
+import { t } from '../../../i18n/i18n';
 
 export type PlanApprovalDecision =
   | { type: 'implement' }
   | { type: 'revise'; text: string }
   | { type: 'cancel' };
-
-const HINTS_TEXT = 'Arrow keys to navigate \u00B7 Enter to select \u00B7 Esc to cancel';
 
 export class InlinePlanApproval {
   private containerEl: HTMLElement;
@@ -46,7 +45,7 @@ export class InlinePlanApproval {
     implementRow.addClass('is-focused');
     implementRow.createSpan({ text: '\u203A', cls: 'grimoire-ask-cursor' });
     implementRow.createSpan({ text: '1', cls: 'grimoire-ask-item-num' });
-    implementRow.createSpan({ text: 'Implement', cls: 'grimoire-ask-item-label' });
+    implementRow.createSpan({ text: t('chat.ui.plan.implement'), cls: 'grimoire-ask-item-label' });
     implementRow.addEventListener('click', () => {
       this.focusedIndex = 0;
       this.updateFocus();
@@ -61,7 +60,7 @@ export class InlinePlanApproval {
     this.feedbackInput = reviseRow.createEl('input', {
       type: 'text',
       cls: 'grimoire-ask-custom-text',
-      placeholder: 'Enter feedback to revise plan...',
+      placeholder: t('chat.ui.plan.reviseFeedbackPlaceholder'),
     });
     this.feedbackInput.addEventListener('focus', () => { this.isInputFocused = true; });
     this.feedbackInput.addEventListener('blur', () => { this.isInputFocused = false; });
@@ -75,7 +74,7 @@ export class InlinePlanApproval {
     const cancelRow = actionsEl.createDiv({ cls: 'grimoire-ask-item' });
     cancelRow.createSpan({ text: '\u00A0', cls: 'grimoire-ask-cursor' });
     cancelRow.createSpan({ text: '3', cls: 'grimoire-ask-item-num' });
-    cancelRow.createSpan({ text: 'Cancel', cls: 'grimoire-ask-item-label' });
+    cancelRow.createSpan({ text: t('common.cancel'), cls: 'grimoire-ask-item-label' });
     cancelRow.addEventListener('click', () => {
       this.focusedIndex = 2;
       this.updateFocus();
@@ -83,7 +82,7 @@ export class InlinePlanApproval {
     });
     this.items.push(cancelRow);
 
-    this.rootEl.createDiv({ text: HINTS_TEXT, cls: 'grimoire-ask-hints' });
+    this.rootEl.createDiv({ text: t('chat.ui.plan.keyboardHints'), cls: 'grimoire-ask-hints' });
 
     this.rootEl.setAttribute('tabindex', '0');
     this.rootEl.addEventListener('keydown', this.boundKeyDown);
@@ -105,15 +104,15 @@ export class InlinePlanApproval {
     setIcon(glyph, getToolIcon(TOOL_ENTER_PLAN_MODE));
 
     const titleBlock = head.createDiv({ cls: 'grimoire-plan-title-block' });
-    titleBlock.createDiv({ text: 'Plan complete', cls: 'grimoire-plan-title' });
+    titleBlock.createDiv({ text: t('chat.ui.plan.complete'), cls: 'grimoire-plan-title' });
     titleBlock.createDiv({
-      text: 'Review the plan before proceeding',
+      text: t('chat.ui.plan.reviewBeforeProceeding'),
       cls: 'grimoire-plan-subtitle',
     });
 
     const pill = head.createDiv({ cls: 'grimoire-plan-tool-pill' });
     setIcon(pill.createSpan(), getToolIcon(TOOL_ENTER_PLAN_MODE));
-    pill.createSpan({ text: 'plan', cls: 'grimoire-plan-tool-label' });
+    pill.createSpan({ text: t('chat.ui.plan.label'), cls: 'grimoire-plan-tool-label' });
 
     this.collapseBtn = head.createEl('button', {
       cls: 'grimoire-plan-collapse-toggle',
@@ -149,7 +148,7 @@ export class InlinePlanApproval {
   private refreshCollapseToggle(): void {
     if (!this.collapseBtn) return;
 
-    const label = this.isCollapsed ? 'Expand plan' : 'Collapse plan';
+    const label = this.isCollapsed ? t('chat.ui.plan.expand') : t('chat.ui.plan.collapse');
     this.collapseBtn.setAttribute('aria-label', label);
     this.collapseBtn.setAttribute('title', label);
     this.collapseBtn.setAttribute('aria-expanded', String(!this.isCollapsed));

@@ -380,6 +380,7 @@
         "copied": "コピーしました！",
         "renderFailed": "メッセージ内容をレンダリングできませんでした。",
         "copyMessage": "メッセージをコピー",
+        "copyResponse": "回答をコピー",
         "awaitingYou": "入力待ち"
       },
       "errors": {

@@ -3,6 +3,7 @@ import { setIcon } from 'obsidian';
 import { getToolIcon } from '../../../core/tools/toolIcons';
 import { TOOL_TASK } from '../../../core/tools/toolNames';
 import type { SubagentInfo, ToolCallInfo } from '../../../core/types';
+import { t } from '../../../i18n/i18n';
 import { setupCollapsible } from './collapsible';
 import {
   getToolLabel,
@@ -47,7 +48,7 @@ const SUBAGENT_TOOL_STATUS_ICONS: Partial<Record<ToolCallInfo['status'], string>
 };
 
 function extractTaskDescription(input: Record<string, unknown>): string {
-  return (input.description as string) || 'Subagent task';
+  return (input.description as string) || t('chat.ui.subagent.task');
 }
 
 function extractTaskPrompt(input: Record<string, unknown>): string {
@@ -83,15 +84,32 @@ function createSection(parentEl: HTMLElement, title: string, bodyClass?: string)
 function setPromptText(promptBodyEl: HTMLElement, prompt: string): void {
   promptBodyEl.empty();
   const textEl = promptBodyEl.createDiv({ cls: 'grimoire-subagent-prompt-text' });
-  textEl.setText(prompt || 'No prompt provided');
+  textEl.setText(prompt || t('chat.ui.subagent.noPrompt'));
+}
+
+function getStatusText(status: string): string {
+  if (status === 'pending') return t('chat.ui.status.initializing');
+  if (status === 'running') return t('chat.ui.status.running');
+  if (status === 'completed') return t('chat.ui.status.completed');
+  if (status === 'blocked') return t('chat.ui.status.blocked');
+  if (status === 'error') return t('chat.ui.status.error');
+  if (status === 'orphaned') return t('chat.ui.status.orphaned');
+  return status;
+}
+
+function getStatusAriaLabel(status: string): string {
+  return t('chat.ui.status.aria', { status: getStatusText(status) });
 }
 
 function updateSyncHeaderAria(state: SubagentState): void {
   state.headerEl.setAttribute(
     'aria-label',
-    `Subagent task: ${truncateDescription(state.info.description)} - Status: ${state.info.status} - click to expand`
+    t('chat.ui.subagent.expandAria', {
+      description: truncateDescription(state.info.description),
+      status: getStatusText(state.info.status),
+    })
   );
-  state.statusEl.setAttribute('aria-label', `Status: ${state.info.status}`);
+  state.statusEl.setAttribute('aria-label', getStatusAriaLabel(state.info.status));
 }
 
 function renderSubagentToolContent(contentEl: HTMLElement, toolCall: ToolCallInfo): void {
@@ -99,7 +117,7 @@ function renderSubagentToolContent(contentEl: HTMLElement, toolCall: ToolCallInf
 
   if (!toolCall.result && toolCall.status === 'running') {
     const emptyEl = contentEl.createDiv({ cls: 'grimoire-subagent-tool-empty' });
-    emptyEl.setText('Running...');
+    emptyEl.setText(t('chat.ui.status.runningEllipsis'));
     return;
   }
 
@@ -110,7 +128,7 @@ function setSubagentToolStatus(view: SubagentToolView, status: ToolCallInfo['sta
   view.statusEl.className = 'grimoire-subagent-tool-status';
   view.statusEl.addClass(`status-${status}`);
   view.statusEl.empty();
-  view.statusEl.setAttribute('aria-label', `Status: ${status}`);
+  view.statusEl.setAttribute('aria-label', getStatusAriaLabel(status));
 
   const statusIcon = SUBAGENT_TOOL_STATUS_ICONS[status];
   if (statusIcon) {
@@ -172,7 +190,7 @@ function ensureResultSection(state: SubagentState): SubagentSection {
     return { wrapperEl: state.resultSectionEl, bodyEl: state.resultBodyEl };
   }
 
-  const section = createSection(state.contentEl, 'Result', 'grimoire-subagent-result-body');
+  const section = createSection(state.contentEl, t('chat.ui.subagent.result'), 'grimoire-subagent-result-body');
   section.wrapperEl.addClass('grimoire-subagent-section-result');
   state.resultSectionEl = section.wrapperEl;
   state.resultBodyEl = section.bodyEl;
@@ -208,7 +226,7 @@ function hydrateSyncSubagentStateFromStored(state: SubagentState, subagent: Suba
   }
 
   if (subagent.status === 'completed' || subagent.status === 'error') {
-    const fallback = subagent.status === 'error' ? 'ERROR' : 'DONE';
+    const fallback = subagent.status === 'error' ? t('chat.ui.status.errorUpper') : t('chat.ui.status.doneUpper');
     finalizeSubagentBlock(state, subagent.result || fallback, subagent.status === 'error');
   } else {
     state.statusEl.className = 'grimoire-subagent-status status-running';
@@ -249,11 +267,11 @@ export function createSubagentBlock(
   labelEl.setText(truncateDescription(description));
 
   const statusEl = headerEl.createDiv({ cls: 'grimoire-subagent-status status-running' });
-  statusEl.setAttribute('aria-label', 'Status: running');
+  statusEl.setAttribute('aria-label', getStatusAriaLabel('running'));
 
   const contentEl = wrapperEl.createDiv({ cls: 'grimoire-subagent-content' });
 
-  const promptSection = createSection(contentEl, 'Prompt', 'grimoire-subagent-prompt-body');
+  const promptSection = createSection(contentEl, t('chat.ui.subagent.prompt'), 'grimoire-subagent-prompt-body');
   promptSection.wrapperEl.addClass('grimoire-subagent-section-prompt');
   setPromptText(promptSection.bodyEl, prompt);
 
@@ -358,7 +376,9 @@ export function finalizeSubagentBlock(
     state.wrapperEl.addClass('error');
   }
 
-  const finalText = result?.trim() ? result : (isError ? 'ERROR' : 'DONE');
+  const finalText = result?.trim()
+    ? result
+    : (isError ? t('chat.ui.status.errorUpper') : t('chat.ui.status.doneUpper'));
   setResultText(state, finalText);
 
   updateSyncHeaderAria(state);
@@ -405,21 +425,21 @@ function getAsyncDisplayStatus(asyncStatus: string | undefined): 'running' | 'co
 
 function getAsyncStatusText(asyncStatus: string | undefined): string {
   switch (asyncStatus) {
-    case 'pending': return 'Initializing';
+    case 'pending': return t('chat.ui.status.initializing');
     case 'completed': return ''; // Just show tick icon, no text
-    case 'error': return 'Error';
-    case 'orphaned': return 'Orphaned';
-    default: return 'Running in background';
+    case 'error': return t('chat.ui.status.error');
+    case 'orphaned': return t('chat.ui.status.orphaned');
+    default: return t('chat.ui.subagent.runningBackground');
   }
 }
 
 function getAsyncStatusAriaLabel(asyncStatus: string | undefined): string {
   switch (asyncStatus) {
-    case 'pending': return 'Initializing';
-    case 'completed': return 'Completed';
-    case 'error': return 'Error';
-    case 'orphaned': return 'Orphaned';
-    default: return 'Running in background';
+    case 'pending': return t('chat.ui.status.initializing');
+    case 'completed': return t('chat.ui.status.completed');
+    case 'error': return t('chat.ui.status.error');
+    case 'orphaned': return t('chat.ui.status.orphaned');
+    default: return t('chat.ui.subagent.runningBackground');
   }
 }
 
@@ -429,7 +449,10 @@ function updateAsyncLabel(state: AsyncSubagentState): void {
   const statusLabel = getAsyncStatusAriaLabel(state.info.asyncStatus);
   state.headerEl.setAttribute(
     'aria-label',
-    `Background task: ${truncateDescription(state.info.description)} - ${statusLabel} - click to expand`
+    t('chat.ui.subagent.backgroundExpandAria', {
+      description: truncateDescription(state.info.description),
+      status: statusLabel,
+    })
   );
 }
 
@@ -440,7 +463,7 @@ function renderAsyncContentLikeSync(
 ): void {
   contentEl.empty();
 
-  const promptSection = createSection(contentEl, 'Prompt', 'grimoire-subagent-prompt-body');
+  const promptSection = createSection(contentEl, t('chat.ui.subagent.prompt'), 'grimoire-subagent-prompt-body');
   promptSection.wrapperEl.addClass('grimoire-subagent-section-prompt');
   setPromptText(promptSection.bodyEl, subagent.prompt || '');
 
@@ -457,16 +480,16 @@ function renderAsyncContentLikeSync(
     return;
   }
 
-  const resultSection = createSection(contentEl, 'Result', 'grimoire-subagent-result-body');
+  const resultSection = createSection(contentEl, t('chat.ui.subagent.result'), 'grimoire-subagent-result-body');
   resultSection.wrapperEl.addClass('grimoire-subagent-section-result');
   const resultEl = resultSection.bodyEl.createDiv({ cls: 'grimoire-subagent-result-output' });
 
   if (displayStatus === 'orphaned') {
-    resultEl.setText(subagent.result || 'Conversation ended before task completed');
+    resultEl.setText(subagent.result || t('chat.ui.subagent.endedEarly'));
     return;
   }
 
-  const fallback = displayStatus === 'error' ? 'ERROR' : 'DONE';
+  const fallback = displayStatus === 'error' ? t('chat.ui.status.errorUpper') : t('chat.ui.status.doneUpper');
   const finalText = subagent.result?.trim() ? subagent.result : fallback;
   resultEl.setText(finalText);
 }
@@ -480,7 +503,7 @@ export function createAsyncSubagentBlock(
   taskToolId: string,
   taskInput: Record<string, unknown>
 ): AsyncSubagentState {
-  const description = (taskInput.description as string) || 'Background task';
+  const description = (taskInput.description as string) || t('chat.ui.subagent.backgroundTask');
   const prompt = (taskInput.prompt as string) || '';
 
   const info: SubagentInfo = {
@@ -502,7 +525,10 @@ export function createAsyncSubagentBlock(
   headerEl.setAttribute('tabindex', '0');
   headerEl.setAttribute('role', 'button');
   headerEl.setAttribute('aria-expanded', 'false');
-  headerEl.setAttribute('aria-label', `Background task: ${description} - Initializing - click to expand`);
+  headerEl.setAttribute('aria-label', t('chat.ui.subagent.backgroundExpandAria', {
+    description,
+    status: t('chat.ui.status.initializing'),
+  }));
 
   const iconEl = headerEl.createDiv({ cls: 'grimoire-subagent-icon' });
   iconEl.setAttribute('aria-hidden', 'true');
@@ -512,10 +538,10 @@ export function createAsyncSubagentBlock(
   labelEl.setText(truncateDescription(description));
 
   const statusTextEl = headerEl.createDiv({ cls: 'grimoire-subagent-status-text' });
-  statusTextEl.setText('Initializing');
+  statusTextEl.setText(t('chat.ui.status.initializing'));
 
   const statusEl = headerEl.createDiv({ cls: 'grimoire-subagent-status status-running' });
-  statusEl.setAttribute('aria-label', 'Status: running');
+  statusEl.setAttribute('aria-label', getStatusAriaLabel('running'));
 
   const contentEl = wrapperEl.createDiv({ cls: 'grimoire-subagent-content' });
   renderAsyncContentLikeSync(contentEl, info, 'running');
@@ -543,7 +569,7 @@ export function updateAsyncSubagentRunning(
   setAsyncWrapperStatus(state.wrapperEl, 'running');
   updateAsyncLabel(state);
 
-  state.statusTextEl.setText('Running in background');
+  state.statusTextEl.setText(t('chat.ui.subagent.runningBackground'));
 
   renderAsyncContentLikeSync(state.contentEl, state.info, 'running');
 }
@@ -560,7 +586,7 @@ export function finalizeAsyncSubagent(
   setAsyncWrapperStatus(state.wrapperEl, isError ? 'error' : 'completed');
   updateAsyncLabel(state);
 
-  state.statusTextEl.setText(isError ? 'Error' : '');
+  state.statusTextEl.setText(isError ? t('chat.ui.status.error') : '');
 
   state.statusEl.className = 'grimoire-subagent-status';
   state.statusEl.addClass(`status-${isError ? 'error' : 'completed'}`);
@@ -583,12 +609,12 @@ export function finalizeAsyncSubagent(
 export function markAsyncSubagentOrphaned(state: AsyncSubagentState): void {
   state.info.asyncStatus = 'orphaned';
   state.info.status = 'error';
-  state.info.result = 'Conversation ended before task completed';
+  state.info.result = t('chat.ui.subagent.endedEarly');
 
   setAsyncWrapperStatus(state.wrapperEl, 'orphaned');
   updateAsyncLabel(state);
 
-  state.statusTextEl.setText('Orphaned');
+  state.statusTextEl.setText(t('chat.ui.status.orphaned'));
 
   state.statusEl.className = 'grimoire-subagent-status status-error';
   state.statusEl.empty();
@@ -628,7 +654,10 @@ export function renderStoredAsyncSubagent(
   headerEl.setAttribute('aria-expanded', 'false');
   headerEl.setAttribute(
     'aria-label',
-    `Background task: ${subagent.description} - ${statusAriaLabel} - click to expand`
+    t('chat.ui.subagent.backgroundExpandAria', {
+      description: subagent.description,
+      status: statusAriaLabel,
+    })
   );
 
   const iconEl = headerEl.createDiv({ cls: 'grimoire-subagent-icon' });
@@ -654,7 +683,7 @@ export function renderStoredAsyncSubagent(
       statusIconClass = 'status-running';
   }
   const statusEl = headerEl.createDiv({ cls: `grimoire-subagent-status ${statusIconClass}` });
-  statusEl.setAttribute('aria-label', `Status: ${statusAriaLabel}`);
+  statusEl.setAttribute('aria-label', t('chat.ui.status.aria', { status: statusAriaLabel }));
 
   switch (displayStatus) {
     case 'completed':

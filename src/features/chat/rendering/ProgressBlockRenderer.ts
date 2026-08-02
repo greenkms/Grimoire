@@ -1,6 +1,7 @@
 import { setIcon } from 'obsidian';
 
 import type { ProgressItem, ProgressState } from '../../../core/types';
+import { t } from '../../../i18n/i18n';
 import { formatDurationMmSs } from '../../../utils/date';
 import type { RenderContentFn } from './MessageRenderer';
 
@@ -46,13 +47,15 @@ function updateIcon(progress: ProgressBlockState): void {
 function updateMeta(progress: ProgressBlockState): void {
   const elapsed = getElapsedSeconds(progress);
   if (progress.state === 'running') {
-    const label = elapsed >= RUNNING_HEARTBEAT_SECONDS ? 'Still working' : 'Working';
+    const label = elapsed >= RUNNING_HEARTBEAT_SECONDS
+      ? t('chat.ui.progress.stillWorking')
+      : t('chat.ui.progress.working');
     progress.metaEl.setText(`${label} · ${formatDurationMmSs(elapsed)}`);
     return;
   }
 
   progress.metaEl.setText(
-    `${progress.state === 'blocked' ? 'Blocked' : 'Completed'} · ${formatDurationMmSs(elapsed)}`,
+    `${progress.state === 'blocked' ? t('chat.ui.progress.blocked') : t('chat.ui.progress.completed')} · ${formatDurationMmSs(elapsed)}`,
   );
 }
 
@@ -185,7 +188,7 @@ export function renderStoredProgressBlock(
   setIcon(iconEl, update.state === 'blocked' ? 'circle-alert' : 'circle-check');
   headerEl.createSpan({
     cls: 'grimoire-progress-meta',
-    text: `${update.state === 'blocked' ? 'Blocked' : 'Completed'}${
+    text: `${update.state === 'blocked' ? t('chat.ui.progress.blocked') : t('chat.ui.progress.completed')}${
       update.durationSeconds === undefined ? '' : ` · ${formatDurationMmSs(update.durationSeconds)}`
     }`,
   });

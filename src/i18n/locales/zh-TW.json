@@ -380,6 +380,7 @@
         "copied": "已複製！",
         "renderFailed": "無法呈現訊息內容。",
         "copyMessage": "複製訊息",
+        "copyResponse": "複製回覆",
         "awaitingYou": "等待您的回覆"
       },
       "errors": {

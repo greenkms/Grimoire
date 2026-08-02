@@ -380,6 +380,7 @@
         "copied": "Copié !",
         "renderFailed": "Impossible d’afficher le contenu du message.",
         "copyMessage": "Copier le message",
+        "copyResponse": "Copier la réponse",
         "awaitingYou": "En attente de vous"
       },
       "errors": {

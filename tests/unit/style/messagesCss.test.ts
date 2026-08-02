@@ -1,18 +1,30 @@
 import { readFileSync } from 'fs';
 
+function readCss(path: string): string {
+  return readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
+}
+
 function readMessagesCss(): string {
-  return readFileSync('src/style/components/messages.css', 'utf8');
+  return readCss('src/style/components/messages.css');
 }
 
 function readContainerCss(): string {
-  return readFileSync('src/style/base/container.css', 'utf8');
+  return readCss('src/style/base/container.css');
+}
+
+function readHeaderCss(): string {
+  return readCss('src/style/components/header.css');
+}
+
+function readTabsCss(): string {
+  return readCss('src/style/components/tabs.css');
 }
 
 function readChatMarkdownCss(): string {
   return [
-    readFileSync('src/style/components/messages.css', 'utf8'),
-    readFileSync('src/style/components/code.css', 'utf8'),
-    readFileSync('src/style/features/image-embed.css', 'utf8'),
+    readCss('src/style/components/messages.css'),
+    readCss('src/style/components/code.css'),
+    readCss('src/style/features/image-embed.css'),
   ].join('\n');
 }
 
@@ -114,6 +126,75 @@ describe('messages.css', () => {
     expect(userTextBlockRule).toContain('padding-inline-end: 0');
   });
 
+  it('reserves enough space below question bubbles for their date and action row', () => {
+    const css = readMessagesCss();
+    const userBubbleRule = getExactRule(
+      css,
+      '.grimoire-container--chat-window .grimoire-message-user'
+    );
+    const userActionsRule = getExactRule(css, '.grimoire-user-msg-actions');
+
+    expect(userBubbleRule).toContain('margin-bottom: 18px');
+    expect(userActionsRule).toContain('bottom: -24px');
+  });
+
+  it('keeps message dates and copy controls visible without requiring hover', () => {
+    const css = readMessagesCss();
+    const assistantCopyRule = getExactRule(css, '.grimoire-text-copy-btn');
+    const userActionsRule = getExactRule(css, '.grimoire-user-msg-actions');
+
+    expect(assistantCopyRule).toContain('opacity: 1');
+    expect(userActionsRule).toContain('opacity: 1');
+    expect(css).not.toContain('.grimoire-text-block:hover .grimoire-text-copy-btn');
+    expect(css).not.toContain('.grimoire-message-user:hover .grimoire-user-msg-actions');
+  });
+
+  it('keeps copy feedback inside the fixed icon footprint', () => {
+    const css = readMessagesCss();
+    const assistantCopiedRule = getExactRule(css, '.grimoire-text-copy-btn.copied');
+    const userCopiedRule = getExactRule(css, '.grimoire-user-msg-actions span.copied');
+
+    expect(assistantCopiedRule).toContain('color: var(--text-accent)');
+    expect(assistantCopiedRule).not.toContain('width: auto');
+    expect(assistantCopiedRule).not.toContain('min-width');
+    expect(userCopiedRule).not.toContain('font-size');
+    expect(css).not.toContain('inset-inline-start: 62px');
+  });
+
+  it('uses compact activity spacing and reserves a small completion-time row', () => {
+    const css = readMessagesCss();
+    const contentRule = getRule(
+      css,
+      '.grimoire-container--chat-window .grimoire-message-assistant .grimoire-message-content'
+    );
+    const completionRule = getRule(css, '.grimoire-text-block--with-completion-time');
+
+    expect(contentRule).toContain('gap: 5px');
+    expect(completionRule).toContain('padding-bottom: 24px');
+    expect(css).toContain('.grimoire-message-completion-time');
+  });
+
+  it('separates provider metadata from the response and anchors assistant time to the response edge', () => {
+    const css = readMessagesCss();
+    const metadataRule = getExactRule(css, '.grimoire-assistant-response-meta');
+    const completionRule = getExactRule(
+      css,
+      '.grimoire-text-block > .grimoire-message-completion-time'
+    );
+
+    expect(metadataRule).toContain('margin-bottom: 4px');
+    expect(completionRule).toContain('inset-inline-start: 32px');
+    expect(completionRule).toContain('pointer-events: auto');
+    expect(completionRule).not.toContain('inset-inline-end: 42px');
+
+    const finalCopyRule = getExactRule(
+      css,
+      '.grimoire-text-block--with-completion-time > .grimoire-text-copy-btn'
+    );
+    expect(finalCopyRule).toContain('inset-inline-start: 0');
+    expect(finalCopyRule).toContain('inset-inline-end: auto');
+  });
+
   it('anchors the scroll resume button to the composer edge instead of the chat grid', () => {
     const scrollResumeRule = getExactRule(
       readMessagesCss(),
@@ -143,6 +224,21 @@ describe('messages.css', () => {
       .toContain('scrollbar-width: none');
     expect(getExactRule(css, '.grimoire-chat-scroll.grimoire-chat-scroll--quiet::-webkit-scrollbar'))
       .toContain('width: 0');
+  });
+
+  it('uses a compact shared window gutter for chat content and the composer', () => {
+    const css = readContainerCss();
+    const windowRule = getExactRule(css, '.grimoire-container--chat-window');
+    const chatScrollRule = getExactRule(css, '.grimoire-chat-scroll');
+    const composerRule = getExactRule(css, '.grimoire-composer-surface');
+    const headerRule = getExactRule(readHeaderCss(), '.grimoire-header');
+    const panelTabsRule = getExactRule(readTabsCss(), '.grimoire-panel-tabs');
+
+    expect(windowRule).toContain('--grimoire-window-padding-x: 7px');
+    expect(chatScrollRule).toContain('var(--grimoire-window-padding-x)');
+    expect(composerRule).toContain('var(--grimoire-window-padding-x)');
+    expect(headerRule).toContain('var(--grimoire-window-padding-x)');
+    expect(panelTabsRule).toContain('var(--grimoire-window-padding-x)');
   });
 
   it('constrains provider markdown media and raw html embeds to the chat width', () => {

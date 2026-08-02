@@ -1,6 +1,7 @@
 import { setIcon } from 'obsidian';
 
 import type { ApprovalDecisionOption } from '../../../core/runtime/types';
+import { t } from '../../../i18n/i18n';
 import { setToolIcon } from './ToolCallRenderer';
 
 export interface InlinePermissionRequestConfig {
@@ -34,7 +35,7 @@ export class InlinePermissionRequest {
 
     const cardEl = this.rootEl.createDiv({ cls: 'grimoire-permission-request' });
     cardEl.setAttribute('role', 'dialog');
-    cardEl.setAttribute('aria-label', 'Permission required');
+    cardEl.setAttribute('aria-label', t('chat.ui.permission.required'));
 
     this.renderHeader(cardEl);
     this.renderBody(cardEl);
@@ -61,7 +62,7 @@ export class InlinePermissionRequest {
     const titleEl = headEl.createDiv({ cls: 'grimoire-permission-title-block' });
     titleEl.createEl('strong', {
       cls: 'grimoire-permission-title',
-      text: 'Permission required',
+      text: t('chat.ui.permission.required'),
     });
     titleEl.createSpan({
       cls: 'grimoire-permission-subtitle',
@@ -72,7 +73,7 @@ export class InlinePermissionRequest {
     const command = this.getCommandText();
     if (command) {
       toolEl.setAttribute('title', command);
-      toolEl.setAttribute('aria-label', `Command preview: ${command}`);
+      toolEl.setAttribute('aria-label', t('chat.ui.permission.commandPreview', { command }));
     }
     const iconEl = toolEl.createSpan({ cls: 'grimoire-ask-approval-icon' });
     setToolIcon(iconEl, command ? 'bash' : this.config.toolName);
@@ -102,7 +103,7 @@ export class InlinePermissionRequest {
     if (this.config.agentID) {
       bodyEl.createDiv({
         cls: 'grimoire-permission-agent grimoire-ask-approval-agent',
-        text: `Agent: ${this.config.agentID}`,
+        text: t('chat.ui.permission.agent', { agent: this.config.agentID }),
       });
     }
 
@@ -209,7 +210,7 @@ export class InlinePermissionRequest {
   private getDisplayLabel(option: ApprovalDecisionOption): string {
     const action = this.getAction(option);
     if (action === 'reject' && /^deny$/i.test(option.label)) {
-      return 'Reject';
+      return t('chat.ui.permission.reject');
     }
     return option.label;
   }
@@ -220,7 +221,7 @@ export class InlinePermissionRequest {
       return buildPermissionCommandSummary(command);
     }
 
-    const toolName = this.config.toolName.trim() || 'tool';
+    const toolName = this.config.toolName.trim() || t('chat.ui.permission.tool');
     if (/^(?:bash|execute|run)(?:\s|$)/i.test(toolName)) {
       return 'bash';
     }
@@ -229,9 +230,9 @@ export class InlinePermissionRequest {
 
   private getSubtitle(): string {
     if (this.getCommandText() || this.getToolLabel() === 'bash') {
-      return 'Grimoire wants to run a shell command';
+      return t('chat.ui.permission.runShellCommand');
     }
-    return `Grimoire wants to use ${this.getToolLabel()}`;
+    return t('chat.ui.permission.useTool', { tool: this.getToolLabel() });
   }
 
   private getCommandText(): string {
@@ -246,7 +247,7 @@ export class InlinePermissionRequest {
 
     const providerRequest = this.config.description.match(/^(.+?) wants permission to use\b/i);
     return providerRequest?.[1]
-      ? `${providerRequest[1]} requested permission to run this command.`
+      ? t('chat.ui.permission.providerRequestedCommand', { provider: providerRequest[1] })
       : this.config.description;
   }
 
@@ -265,7 +266,7 @@ export function buildPermissionCommandSummary(command: string): string {
   const tokens = tokenizeCommandPreview(command);
   const executableToken = tokens.shift();
   if (!executableToken) {
-    return 'shell command';
+    return t('chat.ui.permission.shellCommand');
   }
 
   const executable = getPathBasename(executableToken) || executableToken;

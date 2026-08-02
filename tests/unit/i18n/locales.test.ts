@@ -56,6 +56,7 @@ const localizedKeys = [
   'chat.vaultSearch.sourcePlural',
   'chat.vaultSearch.failed',
   'chat.relevantNotes.label',
+  'chat.ui.messages.copyResponse',
   'settings.contextEngine.name',
   'settings.contextEngine.desc',
   'settings.contextEngine.vaultSearchEnabled',

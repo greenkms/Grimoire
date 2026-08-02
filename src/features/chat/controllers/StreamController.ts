@@ -34,6 +34,7 @@ import type {
   ToolCallInfo,
 } from '../../../core/types';
 import type { SDKToolUseResult } from '../../../core/types/diff';
+import { t } from '../../../i18n/i18n';
 import type GrimoirePlugin from '../../../main';
 import { createProviderIconSvg } from '../../../shared/icons';
 import {
@@ -1689,7 +1690,9 @@ export class StreamController {
         width: 14,
       }));
     }
-    statusEl.createSpan({ text: `${ProviderRegistry.getProviderDisplayName(providerId)} is still working` });
+    statusEl.createSpan({
+      text: `${ProviderRegistry.getProviderDisplayName(providerId)} · ${t('chat.ui.progress.stillWorking')}`,
+    });
     const elapsedEl = statusEl.createSpan({ cls: 'grimoire-silent-turn-status-elapsed' });
     const updateElapsed = () => {
       const startedAt = this.silentTurnStartedAt;
@@ -1831,7 +1834,7 @@ export class StreamController {
     if (!state.currentContentEl) return;
     this.hideThinkingIndicator();
     const el = state.currentContentEl.createDiv({ cls: 'grimoire-compact-boundary' });
-    el.createSpan({ cls: 'grimoire-compact-boundary-label', text: 'Conversation compacted' });
+    el.createSpan({ cls: 'grimoire-compact-boundary-label', text: t('chat.ui.messages.conversationCompacted') });
   }
 
   // ============================================

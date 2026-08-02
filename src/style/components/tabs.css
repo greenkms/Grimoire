@@ -112,7 +112,7 @@
 .grimoire-panel-tabs {
   display: flex;
   gap: 2px;
-  margin: 0 13px 2px;
+  margin: 0 var(--grimoire-window-padding-x) 2px;
   padding: 0;
   border: 0;
   border-radius: 0;

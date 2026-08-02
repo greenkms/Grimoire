@@ -12,11 +12,14 @@ function getRule(css: string, selector: string): string {
 }
 
 describe('toolcalls.css', () => {
-  it('keeps expanded tool output inside the chat viewport', () => {
+  it('uses the full assistant column for expanded tool output', () => {
     const css = readToolcallsCss();
 
+    const headerRule = getRule(css, '.grimoire-tool-step > .grimoire-tool-header');
     const contentRule = getRule(css, '.grimoire-tool-step > .grimoire-tool-content');
-    expect(contentRule).toContain('max-width: calc(100% - 36px)');
+    expect(headerRule).toContain('padding: 4px 8px 4px 0');
+    expect(contentRule).toContain('margin: 1px 0 5px');
+    expect(contentRule).toContain('max-width: 100%');
     expect(contentRule).toContain('max-height: min(52vh, 520px)');
     expect(contentRule).toContain('overflow: auto');
   });

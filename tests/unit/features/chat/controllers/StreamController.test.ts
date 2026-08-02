@@ -2508,7 +2508,7 @@ describe('StreamController - silent turn heartbeat', () => {
     expect(status.getAttribute('role')).toBe('status');
     expect(status.getAttribute('aria-live')).toBe('polite');
     expect(status.children.some((child: any) => child.getAttribute?.('data-provider') === 'claude')).toBe(true);
-    expect(status.children.some((child: any) => child.textContent === 'Claude is still working')).toBe(true);
+    expect(status.children.some((child: any) => child.textContent === 'Claude · Still working')).toBe(true);
     expect(status.children.some((child: any) => child.textContent === ' · 0:10')).toBe(true);
     expect(deps.state.thinkingEl).toBeNull();
 

@@ -44,7 +44,7 @@ export interface MockElement {
   removeClass: (cls: string) => MockElement;
   hasClass: (cls: string) => boolean;
   getClasses: () => string[];
-  createDiv: (opts?: { cls?: string; text?: string }) => MockElement;
+  createDiv: (opts?: { cls?: string; text?: string; attr?: Record<string, string> }) => MockElement;
   createSpan: (opts?: { cls?: string; text?: string }) => MockElement;
   createEl: (tag: string, opts?: { cls?: string; text?: string; attr?: Record<string, string> }) => MockElement;
   createSvg: (tag: string, opts?: { cls?: string; attr?: Record<string, string> }) => MockElement;
@@ -299,10 +299,15 @@ export function createMockEl(tag = 'div'): any {
     hasClass: (cls: string) => classes.has(cls),
     getClasses: () => Array.from(classes),
 
-    createDiv(opts?: { cls?: string; text?: string }) {
+    createDiv(opts?: { cls?: string; text?: string; attr?: Record<string, string> }) {
       const child = createMockEl('div');
       if (opts?.cls) child.addClass(opts.cls);
       if (opts?.text) child.textContent = opts.text;
+      if (opts?.attr) {
+        for (const [name, value] of Object.entries(opts.attr)) {
+          child.setAttribute(name, value);
+        }
+      }
       children.push(child);
       return child;
     },

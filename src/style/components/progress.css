@@ -3,6 +3,10 @@
   padding-inline-start: 2px;
 }
 
+.grimoire-container--chat-window .grimoire-message-content > .grimoire-progress-block {
+  margin: 2px 0;
+}
+
 .grimoire-progress-header {
   display: flex;
   align-items: center;

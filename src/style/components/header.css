@@ -4,7 +4,7 @@
   display: flex;
   align-items: center;
   min-height: 46px;
-  padding: 11px 13px 9px;
+  padding: 11px var(--grimoire-window-padding-x) 9px;
   border-bottom: 0;
   background: var(--grimoire-panel);
 }

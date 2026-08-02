@@ -1,5 +1,5 @@
 import type { App, Component } from 'obsidian';
-import { MarkdownRenderer, Menu, Notice, setIcon, TFile } from 'obsidian';
+import { MarkdownRenderer, Menu, Notice, setIcon, setTooltip, TFile } from 'obsidian';
 
 import { DEFAULT_CHAT_PROVIDER_ID, type ProviderCapabilities } from '../../../core/providers/types';
 import type { ChatRewindMode } from '../../../core/runtime/types';
@@ -11,7 +11,7 @@ import {
 } from '../../../core/tools/toolNames';
 import { extractToolResultContent } from '../../../core/tools/toolResultContent';
 import type { ChatMessage, ImageAttachment, SubagentInfo, ToolCallInfo } from '../../../core/types';
-import { t } from '../../../i18n/i18n';
+import { getLocale, t } from '../../../i18n/i18n';
 import type GrimoirePlugin from '../../../main';
 import { scheduleAnimationFrame } from '../../../utils/animationFrame';
 import { formatDurationMmSs } from '../../../utils/date';
@@ -21,6 +21,7 @@ import { escapeMathDelimitersForStreaming } from '../../../utils/markdownMath';
 import { findRewindContext } from '../rewind';
 import { renderVaultSearchSources } from '../ui/VaultSearchSources';
 import { getAssistantResponseProviderLabel } from '../utils/assistantResponseMetadata';
+import { localizeReasoningLevel } from '../utils/reasoningDisplay';
 import { renderStoredProgressBlock } from './ProgressBlockRenderer';
 import { resolveSubagentLifecycleAdapter } from './subagentLifecycleResolution';
 import {
@@ -248,11 +249,12 @@ export class MessageRenderer {
         const textEl = contentEl.createDiv({ cls: 'grimoire-text-block' });
         void this.renderContent(textEl, textToShow);
         this.renderUserVaultSearchSources(contentEl, msg);
-        this.addUserCopyButton(msgEl, textToShow);
+        this.addUserCopyButton(msgEl, textToShow, msg.completedAt);
       }
       this.liveMessageEls.set(msg.id, msgEl);
     } else if (msg.role === 'assistant') {
       this.renderAssistantResponseMetadata(contentEl, msg);
+      this.liveMessageEls.set(msg.id, msgEl);
     }
 
     this.scrollToBottomAfterMessage(msg);
@@ -290,7 +292,7 @@ export class MessageRenderer {
     }
 
     if (textToShow) {
-      this.addUserCopyButton(msgEl, textToShow);
+      this.addUserCopyButton(msgEl, textToShow, msg.completedAt);
     }
   }
 
@@ -381,7 +383,7 @@ export class MessageRenderer {
         const textEl = contentEl.createDiv({ cls: 'grimoire-text-block' });
         void this.renderContent(textEl, textToShow);
         this.renderUserVaultSearchSources(contentEl, msg);
-        this.addUserCopyButton(msgEl, textToShow);
+        this.addUserCopyButton(msgEl, textToShow, msg.completedAt);
       }
       if (msg.userMessageId && this.isRewindEligible(allMessages, index)) {
         if (this.rewindCallback) {
@@ -397,6 +399,9 @@ export class MessageRenderer {
       if (msg.isInterrupt) {
         this.appendInterruptIndicator(contentEl);
       }
+      if (msg.completedAt !== undefined) {
+        this.applyAssistantCompletionTime(msgEl, msg.completedAt);
+      }
     }
   }
 
@@ -407,7 +412,11 @@ export class MessageRenderer {
     const parts = [
       providerLabel,
       metadata?.modelLabel,
-      metadata?.effortLabel ? `Effort ${metadata.effortLabel}` : undefined,
+      metadata?.effortLabel
+        ? t('chat.ui.responseMetadata.effort', {
+          value: localizeReasoningLevel(metadata.effort ?? metadata.effortLabel, metadata.effortLabel),
+        })
+        : undefined,
     ].filter((part): part is string => !!part && part.trim().length > 0);
 
     if (parts.length === 0) {
@@ -467,7 +476,7 @@ export class MessageRenderer {
   private openVaultSearchSource(path: string): void {
     const file = this.app.vault.getAbstractFileByPath(path);
     if (!(file instanceof TFile)) {
-      new Notice(`Could not open file: ${path}`);
+      new Notice(t('chat.ui.errors.couldNotOpenFile', { path }));
       return;
     }
 
@@ -475,7 +484,9 @@ export class MessageRenderer {
       try {
         await this.app.workspace.getLeaf().openFile(file);
       } catch (error) {
-        new Notice(`Failed to open file: ${error instanceof Error ? error.message : String(error)}`);
+        new Notice(t('chat.ui.errors.openFileFailed', {
+          error: error instanceof Error ? error.message : String(error),
+        }));
       }
     });
   }
@@ -488,11 +499,11 @@ export class MessageRenderer {
 
   private appendInterruptIndicator(contentEl: HTMLElement): void {
     const textEl = contentEl.createDiv({ cls: 'grimoire-text-block' });
-    textEl.createSpan({ cls: 'grimoire-interrupted', text: 'Interrupted' });
+    textEl.createSpan({ cls: 'grimoire-interrupted', text: t('chat.ui.messages.interrupted') });
     textEl.appendText(' ');
     textEl.createSpan({
       cls: 'grimoire-interrupted-hint',
-      text: '\u00B7 What should Grimoire do instead?',
+      text: t('chat.ui.messages.interruptedHint'),
     });
   }
 
@@ -567,7 +578,10 @@ export class MessageRenderer {
         } else if (block.type === 'context_compacted') {
           flushPendingToolGroup();
           const boundaryEl = contentEl.createDiv({ cls: 'grimoire-compact-boundary' });
-          boundaryEl.createSpan({ cls: 'grimoire-compact-boundary-label', text: 'Conversation compacted' });
+          boundaryEl.createSpan({
+            cls: 'grimoire-compact-boundary-label',
+            text: t('chat.ui.messages.conversationCompacted'),
+          });
         } else if (block.type === 'subagent') {
           flushPendingToolGroup();
           const taskToolCall = msg.toolCalls?.find(
@@ -605,10 +619,13 @@ export class MessageRenderer {
     // Render response duration footer (skip when message contains a compaction boundary)
     const hasCompactBoundary = msg.contentBlocks?.some(b => b.type === 'context_compacted');
     if (msg.durationSeconds && msg.durationSeconds > 0 && !hasCompactBoundary) {
-      const flavorWord = msg.durationFlavorWord || 'Baked';
+      const flavorWord = msg.durationFlavorWord || t('chat.ui.messages.completed');
       const footerEl = contentEl.createDiv({ cls: 'grimoire-response-footer' });
       footerEl.createSpan({
-        text: `* ${flavorWord} for ${formatDurationMmSs(msg.durationSeconds)}`,
+        text: t('chat.ui.messages.duration', {
+          flavor: flavorWord,
+          duration: formatDurationMmSs(msg.durationSeconds),
+        }),
         cls: 'grimoire-baked-duration',
       });
     }
@@ -946,7 +963,7 @@ export class MessageRenderer {
 
                 try {
                   await navigator.clipboard.writeText(code.textContent || '');
-                  label.setText('Copied!');
+                  label.setText(t('chat.ui.messages.copied'));
                   window.setTimeout(() => label.setText(originalLabel), 1500);
                 } catch {
                   // Clipboard API may fail in non-secure contexts
@@ -970,7 +987,7 @@ export class MessageRenderer {
     } catch {
       el.createDiv({
         cls: 'grimoire-render-error',
-        text: 'Failed to render message content.',
+        text: t('chat.ui.messages.renderFailed'),
       });
     }
   }
@@ -981,13 +998,16 @@ export class MessageRenderer {
 
   /**
    * Adds a copy button to a text block.
-   * Button shows clipboard icon on hover, changes to "copied!" on click.
+   * Button keeps a fixed footprint and changes to a check icon on click.
    * @param textEl The rendered text element
    * @param markdown The original markdown content to copy
    */
   addTextCopyButton(textEl: HTMLElement, markdown: string): void {
     const copyBtn = textEl.createSpan({ cls: 'grimoire-text-copy-btn' });
+    const copyLabel = t('chat.ui.messages.copyResponse');
     setIcon(copyBtn, 'copy');
+    this.setCopyButtonTooltip(copyBtn, copyLabel);
+    textEl.createSpan({ cls: 'grimoire-message-completion-time' });
 
     let feedbackTimeout: number | null = null;
 
@@ -1007,19 +1027,96 @@ export class MessageRenderer {
           window.clearTimeout(feedbackTimeout);
         }
 
-        // Show "copied!" feedback
+        // Keep the button footprint stable while showing copy feedback.
         copyBtn.empty();
-        copyBtn.setText('Copied!');
+        setIcon(copyBtn, 'check');
         copyBtn.classList.add('copied');
+        this.setCopyButtonTooltip(copyBtn, t('chat.ui.messages.copied'));
 
         feedbackTimeout = window.setTimeout(() => {
           copyBtn.empty();
           setIcon(copyBtn, 'copy');
           copyBtn.classList.remove('copied');
+          this.setCopyButtonTooltip(copyBtn, copyLabel);
           feedbackTimeout = null;
         }, 1500);
       });
     });
+  }
+
+  updateMessageCompletionTime(msg: ChatMessage): void {
+    const msgEl = this.liveMessageEls.get(msg.id)
+      ?? this.messagesEl.querySelector<HTMLElement>(`[data-message-id="${msg.id}"]`);
+    if (!msgEl) return;
+
+    const completedAt = msg.completedAt;
+    if (completedAt === undefined) return;
+    if (msg.role === 'assistant') {
+      this.applyAssistantCompletionTime(msgEl, completedAt);
+      this.liveMessageEls.delete(msg.id);
+      return;
+    }
+
+    this.ensureUserCompletionTime(msgEl, completedAt);
+  }
+
+  private applyAssistantCompletionTime(msgEl: HTMLElement, completedAt: number): void {
+    const textBlocks = Array.from(msgEl.querySelectorAll<HTMLElement>('.grimoire-text-block'));
+    for (const textBlock of textBlocks) {
+      textBlock.removeClass('grimoire-text-block--with-completion-time');
+      const completionEl = textBlock.querySelector<HTMLElement>('.grimoire-message-completion-time');
+      completionEl?.setText('');
+    }
+
+    const lastTextBlock = [...textBlocks].reverse().find((textBlock) =>
+      Boolean(textBlock.querySelector('.grimoire-text-copy-btn'))
+    );
+    if (!lastTextBlock) return;
+
+    const completionEl = lastTextBlock.querySelector<HTMLElement>('.grimoire-message-completion-time');
+    if (!completionEl) return;
+
+    completionEl.setText(this.formatMessageCompletionTime(completedAt));
+    setTooltip(completionEl, this.formatMessageCompletionTitle(completedAt), { placement: 'top' });
+    lastTextBlock.addClass('grimoire-text-block--with-completion-time');
+  }
+
+  private formatMessageCompletionTime(timestamp: number): string {
+    if (!Number.isFinite(timestamp)) return '';
+    const completedDate = new Date(timestamp);
+    const now = new Date(Date.now());
+    const isSameDay = completedDate.getFullYear() === now.getFullYear()
+      && completedDate.getMonth() === now.getMonth()
+      && completedDate.getDate() === now.getDate();
+    const isSameYear = completedDate.getFullYear() === now.getFullYear();
+    const dateOptions: Intl.DateTimeFormatOptions = isSameDay
+      ? {}
+      : {
+        ...(isSameYear ? {} : { year: 'numeric' as const }),
+        month: 'short',
+        day: 'numeric',
+      };
+
+    return new Intl.DateTimeFormat(getLocale(), {
+      ...dateOptions,
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(completedDate).replace(/,\s*/g, ' ');
+  }
+
+  private formatMessageCompletionTitle(timestamp: number): string {
+    if (!Number.isFinite(timestamp)) return '';
+    return new Intl.DateTimeFormat(getLocale(), {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+      hour12: false,
+    }).format(new Date(timestamp));
+  }
+
+  private setCopyButtonTooltip(copyBtn: HTMLElement, label: string): void {
+    copyBtn.setAttribute('aria-label', label);
+    setTooltip(copyBtn, label, { placement: 'top' });
   }
 
   refreshActionButtons(msg: ChatMessage, allMessages?: ChatMessage[], index?: number): void {
@@ -1051,11 +1148,23 @@ export class MessageRenderer {
     return msgEl.createDiv({ cls: 'grimoire-user-msg-actions' });
   }
 
-  private addUserCopyButton(msgEl: HTMLElement, content: string): void {
+  private ensureUserCompletionTime(msgEl: HTMLElement, completedAt: number): void {
     const toolbar = this.getOrCreateActionsToolbar(msgEl);
+    const completionEl = toolbar.querySelector<HTMLElement>('.grimoire-message-completion-time')
+      ?? toolbar.createSpan({ cls: 'grimoire-message-completion-time' });
+    completionEl.setText(this.formatMessageCompletionTime(completedAt));
+    setTooltip(completionEl, this.formatMessageCompletionTitle(completedAt), { placement: 'top' });
+  }
+
+  private addUserCopyButton(msgEl: HTMLElement, content: string, completedAt?: number): void {
+    const toolbar = this.getOrCreateActionsToolbar(msgEl);
+    if (completedAt !== undefined) {
+      this.ensureUserCompletionTime(msgEl, completedAt);
+    }
     const copyBtn = toolbar.createSpan({ cls: 'grimoire-user-msg-copy-btn' });
+    const copyLabel = t('chat.ui.messages.copyMessage');
     setIcon(copyBtn, 'copy');
-    copyBtn.setAttribute('aria-label', 'Copy message');
+    this.setCopyButtonTooltip(copyBtn, copyLabel);
 
     let feedbackTimeout: number | null = null;
 
@@ -1069,12 +1178,14 @@ export class MessageRenderer {
         }
         if (feedbackTimeout) window.clearTimeout(feedbackTimeout);
         copyBtn.empty();
-        copyBtn.setText('Copied!');
+        setIcon(copyBtn, 'check');
         copyBtn.classList.add('copied');
+        this.setCopyButtonTooltip(copyBtn, t('chat.ui.messages.copied'));
         feedbackTimeout = window.setTimeout(() => {
           copyBtn.empty();
           setIcon(copyBtn, 'copy');
           copyBtn.classList.remove('copied');
+          this.setCopyButtonTooltip(copyBtn, copyLabel);
           feedbackTimeout = null;
         }, 1500);
       });
@@ -1115,7 +1226,7 @@ export class MessageRenderer {
             try {
               await this.rewindCallback?.(messageId, mode);
             } catch (err) {
-              new Notice(t('chat.rewind.failed', { error: err instanceof Error ? err.message : 'Unknown error' }));
+              new Notice(t('chat.rewind.failed', { error: err instanceof Error ? err.message : t('chat.ui.errors.unknown') }));
             }
           });
         });
@@ -1135,7 +1246,7 @@ export class MessageRenderer {
         try {
           await this.forkCallback?.(messageId);
         } catch (err) {
-          new Notice(t('chat.fork.failed', { error: err instanceof Error ? err.message : 'Unknown error' }));
+          new Notice(t('chat.fork.failed', { error: err instanceof Error ? err.message : t('chat.ui.errors.unknown') }));
         }
       });
     });

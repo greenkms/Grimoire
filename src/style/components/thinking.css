@@ -49,6 +49,10 @@
   margin: 8px 0;
 }
 
+.grimoire-container--chat-window .grimoire-message-content > .grimoire-thinking-block {
+  margin: 2px 0;
+}
+
 .grimoire-text-block+.grimoire-thinking-block {
   margin-top: 8px;
 }

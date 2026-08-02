@@ -669,6 +669,8 @@ describe('Tab - Creation', () => {
       expect(tab.dom.sourceShownCountEl.hasClass('grimoire-panel-section-count')).toBe(true);
       expect(tab.dom.contextRailEl.hasClass('grimoire-context-panel')).toBe(true);
       expect(tab.dom.chatStageEl.hasClass('grimoire-chat-panel')).toBe(true);
+      expect(tab.dom.chatStageEl.getAttribute('data-panel-view')).toBe('chat');
+      expect(tab.dom.chatStageEl.getAttribute('aria-label')).toBeNull();
       expect(tab.dom.sourceRailEl.hasClass('grimoire-sources-panel')).toBe(true);
       expect(tab.dom.contextMemoryEl.hasClass('grimoire-context-memory-panel')).toBe(true);
       expect(tab.dom.contextRuntimeEl.hasClass('grimoire-context-runtime-panel')).toBe(true);

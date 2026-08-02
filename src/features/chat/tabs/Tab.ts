@@ -1281,7 +1281,7 @@ function buildTabDOM(contentEl: HTMLElement, versionText: string): TabDOMElement
 
   const chatStageEl = focusedMainEl.createDiv({
     cls: 'grimoire-panel-view grimoire-chat-panel is-active',
-    attr: { 'data-panel-view': 'chat', 'aria-label': 'Conversation' },
+    attr: { 'data-panel-view': 'chat' },
   });
   const boundStatusEl = chatStageEl.createDiv({ cls: 'grimoire-bound-status grimoire-hidden' });
   const boundStatusDotEl = boundStatusEl.createSpan({ cls: 'grimoire-bound-status-dot' });

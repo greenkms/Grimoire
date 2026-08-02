@@ -380,6 +380,7 @@
         "copied": "¡Copiado!",
         "renderFailed": "No se pudo renderizar el contenido del mensaje.",
         "copyMessage": "Copiar mensaje",
+        "copyResponse": "Copiar respuesta",
         "awaitingYou": "Esperando tu respuesta"
       },
       "errors": {
