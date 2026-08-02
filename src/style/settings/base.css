@@ -32,6 +32,33 @@
   margin: 0 auto;
 }
 
+/*
+ * The declarative root keeps this custom page indexed by Obsidian settings
+ * search. Isolate its synthetic SettingGroup so nested Settings retain the
+ * same standalone cards as the legacy display() fallback.
+ */
+.setting-group.grimoire-settings-root-group {
+  max-width: none;
+}
+
+.setting-group.grimoire-settings-root-group > .setting-items {
+  background-color: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.grimoire-settings-root-group .grimoire-settings .setting-item:not(.setting-item-heading) {
+  margin-bottom: var(--size-4-2);
+  padding: var(--size-4-4);
+  border: var(--setting-items-border-width) solid var(--setting-items-border-color);
+  border-radius: var(--setting-items-radius);
+  background-color: var(--setting-items-background);
+}
+
+.grimoire-settings-root-group .grimoire-settings .setting-item:not(.setting-item-heading)::before {
+  content: none;
+}
+
 /* ── Tab bar ── */
 .grimoire-settings-tabs {
   position: relative;
@@ -47,7 +74,7 @@
   flex: 1 1 auto;
   align-items: flex-end;
   min-width: 0;
-  gap: 1px;
+  gap: 4px;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
@@ -80,6 +107,14 @@
 
 .grimoire-settings-tabs.is-overflowing .grimoire-settings-tab-scroll {
   display: inline-flex;
+}
+
+.grimoire-settings-tab-scroll--previous {
+  margin-inline-end: 4px;
+}
+
+.grimoire-settings-tab-scroll--next {
+  margin-inline-start: 4px;
 }
 
 .grimoire-settings-tab-scroll:disabled {
@@ -136,9 +171,9 @@
 .grimoire-settings-tabs-viewport > .grimoire-settings-tab {
   appearance: none;
   box-sizing: border-box;
-  min-width: 0;
+  min-width: max-content;
   height: 30px;
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   margin: 0 0 -1px;
   padding: 0 8px;
   border: 1px solid var(--background-modifier-border);

@@ -85,17 +85,34 @@ describe('GrimoireSettingTab general tab settings', () => {
     expect(versionEl?.querySelector('.grimoire-settings-whats-new')?.textContent).toBe('What\'s new');
   });
 
-  it('uses the imperative settings path so Obsidian does not wrap the whole page in one setting group', () => {
+  it('keeps the custom settings page searchable without inheriting the outer setting-group styles', () => {
     const plugin = createSettingsPlugin();
     const tab = new GrimoireSettingTab(createSettingsApp(), plugin);
     (tab as any).containerEl = createMockEl('div');
 
-    expect(tab.getSettingDefinitions()).toEqual([]);
+    const [definition] = tab.getSettingDefinitions();
+    expect(definition).toMatchObject({
+      name: 'Grimoire settings',
+      desc: 'Configure Grimoire, its workspace, and provider integrations.',
+    });
+    expect('aliases' in definition ? definition.aliases : []).toEqual(expect.arrayContaining([
+      'Maximum chat tabs',
+      'Claude Code',
+      'Project workspace',
+    ]));
+    expect('render' in definition).toBe(true);
 
-    tab.display();
+    const settingEl = createMockEl('div');
+    settingEl.addClass('setting-item');
+    const group = { addClass: jest.fn() };
+    if ('render' in definition && typeof definition.render === 'function') {
+      definition.render({ settingEl } as any, group as any);
+    }
 
-    expect((tab as any).containerEl.hasClass('grimoire-settings')).toBe(true);
-    expect(collectText((tab as any).containerEl)).toContain('Maximum chat tabs');
+    expect(group.addClass).toHaveBeenCalledWith('grimoire-settings-root-group');
+    expect(settingEl.hasClass('setting-item')).toBe(false);
+    expect(settingEl.hasClass('grimoire-settings')).toBe(true);
+    expect(collectText(settingEl)).toContain('Maximum chat tabs');
   });
 
   it('opens bundled release notes for the current version from the what\'s new action', async () => {

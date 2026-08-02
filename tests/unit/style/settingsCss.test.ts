@@ -21,6 +21,29 @@ describe('settings base CSS', () => {
     expect(css).not.toContain('border-top: 1px solid var(--background-modifier-border)');
   });
 
+  it('isolates the custom settings page from Obsidian declarative group styling', () => {
+    const css = readSettingsCss();
+    const groupItemsRule = getRule(
+      css,
+      '.setting-group.grimoire-settings-root-group > .setting-items',
+    );
+    const nestedSettingRule = getRule(
+      css,
+      '.grimoire-settings-root-group .grimoire-settings .setting-item:not(.setting-item-heading)',
+    );
+    const nestedDividerRule = getRule(
+      css,
+      '.grimoire-settings-root-group .grimoire-settings .setting-item:not(.setting-item-heading)::before',
+    );
+
+    expect(groupItemsRule).toContain('background-color: transparent');
+    expect(groupItemsRule).toContain('border: 0');
+    expect(nestedSettingRule).toContain('background-color: var(--setting-items-background)');
+    expect(nestedSettingRule).toContain('border: var(--setting-items-border-width) solid var(--setting-items-border-color)');
+    expect(nestedSettingRule).toContain('border-radius: var(--setting-items-radius)');
+    expect(nestedDividerRule).toContain('content: none');
+  });
+
   it('keeps the official gap between the tab bar and the first setting', () => {
     const tabsRule = getRule(readSettingsCss(), '.grimoire-settings-tabs');
 
@@ -49,11 +72,20 @@ describe('settings base CSS', () => {
   it('keeps overflowing provider tabs compact and horizontally scrollable', () => {
     const css = readSettingsCss();
     const viewportRule = getRule(css, '.grimoire-settings-tabs-viewport');
+    const tabRule = getRule(css, '.grimoire-settings-tabs-viewport > .grimoire-settings-tab');
     const scrollButtonRule = getRule(css, '.grimoire-settings-tab-scroll');
+    const overflowingScrollButtonRule = getRule(css, '.grimoire-settings-tabs.is-overflowing .grimoire-settings-tab-scroll');
+    const previousScrollButtonRule = getRule(css, '.grimoire-settings-tab-scroll--previous');
+    const nextScrollButtonRule = getRule(css, '.grimoire-settings-tab-scroll--next');
 
     expect(viewportRule).toContain('overflow-x: auto');
-    expect(viewportRule).toContain('gap: 1px');
+    expect(viewportRule).toContain('gap: 4px');
+    expect(tabRule).toContain('flex: 0 0 auto');
+    expect(tabRule).toContain('min-width: max-content');
     expect(scrollButtonRule).toContain('width: 26px');
     expect(scrollButtonRule).toContain('height: 30px');
+    expect(overflowingScrollButtonRule).toContain('display: inline-flex');
+    expect(previousScrollButtonRule).toContain('margin-inline-end: 4px');
+    expect(nextScrollButtonRule).toContain('margin-inline-start: 4px');
   });
 });

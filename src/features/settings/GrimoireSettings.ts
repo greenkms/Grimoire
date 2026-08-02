@@ -300,6 +300,33 @@ const PROVIDER_SETTING_COPY: Record<ProviderId, {
   },
 };
 
+const GENERAL_SETTINGS_SEARCH_KEYS: TranslationKey[] = [
+  'settings.version.name',
+  'settings.whatsNew',
+  'settings.language.name',
+  'settings.display',
+  'settings.chatViewPlacement.name',
+  'settings.enableAutoScroll.name',
+  'settings.conversations',
+  'settings.autoTitle.name',
+  'settings.content',
+  'settings.userName.name',
+  'settings.deferMathRenderingDuringStreaming.name',
+  'settings.titleModel.name',
+  'settings.systemPrompt.name',
+  'settings.excludedTags.name',
+  'settings.excludedFolders.name',
+  'settings.mediaFolder.name',
+  'settings.input',
+  'settings.requireCommandOrControlEnterToSend.name',
+  'settings.navMappings.name',
+  'settings.hotkeys',
+  'settings.diagnostics',
+  'settings.usageIndicators.name',
+  'settings.debugLogging.name',
+  'settings.maxTabs.name',
+];
+
 export class GrimoireSettingTab extends PluginSettingTab {
   plugin: GrimoirePlugin;
   private activeTab: SettingsTabId = 'general';
@@ -320,16 +347,42 @@ export class GrimoireSettingTab extends PluginSettingTab {
   }
 
   getSettingDefinitions(): SettingDefinitionItem[] {
-    /*
-     * Keep this page on PluginSettingTab's imperative display path.
-     *
-     * Rendering the complete custom page from a single declarative `render`
-     * definition makes Obsidian wrap it in `.setting-group > .setting-items`.
-     * Obsidian 1.13 then applies its grouped-row descendant styles to every
-     * nested Setting, flattening all sections into one large coloured block.
-     * Claudian avoids that wrapper by returning no declarative definitions.
-     */
-    return [];
+    setLocale(this.plugin.settings.locale as Locale);
+    const providerAliases = Object.values(PROVIDER_SETTING_COPY).flatMap((copy) => [
+      copy.name,
+      copy.tabName,
+      t(copy.descKey),
+    ]);
+    const aliases = Array.from(new Set([
+      ...GENERAL_SETTINGS_SEARCH_KEYS.map((key) => t(key)),
+      ...providerAliases,
+      t('settings.search.providers'),
+      t('settings.search.models'),
+      t('settings.search.permissions'),
+      t('settings.search.environmentVariables'),
+      t('settings.search.projectWorkspace'),
+    ]));
+
+    return [{
+      name: t('settings.search.title'),
+      desc: t('settings.search.description'),
+      aliases,
+      render: (setting, group) => {
+        /*
+         * Obsidian 1.13 wraps declarative definitions in a SettingGroup and
+         * styles every descendant Setting as one grouped card. Mark only this
+         * synthetic root so CSS can restore standalone cards inside the custom
+         * tabbed page while the definition remains available to native search.
+         */
+        group.addClass('grimoire-settings-root-group');
+        setting.settingEl.removeClass('setting-item');
+        this.renderSettings(setting.settingEl);
+        return () => {
+          this.tabScroller?.destroy();
+          this.tabScroller = null;
+        };
+      },
+    }];
   }
 
   private renderSettings(containerEl: HTMLElement = this.containerEl): void {

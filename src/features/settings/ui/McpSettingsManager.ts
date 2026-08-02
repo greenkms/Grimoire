@@ -151,7 +151,11 @@ export class McpSettingsManager {
 
     const toggleBtn = actionsEl.createEl('button', {
       cls: 'grimoire-mcp-action-btn',
-      attr: { 'aria-label': server.enabled ? t('common.disabled') : t('common.enabled') },
+      attr: {
+        'aria-label': server.name,
+        'aria-pressed': String(server.enabled),
+        title: server.enabled ? t('common.enabled') : t('common.disabled'),
+      },
     });
     setIcon(toggleBtn, server.enabled ? 'toggle-right' : 'toggle-left');
     toggleBtn.addEventListener('click', () => {
