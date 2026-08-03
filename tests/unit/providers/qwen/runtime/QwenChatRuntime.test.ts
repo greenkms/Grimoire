@@ -88,6 +88,29 @@ describe('QwenChatRuntime', () => {
     ]);
   });
 
+  it('replaces a stale visible model cache with the latest ACP catalog', () => {
+    const plugin = createMockPlugin();
+    updateQwenProviderSettings(plugin.settings, {
+      visibleModels: ['qwen-2.5-pro'],
+    });
+    const runtime = new QwenChatRuntime(plugin);
+
+    (runtime as any).syncSessionDiscovery({
+      models: {
+        availableModels: [
+          { id: 'qwen-2.5-pro', name: 'Qwen 2.5 Pro' },
+          { id: 'qwen-3-max', name: 'Qwen 3 Max' },
+        ],
+        currentModelId: 'qwen-3-max',
+      },
+    });
+
+    expect(getQwenProviderSettings(plugin.settings).visibleModels).toEqual([
+      'qwen-2.5-pro',
+      'qwen-3-max',
+    ]);
+  });
+
   it('streams ACP assistant chunks and done', async () => {
     const runtime = new QwenChatRuntime(createMockPlugin());
     const turn = runtime.prepareTurn({ text: 'Hello' });

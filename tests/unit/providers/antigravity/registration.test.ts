@@ -90,6 +90,31 @@ describe('Antigravity provider registration', () => {
     }));
   });
 
+  it('replaces a stale visible model cache with the latest agy catalog', async () => {
+    (discoverAntigravityModels as jest.Mock).mockResolvedValue([
+      { label: 'Gemini 3.5 Flash (Medium)', rawId: 'Gemini 3.5 Flash (Medium)' },
+      { label: 'Claude Opus 4.6 (Thinking)', rawId: 'Claude Opus 4.6 (Thinking)' },
+    ]);
+    const settings: Record<string, unknown> = {};
+    updateAntigravityProviderSettings(settings, {
+      enabled: true,
+      visibleModels: ['Gemini 3.5 Flash (Medium)'],
+    });
+    const services = await antigravityWorkspaceRegistration.initialize({
+      homeAdapter: {} as any,
+      plugin: {} as any,
+      storage: {} as any,
+      vaultAdapter: {} as any,
+    });
+
+    await services.modelCatalog.refreshModels({ plugin: {} as any, settings });
+
+    expect(getAntigravityProviderSettings(settings).visibleModels).toEqual([
+      'Gemini 3.5 Flash (Medium)',
+      'Claude Opus 4.6 (Thinking)',
+    ]);
+  });
+
   it('uses cached Antigravity discovered models without spawning agy again', async () => {
     const recordDebugLog = jest.fn();
     const settings: Record<string, unknown> = {};

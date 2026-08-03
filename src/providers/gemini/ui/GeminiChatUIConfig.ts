@@ -40,9 +40,12 @@ function getGeminiModelOptions(settings: Record<string, unknown>): ProviderUIOpt
     model.rawId,
     model,
   ]));
+  const optionRawIds = geminiSettings.discoveredModels.length > 0
+    ? geminiSettings.discoveredModels.map((model) => model.rawId)
+    : geminiSettings.visibleModels;
 
   const options: ProviderUIOption[] = [];
-  for (const rawId of geminiSettings.visibleModels) {
+  for (const rawId of optionRawIds) {
     const discovered = discoveredModels.get(rawId);
     options.push({
       description: discovered?.description ?? 'Gemini CLI ACP model',

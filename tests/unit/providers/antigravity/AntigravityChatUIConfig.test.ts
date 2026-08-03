@@ -12,14 +12,14 @@ describe('antigravityChatUIConfig', () => {
     ]);
   });
 
-  it('returns discovered Antigravity models without assuming Gemini-only ownership', () => {
+  it('returns all discovered Antigravity models when the persisted visibility cache is stale', () => {
     const settings: Record<string, unknown> = {};
     updateAntigravityProviderSettings(settings, {
       discoveredModels: [
         { label: 'Claude Sonnet 4.6 (Thinking)', rawId: 'Claude Sonnet 4.6 (Thinking)' },
         { label: 'Gemini 3.1 Pro (High)', rawId: 'Gemini 3.1 Pro (High)' },
       ],
-      visibleModels: ['Claude Sonnet 4.6 (Thinking)', 'Gemini 3.1 Pro (High)'],
+      visibleModels: ['Claude Sonnet 4.6 (Thinking)'],
     });
 
     expect(antigravityChatUIConfig.getModelOptions(settings)).toEqual([

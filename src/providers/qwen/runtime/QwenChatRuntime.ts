@@ -665,7 +665,6 @@ export class QwenChatRuntime implements ChatRuntime {
   }): void {
     const modelState = extractAcpSessionModelState(params);
     const modeState = extractAcpSessionModeState(params);
-    const currentSettings = getQwenProviderSettings(this.plugin.settings);
     const updates: Parameters<typeof updateQwenProviderSettings>[1] = {};
 
     if (modelState.currentModelId) {
@@ -681,9 +680,7 @@ export class QwenChatRuntime implements ChatRuntime {
         label: model.name || model.id,
         rawId: model.id,
       }));
-      if (currentSettings.visibleModels.length === 0) {
-        updates.visibleModels = discoveredRawIds;
-      }
+      updates.visibleModels = discoveredRawIds;
     }
 
     if (modeState.availableModes.length > 0) {

@@ -12,7 +12,7 @@ describe('geminiChatUIConfig', () => {
     ]);
   });
 
-  it('builds visible discovered model options with aliases', () => {
+  it('shows all discovered models when the persisted visibility cache is stale', () => {
     const settings: Record<string, unknown> = {};
     updateGeminiProviderSettings(settings, {
       discoveredModels: [
@@ -30,6 +30,11 @@ describe('geminiChatUIConfig', () => {
         description: 'Gemini CLI ACP model',
         label: 'Pro Alias',
         value: 'gemini:gemini-2.5-pro',
+      },
+      {
+        description: 'Gemini CLI ACP model',
+        label: 'Gemini 2.5 Flash',
+        value: 'gemini:gemini-2.5-flash',
       },
     ]);
   });

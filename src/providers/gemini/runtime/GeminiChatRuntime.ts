@@ -624,7 +624,6 @@ export class GeminiChatRuntime implements ChatRuntime {
   }): void {
     const modelState = extractAcpSessionModelState(params);
     const modeState = extractAcpSessionModeState(params);
-    const currentSettings = getGeminiProviderSettings(this.plugin.settings);
     const updates: Parameters<typeof updateGeminiProviderSettings>[1] = {};
 
     if (modelState.currentModelId) {
@@ -640,9 +639,7 @@ export class GeminiChatRuntime implements ChatRuntime {
         label: model.name || model.id,
         rawId: model.id,
       }));
-      if (currentSettings.visibleModels.length === 0) {
-        updates.visibleModels = discoveredRawIds;
-      }
+      updates.visibleModels = discoveredRawIds;
     }
 
     if (modeState.availableModes.length > 0) {

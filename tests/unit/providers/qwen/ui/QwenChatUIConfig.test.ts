@@ -12,7 +12,7 @@ describe('qwenChatUIConfig', () => {
     ]);
   });
 
-  it('builds visible discovered model options with aliases', () => {
+  it('shows all discovered models when the persisted visibility cache is stale', () => {
     const settings: Record<string, unknown> = {};
     updateQwenProviderSettings(settings, {
       discoveredModels: [
@@ -31,7 +31,30 @@ describe('qwenChatUIConfig', () => {
         label: 'Pro Alias',
         value: 'qwen:qwen-2.5-pro',
       },
+      {
+        description: 'Qwen CLI ACP model',
+        label: 'Qwen 2.5 Flash',
+        value: 'qwen:qwen-2.5-flash',
+      },
     ]);
+  });
+
+  it('provides a compact toolbar label for Token Plan models', () => {
+    const settings: Record<string, unknown> = {};
+    updateQwenProviderSettings(settings, {
+      discoveredModels: [{
+        label: '[Token Plan Personal] qwen3.8-max',
+        rawId: 'qwen3.8-max(openai)',
+      }],
+      visibleModels: ['qwen3.8-max(openai)'],
+    });
+
+    expect(qwenChatUIConfig.getModelOptions(settings)).toEqual([{
+      buttonLabel: 'qwen3.8-max',
+      description: 'Qwen CLI ACP model',
+      label: '[Token Plan Personal] qwen3.8-max',
+      value: 'qwen:qwen3.8-max(openai)',
+    }]);
   });
 
   it('owns Qwen synthetic and encoded model ids', () => {

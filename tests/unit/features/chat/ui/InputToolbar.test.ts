@@ -298,6 +298,37 @@ describe('ModelSelector', () => {
     expect(label?.textContent).toBe('MiniMax-M2.7-highspeed');
   });
 
+  it('should use a compact button label while preserving the full model tooltip', () => {
+    const uiConfig = createMockUIConfig();
+    uiConfig.getModelOptions.mockReturnValue([
+      {
+        buttonLabel: 'qwen3.8-max',
+        label: '[Token Plan Personal] qwen3.8-max',
+        value: 'qwen:qwen3.8-max(openai)',
+      },
+    ]);
+    callbacks.getUIConfig.mockReturnValue(uiConfig);
+    callbacks.getSettings.mockReturnValue({
+      model: 'qwen:qwen3.8-max(openai)',
+      thinkingBudget: 'low',
+      effortLevel: 'high',
+      serviceTier: 'default',
+      permissionMode: 'normal',
+    });
+
+    selector.updateDisplay();
+
+    const button = parentEl.querySelector('.grimoire-model-btn');
+    const label = parentEl.querySelector('.grimoire-model-label');
+    expect(label?.textContent).toBe('qwen3.8-max');
+    expect(button?.getAttribute('aria-label')).toBe('Select model: [Token Plan Personal] qwen3.8-max');
+    expect(setTooltip).toHaveBeenCalledWith(
+      button,
+      '[Token Plan Personal] qwen3.8-max',
+      { placement: 'top' },
+    );
+  });
+
   it('should display the saved model value when current model is not in available options', () => {
     callbacks.getSettings.mockReturnValue({
       model: 'nonexistent',

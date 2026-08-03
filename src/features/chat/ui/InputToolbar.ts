@@ -406,7 +406,8 @@ export class ModelSelector {
 
     const labelEl = this.buttonEl.createSpan({ cls: 'grimoire-model-label' });
     const fullLabel = modelInfo?.label.trim() || formatModelFallbackLabel(currentModel);
-    labelEl.setText(modelInfo ? formatModelButtonLabel(modelInfo.label) : fullLabel);
+    const buttonLabel = modelInfo?.buttonLabel?.trim() || modelInfo?.label;
+    labelEl.setText(buttonLabel ? formatModelButtonLabel(buttonLabel) : fullLabel);
     const chevronEl = this.buttonEl.createSpan({ cls: 'grimoire-model-chevron' });
     setIcon(chevronEl, 'chevron-up');
     this.buttonEl.removeAttribute('title');

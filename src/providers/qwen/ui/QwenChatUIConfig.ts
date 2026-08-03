@@ -38,6 +38,12 @@ const QWEN_PERMISSION_MODE_TOGGLE: ProviderPermissionModeToggleConfig = {
   planValue: 'plan',
   planLabel: 'Plan',
 };
+const QWEN_TOKEN_PLAN_PREFIX = /^\[Token Plan[^\]]*\]\s*/i;
+
+function getQwenButtonLabel(label: string): string | null {
+  const compactLabel = label.replace(QWEN_TOKEN_PLAN_PREFIX, '').trim();
+  return compactLabel && compactLabel !== label.trim() ? compactLabel : null;
+}
 
 function getQwenModelOptions(settings: Record<string, unknown>): ProviderUIOption[] {
   const qwenSettings = getQwenProviderSettings(settings);
@@ -45,13 +51,19 @@ function getQwenModelOptions(settings: Record<string, unknown>): ProviderUIOptio
     model.rawId,
     model,
   ]));
+  const optionRawIds = qwenSettings.discoveredModels.length > 0
+    ? qwenSettings.discoveredModels.map((model) => model.rawId)
+    : qwenSettings.visibleModels;
 
   const options: ProviderUIOption[] = [];
-  for (const rawId of qwenSettings.visibleModels) {
+  for (const rawId of optionRawIds) {
     const discovered = discoveredModels.get(rawId);
+    const label = qwenSettings.modelAliases[rawId] ?? discovered?.label ?? rawId;
+    const buttonLabel = getQwenButtonLabel(label);
     options.push({
+      ...(buttonLabel ? { buttonLabel } : {}),
       description: discovered?.description ?? 'Qwen CLI ACP model',
-      label: qwenSettings.modelAliases[rawId] ?? discovered?.label ?? rawId,
+      label,
       value: encodeQwenModelId(rawId),
     });
   }

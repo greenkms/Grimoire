@@ -88,6 +88,29 @@ describe('GeminiChatRuntime', () => {
     ]);
   });
 
+  it('replaces a stale visible model cache with the latest ACP catalog', () => {
+    const plugin = createMockPlugin();
+    updateGeminiProviderSettings(plugin.settings, {
+      visibleModels: ['gemini-2.5-pro'],
+    });
+    const runtime = new GeminiChatRuntime(plugin);
+
+    (runtime as any).syncSessionDiscovery({
+      models: {
+        availableModels: [
+          { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
+          { id: 'gemini-3-pro', name: 'Gemini 3 Pro' },
+        ],
+        currentModelId: 'gemini-3-pro',
+      },
+    });
+
+    expect(getGeminiProviderSettings(plugin.settings).visibleModels).toEqual([
+      'gemini-2.5-pro',
+      'gemini-3-pro',
+    ]);
+  });
+
   it('streams ACP assistant chunks and done', async () => {
     const runtime = new GeminiChatRuntime(createMockPlugin());
     const turn = runtime.prepareTurn({ text: 'Hello' });

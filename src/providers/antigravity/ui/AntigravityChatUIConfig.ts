@@ -43,9 +43,9 @@ function getAntigravityModelOptions(settings: Record<string, unknown>): Provider
     model.rawId,
     model,
   ]));
-  const visibleModels = antigravitySettings.visibleModels.length > 0
-    ? antigravitySettings.visibleModels
-    : antigravitySettings.discoveredModels.map((model) => model.rawId);
+  const visibleModels = antigravitySettings.discoveredModels.length > 0
+    ? antigravitySettings.discoveredModels.map((model) => model.rawId)
+    : antigravitySettings.visibleModels;
 
   const optionRawIds = mergeAntigravityModelIds(visibleModels, parseAntigravityCustomModels(antigravitySettings.customModels));
   const customModelIds = new Set(parseAntigravityCustomModels(antigravitySettings.customModels));

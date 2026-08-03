@@ -7,13 +7,9 @@ import type {
   ProviderWorkspaceServices,
 } from '../../../core/providers/types';
 import type GrimoirePlugin from '../../../main';
-import {
-  ANTIGRAVITY_FALLBACK_DISCOVERED_MODELS,
-  ANTIGRAVITY_SYNTHETIC_MODEL_ID,
-} from '../models';
+import { ANTIGRAVITY_FALLBACK_DISCOVERED_MODELS } from '../models';
 import { AntigravityCliResolver } from '../runtime/AntigravityCliResolver';
 import { discoverAntigravityModels } from '../runtime/AntigravityModelDiscovery';
-import type { AntigravityDiscoveredModel } from '../settings';
 import { getAntigravityProviderSettings, updateAntigravityProviderSettings } from '../settings';
 import { antigravitySettingsTabRenderer } from '../ui/AntigravitySettingsTab';
 import { antigravityPlanUsageStore } from './AntigravityPlanUsageStore';
@@ -118,9 +114,7 @@ function createAntigravityModelCatalog(plugin: GrimoirePlugin): ProviderModelCat
 
         updateAntigravityProviderSettings(settings, {
           discoveredModels,
-          visibleModels: shouldKeepCurrentVisibleModels(settingsBeforeUpdate.visibleModels, discoveredModels)
-            ? settingsBeforeUpdate.visibleModels
-            : discoveredModels.map((model) => model.rawId),
+          visibleModels: discoveredModels.map((model) => model.rawId),
         });
         const updatedSettings = getAntigravityProviderSettings(settings);
         lastRefreshAt = Date.now();
@@ -168,21 +162,6 @@ function buildAntigravityModelCatalogCacheKey(settings: ReturnType<typeof getAnt
     environmentHash: settings.environmentHash,
     environmentVariables: settings.environmentVariables,
   });
-}
-
-function shouldKeepCurrentVisibleModels(
-  visibleModels: string[],
-  discoveredModels: AntigravityDiscoveredModel[],
-): boolean {
-  if (visibleModels.length === 0) {
-    return false;
-  }
-
-  const discoveredIds = new Set(discoveredModels.map((model) => model.rawId));
-  return visibleModels.some((rawId) => (
-    rawId !== ANTIGRAVITY_SYNTHETIC_MODEL_ID
-    && discoveredIds.has(rawId)
-  ));
 }
 
 export async function createAntigravityWorkspaceServices(plugin: GrimoirePlugin): Promise<AntigravityWorkspaceServices> {

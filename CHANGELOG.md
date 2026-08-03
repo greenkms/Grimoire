@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.1.1 - 2026-08-03
+
+### Improved
+
+- Shortened Qwen Token Plan model names in the compact composer toolbar while preserving the full account-plan label in the model menu, search, accessibility name, and tooltip.
+- Updated GitHub release automation and shared MCP dependencies to their current compatible releases.
+
+### Fixed
+
+- Loaded every model reported by the signed-in Qwen Code account, including Token Plan and DeepSeek models, instead of keeping an older GLM-only visibility cache.
+- Applied the same authoritative live-catalog reconciliation to Gemini CLI (Legacy) and Antigravity so newly reported models cannot remain hidden behind stale saved model lists.
+
 ## 1.1.0 - 2026-08-03
 
 ### Added

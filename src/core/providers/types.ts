@@ -175,6 +175,8 @@ export interface AppAgentManager extends AgentMentionProvider {
 export interface ProviderUIOption {
   value: string;
   label: string;
+  /** Optional compact label for constrained toolbar controls. */
+  buttonLabel?: string;
   description?: string;
   /** Optional group label for visual separators in dropdowns. */
   group?: string;
