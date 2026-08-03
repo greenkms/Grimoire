@@ -154,6 +154,26 @@ describe('AcpJsonRpcTransport', () => {
     await expect(requestPromise).rejects.toThrow('transport stopped');
   });
 
+  it('rejects with the replayed close cause when the stream closes during start', async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    const closeCause = new Error('subprocess failed to start');
+    const transport = new AcpJsonRpcTransport({
+      input,
+      output,
+      onClose: (listener) => {
+        listener(closeCause);
+        return () => {};
+      },
+    });
+
+    await expect(transport.request('initialize')).rejects.toBe(closeCause);
+
+    transport.dispose();
+    input.destroy();
+    output.destroy();
+  });
+
   it('rejects pending requests when input closes', async () => {
     const requestPromise = harness.transport.request('session/prompt', {
       prompt: [{ text: 'hi', type: 'text' }],

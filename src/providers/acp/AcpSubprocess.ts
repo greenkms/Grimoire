@@ -1,4 +1,5 @@
 import { type ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import * as path from 'node:path';
 import type { Readable, Writable } from 'node:stream';
 
@@ -61,7 +62,7 @@ export class AcpSubprocess {
     });
 
     proc.on('error', (error) => {
-      this.closeError = describeSpawnError(error, this.launchSpec.command);
+      this.closeError = describeSpawnError(error, this.launchSpec.command, this.launchSpec.cwd);
       this.notifyClose(this.closeError);
     });
 
@@ -168,14 +169,22 @@ function shouldUseShell(command: string): boolean {
   return !path.win32.isAbsolute(command);
 }
 
-function describeSpawnError(error: Error, command: string): Error {
+function describeSpawnError(error: Error, command: string, cwd: string): Error {
   if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
     return error;
+  }
+
+  if (!existsSync(cwd)) {
+    return new Error(
+      `Failed to start "${command}": working directory not found: "${cwd}".`,
+      { cause: error },
+    );
   }
 
   return new Error(
     `Failed to start "${command}": command not found. Set an absolute CLI path `
     + 'in the provider settings — desktop apps do not inherit the shell PATH.',
+    { cause: error },
   );
 }
 

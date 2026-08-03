@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs';
+
 import { type ChildProcess,spawn } from 'child_process';
 import type { Readable, Writable } from 'stream';
 
@@ -62,14 +64,22 @@ type ExitCallback = (
   error?: Error,
 ) => void;
 
-function describeSpawnError(error: Error, command: string): Error {
+function describeSpawnError(error: Error, command: string, cwd: string): Error {
   if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
     return error;
+  }
+
+  if (!existsSync(cwd)) {
+    return new Error(
+      `Failed to start "${command}": working directory not found: "${cwd}".`,
+      { cause: error },
+    );
   }
 
   return new Error(
     `Failed to start "${command}": command not found. Set an absolute CLI path `
     + 'in the provider settings — desktop apps do not inherit the shell PATH.',
+    { cause: error },
   );
 }
 
@@ -107,7 +117,11 @@ export class CodexAppServerProcess {
     // here left every pending request to hang until its timeout expired. Treat
     // it as termination and pass the cause on.
     this.proc.on('error', (error) => {
-      this.notifyTerminated(null, null, describeSpawnError(error, resolvedSpawnSpec.command));
+      this.notifyTerminated(null, null, describeSpawnError(
+        error,
+        this.launchSpec.command,
+        this.launchSpec.spawnCwd,
+      ));
     });
   }
 
@@ -166,12 +180,16 @@ export class CodexAppServerProcess {
    * `(code, signal)` call shape is unchanged for normal exits.
    */
   private invokeExitCallback(callback: ExitCallback): void {
-    if (this.exitError) {
-      callback(this.exitCode, this.exitSignal, this.exitError);
-      return;
-    }
+    try {
+      if (this.exitError) {
+        callback(this.exitCode, this.exitSignal, this.exitError);
+        return;
+      }
 
-    callback(this.exitCode, this.exitSignal);
+      callback(this.exitCode, this.exitSignal);
+    } catch {
+      // Exit listeners are independent best-effort observers.
+    }
   }
 
   offExit(callback: ExitCallback): void {
