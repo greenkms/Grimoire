@@ -1,4 +1,4 @@
-const nodeTimers = require('node:timers') as typeof import('node:timers');
+import * as nodeTimers from 'node:timers';
 
 function getSetTimeout(): typeof setTimeout {
   return typeof globalThis.setTimeout === 'function'

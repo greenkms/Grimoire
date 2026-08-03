@@ -9,6 +9,7 @@ import { VaultTextIndex } from '../../../core/context/VaultTextIndex';
 import { getHiddenProviderCommandSet } from '../../../core/providers/commands/hiddenCommands';
 import type { ProviderCommandDropdownConfig } from '../../../core/providers/commands/ProviderCommandCatalog';
 import type { ProviderCommandEntry } from '../../../core/providers/commands/ProviderCommandEntry';
+import { getOpaqueProviderState } from '../../../core/providers/getOpaqueProviderState';
 import { getEnabledProviderForModel, getProviderForModel } from '../../../core/providers/modelRouting';
 import { ProviderRegistry } from '../../../core/providers/ProviderRegistry';
 import { ProviderSettingsCoordinator } from '../../../core/providers/ProviderSettingsCoordinator';
@@ -667,14 +668,9 @@ export function refreshRuntimeContextUI(tab: TabData, plugin: GrimoirePlugin): v
 
 function recordProviderLaunchArtifacts(tab: TabData, plugin: GrimoirePlugin): void {
   const providerId = getTabProviderId(tab, plugin);
-  if (providerId !== 'grok') {
-    return;
+  for (const path of ProviderRegistry.getPreloadedContextFiles(providerId)) {
+    tab.ui.runtimeContextActivity?.recordPreloadedFile(providerId, path);
   }
-
-  tab.ui.runtimeContextActivity?.recordPreloadedFile(
-    providerId,
-    '.grimoire/grok/system.md',
-  );
 }
 
 function syncSlashCommandDropdownForProvider(
@@ -2429,7 +2425,7 @@ function resolveForkSource(tab: TabData, plugin: GrimoirePlugin): ForkSource | n
   return {
     providerId: getTabProviderId(tab, plugin, conversation),
     sourceSessionId,
-    sourceProviderState: conversation?.providerState,
+    sourceProviderState: getOpaqueProviderState(conversation),
     sourceTitle: conversation?.title,
     currentNote: conversation?.currentNote,
     model: resolveTabModel(tab, plugin, conversation),
@@ -2547,35 +2543,7 @@ export function initializeTabControllers(
   forkRequestCallback?: (forkContext: ForkContext) => Promise<void>,
   openConversation?: (conversationId: string) => Promise<void>,
   getProviderCatalogConfig?: () => ProviderCatalogInfo,
-): void;
-/** @deprecated Legacy 7-arg overload — 4th arg was previously an MCP manager. */
-export function initializeTabControllers(
-  tab: TabData,
-  plugin: GrimoirePlugin,
-  component: Component,
-  _legacyArg: unknown,
-  forkRequestCallback?: (forkContext: ForkContext) => Promise<void>,
-  openConversation?: (conversationId: string) => Promise<void>,
-  getProviderCatalogConfig?: () => ProviderCatalogInfo,
-): void;
-export function initializeTabControllers(
-  tab: TabData,
-  plugin: GrimoirePlugin,
-  component: Component,
-  arg4?: unknown,
-  arg5?: unknown,
-  arg6?: unknown,
-  arg7?: unknown,
 ): void {
-  // Support legacy 7-arg call sites (4th arg was previously an MCP manager)
-  const isLegacy = arg4 !== undefined && typeof arg4 !== 'function';
-  const forkRequestCallback = (isLegacy ? arg5 : arg4) as
-    ((forkContext: ForkContext) => Promise<void>) | undefined;
-  const openConversation = (isLegacy ? arg6 : arg5) as
-    ((conversationId: string) => Promise<void>) | undefined;
-  const getProviderCatalogConfig = (isLegacy ? arg7 : arg6) as
-    (() => ProviderCatalogInfo) | undefined;
-
   const { dom, state, services, ui } = tab;
 
   // Create renderer

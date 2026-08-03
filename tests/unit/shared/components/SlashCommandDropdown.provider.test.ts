@@ -120,7 +120,7 @@ describe('SlashCommandDropdown - provider catalog', () => {
       inputEl.value = '/';
       inputEl.selectionStart = 1;
       dropdown.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       const names = getRenderedCommandNames(containerEl);
       // Built-ins + Claude entries (all use / prefix)
@@ -140,7 +140,7 @@ describe('SlashCommandDropdown - provider catalog', () => {
       inputEl.value = '/rev';
       inputEl.selectionStart = 4;
       dropdown.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       const names = getRenderedCommandNames(containerEl);
       expect(names).toContain('/review');
@@ -159,7 +159,7 @@ describe('SlashCommandDropdown - provider catalog', () => {
       inputEl.value = '$';
       inputEl.selectionStart = 1;
       dropdown.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       const names = getRenderedCommandNames(containerEl);
       expect(names).toContain('$analyze');
@@ -178,7 +178,7 @@ describe('SlashCommandDropdown - provider catalog', () => {
       inputEl.value = '/';
       inputEl.selectionStart = 1;
       dropdown.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       const names = getRenderedCommandNames(containerEl);
       expect(names).toContain('/clear');
@@ -196,7 +196,7 @@ describe('SlashCommandDropdown - provider catalog', () => {
       inputEl.value = '/';
       inputEl.selectionStart = 1;
       dropdown.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       const names = getRenderedCommandNames(containerEl);
       expect(names).toContain('/clear');
@@ -216,7 +216,7 @@ describe('SlashCommandDropdown - provider catalog', () => {
       inputEl.value = '$';
       inputEl.selectionStart = 1;
       dropdown.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       // Simulate selecting the first (only) item via handleKeydown Enter
       const event = { key: 'Enter', preventDefault: jest.fn() } as any;
@@ -240,7 +240,7 @@ describe('SlashCommandDropdown - provider catalog', () => {
       inputEl.value = '/';
       inputEl.selectionStart = 1;
       dropdown.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       expect(claudeEntries).toHaveBeenCalledTimes(1);
 
@@ -251,7 +251,7 @@ describe('SlashCommandDropdown - provider catalog', () => {
       inputEl.value = '$';
       inputEl.selectionStart = 1;
       dropdown.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       expect(codexEntries).toHaveBeenCalledTimes(1);
 
@@ -269,7 +269,7 @@ describe('SlashCommandDropdown - provider catalog', () => {
       inputEl.value = 'some text $';
       inputEl.selectionStart = 11;
       dropdown.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       const names = getRenderedCommandNames(containerEl);
       expect(names).toContain('$analyze');
@@ -286,7 +286,7 @@ describe('SlashCommandDropdown - provider catalog', () => {
       inputEl.value = 'check this /';
       inputEl.selectionStart = 12;
       dropdown.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       const names = getRenderedCommandNames(containerEl);
       expect(names).toContain('/review');
@@ -303,7 +303,7 @@ describe('SlashCommandDropdown - provider catalog', () => {
       inputEl.value = 'some text /';
       inputEl.selectionStart = 11;
       dropdown.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       const names = getRenderedCommandNames(containerEl);
       // Mid-sentence: provider entries only, no built-ins
@@ -322,7 +322,7 @@ describe('SlashCommandDropdown - provider catalog', () => {
       inputEl.value = 'word$';
       inputEl.selectionStart = 5;
       dropdown.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       expect(dropdown.isVisible()).toBe(false);
 
@@ -338,7 +338,7 @@ describe('SlashCommandDropdown - provider catalog', () => {
       inputEl.value = 'prefix $';
       inputEl.selectionStart = 8;
       dropdown.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       // Select the item
       const event = { key: 'Enter', preventDefault: jest.fn() } as any;

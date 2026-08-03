@@ -9,19 +9,19 @@ const docRemove = jest.fn();
 
 function createManager(servers: any[] = []) {
   const container = createMockEl();
-  const manager = new McpSettingsManager(container as any, {
+  const manager = new McpSettingsManager(container, {
     app: {} as any,
     mcpStorage: {
       load: jest.fn().mockResolvedValue(servers),
       save: jest.fn().mockResolvedValue(undefined),
-    } as any,
+    },
     broadcastMcpReload: jest.fn().mockResolvedValue(undefined),
   });
 
   return { container, manager };
 }
 
-const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+const flush = () => new Promise((resolve) => window.setTimeout(resolve, 0));
 
 describe('McpSettingsManager document click listener lifecycle', () => {
   beforeEach(() => {
@@ -74,7 +74,7 @@ describe('McpSettingsManager document click listener lifecycle', () => {
     ]);
     await flush();
 
-    const toggle = (container as any).querySelectorAll('.grimoire-mcp-action-btn').find(
+    const toggle = (container).querySelectorAll('.grimoire-mcp-action-btn').find(
       (button: any) => button.getAttribute('aria-label') === 'filesystem',
     );
 

@@ -1,12 +1,13 @@
+import '@/providers';
+
 import { ProviderRegistry } from '@/core/providers/ProviderRegistry';
 import { antigravityWorkspaceRegistration } from '@/providers/antigravity/app/AntigravityWorkspaceServices';
-import { discoverAntigravityModels } from '@/providers/antigravity/runtime/AntigravityModelDiscovery';
 import { AntigravityChatRuntime } from '@/providers/antigravity/runtime/AntigravityChatRuntime';
+import { discoverAntigravityModels } from '@/providers/antigravity/runtime/AntigravityModelDiscovery';
 import {
   getAntigravityProviderSettings,
   updateAntigravityProviderSettings,
 } from '@/providers/antigravity/settings';
-import '@/providers';
 
 jest.mock('@/providers/antigravity/runtime/AntigravityModelDiscovery', () => ({
   discoverAntigravityModels: jest.fn(),

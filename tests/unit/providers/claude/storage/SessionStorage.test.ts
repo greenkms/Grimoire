@@ -1,6 +1,5 @@
 import '@/providers';
 
-import type { ProviderId } from '@/core/providers/types';
 import type { VaultFileAdapter } from '@/core/storage/VaultFileAdapter';
 import type { Conversation, SessionMetadata, UsageInfo } from '@/core/types';
 import {
@@ -169,6 +168,19 @@ describe('SessionStorage', () => {
       expect(result!.providerId).toBe('codex');
     });
 
+    it('rejects metadata for an unregistered provider', async () => {
+      mockAdapter.exists.mockResolvedValue(true);
+      mockAdapter.read.mockResolvedValue(JSON.stringify({
+        id: 'session-unknown',
+        providerId: 'unknown-provider',
+        title: 'Unknown Session',
+        createdAt: 1700000000,
+        updatedAt: 1700001000,
+      }));
+
+      await expect(storage.loadMetadata('session-unknown')).resolves.toBeNull();
+    });
+
     it('returns null on parse error', async () => {
       mockAdapter.exists.mockResolvedValue(true);
       mockAdapter.read.mockResolvedValue('invalid json');
@@ -243,13 +255,28 @@ describe('SessionStorage', () => {
       expect(metas).toHaveLength(1);
       expect(metas[0].providerId).toBe('claude');
     });
+
+    it('skips conversations owned by an unregistered provider', async () => {
+      mockAdapter.listFiles.mockResolvedValue([
+        '.grimoire/sessions/unknown.meta.json',
+      ]);
+      mockAdapter.read.mockResolvedValue(JSON.stringify({
+        id: 'unknown',
+        providerId: 'unknown-provider',
+        title: 'Unknown Session',
+        createdAt: 1700000000,
+        updatedAt: 1700001000,
+      }));
+
+      await expect(storage.listAllConversations()).resolves.toEqual([]);
+    });
   });
 
   describe('toSessionMetadata - round trip', () => {
     it('round-trips providerState through save and load', async () => {
       const conversation: Conversation = {
         id: 'conv-roundtrip',
-        providerId: 'claude' as ProviderId,
+        providerId: 'claude',
         title: 'Round Trip Test',
         createdAt: 1700000000,
         updatedAt: 1700001000,
@@ -282,7 +309,7 @@ describe('SessionStorage', () => {
 
     it('round-trips the bound conversation model', async () => {
       const conversation: Conversation = {
-        id: 'conv-model-rt', providerId: 'claude' as ProviderId, title: 'Model',
+        id: 'conv-model-rt', providerId: 'claude', title: 'Model',
         createdAt: 1, updatedAt: 2, sessionId: 'sdk-session', model: 'opus', messages: [],
       };
 
@@ -297,7 +324,7 @@ describe('SessionStorage', () => {
     it('round-trips non-Claude providerId', async () => {
       const conversation: Conversation = {
         id: 'conv-codex-rt',
-        providerId: 'codex' as ProviderId,
+        providerId: 'codex',
         title: 'Codex Round Trip',
         createdAt: 1700000000,
         updatedAt: 1700001000,
@@ -526,7 +553,7 @@ describe('SessionStorage', () => {
     it('extracts subagent data from Task toolCalls', () => {
       const conversation: Conversation = {
         id: 'conv-subagent',
-        providerId: 'claude' as ProviderId,
+        providerId: 'claude',
         title: 'Subagent Test',
         createdAt: 1700000000,
         updatedAt: 1700001000,
@@ -572,7 +599,7 @@ describe('SessionStorage', () => {
     it('returns undefined subagentData when no subagents present', () => {
       const conversation: Conversation = {
         id: 'conv-no-subagent',
-        providerId: 'claude' as ProviderId,
+        providerId: 'claude',
         title: 'No Subagent',
         createdAt: 1700000000,
         updatedAt: 1700001000,
@@ -591,7 +618,7 @@ describe('SessionStorage', () => {
     it('ignores Task toolCalls without linked subagent', () => {
       const conversation: Conversation = {
         id: 'conv-task-subagent',
-        providerId: 'claude' as ProviderId,
+        providerId: 'claude',
         title: 'Task Subagent Test',
         createdAt: 1700000000,
         updatedAt: 1700001000,
@@ -625,7 +652,7 @@ describe('SessionStorage', () => {
     it('includes resumeAtMessageId when set', () => {
       const conversation: Conversation = {
         id: 'conv-rewind',
-        providerId: 'claude' as ProviderId,
+        providerId: 'claude',
         title: 'Rewind Test',
         createdAt: 1700000000,
         updatedAt: 1700001000,
@@ -642,7 +669,7 @@ describe('SessionStorage', () => {
     it('omits resumeAtMessageId when not set', () => {
       const conversation: Conversation = {
         id: 'conv-no-rewind',
-        providerId: 'claude' as ProviderId,
+        providerId: 'claude',
         title: 'No Rewind',
         createdAt: 1700000000,
         updatedAt: 1700001000,
@@ -670,7 +697,7 @@ describe('SessionStorage', () => {
 
       const conversation: Conversation = {
         id: 'conv-convert',
-        providerId: 'claude' as ProviderId,
+        providerId: 'claude',
         title: 'Convert Test',
         createdAt: 1700000000,
         updatedAt: 1700001000,
@@ -710,7 +737,7 @@ describe('SessionStorage', () => {
     it('persists vault search source metadata alongside fallback messages', () => {
       const conversation: Conversation = {
         id: 'conv-vault-search',
-        providerId: 'claude' as ProviderId,
+        providerId: 'claude',
         title: 'Vault Search',
         createdAt: 1700000000,
         updatedAt: 1700001000,
@@ -765,7 +792,7 @@ describe('SessionStorage', () => {
     it('persists assistant response metadata alongside fallback messages', () => {
       const conversation: Conversation = {
         id: 'conv-assistant-meta',
-        providerId: 'claude' as ProviderId,
+        providerId: 'claude',
         title: 'Assistant Metadata',
         createdAt: 1700000000,
         updatedAt: 1700001000,
@@ -920,7 +947,7 @@ describe('SessionStorage', () => {
     it('includes forkSource when set', () => {
       const conversation: Conversation = {
         id: 'conv-fork',
-        providerId: 'claude' as ProviderId,
+        providerId: 'claude',
         title: 'Fork Test',
         createdAt: 1700000000,
         updatedAt: 1700001000,
@@ -940,7 +967,7 @@ describe('SessionStorage', () => {
     it('omits forkSource when not set', () => {
       const conversation: Conversation = {
         id: 'conv-no-fork',
-        providerId: 'claude' as ProviderId,
+        providerId: 'claude',
         title: 'No Fork',
         createdAt: 1700000000,
         updatedAt: 1700001000,

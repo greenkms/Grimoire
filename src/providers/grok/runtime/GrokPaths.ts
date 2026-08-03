@@ -6,7 +6,7 @@ import { GRIMOIRE_STORAGE_PATH } from '../../../core/bootstrap/StoragePaths';
 import { expandHomePath } from '../../../utils/path';
 
 const GROK_APP_NAME = 'grok';
-const GROK_ARTIFACTS_SUBDIR = 'grok';
+export const GROK_ARTIFACTS_SUBDIR = 'grok';
 const GROK_SESSIONS_DIR = 'sessions';
 const GROK_CHAT_HISTORY_FILE = 'chat_history.jsonl';
 const GROK_UPDATES_FILE = 'updates.jsonl';

@@ -12,10 +12,10 @@ describe('ProviderWorkspaceRegistry', () => {
     const codexProvider = { searchAgents: jest.fn().mockReturnValue([]) };
 
     ProviderWorkspaceRegistry.setServices('claude', {
-      agentMentionProvider: claudeProvider as any,
+      agentMentionProvider: claudeProvider,
     });
     ProviderWorkspaceRegistry.setServices('codex', {
-      agentMentionProvider: codexProvider as any,
+      agentMentionProvider: codexProvider,
     });
 
     expect(ProviderWorkspaceRegistry.getAgentMentionProvider('claude')).toBe(claudeProvider);
@@ -51,7 +51,7 @@ describe('ProviderWorkspaceRegistry', () => {
     };
 
     ProviderWorkspaceRegistry.setServices('claude', {
-      commandCatalog: mockCatalog as any,
+      commandCatalog: mockCatalog,
     });
 
     expect(ProviderWorkspaceRegistry.getCommandCatalog('claude')).toBe(mockCatalog);
@@ -64,7 +64,7 @@ describe('ProviderWorkspaceRegistry', () => {
     };
 
     ProviderWorkspaceRegistry.setServices('opencode', {
-      runtimeCommandLoader: runtimeCommandLoader as any,
+      runtimeCommandLoader: runtimeCommandLoader,
     });
 
     expect(ProviderWorkspaceRegistry.getRuntimeCommandLoader('opencode')).toBe(runtimeCommandLoader);
@@ -76,7 +76,7 @@ describe('ProviderWorkspaceRegistry', () => {
     };
 
     ProviderWorkspaceRegistry.setServices('opencode', {
-      tabWarmupPolicy: tabWarmupPolicy as any,
+      tabWarmupPolicy: tabWarmupPolicy,
     });
 
     expect(ProviderWorkspaceRegistry.getTabWarmupPolicy('opencode')).toBe(tabWarmupPolicy);

@@ -2,6 +2,7 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
 import { applyOrchestratorModeInstructions } from '../../../core/prompt/mainAgent';
+import { ProviderRegistry } from '../../../core/providers/ProviderRegistry';
 import type { ProviderCapabilities } from '../../../core/providers/types';
 import type { ChatRuntime } from '../../../core/runtime/ChatRuntime';
 import type {
@@ -28,6 +29,7 @@ import type {
   StreamChunk,
   ToolCallInfo,
 } from '../../../core/types';
+import { t } from '../../../i18n/i18n';
 import type GrimoirePlugin from '../../../main';
 import { appendBrowserContext } from '../../../utils/browser';
 import { appendCanvasContext } from '../../../utils/canvas';
@@ -263,13 +265,13 @@ export class QwenChatRuntime implements ChatRuntime {
       && (!expectedSessionId || this.sessionInvalidated);
 
     if (!(await this.ensureReady())) {
-      yield { type: 'error', content: 'Failed to start Qwen. Check the CLI path and login state.' };
+      yield { type: 'error', content: t('chat.ui.errors.provider.startFailed', { provider: ProviderRegistry.getProviderDisplayNameOrId('qwen') }) };
       yield { type: 'done' };
       return;
     }
 
     if (!this.connection) {
-      yield { type: 'error', content: 'Qwen runtime is not ready.' };
+      yield { type: 'error', content: t('chat.ui.errors.provider.notReady', { provider: ProviderRegistry.getProviderDisplayNameOrId('qwen') }) };
       yield { type: 'done' };
       return;
     }
@@ -282,7 +284,7 @@ export class QwenChatRuntime implements ChatRuntime {
     if (!this.sessionId) {
       const sessionId = await this.createSession(cwd);
       if (!sessionId) {
-        yield { type: 'error', content: 'Failed to create a Qwen session.' };
+        yield { type: 'error', content: t('chat.ui.errors.provider.sessionCreateFailed', { provider: ProviderRegistry.getProviderDisplayNameOrId('qwen') }) };
         yield { type: 'done' };
         return;
       }
@@ -893,7 +895,7 @@ export class QwenChatRuntime implements ChatRuntime {
   }
 
   private formatRuntimeError(error: unknown): string {
-    const baseMessage = error instanceof Error ? error.message : 'Qwen request failed';
+    const baseMessage = error instanceof Error ? error.message : t('chat.ui.errors.provider.requestFailed', { provider: ProviderRegistry.getProviderDisplayNameOrId('qwen') });
     const stderr = this.process?.getStderrSnapshot();
     return stderr ? `${baseMessage}\n\n${stderr}` : baseMessage;
   }

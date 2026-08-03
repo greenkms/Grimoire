@@ -89,7 +89,7 @@ describe('CodexAuxQueryRunner', () => {
         case 'thread/start':
           return { thread: { id: 'thread-1' } };
         case 'turn/start':
-          setTimeout(() => {
+          window.setTimeout(() => {
             deltaHandler?.({ delta: 'Hello from Codex' });
             turnCompletedHandler?.({ turn: { status: 'completed', error: null } });
           }, 0);

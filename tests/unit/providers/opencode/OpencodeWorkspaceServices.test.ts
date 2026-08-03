@@ -21,7 +21,7 @@ describe('createOpencodeWorkspaceServices', () => {
         updateOpencodeProviderSettings((this as any).plugin.settings, {
           discoveredModels: [{ label: 'OpenAI/GPT-5.6', rawId: 'openai/gpt-5.6' }],
           visibleModels: ['openai/gpt-5.6'],
-        } as any);
+        });
         return true;
       });
     const cleanupSpy = jest.spyOn(OpencodeChatRuntime.prototype, 'cleanup').mockImplementation(() => undefined);
@@ -59,7 +59,7 @@ describe('createOpencodeWorkspaceServices', () => {
       discoveredModels: [{ label: 'OpenAI/GPT-5.6', rawId: 'openai/gpt-5.6' }],
       enabled: true,
       visibleModels: ['openai/gpt-5.6'],
-    } as any);
+    });
     const plugin = {
       recordDebugLog: jest.fn(),
       settings,

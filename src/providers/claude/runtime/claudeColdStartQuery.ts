@@ -2,6 +2,7 @@ import type { Options } from '@anthropic-ai/claude-agent-sdk';
 import { query as agentQuery } from '@anthropic-ai/claude-agent-sdk';
 
 import { ProviderSettingsCoordinator } from '../../../core/providers/ProviderSettingsCoordinator';
+import { t } from '../../../i18n/i18n';
 import type GrimoirePlugin from '../../../main';
 import { getEnhancedPath, getMissingNodeError, parseEnvironmentVariables } from '../../../utils/env';
 import { getVaultPath } from '../../../utils/path';
@@ -51,12 +52,12 @@ export async function runColdStartQuery(
 ): Promise<ColdStartQueryResult> {
   const vaultPath = getVaultPath(config.plugin.app);
   if (!vaultPath) {
-    throw new Error('Could not determine vault path');
+    throw new Error(t('chat.ui.errors.provider.claudeVaultPathUnavailable'));
   }
 
   const resolvedClaudePath = config.plugin.getResolvedProviderCliPath('claude');
   if (!resolvedClaudePath) {
-    throw new Error('Claude CLI not found');
+    throw new Error(t('chat.ui.errors.provider.claudeCliNotFound'));
   }
 
   const customEnv = parseEnvironmentVariables(

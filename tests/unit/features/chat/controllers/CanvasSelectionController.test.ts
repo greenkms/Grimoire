@@ -24,7 +24,7 @@ function createMockContextRow() {
   contextRow.classList.toggle = jest.fn((cls: string, force?: boolean) => toggle(cls, force));
 
   contextRow.querySelector = jest.fn((selector: string) => elements[selector] ?? null);
-  return contextRow as any;
+  return contextRow;
 }
 
 function createMockCanvasNode(id: string) {
@@ -68,14 +68,14 @@ describe('CanvasSelectionController', () => {
 
     controller = new CanvasSelectionController(app, indicatorEl, inputEl, contextRowEl);
 
-    originalDocument = (global as any).document;
-    (global as any).document = { activeElement: null };
+    originalDocument = (window as any).document;
+    (window as any).document = { activeElement: null };
   });
 
   afterEach(() => {
     controller.stop();
     jest.useRealTimers();
-    (global as any).document = originalDocument;
+    (window as any).document = originalDocument;
   });
 
   it('captures canvas selection and updates indicator', () => {
@@ -108,7 +108,7 @@ describe('CanvasSelectionController', () => {
     expect(controller.hasSelection()).toBe(true);
 
     canvasView.canvas.selection = new Set();
-    (global as any).document.activeElement = null;
+    (window as any).document.activeElement = null;
 
     jest.advanceTimersByTime(250);
 
@@ -122,7 +122,7 @@ describe('CanvasSelectionController', () => {
     expect(controller.hasSelection()).toBe(true);
 
     canvasView.canvas.selection = new Set();
-    (global as any).document.activeElement = inputEl;
+    (window as any).document.activeElement = inputEl;
 
     jest.advanceTimersByTime(250);
 

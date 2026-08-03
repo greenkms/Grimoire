@@ -48,7 +48,14 @@ export function renderWhatsNewCard(
     },
   });
 
-  const listEl = cardEl.createDiv({ cls: 'grimoire-whats-new-card-list' });
+  const listEl = cardEl.createDiv({
+    cls: 'grimoire-whats-new-card-list',
+    attr: {
+      role: 'region',
+      tabindex: '0',
+      'aria-label': 'Release notes',
+    },
+  });
   for (const category of release.categories) {
     const sectionEl = listEl.createDiv({ cls: 'grimoire-whats-new-card-section' });
     sectionEl.createDiv({ cls: 'grimoire-whats-new-card-section-title', text: category.title });

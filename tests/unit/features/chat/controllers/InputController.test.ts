@@ -2,9 +2,9 @@ import '@/providers';
 
 import { createMockEl } from '@test/helpers/mockElement';
 import * as fs from 'fs';
+import { Notice } from 'obsidian';
 import * as os from 'os';
 import * as path from 'path';
-import { Notice } from 'obsidian';
 
 import { InputController, type InputControllerDeps } from '@/features/chat/controllers/InputController';
 import { ChatState } from '@/features/chat/state/ChatState';
@@ -120,7 +120,7 @@ function createMockDeps(overrides: Partial<InputControllerDeps> = {}): InputCont
   const queueIndicatorEl = createMockEl();
   queueIndicatorEl.style.display = 'none';
   jest.spyOn(queueIndicatorEl, 'setText');
-  state.queueIndicatorEl = queueIndicatorEl as any;
+  state.queueIndicatorEl = queueIndicatorEl;
 
   const imageContextManager = createMockImageContextManager();
   const mockAgentService = createMockAgentService();
@@ -183,9 +183,9 @@ function createMockDeps(overrides: Partial<InputControllerDeps> = {}): InputCont
       clearTerminalSubagentsFromMessages: jest.fn(),
     } as any,
     getInputEl: () => inputEl,
-    getInputContainerEl: () => createMockEl() as any,
+    getInputContainerEl: () => createMockEl(),
     getWelcomeEl: () => null,
-    getMessagesEl: () => createMockEl() as any,
+    getMessagesEl: () => createMockEl(),
     getFileContextManager: () => ({
       startSession: jest.fn(),
       getCurrentNotePath: jest.fn().mockReturnValue(null),
@@ -240,7 +240,7 @@ describe('InputController - Message Queue', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     deps = createMockDeps();
-    inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+    inputEl = deps.getInputEl();
     controller = new InputController(deps);
   });
 
@@ -619,8 +619,8 @@ describe('InputController - Message Queue', () => {
 
     it('should not mark the current note as sent when steering is rejected', async () => {
       const fileContextManager = createMockFileContextManager();
-      (fileContextManager.getCurrentNotePath as jest.Mock).mockReturnValue('notes/session.md');
-      (fileContextManager.shouldSendCurrentNote as jest.Mock).mockReturnValue(true);
+      (fileContextManager.getCurrentNotePath).mockReturnValue('notes/session.md');
+      (fileContextManager.shouldSendCurrentNote).mockReturnValue(true);
       deps = createSendableDeps({
         getFileContextManager: () => fileContextManager as any,
       });
@@ -730,7 +730,7 @@ describe('InputController - Message Queue', () => {
         })();
       });
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'first prompt';
       controller = new InputController(deps);
 
@@ -870,7 +870,7 @@ describe('InputController - Message Queue', () => {
         }
       });
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'first prompt';
       controller = new InputController(deps);
 
@@ -1015,7 +1015,7 @@ describe('InputController - Message Queue', () => {
       }));
       (deps as any).mockAgentService.query = jest.fn().mockImplementation(() => createMockStream([{ type: 'done' }]));
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = longMessage;
       controller = new InputController(deps);
 
@@ -1038,7 +1038,7 @@ describe('InputController - Message Queue', () => {
       });
       (deps as any).mockAgentService.query = jest.fn().mockImplementation(() => createMockStream([{ type: 'done' }]));
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = '@server-a hello';
       controller = new InputController(deps);
 
@@ -1089,7 +1089,7 @@ describe('InputController - Message Queue', () => {
       });
       (deps as any).mockAgentService.query = jest.fn().mockImplementation(() => createMockStream([{ type: 'done' }]));
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = '/compact';
       controller = new InputController(deps);
 
@@ -1162,7 +1162,7 @@ describe('InputController - Message Queue', () => {
       }));
       (deps as any).mockAgentService.query = jest.fn().mockImplementation(() => createMockStream([{ type: 'done' }]));
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = '@vault roadmap';
       controller = new InputController(deps);
 
@@ -1217,7 +1217,7 @@ describe('InputController - Message Queue', () => {
       }));
       (deps as any).mockAgentService.query = jest.fn().mockImplementation(() => createMockStream([{ type: 'done' }]));
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = '@vault';
       controller = new InputController(deps);
 
@@ -1241,7 +1241,7 @@ describe('InputController - Message Queue', () => {
       deps.getVaultSearchService = () => vaultSearchService as any;
       (deps as any).mockAgentService.query = jest.fn().mockImplementation(() => createMockStream([{ type: 'done' }]));
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = '/compact @vault roadmap';
       controller = new InputController(deps);
 
@@ -1276,7 +1276,7 @@ describe('InputController - Message Queue', () => {
       }));
       (deps as any).mockAgentService.query = jest.fn().mockImplementation(() => createMockStream([{ type: 'done' }]));
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'hello';
       controller = new InputController(deps);
 
@@ -1324,7 +1324,7 @@ describe('InputController - Message Queue', () => {
         () => createMockStream([{ type: 'done' }]),
       );
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'What is in the vault?';
       controller = new InputController(deps);
 
@@ -1361,7 +1361,7 @@ describe('InputController - Message Queue', () => {
       deps.getActiveProjectWorkspace = jest.fn().mockReturnValue(workspace) as any;
       (deps as any).mockAgentService.query = jest.fn().mockImplementation(() => createMockStream([{ type: 'done' }]));
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'hello';
       controller = new InputController(deps);
 
@@ -1380,7 +1380,7 @@ describe('InputController - Message Queue', () => {
       });
       (deps.plugin as any).settings.model = 'opus';
       (deps as any).mockAgentService.query = jest.fn().mockImplementation(() => createMockStream([{ type: 'done' }]));
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'hello';
       controller = new InputController(deps);
 
@@ -1418,7 +1418,7 @@ describe('InputController - Message Queue', () => {
       deps.getActiveProjectWorkspace = jest.fn().mockReturnValue(workspace) as any;
       (deps as any).mockAgentService.query = jest.fn().mockImplementation(() => createMockStream([{ type: 'done' }]));
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'hello';
       controller = new InputController(deps);
 
@@ -1456,7 +1456,7 @@ describe('InputController - Message Queue', () => {
       };
       deps.getActiveProjectWorkspace = jest.fn().mockReturnValue(workspace) as any;
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'hello';
       controller = new InputController(deps);
 
@@ -1493,7 +1493,7 @@ describe('InputController - Message Queue', () => {
       }));
       (deps as any).mockAgentService.query = jest.fn().mockImplementation(() => createMockStream([{ type: 'done' }]));
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = '/compact summarize';
       controller = new InputController(deps);
 
@@ -1524,7 +1524,7 @@ describe('InputController - Message Queue', () => {
         return createMockStream([{ type: 'done' }]);
       });
 
-      const localInput = localDeps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      const localInput = localDeps.getInputEl();
       localInput.value = 'Summarize this';
 
       await localController.sendMessage();
@@ -1581,7 +1581,7 @@ describe('InputController - Message Queue', () => {
 
       // conversationId=null to test the conversation creation path
       deps = createSendableDeps({
-        getTitleGenerationService: () => mockTitleService as any,
+        getTitleGenerationService: () => mockTitleService,
       }, null);
 
       ((deps as any).mockAgentService.query as jest.Mock).mockReturnValue(
@@ -1597,7 +1597,7 @@ describe('InputController - Message Queue', () => {
         }
       });
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'Hello world';
       controller = new InputController(deps);
 
@@ -1617,7 +1617,7 @@ describe('InputController - Message Queue', () => {
         createMockStream([{ type: 'done' }])
       );
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'Test message';
       controller = new InputController(deps);
 
@@ -1640,7 +1640,7 @@ describe('InputController - Message Queue', () => {
     it('should use active tab provider settings for assistant response metadata', async () => {
       deps = createSendableDeps({
         getTabProviderId: () => 'codex',
-      } as Partial<InputControllerDeps>);
+      });
       const mockAgentService = (deps as ReturnType<typeof createSendableDeps>).mockAgentService;
       (mockAgentService as any).providerId = 'codex';
       mockAgentService.getCapabilities.mockReturnValue({
@@ -1670,7 +1670,7 @@ describe('InputController - Message Queue', () => {
       });
 
       mockAgentService.query.mockReturnValue(createMockStream([{ type: 'done' }]));
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'Test message';
       controller = new InputController(deps);
 
@@ -1694,7 +1694,7 @@ describe('InputController - Message Queue', () => {
       };
 
       deps = createSendableDeps({
-        getTitleGenerationService: () => mockTitleService as any,
+        getTitleGenerationService: () => mockTitleService,
       });
 
       ((deps as any).mockAgentService.query as jest.Mock).mockReturnValue(
@@ -1710,7 +1710,7 @@ describe('InputController - Message Queue', () => {
         }
       });
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'Hello world';
       controller = new InputController(deps);
 
@@ -1728,7 +1728,7 @@ describe('InputController - Message Queue', () => {
       deps = sendableDeps;
       (deps.plugin.createConversation as jest.Mock).mockResolvedValue({ id: 'conv-codex', providerId: 'codex' });
 
-      (sendableDeps.mockAgentService.query as jest.Mock).mockReturnValue(
+      (sendableDeps.mockAgentService.query).mockReturnValue(
         createMockStream([
           { type: 'text', content: 'Response text' },
           { type: 'done' },
@@ -1741,7 +1741,7 @@ describe('InputController - Message Queue', () => {
         }
       });
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'Hello world';
       controller = new InputController(deps);
 
@@ -1761,7 +1761,7 @@ describe('InputController - Message Queue', () => {
       deps = sendableDeps;
       (deps.plugin.createConversation as jest.Mock).mockResolvedValue({ id: 'conv-claude', providerId: 'claude' });
 
-      (sendableDeps.mockAgentService.query as jest.Mock).mockReturnValue(
+      (sendableDeps.mockAgentService.query).mockReturnValue(
         createMockStream([
           { type: 'text', content: 'Response text' },
           { type: 'done' },
@@ -1774,7 +1774,7 @@ describe('InputController - Message Queue', () => {
         }
       });
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'Hello world';
       controller = new InputController(deps);
 
@@ -1793,7 +1793,7 @@ describe('InputController - Message Queue', () => {
       };
 
       deps = createSendableDeps({
-        getTitleGenerationService: () => mockTitleService as any,
+        getTitleGenerationService: () => mockTitleService,
       });
 
       ((deps as any).mockAgentService.query as jest.Mock).mockReturnValue(
@@ -1815,7 +1815,7 @@ describe('InputController - Message Queue', () => {
         title: 'User Custom Title',
       });
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'Test';
       controller = new InputController(deps);
 
@@ -1846,7 +1846,7 @@ describe('InputController - Message Queue', () => {
         }
       });
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'Test message';
       controller = new InputController(deps);
 
@@ -1866,7 +1866,7 @@ describe('InputController - Message Queue', () => {
       };
 
       deps = createSendableDeps({
-        getTitleGenerationService: () => mockTitleService as any,
+        getTitleGenerationService: () => mockTitleService,
       });
       deps.plugin.settings.enableAutoTitleGeneration = false;
 
@@ -1883,7 +1883,7 @@ describe('InputController - Message Queue', () => {
         }
       });
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'Hello world';
       controller = new InputController(deps);
 
@@ -1913,7 +1913,7 @@ describe('InputController - Message Queue', () => {
         createMockStream([{ type: 'done' }])
       );
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'Test message';
       controller = new InputController(deps);
 
@@ -1933,7 +1933,7 @@ describe('InputController - Message Queue', () => {
         createMockStream([{ type: 'done' }])
       );
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'Test message';
       controller = new InputController(deps);
 
@@ -1952,7 +1952,7 @@ describe('InputController - Message Queue', () => {
         createMockStream([{ type: 'done' }])
       );
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'Test message';
       controller = new InputController(deps);
 
@@ -2029,7 +2029,7 @@ describe('InputController - Message Queue', () => {
           supportsProviderCommands: false,
           reasoningControl: 'effort',
         }),
-      } as any);
+      });
       inputEl.value = '/add-dir /some/path';
       controller = new InputController(deps);
 
@@ -2185,7 +2185,7 @@ describe('InputController - Message Queue', () => {
           supportsProviderCommands: false,
           reasoningControl: 'effort',
         }),
-      } as any);
+      });
       inputEl.value = '/resume';
       controller = new InputController(deps);
 
@@ -2400,7 +2400,7 @@ describe('InputController - Message Queue', () => {
         ensureServiceInitialized: jest.fn().mockResolvedValue(false),
       });
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'test message';
       controller = new InputController(deps);
 
@@ -2424,7 +2424,7 @@ describe('InputController - Message Queue', () => {
         getAgentService: () => null,
       });
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'test message';
       controller = new InputController(deps);
 
@@ -2444,7 +2444,7 @@ describe('InputController - Message Queue', () => {
         throw new Error('Network timeout');
       });
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'test message';
       controller = new InputController(deps);
 
@@ -2461,7 +2461,7 @@ describe('InputController - Message Queue', () => {
         throw 'string error';
       });
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'test message';
       controller = new InputController(deps);
 
@@ -2483,7 +2483,7 @@ describe('InputController - Message Queue', () => {
         })();
       });
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'test message';
       controller = new InputController(deps);
 
@@ -2508,7 +2508,7 @@ describe('InputController - Message Queue', () => {
         deps.state.cancelRequested = true;
       });
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'test message';
       controller = new InputController(deps);
 
@@ -2538,7 +2538,7 @@ describe('InputController - Message Queue', () => {
         createMockStream([{ type: 'done' }])
       );
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'test message';
       controller = new InputController(deps);
 
@@ -2561,7 +2561,7 @@ describe('InputController - Message Queue', () => {
       messagesEl.clientHeight = 400;
 
       deps = createSendableDeps({
-        getMessagesEl: () => messagesEl as any,
+        getMessagesEl: () => messagesEl,
       });
 
       let callCount = 0;
@@ -2574,7 +2574,7 @@ describe('InputController - Message Queue', () => {
         createMockStream([{ type: 'done' }])
       );
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'test message';
       controller = new InputController(deps);
 
@@ -2600,7 +2600,7 @@ describe('InputController - Message Queue', () => {
         createMockStream([{ type: 'done' }])
       );
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'test message';
       controller = new InputController(deps);
 
@@ -2627,7 +2627,7 @@ describe('InputController - Message Queue', () => {
           createMockStream([{ type: 'done' }])
         );
 
-        inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+        inputEl = deps.getInputEl();
         inputEl.value = 'test message';
         controller = new InputController(deps);
 
@@ -2660,7 +2660,7 @@ describe('InputController - Message Queue', () => {
         createMockStream([{ type: 'done' }])
       );
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'apply these instructions';
       controller = new InputController(deps);
 
@@ -2682,7 +2682,7 @@ describe('InputController - Message Queue', () => {
         createMockStream([{ type: 'done' }])
       );
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'plan this work';
       controller = new InputController(deps);
 
@@ -2708,7 +2708,7 @@ describe('InputController - Message Queue', () => {
         createMockStream([{ type: 'done' }])
       );
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'hello';
       controller = new InputController(deps);
 
@@ -2735,7 +2735,7 @@ describe('InputController - Message Queue', () => {
         createMockStream([{ type: 'done' }])
       );
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'hello';
       controller = new InputController(deps);
 
@@ -2783,7 +2783,7 @@ describe('InputController - Message Queue', () => {
         createMockStream([{ type: 'done' }])
       );
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = '/image silver owl in a clockwork forest';
       controller = new InputController(deps);
 
@@ -2823,7 +2823,7 @@ describe('InputController - Message Queue', () => {
       };
 
       deps = createSendableDeps({
-        getTitleGenerationService: () => mockTitleService as any,
+        getTitleGenerationService: () => mockTitleService,
       });
 
       ((deps as any).mockAgentService.query as jest.Mock).mockReturnValue(
@@ -2834,12 +2834,12 @@ describe('InputController - Message Queue', () => {
         if (chunk.type === 'text') msg.content = chunk.content;
       });
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'Hello world';
       controller = new InputController(deps);
 
       await controller.sendMessage();
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => window.setTimeout(resolve, 0));
 
       expect(deps.plugin.renameConversation).toHaveBeenCalledWith('conv-1', 'AI Generated Title');
       expect(deps.plugin.updateConversation).toHaveBeenCalledWith('conv-1', {
@@ -2862,7 +2862,7 @@ describe('InputController - Message Queue', () => {
       };
 
       deps = createSendableDeps({
-        getTitleGenerationService: () => mockTitleService as any,
+        getTitleGenerationService: () => mockTitleService,
       });
 
       ((deps as any).mockAgentService.query as jest.Mock).mockReturnValue(
@@ -2873,12 +2873,12 @@ describe('InputController - Message Queue', () => {
         if (chunk.type === 'text') msg.content = chunk.content;
       });
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'Hello world';
       controller = new InputController(deps);
 
       await controller.sendMessage();
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => window.setTimeout(resolve, 0));
 
       expect(deps.plugin.updateConversation).toHaveBeenCalledWith('conv-1', {
         titleGenerationStatus: 'failed',
@@ -2894,7 +2894,7 @@ describe('InputController - Message Queue', () => {
       inputContainerEl.addClass('grimoire-input-container');
       const sendButtonEl = composerEl.createEl('button', { cls: 'grimoire-send-button' });
       sendButtonEl.removeAttribute('disabled');
-      (inputContainerEl as any).parentElement = composerEl;
+      (inputContainerEl).parentElement = composerEl;
       const inputEl = {
         value: '',
         placeholder: 'Ask Grimoire...',
@@ -2908,7 +2908,7 @@ describe('InputController - Message Queue', () => {
       const toolResultEl = toolHeaderEl.createSpan({ cls: 'grimoire-tool-result' });
       deps.state.toolCallElements.set('bash-1', toolEl as HTMLElement);
 
-      deps.getInputContainerEl = () => inputContainerEl as any;
+      deps.getInputContainerEl = () => inputContainerEl;
       deps.getInputEl = () => inputEl;
       controller = new InputController(deps);
 
@@ -2951,8 +2951,8 @@ describe('InputController - Message Queue', () => {
     it('should create inline approval and store as pending', async () => {
       const parentEl = createMockEl();
       const inputContainerEl = createMockEl();
-      (inputContainerEl as any).parentElement = parentEl;
-      deps.getInputContainerEl = () => inputContainerEl as any;
+      (inputContainerEl).parentElement = parentEl;
+      deps.getInputContainerEl = () => inputContainerEl;
 
       controller = new InputController(deps);
 
@@ -2974,7 +2974,7 @@ describe('InputController - Message Queue', () => {
     it('auto-allows trusted Obsidian MCP read tools in safe mode without rendering approval UI', async () => {
       deps.plugin.settings.permissionMode = 'normal';
       const inputContainerEl = createMockEl();
-      deps.getInputContainerEl = () => inputContainerEl as any;
+      deps.getInputContainerEl = () => inputContainerEl;
 
       controller = new InputController(deps);
 
@@ -2992,8 +2992,8 @@ describe('InputController - Message Queue', () => {
       deps.plugin.settings.permissionMode = 'normal';
       const parentEl = createMockEl();
       const inputContainerEl = createMockEl();
-      (inputContainerEl as any).parentElement = parentEl;
-      deps.getInputContainerEl = () => inputContainerEl as any;
+      (inputContainerEl).parentElement = parentEl;
+      deps.getInputContainerEl = () => inputContainerEl;
 
       controller = new InputController(deps);
 
@@ -3011,7 +3011,7 @@ describe('InputController - Message Queue', () => {
     it('should throw when input container has no parent', async () => {
       const inputContainerEl = createMockEl();
       // no parentElement set
-      deps.getInputContainerEl = () => inputContainerEl as any;
+      deps.getInputContainerEl = () => inputContainerEl;
 
       controller = new InputController(deps);
       await expect(controller.handleApprovalRequest('bash', {}, 'test'))
@@ -3025,8 +3025,8 @@ describe('InputController - Message Queue', () => {
     ] as const)('should return "%s" → "%s"', async (optionLabel, expected) => {
       const parentEl = createMockEl();
       const inputContainerEl = createMockEl();
-      (inputContainerEl as any).parentElement = parentEl;
-      deps.getInputContainerEl = () => inputContainerEl as any;
+      (inputContainerEl).parentElement = parentEl;
+      deps.getInputContainerEl = () => inputContainerEl;
 
       controller = new InputController(deps);
 
@@ -3051,8 +3051,8 @@ describe('InputController - Message Queue', () => {
     it('should render header metadata when approvalOptions provided', async () => {
       const parentEl = createMockEl();
       const inputContainerEl = createMockEl();
-      (inputContainerEl as any).parentElement = parentEl;
-      deps.getInputContainerEl = () => inputContainerEl as any;
+      (inputContainerEl).parentElement = parentEl;
+      deps.getInputContainerEl = () => inputContainerEl;
 
       controller = new InputController(deps);
 
@@ -3083,8 +3083,8 @@ describe('InputController - Message Queue', () => {
     it('should render provider-supplied approval options and network-specific context', async () => {
       const parentEl = createMockEl();
       const inputContainerEl = createMockEl();
-      (inputContainerEl as any).parentElement = parentEl;
-      deps.getInputContainerEl = () => inputContainerEl as any;
+      (inputContainerEl).parentElement = parentEl;
+      deps.getInputContainerEl = () => inputContainerEl;
 
       controller = new InputController(deps);
 
@@ -3135,8 +3135,8 @@ describe('InputController - Message Queue', () => {
       async (optionLabel, optionValue, expectedDecision) => {
         const parentEl = createMockEl();
         const inputContainerEl = createMockEl();
-        (inputContainerEl as any).parentElement = parentEl;
-        deps.getInputContainerEl = () => inputContainerEl as any;
+        (inputContainerEl).parentElement = parentEl;
+        deps.getInputContainerEl = () => inputContainerEl;
 
         controller = new InputController(deps);
 
@@ -3168,8 +3168,8 @@ describe('InputController - Message Queue', () => {
     it('should return provider-specific amendment decisions from supplied approval options', async () => {
       const parentEl = createMockEl();
       const inputContainerEl = createMockEl();
-      (inputContainerEl as any).parentElement = parentEl;
-      deps.getInputContainerEl = () => inputContainerEl as any;
+      (inputContainerEl).parentElement = parentEl;
+      deps.getInputContainerEl = () => inputContainerEl;
 
       controller = new InputController(deps);
 
@@ -3208,8 +3208,8 @@ describe('InputController - Message Queue', () => {
     it('should restore input visibility after overlapping inline prompts are dismissed', async () => {
       const parentEl = createMockEl();
       const inputContainerEl = createMockEl();
-      (inputContainerEl as any).parentElement = parentEl;
-      deps.getInputContainerEl = () => inputContainerEl as any;
+      (inputContainerEl).parentElement = parentEl;
+      deps.getInputContainerEl = () => inputContainerEl;
 
       controller = new InputController(deps);
 
@@ -3239,8 +3239,8 @@ describe('InputController - Message Queue', () => {
     it('should keep input hidden until overlapping exit-plan prompt is dismissed', async () => {
       const parentEl = createMockEl();
       const inputContainerEl = createMockEl();
-      (inputContainerEl as any).parentElement = parentEl;
-      deps.getInputContainerEl = () => inputContainerEl as any;
+      (inputContainerEl).parentElement = parentEl;
+      deps.getInputContainerEl = () => inputContainerEl;
 
       controller = new InputController(deps);
 
@@ -3281,7 +3281,7 @@ describe('InputController - Message Queue', () => {
       const mockInstructionModeManager = createMockInstructionModeManager();
 
       deps = createMockDeps({
-        getInstructionRefineService: () => mockInstructionRefineService as any,
+        getInstructionRefineService: () => mockInstructionRefineService,
         getInstructionModeManager: () => mockInstructionModeManager as any,
       });
       deps.plugin.settings.systemPrompt = '';
@@ -3307,7 +3307,7 @@ describe('InputController - Message Queue', () => {
 
       deps = createMockDeps({
         getAuxiliaryModel: () => 'opencode:openai/gpt-5.4',
-        getInstructionRefineService: () => mockInstructionRefineService as any,
+        getInstructionRefineService: () => mockInstructionRefineService,
       });
       deps.plugin.settings.systemPrompt = '';
 
@@ -3374,8 +3374,8 @@ describe('InputController - Message Queue', () => {
 
     it('should send message with only images (empty text)', async () => {
       const imageContextManager = createMockImageContextManager();
-      (imageContextManager.hasImages as jest.Mock).mockReturnValue(true);
-      (imageContextManager.getAttachedImages as jest.Mock).mockReturnValue([{ id: 'img1', name: 'test.png' }]);
+      (imageContextManager.hasImages).mockReturnValue(true);
+      (imageContextManager.getAttachedImages).mockReturnValue([{ id: 'img1', name: 'test.png' }]);
 
       deps = createSendableDeps({
         getImageContextManager: () => imageContextManager as any,
@@ -3385,7 +3385,7 @@ describe('InputController - Message Queue', () => {
         createMockStream([{ type: 'done' }])
       );
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = '';
       controller = new InputController(deps);
 
@@ -3410,7 +3410,7 @@ describe('InputController - Message Queue', () => {
         })();
       });
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'test message';
       controller = new InputController(deps);
 
@@ -3435,7 +3435,7 @@ describe('InputController - Message Queue', () => {
       const mockInstructionModeManager = createMockInstructionModeManager();
 
       deps = createMockDeps({
-        getInstructionRefineService: () => mockInstructionRefineService as any,
+        getInstructionRefineService: () => mockInstructionRefineService,
         getInstructionModeManager: () => mockInstructionModeManager as any,
       });
       controller = new InputController(deps);
@@ -3453,7 +3453,7 @@ describe('InputController - Message Queue', () => {
       const mockInstructionModeManager = createMockInstructionModeManager();
 
       deps = createMockDeps({
-        getInstructionRefineService: () => mockInstructionRefineService as any,
+        getInstructionRefineService: () => mockInstructionRefineService,
         getInstructionModeManager: () => mockInstructionModeManager as any,
       });
       controller = new InputController(deps);
@@ -3475,7 +3475,7 @@ describe('InputController - Message Queue', () => {
       const mockInstructionModeManager = createMockInstructionModeManager();
 
       deps = createMockDeps({
-        getInstructionRefineService: () => mockInstructionRefineService as any,
+        getInstructionRefineService: () => mockInstructionRefineService,
         getInstructionModeManager: () => mockInstructionModeManager as any,
       });
       controller = new InputController(deps);
@@ -3496,7 +3496,7 @@ describe('InputController - Message Queue', () => {
       const mockInstructionModeManager = createMockInstructionModeManager();
 
       deps = createMockDeps({
-        getInstructionRefineService: () => mockInstructionRefineService as any,
+        getInstructionRefineService: () => mockInstructionRefineService,
         getInstructionModeManager: () => mockInstructionModeManager as any,
       });
       controller = new InputController(deps);
@@ -3515,7 +3515,7 @@ describe('InputController - Message Queue', () => {
       const mockInstructionModeManager = createMockInstructionModeManager();
 
       deps = createMockDeps({
-        getInstructionRefineService: () => mockInstructionRefineService as any,
+        getInstructionRefineService: () => mockInstructionRefineService,
         getInstructionModeManager: () => mockInstructionModeManager as any,
       });
       controller = new InputController(deps);
@@ -3551,7 +3551,7 @@ describe('InputController - Message Queue', () => {
         resumeAtMessageId: 'a1',
       });
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'follow up';
       controller = new InputController(deps);
 
@@ -3582,7 +3582,7 @@ describe('InputController - Message Queue', () => {
         resumeAtMessageId: 'a1',
       });
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'another message';
       controller = new InputController(deps);
 
@@ -3615,7 +3615,7 @@ describe('InputController - Message Queue', () => {
         resumeAtMessageId: 'a1',
       });
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'follow up';
       controller = new InputController(deps);
 
@@ -3644,7 +3644,7 @@ describe('InputController - Message Queue', () => {
         resumeAtMessageId: 'a1',
       });
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'follow up';
       controller = new InputController(deps);
 
@@ -3674,7 +3674,7 @@ describe('InputController - Message Queue', () => {
       // Make updateConversation throw
       (deps.plugin.updateConversation as jest.Mock).mockRejectedValueOnce(new Error('disk error'));
 
-      inputEl = deps.getInputEl() as ReturnType<typeof createMockInputEl>;
+      inputEl = deps.getInputEl();
       inputEl.value = 'test';
       controller = new InputController(deps);
 
@@ -3745,7 +3745,7 @@ describe('InputController - Message Queue', () => {
       const inputEl = deps.getInputEl();
       inputEl.value = 'Plan this feature';
       await controller.sendMessage();
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => window.setTimeout(resolve, 0));
 
       expect(restoreFn).toHaveBeenCalled();
       // Auto-send should have been triggered
@@ -3863,7 +3863,7 @@ describe('InputController - Message Queue', () => {
       inputContainerEl.parentElement = parentEl;
 
       const deps = createSendableDeps({
-        getInputContainerEl: () => inputContainerEl as any,
+        getInputContainerEl: () => inputContainerEl,
         restorePrePlanPermissionModeIfNeeded: restoreFn,
       });
       const mockAgentService = (deps as any).mockAgentService;
@@ -3881,7 +3881,7 @@ describe('InputController - Message Queue', () => {
       inputEl.value = 'Plan this';
 
       const sendPromise = controller.sendMessage();
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => window.setTimeout(resolve, 0));
 
       expect((controller as any).pendingPlanApproval).not.toBeNull();
 

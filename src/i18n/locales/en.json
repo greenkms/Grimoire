@@ -409,6 +409,18 @@
         "openFileFailed": "Failed to open file: {error}",
         "providerSwitchBound": "Cannot switch provider on a bound session. Start a new tab instead.",
         "forkUnsupported": "Fork is not supported by this provider.",
+        "provider": {
+          "startFailed": "Failed to start {provider}. Check the CLI path and login state.",
+          "notReady": "{provider} runtime is not ready.",
+          "sessionCreateFailed": "Failed to create a session for {provider}.",
+          "emptyResponse": "{provider} completed without returning a response. Check provider credentials and logs, then retry.",
+          "requestFailed": "{provider} request failed",
+          "antigravityDisabled": "Antigravity is disabled. Enable it in provider settings.",
+          "antigravitySafeModeUnavailable": "Antigravity Safe mode is unavailable because agy --print cannot request Grimoire file-edit approvals. Use Auto-approve only if you want AGY to edit files without prompts.",
+          "antigravityEmptyOutput": "Antigravity finished without a response. Check authentication or run agy --print in a terminal, then retry.",
+          "claudeVaultPathUnavailable": "Could not determine vault path",
+          "claudeCliNotFound": "Claude CLI not found"
+        },
         "initializeFailed": "Failed to initialize chat service",
         "loadConversationFailed": "Failed to load conversation",
         "regenerateFailed": "Failed to regenerate response",

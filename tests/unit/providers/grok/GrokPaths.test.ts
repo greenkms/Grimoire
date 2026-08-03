@@ -8,8 +8,8 @@ import {
   resolveGrokAuthPath,
   resolveGrokChatHistoryPath,
   resolveGrokDataDir,
-  resolveManagedGrokHomePath,
   resolveGrokSessionDirectory,
+  resolveManagedGrokHomePath,
 } from '../../../../src/providers/grok/runtime/GrokPaths';
 
 describe('GrokPaths', () => {
@@ -17,26 +17,26 @@ describe('GrokPaths', () => {
     expect(resolveGrokDataDir({
       GROK_HOME: '/tmp/grok-home',
       HOME: '/home/tester',
-    } as NodeJS.ProcessEnv)).toBe('/tmp/grok-home');
+    })).toBe('/tmp/grok-home');
   });
 
   it('resolves auth.json from an explicit GROK_AUTH_PATH override', () => {
     expect(resolveGrokAuthPath({
       GROK_AUTH_PATH: '/custom/auth.json',
       HOME: '/home/tester',
-    } as NodeJS.ProcessEnv)).toBe('/custom/auth.json');
+    })).toBe('/custom/auth.json');
   });
 
   it('falls back to auth.json under the resolved data dir', () => {
     expect(resolveGrokAuthPath({
       HOME: '/home/tester',
-    } as NodeJS.ProcessEnv)).toBe('/home/tester/.grok/auth.json');
+    })).toBe('/home/tester/.grok/auth.json');
   });
 
   it('falls back to ~/.grok when GROK_HOME is unset', () => {
     expect(resolveGrokDataDir({
       HOME: '/home/tester',
-    } as NodeJS.ProcessEnv)).toBe('/home/tester/.grok');
+    })).toBe('/home/tester/.grok');
   });
 
   it('resolves chat history from the encoded workspace session directory', () => {

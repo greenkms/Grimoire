@@ -409,6 +409,18 @@
         "openFileFailed": "No se pudo abrir el archivo: {error}",
         "providerSwitchBound": "No se puede cambiar de proveedor en una sesión vinculada. Inicia una pestaña nueva.",
         "forkUnsupported": "Este proveedor no admite bifurcaciones.",
+        "provider": {
+          "startFailed": "No se pudo iniciar {provider}. Comprueba la ruta de la CLI y el estado de inicio de sesión.",
+          "notReady": "El entorno de ejecución de {provider} no está listo.",
+          "sessionCreateFailed": "No se pudo crear una sesión para {provider}.",
+          "emptyResponse": "{provider} terminó sin devolver una respuesta. Comprueba las credenciales y los registros del proveedor e inténtalo de nuevo.",
+          "requestFailed": "Falló la solicitud a {provider}",
+          "antigravityDisabled": "Antigravity está desactivado. Actívalo en la configuración del proveedor.",
+          "antigravitySafeModeUnavailable": "El modo seguro de Antigravity no está disponible porque agy --print no puede solicitar aprobaciones de Grimoire para editar archivos. Usa la aprobación automática solo si quieres que AGY edite archivos sin preguntar.",
+          "antigravityEmptyOutput": "Antigravity terminó sin responder. Comprueba la autenticación o ejecuta agy --print en una terminal y vuelve a intentarlo.",
+          "claudeVaultPathUnavailable": "No se pudo determinar la ruta del vault para Claude.",
+          "claudeCliNotFound": "No se encontró la CLI de Claude Code. Instálala o configura su ruta en los ajustes del proveedor."
+        },
         "initializeFailed": "No se pudo inicializar el servicio de chat",
         "loadConversationFailed": "No se pudo cargar la conversación",
         "regenerateFailed": "No se pudo regenerar la respuesta",

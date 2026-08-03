@@ -8,6 +8,7 @@ import {
   type SystemPromptSettings,
 } from '../../../core/prompt/mainAgent';
 import type { GrokPermissionMode } from '../modes';
+import { GROK_ARTIFACTS_SUBDIR } from './GrokPaths';
 
 export interface GrokLaunchArtifacts {
   configContent: string;
@@ -32,7 +33,7 @@ export async function prepareGrokLaunchArtifacts(
   const grokHomePath = path.join(
     params.workspaceRoot,
     GRIMOIRE_STORAGE_PATH,
-    params.artifactsSubdir ?? 'grok',
+    params.artifactsSubdir ?? GROK_ARTIFACTS_SUBDIR,
   );
   const systemPromptPath = path.join(grokHomePath, 'system.md');
   const managedConfigPath = path.join(grokHomePath, 'managed_config.toml');

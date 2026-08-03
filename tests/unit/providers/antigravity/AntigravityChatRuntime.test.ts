@@ -1,3 +1,5 @@
+import '@/providers';
+
 import { spawn } from 'node:child_process';
 import { EventEmitter } from 'node:events';
 import { promises as fs } from 'node:fs';
@@ -5,8 +7,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { PassThrough } from 'node:stream';
 
-import type { PreparedChatTurn } from '@/core/runtime/types';
 import type { StreamChunk } from '@/core/types';
+import { setLocale } from '@/i18n/i18n';
 import {
   AntigravityChatRuntime,
   buildAntigravityPrintArgs,
@@ -69,6 +71,7 @@ function getSpawnedAgyArgs(): string[] {
 
 describe('AntigravityChatRuntime', () => {
   afterEach(() => {
+    setLocale('en');
     jest.restoreAllMocks();
     mockedSpawn.mockReset();
   });
@@ -82,11 +85,25 @@ describe('AntigravityChatRuntime', () => {
     expect(runtime.isReady()).toBe(false);
   });
 
+  it('localizes the disabled-provider query error', async () => {
+    setLocale('ru');
+    const settings: Record<string, unknown> = {};
+    updateAntigravityProviderSettings(settings, { enabled: false });
+    const runtime = new AntigravityChatRuntime(createMockPlugin({ settings }));
+
+    const chunks = await collect(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
+
+    expect(chunks).toContainEqual({
+      type: 'error',
+      content: 'Antigravity отключён. Включите его в настройках провайдера.',
+    });
+  });
+
   it('runs agy in print mode and streams stdout as a chat response', async () => {
     const runtime = new AntigravityChatRuntime(createMockPlugin());
     jest.spyOn(runtime as any, 'runPrint').mockResolvedValue('Hi from Antigravity\n');
 
-    const chunks = await collect(runtime.query(runtime.prepareTurn({ text: 'Hello' }) as PreparedChatTurn));
+    const chunks = await collect(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
 
     expect((runtime as any).runPrint).toHaveBeenCalledWith(expect.objectContaining({
       command: '/usr/local/bin/agy',
@@ -103,7 +120,7 @@ describe('AntigravityChatRuntime', () => {
     const runPrint = jest.spyOn(runtime as any, 'runPrint').mockResolvedValue('Hi\n');
 
     await collect(runtime.query(
-      runtime.prepareTurn({ text: 'Hello' }) as PreparedChatTurn,
+      runtime.prepareTurn({ text: 'Hello' }),
       undefined,
       { model: 'antigravity:gemini-2.5-flash' },
     ));
@@ -117,20 +134,21 @@ describe('AntigravityChatRuntime', () => {
     const runtime = new AntigravityChatRuntime(createMockPlugin());
     jest.spyOn(runtime as any, 'runPrint').mockResolvedValue('Hi from Antigravity\n');
 
-    const chunks = await collect(runtime.query(runtime.prepareTurn({ text: 'Hello' }) as PreparedChatTurn));
+    const chunks = await collect(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
 
     expect(chunks[0]).toEqual({ content: 'Starting Antigravity...', type: 'status' });
   });
 
   it('reports an empty agy print response instead of finishing silently', async () => {
+    setLocale('ru');
     const runtime = new AntigravityChatRuntime(createMockPlugin());
     jest.spyOn(runtime as any, 'runPrint').mockResolvedValue('');
 
-    const chunks = await collect(runtime.query(runtime.prepareTurn({ text: 'Hello' }) as PreparedChatTurn));
+    const chunks = await collect(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
 
     expect(chunks).toContainEqual({
       type: 'error',
-      content: expect.stringContaining('Antigravity CLI finished without output'),
+      content: expect.stringContaining('Antigravity завершил работу без ответа'),
     });
     expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
   });
@@ -161,7 +179,7 @@ describe('AntigravityChatRuntime', () => {
         lineCount: 2,
       },
       text: 'Summarize this',
-    }) as PreparedChatTurn;
+    });
 
     expect(turn.persistedContent).toContain('<current_note>');
     expect(turn.persistedContent).toContain('notes/today.md');
@@ -190,7 +208,7 @@ describe('AntigravityChatRuntime', () => {
   it('rebuilds prior current-note context from conversation history metadata', async () => {
     const runtime = new AntigravityChatRuntime(createMockPlugin());
     const runPrint = jest.spyOn(runtime as any, 'runPrint').mockResolvedValue('Follow-up\n');
-    const turn = runtime.prepareTurn({ text: 'Continue' }) as PreparedChatTurn;
+    const turn = runtime.prepareTurn({ text: 'Continue' });
 
     await collect(runtime.query(turn, [
       {
@@ -211,19 +229,33 @@ describe('AntigravityChatRuntime', () => {
   });
 
   it('blocks safe mode because agy print cannot enforce file edit approvals', async () => {
+    setLocale('ru');
     const settings: Record<string, unknown> = { permissionMode: 'normal' };
     updateAntigravityProviderSettings(settings, { enabled: true });
     const runtime = new AntigravityChatRuntime(createMockPlugin({ settings }));
     const runPrint = jest.spyOn(runtime as any, 'runPrint').mockResolvedValue('safe\n');
 
-    const chunks = await collect(runtime.query(runtime.prepareTurn({ text: 'Hello' }) as PreparedChatTurn));
+    const chunks = await collect(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
 
     expect(runPrint).not.toHaveBeenCalled();
     expect(chunks).toContainEqual({
       type: 'error',
-      content: expect.stringContaining('Antigravity safe mode is unavailable'),
+      content: expect.stringContaining('Безопасный режим Antigravity недоступен'),
     });
     expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
+  });
+
+  it('localizes non-Error request failures', async () => {
+    setLocale('ru');
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    jest.spyOn(runtime as any, 'runPrint').mockRejectedValue('transport failed');
+
+    const chunks = await collect(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
+
+    expect(chunks).toContainEqual({
+      type: 'error',
+      content: 'Сбой запроса к Antigravity',
+    });
   });
 
   it('recovers agy print output from the Antigravity transcript when Windows stdout is empty', async () => {

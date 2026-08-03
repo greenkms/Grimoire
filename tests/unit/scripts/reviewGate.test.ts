@@ -7,12 +7,6 @@ interface PackageJson {
   scripts: Record<string, string>;
 }
 
-interface CssImportantFinding {
-  declaration: string;
-  file: string;
-  line: number;
-}
-
 function readPackageJson(): PackageJson {
   return JSON.parse(readFileSync('package.json', 'utf8')) as PackageJson;
 }
@@ -24,6 +18,12 @@ describe('Obsidian review gate', () => {
     expect(scripts['review:source']).toBe('node scripts/check-review-source.mjs');
     expect(scripts['review:css']).toBe('node scripts/check-review-css.mjs');
     expect(scripts['prebuild:release']).toBe('npm run lint && npm run review:source && npm run review:css && npm run review:deps');
+  });
+
+  it('lints source and tests', () => {
+    const scripts = readPackageJson().scripts;
+
+    expect(scripts.lint).toBe('eslint "src/**/*.ts" "tests/**/*.ts" --max-warnings=0');
   });
 
   it('passes Obsidian source-review rules to eslint without shell quoting', () => {

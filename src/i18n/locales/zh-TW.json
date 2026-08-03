@@ -409,6 +409,18 @@
         "openFileFailed": "無法開啟檔案：{error}",
         "providerSwitchBound": "無法在已綁定的工作階段切換提供者。請改用新分頁。",
         "forkUnsupported": "此提供者不支援分支。",
+        "provider": {
+          "startFailed": "無法啟動 {provider}。請檢查 CLI 路徑和登入狀態。",
+          "notReady": "{provider} 執行階段尚未就緒。",
+          "sessionCreateFailed": "無法為 {provider} 建立工作階段。",
+          "emptyResponse": "{provider} 已完成，但未傳回回應。請檢查提供者憑證和日誌，然後重試。",
+          "requestFailed": "{provider} 請求失敗",
+          "antigravityDisabled": "Antigravity 已停用。請在供應商設定中啟用它。",
+          "antigravitySafeModeUnavailable": "Antigravity 安全模式無法使用，因為 agy --print 無法要求 Grimoire 的檔案編輯核准。只有在允許 AGY 不經確認即可編輯檔案時，才使用自動核准。",
+          "antigravityEmptyOutput": "Antigravity 未傳回回應便已結束。請檢查驗證，或在終端機中執行 agy --print 後重試。",
+          "claudeVaultPathUnavailable": "無法判定 Claude 的儲存庫路徑。",
+          "claudeCliNotFound": "找不到 Claude Code CLI。請安裝它，或在供應商設定中設定其路徑。"
+        },
         "initializeFailed": "無法初始化聊天服務",
         "loadConversationFailed": "無法載入對話",
         "regenerateFailed": "無法重新生成回覆",

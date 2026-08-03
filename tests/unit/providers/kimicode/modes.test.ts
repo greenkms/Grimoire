@@ -1,14 +1,14 @@
 import {
   getEffectiveKimicodeModes,
   getManagedKimicodeModes,
-  normalizeManagedKimicodeSelectedMode,
-  normalizeKimicodeAvailableModes,
-  normalizeKimicodeSelectedMode,
   KIMICODE_BUILD_MODE_ID,
   KIMICODE_FALLBACK_MODES,
   KIMICODE_FULL_ACCESS_MODE_ID,
   KIMICODE_LEGACY_YOLO_MODE_ID,
   KIMICODE_SAFE_MODE_ID,
+  normalizeKimicodeAvailableModes,
+  normalizeKimicodeSelectedMode,
+  normalizeManagedKimicodeSelectedMode,
   resolveKimicodeModeForPermissionMode,
   resolvePermissionModeForManagedKimicodeMode,
 } from '../../../../src/providers/kimicode/modes';

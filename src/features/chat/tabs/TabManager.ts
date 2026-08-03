@@ -1,5 +1,6 @@
 import { Notice } from 'obsidian';
 
+import { getOpaqueProviderState } from '../../../core/providers/getOpaqueProviderState';
 import { ProviderRegistry } from '../../../core/providers/ProviderRegistry';
 import { ProviderSettingsCoordinator } from '../../../core/providers/ProviderSettingsCoordinator';
 import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
@@ -1224,7 +1225,7 @@ export class TabManager implements TabManagerInterface {
         lifecycleState: tab.lifecycleState,
         providerId,
         providerSettings,
-        providerState: warmupContext.conversation?.providerState ?? null,
+        providerState: getOpaqueProviderState(warmupContext.conversation) ?? null,
         sessionId: warmupContext.conversation?.sessionId ?? null,
         warmupMode: warmupContext.warmupMode,
       }),

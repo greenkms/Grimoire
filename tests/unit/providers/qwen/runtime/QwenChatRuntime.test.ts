@@ -1,6 +1,5 @@
 import * as fs from 'node:fs/promises';
 
-import type { PreparedChatTurn } from '@/core/runtime/types';
 import type { StreamChunk } from '@/core/types';
 import type { AcpContentBlock } from '@/providers/acp';
 import { QwenChatRuntime } from '@/providers/qwen/runtime/QwenChatRuntime';
@@ -110,7 +109,7 @@ describe('QwenChatRuntime', () => {
       }),
     };
 
-    const chunks = await collect(runtime.query(turn as PreparedChatTurn));
+    const chunks = await collect(runtime.query(turn));
 
     expect(chunks).toContainEqual({ itemId: 'assistant-1', type: 'assistant_message_start' });
     expect(chunks).toContainEqual({ content: 'Hi from Qwen', type: 'text' });
@@ -577,7 +576,7 @@ describe('QwenChatRuntime', () => {
         lineCount: 2,
       },
       text: 'Summarize this',
-    }) as PreparedChatTurn;
+    });
 
     expect(turn.persistedContent).toContain('<current_note>');
     expect(turn.persistedContent).toContain('notes/Artic Ocean.md');
@@ -629,7 +628,7 @@ describe('QwenChatRuntime', () => {
     (runtime as any).connection = { prompt };
 
     await collect(runtime.query(
-      turn as PreparedChatTurn,
+      turn,
       undefined,
       { orchestratorMode: true },
     ));
@@ -694,28 +693,28 @@ describe('QwenChatRuntime', () => {
 
     it('rejects an absolute path outside the workspace in safe mode', () => {
       const runtime = createRuntimeWithPermissionMode('normal');
-      expect(() => (runtime as any).resolveSessionPath('session-1', '/etc/hosts')).toThrow(
+      expect(() => (runtime).resolveSessionPath('session-1', '/etc/hosts')).toThrow(
         'File access is limited to the current workspace.',
       );
     });
 
     it('rejects an escaping relative path in safe mode', () => {
       const runtime = createRuntimeWithPermissionMode('normal');
-      expect(() => (runtime as any).resolveSessionPath('session-1', '../../etc/hosts')).toThrow(
+      expect(() => (runtime).resolveSessionPath('session-1', '../../etc/hosts')).toThrow(
         'File access is limited to the current workspace.',
       );
     });
 
     it('allows a path inside the workspace in safe mode', () => {
       const runtime = createRuntimeWithPermissionMode('normal');
-      expect((runtime as any).resolveSessionPath('session-1', 'Notes/today.md')).toBe(
+      expect((runtime).resolveSessionPath('session-1', 'Notes/today.md')).toBe(
         '/tmp/grimoire-qwen-test-vault/Notes/today.md',
       );
     });
 
     it('allows a path outside the workspace in active (full_access) mode', () => {
       const runtime = createRuntimeWithPermissionMode('full_access');
-      expect((runtime as any).resolveSessionPath('session-1', '/etc/hosts')).toBe('/etc/hosts');
+      expect((runtime).resolveSessionPath('session-1', '/etc/hosts')).toBe('/etc/hosts');
     });
   });
 });

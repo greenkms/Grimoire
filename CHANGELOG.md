@@ -1,5 +1,39 @@
 # Changelog
 
+## 1.1.0 - 2026-08-03
+
+### Added
+
+- Completed the Grimoire interface translation catalog across all ten supported languages, covering chat controls, tool activity, plans, permissions, background tasks, history, settings, provider configuration, notices, and accessibility labels.
+- Added browser-style tab management with right-click actions to close, close others, close tabs to the right, rename, or duplicate a tab; middle-click closing; and a timed Undo action that restores closed tabs with their drafts and position.
+- Added direct open-in-new-tab actions to chat history, including modifier-click and middle-click workflows, while keeping renamed conversations synchronized across open Grimoire views.
+- Added a five-way floating navigator for long conversations with top, previous prompt, conversation directory, next prompt, and bottom controls.
+- Added localized completion timestamps beside message copy actions, with compact same-day formatting and full date/time tooltips.
+- Added a redesigned **Parallel workers** approval card that shows the inherited model, lets users choose which proposed tasks to run, and launches only the selected worker tabs.
+
+### Improved
+
+- Rebuilt Settings on Obsidian's declarative Setting API with native settings search, theme-aware sections, consistent control sizing, accessible provider-tab overflow, and a permanent What's new entry.
+- Unified provider settings across Claude Code, Codex, OpenCode, Grok Build, MiMoCode, Kimi Code, Antigravity, Gemini CLI (Legacy), and Qwen Code, including provider-local enable controls, model search and aliases, and consistent agent, command, environment, and CLI-path editors where supported.
+- Reworked the composer into a compact responsive toolbar with consistent model, reasoning, permission, service-tier, MCP, external-context, workspace, usage, and Parallel workers controls.
+- Kept model menus usable while live catalogs refresh or fail by preserving fallback choices, grouped provider search, account usage readouts, and provider branding.
+- Unified spacing, typography, copy feedback, status treatment, and accessibility across messages, thinking, tool calls, diffs, questions, permissions, plans, progress, and subagent blocks.
+- Used each provider's registered display name and color for model groups, tab activity, runtime-context activity, and diagnostics instead of falling back to Claude styling for newer providers.
+
+### Fixed
+
+- Kept long What's New cards compact with an independently scrollable release-notes body while leaving the title and actions visible.
+- Reported missing or unlaunchable Codex and ACP provider CLIs immediately with the real command or working-directory error instead of hanging until the 30-second initialization timeout.
+- Preserved terminal process failures for late transport subscribers, rejected requests against already-closed transports, and made Windows command-shim startup and shutdown handling more reliable.
+- Prevented the same stored conversation from opening in multiple tabs or Grimoire views, avoiding competing saves and stale message overwrites.
+- Localized common startup, runtime-readiness, session-creation, and request failures for Gemini CLI (Legacy), Qwen Code, OpenCode, MiMoCode, Kimi Code, and Grok Build; localized empty-response failures for OpenCode, MiMoCode, and Kimi Code; and localized provider-specific Claude and Antigravity failures across every supported language.
+- Standardized the user-facing **MiMoCode** name in settings, commands, permissions, and diagnostics.
+- Rejected unknown provider identifiers when loading stored sessions while preserving legacy sessions that predate provider metadata.
+
+### Compatibility
+
+- Grimoire now requires Obsidian 1.13.0 or newer.
+
 ## 1.0.40 - 2026-07-31
 
 ### Added

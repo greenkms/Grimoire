@@ -57,7 +57,7 @@ describe('todoUtils', () => {
         { status: 'pending', content: 'Task 3', activeForm: 'Doing Task 3' },
       ];
 
-      renderTodoItems(container as unknown as HTMLElement, todos);
+      renderTodoItems(container, todos);
 
       expect(container._children.length).toBe(3);
       expect(setIcon).toHaveBeenCalledTimes(3);
@@ -77,7 +77,7 @@ describe('todoUtils', () => {
       const container = createMockEl();
       container.createDiv({ text: 'old content' });
 
-      renderTodoItems(container as unknown as HTMLElement, [
+      renderTodoItems(container, [
         { status: 'completed', content: 'New', activeForm: 'New' },
       ]);
 
@@ -87,13 +87,13 @@ describe('todoUtils', () => {
 
     it('should handle empty todos array', () => {
       const container = createMockEl();
-      renderTodoItems(container as unknown as HTMLElement, []);
+      renderTodoItems(container, []);
       expect(container._children.length).toBe(0);
     });
 
     it('should set aria-hidden on status icon', () => {
       const container = createMockEl();
-      renderTodoItems(container as unknown as HTMLElement, [
+      renderTodoItems(container, [
         { status: 'completed', content: 'Task', activeForm: 'Task' },
       ]);
 

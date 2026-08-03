@@ -409,6 +409,18 @@
         "openFileFailed": "Не удалось открыть файл: {error}",
         "providerSwitchBound": "Нельзя сменить провайдера в привязанном сеансе. Создайте новую вкладку.",
         "forkUnsupported": "Этот провайдер не поддерживает ветвление.",
+        "provider": {
+          "startFailed": "Не удалось запустить {provider}. Проверьте путь к CLI и состояние входа.",
+          "notReady": "Среда выполнения {provider} не готова.",
+          "sessionCreateFailed": "Не удалось создать сеанс для {provider}.",
+          "emptyResponse": "{provider} завершил работу без ответа. Проверьте учётные данные и журналы провайдера, затем повторите попытку.",
+          "requestFailed": "Сбой запроса к {provider}",
+          "antigravityDisabled": "Antigravity отключён. Включите его в настройках провайдера.",
+          "antigravitySafeModeUnavailable": "Безопасный режим Antigravity недоступен: agy --print не умеет запрашивать разрешения Grimoire на изменение файлов. Используйте автоодобрение, только если AGY может редактировать файлы без подтверждения.",
+          "antigravityEmptyOutput": "Antigravity завершил работу без ответа. Проверьте авторизацию или запустите agy --print в терминале, затем повторите попытку.",
+          "claudeVaultPathUnavailable": "Не удалось определить путь к хранилищу для Claude.",
+          "claudeCliNotFound": "CLI Claude Code не найден. Установите его или укажите путь в настройках провайдера."
+        },
         "initializeFailed": "Не удалось инициализировать чат",
         "loadConversationFailed": "Не удалось загрузить диалог",
         "regenerateFailed": "Не удалось перегенерировать ответ",

@@ -48,7 +48,7 @@ describe('encodeClaudeTurn', () => {
       text: '/compact',
       currentNotePath: 'notes/test.md',
       editorSelection: { notePath: 'test.md', mode: 'selection', selectedText: 'selected' } as any,
-      browserSelection: { source: 'surfing-view', selectedText: 'browser text' } as any,
+      browserSelection: { source: 'surfing-view', selectedText: 'browser text' },
     };
     const result = encodeClaudeTurn(request, mcpManager);
 
@@ -90,7 +90,7 @@ describe('encodeClaudeTurn', () => {
     const request: ChatTurnRequest = {
       text: 'review this',
       contextFiles: ['/external/brief.pdf'],
-    } as any;
+    };
     const result = encodeClaudeTurn(request, mcpManager);
 
     expect(result.persistedContent).toContain('<context_files>');
@@ -133,7 +133,7 @@ describe('encodeClaudeTurn', () => {
         source: 'surfing-view',
         selectedText: 'browser text',
         title: 'Test Page',
-      } as any,
+      },
     };
     const result = encodeClaudeTurn(request, mcpManager);
 
@@ -147,7 +147,7 @@ describe('encodeClaudeTurn', () => {
       canvasSelection: {
         canvasPath: 'diagrams/overview.canvas',
         nodeIds: ['node-1', 'node-2'],
-      } as any,
+      },
     };
     const result = encodeClaudeTurn(request, mcpManager);
 

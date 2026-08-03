@@ -1,5 +1,8 @@
+import '@/providers';
+
 import { ProviderRegistry } from '@/core/providers/ProviderRegistry';
 import { ProviderSettingsCoordinator } from '@/core/providers/ProviderSettingsCoordinator';
+import { setLocale } from '@/i18n/i18n';
 import { JsonRpcTransportClosedError } from '@/providers/acp';
 import { mimocodePlanUsageStore } from '@/providers/mimocode/app/MimocodePlanUsageStore';
 import * as sessionErrorStore from '@/providers/mimocode/history/MimocodeSessionErrorStore';
@@ -36,6 +39,7 @@ describe('MimocodeChatRuntime', () => {
   });
 
   afterEach(() => {
+    setLocale('en');
     jest.restoreAllMocks();
   });
 
@@ -131,6 +135,29 @@ describe('MimocodeChatRuntime', () => {
     (runtime as any).getActiveDisplayModel = jest.fn().mockReturnValue('mimocode:test-model');
 
     await expect(collectRuntimeChunks(runtime)).resolves.toEqual([{ type: 'done' }]);
+  });
+
+  it('localizes an empty completed prompt without a stored provider error', async () => {
+    setLocale('ru');
+    const runtime = new MimocodeChatRuntime(createMockPlugin());
+    const prompt = jest.fn().mockResolvedValue({ stopReason: 'end_turn' });
+    jest.spyOn(sessionErrorStore, 'loadLatestMimocodeSessionError').mockResolvedValue(null);
+    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+    (runtime as any).sessionId = 'session-1';
+    (runtime as any).loadedSessionId = 'session-1';
+    (runtime as any).connection = { prompt };
+    (runtime as any).applySelectedMode = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedModel = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedEffort = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).getActiveDisplayModel = jest.fn().mockReturnValue('mimocode:test-model');
+
+    await expect(collectRuntimeChunks(runtime)).resolves.toEqual([
+      {
+        type: 'error',
+        content: 'MiMoCode завершил работу без ответа. Проверьте учётные данные и журналы провайдера, затем повторите попытку.',
+      },
+      { type: 'done' },
+    ]);
   });
 
   async function collectRuntimeChunks(runtime: MimocodeChatRuntime): Promise<unknown[]> {
@@ -1265,28 +1292,28 @@ describe('MimocodeChatRuntime', () => {
 
     it('rejects an absolute path outside the workspace in safe mode', () => {
       const runtime = createRuntimeWithPermissionMode('normal');
-      expect(() => (runtime as any).resolveSessionPath('session-1', '/etc/hosts')).toThrow(
+      expect(() => (runtime).resolveSessionPath('session-1', '/etc/hosts')).toThrow(
         'File access is limited to the current workspace.',
       );
     });
 
     it('rejects an escaping relative path in safe mode', () => {
       const runtime = createRuntimeWithPermissionMode('normal');
-      expect(() => (runtime as any).resolveSessionPath('session-1', '../../etc/hosts')).toThrow(
+      expect(() => (runtime).resolveSessionPath('session-1', '../../etc/hosts')).toThrow(
         'File access is limited to the current workspace.',
       );
     });
 
     it('allows a path inside the workspace in safe mode', () => {
       const runtime = createRuntimeWithPermissionMode('normal');
-      expect((runtime as any).resolveSessionPath('session-1', 'notes/today.md')).toBe(
+      expect((runtime).resolveSessionPath('session-1', 'notes/today.md')).toBe(
         '/tmp/grimoire-test-vault/notes/today.md',
       );
     });
 
     it('allows a path outside the workspace in active (full_access) mode', () => {
       const runtime = createRuntimeWithPermissionMode('full_access');
-      expect((runtime as any).resolveSessionPath('session-1', '/etc/hosts')).toBe('/etc/hosts');
+      expect((runtime).resolveSessionPath('session-1', '/etc/hosts')).toBe('/etc/hosts');
     });
   });
 });

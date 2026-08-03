@@ -674,7 +674,7 @@ describe('cliPathRequiresNode', () => {
     jest.spyOn(fs, 'statSync').mockImplementation(
       p => ({ isFile: () => String(p) === scriptPath }) as fsType.Stats
     );
-    jest.spyOn(fs, 'openSync').mockImplementation(() => 1 as any);
+    jest.spyOn(fs, 'openSync').mockImplementation(() => 1);
     jest.spyOn(fs, 'readSync').mockImplementation((_, buffer: ArrayBufferView) => {
       Buffer.from(buffer.buffer, buffer.byteOffset, buffer.byteLength).write(shebang);
       return shebang.length;
@@ -702,7 +702,7 @@ describe('cliPathRequiresNode', () => {
     jest.spyOn(fs, 'statSync').mockImplementation(
       p => ({ isFile: () => String(p) === scriptPath }) as fsType.Stats
     );
-    jest.spyOn(fs, 'openSync').mockImplementation(() => 1 as any);
+    jest.spyOn(fs, 'openSync').mockImplementation(() => 1);
     jest.spyOn(fs, 'readSync').mockImplementation((_, buffer: ArrayBufferView) => {
       Buffer.from(buffer.buffer, buffer.byteOffset, buffer.byteLength).write(shebang);
       return shebang.length;
@@ -726,7 +726,7 @@ describe('cliPathRequiresNode', () => {
     jest.spyOn(fs, 'statSync').mockImplementation(
       p => ({ isFile: () => String(p) === scriptPath }) as fsType.Stats
     );
-    jest.spyOn(fs, 'openSync').mockImplementation(() => 1 as any);
+    jest.spyOn(fs, 'openSync').mockImplementation(() => 1);
     jest.spyOn(fs, 'readSync').mockImplementation((_, buffer: ArrayBufferView) => {
       Buffer.from(buffer.buffer, buffer.byteOffset, buffer.byteLength).write(script);
       return script.length;
@@ -1061,7 +1061,7 @@ describe('getExtraBinaryPaths (Windows branches)', () => {
     jest.resetModules();
     Object.defineProperty(process, 'platform', { value: 'win32', writable: true });
     // Dynamic require needed to re-evaluate module with mocked platform
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+
     return require('../../../src/utils/env');
   }
 
@@ -1234,7 +1234,7 @@ describe('Obsidian CLI path integration', () => {
     Object.defineProperty(process, 'platform', { value: platform, writable: true });
     Object.defineProperty(process, 'execPath', { value: execPath, configurable: true });
     // Dynamic require needed to re-evaluate module with mocked platform/execPath
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+
     return require('../../../src/utils/env');
   }
 

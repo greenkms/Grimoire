@@ -1,3 +1,4 @@
+import { GRIMOIRE_STORAGE_PATH } from '../../core/bootstrap/StoragePaths';
 import type { ProviderRegistration } from '../../core/providers/types';
 import { GrokInlineEditService } from './auxiliary/GrokInlineEditService';
 import { GrokInstructionRefineService } from './auxiliary/GrokInstructionRefineService';
@@ -7,7 +8,8 @@ import { GROK_PROVIDER_CAPABILITIES } from './capabilities';
 import { grokSettingsReconciler } from './env/GrokSettingsReconciler';
 import { GrokConversationHistoryService } from './history/GrokConversationHistoryService';
 import { GrokChatRuntime } from './runtime/GrokChatRuntime';
-import { getGrokProviderSettings } from './settings';
+import { GROK_ARTIFACTS_SUBDIR } from './runtime/GrokPaths';
+import { getGrokProviderSettings, updateGrokProviderSettings } from './settings';
 import { grokChatUIConfig } from './ui/GrokChatUIConfig';
 
 export const grokProviderRegistration: ProviderRegistration = {
@@ -22,6 +24,10 @@ export const grokProviderRegistration: ProviderRegistration = {
   environmentKeyPatterns: [/^GROK_/i, /^XAI_/i],
   historyService: new GrokConversationHistoryService(),
   isEnabled: (settings) => getGrokProviderSettings(settings).enabled,
+  setEnabled: (settings, enabled) => { updateGrokProviderSettings(settings, { enabled }); },
+  getPreloadedContextFiles: () => [
+    `${GRIMOIRE_STORAGE_PATH}/${GROK_ARTIFACTS_SUBDIR}/system.md`,
+  ],
   settingsReconciler: grokSettingsReconciler,
   taskResultInterpreter: new GrokTaskResultInterpreter(),
 };

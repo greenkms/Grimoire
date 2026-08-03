@@ -160,7 +160,7 @@ After
   });
 
   it('leaves unrelated JSON fences visible', () => {
-    const markdown = '\`\`\`json\n{"type":"example"}\n\`\`\`';
+    const markdown = '```json\n{"type":"example"}\n```';
 
     expect(stripOrchestratorPlanPayload(markdown)).toBe(markdown);
   });

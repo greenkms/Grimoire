@@ -107,7 +107,7 @@ describe('SubagentManager', () => {
       manager.handleTaskToolUse('task-array', { description: 'Background', run_in_background: true }, parentEl);
       manager.handleTaskToolResult(
         'task-array',
-        [{ type: 'text', text: '{"agent_id":"agent-array-1"}' }] as any,
+        [{ type: 'text', text: '{"agent_id":"agent-array-1"}' }],
       );
 
       const running = manager.getByTaskId('task-array');
@@ -1184,7 +1184,7 @@ Only this is the final result.
       manager.handleTaskToolUse('task-1', { prompt: 'test' }, parentEl);
       const result = manager.renderPendingTaskFromTaskResult(
         'task-1',
-        [{ type: 'text', text: '{"agent_id":"agent-structured"}' }] as any,
+        [{ type: 'text', text: '{"agent_id":"agent-structured"}' }],
         false
       );
 

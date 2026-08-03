@@ -37,7 +37,15 @@ import type {
   ToolCallInfo,
 } from '../../../core/types';
 import { coercePermissionMode } from '../../../core/types/settings';
+import { t } from '../../../i18n/i18n';
 import type GrimoirePlugin from '../../../main';
+import {
+  sameDiscoveredModels,
+  sameModes,
+  sameStringList,
+  sameStringMap,
+  sameThinkingOptionsByModel,
+} from '../../../utils/collections';
 import { getEnhancedPath } from '../../../utils/env';
 import { getVaultPath } from '../../../utils/path';
 import {
@@ -70,13 +78,6 @@ import {
   loadLatestMimocodeSessionError,
 } from '../history/MimocodeSessionErrorStore';
 import { loadMimocodeSessionCost } from '../history/MimocodeUsageMetadataStore';
-import {
-  sameDiscoveredModels,
-  sameModes,
-  sameStringList,
-  sameStringMap,
-  sameThinkingOptionsByModel,
-} from '../internal/compareCollections';
 import { ensureProviderProjectionMap } from '../internal/providerProjection';
 import {
   buildMimocodeBaseModels,
@@ -385,13 +386,13 @@ export class MimocodeChatRuntime implements ChatRuntime {
 
     const lifecycleGeneration = this.lifecycleGeneration;
     if (!(await this.ensureReadyForQuery(lifecycleGeneration))) {
-      yield { type: 'error', content: 'Failed to start Mimocode. Check the CLI path and login state.' };
+      yield { type: 'error', content: t('chat.ui.errors.provider.startFailed', { provider: ProviderRegistry.getProviderDisplayNameOrId('mimocode') }) };
       yield { type: 'done' };
       return;
     }
 
     if (!this.connection) {
-      yield { type: 'error', content: 'Mimocode runtime is not ready.' };
+      yield { type: 'error', content: t('chat.ui.errors.provider.notReady', { provider: ProviderRegistry.getProviderDisplayNameOrId('mimocode') }) };
       yield { type: 'done' };
       return;
     }
@@ -404,7 +405,7 @@ export class MimocodeChatRuntime implements ChatRuntime {
     if (!this.sessionId) {
       const sessionId = await this.createSession(cwd);
       if (!sessionId) {
-        yield { type: 'error', content: 'Failed to create an Mimocode session.' };
+        yield { type: 'error', content: t('chat.ui.errors.provider.sessionCreateFailed', { provider: ProviderRegistry.getProviderDisplayNameOrId('mimocode') }) };
         yield { type: 'done' };
         return;
       }
@@ -491,7 +492,9 @@ export class MimocodeChatRuntime implements ChatRuntime {
         } else if (response.stopReason && !/cancel/i.test(response.stopReason)) {
           activeTurn.queue.push({
             type: 'error',
-            content: 'MiMo completed without returning a response. Check MiMo credentials and logs, then retry.',
+            content: t('chat.ui.errors.provider.emptyResponse', {
+              provider: ProviderRegistry.getProviderDisplayNameOrId('mimocode'),
+            }),
           });
         }
       }
@@ -1464,7 +1467,7 @@ export class MimocodeChatRuntime implements ChatRuntime {
     if (this.isRetryableTransportClose(error)) {
       return 'MiMo connection closed unexpectedly. Please retry; Grimoire will reconnect automatically.';
     }
-    const baseMessage = error instanceof Error ? error.message : 'Mimocode request failed';
+    const baseMessage = error instanceof Error ? error.message : t('chat.ui.errors.provider.requestFailed', { provider: ProviderRegistry.getProviderDisplayNameOrId('mimocode') });
     const stderr = this.process?.getStderrSnapshot();
     return stderr ? `${baseMessage}\n\n${stderr}` : baseMessage;
   }
@@ -1607,7 +1610,7 @@ function buildMimocodePermissionPresentation(
     case 'doom_loop': {
       const repeatedTool = typeof input.tool === 'string' ? input.tool.trim() : '';
       return {
-        decisionReason: 'Mimocode detected repeated identical tool calls',
+        decisionReason: 'MiMoCode detected repeated identical tool calls',
         description: repeatedTool
           ? `Allow another repeated \`${repeatedTool}\` call.`
           : 'Allow another repeated tool call.',
@@ -1704,8 +1707,8 @@ function buildMimocodePermissionPresentation(
       return {
         ...(blockedPath ? { blockedPath } : {}),
         description: blockedPath
-          ? `Mimocode wants permission to use ${formatPermissionLabel(permissionId)} on this path.`
-          : `Mimocode wants permission to use ${formatPermissionLabel(permissionId)}.`,
+          ? `MiMoCode wants permission to use ${formatPermissionLabel(permissionId)} on this path.`
+          : `MiMoCode wants permission to use ${formatPermissionLabel(permissionId)}.`,
         toolName: formatPermissionLabel(permissionId),
       };
   }

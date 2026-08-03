@@ -310,7 +310,7 @@ describe('FileContextManager', () => {
       inputEl,
       createMockCallbacks(),
       undefined,
-      contextMemoryEl as any,
+      contextMemoryEl,
     );
 
     inputEl.value = '@Вариант';

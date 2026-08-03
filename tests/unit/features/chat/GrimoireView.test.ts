@@ -16,7 +16,7 @@ function createViewHarness(options: {
   view: any;
 } {
   const newTabButtonEl = createMockEl();
-  const view = Object.create(GrimoireView.prototype) as any;
+  const view = Object.create(GrimoireView.prototype);
 
   view.plugin = {
     settings: {
@@ -50,7 +50,7 @@ describe('GrimoireView tab controls', () => {
 
   it('renders the Grimoire header title text', () => {
     const headerEl = createMockEl();
-    const view = Object.create(GrimoireView.prototype) as any;
+    const view = Object.create(GrimoireView.prototype);
 
     view.buildHeader(headerEl);
 
@@ -59,7 +59,7 @@ describe('GrimoireView tab controls', () => {
 
   it('builds the session strip with a header context meter', () => {
     const containerEl = createMockEl();
-    const view = Object.create(GrimoireView.prototype) as any;
+    const view = Object.create(GrimoireView.prototype);
 
     containerEl.ownerDocument.createDocumentFragment = jest.fn(() => createMockEl('fragment'));
     view.containerEl = containerEl;
@@ -73,7 +73,7 @@ describe('GrimoireView tab controls', () => {
 
   it('places the history button after the new-tab control without appearance controls', () => {
     const containerEl = createMockEl();
-    const view = Object.create(GrimoireView.prototype) as any;
+    const view = Object.create(GrimoireView.prototype);
 
     containerEl.ownerDocument.createDocumentFragment = jest.fn(() => createMockEl('fragment'));
     view.containerEl = containerEl;
@@ -94,13 +94,13 @@ describe('GrimoireView tab controls', () => {
     expect(historyButton?.getAttribute('tabindex')).toBe('0');
     expect(historyButton?.children.some((child: any) => child.tagName === 'svg'.toUpperCase())).toBe(true);
     expect(setIcon).not.toHaveBeenCalled();
-    expect(actions?.children.indexOf(newTabButton as any)).toBeLessThan(actions?.children.indexOf(historyButton as any) ?? -1);
+    expect(actions?.children.indexOf(newTabButton)).toBeLessThan(actions?.children.indexOf(historyButton) ?? -1);
     expect(appearanceButton).toBeNull();
   });
 
   it('toggles the full-pane history sheet without visually selecting the button', () => {
     const containerEl = createMockEl();
-    const view = Object.create(GrimoireView.prototype) as any;
+    const view = Object.create(GrimoireView.prototype);
 
     containerEl.ownerDocument.createDocumentFragment = jest.fn(() => createMockEl('fragment'));
     view.containerEl = containerEl;
@@ -127,7 +127,7 @@ describe('GrimoireView tab controls', () => {
   });
 
   it('builds the history sheet inside the chat shell with a dialog role', () => {
-    const view = Object.create(GrimoireView.prototype) as any;
+    const view = Object.create(GrimoireView.prototype);
     const shell = createMockEl();
 
     const sheet = view.buildHistorySheet(shell);
@@ -136,13 +136,13 @@ describe('GrimoireView tab controls', () => {
     expect(sheet.getAttribute('role')).toBe('dialog');
     expect(sheet.getAttribute('aria-label')).toBe('Chat history');
     expect(sheet.getAttribute('aria-hidden')).toBe('true');
-    expect(shell.children.includes(sheet as any)).toBe(true);
+    expect(shell.children.includes(sheet)).toBe(true);
   });
 
   it('uses final chat-window classes for the root shell', async () => {
     const containerEl = createMockEl();
     const contentEl = createMockEl();
-    const view = Object.create(GrimoireView.prototype) as any;
+    const view = Object.create(GrimoireView.prototype);
 
     containerEl.ownerDocument.createDocumentFragment = jest.fn(() => createMockEl('fragment'));
     view.containerEl = containerEl;
@@ -174,7 +174,7 @@ describe('GrimoireView tab controls', () => {
   it('renders pending what is new release inside the chat window and acknowledges dismissal', async () => {
     const containerEl = createMockEl();
     const contentEl = createMockEl();
-    const view = Object.create(GrimoireView.prototype) as any;
+    const view = Object.create(GrimoireView.prototype);
     const acknowledgePendingWhatsNew = jest.fn().mockResolvedValue(undefined);
 
     containerEl.ownerDocument.createDocumentFragment = jest.fn(() => createMockEl('fragment'));
@@ -222,7 +222,7 @@ describe('GrimoireView tab controls', () => {
   it('can render pending what is new release after the chat window is already open', async () => {
     const containerEl = createMockEl();
     const contentEl = createMockEl();
-    const view = Object.create(GrimoireView.prototype) as any;
+    const view = Object.create(GrimoireView.prototype);
     const getPendingWhatsNewRelease = jest.fn().mockReturnValue(null);
 
     containerEl.ownerDocument.createDocumentFragment = jest.fn(() => createMockEl('fragment'));
@@ -267,7 +267,7 @@ describe('GrimoireView tab controls', () => {
   it('persists tab state when blank tab draft settings change', async () => {
     const containerEl = createMockEl();
     const contentEl = createMockEl();
-    const view = Object.create(GrimoireView.prototype) as any;
+    const view = Object.create(GrimoireView.prototype);
 
     containerEl.ownerDocument.createDocumentFragment = jest.fn(() => createMockEl('fragment'));
     view.containerEl = containerEl;
@@ -306,7 +306,7 @@ describe('GrimoireView tab controls', () => {
   it('does not build the removed quick appearance sheet', async () => {
     const containerEl = createMockEl();
     const contentEl = createMockEl();
-    const view = Object.create(GrimoireView.prototype) as any;
+    const view = Object.create(GrimoireView.prototype);
     const saveSettings = jest.fn().mockResolvedValue(undefined);
 
     containerEl.ownerDocument.createDocumentFragment = jest.fn(() => createMockEl('fragment'));
@@ -377,7 +377,7 @@ describe('GrimoireView Escape handling', () => {
     const requestTabClose = jest.fn().mockResolvedValue(undefined);
     const eventRefs: unknown[] = [];
     const parentScope = new Scope();
-    const view = Object.create(GrimoireView.prototype) as any;
+    const view = Object.create(GrimoireView.prototype);
 
     view.app = { scope: parentScope };
     view.containerEl = createMockEl();
@@ -447,7 +447,7 @@ describe('GrimoireView Escape handling', () => {
 
     view.wireEventHandlers();
     const escapeHandler = view.scope.handlers.find((handler: any) => handler.key === 'Escape');
-    const result = escapeHandler.func({ key: 'Escape', isComposing: false } as KeyboardEvent);
+    const result = escapeHandler.func({ key: 'Escape', isComposing: false });
 
     expect(cancelStreaming).toHaveBeenCalledTimes(1);
     expect(result).toBe(false);
@@ -458,7 +458,7 @@ describe('GrimoireView Escape handling', () => {
 
     view.wireEventHandlers();
     const escapeHandler = view.scope.handlers.find((handler: any) => handler.key === 'Escape');
-    const result = escapeHandler.func({ key: 'Escape', isComposing: false } as KeyboardEvent);
+    const result = escapeHandler.func({ key: 'Escape', isComposing: false });
 
     expect(cancelStreaming).not.toHaveBeenCalled();
     expect(result).toBe(false);
@@ -473,7 +473,7 @@ describe('GrimoireView Escape handling', () => {
       key: 'Escape',
       isComposing: false,
       defaultPrevented: true,
-    } as KeyboardEvent);
+    });
 
     expect(cancelStreaming).not.toHaveBeenCalled();
     expect(result).toBe(false);
@@ -489,7 +489,7 @@ describe('GrimoireView Escape handling', () => {
     const closeHandler = view.scope.handlers.find((handler: any) => (
       handler.key === 'w' && handler.modifiers?.includes('Mod')
     ));
-    const result = closeHandler.func({ key: 'w', isComposing: false } as KeyboardEvent);
+    const result = closeHandler.func({ key: 'w', isComposing: false });
 
     expect(requestTabClose).toHaveBeenCalledWith('active-tab');
     expect(result).toBe(false);
@@ -505,7 +505,7 @@ describe('GrimoireView Escape handling', () => {
     const closeHandler = view.scope.handlers.find((handler: any) => (
       handler.key === 'w' && handler.modifiers?.includes('Mod')
     ));
-    const result = closeHandler.func({ key: 'w', isComposing: false } as KeyboardEvent);
+    const result = closeHandler.func({ key: 'w', isComposing: false });
 
     expect(requestTabClose).not.toHaveBeenCalled();
     expect(result).toBe(false);
@@ -526,7 +526,7 @@ describe('GrimoireView permission mode shortcut', () => {
       ui: { permissionToggle: { updateDisplay: jest.fn() } },
       dom: { inputWrapper },
     };
-    const view = Object.create(GrimoireView.prototype) as any;
+    const view = Object.create(GrimoireView.prototype);
 
     view.app = { scope: new Scope() };
     view.containerEl = createMockEl();
@@ -586,7 +586,7 @@ describe('GrimoireView permission mode shortcut', () => {
 
 describe('GrimoireView orchestrator wiring', () => {
   function createOrchestratorHarness() {
-    const view = Object.create(GrimoireView.prototype) as any;
+    const view = Object.create(GrimoireView.prototype);
     view.plugin = { settings: {} };
     const orchestratorStreamController = {
       setOrchestratorCallbacks: jest.fn(),

@@ -1,7 +1,6 @@
 import type { ProviderCommandCatalog } from '@/core/providers/commands/ProviderCommandCatalog';
 import type { ProviderCommandEntry } from '@/core/providers/commands/ProviderCommandEntry';
 import {
-  type CodexSkillRootId,
   createCodexSkillPersistenceKey,
 } from '@/providers/codex/storage/CodexSkillStorage';
 import { CodexSkillModal, CodexSkillSettings } from '@/providers/codex/ui/CodexSkillSettings';
@@ -194,7 +193,7 @@ describe('CodexSkillModal', () => {
       const { nameInput, contentArea, setDirectory } = modal.getTestInputs();
       nameInput.value = 'new-skill';
       contentArea.value = 'Content here';
-      setDirectory('vault-agents' as CodexSkillRootId);
+      setDirectory('vault-agents');
 
       await modal.getTestInputs().triggerSave();
 
@@ -226,7 +225,7 @@ describe('CodexSkillSettings', () => {
       new CodexSkillSettings(container, catalog);
 
       // The render is async; wait for it
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       expect(catalog.listVaultEntries).toHaveBeenCalled();
     });
@@ -236,7 +235,7 @@ describe('CodexSkillSettings', () => {
       const catalog = createMockCatalog([]);
 
       new CodexSkillSettings(container, catalog);
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       // Should create some children for the empty state
       expect(container.empty).toHaveBeenCalled();
@@ -248,7 +247,7 @@ describe('CodexSkillSettings', () => {
       const catalog = createMockCatalog(vaultEntries);
 
       new CodexSkillSettings(container, catalog);
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       // Only vault entries should be listed
       expect(catalog.listVaultEntries).toHaveBeenCalled();
@@ -264,7 +263,7 @@ describe('CodexSkillSettings', () => {
       const catalog = createMockCatalog(entries);
 
       const settings = new CodexSkillSettings(container, catalog);
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       await settings.deleteEntry(entries[0]);
 
@@ -278,7 +277,7 @@ describe('CodexSkillSettings', () => {
       const catalog = createMockCatalog([makeEntry('test-skill')]);
 
       const settings = new CodexSkillSettings(container, catalog);
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       (catalog.refresh as jest.Mock).mockClear();
       (catalog.listVaultEntries as jest.Mock).mockClear();

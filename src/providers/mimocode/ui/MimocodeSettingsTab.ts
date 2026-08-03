@@ -5,11 +5,11 @@ import type { ProviderSettingsTabRenderer } from '../../../core/providers/types'
 import { renderEnvironmentSettingsSection } from '../../../features/settings/ui/EnvironmentSettingsSection';
 import { renderProviderDisabledNotice } from '../../../features/settings/ui/ProviderDisabledNotice';
 import { t } from '../../../i18n/i18n';
+import { sameStringList } from '../../../utils/collections';
 import { getHostnameKey } from '../../../utils/env';
 import { expandHomePath } from '../../../utils/path';
 import { maybeGetMimocodeWorkspaceServices } from '../app/MimocodeWorkspaceServices';
 import { clearMimocodeDiscoveryState } from '../discoveryState';
-import { sameStringList } from '../internal/compareCollections';
 import {
   buildMimocodeBaseModels,
   encodeMimocodeModelId,
@@ -45,7 +45,7 @@ export const mimocodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
     const hostnameKey = getHostnameKey();
 
     if (!mimocodeSettings.enabled) {
-      renderProviderDisabledNotice(container, 'Mimocode');
+      renderProviderDisabledNotice(container, 'MiMoCode');
     }
 
     new Setting(container).setName(t('settings.setup')).setHeading();

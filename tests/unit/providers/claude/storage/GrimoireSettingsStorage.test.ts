@@ -407,7 +407,7 @@ describe('GrimoireSettingsStorage', () => {
         show1MModel: true,
       }));
 
-      const result = await storage.load();
+      await storage.load();
       const writtenContent = JSON.parse(mockAdapter.write.mock.calls[0][1]);
 
       expect(writtenContent.model).toBe('sonnet');
@@ -620,7 +620,7 @@ describe('GrimoireSettingsStorage', () => {
         slashCommands: [{ id: 'cmd-review', name: 'review', content: 'Review' }],
       } as typeof DEFAULT_SETTINGS & { slashCommands: unknown[] };
 
-      await storage.save(settings as any);
+      await storage.save(settings);
 
       const writtenContent = JSON.parse(mockAdapter.write.mock.calls[0][1]);
       expect(writtenContent.model).toBe('claude-opus-4-5');

@@ -113,7 +113,7 @@ describe('BangBashModeManager', () => {
     expect(e.preventDefault).toHaveBeenCalled();
 
     // Wait for async submit
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise(resolve => window.setTimeout(resolve, 0));
     expect(callbacks.onSubmit).toHaveBeenCalledWith('ls -la');
   });
 
@@ -277,14 +277,14 @@ describe('BangBashModeManager', () => {
 
     // First Enter
     manager.handleKeydown(createKeyEvent('Enter'));
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise(resolve => window.setTimeout(resolve, 0));
 
     // Re-enter mode and try to submit again while first is still running
     manager.handleTriggerKey(createKeyEvent('!'));
     inputEl.value = 'echo second';
     manager.handleInputChange();
     manager.handleKeydown(createKeyEvent('Enter'));
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise(resolve => window.setTimeout(resolve, 0));
 
     // Only the first submit should have been called
     expect(callbacks.onSubmit).toHaveBeenCalledTimes(1);
@@ -292,7 +292,7 @@ describe('BangBashModeManager', () => {
 
     // Resolve the first submit
     resolveSubmit!();
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise(resolve => window.setTimeout(resolve, 0));
   });
 
   it('should not produce unhandled rejection when onSubmit throws', async () => {
@@ -312,7 +312,7 @@ describe('BangBashModeManager', () => {
     manager.handleKeydown(createKeyEvent('Enter'));
 
     // Wait for async submit to complete
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise(resolve => window.setTimeout(resolve, 0));
 
     // Should not throw, error is caught internally
     expect(callbacks.onSubmit).toHaveBeenCalledWith('bad-command');

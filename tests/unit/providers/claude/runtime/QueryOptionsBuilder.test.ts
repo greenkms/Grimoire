@@ -333,7 +333,7 @@ describe('QueryOptionsBuilder', () => {
     it('maps full_access to bypassPermissions', () => {
       const ctx = {
         ...createMockContext({
-          settings: createMockSettings({ permissionMode: 'full_access' as any }),
+          settings: createMockSettings({ permissionMode: 'full_access' }),
         }),
         abortController: new AbortController(),
         hooks: {},
@@ -406,7 +406,7 @@ describe('QueryOptionsBuilder', () => {
       const canUseTool = jest.fn();
       const ctx = {
         ...createMockContext({
-          settings: createMockSettings({ permissionMode: 'plan' as any }),
+          settings: createMockSettings({ permissionMode: 'plan' }),
         }),
         abortController: new AbortController(),
         hooks: {},

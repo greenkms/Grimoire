@@ -72,6 +72,16 @@ export type TranslationKey =
   | 'chat.vaultSearch.failed'
   | 'chat.relevantNotes.label'
   | 'chat.relevantNotes.empty'
+  | 'chat.ui.errors.provider.startFailed'
+  | 'chat.ui.errors.provider.notReady'
+  | 'chat.ui.errors.provider.sessionCreateFailed'
+  | 'chat.ui.errors.provider.emptyResponse'
+  | 'chat.ui.errors.provider.requestFailed'
+  | 'chat.ui.errors.provider.antigravityDisabled'
+  | 'chat.ui.errors.provider.antigravitySafeModeUnavailable'
+  | 'chat.ui.errors.provider.antigravityEmptyOutput'
+  | 'chat.ui.errors.provider.claudeVaultPathUnavailable'
+  | 'chat.ui.errors.provider.claudeCliNotFound'
   | `chat.greetings.${string}`
   | `chat.ui.${string}`
 

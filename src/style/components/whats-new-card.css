@@ -78,6 +78,22 @@
 .grimoire-whats-new-card-list {
   display: grid;
   gap: 8px;
+  min-height: 0;
+  max-height: min(48vh, 440px);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  padding-inline-end: 4px;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.grimoire-whats-new-card-list:focus-visible {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: 2px;
+}
+
+.grimoire-whats-new-card-list::-webkit-scrollbar {
+  width: 6px;
 }
 
 .grimoire-whats-new-card-section {

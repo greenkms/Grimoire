@@ -56,6 +56,7 @@ import type {
   ToolCallInfo,
 } from '../../../core/types';
 import type { GrimoireSettings, PermissionMode } from '../../../core/types/settings';
+import { t } from '../../../i18n/i18n';
 import type GrimoirePlugin from '../../../main';
 import { stripCurrentNoteContext } from '../../../utils/context';
 import { getEnhancedPath, getMissingNodeError, parseEnvironmentVariables } from '../../../utils/env';
@@ -238,7 +239,6 @@ export class ClaudeChatRuntime implements ChatRuntime {
   private queryAbortController: AbortController | null = null;
   private responseHandlers: ResponseHandler[] = [];
   private responseConsumerRunning = false;
-  private responseConsumerPromise: Promise<void> | null = null;
   private shuttingDown = false;
 
   // Tracked configuration for detecting changes that require restart
@@ -704,7 +704,6 @@ export class ClaudeChatRuntime implements ChatRuntime {
     this.messageChannel = null;
     this.queryAbortController = null;
     this.responseConsumerRunning = false;
-    this.responseConsumerPromise = null;
     this.currentConfig = null;
     this.cachedSdkCommands = [];
     this.streamTransformState.clearAll();
@@ -841,7 +840,7 @@ export class ClaudeChatRuntime implements ChatRuntime {
     // Track which query this consumer is for, to detect if we were replaced
     const queryForThisConsumer = this.persistentQuery;
 
-    this.responseConsumerPromise = (async () => {
+    void (async () => {
       if (!this.persistentQuery) return;
 
       try {
@@ -1236,13 +1235,13 @@ export class ClaudeChatRuntime implements ChatRuntime {
 
     const vaultPath = getVaultPath(this.plugin.app);
     if (!vaultPath) {
-      yield { type: 'error', content: 'Could not determine vault path' };
+      yield { type: 'error', content: t('chat.ui.errors.provider.claudeVaultPathUnavailable') };
       return;
     }
 
     const resolvedClaudePath = this.plugin.getResolvedProviderCliPath('claude');
     if (!resolvedClaudePath) {
-      yield { type: 'error', content: 'Claude CLI not found. Please install Claude Code CLI.' };
+      yield { type: 'error', content: t('chat.ui.errors.provider.claudeCliNotFound') };
       return;
     }
 

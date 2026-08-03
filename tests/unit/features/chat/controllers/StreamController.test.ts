@@ -527,7 +527,7 @@ describe('StreamController - Text Content', () => {
       const msg = createTestMessage();
       const usage = createMockUsage({ model: undefined });
       const providerSettingsSpy = jest.spyOn(ProviderSettingsCoordinator, 'getProviderSettingsSnapshot');
-      providerSettingsSpy.mockReturnValue({ model: DEFAULT_CODEX_PRIMARY_MODEL } as any);
+      providerSettingsSpy.mockReturnValue({ model: DEFAULT_CODEX_PRIMARY_MODEL });
       (deps.getAgentService!() as any).providerId = 'codex';
 
       await controller.handleStreamChunk({ type: 'usage', usage, sessionId: 'session-1' }, msg);
@@ -542,7 +542,7 @@ describe('StreamController - Text Content', () => {
       const usage = createMockUsage({ model: undefined });
       deps.getActiveProviderSettings = () => ({ model: 'sonnet' });
       const providerSettingsSpy = jest.spyOn(ProviderSettingsCoordinator, 'getProviderSettingsSnapshot');
-      providerSettingsSpy.mockReturnValue({ model: 'opus' } as any);
+      providerSettingsSpy.mockReturnValue({ model: 'opus' });
 
       await controller.handleStreamChunk({ type: 'usage', usage, sessionId: 'session-1' }, msg);
 
@@ -609,8 +609,8 @@ describe('StreamController - Text Content', () => {
         msg
       );
 
-      expect(msg.toolCalls![0].status).toBe('completed');
-      expect(msg.toolCalls![0].result).toBe('ok');
+      expect(msg.toolCalls[0].status).toBe('completed');
+      expect(msg.toolCalls[0].result).toBe('ok');
     });
 
     it('should add subagent entry to contentBlocks for Task tool', async () => {
@@ -1100,13 +1100,13 @@ describe('StreamController - Text Content', () => {
     });
 
     it('uses the content owner window for thinking timers', () => {
-      const ownerSetTimeout = jest.fn<ReturnType<Window['setTimeout']>, Parameters<Window['setTimeout']>>(
+      const ownerSetTimeout = jest.fn<number, [() => void, number?]>(
         (callback, timeout) => globalThis.setTimeout(callback, timeout) as unknown as number,
       );
       const ownerClearTimeout = jest.fn<void, [number]>((handle) => {
         globalThis.clearTimeout(handle as unknown as ReturnType<typeof setTimeout>);
       });
-      const ownerSetInterval = jest.fn<ReturnType<Window['setInterval']>, Parameters<Window['setInterval']>>(
+      const ownerSetInterval = jest.fn<number, [() => void, number?]>(
         (callback, timeout) => globalThis.setInterval(callback, timeout) as unknown as number,
       );
       const ownerClearInterval = jest.fn<void, [number]>((handle) => {
@@ -1154,7 +1154,7 @@ describe('StreamController - Text Content', () => {
 
     it('should not create duplicate intervals on multiple showThinkingIndicator calls', () => {
       deps.state.responseStartTime = performance.now();
-      const clearIntervalSpy = jest.spyOn(global, 'clearInterval');
+      const clearIntervalSpy = jest.spyOn(globalThis, 'clearInterval');
 
       controller.showThinkingIndicator();
       jest.advanceTimersByTime(500);
@@ -1904,7 +1904,7 @@ describe('StreamController - Text Content', () => {
       (deps.subagentManager.handleAgentOutputToolResult as jest.Mock).mockReturnValueOnce({});
 
       await controller.handleStreamChunk(
-        { type: 'tool_result', id: 'agent-out-1', content: 'agent result', toolUseResult: { foo: 'bar' } as any },
+        { type: 'tool_result', id: 'agent-out-1', content: 'agent result', toolUseResult: { foo: 'bar' } },
         msg
       );
 
@@ -2222,10 +2222,10 @@ describe('StreamController - Text Content', () => {
         undefined
       );
 
-      expect(msg.toolCalls![0].status).toBe('completed');
-      expect(msg.toolCalls![0].result).toBe('Task completed successfully');
-      expect(msg.toolCalls![0].subagent?.status).toBe('completed');
-      expect(msg.toolCalls![0].subagent?.result).toBe('Task completed successfully');
+      expect(msg.toolCalls[0].status).toBe('completed');
+      expect(msg.toolCalls[0].result).toBe('Task completed successfully');
+      expect(msg.toolCalls[0].subagent?.status).toBe('completed');
+      expect(msg.toolCalls[0].subagent?.result).toBe('Task completed successfully');
     });
   });
 
@@ -2769,7 +2769,7 @@ describe('StreamController - Plan Mode', () => {
         msg
       );
 
-      expect(msg.toolCalls![0].resolvedAnswers).toEqual({ 'Color?': 'Blue' });
+      expect(msg.toolCalls[0].resolvedAnswers).toEqual({ 'Color?': 'Blue' });
     });
 
     it('should not mark AskUserQuestion as blocked even when result looks blocked', async () => {
@@ -2789,7 +2789,7 @@ describe('StreamController - Plan Mode', () => {
         msg
       );
 
-      expect(msg.toolCalls![0].status).toBe('completed');
+      expect(msg.toolCalls[0].status).toBe('completed');
     });
 
     it('should not mark ExitPlanMode as blocked even when result looks blocked', async () => {
@@ -2809,7 +2809,7 @@ describe('StreamController - Plan Mode', () => {
         msg
       );
 
-      expect(msg.toolCalls![0].status).toBe('completed');
+      expect(msg.toolCalls[0].status).toBe('completed');
     });
 
     it('should mark regular tool as blocked when result is blocked', async () => {
@@ -2829,7 +2829,7 @@ describe('StreamController - Plan Mode', () => {
         msg
       );
 
-      expect(msg.toolCalls![0].status).toBe('blocked');
+      expect(msg.toolCalls[0].status).toBe('blocked');
     });
   });
 });

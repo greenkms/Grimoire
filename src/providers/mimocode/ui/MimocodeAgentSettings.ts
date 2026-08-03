@@ -68,8 +68,8 @@ class MimocodeAgentModal extends Modal {
 
   onOpen() {
     this.setTitle(this.existing
-      ? t('settings.agentEditor.modalTitleEdit', { provider: 'MiMo Code' })
-      : t('settings.agentEditor.modalTitleAdd', { provider: 'MiMo Code' }));
+      ? t('settings.agentEditor.modalTitleEdit', { provider: 'MiMoCode' })
+      : t('settings.agentEditor.modalTitleAdd', { provider: 'MiMoCode' }));
     this.modalEl.addClass('grimoire-sp-modal');
 
     const { contentEl } = this;
@@ -90,7 +90,7 @@ class MimocodeAgentModal extends Modal {
 
     new Setting(contentEl)
       .setName(t('settings.subagents.modal.name'))
-      .setDesc(t('settings.agentEditor.nameDesc', { provider: 'MiMo Code' }))
+      .setDesc(t('settings.agentEditor.nameDesc', { provider: 'MiMoCode' }))
       .addText((text) => {
         nameInput = text.inputEl;
         text.setValue(this.existing?.name ?? '')
@@ -99,7 +99,7 @@ class MimocodeAgentModal extends Modal {
 
     new Setting(contentEl)
       .setName(t('settings.subagents.modal.description'))
-      .setDesc(t('settings.agentEditor.descriptionDesc', { provider: 'MiMo Code' }))
+      .setDesc(t('settings.agentEditor.descriptionDesc', { provider: 'MiMoCode' }))
       .addText((text) => {
         descriptionInput = text.inputEl;
         text.setValue(this.existing?.description ?? '')
@@ -388,7 +388,7 @@ export class MimocodeAgentSettings {
 
     const headerEl = this.containerEl.createDiv({ cls: 'grimoire-sp-header' });
     headerEl.createSpan({
-      text: t('settings.agentEditor.title', { provider: 'MiMo Code' }),
+      text: t('settings.agentEditor.title', { provider: 'MiMoCode' }),
       cls: 'grimoire-sp-label',
     });
 
@@ -410,7 +410,7 @@ export class MimocodeAgentSettings {
 
     if (visibleAgents.length === 0) {
       const emptyEl = this.containerEl.createDiv({ cls: 'grimoire-sp-empty-state' });
-      emptyEl.setText(t('settings.agentEditor.noAgents', { provider: 'MiMo Code' }));
+      emptyEl.setText(t('settings.agentEditor.noAgents', { provider: 'MiMoCode' }));
       return;
     }
 

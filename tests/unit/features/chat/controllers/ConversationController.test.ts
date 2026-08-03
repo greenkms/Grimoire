@@ -1,3 +1,5 @@
+import '@/providers';
+
 import { createMockEl } from '@test/helpers/mockElement';
 import { Menu, Notice } from 'obsidian';
 
@@ -69,10 +71,10 @@ function createMockDeps(overrides: Partial<ConversationControllerDeps> = {}): Co
       orphanAllActive: jest.fn(),
       clear: jest.fn(),
     } as any,
-    getHistoryDropdown: () => historyDropdown as any,
+    getHistoryDropdown: () => historyDropdown,
     getWelcomeEl: () => welcomeEl,
     setWelcomeEl: (el: any) => { welcomeEl = el; },
-    getMessagesEl: () => messagesEl as any,
+    getMessagesEl: () => messagesEl,
     getInputEl: () => inputEl,
     getFileContextManager: () => fileContextManager as any,
     getImageContextManager: () => ({
@@ -845,6 +847,35 @@ describe('ConversationController', () => {
     });
 
     describe('renderHistoryDropdown', () => {
+      it('uses registered provider CSS variables and falls back to Claude for invalid IDs', () => {
+        const container = createMockEl();
+        (deps.plugin.getConversationList as jest.Mock).mockReturnValue([
+          { id: 'claude', providerId: 'claude', title: 'Claude', createdAt: 1000, messageCount: 1, preview: '' },
+          { id: 'codex', providerId: 'codex', title: 'Codex', createdAt: 1000, messageCount: 1, preview: '' },
+          { id: 'opencode', providerId: 'opencode', title: 'OpenCode', createdAt: 1000, messageCount: 1, preview: '' },
+          { id: 'mimocode', providerId: 'mimocode', title: 'MiMoCode', createdAt: 1000, messageCount: 1, preview: '' },
+          { id: 'kimicode', providerId: 'kimicode', title: 'Kimi Code', createdAt: 1000, messageCount: 1, preview: '' },
+          { id: 'grok', providerId: 'grok', title: 'Grok Build', createdAt: 1000, messageCount: 1, preview: '' },
+          { id: 'antigravity', providerId: 'antigravity', title: 'Antigravity', createdAt: 1000, messageCount: 1, preview: '' },
+          { id: 'gemini', providerId: 'gemini', title: 'Gemini CLI', createdAt: 1000, messageCount: 1, preview: '' },
+          { id: 'qwen', providerId: 'qwen', title: 'Qwen Code', createdAt: 1000, messageCount: 1, preview: '' },
+          { id: 'invalid', providerId: 'invalid', title: 'Invalid', createdAt: 1000, messageCount: 1, preview: '' },
+        ]);
+
+        controller.renderHistoryDropdown(container, { onSelectConversation: jest.fn() });
+
+        for (const providerId of ['claude', 'codex', 'opencode', 'mimocode', 'kimicode', 'grok', 'antigravity', 'gemini', 'qwen']) {
+          expect(getHistoryItem(container, providerId)
+            .querySelector('.grimoire-history-provider-dot')
+            .style['--grimoire-history-provider-color'])
+            .toBe(`var(--grimoire-provider-${providerId})`);
+        }
+        expect(getHistoryItem(container, 'invalid')
+          .querySelector('.grimoire-history-provider-dot')
+          .style['--grimoire-history-provider-color'])
+          .toBe('var(--grimoire-provider-claude)');
+      });
+
       it('should render history items to provided container', () => {
         const container = createMockEl();
         const onSelectConversation = jest.fn();
@@ -1107,7 +1138,7 @@ describe('ConversationController', () => {
         generateTitle: jest.fn().mockResolvedValue(undefined),
         cancel: jest.fn(),
       };
-      deps.getTitleGenerationService = () => mockTitleService as any;
+      deps.getTitleGenerationService = () => mockTitleService;
 
       (deps.plugin.getConversationList as jest.Mock).mockReturnValue([
         { id: 'conv-1', providerId: 'claude', title: 'Failed', createdAt: 1000, lastResponseAt: 1000, messageCount: 1, preview: 'Preview', titleGenerationStatus: 'failed' },
@@ -1152,22 +1183,22 @@ describe('ConversationController', () => {
       expect(renameItem).toBeDefined();
 
       const mockInput = createMockEl();
-      (mockInput as any).type = '';
-      (mockInput as any).className = '';
-      (mockInput as any).value = '';
-      (mockInput as any).focus = jest.fn();
-      (mockInput as any).select = jest.fn();
+      (mockInput).type = '';
+      (mockInput).className = '';
+      (mockInput).value = '';
+      (mockInput).focus = jest.fn();
+      (mockInput).select = jest.fn();
 
       const titleEl = item.querySelector('.grimoire-history-item-title');
       if (titleEl) {
-        (titleEl as any).replaceWith = jest.fn();
+        (titleEl).replaceWith = jest.fn();
       }
       const createElSpy = jest.spyOn(item, 'createEl').mockReturnValue(mockInput);
 
       renameItem!.clickHandler();
 
       expect(createElSpy).toHaveBeenCalledWith('input');
-      expect((mockInput as any).value).toBe('Test Title');
+      expect((mockInput).value).toBe('Test Title');
       expect(titleEl!.replaceWith).toHaveBeenCalledWith(mockInput);
     });
 

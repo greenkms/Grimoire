@@ -37,7 +37,15 @@ import type {
   ToolCallInfo,
 } from '../../../core/types';
 import { coercePermissionMode } from '../../../core/types/settings';
+import { t } from '../../../i18n/i18n';
 import type GrimoirePlugin from '../../../main';
+import {
+  sameDiscoveredModels,
+  sameModes,
+  sameStringList,
+  sameStringMap,
+  sameThinkingOptionsByModel,
+} from '../../../utils/collections';
 import { getEnhancedPath } from '../../../utils/env';
 import { getVaultPath } from '../../../utils/path';
 import {
@@ -66,13 +74,6 @@ import { opencodePlanUsageStore } from '../app/OpencodePlanUsageStore';
 import { OPENCODE_PROVIDER_CAPABILITIES } from '../capabilities';
 import { updateOpencodeDiscoveryState } from '../discoveryState';
 import { loadOpencodeSessionCost } from '../history/OpencodeUsageMetadataStore';
-import {
-  sameDiscoveredModels,
-  sameModes,
-  sameStringList,
-  sameStringMap,
-  sameThinkingOptionsByModel,
-} from '../internal/compareCollections';
 import { ensureProviderProjectionMap } from '../internal/providerProjection';
 import {
   buildOpencodeBaseModels,
@@ -380,13 +381,13 @@ export class OpencodeChatRuntime implements ChatRuntime {
 
     const lifecycleGeneration = this.lifecycleGeneration;
     if (!(await this.ensureReadyForQuery(lifecycleGeneration))) {
-      yield { type: 'error', content: 'Failed to start OpenCode. Check the CLI path and login state.' };
+      yield { type: 'error', content: t('chat.ui.errors.provider.startFailed', { provider: ProviderRegistry.getProviderDisplayNameOrId('opencode') }) };
       yield { type: 'done' };
       return;
     }
 
     if (!this.connection) {
-      yield { type: 'error', content: 'OpenCode runtime is not ready.' };
+      yield { type: 'error', content: t('chat.ui.errors.provider.notReady', { provider: ProviderRegistry.getProviderDisplayNameOrId('opencode') }) };
       yield { type: 'done' };
       return;
     }
@@ -399,7 +400,7 @@ export class OpencodeChatRuntime implements ChatRuntime {
     if (!this.sessionId) {
       const sessionId = await this.createSession(cwd);
       if (!sessionId) {
-        yield { type: 'error', content: 'Failed to create an OpenCode session.' };
+        yield { type: 'error', content: t('chat.ui.errors.provider.sessionCreateFailed', { provider: ProviderRegistry.getProviderDisplayNameOrId('opencode') }) };
         yield { type: 'done' };
         return;
       }
@@ -464,7 +465,7 @@ export class OpencodeChatRuntime implements ChatRuntime {
       if (!activeTurn.sawOutput && response.stopReason && !/cancel/i.test(response.stopReason)) {
         activeTurn.queue.push({
           type: 'error',
-          content: 'OpenCode completed without returning a response. Check provider credentials and logs, then retry.',
+          content: t('chat.ui.errors.provider.emptyResponse', { provider: ProviderRegistry.getProviderDisplayNameOrId('opencode') }),
         });
       }
       activeTurn.queue.push({ type: 'done' });
@@ -1436,7 +1437,7 @@ export class OpencodeChatRuntime implements ChatRuntime {
     if (this.isRetryableTransportClose(error)) {
       return 'OpenCode connection closed unexpectedly. Please retry; Grimoire will reconnect automatically.';
     }
-    const baseMessage = error instanceof Error ? error.message : 'OpenCode request failed';
+    const baseMessage = error instanceof Error ? error.message : t('chat.ui.errors.provider.requestFailed', { provider: ProviderRegistry.getProviderDisplayNameOrId('opencode') });
     const stderr = this.process?.getStderrSnapshot();
     return stderr ? `${baseMessage}\n\n${stderr}` : baseMessage;
   }

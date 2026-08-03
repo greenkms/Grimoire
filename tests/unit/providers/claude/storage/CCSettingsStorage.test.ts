@@ -167,7 +167,7 @@ describe('CCSettingsStorage', () => {
             await storage.save({
                 permissions: { allow: [], deny: [], ask: [] },
                 enabledPlugins: { 'my-plugin': true },
-            } as any);
+            });
 
             const writeCall = mockAdapter.write.mock.calls[0];
             const writtenContent = JSON.parse(writeCall[1]);
@@ -278,7 +278,7 @@ describe('CCSettingsStorage', () => {
         it('should use default permissions when settings.permissions is undefined', async () => {
             mockAdapter.exists.mockResolvedValue(false);
 
-            await storage.save({} as any);
+            await storage.save({});
 
             const writeCall = mockAdapter.write.mock.calls[0];
             const writtenContent = JSON.parse(writeCall[1]);

@@ -7,7 +7,7 @@ import { OPENCODE_PROVIDER_CAPABILITIES } from './capabilities';
 import { opencodeSettingsReconciler } from './env/OpencodeSettingsReconciler';
 import { OpencodeConversationHistoryService } from './history/OpencodeConversationHistoryService';
 import { OpencodeChatRuntime } from './runtime/OpencodeChatRuntime';
-import { getOpencodeProviderSettings } from './settings';
+import { getOpencodeProviderSettings, updateOpencodeProviderSettings } from './settings';
 import { opencodeChatUIConfig } from './ui/OpencodeChatUIConfig';
 
 export const opencodeProviderRegistration: ProviderRegistration = {
@@ -22,6 +22,7 @@ export const opencodeProviderRegistration: ProviderRegistration = {
   environmentKeyPatterns: [/^OPENCODE_/i],
   historyService: new OpencodeConversationHistoryService(),
   isEnabled: (settings) => getOpencodeProviderSettings(settings).enabled,
+  setEnabled: (settings, enabled) => { updateOpencodeProviderSettings(settings, { enabled }); },
   settingsReconciler: opencodeSettingsReconciler,
   taskResultInterpreter: new OpencodeTaskResultInterpreter(),
 };

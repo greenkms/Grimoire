@@ -409,6 +409,18 @@
         "openFileFailed": "Datei konnte nicht geöffnet werden: {error}",
         "providerSwitchBound": "Der Anbieter kann in einer gebundenen Sitzung nicht gewechselt werden. Starte stattdessen einen neuen Tab.",
         "forkUnsupported": "Fork wird von diesem Anbieter nicht unterstützt.",
+        "provider": {
+          "startFailed": "Start von {provider} fehlgeschlagen. Prüfe CLI-Pfad und Anmeldestatus.",
+          "notReady": "{provider}-Laufzeit ist nicht bereit.",
+          "sessionCreateFailed": "Sitzung für {provider} konnte nicht erstellt werden.",
+          "emptyResponse": "{provider} wurde ohne Antwort beendet. Prüfe die Provider-Anmeldedaten und Protokolle und versuche es erneut.",
+          "requestFailed": "Anfrage an {provider} fehlgeschlagen",
+          "antigravityDisabled": "Antigravity ist deaktiviert. Aktiviere es in den Anbietereinstellungen.",
+          "antigravitySafeModeUnavailable": "Der sichere Modus von Antigravity ist nicht verfügbar, da agy --print keine Grimoire-Genehmigungen für Dateiänderungen anfordern kann. Verwende die automatische Genehmigung nur, wenn AGY Dateien ohne Rückfrage bearbeiten darf.",
+          "antigravityEmptyOutput": "Antigravity wurde ohne Antwort beendet. Prüfe die Anmeldung oder führe agy --print in einem Terminal aus und versuche es erneut.",
+          "claudeVaultPathUnavailable": "Der Vault-Pfad für Claude konnte nicht ermittelt werden.",
+          "claudeCliNotFound": "Die Claude Code CLI wurde nicht gefunden. Installiere sie oder konfiguriere ihren Pfad in den Anbietereinstellungen."
+        },
         "initializeFailed": "Chatdienst konnte nicht initialisiert werden",
         "loadConversationFailed": "Unterhaltung konnte nicht geladen werden",
         "regenerateFailed": "Antwort konnte nicht neu generiert werden",

@@ -74,7 +74,7 @@ describe('GrimoireSettingTab general tab settings', () => {
     const plugin = createSettingsPlugin();
     const app: any = { hotkeyManager: {} };
     const tab = new GrimoireSettingTab(app, plugin);
-    const container = createMockEl('div') as any;
+    const container = createMockEl('div');
     (tab as any).containerEl = createMockEl('div');
 
     (tab as any).renderGeneralTab(container);
@@ -164,7 +164,7 @@ describe('GrimoireSettingTab general tab settings', () => {
     const plugin = createSettingsPlugin({ maxTabs: 5, tabBarPosition: 'input' });
     const app: any = { hotkeyManager: {} };
     const tab = new GrimoireSettingTab(app, plugin);
-    const container = createMockEl('div') as any;
+    const container = createMockEl('div');
     (tab as any).containerEl = createMockEl('div');
 
     (tab as any).renderGeneralTab(container);
@@ -183,7 +183,7 @@ describe('GrimoireSettingTab general tab settings', () => {
     const plugin = createSettingsPlugin({ debugLoggingEnabled: false });
     const app: any = { hotkeyManager: {} };
     const tab = new GrimoireSettingTab(app, plugin);
-    const container = createMockEl('div') as any;
+    const container = createMockEl('div');
     (tab as any).containerEl = createMockEl('div');
 
     (tab as any).renderGeneralTab(container);
@@ -197,7 +197,7 @@ describe('GrimoireSettingTab general tab settings', () => {
     const plugin = createSettingsPlugin({ usageIndicatorsEnabled: true });
     const app: any = { hotkeyManager: {} };
     const tab = new GrimoireSettingTab(app, plugin);
-    const container = createMockEl('div') as any;
+    const container = createMockEl('div');
     (tab as any).containerEl = createMockEl('div');
 
     (tab as any).renderGeneralTab(container);
@@ -211,7 +211,7 @@ describe('GrimoireSettingTab general tab settings', () => {
     const plugin = createSettingsPlugin({ requireCommandOrControlEnterToSend: false });
     const app: any = { hotkeyManager: {} };
     const tab = new GrimoireSettingTab(app, plugin);
-    const container = createMockEl('div') as any;
+    const container = createMockEl('div');
     (tab as any).containerEl = createMockEl('div');
 
     (tab as any).renderGeneralTab(container);
@@ -286,13 +286,13 @@ describe('GrimoireSettingTab provider tabs', () => {
 
   it('renders accessible overflow controls and updates their boundary state', () => {
     const tab = new GrimoireSettingTab(createSettingsApp(), createSettingsPlugin());
-    const container = createMockEl('div') as any;
+    const container = createMockEl('div');
     renderDeclarativeSettings(tab, container);
 
-    const tabBar = container.querySelector('.grimoire-settings-tabs') as any;
-    const viewport = container.querySelector('.grimoire-settings-tabs-viewport') as any;
-    const previous = container.querySelector('.grimoire-settings-tab-scroll--previous') as any;
-    const next = container.querySelector('.grimoire-settings-tab-scroll--next') as any;
+    const tabBar = container.querySelector('.grimoire-settings-tabs');
+    const viewport = container.querySelector('.grimoire-settings-tabs-viewport');
+    const previous = container.querySelector('.grimoire-settings-tab-scroll--previous');
+    const next = container.querySelector('.grimoire-settings-tab-scroll--next');
     viewport.clientWidth = 100;
     viewport.scrollWidth = 300;
     viewport.scrollLeft = 0;
@@ -318,10 +318,10 @@ describe('GrimoireSettingTab provider tabs', () => {
 
   it('uses wheel movement only when the overflowing tab list moves', () => {
     const tab = new GrimoireSettingTab(createSettingsApp(), createSettingsPlugin());
-    const container = createMockEl('div') as any;
+    const container = createMockEl('div');
     renderDeclarativeSettings(tab, container);
 
-    const viewport = container.querySelector('.grimoire-settings-tabs-viewport') as any;
+    const viewport = container.querySelector('.grimoire-settings-tabs-viewport');
     viewport.clientWidth = 100;
     viewport.scrollWidth = 300;
     viewport.scrollLeft = 0;
@@ -337,10 +337,10 @@ describe('GrimoireSettingTab provider tabs', () => {
 
   it('activates, focuses, and reveals keyboard-selected tabs', () => {
     const tab = new GrimoireSettingTab(createSettingsApp(), createSettingsPlugin());
-    const container = createMockEl('div') as any;
+    const container = createMockEl('div');
     renderDeclarativeSettings(tab, container);
 
-    const buttons = Array.from(container.querySelectorAll('.grimoire-settings-tab')) as any[];
+    const buttons = Array.from<any>(container.querySelectorAll('.grimoire-settings-tab'));
     const reveal = jest.fn();
     const focus = jest.fn();
     buttons[1].scrollIntoView = reveal;

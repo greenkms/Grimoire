@@ -2,7 +2,9 @@ import * as fs from 'node:fs/promises';
 
 import type { AuxQueryConfig, AuxQueryRunner } from '../../../core/auxiliary/AuxQueryRunner';
 import { getRuntimeEnvironmentText } from '../../../core/providers/providerEnvironment';
+import { ProviderRegistry } from '../../../core/providers/ProviderRegistry';
 import { ProviderSettingsCoordinator } from '../../../core/providers/ProviderSettingsCoordinator';
+import { t } from '../../../i18n/i18n';
 import type GrimoirePlugin from '../../../main';
 import { getVaultPath } from '../../../utils/path';
 import {
@@ -16,9 +18,8 @@ import {
   extractAcpSessionModelState,
   resolveWorkspacePath,
 } from '../../acp';
-import { decodeGrokModelId } from '../models';
+import { decodeGrokModelId, isGrokModelSelectionId } from '../models';
 import type { GrokPermissionMode } from '../modes';
-import { grokChatUIConfig } from '../ui/GrokChatUIConfig';
 import { buildGrokAgentProcessArgs } from './GrokLaunchArgs';
 import { prepareGrokLaunchArtifacts } from './GrokLaunchArtifacts';
 import { buildGrokRuntimeEnv } from './GrokRuntimeEnvironment';
@@ -54,13 +55,13 @@ export class GrokAuxQueryRunner implements AuxQueryRunner {
     await this.ensureReady(cwd, config.systemPrompt);
 
     if (!this.connection) {
-      throw new Error('Grok runtime is not ready.');
+      throw new Error(t('chat.ui.errors.provider.notReady', { provider: ProviderRegistry.getProviderDisplayNameOrId('grok') }));
     }
 
     if (!this.sessionId) {
       const sessionId = await this.createSession(cwd);
       if (!sessionId) {
-        throw new Error('Failed to create an Grok session.');
+        throw new Error(t('chat.ui.errors.provider.sessionCreateFailed', { provider: ProviderRegistry.getProviderDisplayNameOrId('grok') }));
       }
     }
 
@@ -121,7 +122,7 @@ export class GrokAuxQueryRunner implements AuxQueryRunner {
 
       return accumulatedText;
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Grok request failed';
+      const message = error instanceof Error ? error.message : t('chat.ui.errors.provider.requestFailed', { provider: ProviderRegistry.getProviderDisplayNameOrId('grok') });
       const stderr = this.process?.getStderrSnapshot();
       throw new Error(
         stderr ? `${message}\n\n${stderr}` : message,
@@ -299,7 +300,7 @@ export class GrokAuxQueryRunner implements AuxQueryRunner {
       if (!trimmed) {
         return undefined;
       }
-      return grokChatUIConfig.ownsModel(trimmed, projectedSettings)
+      return isGrokModelSelectionId(trimmed)
         ? decodeGrokModelId(trimmed) ?? undefined
         : trimmed;
     }
@@ -307,7 +308,7 @@ export class GrokAuxQueryRunner implements AuxQueryRunner {
     const selectedModel = typeof projectedSettings.model === 'string'
       ? projectedSettings.model
       : '';
-    return grokChatUIConfig.ownsModel(selectedModel, projectedSettings)
+    return isGrokModelSelectionId(selectedModel)
       ? decodeGrokModelId(selectedModel) ?? undefined
       : undefined;
   }

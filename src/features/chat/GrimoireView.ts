@@ -105,7 +105,6 @@ export class GrimoireView extends ItemView {
   private tabBar: TabBar | null = null;
   private tabBarContainerEl: HTMLElement | null = null;
   private tabContentEl: HTMLElement | null = null;
-  private navRowContent: HTMLElement | null = null;
   private whatsNewHostEl: HTMLElement | null = null;
   private closeToastHostEl: HTMLElement | null = null;
   private closeToastTimers = new Set<number>();
@@ -113,7 +112,6 @@ export class GrimoireView extends ItemView {
 
   // DOM Elements
   private viewContainerEl: HTMLElement | null = null;
-  private headerEl: HTMLElement | null = null;
   private titleSlotEl: HTMLElement | null = null;
   private logoEl: HTMLElement | null = null;
   private titleTextEl: HTMLElement | null = null;
@@ -281,7 +279,7 @@ export class GrimoireView extends ItemView {
       const header = shellEl.createDiv({ cls: 'grimoire-header grimoire-session-strip' });
       this.buildHeader(header);
 
-      this.navRowContent = this.buildNavRowContent();
+      this.buildNavRowContent();
       this.tabContentEl = shellEl.createDiv({
         cls: 'grimoire-tab-content-container grimoire-tab-content-container--chat-window',
       });
@@ -425,7 +423,6 @@ export class GrimoireView extends ItemView {
   }
 
   private buildHeader(header: HTMLElement) {
-    this.headerEl = header;
 
     // Title slot container (logo + title or tabs)
     this.titleSlotEl = header.createDiv({ cls: 'grimoire-title-slot' });

@@ -1,6 +1,5 @@
 import * as fs from 'node:fs/promises';
 
-import type { PreparedChatTurn } from '@/core/runtime/types';
 import type { StreamChunk } from '@/core/types';
 import type { AcpContentBlock } from '@/providers/acp';
 import { GeminiChatRuntime } from '@/providers/gemini/runtime/GeminiChatRuntime';
@@ -110,7 +109,7 @@ describe('GeminiChatRuntime', () => {
       }),
     };
 
-    const chunks = await collect(runtime.query(turn as PreparedChatTurn));
+    const chunks = await collect(runtime.query(turn));
 
     expect(chunks).toContainEqual({ itemId: 'assistant-1', type: 'assistant_message_start' });
     expect(chunks).toContainEqual({ content: 'Hi from Gemini', type: 'text' });
@@ -299,7 +298,7 @@ describe('GeminiChatRuntime', () => {
         lineCount: 2,
       },
       text: 'Summarize this',
-    }) as PreparedChatTurn;
+    });
 
     expect(turn.persistedContent).toContain('<current_note>');
     expect(turn.persistedContent).toContain('notes/Artic Ocean.md');
@@ -351,7 +350,7 @@ describe('GeminiChatRuntime', () => {
     (runtime as any).connection = { prompt };
 
     await collect(runtime.query(
-      turn as PreparedChatTurn,
+      turn,
       undefined,
       { orchestratorMode: true },
     ));
@@ -416,28 +415,28 @@ describe('GeminiChatRuntime', () => {
 
     it('rejects an absolute path outside the workspace in safe mode', () => {
       const runtime = createRuntimeWithPermissionMode('normal');
-      expect(() => (runtime as any).resolveSessionPath('session-1', '/etc/hosts')).toThrow(
+      expect(() => (runtime).resolveSessionPath('session-1', '/etc/hosts')).toThrow(
         'File access is limited to the current workspace.',
       );
     });
 
     it('rejects an escaping relative path in safe mode', () => {
       const runtime = createRuntimeWithPermissionMode('normal');
-      expect(() => (runtime as any).resolveSessionPath('session-1', '../../etc/hosts')).toThrow(
+      expect(() => (runtime).resolveSessionPath('session-1', '../../etc/hosts')).toThrow(
         'File access is limited to the current workspace.',
       );
     });
 
     it('allows a path inside the workspace in safe mode', () => {
       const runtime = createRuntimeWithPermissionMode('normal');
-      expect((runtime as any).resolveSessionPath('session-1', 'Notes/today.md')).toBe(
+      expect((runtime).resolveSessionPath('session-1', 'Notes/today.md')).toBe(
         '/tmp/grimoire-gemini-test-vault/Notes/today.md',
       );
     });
 
     it('allows a path outside the workspace in active (full_access) mode', () => {
       const runtime = createRuntimeWithPermissionMode('full_access');
-      expect((runtime as any).resolveSessionPath('session-1', '/etc/hosts')).toBe('/etc/hosts');
+      expect((runtime).resolveSessionPath('session-1', '/etc/hosts')).toBe('/etc/hosts');
     });
   });
 });

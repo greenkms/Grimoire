@@ -115,6 +115,10 @@ export class ProviderRegistry {
       .sort((left, right) => this.compareProviderTabOrder(left, right));
   }
 
+  static isRegisteredProviderId(value: unknown): value is ProviderId {
+    return typeof value === 'string' && this.registrations[value] !== undefined;
+  }
+
   static getEnabledProviderIds(settings: Record<string, unknown>): ProviderId[] {
     return this.getRegisteredProviderIds()
       .filter(providerId => this.getProviderRegistration(providerId).isEnabled(settings));
@@ -134,8 +138,20 @@ export class ProviderRegistry {
     return this.getProviderRegistration(providerId).displayName;
   }
 
+  static getProviderDisplayNameOrId(providerId: string): string {
+    return this.registrations[providerId]?.displayName ?? providerId;
+  }
+
+  static getPreloadedContextFiles(providerId: ProviderId): string[] {
+    return this.getProviderRegistration(providerId).getPreloadedContextFiles?.() ?? [];
+  }
+
   static isEnabled(providerId: ProviderId, settings: Record<string, unknown>): boolean {
     return this.getProviderRegistration(providerId).isEnabled(settings);
+  }
+
+  static setEnabled(providerId: ProviderId, settings: Record<string, unknown>, enabled: boolean): void {
+    this.getProviderRegistration(providerId).setEnabled(settings, enabled);
   }
 
   static resolveSettingsProviderId(settings: Record<string, unknown>): ProviderId {

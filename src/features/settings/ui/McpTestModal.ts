@@ -39,7 +39,6 @@ function appendSpinnerSvg(container: HTMLElement): void {
 export class McpTestModal extends Modal {
   private serverName: string;
   private result: McpTestResult | null = null;
-  private loading = true;
   private contentEl_: HTMLElement | null = null;
   private disabledTools: Set<string>;
   private onToolToggle?: (toolName: string, enabled: boolean) => Promise<void>;
@@ -77,13 +76,11 @@ export class McpTestModal extends Modal {
 
   setResult(result: McpTestResult) {
     this.result = result;
-    this.loading = false;
     this.render();
   }
 
   setError(error: string) {
     this.result = { success: false, tools: [], error };
-    this.loading = false;
     this.render();
   }
 

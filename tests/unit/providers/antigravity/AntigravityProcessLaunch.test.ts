@@ -12,6 +12,7 @@ describe('buildAntigravityProcessLaunch', () => {
     });
 
     if (process.platform === 'win32') {
+      // eslint-disable-next-line jest/no-conditional-expect -- launch behavior is platform-specific.
       expect(launch.launchMode).toBe('direct');
       return;
     }

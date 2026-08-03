@@ -494,7 +494,7 @@ describe('utils.ts', () => {
 
       it('should return null when Claude CLI is not found', () => {
         jest.spyOn(os, 'homedir').mockReturnValue('/home/test');
-        jest.spyOn(fs, 'existsSync').mockReturnValue(false as any);
+        jest.spyOn(fs, 'existsSync').mockReturnValue(false);
 
         expect(findClaudeCLIPath()).toBeNull();
       });
@@ -595,7 +595,7 @@ describe('utils.ts', () => {
 
       it('should return null when no CLI is found on Windows', () => {
         jest.spyOn(os, 'homedir').mockReturnValue('C:\\Users\\test');
-        jest.spyOn(fs, 'existsSync').mockReturnValue(false as any);
+        jest.spyOn(fs, 'existsSync').mockReturnValue(false);
 
         expect(findClaudeCLIPath()).toBeNull();
       });
@@ -696,7 +696,7 @@ describe('utils.ts', () => {
         return /^[A-Za-z]:[\\/]/.test(value) || originalIsAbsolute(value);
       });
 
-      const realpathSpy = jest.spyOn(fs, 'realpathSync').mockImplementation((p: any) => String(p) as any);
+      const realpathSpy = jest.spyOn(fs, 'realpathSync').mockImplementation((p: any) => String(p));
       (fs.realpathSync as any).native = realpathSpy;
     });
 

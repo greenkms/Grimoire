@@ -23,7 +23,7 @@ function createContextRow(browserIndicator: HTMLElement | null): HTMLElement {
   const toggle = contextRow.classList.toggle;
   contextRow.classList.toggle = jest.fn((cls: string, force?: boolean) => toggle(cls, force));
   contextRow.querySelector = jest.fn((selector: string) => lookup.get(selector) ?? null);
-  return contextRow as unknown as HTMLElement;
+  return contextRow;
 }
 
 describe('updateContextRowHasContent', () => {

@@ -161,6 +161,32 @@ describe('ProviderRegistry', () => {
     expect(ProviderRegistry.getProviderDisplayName('codex')).toBe('Codex');
   });
 
+  it('validates opaque provider ids and preserves unknown display labels', () => {
+    expect(ProviderRegistry.isRegisteredProviderId('grok')).toBe(true);
+    expect(ProviderRegistry.isRegisteredProviderId('unknown')).toBe(false);
+    expect(ProviderRegistry.isRegisteredProviderId(null)).toBe(false);
+    expect(ProviderRegistry.getProviderDisplayNameOrId('mimocode')).toBe('MiMoCode');
+    expect(ProviderRegistry.getProviderDisplayNameOrId('future-provider')).toBe('future-provider');
+  });
+
+  it('routes enablement updates through every provider registration', () => {
+    const settings: Record<string, unknown> = {};
+
+    for (const providerId of ProviderRegistry.getRegisteredProviderIds()) {
+      ProviderRegistry.setEnabled(providerId, settings, true);
+      expect(ProviderRegistry.isEnabled(providerId, settings)).toBe(true);
+      ProviderRegistry.setEnabled(providerId, settings, false);
+      expect(ProviderRegistry.isEnabled(providerId, settings)).toBe(false);
+    }
+  });
+
+  it('exposes provider-owned preloaded context files without feature hardcoding', () => {
+    expect(ProviderRegistry.getPreloadedContextFiles('grok')).toEqual([
+      '.grimoire/grok/system.md',
+    ]);
+    expect(ProviderRegistry.getPreloadedContextFiles('claude')).toEqual([]);
+  });
+
   it('routes auto title generation to the active settings provider', async () => {
     const providerCalls: ProviderId[] = [];
     const originalCreate = ProviderRegistry.createTitleGenerationService.bind(ProviderRegistry);

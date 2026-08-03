@@ -102,7 +102,7 @@ class MockElement {
   }
 
   get ownerDocument(): any {
-    return (global as any).document;
+    return (window as any).document;
   }
 
   appendChild(child: MockElement): MockElement {
@@ -277,19 +277,19 @@ describe('StatusPanel', () => {
   let writeTextMock: jest.Mock;
 
   beforeEach(() => {
-    originalDocument = (global as any).document;
-    originalNavigator = (global as any).navigator;
-    (global as any).document = createMockDocument();
+    originalDocument = (window as any).document;
+    originalNavigator = (window as any).navigator;
+    (window as any).document = createMockDocument();
     writeTextMock = jest.fn().mockResolvedValue(undefined);
-    (global as any).navigator = { clipboard: { writeText: writeTextMock } };
+    (window as any).navigator = { clipboard: { writeText: writeTextMock } };
     containerEl = new MockElement('div');
     panel = new StatusPanel();
   });
 
   afterEach(() => {
     panel.destroy();
-    (global as any).document = originalDocument;
-    (global as any).navigator = originalNavigator;
+    (window as any).document = originalDocument;
+    (window as any).navigator = originalNavigator;
   });
 
   describe('mount', () => {

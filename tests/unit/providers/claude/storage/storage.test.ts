@@ -1,4 +1,3 @@
-import type { ProviderId } from '@/core/providers/types';
 import type { ChatMessage, Conversation } from '@/core/types';
 import { parseSlashCommandContent } from '@/utils/slashCommand';
 
@@ -78,7 +77,7 @@ describe('SessionStorage JSONL format', () => {
     it('should serialize conversation to valid JSONL', () => {
       const conversation: Conversation = {
         id: 'conv-456',
-        providerId: 'claude' as ProviderId,
+        providerId: 'claude',
         title: 'My Chat',
         createdAt: 5000,
         updatedAt: 6000,
@@ -112,7 +111,7 @@ describe('SessionStorage JSONL format', () => {
     it('should preserve image data when serializing', () => {
       const conversation: Conversation = {
         id: 'conv-img',
-        providerId: 'claude' as ProviderId,
+        providerId: 'claude',
         title: 'Image Chat',
         createdAt: 1000,
         updatedAt: 2000,
@@ -150,7 +149,7 @@ describe('SessionStorage JSONL format', () => {
     it('should preserve lastResponseAt in serialization', () => {
       const conversation: Conversation = {
         id: 'conv-lr',
-        providerId: 'claude' as ProviderId,
+        providerId: 'claude',
         title: 'Test',
         createdAt: 1000,
         updatedAt: 2000,
@@ -168,7 +167,7 @@ describe('SessionStorage JSONL format', () => {
     it('should round-trip conversation correctly', () => {
       const original: Conversation = {
         id: 'conv-rt',
-        providerId: 'claude' as ProviderId,
+        providerId: 'claude',
         title: 'Round Trip',
         createdAt: 1000,
         updatedAt: 2000,
@@ -320,7 +319,7 @@ function parseJSONLHelper(content: string): Conversation | null {
 
   return {
     id: meta.id,
-    providerId: 'claude' as ProviderId,
+    providerId: 'claude',
     title: meta.title,
     createdAt: meta.createdAt,
     updatedAt: meta.updatedAt,
@@ -357,4 +356,3 @@ function serializeToJSONLHelper(conversation: Conversation): string {
 
   return lines.join('\n');
 }
-

@@ -950,21 +950,10 @@ export class ConversationController {
   }
 
   private getHistoryProviderColor(providerId: string | undefined): string {
-    switch (providerId) {
-      case 'codex':
-        return '#19c37d';
-      case 'antigravity':
-        return '#5b8def';
-      case 'gemini':
-        return '#669df6';
-      case 'opencode':
-        return '#e0b341';
-      case 'qwen':
-        return '#615ced';
-      case 'claude':
-      default:
-        return '#d97757';
-    }
+    const resolvedProviderId = providerId && ProviderRegistry.isRegisteredProviderId(providerId)
+      ? providerId
+      : 'claude';
+    return `var(--grimoire-provider-${resolvedProviderId})`;
   }
 
   private formatRelativeTime(timestamp: number): string {

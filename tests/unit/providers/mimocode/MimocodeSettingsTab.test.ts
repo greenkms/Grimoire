@@ -271,7 +271,7 @@ function createElement(): any {
     }),
     dispatchMockEvent: async (type: string, event?: unknown) => {
       for (const listener of eventListeners.get(type) ?? []) {
-        await listener(event);
+        await Promise.resolve(listener(event));
       }
     },
     blur: jest.fn(),

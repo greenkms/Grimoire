@@ -2,7 +2,9 @@ import * as fs from 'node:fs/promises';
 
 import type { AuxQueryConfig, AuxQueryRunner } from '../../../core/auxiliary/AuxQueryRunner';
 import { getRuntimeEnvironmentText } from '../../../core/providers/providerEnvironment';
+import { ProviderRegistry } from '../../../core/providers/ProviderRegistry';
 import { ProviderSettingsCoordinator } from '../../../core/providers/ProviderSettingsCoordinator';
+import { t } from '../../../i18n/i18n';
 import type GrimoirePlugin from '../../../main';
 import { getVaultPath } from '../../../utils/path';
 import {
@@ -16,8 +18,7 @@ import {
   extractAcpSessionModelState,
   resolveWorkspacePath,
 } from '../../acp';
-import { decodeMimocodeModelId } from '../models';
-import { mimocodeChatUIConfig } from '../ui/MimocodeChatUIConfig';
+import { decodeMimocodeModelId, isMimocodeModelSelectionId } from '../models';
 import {
   type MimocodeManagedAgentConfig,
   prepareMimocodeLaunchArtifacts,
@@ -66,13 +67,13 @@ export class MimocodeAuxQueryRunner implements AuxQueryRunner {
     await this.ensureReady(cwd, config.systemPrompt);
 
     if (!this.connection) {
-      throw new Error('Mimocode runtime is not ready.');
+      throw new Error(t('chat.ui.errors.provider.notReady', { provider: ProviderRegistry.getProviderDisplayNameOrId('mimocode') }));
     }
 
     if (!this.sessionId) {
       const sessionId = await this.createSession(cwd);
       if (!sessionId) {
-        throw new Error('Failed to create an Mimocode session.');
+        throw new Error(t('chat.ui.errors.provider.sessionCreateFailed', { provider: ProviderRegistry.getProviderDisplayNameOrId('mimocode') }));
       }
     }
 
@@ -136,7 +137,7 @@ export class MimocodeAuxQueryRunner implements AuxQueryRunner {
 
       return accumulatedText;
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Mimocode request failed';
+      const message = error instanceof Error ? error.message : t('chat.ui.errors.provider.requestFailed', { provider: ProviderRegistry.getProviderDisplayNameOrId('mimocode') });
       const stderr = this.process?.getStderrSnapshot();
       throw new Error(
         stderr ? `${message}\n\n${stderr}` : message,
@@ -324,7 +325,7 @@ export class MimocodeAuxQueryRunner implements AuxQueryRunner {
       if (!trimmed) {
         return undefined;
       }
-      return mimocodeChatUIConfig.ownsModel(trimmed, projectedSettings)
+      return isMimocodeModelSelectionId(trimmed)
         ? decodeMimocodeModelId(trimmed) ?? undefined
         : trimmed;
     }
@@ -332,7 +333,7 @@ export class MimocodeAuxQueryRunner implements AuxQueryRunner {
     const selectedModel = typeof projectedSettings.model === 'string'
       ? projectedSettings.model
       : '';
-    return mimocodeChatUIConfig.ownsModel(selectedModel, projectedSettings)
+    return isMimocodeModelSelectionId(selectedModel)
       ? decodeMimocodeModelId(selectedModel) ?? undefined
       : undefined;
   }

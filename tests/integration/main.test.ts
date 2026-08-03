@@ -978,7 +978,7 @@ describe('GrimoirePlugin', () => {
       const originalUpdatedAt = conv.updatedAt;
 
       // Small delay to ensure timestamp differs
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       await plugin.updateConversation(conv.id, { title: 'Changed' });
 

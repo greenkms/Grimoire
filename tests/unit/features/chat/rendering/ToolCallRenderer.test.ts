@@ -312,7 +312,7 @@ describe('ToolCallRenderer', () => {
 
     it('should set MCP SVG for MCP tools', () => {
       const el = createMockEl();
-      setToolIcon(el as unknown as HTMLElement, 'mcp__server__tool');
+      setToolIcon(el, 'mcp__server__tool');
       expect(el.children[0]?.tagName).toBe('SVG');
     });
   });
@@ -668,7 +668,6 @@ describe('ToolCallRenderer', () => {
         status: 'completed',
         input: {
           actionType: 'open_page',
-          // eslint-disable-next-line no-script-url -- intentional malicious payload under test
           url: 'javascript:alert(document.cookie)',
         },
         result: 'Search complete',
@@ -920,20 +919,20 @@ describe('ToolCallRenderer', () => {
           { status: 'pending', content: 'Task 2', activeForm: 'Task 2' },
         ],
       };
-      renderTodoWriteResult(container as unknown as HTMLElement, input);
+      renderTodoWriteResult(container, input);
       expect(container.hasClass('grimoire-todo-panel-content')).toBe(true);
       expect(container.hasClass('grimoire-todo-list-container')).toBe(true);
     });
 
     it('should show fallback text when no todos array', () => {
       const container = createMockEl();
-      renderTodoWriteResult(container as unknown as HTMLElement, {});
+      renderTodoWriteResult(container, {});
       expect(container._children[0].textContent).toBe('Tasks updated');
     });
 
     it('should show fallback text for non-array todos', () => {
       const container = createMockEl();
-      renderTodoWriteResult(container as unknown as HTMLElement, { todos: 'invalid' });
+      renderTodoWriteResult(container, { todos: 'invalid' });
       expect(container._children[0].textContent).toBe('Tasks updated');
     });
   });

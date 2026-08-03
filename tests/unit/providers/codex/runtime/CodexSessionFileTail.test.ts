@@ -1108,7 +1108,7 @@ describe('CodexFileTailEngine', () => {
 
     engine.startPolling('thread-2');
     // Give polling time to pick up the line
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => window.setTimeout(resolve, 300));
     await engine.stopPolling();
 
     const events = engine.collectPendingEvents();
@@ -1132,7 +1132,7 @@ describe('CodexFileTailEngine', () => {
     }) + '\n');
 
     engine.startPolling('thread-3');
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => window.setTimeout(resolve, 300));
     await engine.stopPolling();
     engine.collectPendingEvents();
 
@@ -1168,7 +1168,7 @@ describe('CodexFileTailEngine', () => {
     }) + '\n');
 
     engine.startPolling('thread-4');
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => window.setTimeout(resolve, 300));
     await engine.stopPolling();
     engine.collectPendingEvents();
 
@@ -1189,7 +1189,7 @@ describe('CodexFileTailEngine', () => {
     }) + '\n');
 
     engine.startPolling('thread-5');
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => window.setTimeout(resolve, 300));
     await engine.stopPolling();
     engine.collectPendingEvents();
 
@@ -1216,7 +1216,7 @@ describe('CodexFileTailEngine', () => {
     }) + '\n');
 
     engine.startPolling('thread-6');
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => window.setTimeout(resolve, 300));
     await engine.stopPolling();
 
     const events = engine.collectPendingEvents();
@@ -1261,7 +1261,7 @@ describe('CodexFileTailEngine', () => {
     }) + '\n');
 
     engine.startPolling('thread-tool');
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => window.setTimeout(resolve, 300));
     await engine.stopPolling();
 
     const events = engine.collectPendingEvents();
@@ -1295,7 +1295,7 @@ describe('CodexFileTailEngine', () => {
     }) + '\n');
 
     engine.startPolling('thread-nested');
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => window.setTimeout(resolve, 300));
     await engine.stopPolling();
 
     expect(engine.collectPendingEvents()).toEqual([

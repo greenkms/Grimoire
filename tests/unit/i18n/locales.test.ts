@@ -162,7 +162,7 @@ function flattenTranslations(
   for (const [key, value] of Object.entries(translations)) {
     const nextKey = prefix ? `${prefix}.${key}` : key;
     if (value && typeof value === 'object') {
-      flattenTranslations(value as TranslationTree, nextKey, out);
+      flattenTranslations(value, nextKey, out);
       continue;
     }
 
@@ -179,13 +179,13 @@ function extractPlaceholders(value: string): string[] {
 }
 
 describe('locale files', () => {
-  const english = flattenTranslations(en as unknown as TranslationTree);
+  const english = flattenTranslations(en);
 
   it('keeps every locale structurally aligned with English', () => {
     const englishKeys = Object.keys(english).sort();
 
     for (const [locale, translations] of Object.entries(locales)) {
-      const localeKeys = Object.keys(flattenTranslations(translations as unknown as TranslationTree)).sort();
+      const localeKeys = Object.keys(flattenTranslations(translations)).sort();
       expect(localeKeys).toEqual(englishKeys);
       expect(locale).toBeTruthy();
     }
@@ -193,7 +193,7 @@ describe('locale files', () => {
 
   it('keeps interpolation parameters aligned with English', () => {
     for (const [localeName, translations] of Object.entries(locales)) {
-      const locale = flattenTranslations(translations as unknown as TranslationTree);
+      const locale = flattenTranslations(translations);
 
       for (const [key, englishValue] of Object.entries(english)) {
         expect({
@@ -211,7 +211,7 @@ describe('locale files', () => {
 
   it('localizes the recent orchestrator, bang bash, and subagent additions', () => {
     for (const translations of Object.values(locales)) {
-      const locale = flattenTranslations(translations as unknown as TranslationTree);
+      const locale = flattenTranslations(translations);
 
       for (const key of localizedKeys) {
         expect(locale[key]).toBeDefined();

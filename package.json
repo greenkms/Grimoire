@@ -1,6 +1,6 @@
 {
   "name": "grimoire",
-  "version": "1.0.40",
+  "version": "1.1.0",
   "description": "Local-first AI agents for Obsidian: Claude Code, Codex, Qwen Code, Antigravity CLI, Gemini CLI, and OpenCode in a vault-native side panel.",
   "main": "main.js",
   "scripts": {
@@ -13,13 +13,14 @@
     "review:source": "node scripts/check-review-source.mjs",
     "review:css": "node scripts/check-review-css.mjs",
     "review:deps": "node scripts/check-review-dependencies.mjs",
+    "check:release-metadata": "node scripts/check-release-metadata.mjs",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint \"src/**/*.ts\" --max-warnings=0",
+    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\" --max-warnings=0",
     "lint:fix": "npm run lint -- --fix",
     "test": "node scripts/run-jest.js",
     "test:watch": "node scripts/run-jest.js --watch",
     "test:coverage": "node scripts/run-jest.js --coverage",
-    "version": "node scripts/sync-version.js && git add manifest.json"
+    "version": "node scripts/sync-version.js && git add manifest.json versions.json CHANGELOG.md package-lock.json"
   },
   "keywords": [
     "agentic-cli",

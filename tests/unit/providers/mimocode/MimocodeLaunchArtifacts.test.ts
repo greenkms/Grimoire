@@ -163,7 +163,7 @@ describe('prepareMimocodeLaunchArtifacts', () => {
       runtimeEnv: {
         HOME: tmpRoot,
         MIMOCODE_CONFIG: baseConfigPath,
-      } as NodeJS.ProcessEnv,
+      },
       settings: {
         customPrompt: '',
         mediaFolder: '',
@@ -230,7 +230,7 @@ describe('prepareMimocodeLaunchArtifacts', () => {
       ...baseParams,
       runtimeEnv: {
         HOME: tmpRoot,
-      } as NodeJS.ProcessEnv,
+      },
     });
 
     const second = await prepareMimocodeLaunchArtifacts({
@@ -238,7 +238,7 @@ describe('prepareMimocodeLaunchArtifacts', () => {
       runtimeEnv: {
         HOME: tmpRoot,
         MIMOCODE_DB: first.databasePath ?? undefined,
-      } as NodeJS.ProcessEnv,
+      },
     });
 
     expect(first.databasePath).toBe(second.databasePath);
@@ -254,7 +254,7 @@ describe('prepareMimocodeLaunchArtifacts', () => {
       runtimeEnv: {
         HOME: path.join(tmpRoot, 'home'),
         XDG_DATA_HOME: xdgDataHome,
-      } as NodeJS.ProcessEnv,
+      },
       settings: {
         customPrompt: '',
         mediaFolder: '',

@@ -1,9 +1,11 @@
+import '@/providers';
+
 import { createMockEl } from '@test/helpers/mockElement';
 
 import {
+  extractRuntimeContextLoadEvent,
   RuntimeContextActivityState,
   RuntimeContextActivityView,
-  extractRuntimeContextLoadEvent,
 } from '@/features/chat/ui/context/RuntimeContextActivity';
 
 describe('RuntimeContextActivity', () => {
@@ -160,6 +162,25 @@ describe('RuntimeContextActivity', () => {
       method: 'read note',
       status: 'loaded',
     }]);
+  });
+
+  it('uses registered display names for provider badges and falls back safely', () => {
+    const container = createMockEl();
+    const view = new RuntimeContextActivityView(container);
+
+    for (const providerId of ['kimicode', 'mimocode', 'grok', 'gemini', 'qwen'] as const) {
+      view.recordPreloadedFile(providerId, `${providerId}.md`);
+    }
+    view.recordPreloadedFile('unregistered', 'unregistered.md');
+
+    expect(container.querySelectorAll('.grimoire-context-file-badge').map((badge: { textContent?: string }) => badge.textContent)).toEqual([
+      'Kimi Code',
+      'MiMoCode',
+      'Grok Build',
+      'Gemini CLI (Legacy)',
+      'Qwen Code',
+      'unregistered',
+    ]);
   });
 
   it('deduplicates by path and keeps the latest status', () => {

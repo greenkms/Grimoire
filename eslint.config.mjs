@@ -70,18 +70,14 @@ export default defineConfig([
     files: ['src/**/*.ts'],
     rules: {
       ...projectObsidianRuleOverrides,
+      'no-console': 'error',
     },
   },
   {
     files: [
-      'src/providers/claude/runtime/ClaudeChatRuntime.ts',
-      'src/InlineEditService.ts',
-      'src/InstructionRefineService.ts',
-      'src/images/**/*.ts',
-      'src/prompt/**/*.ts',
-      'src/sdk/**/*.ts',
-      'src/security/**/*.ts',
-      'src/tools/**/*.ts',
+      'src/providers/*/runtime/**/*.ts',
+      'src/providers/*/storage/**/*.ts',
+      'src/providers/*/history/**/*.ts',
     ],
     rules: {
       'no-restricted-imports': [
@@ -89,12 +85,32 @@ export default defineConfig([
         {
           patterns: [
             {
-              group: ['./ui', './ui/*', '../ui', '../ui/*'],
-              message: 'Service and shared modules must not import UI modules.',
+              regex: '(?:^|/)ui(?:/|$)',
+              message: 'Provider runtime, storage, and history modules must not import UI modules.',
             },
             {
-              group: ['./GrimoireView', '../GrimoireView'],
-              message: 'Service and shared modules must not import the view.',
+              regex: '(?:^|/)GrimoireView(?:/|$)',
+              message: 'Provider runtime, storage, and history modules must not import the chat view.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/core/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              regex: '^(?:(?:@/)?(?:features|shared|ui|GrimoireView)|\\.{1,2}/(?:[^/]+/)*(?:features|shared|ui|GrimoireView))(?:/|$)',
+              message: 'Core modules must not import feature or shared UI modules.',
+            },
+            {
+              regex: '(?:^|/)providers/(?:claude|codex|opencode|grok|mimocode|kimicode|antigravity|gemini|qwen|acp)(?:/|$)',
+              message: 'Core modules must stay provider-neutral. Route through ProviderRegistry.',
             },
           ],
         },
@@ -106,7 +122,29 @@ export default defineConfig([
     ...jestRecommended,
     rules: {
       ...jestRecommended.rules,
+      'eslint-comments/no-restricted-disable': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/unbound-method': 'off',
+      // Test fixtures intentionally exercise legacy APIs, raw DOM behavior, and
+      // Obsidian path/type edge cases. Keep these production-only constraints on
+      // src/** while retaining the general TypeScript and Jest checks for tests.
+      '@typescript-eslint/no-deprecated': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/only-throw-error': 'off',
+      'eslint-comments/require-description': 'off',
+      '@microsoft/sdl/no-inner-html': 'off',
+      'obsidianmd/hardcoded-config-path': 'off',
+      'obsidianmd/no-static-styles-assignment': 'off',
+      'obsidianmd/no-tfile-tfolder-cast': 'off',
+      'obsidianmd/no-global-this': 'off',
+      'obsidianmd/prefer-create-el': 'off',
+      'obsidianmd/prefer-window-timers': 'off',
+      'obsidianmd/ui/sentence-case': 'off',
     },
   },
 ]);

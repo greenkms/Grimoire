@@ -76,7 +76,7 @@ describe('renderProjectWorkspaceSettings', () => {
       saveSettings: jest.fn().mockResolvedValue(undefined),
     };
 
-    renderProjectWorkspaceSettings(container, { plugin: plugin as any });
+    renderProjectWorkspaceSettings(container, { plugin: plugin });
 
     const vaultToggle = findByTagAndAttribute(
       container as any,
@@ -142,7 +142,7 @@ describe('renderProjectWorkspaceSettings', () => {
       saveSettings: jest.fn().mockResolvedValue(undefined),
     };
 
-    renderProjectWorkspaceSettings(container, { plugin: plugin as any });
+    renderProjectWorkspaceSettings(container, { plugin: plugin });
 
     const contextHeading = (container as any).querySelector('.grimoire-context-engine-heading');
     const workspaceHeader = (container as any).querySelector('.grimoire-project-workspaces-header');
@@ -151,7 +151,7 @@ describe('renderProjectWorkspaceSettings', () => {
     expect(contextHeading?.hasClass('setting-item-heading')).toBe(true);
     expect(workspaceHeader?.hasClass('setting-item-heading')).toBe(true);
     expect(workspaceHeader).not.toBeNull();
-    expect(findButtonByText(workspaceHeader as any, 'Add workspace')).not.toBeNull();
+    expect(findButtonByText(workspaceHeader, 'Add workspace')).not.toBeNull();
     expect(numberRows).toHaveLength(3);
     expect((container as any).querySelector('.grimoire-settings-panel')).toBeNull();
   });
@@ -183,7 +183,7 @@ describe('renderProjectWorkspaceSettings', () => {
       saveSettings: jest.fn().mockResolvedValue(undefined),
     };
 
-    renderProjectWorkspaceSettings(container, { plugin: plugin as any });
+    renderProjectWorkspaceSettings(container, { plugin: plugin });
 
     const nameInput = findByTagAndAttribute(container as any, 'input', 'aria-label', 'Workspace name') as HTMLInputElement;
     nameInput.value = '  New name  ';
@@ -222,7 +222,7 @@ describe('renderProjectWorkspaceSettings', () => {
       saveSettings: jest.fn().mockResolvedValue(undefined),
     };
 
-    renderProjectWorkspaceSettings(container, { plugin: plugin as any });
+    renderProjectWorkspaceSettings(container, { plugin: plugin });
 
     const nameInput = findByTagAndAttribute(container as any, 'input', 'aria-label', 'Workspace name') as HTMLInputElement;
     nameInput.value = '   ';
@@ -300,7 +300,7 @@ describe('renderProjectWorkspaceSettings', () => {
       saveSettings: jest.fn().mockResolvedValue(undefined),
     };
 
-    renderProjectWorkspaceSettings(container, { plugin: plugin as any });
+    renderProjectWorkspaceSettings(container, { plugin: plugin });
 
     const addButton = findButtonByText(container as any, 'Add workspace') as HTMLButtonElement;
     addButton.click();
@@ -333,7 +333,7 @@ describe('renderProjectWorkspaceSettings', () => {
     };
     setLocale('de');
 
-    renderProjectWorkspaceSettings(container, { plugin: plugin as any });
+    renderProjectWorkspaceSettings(container, { plugin: plugin });
 
     const addButton = findButtonByText(container as any, 'Arbeitsbereich hinzufügen') as HTMLButtonElement;
     addButton.click();

@@ -5,11 +5,11 @@ import type { ProviderSettingsTabRenderer } from '../../../core/providers/types'
 import { renderEnvironmentSettingsSection } from '../../../features/settings/ui/EnvironmentSettingsSection';
 import { renderProviderDisabledNotice } from '../../../features/settings/ui/ProviderDisabledNotice';
 import { t } from '../../../i18n/i18n';
+import { sameStringList } from '../../../utils/collections';
 import { getHostnameKey } from '../../../utils/env';
 import { expandHomePath } from '../../../utils/path';
 import { maybeGetGrokWorkspaceServices } from '../app/GrokWorkspaceServices';
 import { clearGrokDiscoveryState } from '../discoveryState';
-import { sameStringList } from '../internal/compareCollections';
 import {
   buildGrokBaseModels,
   encodeGrokModelId,

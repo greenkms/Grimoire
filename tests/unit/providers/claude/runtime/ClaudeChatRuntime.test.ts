@@ -4,6 +4,7 @@ import * as sdkModule from '@anthropic-ai/claude-agent-sdk';
 import { Notice } from 'obsidian';
 
 import type { McpServerManager } from '@/core/mcp/McpServerManager';
+import { setLocale } from '@/i18n/i18n';
 import type GrimoirePlugin from '@/main';
 import { ClaudeChatRuntime } from '@/providers/claude/runtime/ClaudeChatRuntime';
 import { MessageChannel } from '@/providers/claude/runtime/ClaudeMessageChannel';
@@ -1836,23 +1837,32 @@ describe('ClaudeChatRuntime', () => {
     });
 
     afterEach(() => {
+      setLocale('en');
       sdkMock.resetMockMessages();
     });
 
     it('should yield error when vault path is not available', async () => {
+      setLocale('ru');
       (mockPlugin as any).app.vault.adapter.basePath = undefined;
 
       const chunks = await collectChunks(service.query('hello'));
 
-      expect(chunks).toEqual([{ type: 'error', content: 'Could not determine vault path' }]);
+      expect(chunks).toEqual([{
+        type: 'error',
+        content: 'Не удалось определить путь к хранилищу для Claude.',
+      }]);
     });
 
     it('should yield error when CLI path is not available', async () => {
+      setLocale('ru');
       (mockPlugin.getResolvedProviderCliPath as jest.Mock).mockReturnValue(null);
 
       const chunks = await collectChunks(service.query('hello'));
 
-      expect(chunks).toEqual([{ type: 'error', content: expect.stringContaining('Claude CLI not found') }]);
+      expect(chunks).toEqual([{
+        type: 'error',
+        content: 'CLI Claude Code не найден. Установите его или укажите путь в настройках провайдера.',
+      }]);
     });
 
     it('should yield chunks from cold-start query', async () => {
@@ -1995,7 +2005,7 @@ describe('ClaudeChatRuntime', () => {
         const [vaultPath, cliPath] = args as [string, string];
         const messageChannel = new MessageChannel();
         (service as any).messageChannel = messageChannel;
-        (service as any).persistentQuery = sdkMock.query({ prompt: messageChannel, options: { cwd: vaultPath, pathToClaudeCodeExecutable: cliPath } as any });
+        (service as any).persistentQuery = sdkMock.query({ prompt: messageChannel, options: { cwd: vaultPath, pathToClaudeCodeExecutable: cliPath } });
         (service as any).currentConfig = (service as any).buildPersistentQueryConfig(vaultPath, cliPath, []);
         (service as any).startResponseConsumer();
       });
@@ -2625,7 +2635,7 @@ describe('ClaudeChatRuntime', () => {
       const iterPromise = gen.next();
 
       // Wait a tick for the handler to be registered
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       // Find and trigger the handler
       const handlers = (service as any).responseHandlers;
@@ -2823,7 +2833,7 @@ describe('ClaudeChatRuntime', () => {
       );
 
       const iterPromise = gen.next();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       // Trigger onError with session expired
       const handlers = (service as any).responseHandlers;
@@ -2872,7 +2882,7 @@ describe('ClaudeChatRuntime', () => {
 
       const chunks: any[] = [];
       const iterPromise = gen.next();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       // Trigger onError with regular error
       const handlers = (service as any).responseHandlers;
@@ -2930,7 +2940,7 @@ describe('ClaudeChatRuntime', () => {
       );
 
       const iterPromise = gen.next();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       // Rapidly send multiple chunks then done
       const handlers = (service as any).responseHandlers;
@@ -3241,7 +3251,7 @@ describe('ClaudeChatRuntime', () => {
       (service as any).startResponseConsumer();
 
       // Wait for async consumer to process
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise(resolve => window.setTimeout(resolve, 50));
 
       expect(ensureReadySpy).toHaveBeenCalledWith(
         expect.objectContaining({ force: true, preserveHandlers: true })
@@ -3293,7 +3303,7 @@ describe('ClaudeChatRuntime', () => {
 
       (service as any).startResponseConsumer();
 
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise(resolve => window.setTimeout(resolve, 50));
 
       // Handler should have been notified of error
       expect(onError).toHaveBeenCalledWith(crashError);
@@ -3344,7 +3354,7 @@ describe('ClaudeChatRuntime', () => {
 
       (service as any).startResponseConsumer();
 
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise(resolve => window.setTimeout(resolve, 50));
 
       // Session should be invalidated
       expect(service.consumeSessionInvalidation()).toBe(true);
@@ -3388,7 +3398,7 @@ describe('ClaudeChatRuntime', () => {
       (service as any).startResponseConsumer();
 
       // Wait for consumer to start its iteration (awaiting the delay)
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       // Swap to a new PQ before the error fires
       (service as any).persistentQuery = { interrupt: jest.fn() };
@@ -3396,7 +3406,7 @@ describe('ClaudeChatRuntime', () => {
       // Now let the old PQ throw
       resolveDelay!();
 
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise(resolve => window.setTimeout(resolve, 50));
 
       // The orphaned consumer should NOT call onError
       expect(onError).not.toHaveBeenCalled();

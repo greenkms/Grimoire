@@ -81,8 +81,8 @@ describe('InlineEditModal - openAndWait', () => {
   });
 
   it('wires mention getCachedVaultFolders through VaultFolderCache.getFolders', async () => {
-    const originalDocument = (global as any).document;
-    (global as any).document = {
+    const originalDocument = (window as any).document;
+    (window as any).document = {
       body: createMockEl('body'),
       createElement: (tagName: string) => createMockEl(tagName),
       addEventListener: jest.fn(),
@@ -135,7 +135,7 @@ describe('InlineEditModal - openAndWait', () => {
         },
         dispatch,
         dom: {
-          ownerDocument: (global as any).document,
+          ownerDocument: (window as any).document,
           addEventListener: jest.fn(),
           removeEventListener: jest.fn(),
         },
@@ -174,13 +174,13 @@ describe('InlineEditModal - openAndWait', () => {
       getEditorViewSpy.mockRestore();
       getFoldersSpy.mockRestore();
     } finally {
-      (global as any).document = originalDocument;
+      (window as any).document = originalDocument;
     }
   });
 
   it('uses provider-scoped hidden commands for Codex inline edit dropdowns', async () => {
-    const originalDocument = (global as any).document;
-    (global as any).document = {
+    const originalDocument = (window as any).document;
+    (window as any).document = {
       body: createMockEl('body'),
       createElement: (tagName: string) => createMockEl(tagName),
       addEventListener: jest.fn(),
@@ -240,7 +240,7 @@ describe('InlineEditModal - openAndWait', () => {
         },
         dispatch,
         dom: {
-          ownerDocument: (global as any).document,
+          ownerDocument: (window as any).document,
           addEventListener: jest.fn(),
           removeEventListener: jest.fn(),
         },
@@ -269,13 +269,13 @@ describe('InlineEditModal - openAndWait', () => {
       widgetRef?.reject();
       await expect(resultPromise).resolves.toEqual({ decision: 'reject' });
     } finally {
-      (global as any).document = originalDocument;
+      (window as any).document = originalDocument;
     }
   });
 
   it('passes the active chat runtime model into inline edit services when available', async () => {
-    const originalDocument = (global as any).document;
-    (global as any).document = {
+    const originalDocument = (window as any).document;
+    (window as any).document = {
       body: createMockEl('body'),
       createElement: (tagName: string) => createMockEl(tagName),
       addEventListener: jest.fn(),
@@ -301,7 +301,7 @@ describe('InlineEditModal - openAndWait', () => {
       };
       const providerSpy = jest
         .spyOn(ProviderRegistry, 'createInlineEditService')
-        .mockReturnValue(inlineEditService as any);
+        .mockReturnValue(inlineEditService);
       const plugin = {
         settings: {
           hiddenProviderCommands: {
@@ -349,7 +349,7 @@ describe('InlineEditModal - openAndWait', () => {
         },
         dispatch,
         dom: {
-          ownerDocument: (global as any).document,
+          ownerDocument: (window as any).document,
           addEventListener: jest.fn(),
           removeEventListener: jest.fn(),
         },
@@ -381,13 +381,13 @@ describe('InlineEditModal - openAndWait', () => {
       getEditorViewSpy.mockRestore();
       providerSpy.mockRestore();
     } finally {
-      (global as any).document = originalDocument;
+      (window as any).document = originalDocument;
     }
   });
 
   it('shows a single notice and degrades gracefully when getFiles throws', async () => {
-    const originalDocument = (global as any).document;
-    (global as any).document = {
+    const originalDocument = (window as any).document;
+    (window as any).document = {
       body: createMockEl('body'),
       createElement: (tagName: string) => createMockEl(tagName),
       addEventListener: jest.fn(),
@@ -443,7 +443,7 @@ describe('InlineEditModal - openAndWait', () => {
         },
         dispatch,
         dom: {
-          ownerDocument: (global as any).document,
+          ownerDocument: (window as any).document,
           addEventListener: jest.fn(),
           removeEventListener: jest.fn(),
         },
@@ -522,13 +522,13 @@ describe('InlineEditModal - openAndWait', () => {
       await expect(resultPromise).resolves.toEqual({ decision: 'reject' });
       getEditorViewSpy.mockRestore();
     } finally {
-      (global as any).document = originalDocument;
+      (window as any).document = originalDocument;
     }
   });
 
   it('parses @mentions into contextFiles at send time without dropdown attachment state', async () => {
-    const originalDocument = (global as any).document;
-    (global as any).document = {
+    const originalDocument = (window as any).document;
+    (window as any).document = {
       body: createMockEl('body'),
       createElement: (tagName: string) => createMockEl(tagName),
       addEventListener: jest.fn(),
@@ -585,7 +585,7 @@ describe('InlineEditModal - openAndWait', () => {
         },
         dispatch,
         dom: {
-          ownerDocument: (global as any).document,
+          ownerDocument: (window as any).document,
           addEventListener: jest.fn(),
           removeEventListener: jest.fn(),
         },
@@ -630,13 +630,13 @@ describe('InlineEditModal - openAndWait', () => {
       await expect(resultPromise).resolves.toEqual({ decision: 'reject' });
       getEditorViewSpy.mockRestore();
     } finally {
-      (global as any).document = originalDocument;
+      (window as any).document = originalDocument;
     }
   });
 
   it('resolves external context @mentions into contextFiles at send time', async () => {
-    const originalDocument = (global as any).document;
-    (global as any).document = {
+    const originalDocument = (window as any).document;
+    (window as any).document = {
       body: createMockEl('body'),
       createElement: (tagName: string) => createMockEl(tagName),
       addEventListener: jest.fn(),
@@ -690,7 +690,7 @@ describe('InlineEditModal - openAndWait', () => {
         },
         dispatch,
         dom: {
-          ownerDocument: (global as any).document,
+          ownerDocument: (window as any).document,
           addEventListener: jest.fn(),
           removeEventListener: jest.fn(),
         },
@@ -759,13 +759,13 @@ describe('InlineEditModal - openAndWait', () => {
       await expect(resultPromise).resolves.toEqual({ decision: 'reject' });
       getEditorViewSpy.mockRestore();
     } finally {
-      (global as any).document = originalDocument;
+      (window as any).document = originalDocument;
     }
   });
 
   it('parses vault @mentions with spaces into contextFiles at send time', async () => {
-    const originalDocument = (global as any).document;
-    (global as any).document = {
+    const originalDocument = (window as any).document;
+    (window as any).document = {
       body: createMockEl('body'),
       createElement: (tagName: string) => createMockEl(tagName),
       addEventListener: jest.fn(),
@@ -821,7 +821,7 @@ describe('InlineEditModal - openAndWait', () => {
         },
         dispatch,
         dom: {
-          ownerDocument: (global as any).document,
+          ownerDocument: (window as any).document,
           addEventListener: jest.fn(),
           removeEventListener: jest.fn(),
         },
@@ -866,13 +866,13 @@ describe('InlineEditModal - openAndWait', () => {
       await expect(resultPromise).resolves.toEqual({ decision: 'reject' });
       getEditorViewSpy.mockRestore();
     } finally {
-      (global as any).document = originalDocument;
+      (window as any).document = originalDocument;
     }
   });
 
   it('resolves external @mentions when vault has no files', async () => {
-    const originalDocument = (global as any).document;
-    (global as any).document = {
+    const originalDocument = (window as any).document;
+    (window as any).document = {
       body: createMockEl('body'),
       createElement: (tagName: string) => createMockEl(tagName),
       addEventListener: jest.fn(),
@@ -926,7 +926,7 @@ describe('InlineEditModal - openAndWait', () => {
         },
         dispatch,
         dom: {
-          ownerDocument: (global as any).document,
+          ownerDocument: (window as any).document,
           addEventListener: jest.fn(),
           removeEventListener: jest.fn(),
         },
@@ -995,7 +995,7 @@ describe('InlineEditModal - openAndWait', () => {
       await expect(resultPromise).resolves.toEqual({ decision: 'reject' });
       getEditorViewSpy.mockRestore();
     } finally {
-      (global as any).document = originalDocument;
+      (window as any).document = originalDocument;
     }
   });
 });

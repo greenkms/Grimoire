@@ -768,7 +768,7 @@ describe('InlineEditService', () => {
     });
 
     it('should surface SDK query errors', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
+
       const sdk = require('@anthropic-ai/claude-agent-sdk');
       const spy = jest.spyOn(sdk, 'query').mockImplementation(() => {
         throw new Error('boom');

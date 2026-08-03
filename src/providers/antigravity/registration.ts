@@ -9,7 +9,7 @@ import { ANTIGRAVITY_PROVIDER_CAPABILITIES } from './capabilities';
 import { antigravitySettingsReconciler } from './env/AntigravitySettingsReconciler';
 import { AntigravityConversationHistoryService } from './history/AntigravityConversationHistoryService';
 import { AntigravityChatRuntime } from './runtime/AntigravityChatRuntime';
-import { getAntigravityProviderSettings } from './settings';
+import { getAntigravityProviderSettings, updateAntigravityProviderSettings } from './settings';
 import { antigravityChatUIConfig } from './ui/AntigravityChatUIConfig';
 
 export const antigravityProviderRegistration: ProviderRegistration = {
@@ -24,6 +24,7 @@ export const antigravityProviderRegistration: ProviderRegistration = {
   environmentKeyPatterns: [/^ANTIGRAVITY_/i, /^GOOGLE_/i, /^GEMINI_/i, /^VERTEX_/i],
   historyService: new AntigravityConversationHistoryService(),
   isEnabled: (settings) => getAntigravityProviderSettings(settings).enabled,
+  setEnabled: (settings, enabled) => { updateAntigravityProviderSettings(settings, { enabled }); },
   settingsReconciler: antigravitySettingsReconciler,
   taskResultInterpreter: new AntigravityTaskResultInterpreter(),
 };

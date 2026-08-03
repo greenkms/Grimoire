@@ -14,7 +14,6 @@ import { getClaudeProviderSettings } from '@/providers/claude/settings';
 import {
   CONTEXT_WINDOW_1M,
   CONTEXT_WINDOW_STANDARD,
-  DEFAULT_CLAUDE_MODELS,
   getContextWindowSize,
   normalizeEffortLevel,
   resolveClaudeContextWindowSize,

@@ -37,7 +37,15 @@ import type {
   ToolCallInfo,
 } from '../../../core/types';
 import { coercePermissionMode } from '../../../core/types/settings';
+import { t } from '../../../i18n/i18n';
 import type GrimoirePlugin from '../../../main';
+import {
+  sameDiscoveredModels,
+  sameModes,
+  sameStringList,
+  sameStringMap,
+  sameThinkingOptionsByModel,
+} from '../../../utils/collections';
 import { getEnhancedPath } from '../../../utils/env';
 import { getVaultPath } from '../../../utils/path';
 import {
@@ -66,13 +74,6 @@ import { kimicodePlanUsageStore } from '../app/KimicodePlanUsageStore';
 import { KIMICODE_PROVIDER_CAPABILITIES } from '../capabilities';
 import { updateKimicodeDiscoveryState } from '../discoveryState';
 import { loadKimicodeSessionCost } from '../history/KimicodeUsageMetadataStore';
-import {
-  sameDiscoveredModels,
-  sameModes,
-  sameStringList,
-  sameStringMap,
-  sameThinkingOptionsByModel,
-} from '../internal/compareCollections';
 import { ensureProviderProjectionMap } from '../internal/providerProjection';
 import {
   buildKimicodeBaseModels,
@@ -380,13 +381,13 @@ export class KimicodeChatRuntime implements ChatRuntime {
 
     const lifecycleGeneration = this.lifecycleGeneration;
     if (!(await this.ensureReadyForQuery(lifecycleGeneration))) {
-      yield { type: 'error', content: 'Failed to start Kimi Code. Check the CLI path and login state.' };
+      yield { type: 'error', content: t('chat.ui.errors.provider.startFailed', { provider: ProviderRegistry.getProviderDisplayNameOrId('kimicode') }) };
       yield { type: 'done' };
       return;
     }
 
     if (!this.connection) {
-      yield { type: 'error', content: 'Kimi Code runtime is not ready.' };
+      yield { type: 'error', content: t('chat.ui.errors.provider.notReady', { provider: ProviderRegistry.getProviderDisplayNameOrId('kimicode') }) };
       yield { type: 'done' };
       return;
     }
@@ -399,7 +400,7 @@ export class KimicodeChatRuntime implements ChatRuntime {
     if (!this.sessionId) {
       const sessionId = await this.createSession(cwd);
       if (!sessionId) {
-        yield { type: 'error', content: 'Failed to create an Kimi Code session.' };
+        yield { type: 'error', content: t('chat.ui.errors.provider.sessionCreateFailed', { provider: ProviderRegistry.getProviderDisplayNameOrId('kimicode') }) };
         yield { type: 'done' };
         return;
       }
@@ -464,7 +465,7 @@ export class KimicodeChatRuntime implements ChatRuntime {
       if (!activeTurn.sawOutput && response.stopReason && !/cancel/i.test(response.stopReason)) {
         activeTurn.queue.push({
           type: 'error',
-          content: 'Kimi Code completed without returning a response. Check provider credentials and logs, then retry.',
+          content: t('chat.ui.errors.provider.emptyResponse', { provider: ProviderRegistry.getProviderDisplayNameOrId('kimicode') }),
         });
       }
       activeTurn.queue.push({ type: 'done' });
@@ -1436,7 +1437,7 @@ export class KimicodeChatRuntime implements ChatRuntime {
     if (this.isRetryableTransportClose(error)) {
       return 'Kimi connection closed unexpectedly. Please retry; Grimoire will reconnect automatically.';
     }
-    const baseMessage = error instanceof Error ? error.message : 'Kimi Code request failed';
+    const baseMessage = error instanceof Error ? error.message : t('chat.ui.errors.provider.requestFailed', { provider: ProviderRegistry.getProviderDisplayNameOrId('kimicode') });
     const stderr = this.process?.getStderrSnapshot();
     return stderr ? `${baseMessage}\n\n${stderr}` : baseMessage;
   }

@@ -9,7 +9,7 @@ import { GEMINI_PROVIDER_CAPABILITIES } from './capabilities';
 import { geminiSettingsReconciler } from './env/GeminiSettingsReconciler';
 import { GeminiConversationHistoryService } from './history/GeminiConversationHistoryService';
 import { GeminiChatRuntime } from './runtime/GeminiChatRuntime';
-import { getGeminiProviderSettings } from './settings';
+import { getGeminiProviderSettings, updateGeminiProviderSettings } from './settings';
 import { geminiChatUIConfig } from './ui/GeminiChatUIConfig';
 
 export const geminiProviderRegistration: ProviderRegistration = {
@@ -24,6 +24,7 @@ export const geminiProviderRegistration: ProviderRegistration = {
   environmentKeyPatterns: [/^GEMINI_/i, /^GOOGLE_/i, /^VERTEX_/i],
   historyService: new GeminiConversationHistoryService(),
   isEnabled: (settings) => getGeminiProviderSettings(settings).enabled,
+  setEnabled: (settings, enabled) => { updateGeminiProviderSettings(settings, { enabled }); },
   settingsReconciler: geminiSettingsReconciler,
   taskResultInterpreter: new GeminiTaskResultInterpreter(),
 };

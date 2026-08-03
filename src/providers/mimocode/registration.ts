@@ -7,7 +7,7 @@ import { MIMOCODE_PROVIDER_CAPABILITIES } from './capabilities';
 import { mimocodeSettingsReconciler } from './env/MimocodeSettingsReconciler';
 import { MimocodeConversationHistoryService } from './history/MimocodeConversationHistoryService';
 import { MimocodeChatRuntime } from './runtime/MimocodeChatRuntime';
-import { getMimocodeProviderSettings } from './settings';
+import { getMimocodeProviderSettings, updateMimocodeProviderSettings } from './settings';
 import { mimocodeChatUIConfig } from './ui/MimocodeChatUIConfig';
 
 export const mimocodeProviderRegistration: ProviderRegistration = {
@@ -18,10 +18,11 @@ export const mimocodeProviderRegistration: ProviderRegistration = {
   createInstructionRefineService: (plugin) => new MimocodeInstructionRefineService(plugin),
   createRuntime: ({ plugin }) => new MimocodeChatRuntime(plugin),
   createTitleGenerationService: (plugin) => new MimocodeTitleGenerationService(plugin),
-  displayName: 'MiMo Code',
+  displayName: 'MiMoCode',
   environmentKeyPatterns: [/^MIMOCODE_/i],
   historyService: new MimocodeConversationHistoryService(),
   isEnabled: (settings) => getMimocodeProviderSettings(settings).enabled,
+  setEnabled: (settings, enabled) => { updateMimocodeProviderSettings(settings, { enabled }); },
   settingsReconciler: mimocodeSettingsReconciler,
   taskResultInterpreter: new MimocodeTaskResultInterpreter(),
 };

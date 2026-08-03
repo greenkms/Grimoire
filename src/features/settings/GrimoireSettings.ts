@@ -22,15 +22,6 @@ import {
 import { getAvailableLocales, getLocaleDisplayName, setLocale, t } from '../../i18n/i18n';
 import type { Locale, TranslationKey } from '../../i18n/types';
 import type GrimoirePlugin from '../../main';
-import { updateAntigravityProviderSettings } from '../../providers/antigravity/settings';
-import { updateClaudeProviderSettings } from '../../providers/claude/settings';
-import { updateCodexProviderSettings } from '../../providers/codex/settings';
-import { updateGeminiProviderSettings } from '../../providers/gemini/settings';
-import { updateGrokProviderSettings } from '../../providers/grok/settings';
-import { updateKimicodeProviderSettings } from '../../providers/kimicode/settings';
-import { updateMimocodeProviderSettings } from '../../providers/mimocode/settings';
-import { updateOpencodeProviderSettings } from '../../providers/opencode/settings';
-import { updateQwenProviderSettings } from '../../providers/qwen/settings';
 import { showWhatsNewModal } from '../../shared/modals/WhatsNewModal';
 import { formatContextLimit, parseContextLimit, parseEnvironmentVariables } from '../../utils/env';
 import { buildNavMappingText, parseNavMappings } from './keyboardNavigation';
@@ -285,7 +276,7 @@ const PROVIDER_SETTING_COPY: Record<ProviderId, {
   },
   mimocode: {
     descKey: 'settings.providers.mimocode.desc',
-    name: 'MiMo Code',
+    name: 'MiMoCode',
     tabName: 'MiMo',
   },
   kimicode: {
@@ -956,25 +947,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
   }
 
   private setProviderEnabled(providerId: ProviderId, enabled: boolean): void {
-    if (providerId === 'claude') {
-      updateClaudeProviderSettings(this.plugin.settings, { enabled });
-    } else if (providerId === 'codex') {
-      updateCodexProviderSettings(this.plugin.settings, { enabled });
-    } else if (providerId === 'antigravity') {
-      updateAntigravityProviderSettings(this.plugin.settings, { enabled });
-    } else if (providerId === 'gemini') {
-      updateGeminiProviderSettings(this.plugin.settings, { enabled });
-    } else if (providerId === 'qwen') {
-      updateQwenProviderSettings(this.plugin.settings, { enabled });
-    } else if (providerId === 'opencode') {
-      updateOpencodeProviderSettings(this.plugin.settings, { enabled });
-    } else if (providerId === 'mimocode') {
-      updateMimocodeProviderSettings(this.plugin.settings, { enabled });
-    } else if (providerId === 'kimicode') {
-      updateKimicodeProviderSettings(this.plugin.settings, { enabled });
-    } else if (providerId === 'grok') {
-      updateGrokProviderSettings(this.plugin.settings, { enabled });
-    }
+    ProviderRegistry.setEnabled(providerId, this.plugin.settings, enabled);
   }
 
   private async refreshProviderModelCatalog(providerId: ProviderId): Promise<void> {

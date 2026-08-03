@@ -666,7 +666,7 @@ describe('ClaudeChatRuntime', () => {
       })();
 
       // Let the query start
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await new Promise((resolve) => window.setTimeout(resolve, 10));
 
       // Access internal state to verify handlers exist
       const handlersBefore = (service as any).responseHandlers?.length ?? 0;
@@ -693,7 +693,7 @@ describe('ClaudeChatRuntime', () => {
       })();
 
       // Let the query start
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await new Promise((resolve) => window.setTimeout(resolve, 10));
 
       // Close without preserveHandlers (default is false)
       service.closePersistentQuery('test');
@@ -1478,7 +1478,7 @@ describe('ClaudeChatRuntime', () => {
     });
 
     it('yields error when SDK query throws inside queryViaSDK', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
+
       const sdk = require('@anthropic-ai/claude-agent-sdk');
       const spy = jest.spyOn(sdk, 'query').mockImplementation(() => { throw new Error('boom'); });
 
@@ -1740,7 +1740,7 @@ describe('ClaudeChatRuntime', () => {
     });
 
     it('re-enqueues pending message after crash recovery restart', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
+
       const sdk = require('@anthropic-ai/claude-agent-sdk');
 
       let callCount = 0;
@@ -1749,11 +1749,11 @@ describe('ClaudeChatRuntime', () => {
       let resolveSecondPrompt: ((message: any) => void) | null = null;
 
       const secondPromptPromise = new Promise<any>((resolve, reject) => {
-        const timeout = setTimeout(() => {
+        const timeout = window.setTimeout(() => {
           reject(new Error('Timed out waiting for crash recovery re-enqueue'));
         }, 2000);
         resolveSecondPrompt = (message: any) => {
-          clearTimeout(timeout);
+          window.clearTimeout(timeout);
           resolve(message);
         };
       });

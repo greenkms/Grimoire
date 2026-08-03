@@ -56,6 +56,8 @@ export interface ProviderRegistration {
   displayName: string;
   blankTabOrder: number;
   isEnabled: (settings: Record<string, unknown>) => boolean;
+  setEnabled: (settings: Record<string, unknown>, enabled: boolean) => void;
+  getPreloadedContextFiles?: () => string[];
   capabilities: ProviderCapabilities;
   environmentKeyPatterns?: RegExp[];
   chatUIConfig: ProviderChatUIConfig;

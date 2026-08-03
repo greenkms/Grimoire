@@ -3,7 +3,7 @@ type TestWindow = typeof globalThis & {
   requestAnimationFrame?: (callback: FrameRequestCallback) => number;
 };
 
-const nodeTimers = require('node:timers') as typeof import('node:timers');
+import * as nodeTimers from 'node:timers';
 const testWindow = globalThis as TestWindow;
 
 function ensureGlobalTimers(): void {
@@ -111,13 +111,13 @@ installObsidianDomHelpers();
 
 if (!testWindow.requestAnimationFrame) {
   testWindow.requestAnimationFrame = (callback: FrameRequestCallback): number => (
-    Number(setTimeout(() => callback(Date.now()), 0))
+    Number(globalThis.setTimeout(() => callback(Date.now()), 0))
   );
 }
 
 if (!testWindow.cancelAnimationFrame) {
   testWindow.cancelAnimationFrame = (handle: number): void => {
-    clearTimeout(handle);
+    globalThis.clearTimeout(handle);
   };
 }
 

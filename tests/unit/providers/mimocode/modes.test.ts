@@ -1,14 +1,14 @@
 import {
   getEffectiveMimocodeModes,
   getManagedMimocodeModes,
-  normalizeManagedMimocodeSelectedMode,
-  normalizeMimocodeAvailableModes,
-  normalizeMimocodeSelectedMode,
   MIMOCODE_BUILD_MODE_ID,
   MIMOCODE_FALLBACK_MODES,
   MIMOCODE_FULL_ACCESS_MODE_ID,
   MIMOCODE_LEGACY_YOLO_MODE_ID,
   MIMOCODE_SAFE_MODE_ID,
+  normalizeManagedMimocodeSelectedMode,
+  normalizeMimocodeAvailableModes,
+  normalizeMimocodeSelectedMode,
   resolveMimocodeModeForPermissionMode,
   resolvePermissionModeForManagedMimocodeMode,
 } from '../../../../src/providers/mimocode/modes';

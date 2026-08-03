@@ -48,7 +48,7 @@ describe('encodeCodexTurn', () => {
     const request: ChatTurnRequest = {
       text: 'Fix this',
       contextFiles: ['/external/brief.pdf'],
-    } as any;
+    };
     const result = encodeCodexTurn(request);
 
     expect(result.prompt).toContain('<context_files>');

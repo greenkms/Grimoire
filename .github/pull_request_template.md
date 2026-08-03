@@ -47,9 +47,9 @@ Manual verification:
 
 ## Generated Artifacts
 
-- [ ] `main.js`, `styles.css`, and `dist/grimoire` match `npm run build:release` when source changes require them.
+- [ ] `npm run build:release` recreates `dist/grimoire/main.js`, `manifest.json`, and `styles.css` from the submitted source.
 - [ ] `package-lock.json` matches `package.json` when dependencies change.
-- [ ] No unrelated or local-only artifacts are included.
+- [ ] Generated root bundles, `dist/grimoire`, and local-only artifacts are not included.
 
 ## Review Checklist
 

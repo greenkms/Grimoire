@@ -1,4 +1,4 @@
-import { sameDiscoveredModels, sameModes, sameThinkingOptionsByModel } from './internal/compareCollections';
+import { sameDiscoveredModels, sameModes, sameThinkingOptionsByModel } from '../../utils/collections';
 import {
   type MimocodeDiscoveredModel,
   type MimocodeThinkingOptionsByModel,

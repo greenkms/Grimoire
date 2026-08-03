@@ -176,7 +176,7 @@ describe('CodexSubagentSettings', () => {
       const storage = createMockStorage([makeAgent('reviewer')]);
 
       new CodexSubagentSettings(container, storage);
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       expect(storage.loadAll).toHaveBeenCalled();
     });
@@ -186,7 +186,7 @@ describe('CodexSubagentSettings', () => {
       const storage = createMockStorage([]);
 
       new CodexSubagentSettings(container, storage);
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       expect(container.empty).toHaveBeenCalled();
     });
@@ -199,7 +199,7 @@ describe('CodexSubagentSettings', () => {
       ]);
 
       new CodexSubagentSettings(container, storage);
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       expect(storage.loadAll).toHaveBeenCalled();
     });

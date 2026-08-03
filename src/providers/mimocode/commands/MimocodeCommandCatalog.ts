@@ -71,11 +71,11 @@ export class MimocodeCommandCatalog implements ProviderCommandCatalog {
   }
 
   async saveVaultEntry(_entry: ProviderCommandEntry): Promise<void> {
-    throw new Error('Mimocode runtime commands are not editable from Grimoire.');
+    throw new Error('MiMoCode runtime commands are not editable from Grimoire.');
   }
 
   async deleteVaultEntry(_entry: ProviderCommandEntry): Promise<void> {
-    throw new Error('Mimocode runtime commands are not deletable from Grimoire.');
+    throw new Error('MiMoCode runtime commands are not deletable from Grimoire.');
   }
 
   getDropdownConfig(): ProviderCommandDropdownConfig {

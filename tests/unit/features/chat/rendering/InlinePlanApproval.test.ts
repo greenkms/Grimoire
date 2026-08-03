@@ -20,7 +20,7 @@ function createApproval(): {
 } {
   const container = createMockEl();
   const resolve = jest.fn<void, [PlanApprovalDecision | null]>();
-  const approval = new InlinePlanApproval(container as any, resolve);
+  const approval = new InlinePlanApproval(container, resolve);
   approval.render();
 
   // The component binds keydown to rootEl via addEventListener.

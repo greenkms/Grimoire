@@ -7,7 +7,7 @@ import { KIMICODE_PROVIDER_CAPABILITIES } from './capabilities';
 import { kimicodeSettingsReconciler } from './env/KimicodeSettingsReconciler';
 import { KimicodeConversationHistoryService } from './history/KimicodeConversationHistoryService';
 import { KimicodeChatRuntime } from './runtime/KimicodeChatRuntime';
-import { getKimicodeProviderSettings } from './settings';
+import { getKimicodeProviderSettings, updateKimicodeProviderSettings } from './settings';
 import { kimicodeChatUIConfig } from './ui/KimicodeChatUIConfig';
 
 export const kimicodeProviderRegistration: ProviderRegistration = {
@@ -22,6 +22,7 @@ export const kimicodeProviderRegistration: ProviderRegistration = {
   environmentKeyPatterns: [/^KIMICODE_/i],
   historyService: new KimicodeConversationHistoryService(),
   isEnabled: (settings) => getKimicodeProviderSettings(settings).enabled,
+  setEnabled: (settings, enabled) => { updateKimicodeProviderSettings(settings, { enabled }); },
   settingsReconciler: kimicodeSettingsReconciler,
   taskResultInterpreter: new KimicodeTaskResultInterpreter(),
 };

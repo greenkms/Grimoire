@@ -36,7 +36,7 @@ function createMockContextRow(browserIndicator: HTMLElement) {
   contextRow.classList.toggle = jest.fn((cls: string, force?: boolean) => toggle(cls, force));
 
   contextRow.querySelector = jest.fn((selector: string) => elements[selector] ?? null);
-  return contextRow as any;
+  return contextRow;
 }
 
 async function flushMicrotasks(): Promise<void> {

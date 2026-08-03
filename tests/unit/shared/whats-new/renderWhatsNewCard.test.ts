@@ -1,6 +1,7 @@
+import { createMockEl, type MockElement } from '@test/helpers/mockElement';
+
 import type { ChangelogRelease } from '@/app/changelog/types';
 import { renderWhatsNewCard } from '@/shared/whats-new/renderWhatsNewCard';
-import { createMockEl, type MockElement } from '@test/helpers/mockElement';
 
 function collectText(el: MockElement): string {
   return [
@@ -42,6 +43,11 @@ describe('renderWhatsNewCard', () => {
     expect(link?.textContent).toBe('Full changelog');
     expect(link?.getAttribute('href')).toBe('https://github.com/sandsaber/Grimoire/blob/main/CHANGELOG.md');
     expect(link?.getAttribute('target')).toBe('_blank');
+
+    const list = container.querySelector('.grimoire-whats-new-card-list');
+    expect(list?.getAttribute('role')).toBe('region');
+    expect(list?.getAttribute('tabindex')).toBe('0');
+    expect(list?.getAttribute('aria-label')).toBe('Release notes');
 
     const dismissButton = container.querySelector('.grimoire-whats-new-card-dismiss');
     dismissButton?.click();

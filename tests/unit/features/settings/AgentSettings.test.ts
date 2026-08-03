@@ -39,7 +39,7 @@ describe('AgentSettings save orchestration', () => {
       },
     };
 
-    settings = new AgentSettings(createMockEl('div') as unknown as HTMLElement, {
+    settings = new AgentSettings(createMockEl('div'), {
       app: plugin.app,
       agentManager: plugin.agentManager,
       agentStorage: plugin.agentStorage,

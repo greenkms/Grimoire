@@ -78,6 +78,15 @@ export function clonePersistedMessages(
   return cloneMessagesForMetadata(messages) ?? [];
 }
 
+function isSupportedSessionMetadata(value: unknown): value is SessionMetadata {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const providerId = (value as { providerId?: unknown }).providerId;
+  return providerId === undefined || ProviderRegistry.isRegisteredProviderId(providerId);
+}
+
 function getMessagePreview(messages: ChatMessage[] | undefined): string {
   const firstUserMsg = messages?.find(message => message.role === 'user');
   const content = firstUserMsg?.displayContent || firstUserMsg?.content || '';
@@ -281,7 +290,10 @@ export class SessionStorage {
       }
 
       const content = await this.adapter.read(filePath);
-      const metadata = JSON.parse(content) as SessionMetadata;
+      const metadata: unknown = JSON.parse(content);
+      if (!isSupportedSessionMetadata(metadata)) {
+        return null;
+      }
 
       if (filePath !== this.getMetadataPath(id)) {
         await this.saveMetadata(metadata);
@@ -306,7 +318,10 @@ export class SessionStorage {
     for (const filePath of files) {
       try {
         const content = await this.adapter.read(filePath);
-        const raw = JSON.parse(content) as SessionMetadata;
+        const raw: unknown = JSON.parse(content);
+        if (!isSupportedSessionMetadata(raw)) {
+          continue;
+        }
         metas.push(raw);
 
         if (filePath.startsWith(`${LEGACY_SESSIONS_PATH}/`)) {

@@ -282,7 +282,7 @@ function setupDefaultRequestMock(
         return threadStartResponse(threadId);
       case 'turn/start':
         // After turn/start, schedule notifications
-        setTimeout(() => {
+        window.setTimeout(() => {
           emitNotification('item/agentMessage/delta', {
             threadId, turnId, itemId: 'msg1', delta: 'Hello!',
           });
@@ -309,7 +309,7 @@ function setupDefaultRequestMock(
 
 // Find a specific RPC method call from transport request mock
 function findCall(method: string) {
-  return mockTransportRequest.mock.calls.find((c: any[]) => c[0] === method) as any;
+  return mockTransportRequest.mock.calls.find((c: any[]) => c[0] === method);
 }
 
 // Build a request handler that returns the initialize response for all methods,
@@ -626,7 +626,7 @@ describe('CodexChatRuntime', () => {
           case 'thread/start':
             return threadStartResponse('thread-no-home');
           case 'turn/start':
-            setTimeout(() => {
+            window.setTimeout(() => {
               emitNotification('item/agentMessage/delta', {
                 threadId: 'thread-no-home',
                 turnId: 'turn-no-home',
@@ -715,7 +715,7 @@ describe('CodexChatRuntime', () => {
         }
 
         if (method === 'turn/start') {
-          setTimeout(() => {
+          window.setTimeout(() => {
             emitNotification('turn/completed', {
               threadId: 'thread-wsl-no-home',
               turn: { id: 'turn-wsl-no-home', items: [], status: 'completed', error: null },
@@ -764,7 +764,7 @@ describe('CodexChatRuntime', () => {
         }
 
         if (method === 'turn/start') {
-          setTimeout(() => {
+          window.setTimeout(() => {
             emitNotification('turn/completed', {
               threadId: 'thread-wsl',
               turn: { id: 'turn-wsl', items: [], status: 'completed', error: null },
@@ -813,7 +813,7 @@ describe('CodexChatRuntime', () => {
         }
 
         if (method === 'turn/start') {
-          setTimeout(() => {
+          window.setTimeout(() => {
             emitNotification('turn/completed', {
               threadId: 'thread-wsl-path',
               turn: { id: 'turn-wsl-path', items: [], status: 'completed', error: null },
@@ -963,7 +963,7 @@ describe('CodexChatRuntime', () => {
       mockTransportRequest.mockImplementation(buildRequestHandler({
         'thread/start': () => threadStartResponse('thread-tools'),
         'turn/start': () => {
-          setTimeout(() => {
+          window.setTimeout(() => {
             emitNotification('item/started', {
               item: {
                 type: 'commandExecution',
@@ -1034,7 +1034,7 @@ describe('CodexChatRuntime', () => {
           return response;
         },
         'turn/start': () => {
-          setTimeout(() => {
+          window.setTimeout(() => {
             fs.appendFileSync(
               sessionFilePath,
               [
@@ -1113,7 +1113,7 @@ describe('CodexChatRuntime', () => {
       mockTransportRequest.mockImplementation(buildRequestHandler({
         'thread/start': () => threadStartResponse('thread-fail'),
         'turn/start': () => {
-          setTimeout(() => {
+          window.setTimeout(() => {
             emitNotification('turn/completed', {
               threadId: 'thread-fail',
               turn: {
@@ -1153,7 +1153,7 @@ describe('CodexChatRuntime', () => {
             return turnStartResponse('turn-old');
           }
 
-          setTimeout(() => {
+          window.setTimeout(() => {
             emitNotification('turn/completed', {
               threadId: 'thread-stale',
               turn: { id: 'turn-old', items: [], status: 'completed', error: null },
@@ -1182,7 +1182,7 @@ describe('CodexChatRuntime', () => {
 
       const firstGen = runtime.query(createTurn('first'));
       const firstResult = firstGen.next();
-      await new Promise(r => setTimeout(r, 25));
+      await new Promise(r => window.setTimeout(r, 25));
 
       runtime.cancel();
 
@@ -1211,7 +1211,7 @@ describe('CodexChatRuntime', () => {
       const gen = runtime.query(createTurn());
       // Kick the generator so it enters the chunk-waiting loop
       const firstResult = gen.next();
-      await new Promise(r => setTimeout(r, 50));
+      await new Promise(r => window.setTimeout(r, 50));
 
       runtime.cancel();
 
@@ -1300,7 +1300,7 @@ describe('CodexChatRuntime', () => {
           };
         },
         'turn/start': () => {
-          setTimeout(() => {
+          window.setTimeout(() => {
             emitNotification('turn/completed', {
               threadId: 'thread-skill',
               turn: { id: 'turn-skill', items: [], status: 'completed', error: null },
@@ -1377,7 +1377,7 @@ describe('CodexChatRuntime', () => {
         }
 
         if (method === 'turn/start') {
-          setTimeout(() => {
+          window.setTimeout(() => {
             emitNotification('turn/completed', {
               threadId: 'thread-image-wsl',
               turn: { id: 'turn-image-wsl', items: [], status: 'completed', error: null },
@@ -1408,8 +1408,8 @@ describe('CodexChatRuntime', () => {
     it('subscribes to serverRequest/resolved notifications', async () => {
       const gen = runtime.query(createTurn());
       // Kick the generator to start execution
-      gen.next();
-      await new Promise(r => setTimeout(r, 50));
+      void gen.next();
+      await new Promise(r => window.setTimeout(r, 50));
 
       expect(notificationHandlers.has('serverRequest/resolved')).toBe(true);
 
@@ -1427,7 +1427,7 @@ describe('CodexChatRuntime', () => {
       mockTransportRequest.mockImplementation(buildRequestHandler({
         'thread/start': () => threadStartResponse('thread-dismiss'),
         'turn/start': () => {
-          setTimeout(() => {
+          window.setTimeout(() => {
             void emitServerRequest('item/commandExecution/requestApproval', 'req-live', {
               threadId: 'thread-dismiss',
               turnId: 'turn-dismiss',
@@ -1478,7 +1478,7 @@ describe('CodexChatRuntime', () => {
 
       const gen = runtime.query(createTurn());
       const firstResult = gen.next();
-      await new Promise(r => setTimeout(r, 50));
+      await new Promise(r => window.setTimeout(r, 50));
 
       runtime.cancel();
 
@@ -1740,7 +1740,7 @@ describe('CodexChatRuntime', () => {
         }
 
         if (method === 'turn/start') {
-          setTimeout(() => {
+          window.setTimeout(() => {
             emitNotification('turn/completed', {
               threadId: 'thread-wsl-sandbox',
               turn: { id: 'turn-wsl-sandbox', items: [], status: 'completed', error: null },
@@ -1839,7 +1839,7 @@ describe('CodexChatRuntime', () => {
       }));
 
       const queryPromise = collectChunks(runtime.query(createTurn('start here')));
-      await new Promise(r => setTimeout(r, 0));
+      await new Promise(r => window.setTimeout(r, 0));
 
       await expect(runtime.steer?.(createTurn('follow up'))).resolves.toBe(true);
 
@@ -1982,7 +1982,7 @@ describe('CodexChatRuntime', () => {
           if (router && router.isPlanTurn === true) {
             routerBeginCalledBeforeTurnStart = true;
           }
-          setTimeout(() => {
+          window.setTimeout(() => {
             emitNotification('turn/completed', {
               threadId: 'thread-plan',
               turn: { id: 'turn-plan', items: [], status: 'completed', error: null },
@@ -2035,7 +2035,7 @@ describe('CodexChatRuntime', () => {
           case 'thread/rollback':
             return { thread: { ...threadStartResponse('fork-thread-1').thread, turns: [] } };
           case 'turn/start':
-            setTimeout(() => {
+            window.setTimeout(() => {
               emitNotification('item/agentMessage/delta', {
                 threadId: 'fork-thread-1', turnId: 'fork-turn-1', itemId: 'msg1', delta: 'Forked reply',
               });
@@ -2103,7 +2103,7 @@ describe('CodexChatRuntime', () => {
           case 'thread/resume':
             return threadStartResponse('fork-no-rb');
           case 'turn/start':
-            setTimeout(() => {
+            window.setTimeout(() => {
               emitNotification('turn/completed', {
                 threadId: 'fork-no-rb',
                 turn: { id: 'fork-turn-nr', items: [], status: 'completed', error: null },
@@ -2151,7 +2151,7 @@ describe('CodexChatRuntime', () => {
           case 'thread/resume':
             return threadStartResponse('fork-thread-retry');
           case 'turn/start':
-            setTimeout(() => {
+            window.setTimeout(() => {
               emitNotification('turn/completed', {
                 threadId: 'fork-thread-retry',
                 turn: { id: 'fork-turn-retry', items: [], status: 'completed', error: null },
@@ -2250,7 +2250,7 @@ describe('CodexChatRuntime', () => {
           case 'thread/resume':
             return threadStartResponse('fork-established');
           case 'turn/start':
-            setTimeout(() => {
+            window.setTimeout(() => {
               emitNotification('turn/completed', {
                 threadId: 'fork-established',
                 turn: { id: 'fork-t1', items: [], status: 'completed', error: null },
@@ -2314,7 +2314,7 @@ describe('CodexChatRuntime', () => {
       mockTransportRequest.mockImplementation(buildRequestHandler({
         'thread/start': () => threadStartResponse('thread-compact'),
         'thread/compact/start': () => {
-          setTimeout(() => {
+          window.setTimeout(() => {
             emitNotification('turn/started', {
               threadId: 'thread-compact',
               turn: { id: 'turn-compact', items: [], status: 'inProgress', error: null },
@@ -2355,7 +2355,7 @@ describe('CodexChatRuntime', () => {
       mockTransportRequest.mockImplementation(buildRequestHandler({
         'thread/start': () => threadStartResponse('thread-new-compact'),
         'thread/compact/start': () => {
-          setTimeout(() => {
+          window.setTimeout(() => {
             emitNotification('turn/started', {
               threadId: 'thread-new-compact',
               turn: { id: 'turn-c', items: [], status: 'inProgress', error: null },
@@ -2411,7 +2411,7 @@ describe('CodexChatRuntime', () => {
       mockTransportRequest.mockImplementation(buildRequestHandler({
         'thread/start': () => threadStartResponse('thread-no-input'),
         'thread/compact/start': () => {
-          setTimeout(() => {
+          window.setTimeout(() => {
             emitNotification('turn/started', {
               threadId: 'thread-no-input',
               turn: { id: 'turn-ni', items: [], status: 'inProgress', error: null },
@@ -2442,7 +2442,7 @@ describe('CodexChatRuntime', () => {
 
       const gen = runtime.query(createCompactTurn());
       const firstResult = gen.next();
-      await new Promise(r => setTimeout(r, 50));
+      await new Promise(r => window.setTimeout(r, 50));
 
       runtime.cancel();
 
@@ -2458,7 +2458,7 @@ describe('CodexChatRuntime', () => {
       mockTransportRequest.mockImplementation(buildRequestHandler({
         'thread/start': () => threadStartResponse('thread-cc2'),
         'thread/compact/start': () => {
-          setTimeout(() => {
+          window.setTimeout(() => {
             emitNotification('turn/started', {
               threadId: 'thread-cc2',
               turn: { id: 'turn-cc2', items: [], status: 'inProgress', error: null },
@@ -2471,7 +2471,7 @@ describe('CodexChatRuntime', () => {
 
       const gen = runtime.query(createCompactTurn());
       const firstResult = gen.next();
-      await new Promise(r => setTimeout(r, 50));
+      await new Promise(r => window.setTimeout(r, 50));
 
       runtime.cancel();
 
@@ -2490,7 +2490,7 @@ describe('CodexChatRuntime', () => {
       mockTransportRequest.mockImplementation(buildRequestHandler({
         'thread/start': () => threadStartResponse('thread-persist'),
         'thread/compact/start': () => {
-          setTimeout(() => {
+          window.setTimeout(() => {
             emitNotification('turn/started', {
               threadId: 'thread-persist',
               turn: { id: 'turn-p', items: [], status: 'inProgress', error: null },
@@ -2518,7 +2518,7 @@ describe('CodexChatRuntime', () => {
         'thread/start': () => threadStartResponse('thread-ts'),
         'thread/compact/start': () => {
           // Simulate: turn/started arrives first, then items, then turn/completed
-          setTimeout(() => {
+          window.setTimeout(() => {
             // Item arrives BEFORE turn/started — gets buffered
             emitNotification('item/agentMessage/delta', {
               threadId: 'thread-ts',

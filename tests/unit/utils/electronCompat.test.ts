@@ -1,7 +1,7 @@
 import { patchSetMaxListenersForElectron } from '../../../src/utils/electronCompat';
 
 describe('patchSetMaxListenersForElectron', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+
   const events = require('events');
   let originalSetMaxListeners: typeof events.setMaxListeners;
 

@@ -1,5 +1,5 @@
-import { requestUrl } from 'obsidian';
 import * as sdkModule from '@anthropic-ai/claude-agent-sdk';
+import { requestUrl } from 'obsidian';
 
 import { createClaudeWorkspaceServices } from '@/providers/claude/app/ClaudeWorkspaceServices';
 import { getClaudeModelOptions } from '@/providers/claude/modelOptions';

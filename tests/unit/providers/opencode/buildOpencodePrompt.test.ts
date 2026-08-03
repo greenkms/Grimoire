@@ -52,7 +52,7 @@ describe('buildOpencodePromptText', () => {
     const prompt = buildOpencodePromptText({
       contextFiles: ['/external/brief.pdf'],
       text: 'Summarize this',
-    } as any);
+    });
 
     expect(prompt).toContain('<context_files>');
     expect(prompt).toContain('/external/brief.pdf');

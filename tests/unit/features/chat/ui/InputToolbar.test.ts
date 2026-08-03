@@ -40,7 +40,7 @@ function makeUsage(overrides: Partial<UsageInfo> = {}): UsageInfo {
   };
 }
 
-function findByTag(element: any, tagName: string): any | null {
+function findByTag(element: any, tagName: string): any {
   if (element.tagName === tagName.toUpperCase()) {
     return element;
   }
@@ -315,7 +315,7 @@ describe('ModelSelector', () => {
   it('should render model options in configured order', () => {
     const dropdown = parentEl.querySelector('.grimoire-model-dropdown');
     expect(dropdown).not.toBeNull();
-    const options = Array.from(dropdown?.querySelectorAll('.grimoire-model-option') ?? []) as any[];
+    const options = Array.from<any>(dropdown?.querySelectorAll('.grimoire-model-option') ?? []);
     expect(options.length).toBe(4);
     expect(getModelOptionLabel(options[0])).toBe('Opus 4.8');
     expect(getModelOptionLabel(options[1])).toBe('Opus 4.7');
@@ -325,14 +325,14 @@ describe('ModelSelector', () => {
 
   it('should mark current model as selected', () => {
     const dropdown = parentEl.querySelector('.grimoire-model-dropdown');
-    const options = Array.from(dropdown?.querySelectorAll('.grimoire-model-option') ?? []) as any[];
+    const options = Array.from<any>(dropdown?.querySelectorAll('.grimoire-model-option') ?? []);
     const sonnetOption = options.find((o: any) => getModelOptionLabel(o) === 'Sonnet 4.6');
     expect(sonnetOption?.hasClass('selected')).toBe(true);
   });
 
   it('should call onModelChange when option clicked', async () => {
     const dropdown = parentEl.querySelector('.grimoire-model-dropdown');
-    const options = Array.from(dropdown?.querySelectorAll('.grimoire-model-option') ?? []) as any[];
+    const options = Array.from<any>(dropdown?.querySelectorAll('.grimoire-model-option') ?? []);
     const opusOption = options.find((o: any) => getModelOptionLabel(o) === 'Opus 4.8');
 
     expect(opusOption).toBeDefined();
@@ -349,7 +349,7 @@ describe('ModelSelector', () => {
 
     const container = parentEl.querySelector('.grimoire-model-selector');
     const dropdown = parentEl.querySelector('.grimoire-model-dropdown');
-    const options = Array.from(dropdown?.querySelectorAll('.grimoire-model-option') ?? []) as any[];
+    const options = Array.from<any>(dropdown?.querySelectorAll('.grimoire-model-option') ?? []);
     const opusOption = options.find((o: any) => getModelOptionLabel(o) === 'Opus 4.8');
     container?.addClass('open');
 
@@ -405,7 +405,7 @@ describe('ModelSelector', () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    const labels = (Array.from(parentEl.querySelectorAll('.grimoire-model-option-label')) as any[])
+    const labels = (Array.from<any>(parentEl.querySelectorAll('.grimoire-model-option-label')))
       .map(el => el.textContent);
     expect(parentEl.querySelector('.grimoire-model-catalog-loading')).toBeNull();
     expect(labels).toEqual(['Sonnet 4.6', 'GPT-5.5']);
@@ -485,7 +485,7 @@ describe('ModelSelector', () => {
     const container = parentEl.querySelector('.grimoire-model-selector');
     container?.addClass('open');
     const dropdown = parentEl.querySelector('.grimoire-model-dropdown');
-    const options = Array.from(dropdown?.querySelectorAll('.grimoire-model-option') ?? []) as any[];
+    const options = Array.from<any>(dropdown?.querySelectorAll('.grimoire-model-option') ?? []);
     const opusOption = options.find((o: any) => getModelOptionLabel(o) === 'Opus 4.8');
 
     expect(opusOption).toBeDefined();
@@ -558,7 +558,7 @@ describe('ModelSelector', () => {
     selector.renderOptions();
 
     const dropdown = parentEl.querySelector('.grimoire-model-dropdown');
-    const groups = Array.from(dropdown?.querySelectorAll('.grimoire-model-group') ?? []) as any[];
+    const groups = Array.from<any>(dropdown?.querySelectorAll('.grimoire-model-group') ?? []);
     expect(groups.length).toBe(2);
     expect(groups[0]?.querySelector('.grimoire-model-group-label')?.textContent).toBe('Claude');
     expect(groups[0]?.querySelector('.grimoire-model-group-count')?.textContent).toBe('2');
@@ -583,7 +583,7 @@ describe('ModelSelector', () => {
 
     selector.renderOptions();
 
-    const groups = Array.from(parentEl.querySelectorAll('.grimoire-model-group-section')) as any[];
+    const groups = Array.from<any>(parentEl.querySelectorAll('.grimoire-model-group-section'));
     const providers = groups.map(group =>
       group.querySelector('.grimoire-model-group-provider-icon')?.getAttribute('data-provider')
     );
@@ -611,19 +611,19 @@ describe('ModelSelector', () => {
 
     selector.renderOptions();
 
-    const labels = (Array.from(parentEl.querySelectorAll('.grimoire-model-group-label')) as any[])
+    const labels = (Array.from<any>(parentEl.querySelectorAll('.grimoire-model-group-label')))
       .map(el => el.textContent);
     expect(labels).toEqual(['Antigravity', 'Claude Code', 'Codex', 'Gemini CLI (Legacy)', 'OpenCode']);
   });
 
   it('filters models from the menu search field', () => {
-    const input = parentEl.querySelector('.grimoire-model-search-input') as any;
+    const input = parentEl.querySelector('.grimoire-model-search-input');
     expect(input).not.toBeNull();
 
     input!.value = 'opus';
     input!.dispatchEvent('input');
 
-    const labels = (Array.from(parentEl.querySelectorAll('.grimoire-model-option-label')) as any[])
+    const labels = (Array.from<any>(parentEl.querySelectorAll('.grimoire-model-option-label')))
       .map(el => el.textContent);
     expect(labels).toEqual(['Opus 4.8', 'Opus 4.7']);
   });
@@ -642,11 +642,11 @@ describe('ModelSelector', () => {
     callbacks.getUIConfig.mockReturnValue(uiConfig);
     selector.renderOptions();
 
-    const input = parentEl.querySelector('.grimoire-model-search-input') as any;
+    const input = parentEl.querySelector('.grimoire-model-search-input');
     input!.value = 'claude sonnet';
     input!.dispatchEvent('input');
 
-    const labels = (Array.from(parentEl.querySelectorAll('.grimoire-model-option-label')) as any[])
+    const labels = (Array.from<any>(parentEl.querySelectorAll('.grimoire-model-option-label')))
       .map(el => el.textContent);
     expect(labels).toEqual(['Claude Sonnet 4.6 (Thinking)', 'Sonnet 5']);
   });
@@ -662,11 +662,11 @@ describe('ModelSelector', () => {
     callbacks.getUIConfig.mockReturnValue(uiConfig);
     selector.renderOptions();
 
-    const input = parentEl.querySelector('.grimoire-model-search-input') as any;
+    const input = parentEl.querySelector('.grimoire-model-search-input');
     input!.value = 'claude opus 5';
     input!.dispatchEvent('input');
 
-    const labels = (Array.from(parentEl.querySelectorAll('.grimoire-model-option-label')) as any[])
+    const labels = (Array.from<any>(parentEl.querySelectorAll('.grimoire-model-option-label')))
       .map(el => el.textContent);
     expect(labels).toEqual(['Opus (1M context)']);
   });
@@ -712,7 +712,7 @@ describe('ModelSelector', () => {
     selector.renderOptions();
 
     const dropdown = parentEl.querySelector('.grimoire-model-dropdown');
-    const groups = Array.from(dropdown?.querySelectorAll('.grimoire-model-group') ?? []) as any[];
+    const groups = Array.from<any>(dropdown?.querySelectorAll('.grimoire-model-group') ?? []);
     expect(groups.length).toBe(0);
   });
 
@@ -730,7 +730,7 @@ describe('ModelSelector', () => {
     selector.updateDisplay();
 
     const dropdown = parentEl.querySelector('.grimoire-model-dropdown');
-    const options = Array.from(dropdown?.querySelectorAll('.grimoire-model-option') ?? []) as any[];
+    const options = Array.from<any>(dropdown?.querySelectorAll('.grimoire-model-option') ?? []);
     expect(options.find((o: any) => getModelOptionLabel(o) === 'Opus 4.8 · 1M')).toBeDefined();
     expect(options.find((o: any) => getModelOptionLabel(o) === 'Opus 4.7')).toBeDefined();
     expect(options.find((o: any) => getModelOptionLabel(o) === 'Sonnet 4.6 · 1M')).toBeDefined();
@@ -762,7 +762,7 @@ describe('ModelSelector', () => {
     selector.renderOptions();
 
     const readout = parentEl.querySelector('.grimoire-plan-usage-readout');
-    const rows = Array.from(parentEl.querySelectorAll('.grimoire-plan-usage-readout-row')) as any[];
+    const rows = Array.from<any>(parentEl.querySelectorAll('.grimoire-plan-usage-readout-row'));
 
     expect(readout?.querySelector('.grimoire-plan-usage-readout-plan')?.textContent).toBe('Max 20x');
     expect(readout?.querySelector('.grimoire-plan-usage-readout-caption')?.textContent).toBe('plan usage');
@@ -817,7 +817,7 @@ describe('ModelSelector', () => {
 
     selector.renderOptions();
 
-    const readouts = Array.from(parentEl.querySelectorAll('.grimoire-plan-usage-readout')) as any[];
+    const readouts = Array.from<any>(parentEl.querySelectorAll('.grimoire-plan-usage-readout'));
 
     expect(readouts).toHaveLength(2);
     expect(readouts[0]?.querySelector('.grimoire-plan-usage-readout-caption')?.textContent).toBe('plan usage');
@@ -848,7 +848,7 @@ describe('ModelSelector', () => {
 
     selector.renderOptions();
 
-    const readouts = Array.from(parentEl.querySelectorAll('.grimoire-plan-usage-readout')) as any[];
+    const readouts = Array.from<any>(parentEl.querySelectorAll('.grimoire-plan-usage-readout'));
 
     expect(readouts).toHaveLength(1);
     expect(readouts[0]?.hasClass('grimoire-plan-usage-readout--spend')).toBe(true);

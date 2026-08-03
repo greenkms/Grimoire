@@ -52,6 +52,9 @@ jobs:
       - name: Unit tests
         run: npm run test -- --selectProjects unit
 
+      - name: Validate release metadata
+        run: node scripts/check-release-metadata.mjs
+
       - name: Build release bundle
         run: npm run build:release
 
@@ -94,22 +97,10 @@ jobs:
               | grep -v "^${tag}$" \
               | head -n 1 || true
           )"
-
-          {
-            echo "Grimoire ${tag}"
-            echo
-
-            if [ -n "${previous_tag}" ]; then
-              compare_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/compare/${previous_tag}...${tag}"
-              echo "Changes since [${previous_tag}](${compare_url}):"
-              echo
-              git log --no-merges --pretty=format:'- %s (`%h`)' "${previous_tag}..${tag}"
-            else
-              echo "Changes in this release:"
-              echo
-              git log --no-merges --pretty=format:'- %s (`%h`)' --max-count=20 "${tag}"
-            fi
-          } > RELEASE_NOTES.md
+          node scripts/generate-release-notes.mjs \
+            --tag "${tag}" \
+            --previous-tag "${previous_tag}" \
+            --output RELEASE_NOTES.md
 
       - name: Publish GitHub release
         env:

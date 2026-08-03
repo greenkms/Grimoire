@@ -1288,8 +1288,8 @@ describe('TabManager - Persistence', () => {
 
       ProviderWorkspaceRegistry.setServices('opencode', {
         commandCatalog: mockCatalog as any,
-        runtimeCommandLoader: runtimeCommandLoader as any,
-        tabWarmupPolicy: commandWarmupPolicy as any,
+        runtimeCommandLoader: runtimeCommandLoader,
+        tabWarmupPolicy: commandWarmupPolicy,
       });
       mockGetCapabilities.mockImplementation((providerId: string) => ({
         providerId,
@@ -1559,8 +1559,8 @@ describe('TabManager - SDK Commands', () => {
 
     ProviderWorkspaceRegistry.setServices('opencode', {
       commandCatalog: mockCatalog as any,
-      runtimeCommandLoader: runtimeCommandLoader as any,
-      tabWarmupPolicy: commandWarmupPolicy as any,
+      runtimeCommandLoader: runtimeCommandLoader,
+      tabWarmupPolicy: commandWarmupPolicy,
     });
     mockGetCapabilities.mockImplementation((providerId: string) => ({
       providerId,
@@ -1621,8 +1621,8 @@ describe('TabManager - SDK Commands', () => {
 
     ProviderWorkspaceRegistry.setServices('opencode', {
       commandCatalog: mockCatalog as any,
-      runtimeCommandLoader: runtimeCommandLoader as any,
-      tabWarmupPolicy: commandWarmupPolicy as any,
+      runtimeCommandLoader: runtimeCommandLoader,
+      tabWarmupPolicy: commandWarmupPolicy,
     });
     mockGetCapabilities.mockImplementation((providerId: string) => ({
       providerId,
@@ -1716,8 +1716,8 @@ describe('TabManager - SDK Commands', () => {
 
     ProviderWorkspaceRegistry.setServices('opencode', {
       commandCatalog: mockCatalog as any,
-      runtimeCommandLoader: runtimeCommandLoader as any,
-      tabWarmupPolicy: commandWarmupPolicy as any,
+      runtimeCommandLoader: runtimeCommandLoader,
+      tabWarmupPolicy: commandWarmupPolicy,
     });
     mockGetCapabilities.mockImplementation((providerId: string) => ({
       providerId,
@@ -1765,8 +1765,8 @@ describe('TabManager - SDK Commands', () => {
 
     ProviderWorkspaceRegistry.setServices('opencode', {
       commandCatalog: mockCatalog as any,
-      runtimeCommandLoader: runtimeCommandLoader as any,
-      tabWarmupPolicy: commandWarmupPolicy as any,
+      runtimeCommandLoader: runtimeCommandLoader,
+      tabWarmupPolicy: commandWarmupPolicy,
     });
     mockGetCapabilities.mockImplementation((providerId: string) => ({
       providerId,
@@ -1820,8 +1820,8 @@ describe('TabManager - SDK Commands', () => {
 
     ProviderWorkspaceRegistry.setServices('opencode', {
       commandCatalog: mockCatalog as any,
-      runtimeCommandLoader: runtimeCommandLoader as any,
-      tabWarmupPolicy: commandWarmupPolicy as any,
+      runtimeCommandLoader: runtimeCommandLoader,
+      tabWarmupPolicy: commandWarmupPolicy,
     });
     mockGetCapabilities.mockImplementation((providerId: string) => ({
       providerId,
@@ -1874,8 +1874,8 @@ describe('TabManager - SDK Commands', () => {
 
     ProviderWorkspaceRegistry.setServices('opencode', {
       commandCatalog: mockCatalog as any,
-      runtimeCommandLoader: runtimeCommandLoader as any,
-      tabWarmupPolicy: commandWarmupPolicy as any,
+      runtimeCommandLoader: runtimeCommandLoader,
+      tabWarmupPolicy: commandWarmupPolicy,
     });
     mockGetCapabilities.mockImplementation((providerId: string) => ({
       providerId,
@@ -1939,8 +1939,8 @@ describe('TabManager - SDK Commands', () => {
 
     ProviderWorkspaceRegistry.setServices('opencode', {
       commandCatalog: mockCatalog as any,
-      runtimeCommandLoader: runtimeCommandLoader as any,
-      tabWarmupPolicy: commandWarmupPolicy as any,
+      runtimeCommandLoader: runtimeCommandLoader,
+      tabWarmupPolicy: commandWarmupPolicy,
     });
     mockGetCapabilities.mockImplementation((providerId: string) => ({
       providerId,
@@ -2066,7 +2066,7 @@ describe('TabManager - Provider Command Catalog', () => {
   });
 
   it('should pass provider catalog config to initializeTabUI for Codex tab', async () => {
-    ProviderWorkspaceRegistry.setServices('codex', { commandCatalog: mockCatalog as any });
+    ProviderWorkspaceRegistry.setServices('codex', { commandCatalog: mockCatalog });
 
     const manager = createManager({
       tabFactory: () => createMockTabData({ id: 'tab-1', providerId: 'codex' }),
@@ -2083,7 +2083,7 @@ describe('TabManager - Provider Command Catalog', () => {
   });
 
   it('should provide scan-backed entries for Codex without runtime', async () => {
-    ProviderWorkspaceRegistry.setServices('codex', { commandCatalog: mockCatalog as any });
+    ProviderWorkspaceRegistry.setServices('codex', { commandCatalog: mockCatalog });
 
     const manager = createManager({
       tabFactory: () => createMockTabData({ id: 'tab-1', providerId: 'codex' }),
@@ -2122,8 +2122,8 @@ describe('TabManager - Provider Command Catalog', () => {
       }),
       refresh: jest.fn(),
     };
-    ProviderWorkspaceRegistry.setServices('claude', { commandCatalog: claudeCatalog as any });
-    ProviderWorkspaceRegistry.setServices('codex', { commandCatalog: mockCatalog as any });
+    ProviderWorkspaceRegistry.setServices('claude', { commandCatalog: claudeCatalog });
+    ProviderWorkspaceRegistry.setServices('codex', { commandCatalog: mockCatalog });
 
     const manager = createManager({
       tabFactory: () => createMockTabData({
@@ -2169,7 +2169,7 @@ describe('TabManager - Provider Command Catalog', () => {
       }),
       refresh: jest.fn(),
     };
-    ProviderWorkspaceRegistry.setServices('claude', { commandCatalog: claudeCatalog as any });
+    ProviderWorkspaceRegistry.setServices('claude', { commandCatalog: claudeCatalog });
 
     const manager = createManager({
       tabFactory: () => createMockTabData({
@@ -2210,7 +2210,7 @@ describe('TabManager - Provider Command Catalog', () => {
       }),
       refresh: jest.fn(),
     };
-    ProviderWorkspaceRegistry.setServices('claude', { commandCatalog: claudeCatalog as any });
+    ProviderWorkspaceRegistry.setServices('claude', { commandCatalog: claudeCatalog });
 
     const manager = createManager({
       tabFactory: () => createMockTabData({
@@ -2259,7 +2259,7 @@ describe('TabManager - Provider Command Catalog', () => {
       updateDisplay: jest.fn(),
     };
     ProviderWorkspaceRegistry.setServices('opencode', {
-      tabWarmupPolicy: runtimeWarmupPolicy as any,
+      tabWarmupPolicy: runtimeWarmupPolicy,
     });
 
     const plugin = createMockPlugin();
@@ -2746,7 +2746,7 @@ describe('TabManager - forkInCurrentTab', () => {
     // Don't create any tabs
 
     const success = await manager.forkInCurrentTab({
-      messages: [] as any,
+      messages: [],
       sourceSessionId: 'session-1',
       resumeAt: 'assistant-uuid-1',
     });

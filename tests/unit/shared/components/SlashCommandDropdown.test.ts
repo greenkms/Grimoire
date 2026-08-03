@@ -120,7 +120,7 @@ describe('SlashCommandDropdown', () => {
       inputEl.value = '/';
       inputEl.selectionStart = 1;
       dropdown.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => window.setTimeout(resolve, 0));
 
       expect(dropdown.isVisible()).toBe(false);
       expect(getRenderedCommandNames(containerEl)).toEqual([]);
@@ -130,7 +130,7 @@ describe('SlashCommandDropdown', () => {
       inputEl.value = '/';
       inputEl.selectionStart = 1;
       dropdown.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => window.setTimeout(resolve, 0));
 
       expect(dropdown.isVisible()).toBe(true);
 
@@ -153,7 +153,7 @@ describe('SlashCommandDropdown', () => {
       inputEl.value = '/';
       inputEl.selectionStart = 1;
       dropdownWithHidden.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       const commandNames = getRenderedCommandNames(containerEl);
       expect(commandNames).not.toContain('commit');
@@ -176,7 +176,7 @@ describe('SlashCommandDropdown', () => {
       inputEl.value = '/';
       inputEl.selectionStart = 1;
       dropdownWithHidden.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       const commandNames = getRenderedCommandNames(containerEl);
       expect(commandNames).toContain('clear');
@@ -202,7 +202,7 @@ describe('SlashCommandDropdown', () => {
       inputEl.value = '/cle';
       inputEl.selectionStart = 4;
       dropdownWithEntries.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       const items = getRenderedItems(containerEl);
       const clearItems = items.filter(i => i.name === 'clear');
@@ -225,12 +225,12 @@ describe('SlashCommandDropdown', () => {
       inputEl.value = '/';
       inputEl.selectionStart = 1;
       d.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       inputEl.value = '/c';
       inputEl.selectionStart = 2;
       d.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       expect(getProviderEntries).toHaveBeenCalledTimes(1);
       d.destroy();
@@ -249,12 +249,12 @@ describe('SlashCommandDropdown', () => {
       inputEl.value = '/';
       inputEl.selectionStart = 1;
       d.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       inputEl.value = '/c';
       inputEl.selectionStart = 2;
       d.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       expect(getProviderEntries).toHaveBeenCalledTimes(2);
       d.destroy();
@@ -273,12 +273,12 @@ describe('SlashCommandDropdown', () => {
       inputEl.value = '/';
       inputEl.selectionStart = 1;
       d.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       inputEl.value = '/c';
       inputEl.selectionStart = 2;
       d.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       expect(getProviderEntries).toHaveBeenCalledTimes(2);
       d.destroy();
@@ -306,15 +306,15 @@ describe('SlashCommandDropdown', () => {
       inputEl.value = '/n';
       inputEl.selectionStart = 2;
       d.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       resolveFirst!(PROVIDER_ENTRIES);
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       inputEl.value = '/';
       inputEl.selectionStart = 1;
       d.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       const names = getRenderedCommandNames(containerEl);
       expect(names).toContain('new-command');
@@ -336,7 +336,7 @@ describe('SlashCommandDropdown', () => {
       inputEl.value = '/';
       inputEl.selectionStart = 1;
       d.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       expect(getRenderedCommandNames(containerEl)).toContain('commit');
 
@@ -345,7 +345,7 @@ describe('SlashCommandDropdown', () => {
       inputEl.value = '/c';
       inputEl.selectionStart = 2;
       d.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       expect(getRenderedCommandNames(containerEl)).not.toContain('commit');
 
@@ -365,7 +365,7 @@ describe('SlashCommandDropdown', () => {
       inputEl.value = '/';
       inputEl.selectionStart = 1;
       d.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
       expect(getProviderEntries).toHaveBeenCalledTimes(1);
 
       d.resetSdkSkillsCache();
@@ -373,7 +373,7 @@ describe('SlashCommandDropdown', () => {
       inputEl.value = '/c';
       inputEl.selectionStart = 2;
       d.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
       expect(getProviderEntries).toHaveBeenCalledTimes(2);
 
       d.destroy();
@@ -401,7 +401,7 @@ describe('SlashCommandDropdown', () => {
       inputEl.value = '/';
       inputEl.selectionStart = 1;
       dropdown.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       expect(containerEl.children.length).toBeGreaterThan(0);
     });
@@ -449,7 +449,7 @@ describe('SlashCommandDropdown', () => {
       inputEl.value = '/com';
       inputEl.selectionStart = 4;
       d.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       const commandNames = getRenderedCommandNames(containerEl);
       expect(commandNames).toContain('commit');
@@ -469,7 +469,7 @@ describe('SlashCommandDropdown', () => {
       inputEl.value = '/pull';
       inputEl.selectionStart = 5;
       d.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       expect(getRenderedCommandNames(containerEl)).toContain('pr');
 
@@ -480,7 +480,7 @@ describe('SlashCommandDropdown', () => {
       inputEl.value = '/xyz123nonexistent';
       inputEl.selectionStart = 18;
       dropdown.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       expect(callbacks.onHide).toHaveBeenCalled();
     });
@@ -496,7 +496,7 @@ describe('SlashCommandDropdown', () => {
       inputEl.value = '/';
       inputEl.selectionStart = 1;
       d.handleInputChange();
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => window.setTimeout(resolve, 10));
 
       const names = getRenderedCommandNames(containerEl);
       const sortedNames = [...names].sort();

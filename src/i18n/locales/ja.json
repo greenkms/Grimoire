@@ -409,6 +409,18 @@
         "openFileFailed": "ファイルを開けませんでした: {error}",
         "providerSwitchBound": "紐付け済みセッションではプロバイダーを切り替えられません。代わりに新しいタブを開始してください。",
         "forkUnsupported": "このプロバイダーはforkをサポートしていません。",
+        "provider": {
+          "startFailed": "{provider} を開始できませんでした。CLI のパスとログイン状態を確認してください。",
+          "notReady": "{provider} ランタイムの準備ができていません。",
+          "sessionCreateFailed": "{provider} のセッションを作成できませんでした。",
+          "emptyResponse": "{provider} は応答を返さずに完了しました。プロバイダーの認証情報とログを確認してから再試行してください。",
+          "requestFailed": "{provider} リクエストに失敗しました",
+          "antigravityDisabled": "Antigravity は無効です。プロバイダー設定で有効にしてください。",
+          "antigravitySafeModeUnavailable": "agy --print は Grimoire のファイル編集承認を要求できないため、Antigravity のセーフモードは利用できません。AGY が確認なしでファイルを編集してよい場合のみ自動承認を使用してください。",
+          "antigravityEmptyOutput": "Antigravity は応答を返さずに終了しました。認証を確認するか、ターミナルで agy --print を実行してから再試行してください。",
+          "claudeVaultPathUnavailable": "Claude 用の Vault パスを特定できませんでした。",
+          "claudeCliNotFound": "Claude Code CLI が見つかりません。インストールするか、プロバイダー設定でパスを指定してください。"
+        },
         "initializeFailed": "チャットサービスを初期化できませんでした",
         "loadConversationFailed": "会話を読み込めませんでした",
         "regenerateFailed": "応答を再生成できませんでした",

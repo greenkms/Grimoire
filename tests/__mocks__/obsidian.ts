@@ -75,7 +75,7 @@ export class Scope {
   handlers: Array<{
     modifiers: string[] | null;
     key: string | null;
-    func: (evt: KeyboardEvent, ctx?: unknown) => false | unknown;
+    func: (evt: KeyboardEvent, ctx?: unknown) => unknown;
   }> = [];
 
   constructor(parent?: Scope) {
@@ -86,7 +86,7 @@ export class Scope {
   register = jest.fn((
     modifiers: string[] | null,
     key: string | null,
-    func: (evt: KeyboardEvent, ctx?: unknown) => false | unknown
+    func: (evt: KeyboardEvent, ctx?: unknown) => unknown
   ) => {
     const handler = { modifiers, key, func };
     this.handlers.push(handler);

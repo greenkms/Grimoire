@@ -15,13 +15,13 @@ describe('i18n', () => {
 
   describe('t (translate)', () => {
     it('returns translated string for valid key', () => {
-      const result = t('common.save' as TranslationKey);
+      const result = t('common.save');
       expect(result).toBe('Save');
     });
 
     it('returns string with parameter interpolation', () => {
       // Use a key that has placeholders
-      const result = t('chat.rewind.notice' as TranslationKey, { count: 2 });
+      const result = t('chat.rewind.notice', { count: 2 });
       expect(result).toBe('Rewound: 2 file(s) reverted');
     });
 
@@ -35,7 +35,7 @@ describe('i18n', () => {
       setLocale('de');
 
       // Use a key that exists in English but might not in German
-      const result = t('common.save' as TranslationKey);
+      const result = t('common.save');
 
       // Should return the English translation or the German one
       expect(typeof result).toBe('string');
@@ -43,12 +43,12 @@ describe('i18n', () => {
     });
 
     it('handles nested keys correctly', () => {
-      const result = t('settings.userName.name' as TranslationKey);
+      const result = t('settings.userName.name');
       expect(result).toBe('What should Grimoire call you?');
     });
 
     it('handles deeply nested keys', () => {
-      const result = t('settings.userName.desc' as TranslationKey);
+      const result = t('settings.userName.desc');
       expect(result).toBe('Your name for personalized greetings (leave empty for generic greetings)');
     });
 
@@ -61,13 +61,13 @@ describe('i18n', () => {
 
     it('replaces placeholders with params', () => {
       // Use a key with {param} placeholders
-      const result = t('chat.fork.failed' as TranslationKey, { error: 'Network timeout' });
+      const result = t('chat.fork.failed', { error: 'Network timeout' });
       expect(result).toBe('Fork failed: Network timeout');
     });
 
     it('keeps placeholder if param not provided', () => {
       // Use a key with placeholders but don't provide the param
-      const result = t('chat.rewind.notice' as TranslationKey, {});
+      const result = t('chat.rewind.notice', {});
       expect(result).toBe('Rewound: {count} file(s) reverted');
     });
   });
@@ -186,7 +186,7 @@ describe('i18n', () => {
   describe('translation in different locales', () => {
     it('translates correctly in German', () => {
       setLocale('de');
-      const result = t('common.save' as TranslationKey);
+      const result = t('common.save');
       // German should have a translation or fall back to English
       expect(typeof result).toBe('string');
       expect(result.length).toBeGreaterThan(0);
@@ -194,49 +194,49 @@ describe('i18n', () => {
 
     it('translates correctly in Japanese', () => {
       setLocale('ja');
-      const result = t('common.save' as TranslationKey);
+      const result = t('common.save');
       expect(typeof result).toBe('string');
       expect(result.length).toBeGreaterThan(0);
     });
 
     it('translates correctly in Korean', () => {
       setLocale('ko');
-      const result = t('common.save' as TranslationKey);
+      const result = t('common.save');
       expect(typeof result).toBe('string');
       expect(result.length).toBeGreaterThan(0);
     });
 
     it('translates correctly in Simplified Chinese', () => {
       setLocale('zh-CN');
-      const result = t('common.save' as TranslationKey);
+      const result = t('common.save');
       expect(typeof result).toBe('string');
       expect(result.length).toBeGreaterThan(0);
     });
 
     it('translates correctly in French', () => {
       setLocale('fr');
-      const result = t('common.save' as TranslationKey);
+      const result = t('common.save');
       expect(typeof result).toBe('string');
       expect(result.length).toBeGreaterThan(0);
     });
 
     it('translates correctly in Spanish', () => {
       setLocale('es');
-      const result = t('common.save' as TranslationKey);
+      const result = t('common.save');
       expect(typeof result).toBe('string');
       expect(result.length).toBeGreaterThan(0);
     });
 
     it('translates correctly in Russian', () => {
       setLocale('ru');
-      const result = t('common.save' as TranslationKey);
+      const result = t('common.save');
       expect(typeof result).toBe('string');
       expect(result.length).toBeGreaterThan(0);
     });
 
     it('translates correctly in Portuguese', () => {
       setLocale('pt');
-      const result = t('common.save' as TranslationKey);
+      const result = t('common.save');
       expect(typeof result).toBe('string');
       expect(result.length).toBeGreaterThan(0);
     });

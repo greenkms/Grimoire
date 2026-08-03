@@ -1,3 +1,5 @@
+import '@/providers';
+
 import { ProviderRegistry } from '@/core/providers/ProviderRegistry';
 import { ProviderSettingsCoordinator } from '@/core/providers/ProviderSettingsCoordinator';
 import { JsonRpcTransportClosedError } from '@/providers/acp';
@@ -1192,28 +1194,28 @@ describe('OpencodeChatRuntime', () => {
 
     it('rejects an absolute path outside the workspace in safe mode', () => {
       const runtime = createRuntimeWithPermissionMode('normal');
-      expect(() => (runtime as any).resolveSessionPath('session-1', '/etc/hosts')).toThrow(
+      expect(() => (runtime).resolveSessionPath('session-1', '/etc/hosts')).toThrow(
         'File access is limited to the current workspace.',
       );
     });
 
     it('rejects an escaping relative path in safe mode', () => {
       const runtime = createRuntimeWithPermissionMode('normal');
-      expect(() => (runtime as any).resolveSessionPath('session-1', '../../etc/hosts')).toThrow(
+      expect(() => (runtime).resolveSessionPath('session-1', '../../etc/hosts')).toThrow(
         'File access is limited to the current workspace.',
       );
     });
 
     it('allows a path inside the workspace in safe mode', () => {
       const runtime = createRuntimeWithPermissionMode('normal');
-      expect((runtime as any).resolveSessionPath('session-1', 'notes/today.md')).toBe(
+      expect((runtime).resolveSessionPath('session-1', 'notes/today.md')).toBe(
         '/tmp/grimoire-test-vault/notes/today.md',
       );
     });
 
     it('allows a path outside the workspace in active (full_access) mode', () => {
       const runtime = createRuntimeWithPermissionMode('full_access');
-      expect((runtime as any).resolveSessionPath('session-1', '/etc/hosts')).toBe('/etc/hosts');
+      expect((runtime).resolveSessionPath('session-1', '/etc/hosts')).toBe('/etc/hosts');
     });
   });
 });

@@ -64,8 +64,8 @@ jest.mock('obsidian', () => {
   };
 });
 
-import { showWhatsNewModal } from '@/shared/modals/WhatsNewModal';
 import type { ChangelogRelease } from '@/app/changelog/types';
+import { showWhatsNewModal } from '@/shared/modals/WhatsNewModal';
 
 function collectText(el: MockElement): string {
   return [
@@ -102,7 +102,7 @@ describe('showWhatsNewModal', () => {
   };
 
   it('renders release title, summary, categories, and items', () => {
-    showWhatsNewModal({
+    void showWhatsNewModal({
       app: mockApp,
       release,
       fullChangelogUrl: 'https://github.com/sandsaber/Grimoire/blob/main/CHANGELOG.md',
@@ -161,7 +161,7 @@ describe('showWhatsNewModal', () => {
     }));
     const promise = showWhatsNewModal({ app: mockApp, release, onDismiss, onClose });
     let resolved = false;
-    promise.then(() => {
+    void promise.then(() => {
       resolved = true;
     });
 
@@ -196,7 +196,7 @@ describe('showWhatsNewModal', () => {
     }));
     const promise = showWhatsNewModal({ app: mockApp, release, onDismiss });
     let resolved = false;
-    promise.then(() => {
+    void promise.then(() => {
       resolved = true;
     });
 

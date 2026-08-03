@@ -142,8 +142,9 @@ provider.
 ## Generated Artifacts And Dependencies
 
 `npm run build:release` refreshes generated `main.js`, root `styles.css`, and
-`dist/grimoire`. Commit generated release artifacts when their source changes and
-verify that they match the build output.
+`dist/grimoire`. The root bundle files and `dist/grimoire` are build outputs: do
+not commit them. Verify the release bundle from source before tagging, and publish
+the three files from `dist/grimoire` as GitHub Release assets.
 
 npm is the canonical package manager. Keep `package-lock.json` synchronized with
 `package.json`, and do not add another lockfile unless the repository intentionally
@@ -162,7 +163,7 @@ A reviewable pull request should:
 - list automated tests and truthful manual verification;
 - call out permission, filesystem, process, credential, storage, and compatibility
   effects;
-- include source and generated artifacts from the same build;
+- include source changes and verification evidence from the same release build;
 - avoid unrelated cleanup or refactoring;
 - preserve attribution when incorporating another contributor's work, using a
   `Co-authored-by` trailer when appropriate.

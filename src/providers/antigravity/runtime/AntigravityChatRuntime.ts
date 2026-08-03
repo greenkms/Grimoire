@@ -3,6 +3,7 @@ import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
+import { ProviderRegistry } from '../../../core/providers/ProviderRegistry';
 import type { ProviderCapabilities } from '../../../core/providers/types';
 import type { ChatRuntime } from '../../../core/runtime/ChatRuntime';
 import type {
@@ -26,6 +27,7 @@ import type {
   StreamChunk,
   ToolCallInfo,
 } from '../../../core/types';
+import { t } from '../../../i18n/i18n';
 import type GrimoirePlugin from '../../../main';
 import { appendBrowserContext } from '../../../utils/browser';
 import { appendCanvasContext } from '../../../utils/canvas';
@@ -118,7 +120,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
     queryOptions?: ChatRuntimeQueryOptions,
   ): AsyncGenerator<StreamChunk> {
     if (!(await this.ensureReady())) {
-      yield { type: 'error', content: 'Failed to start Antigravity. Check that the provider is enabled.' };
+      yield { type: 'error', content: t('chat.ui.errors.provider.antigravityDisabled') };
       yield { type: 'done' };
       return;
     }
@@ -129,7 +131,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
     if (permissionMode !== 'full_access') {
       yield {
         type: 'error',
-        content: 'Antigravity safe mode is unavailable because agy --print does not expose Grimoire file-edit approvals. Switch Antigravity to Auto-approve only if you want AGY to edit files without prompts.',
+        content: t('chat.ui.errors.provider.antigravitySafeModeUnavailable'),
       };
       yield { type: 'done' };
       return;
@@ -153,14 +155,18 @@ export class AntigravityChatRuntime implements ChatRuntime {
       } else {
         yield {
           type: 'error',
-          content: 'Antigravity CLI finished without output. Check Antigravity authentication or run agy --print from a terminal to confirm the CLI returns responses.',
+          content: t('chat.ui.errors.provider.antigravityEmptyOutput'),
         };
       }
       yield { type: 'done' };
     } catch (error) {
       yield {
         type: 'error',
-        content: error instanceof Error ? error.message : 'Antigravity request failed',
+        content: error instanceof Error
+          ? error.message
+          : t('chat.ui.errors.provider.requestFailed', {
+            provider: ProviderRegistry.getProviderDisplayNameOrId('antigravity'),
+          }),
       };
       yield { type: 'done' };
     } finally {

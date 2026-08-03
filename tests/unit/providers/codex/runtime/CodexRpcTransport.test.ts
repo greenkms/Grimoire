@@ -117,7 +117,7 @@ describe('CodexRpcTransport', () => {
         params: { delta: 'Hello' },
       });
 
-      await new Promise(r => setTimeout(r, 10));
+      await new Promise(r => window.setTimeout(r, 10));
       expect(handler).toHaveBeenCalledWith({ delta: 'Hello' });
     });
 
@@ -127,7 +127,7 @@ describe('CodexRpcTransport', () => {
         method: 'mcpServer/startupStatus/updated',
         params: { name: 'test' },
       });
-      await new Promise(r => setTimeout(r, 10));
+      await new Promise(r => window.setTimeout(r, 10));
       // No crash — transport stays functional
       expect(transport).toBeDefined();
     });
@@ -146,7 +146,7 @@ describe('CodexRpcTransport', () => {
       });
 
       // Allow microtasks to settle
-      await new Promise(r => setTimeout(r, 10));
+      await new Promise(r => window.setTimeout(r, 10));
 
       expect(handler).toHaveBeenCalledWith(100, { command: 'echo test' });
 
@@ -168,7 +168,7 @@ describe('CodexRpcTransport', () => {
         params: {},
       });
 
-      await new Promise(r => setTimeout(r, 10));
+      await new Promise(r => window.setTimeout(r, 10));
 
       const responseLine = proc._written.find(line => {
         const parsed = JSON.parse(line);

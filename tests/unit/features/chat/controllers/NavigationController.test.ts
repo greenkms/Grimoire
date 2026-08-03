@@ -13,7 +13,6 @@ class MockKeyboardEvent {
   public altKey: boolean;
   public shiftKey: boolean;
   private defaultPrevented = false;
-  private propagationStopped = false;
 
   constructor(type: string, options: {
     key: string;
@@ -41,7 +40,6 @@ class MockKeyboardEvent {
   }
 
   stopPropagation(): void {
-    this.propagationStopped = true;
   }
 
   get defaultPreventedValue(): boolean {
@@ -51,7 +49,7 @@ class MockKeyboardEvent {
 
 // Replace global KeyboardEvent if not defined
 if (typeof KeyboardEvent === 'undefined') {
-  (global as any).KeyboardEvent = MockKeyboardEvent;
+  (window as any).KeyboardEvent = MockKeyboardEvent;
 }
 
 /** Mock HTML element for testing. */
@@ -66,7 +64,7 @@ class MockElement {
 
   constructor(tagName = 'DIV') {
     this.tagName = tagName;
-    this.ownerDocument = (global as any).document;
+    this.ownerDocument = (window as any).document;
   }
 
   setAttribute(name: string, value: string): void {
@@ -149,24 +147,24 @@ describe('NavigationController', () => {
     jest.useFakeTimers();
 
     // Save originals
-    originalRaf = global.requestAnimationFrame;
-    originalCancelRaf = global.cancelAnimationFrame;
-    originalDocument = (global as any).document;
+    originalRaf = window.requestAnimationFrame;
+    originalCancelRaf = window.cancelAnimationFrame;
+    originalDocument = (window as any).document;
 
     // Mock requestAnimationFrame
     let rafId = 0;
     mockRaf = jest.fn((cb: FrameRequestCallback) => {
       rafId++;
-      setTimeout(() => cb(performance.now()), 16);
+      window.setTimeout(() => cb(performance.now()), 16);
       return rafId;
     });
     mockCancelRaf = jest.fn();
-    global.requestAnimationFrame = mockRaf;
-    global.cancelAnimationFrame = mockCancelRaf;
+    window.requestAnimationFrame = mockRaf;
+    window.cancelAnimationFrame = mockCancelRaf;
 
     // Mock document for event listeners
     const documentListeners: Map<string, Listener[]> = new Map();
-    (global as any).document = {
+    (window as any).document = {
       defaultView: {
         requestAnimationFrame: mockRaf,
         cancelAnimationFrame: mockCancelRaf,
@@ -219,9 +217,9 @@ describe('NavigationController', () => {
     jest.useRealTimers();
 
     // Restore originals
-    global.requestAnimationFrame = originalRaf;
-    global.cancelAnimationFrame = originalCancelRaf;
-    (global as any).document = originalDocument;
+    window.requestAnimationFrame = originalRaf;
+    window.cancelAnimationFrame = originalCancelRaf;
+    (window as any).document = originalDocument;
   });
 
   describe('initialization', () => {
@@ -242,7 +240,7 @@ describe('NavigationController', () => {
     });
 
     it('attaches keyup listener to document', () => {
-      const addEventListenerSpy = jest.spyOn((global as any).document, 'addEventListener');
+      const addEventListenerSpy = jest.spyOn((window as any).document, 'addEventListener');
       controller.initialize();
       expect(addEventListenerSpy).toHaveBeenCalledWith('keyup', expect.any(Function));
     });
@@ -264,7 +262,7 @@ describe('NavigationController', () => {
 
     it('removes keyup listener from document', () => {
       controller.initialize();
-      const removeEventListenerSpy = jest.spyOn((global as any).document, 'removeEventListener');
+      const removeEventListenerSpy = jest.spyOn((window as any).document, 'removeEventListener');
       controller.dispose();
       expect(removeEventListenerSpy).toHaveBeenCalledWith('keyup', expect.any(Function));
     });
@@ -320,7 +318,7 @@ describe('NavigationController', () => {
 
       // Release key - this should trigger cancelAnimationFrame
       const keyupEvent = new KeyboardEvent('keyup', { key: 'w' });
-      (global as any).document.dispatchEvent(keyupEvent);
+      (window as any).document.dispatchEvent(keyupEvent);
 
       // Scrolling should have stopped (cancelAnimationFrame was called)
       expect(mockCancelRaf).toHaveBeenCalled();
@@ -344,7 +342,7 @@ describe('NavigationController', () => {
       expect(ownerRequestAnimationFrame).toHaveBeenCalledWith(expect.any(Function));
       expect(mockRaf).not.toHaveBeenCalled();
 
-      (global as any).document.dispatchEvent(new KeyboardEvent('keyup', { key: 'w' }));
+      (window as any).document.dispatchEvent(new KeyboardEvent('keyup', { key: 'w' }));
 
       expect(ownerCancelAnimationFrame).toHaveBeenCalledWith(42);
       expect(mockCancelRaf).not.toHaveBeenCalled();

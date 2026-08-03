@@ -10,7 +10,7 @@ const ROOT = join(__dirname, '..');
 const require = createRequire(import.meta.url);
 const { createReleaseBundle } = require('./releaseBundle.js');
 
-execFileSync(process.execPath, ['scripts/sync-version.js'], {
+execFileSync(process.execPath, ['scripts/check-release-metadata.mjs'], {
   cwd: ROOT,
   stdio: 'inherit',
 });

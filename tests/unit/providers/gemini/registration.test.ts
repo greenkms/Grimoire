@@ -56,7 +56,7 @@ describe('Gemini provider registration', () => {
         updateGeminiProviderSettings((this as any).plugin.settings, {
           discoveredModels: [{ label: 'Gemini 3 Pro', rawId: 'gemini-3-pro' }],
           visibleModels: ['gemini-3-pro'],
-        } as any);
+        });
         return true;
       });
     const cleanupSpy = jest.spyOn(GeminiChatRuntime.prototype, 'cleanup').mockImplementation(() => undefined);

@@ -125,14 +125,7 @@ export class CodexChatRuntime implements ChatRuntime {
   private chunkBuffer: StreamChunk[] = [];
   private chunkResolve: (() => void) | null = null;
 
-  private approvalCallback: ApprovalCallback | null = null;
   private approvalDismisser: (() => void) | null = null;
-  private askUserCallback: AskUserQuestionCallback | null = null;
-  private exitPlanModeCallback: ExitPlanModeCallback | null = null;
-  private permissionModeSyncCallback: ((sdkMode: string) => void) | null = null;
-  private subagentHookProvider: (() => SubagentRuntimeState) | null = null;
-  private autoTurnCallback: AutoTurnCallback | null = null;
-  private resumeCheckpoint: string | undefined;
   private activeInputBundles = new Set<CodexInputBundle>();
 
   // Fork state
@@ -168,7 +161,6 @@ export class CodexChatRuntime implements ChatRuntime {
   }
 
   setResumeCheckpoint(checkpointId: string | undefined): void {
-    this.resumeCheckpoint = checkpointId;
   }
 
   syncConversationState(
@@ -647,7 +639,6 @@ export class CodexChatRuntime implements ChatRuntime {
   }
 
   setApprovalCallback(callback: ApprovalCallback | null): void {
-    this.approvalCallback = callback;
     this.serverRequestRouter.setApprovalCallback(callback);
   }
 
@@ -656,24 +647,19 @@ export class CodexChatRuntime implements ChatRuntime {
   }
 
   setAskUserQuestionCallback(callback: AskUserQuestionCallback | null): void {
-    this.askUserCallback = callback;
     this.serverRequestRouter.setAskUserCallback(callback);
   }
 
   setExitPlanModeCallback(callback: ExitPlanModeCallback | null): void {
-    this.exitPlanModeCallback = callback;
   }
 
   setPermissionModeSyncCallback(callback: ((sdkMode: string) => void) | null): void {
-    this.permissionModeSyncCallback = callback;
   }
 
   setSubagentHookProvider(getState: () => SubagentRuntimeState): void {
-    this.subagentHookProvider = getState;
   }
 
   setAutoTurnCallback(callback: AutoTurnCallback | null): void {
-    this.autoTurnCallback = callback;
   }
 
   buildSessionUpdates(params: {

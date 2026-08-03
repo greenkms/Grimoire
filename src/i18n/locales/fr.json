@@ -409,6 +409,18 @@
         "openFileFailed": "Impossible d’ouvrir le fichier : {error}",
         "providerSwitchBound": "Impossible de changer de fournisseur pour une session liée. Ouvrez plutôt un nouvel onglet.",
         "forkUnsupported": "La bifurcation n’est pas prise en charge par ce fournisseur.",
+        "provider": {
+          "startFailed": "Échec du démarrage de {provider}. Vérifiez le chemin de la CLI et l'état de connexion.",
+          "notReady": "L'environnement d'exécution de {provider} n'est pas prêt.",
+          "sessionCreateFailed": "Impossible de créer une session pour {provider}.",
+          "emptyResponse": "{provider} s'est terminé sans renvoyer de réponse. Vérifiez les identifiants et les journaux du fournisseur, puis réessayez.",
+          "requestFailed": "Échec de la requête vers {provider}",
+          "antigravityDisabled": "Antigravity est désactivé. Activez-le dans les paramètres du fournisseur.",
+          "antigravitySafeModeUnavailable": "Le mode sécurisé d’Antigravity n’est pas disponible, car agy --print ne peut pas demander les autorisations Grimoire pour modifier des fichiers. Utilisez l’approbation automatique uniquement si AGY peut modifier des fichiers sans confirmation.",
+          "antigravityEmptyOutput": "Antigravity s’est terminé sans réponse. Vérifiez l’authentification ou exécutez agy --print dans un terminal, puis réessayez.",
+          "claudeVaultPathUnavailable": "Impossible de déterminer le chemin du vault pour Claude.",
+          "claudeCliNotFound": "La CLI Claude Code est introuvable. Installez-la ou configurez son chemin dans les paramètres du fournisseur."
+        },
         "initializeFailed": "Impossible d’initialiser le service de discussion",
         "loadConversationFailed": "Impossible de charger la conversation",
         "regenerateFailed": "Impossible de régénérer la réponse",

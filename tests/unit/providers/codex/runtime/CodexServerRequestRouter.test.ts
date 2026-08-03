@@ -382,7 +382,7 @@ describe('CodexServerRequestRouter', () => {
     it('preserves multi-answer arrays from the ask-user callback', async () => {
       mockAskUserCallback.mockResolvedValue({
         q1: ['option-a', 'option-b'],
-      } as any);
+      });
 
       const result = await router.handleServerRequest(
         'item/tool/requestUserInput',
@@ -509,7 +509,7 @@ describe('CodexServerRequestRouter', () => {
       );
 
       // Wait for the callback to be invoked
-      await new Promise(r => setTimeout(r, 10));
+      await new Promise(r => window.setTimeout(r, 10));
       expect(capturedSignal).toBeDefined();
       expect(capturedSignal!.aborted).toBe(false);
 

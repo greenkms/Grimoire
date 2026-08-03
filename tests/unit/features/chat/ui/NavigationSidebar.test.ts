@@ -244,7 +244,7 @@ describe('NavigationSidebar', () => {
         clearTimeout: (handle: number): void => {
           globalThis.clearTimeout(handle as unknown as ReturnType<typeof setTimeout>);
         },
-      } as Window,
+      },
       configurable: true,
     });
     parentEl = new MockElement('div');

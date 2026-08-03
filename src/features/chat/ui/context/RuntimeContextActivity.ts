@@ -1,3 +1,4 @@
+import { ProviderRegistry } from '../../../../core/providers/ProviderRegistry';
 import { TOOL_BASH, TOOL_READ } from '../../../../core/tools/toolNames';
 import type { ChatMessage, ProviderId, ToolCallInfo } from '../../../../core/types';
 import { t } from '../../../../i18n/i18n';
@@ -132,24 +133,7 @@ function getFileName(path: string): string {
 }
 
 function getProviderLabel(providerId: ProviderId): string {
-  switch (providerId) {
-    case 'claude':
-      return 'Claude';
-    case 'codex':
-      return 'Codex';
-    case 'opencode':
-      return 'OpenCode';
-    case 'antigravity':
-      return 'Antigravity';
-    case 'gemini':
-      return 'Gemini';
-    case 'qwen':
-      return 'Qwen';
-    case 'grok':
-      return 'Grok';
-    default:
-      return providerId;
-  }
+  return ProviderRegistry.getProviderDisplayNameOrId(providerId);
 }
 
 export class RuntimeContextActivityView {

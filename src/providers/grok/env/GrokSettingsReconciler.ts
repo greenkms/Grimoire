@@ -1,9 +1,9 @@
 import { getRuntimeEnvironmentText } from '../../../core/providers/providerEnvironment';
 import type { ProviderSettingsReconciler } from '../../../core/providers/types';
 import type { Conversation } from '../../../core/types';
+import { sameStringList, sameStringMap } from '../../../utils/collections';
 import { parseEnvironmentVariables } from '../../../utils/env';
 import { clearGrokDiscoveryState } from '../discoveryState';
-import { sameStringList, sameStringMap } from '../internal/compareCollections';
 import { ensureProviderProjectionMap } from '../internal/providerProjection';
 import {
   decodeGrokModelId,

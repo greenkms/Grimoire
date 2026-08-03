@@ -57,7 +57,7 @@ describe('Qwen provider registration', () => {
         updateQwenProviderSettings((this as any).plugin.settings, {
           discoveredModels: [{ label: 'Qwen 3 Pro', rawId: 'qwen-3-pro' }],
           visibleModels: ['qwen-3-pro'],
-        } as any);
+        });
         return true;
       });
     const cleanupSpy = jest.spyOn(QwenChatRuntime.prototype, 'cleanup').mockImplementation(() => undefined);

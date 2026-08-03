@@ -752,24 +752,6 @@ export class SubagentManager {
     return typeof nested === 'string' && nested.length > 0 ? nested : null;
   }
 
-  private extractAgentIdFromString(value: string): string | null {
-    const regexPatterns = [
-      /"agent_id"\s*:\s*"([^"]+)"/,
-      /"agentId"\s*:\s*"([^"]+)"/,
-      /agent_id[=:]\s*"?([a-zA-Z0-9_-]+)"?/i,
-      /agentId[=:]\s*"?([a-zA-Z0-9_-]+)"?/i,
-    ];
-
-    for (const pattern of regexPatterns) {
-      const match = value.match(pattern);
-      if (match && match[1]) {
-        return match[1];
-      }
-    }
-
-    return null;
-  }
-
   // ============================================
   // Private: Async DOM State Updates
   // ============================================

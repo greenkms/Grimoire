@@ -163,7 +163,7 @@ describe('prepareKimicodeLaunchArtifacts', () => {
       runtimeEnv: {
         HOME: tmpRoot,
         KIMICODE_CONFIG: baseConfigPath,
-      } as NodeJS.ProcessEnv,
+      },
       settings: {
         customPrompt: '',
         mediaFolder: '',
@@ -230,7 +230,7 @@ describe('prepareKimicodeLaunchArtifacts', () => {
       ...baseParams,
       runtimeEnv: {
         HOME: tmpRoot,
-      } as NodeJS.ProcessEnv,
+      },
     });
 
     const second = await prepareKimicodeLaunchArtifacts({
@@ -238,7 +238,7 @@ describe('prepareKimicodeLaunchArtifacts', () => {
       runtimeEnv: {
         HOME: tmpRoot,
         KIMICODE_DB: first.databasePath ?? undefined,
-      } as NodeJS.ProcessEnv,
+      },
     });
 
     expect(first.databasePath).toBe(second.databasePath);
@@ -254,7 +254,7 @@ describe('prepareKimicodeLaunchArtifacts', () => {
       runtimeEnv: {
         HOME: path.join(tmpRoot, 'home'),
         XDG_DATA_HOME: xdgDataHome,
-      } as NodeJS.ProcessEnv,
+      },
       settings: {
         customPrompt: '',
         mediaFolder: '',

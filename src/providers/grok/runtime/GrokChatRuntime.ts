@@ -37,7 +37,15 @@ import type {
   ToolCallInfo,
 } from '../../../core/types';
 import { coercePermissionMode } from '../../../core/types/settings';
+import { t } from '../../../i18n/i18n';
 import type GrimoirePlugin from '../../../main';
+import {
+  sameDiscoveredModels,
+  sameModes,
+  sameStringList,
+  sameStringMap,
+  sameThinkingOptionsByModel,
+} from '../../../utils/collections';
 import { getEnhancedPath } from '../../../utils/env';
 import { getVaultPath } from '../../../utils/path';
 import {
@@ -72,13 +80,6 @@ import {
   loadGrokSessionContextUsage,
   loadGrokSessionCost,
 } from '../history/GrokUsageMetadataStore';
-import {
-  sameDiscoveredModels,
-  sameModes,
-  sameStringList,
-  sameStringMap,
-  sameThinkingOptionsByModel,
-} from '../internal/compareCollections';
 import { ensureProviderProjectionMap } from '../internal/providerProjection';
 import {
   buildGrokBaseModels,
@@ -455,13 +456,13 @@ export class GrokChatRuntime implements ChatRuntime {
         reason: 'not_ready',
         stderrPreview: summarizeGrokCliText(this.process?.getStderrSnapshot() ?? ''),
       }, { level: 'warn' });
-      yield { type: 'error', content: 'Failed to start Grok. Check the CLI path and login state.' };
+      yield { type: 'error', content: t('chat.ui.errors.provider.startFailed', { provider: ProviderRegistry.getProviderDisplayNameOrId('grok') }) };
       yield { type: 'done' };
       return;
     }
 
     if (!this.connection) {
-      yield { type: 'error', content: 'Grok runtime is not ready.' };
+      yield { type: 'error', content: t('chat.ui.errors.provider.notReady', { provider: ProviderRegistry.getProviderDisplayNameOrId('grok') }) };
       yield { type: 'done' };
       return;
     }
@@ -474,7 +475,7 @@ export class GrokChatRuntime implements ChatRuntime {
     if (!this.sessionId) {
       const sessionId = await this.createSession(cwd);
       if (!sessionId) {
-        yield { type: 'error', content: 'Failed to create an Grok session.' };
+        yield { type: 'error', content: t('chat.ui.errors.provider.sessionCreateFailed', { provider: ProviderRegistry.getProviderDisplayNameOrId('grok') }) };
         yield { type: 'done' };
         return;
       }
@@ -1631,7 +1632,7 @@ export class GrokChatRuntime implements ChatRuntime {
   }
 
   private formatRuntimeError(error: unknown): string {
-    const baseMessage = error instanceof Error ? error.message : 'Grok request failed';
+    const baseMessage = error instanceof Error ? error.message : t('chat.ui.errors.provider.requestFailed', { provider: ProviderRegistry.getProviderDisplayNameOrId('grok') });
     const stderr = this.process?.getStderrSnapshot();
     return stderr ? `${baseMessage}\n\n${stderr}` : baseMessage;
   }

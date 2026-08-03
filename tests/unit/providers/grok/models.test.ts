@@ -5,10 +5,10 @@ import {
   encodeGrokModelId,
   extractGrokModelVariantValue,
   getGrokModelVariants,
-  groupGrokDiscoveredModels,
-  isGrokModelSelectionId,
   GROK_DEFAULT_THINKING_LEVEL,
   GROK_SYNTHETIC_MODEL_ID,
+  groupGrokDiscoveredModels,
+  isGrokModelSelectionId,
   resolveGrokBaseModelRawId,
   splitGrokModelLabel,
 } from '../../../../src/providers/grok/models';
