@@ -470,9 +470,10 @@
 }
 
 .grimoire-composer-version {
-  margin: 4px 2px 0;
-  color: var(--text-faint);
+  margin: 4px 4px 0;
+  color: var(--text-muted);
   font-size: 10px;
+  font-weight: 450;
   line-height: 1.2;
   text-align: right;
 }

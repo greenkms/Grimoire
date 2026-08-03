@@ -21,6 +21,7 @@ import {
   deactivateTab,
   destroyTab,
   type ForkContext,
+  getTabSettingsSnapshot,
   getTabTitle,
   initializeTabControllers,
   initializeTabService,
@@ -55,6 +56,7 @@ type CreateTabOptions = {
   draftModel?: string;
   draftSettings?: Record<string, unknown>;
   orchestratorMode?: boolean;
+  providerId?: ProviderId;
   titleOverride?: string | null;
 };
 
@@ -207,7 +209,14 @@ export class TabManager implements TabManagerInterface {
       return null;
     }
 
-    const { activate = true, draftModel, draftSettings, orchestratorMode, titleOverride } = options;
+    const {
+      activate = true,
+      draftModel,
+      draftSettings,
+      orchestratorMode,
+      providerId,
+      titleOverride,
+    } = options;
 
     const conversation = conversationId
       ? await this.plugin.getConversationById(conversationId)
@@ -217,7 +226,7 @@ export class TabManager implements TabManagerInterface {
     const activeTab = this.getActiveTab();
     const defaultProviderId = conversation
       ? undefined
-      : (activeTab ? getTabProviderId(activeTab, this.plugin) : undefined);
+      : (providerId ?? (activeTab ? getTabProviderId(activeTab, this.plugin) : undefined));
 
     const tab = createTab({
       plugin: this.plugin,
@@ -294,16 +303,28 @@ export class TabManager implements TabManagerInterface {
    * bypass the user-facing tab cap because a single approved plan owns the fleet.
    */
   async createWorkerTab(orchestratorTabId: TabId): Promise<TabData | null> {
+    const orchestratorTab = this.tabs.get(orchestratorTabId);
+    const providerId = orchestratorTab
+      ? getTabProviderId(orchestratorTab, this.plugin)
+      : undefined;
+    const draftSettings = orchestratorTab
+      ? getTabSettingsSnapshot(orchestratorTab, this.plugin)
+      : undefined;
+    const draftModel = typeof draftSettings?.model === 'string'
+      ? draftSettings.model
+      : undefined;
     const tab = await this.createTab(undefined, undefined, {
       activate: false,
       bypassTabLimit: true,
+      ...(draftModel ? { draftModel } : {}),
+      ...(draftSettings ? { draftSettings: cloneValue(draftSettings) } : {}),
+      ...(providerId ? { providerId } : {}),
     });
     if (!tab) {
       return null;
     }
 
     tab.orchestratorTabId = orchestratorTabId;
-    const orchestratorTab = this.tabs.get(orchestratorTabId);
     if (orchestratorTab) {
       orchestratorTab.workerTabIds = orchestratorTab.workerTabIds ?? [];
       orchestratorTab.workerTabIds.push(tab.id);

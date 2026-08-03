@@ -20,6 +20,7 @@ const mockInitializeTabService = jest.fn().mockResolvedValue(undefined);
 const mockSetupServiceCallbacks = jest.fn();
 const mockWireTabInputEvents = jest.fn();
 const mockGetTabTitle = jest.fn().mockReturnValue('Test Tab');
+const mockGetTabSettingsSnapshot = jest.fn().mockImplementation((tab: any) => tab.draftSettings ?? {});
 const mockCreateChatRuntime = jest.fn();
 const mockGetProviderSettingsSnapshot = jest.fn().mockImplementation(() => ({}));
 const commandWarmupPolicy = { resolveMode: jest.fn().mockReturnValue('commands') };
@@ -35,6 +36,7 @@ jest.mock('@/features/chat/tabs/Tab', () => ({
   setupServiceCallbacks: (...args: any[]) => mockSetupServiceCallbacks(...args),
   wireTabInputEvents: (...args: any[]) => mockWireTabInputEvents(...args),
   getTabTitle: (...args: any[]) => mockGetTabTitle(...args),
+  getTabSettingsSnapshot: (...args: any[]) => mockGetTabSettingsSnapshot(...args),
   refreshRuntimeContextUI: jest.fn(),
 }));
 
@@ -852,6 +854,28 @@ describe('TabManager - Tab Bar Data', () => {
   });
 
   describe('createWorkerTab', () => {
+    it('inherits the orchestrator provider, model, and tab-local settings', async () => {
+      const orchestrator = await manager.createTab();
+      orchestrator!.providerId = 'codex';
+      orchestrator!.draftSettings = {
+        model: 'gpt-5.6-luna',
+        effortLevel: 'high',
+        permissionMode: 'full_access',
+      };
+
+      await manager.createWorkerTab(orchestrator!.id);
+
+      expect(mockCreateTab).toHaveBeenLastCalledWith(expect.objectContaining({
+        defaultProviderId: 'codex',
+        draftModel: 'gpt-5.6-luna',
+        draftSettings: {
+          model: 'gpt-5.6-luna',
+          effortLevel: 'high',
+          permissionMode: 'full_access',
+        },
+      }));
+    });
+
     it('creates a background worker tab even when the user tab limit is reached', async () => {
       await manager.createTab();
       await manager.createTab();

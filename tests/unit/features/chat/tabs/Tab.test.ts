@@ -682,7 +682,8 @@ describe('Tab - Creation', () => {
       expect(tab.dom.contextRuntimeEl.hasClass('grimoire-context-runtime-panel')).toBe(true);
       expect(tab.dom.sourceCardsEl.hasClass('grimoire-source-card-stack')).toBe(true);
       expect(tab.dom.composerSurfaceEl.contains(tab.dom.inputContainerEl)).toBe(true);
-      expect(tab.dom.composerSurfaceEl.querySelector('.grimoire-composer-version')).toBeNull();
+      expect(tab.dom.composerSurfaceEl.querySelector('.grimoire-composer-version')?.textContent)
+        .toBe('Grimoire v9.8.7-test');
       expect(tab.dom.chatStageEl.contains(tab.dom.messagesEl)).toBe(true);
       expect(tab.dom.sourceRailEl.contains(tab.dom.statusPanelContainerEl)).toBe(true);
     });
@@ -1654,6 +1655,9 @@ describe('Tab - Destruction', () => {
       const cancelTitleGeneration = jest.fn();
       const destroyTodoPanel = jest.fn();
       const destroyResumeDropdown = jest.fn();
+      const destroyModelSelector = jest.fn();
+      const destroyThinkingSelector = jest.fn();
+      const destroyPermissionToggle = jest.fn();
 
       tab.controllers.inputController = { destroyResumeDropdown, dismissPendingApproval: jest.fn() } as any;
       tab.ui.fileContextManager = { destroy: destroyFileContext } as any;
@@ -1662,6 +1666,9 @@ describe('Tab - Destruction', () => {
       tab.services.instructionRefineService = { cancel: cancelInstructionRefine, resetConversation: jest.fn() } as any;
       tab.services.titleGenerationService = { cancel: cancelTitleGeneration } as any;
       tab.ui.statusPanel = { destroy: destroyTodoPanel } as any;
+      tab.ui.modelSelector = { destroy: destroyModelSelector } as any;
+      tab.ui.thinkingBudgetSelector = { destroy: destroyThinkingSelector } as any;
+      tab.ui.permissionToggle = { destroy: destroyPermissionToggle } as any;
 
       await destroyTab(tab);
 
@@ -1672,6 +1679,9 @@ describe('Tab - Destruction', () => {
       expect(cancelInstructionRefine).toHaveBeenCalled();
       expect(cancelTitleGeneration).toHaveBeenCalled();
       expect(destroyTodoPanel).toHaveBeenCalled();
+      expect(destroyModelSelector).toHaveBeenCalled();
+      expect(destroyThinkingSelector).toHaveBeenCalled();
+      expect(destroyPermissionToggle).toHaveBeenCalled();
     });
   });
 });

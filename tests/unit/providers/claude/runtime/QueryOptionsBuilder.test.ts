@@ -768,8 +768,8 @@ describe('QueryOptionsBuilder', () => {
 
       const options = QueryOptionsBuilder.buildColdStartQueryOptions(ctx);
 
-      expect(options.systemPrompt).toContain('## Grimoire Orchestrator Mode');
-      expect(options.systemPrompt).toContain('"type": "orchestrator_plan"');
+      expect(options.systemPrompt).toContain('## Grimoire Parallel Workers Mode');
+      expect(options.systemPrompt).toContain('"type": "parallel_worker_plan"');
     });
   });
 });

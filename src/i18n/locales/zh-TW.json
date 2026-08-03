@@ -75,12 +75,18 @@
       "copyFailed": "複製到剪貼簿失敗"
     },
     "orchestrator": {
-      "planTitle": "編排器計畫",
-      "workerCount": "工作者：{count}",
-      "spawnWorkers": "啟動工作者",
-      "toggleTitle": "編排器模式",
-      "toggleAriaLabel": "切換編排器模式",
-      "toggleFailed": "無法切換編排器模式"
+      "planTitle": "此筆記的獨立任務",
+      "planEyebrow": "平行工作者",
+      "planSummary": "已準備 {count} 個獨立任務。每個任務都在自己的分頁中執行，且不與其他任務共用脈絡或結果。",
+      "badge": "平行工作者",
+      "workerCount": "已選取 {count}/{total}",
+      "spawnWorkers": "開啟工作者分頁",
+      "parallel": "獨立",
+      "toggleTask": "包含任務：{task}",
+      "workerTabsHint": "每個分頁一位獨立工作者 · 不共用脈絡",
+      "toggleTitle": "平行工作者",
+      "toggleAriaLabel": "切換平行工作者",
+      "toggleFailed": "無法切換平行工作者"
     },
     "vaultSearch": {
       "toolName": "庫存搜尋",
@@ -315,7 +321,7 @@
         "conflictInside": "無法新增「{path}」— 它位於既有路徑「{existing}」內",
         "conflictContains": "無法新增「{path}」— 它包含既有路徑「{existing}」",
         "header": "外部脈絡",
-        "empty": "點擊資料夾圖示以新增",
+        "empty": "點擊以新增",
         "makeSessionOnly": "持續保留（點擊後僅限此工作階段）",
         "makePersistent": "僅限此工作階段（點擊後持續保留）",
         "removePath": "移除路徑",

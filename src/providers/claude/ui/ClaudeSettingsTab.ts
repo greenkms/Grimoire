@@ -219,7 +219,7 @@ export const claudeSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
     const advancedContainer = context.renderAdvancedSection(container, {
       count: 5,
-      summary: 'Commands, agents, MCP, environment, experiments',
+      summary: t('settings.providerTabs.claude.advancedSummary'),
     });
 
     // --- Slash Commands ---
@@ -230,7 +230,7 @@ export const claudeSettingsTabRenderer: ProviderSettingsTabRenderer = {
     const descP = slashCommandsDesc.createEl('p', { cls: 'setting-item-description' });
     descP.appendText(t('settings.slashCommands.desc') + ' ');
     descP.createEl('a', {
-      text: 'Learn more',
+      text: t('settings.learnMore'),
       href: 'https://code.claude.com/docs/en/skills',
     });
 
@@ -310,7 +310,7 @@ export const claudeSettingsTabRenderer: ProviderSettingsTabRenderer = {
       scope: 'provider:claude',
       heading: t('settings.environment'),
       name: t('settings.customVariables.name'),
-      desc: 'Claude-owned runtime variables only. Use this for ANTHROPIC_* and Claude-specific toggles.',
+      desc: t('settings.providerTabs.claude.environmentDesc'),
       placeholder: 'ANTHROPIC_API_KEY=your-key\nANTHROPIC_BASE_URL=https://api.example.com\nANTHROPIC_MODEL=custom-model\nCLAUDE_CODE_USE_BEDROCK=1',
       renderCustomContextLimits: (target) => context.renderCustomContextLimits(target, 'claude'),
     });

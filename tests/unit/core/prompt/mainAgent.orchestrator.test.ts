@@ -8,10 +8,10 @@ describe('main agent orchestrator prompt', () => {
     const basePrompt = buildSystemPrompt();
     const orchestratorPrompt = buildSystemPrompt({}, { orchestratorMode: true });
 
-    expect(basePrompt).not.toContain('## Grimoire Orchestrator Mode');
-    expect(orchestratorPrompt).toContain('## Grimoire Orchestrator Mode');
+    expect(basePrompt).not.toContain('## Grimoire Parallel Workers Mode');
+    expect(orchestratorPrompt).toContain('## Grimoire Parallel Workers Mode');
     expect(orchestratorPrompt).toContain('exactly one fenced JSON');
-    expect(orchestratorPrompt).toContain('"type": "orchestrator_plan"');
+    expect(orchestratorPrompt).toContain('"type": "parallel_worker_plan"');
     expect(orchestratorPrompt).toContain('"tasks": [');
     expect(orchestratorPrompt).toContain('"id":');
     expect(orchestratorPrompt).toContain('"description":');
@@ -19,6 +19,8 @@ describe('main agent orchestrator prompt', () => {
     expect(orchestratorPrompt).toContain('before the user approves');
     expect(orchestratorPrompt).toContain('After emitting the JSON block, stop.');
     expect(orchestratorPrompt).toContain('2 to 5');
+    expect(orchestratorPrompt).toContain('must not depend on, wait for, or require the output of another task');
+    expect(orchestratorPrompt).toContain('sequential coordination');
   });
 
   it('changes the system prompt key when orchestrator mode is active', () => {

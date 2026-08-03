@@ -75,12 +75,18 @@
       "copyFailed": "クリップボードへのコピーに失敗しました"
     },
     "orchestrator": {
-      "planTitle": "オーケストレーター計画",
-      "workerCount": "ワーカー: {count}",
-      "spawnWorkers": "ワーカーを起動",
-      "toggleTitle": "オーケストレーターモード",
-      "toggleAriaLabel": "オーケストレーターモードを切り替え",
-      "toggleFailed": "オーケストレーターモードを切り替えられませんでした"
+      "planTitle": "このノートの独立タスク",
+      "planEyebrow": "並列ワーカー",
+      "planSummary": "{count}件の独立したタスクを準備しました。各タスクは専用のタブで実行され、他のタスクとコンテキストや結果を共有しません。",
+      "badge": "並列ワーカー",
+      "workerCount": "{total}件中{count}件を選択",
+      "spawnWorkers": "ワーカーのタブを開く",
+      "parallel": "独立",
+      "toggleTask": "タスクを含める: {task}",
+      "workerTabsHint": "各タブに独立したワーカーが1つ · コンテキストは共有されません",
+      "toggleTitle": "並列ワーカー",
+      "toggleAriaLabel": "並列ワーカーを切り替え",
+      "toggleFailed": "並列ワーカーを切り替えられませんでした"
     },
     "vaultSearch": {
       "toolName": "Vault検索",
@@ -315,7 +321,7 @@
         "conflictInside": "“{path}”は追加できません — 既存のパス“{existing}”内にあります",
         "conflictContains": "“{path}”は追加できません — 既存のパス“{existing}”を含みます",
         "header": "外部コンテキスト",
-        "empty": "フォルダアイコンをクリックして追加",
+        "empty": "クリックして追加",
         "makeSessionOnly": "永続化済み（クリックで今回のセッションのみ）",
         "makePersistent": "今回のセッションのみ（クリックで永続化）",
         "removePath": "パスを削除",

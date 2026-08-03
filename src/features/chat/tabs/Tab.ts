@@ -1,6 +1,7 @@
 import type { Component } from 'obsidian';
 import { Notice, setIcon, TFile } from 'obsidian';
 
+import { formatGrimoireVersion } from '../../../app/version';
 import { ProjectWorkspaceStore } from '../../../core/context/ProjectWorkspaceStore';
 import { RelevantNotesService } from '../../../core/context/RelevantNotesService';
 import { VaultSearchService } from '../../../core/context/VaultSearchService';
@@ -1168,7 +1169,7 @@ export function createTab(options: TabCreateOptions): TabData {
   const vaultSearchService = new VaultSearchService(vaultTextIndex);
   const relevantNotesService = new RelevantNotesService(vaultTextIndex);
 
-  const dom = buildTabDOM(contentEl);
+  const dom = buildTabDOM(contentEl, formatGrimoireVersion(plugin.manifest));
   dom.eventCleanups.push(attachInputResizeHandle(dom));
   state.queueIndicatorEl = dom.queueIndicatorEl;
 
@@ -1256,7 +1257,7 @@ export function createTab(options: TabCreateOptions): TabData {
 /**
  * Builds the DOM structure for a tab.
  */
-function buildTabDOM(contentEl: HTMLElement): TabDOMElements {
+function buildTabDOM(contentEl: HTMLElement, versionText: string): TabDOMElements {
   contentEl.addClass('grimoire-tab-chat-window');
   contentEl.dataset.panelView = 'chat';
 
@@ -1366,6 +1367,10 @@ function buildTabDOM(contentEl: HTMLElement): TabDOMElements {
       rows: '3',
       dir: 'auto',
     },
+  });
+  composerSurfaceEl.createDiv({
+    cls: 'grimoire-composer-version',
+    text: versionText,
   });
   const panelViews: Record<TabPanelView, HTMLElement> = {
     chat: chatStageEl,
@@ -3100,6 +3105,8 @@ export async function destroyTab(tab: TabData): Promise<void> {
   tab.ui.statusPanel?.destroy();
   tab.ui.statusPanel = null;
   tab.ui.modelSelector?.destroy();
+  tab.ui.thinkingBudgetSelector?.destroy();
+  tab.ui.permissionToggle?.destroy();
   tab.ui.navigationSidebar?.destroy();
   tab.ui.navigationSidebar = null;
 

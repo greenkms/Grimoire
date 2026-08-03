@@ -24,8 +24,8 @@ export const qwenSettingsTabRenderer: ProviderSettingsTabRenderer = {
     new Setting(container).setName(t('settings.setup')).setHeading();
 
     const cliPathSetting = new Setting(container)
-      .setName('Qwen CLI path')
-      .setDesc('Custom path to the local Qwen CLI. Leave empty to launch `qwen` from PATH.');
+      .setName(t('settings.providerTabs.qwen.cliPath.name'))
+      .setDesc(t('settings.providerTabs.qwen.cliPath.desc'));
 
     const validationEl = container.createDiv({
       cls: 'grimoire-cli-path-validation grimoire-setting-validation grimoire-setting-validation-error grimoire-hidden',
@@ -93,22 +93,22 @@ export const qwenSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
     const advancedContainer = context.renderAdvancedSection(container, {
       count: 3,
-      summary: 'Hidden commands, environment variables, and context overrides',
+      summary: t('settings.providerTabs.qwen.advancedSummary'),
     });
 
     context.renderHiddenProviderCommandSetting(advancedContainer, 'qwen', {
-      name: 'Hidden Commands',
-      desc: 'Hide specific commands reported by Qwen Code ACP. Enter names without the leading slash, one per line.',
-      placeholder: 'compact\nmemory\nstats',
+      name: t('settings.providerTabs.qwen.hiddenCommands.name'),
+      desc: t('settings.providerTabs.qwen.hiddenCommands.desc'),
+      placeholder: t('settings.providerTabs.qwen.hiddenCommands.placeholder'),
     });
 
     renderEnvironmentSettingsSection({
       container: advancedContainer,
       plugin: context.plugin,
       scope: 'provider:qwen',
-      heading: 'Environment',
-      name: 'Environment Variables',
-      desc: 'Configure Qwen Code authentication with `qwen` and `/auth`. Optional provider variables such as DASHSCOPE_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY are passed through; Grimoire does not automate sign-in.',
+      heading: t('settings.providerTabs.qwen.environment.heading'),
+      name: t('settings.providerTabs.qwen.environment.name'),
+      desc: t('settings.providerTabs.qwen.environment.desc'),
       placeholder: 'DASHSCOPE_API_KEY=...\nOPENAI_API_KEY=...',
       renderCustomContextLimits: (target) => context.renderCustomContextLimits(target, 'qwen'),
     });

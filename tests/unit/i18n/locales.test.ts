@@ -27,8 +27,14 @@ const locales = {
 
 const localizedKeys = [
   'chat.orchestrator.planTitle',
+  'chat.orchestrator.planEyebrow',
+  'chat.orchestrator.planSummary',
+  'chat.orchestrator.badge',
   'chat.orchestrator.workerCount',
   'chat.orchestrator.spawnWorkers',
+  'chat.orchestrator.parallel',
+  'chat.orchestrator.toggleTask',
+  'chat.orchestrator.workerTabsHint',
   'chat.orchestrator.toggleTitle',
   'chat.orchestrator.toggleAriaLabel',
   'chat.orchestrator.toggleFailed',
@@ -124,6 +130,7 @@ const localizedKeys = [
   'settings.subagents.modal.prompt',
   'settings.subagents.modal.promptDesc',
   'settings.subagents.modal.promptPlaceholder',
+  'settings.agentEditor.temperature',
   'settings.enableBangBash.name',
   'settings.enableBangBash.desc',
   'settings.enableBangBash.validation.noNode',

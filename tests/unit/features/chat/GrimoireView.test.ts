@@ -587,6 +587,7 @@ describe('GrimoireView permission mode shortcut', () => {
 describe('GrimoireView orchestrator wiring', () => {
   function createOrchestratorHarness() {
     const view = Object.create(GrimoireView.prototype) as any;
+    view.plugin = { settings: {} };
     const orchestratorStreamController = {
       setOrchestratorCallbacks: jest.fn(),
     };
@@ -605,6 +606,9 @@ describe('GrimoireView orchestrator wiring', () => {
     };
     const orchestratorTab = {
       id: 'orchestrator-tab',
+      providerId: 'codex',
+      lifecycleState: 'blank',
+      draftSettings: { model: 'gpt-5.6-luna', effortLevel: 'high' },
       orchestratorMode: true,
       controllers: {
         streamController: orchestratorStreamController,
@@ -618,18 +622,11 @@ describe('GrimoireView orchestrator wiring', () => {
         return null;
       }),
     };
-    const orchestratorService = {
-      registerWorker: jest.fn(),
-      reportResult: jest.fn(),
-    };
-
     view.tabManager = tabManager;
-    view.orchestratorService = orchestratorService;
     view.updateTabBar = jest.fn();
     view.persistTabState = jest.fn();
 
     return {
-      orchestratorService,
       orchestratorStreamController,
       orchestratorTab,
       tabManager,
@@ -642,7 +639,6 @@ describe('GrimoireView orchestrator wiring', () => {
 
   it('spawns worker tabs from an approved orchestrator plan', async () => {
     const {
-      orchestratorService,
       orchestratorStreamController,
       orchestratorTab,
       tabManager,
@@ -653,14 +649,13 @@ describe('GrimoireView orchestrator wiring', () => {
     const containerEl = createMockEl();
 
     view.wireOrchestratorCallbacks(orchestratorTab);
-    const [onPlanDetected, onWorkerDone, isOrchestratorMode] = orchestratorStreamController
+    const [onPlanDetected, isOrchestratorMode] = orchestratorStreamController
       .setOrchestratorCallbacks.mock.calls[0];
 
-    expect(onWorkerDone).toBeUndefined();
     expect(isOrchestratorMode()).toBe(true);
 
     onPlanDetected(containerEl, {
-      type: 'orchestrator_plan',
+      type: 'parallel_worker_plan',
       tasks: [
         {
           id: 'research',
@@ -681,33 +676,20 @@ describe('GrimoireView orchestrator wiring', () => {
 
     expect(tabManager.createWorkerTab).toHaveBeenCalledTimes(2);
     expect(tabManager.createWorkerTab).toHaveBeenCalledWith('orchestrator-tab');
-    expect(orchestratorService.registerWorker).toHaveBeenNthCalledWith(
-      1,
-      'orchestrator-tab',
-      'worker-tab',
-      'Research implementation',
-    );
     expect(workerSendMessage).toHaveBeenCalledWith({ content: 'Inspect the implementation files' });
     expect(workerStreamController.setOrchestratorCallbacks).toHaveBeenCalled();
     expect(view.updateTabBar).toHaveBeenCalled();
     expect(view.persistTabState).toHaveBeenCalled();
   });
 
-  it('reports worker completion through the orchestrator service', () => {
-    const {
-      orchestratorService,
-      view,
-      workerStreamController,
-      workerTab,
-    } = createOrchestratorHarness();
+  it('does not attach plan or result-forwarding callbacks to worker tabs', () => {
+    const { view, workerStreamController, workerTab } = createOrchestratorHarness();
 
     view.wireOrchestratorCallbacks(workerTab);
-    const [onPlanDetected, onWorkerDone] = workerStreamController
+
+    const [onPlanDetected, isOrchestratorMode] = workerStreamController
       .setOrchestratorCallbacks.mock.calls[0];
-
     expect(onPlanDetected).toBeUndefined();
-    onWorkerDone('Worker result', false);
-
-    expect(orchestratorService.reportResult).toHaveBeenCalledWith('worker-tab', 'Worker result', false);
+    expect(isOrchestratorMode()).toBe(false);
   });
 });

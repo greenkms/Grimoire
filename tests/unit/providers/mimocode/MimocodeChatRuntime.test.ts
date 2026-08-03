@@ -162,7 +162,7 @@ describe('MimocodeChatRuntime', () => {
     expect(prompt).toHaveBeenCalledWith(expect.objectContaining({
       prompt: expect.arrayContaining([
         expect.objectContaining({
-          text: expect.stringContaining('## Grimoire Orchestrator Mode'),
+          text: expect.stringContaining('## Grimoire Parallel Workers Mode'),
           type: 'text',
         }),
       ]),

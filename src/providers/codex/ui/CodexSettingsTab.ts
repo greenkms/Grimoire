@@ -50,11 +50,11 @@ export const codexSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
     if (isWindowsHost) {
       new Setting(container)
-        .setName('Installation method')
-        .setDesc('How Grimoire should launch Codex on Windows. Native Windows uses a Windows executable path. WSL launches the Linux CLI inside a selected distro.')
+        .setName(t('settings.providerTabs.codex.installationMethod.name'))
+        .setDesc(t('settings.providerTabs.codex.installationMethod.desc'))
         .addDropdown((dropdown) => {
           dropdown
-            .addOption('native-windows', 'Native Windows')
+            .addOption('native-windows', t('settings.providerTabs.codex.installationMethod.nativeWindows'))
             .addOption('wsl', 'WSL')
             .setValue(installationMethod)
             .onChange(async (value) => {
@@ -69,20 +69,20 @@ export const codexSettingsTabRenderer: ProviderSettingsTabRenderer = {
     const getCliPathCopy = (): { desc: string; placeholder: string } => {
       if (!isWindowsHost) {
         return {
-          desc: 'Custom path to the local Codex CLI. Leave empty for auto-detection from PATH.',
+          desc: t('settings.providerTabs.codex.cliPath.desc'),
           placeholder: '/usr/local/bin/codex',
         };
       }
 
       if (installationMethod === 'wsl') {
         return {
-          desc: 'Linux-side Codex command or absolute path to run inside WSL. Leave empty for PATH lookup inside the selected distro.',
+          desc: t('settings.providerTabs.codex.cliPath.descWsl'),
           placeholder: 'codex',
         };
       }
 
       return {
-        desc: 'Custom path to the local Codex CLI. Leave empty for auto-detection from PATH. Use the native Windows executable path, usually `codex.exe`.',
+        desc: t('settings.providerTabs.codex.cliPath.descWindows'),
         placeholder: 'C:\\Users\\you\\AppData\\Roaming\\npm\\codex.exe',
       };
     };
@@ -90,7 +90,7 @@ export const codexSettingsTabRenderer: ProviderSettingsTabRenderer = {
     const shouldValidateCliPathAsFile = (): boolean => !isWindowsHost || installationMethod !== 'wsl';
 
     const cliPathSetting = new Setting(container)
-      .setName('Codex CLI path')
+      .setName(t('settings.providerTabs.codex.cliPath.name'))
       .setDesc(getCliPathCopy().desc);
 
     const validationEl = container.createDiv({
@@ -103,7 +103,7 @@ export const codexSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
       if (!shouldValidateCliPathAsFile()) {
         if (isWindowsStyleCliReference(trimmed)) {
-          return 'WSL mode expects a Linux command or Linux absolute path, not a Windows executable path.';
+          return t('settings.providerTabs.codex.cliPath.wslValidation');
         }
         return null;
       }
@@ -197,8 +197,8 @@ export const codexSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
     if (isWindowsHost) {
       const wslDistroSetting = new Setting(container)
-        .setName('WSL distro override')
-        .setDesc('Optional advanced override. Leave empty to infer the distro from a WSL workspace path when possible, otherwise use the default WSL distro.');
+        .setName(t('settings.providerTabs.codex.wslDistro.name'))
+        .setDesc(t('settings.providerTabs.codex.wslDistro.desc'));
 
       wslDistroSettingEl = wslDistroSetting.settingEl;
       wslDistroSetting.addText((text) => {
@@ -223,15 +223,15 @@ export const codexSettingsTabRenderer: ProviderSettingsTabRenderer = {
     new Setting(container).setName(t('settings.models')).setHeading();
 
     const SUMMARY_OPTIONS: { value: string; label: string }[] = [
-      { value: 'auto', label: 'Auto' },
-      { value: 'concise', label: 'Concise' },
-      { value: 'detailed', label: 'Detailed' },
-      { value: 'none', label: 'Off' },
+      { value: 'auto', label: t('settings.providerTabs.codex.reasoning.auto') },
+      { value: 'concise', label: t('settings.providerTabs.codex.reasoning.concise') },
+      { value: 'detailed', label: t('settings.providerTabs.codex.reasoning.detailed') },
+      { value: 'none', label: t('settings.providerTabs.codex.reasoning.off') },
     ];
 
     new Setting(container)
-      .setName('Custom models')
-      .setDesc('Append additional Codex model ids to the picker, one per line. `OPENAI_MODEL` still takes precedence when set.')
+      .setName(t('settings.providerTabs.codex.customModels.name'))
+      .setDesc(t('settings.providerTabs.codex.customModels.desc'))
       .addTextArea((text) => {
         let pendingCustomModels = codexSettings.customModels;
         let savedCustomModels = codexSettings.customModels;
@@ -320,8 +320,8 @@ export const codexSettingsTabRenderer: ProviderSettingsTabRenderer = {
       });
 
     new Setting(container)
-      .setName('Reasoning summary')
-      .setDesc('Show a summary of the model\'s reasoning process in the thinking block.')
+      .setName(t('settings.providerTabs.codex.reasoning.name'))
+      .setDesc(t('settings.providerTabs.codex.reasoning.desc'))
       .addDropdown((dropdown) => {
         for (const opt of SUMMARY_OPTIONS) {
           dropdown.addOption(opt.value, opt.label);
@@ -338,19 +338,19 @@ export const codexSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
     const advancedContainer = context.renderAdvancedSection(container, {
       count: 5,
-      summary: 'Skills, subagents, MCP, and launch settings',
+      summary: t('settings.providerTabs.codex.advancedSummary'),
     });
 
     // --- Skills ---
 
     const codexCatalog = codexWorkspace.commandCatalog;
     if (codexCatalog) {
-      new Setting(advancedContainer).setName('Codex skills').setHeading();
+      new Setting(advancedContainer).setName(t('settings.providerTabs.codex.skills.name')).setHeading();
 
       const skillsDesc = advancedContainer.createDiv({ cls: 'grimoire-sp-settings-desc' });
       skillsDesc.createEl('p', {
         cls: 'setting-item-description',
-        text: 'Manage vault-level Codex skills stored in .codex/skills/ or .agents/skills/. Home-level skills are excluded here.',
+        text: t('settings.providerTabs.codex.skills.desc'),
       });
 
       const skillsContainer = advancedContainer.createDiv({ cls: 'grimoire-slash-commands-container' });
@@ -358,19 +358,19 @@ export const codexSettingsTabRenderer: ProviderSettingsTabRenderer = {
     }
 
     context.renderHiddenProviderCommandSetting(advancedContainer, 'codex', {
-      name: 'Hidden Skills',
-      desc: 'Hide specific Codex skills from the dropdown. Enter skill names without the leading $, one per line.',
+      name: t('settings.providerTabs.codex.hiddenSkills.name'),
+      desc: t('settings.providerTabs.codex.hiddenSkills.desc'),
       placeholder: 'analyze\nexplain\nfix',
     });
 
     // --- Subagents ---
 
-    new Setting(advancedContainer).setName('Codex subagents').setHeading();
+    new Setting(advancedContainer).setName(t('settings.providerTabs.codex.subagents.name')).setHeading();
 
     const subagentDesc = advancedContainer.createDiv({ cls: 'grimoire-sp-settings-desc' });
     subagentDesc.createEl('p', {
       cls: 'setting-item-description',
-      text: 'Manage vault-level Codex subagents stored in .codex/agents/. Each TOML file defines one custom agent.',
+      text: t('settings.providerTabs.codex.subagents.desc'),
     });
 
     const subagentContainer = advancedContainer.createDiv({ cls: 'grimoire-slash-commands-container' });
@@ -383,11 +383,11 @@ export const codexSettingsTabRenderer: ProviderSettingsTabRenderer = {
     new Setting(advancedContainer).setName(t('settings.mcpServers.name')).setHeading();
     const mcpNotice = advancedContainer.createDiv({ cls: 'grimoire-mcp-settings-desc' });
     const mcpDesc = mcpNotice.createEl('p', { cls: 'setting-item-description' });
-    mcpDesc.appendText('Codex manages MCP servers via its own CLI. Configure with ');
+    mcpDesc.appendText(t('settings.providerTabs.codex.mcp.beforeCommand'));
     mcpDesc.createEl('code').appendText('codex mcp');
-    mcpDesc.appendText(' and they will be available in Grimoire. ');
+    mcpDesc.appendText(t('settings.providerTabs.codex.mcp.afterCommand'));
     mcpDesc.createEl('a', {
-      text: 'Learn more',
+      text: t('settings.learnMore'),
       href: 'https://developers.openai.com/codex/mcp',
     });
 
@@ -398,8 +398,8 @@ export const codexSettingsTabRenderer: ProviderSettingsTabRenderer = {
       plugin: context.plugin,
       scope: 'provider:codex',
       heading: t('settings.environment'),
-      name: 'Codex environment',
-      desc: 'Codex-owned runtime variables only. Use this for OPENAI_* and CODEX_* settings. If Codex auto-detection needs help, add its install directory to shared PATH instead of this provider section.',
+      name: t('settings.providerTabs.codex.environment.name'),
+      desc: t('settings.providerTabs.codex.environment.desc'),
       placeholder: `OPENAI_API_KEY=your-key\nOPENAI_BASE_URL=https://api.openai.com/v1\nOPENAI_MODEL=${DEFAULT_CODEX_PRIMARY_MODEL}\nCODEX_SANDBOX=workspace-write`,
       renderCustomContextLimits: (target) => context.renderCustomContextLimits(target, 'codex'),
     });

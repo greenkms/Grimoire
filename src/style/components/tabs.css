@@ -109,6 +109,18 @@
   --grimoire-ok: var(--grimoire-provider-opencode, #e0b341);
 }
 
+.grimoire-tab-badge-streaming[data-provider="mimocode"] {
+  --grimoire-ok: var(--grimoire-provider-mimocode, #ff6a00);
+}
+
+.grimoire-tab-badge-streaming[data-provider="kimicode"] {
+  --grimoire-ok: var(--grimoire-provider-kimicode, #7c3aed);
+}
+
+.grimoire-tab-badge-streaming[data-provider="grok"] {
+  --grimoire-ok: var(--grimoire-provider-grok, var(--text-faint));
+}
+
 .grimoire-tab-badge-attention {
   color: var(--grimoire-workbench-muted);
 }
