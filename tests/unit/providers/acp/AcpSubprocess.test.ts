@@ -1,5 +1,6 @@
 import { type ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
 import { EventEmitter } from 'node:events';
+import { existsSync } from 'node:fs';
 import { Readable, Writable } from 'node:stream';
 
 import { AcpSubprocess } from '@/providers/acp/AcpSubprocess';
@@ -8,7 +9,12 @@ jest.mock('node:child_process', () => ({
   spawn: jest.fn(),
 }));
 
+jest.mock('node:fs', () => ({
+  existsSync: jest.fn(() => true),
+}));
+
 const spawnMock = spawn as jest.MockedFunction<typeof spawn>;
+const existsSyncMock = existsSync as jest.MockedFunction<typeof existsSync>;
 
 type MockChildProcess = EventEmitter & {
   exitCode: number | null;
@@ -47,6 +53,8 @@ describe('AcpSubprocess', () => {
   afterEach(() => {
     jest.useRealTimers();
     spawnMock.mockReset();
+    existsSyncMock.mockReset();
+    existsSyncMock.mockReturnValue(true);
     Object.defineProperty(process, 'platform', { value: originalPlatform });
   });
 
@@ -151,5 +159,80 @@ describe('AcpSubprocess', () => {
 
     mockProc.emit('exit', 1, null);
     await shutdownPromise;
+  });
+});
+
+describe('AcpSubprocess spawn failure', () => {
+  afterEach(() => {
+    existsSyncMock.mockReset();
+    existsSyncMock.mockReturnValue(true);
+  });
+
+  it('replays the close error to listeners that subscribe after the failure', () => {
+    const proc = createMockProcess();
+    spawnMock.mockReturnValue(proc);
+    const subprocess = new AcpSubprocess(createLaunchSpec());
+    subprocess.start();
+
+    // ENOENT is emitted on the next tick — before the transport subscribes.
+    const enoent = Object.assign(new Error('spawn opencode.cmd ENOENT'), { code: 'ENOENT' });
+    proc.emit('error', enoent);
+
+    const listener = jest.fn();
+    subprocess.onClose(listener);
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    const received = listener.mock.calls[0][0] as Error;
+    expect(received).toBeInstanceOf(Error);
+    expect(received.message).toContain('command not found');
+    expect(received.message).toContain('opencode.cmd');
+    expect(received.cause).toBe(enoent);
+  });
+
+  it('still notifies listeners that subscribed before the failure', () => {
+    const proc = createMockProcess();
+    spawnMock.mockReturnValue(proc);
+    const subprocess = new AcpSubprocess(createLaunchSpec());
+    subprocess.start();
+
+    const listener = jest.fn();
+    subprocess.onClose(listener);
+    proc.emit('error', Object.assign(new Error('spawn failed'), { code: 'EACCES' }));
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect((listener.mock.calls[0][0] as Error).message).toBe('spawn failed');
+  });
+
+  it('reports a missing working directory separately from a missing command and preserves the cause', () => {
+    const proc = createMockProcess();
+    spawnMock.mockReturnValue(proc);
+    const launchSpec = createLaunchSpec();
+    const subprocess = new AcpSubprocess(launchSpec);
+    subprocess.start();
+
+    const listener = jest.fn();
+    subprocess.onClose(listener);
+    existsSyncMock.mockReturnValue(false);
+    const enoent = Object.assign(new Error('spawn ENOENT'), { code: 'ENOENT' });
+    proc.emit('error', enoent);
+
+    const received = listener.mock.calls[0][0] as Error & { cause?: unknown };
+    expect(received.message).toContain('working directory not found');
+    expect(received.message).toContain(launchSpec.cwd);
+    expect(received.cause).toBe(enoent);
+  });
+
+  it('replays a non-zero exit to late subscribers', () => {
+    const proc = createMockProcess();
+    spawnMock.mockReturnValue(proc);
+    const subprocess = new AcpSubprocess(createLaunchSpec());
+    subprocess.start();
+
+    proc.emit('exit', 1, null);
+
+    const listener = jest.fn();
+    subprocess.onClose(listener);
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect((listener.mock.calls[0][0] as Error).message).toContain('code 1');
   });
 });

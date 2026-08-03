@@ -83,6 +83,7 @@ export class AcpJsonRpcTransport {
   private readline: Interface | null = null;
   private readonly requestHandlers = new Map<string, JsonRpcRequestHandler>();
   private readonly streamUnsubscribers: Array<() => void> = [];
+  private terminalError: Error | null = null;
   private unregisterClose?: () => void;
 
   constructor(
@@ -185,7 +186,7 @@ export class AcpJsonRpcTransport {
     this.start();
 
     if (this.disposed) {
-      throw new JsonRpcTransportClosedError();
+      throw this.terminalError ?? new JsonRpcTransportClosedError();
     }
 
     const id = this.nextId++;
@@ -262,6 +263,7 @@ export class AcpJsonRpcTransport {
     }
 
     this.disposed = true;
+    this.terminalError = error;
     this.abortController.abort();
 
     this.unregisterClose?.();

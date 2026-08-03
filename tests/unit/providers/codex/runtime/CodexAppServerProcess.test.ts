@@ -1,8 +1,14 @@
+import { existsSync } from 'node:fs';
+
 import type { ChildProcess } from 'child_process';
 import { EventEmitter, Readable, Writable } from 'stream';
 
 jest.mock('child_process', () => ({
   spawn: jest.fn(),
+}));
+
+jest.mock('node:fs', () => ({
+  existsSync: jest.fn(() => true),
 }));
 
 import { spawn } from 'child_process';
@@ -11,6 +17,7 @@ import { CodexAppServerProcess } from '@/providers/codex/runtime/CodexAppServerP
 import type { CodexLaunchSpec } from '@/providers/codex/runtime/codexLaunchTypes';
 
 const mockSpawn = spawn as jest.MockedFunction<typeof spawn>;
+const existsSyncMock = existsSync as jest.MockedFunction<typeof existsSync>;
 
 function createLaunchSpec(overrides: Partial<CodexLaunchSpec> = {}): CodexLaunchSpec {
   return {
@@ -56,6 +63,7 @@ describe('CodexAppServerProcess', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    existsSyncMock.mockReturnValue(true);
     mockProc = createMockProcess();
     mockSpawn.mockReturnValue(mockProc);
   });
@@ -178,6 +186,19 @@ describe('CodexAppServerProcess', () => {
 
       expect(exitCallback).toHaveBeenCalledWith(0, null);
     });
+
+    it('isolates throwing exit callbacks', () => {
+      const server = new CodexAppServerProcess(createLaunchSpec());
+      const secondCallback = jest.fn();
+      server.onExit(() => {
+        throw new Error('listener failure');
+      });
+      server.onExit(secondCallback);
+      server.start();
+
+      expect(() => mockProc.emit('exit', 1, 'SIGTERM')).not.toThrow();
+      expect(secondCallback).toHaveBeenCalledWith(1, 'SIGTERM');
+    });
   });
 
   describe('shutdown', () => {
@@ -228,5 +249,83 @@ describe('CodexAppServerProcess', () => {
 
       expect(server.isAlive()).toBe(false);
     });
+  });
+});
+
+describe('CodexAppServerProcess spawn failure', () => {
+  let mockProc: ChildProcess;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockProc = createMockProcess();
+    mockSpawn.mockReturnValue(mockProc);
+  });
+
+  it('reports a spawn error to exit listeners instead of swallowing it', () => {
+    const server = new CodexAppServerProcess(createLaunchSpec());
+    server.start();
+
+    const onExit = jest.fn();
+    server.onExit(onExit);
+
+    const enoent = Object.assign(new Error('spawn codex ENOENT'), { code: 'ENOENT' });
+    mockProc.emit('error', enoent);
+
+    expect(onExit).toHaveBeenCalledTimes(1);
+    const error = onExit.mock.calls[0][2] as Error;
+    expect(error).toBeInstanceOf(Error);
+    expect(error.message).toContain('command not found');
+    expect(error.cause).toBe(enoent);
+    expect(server.isAlive()).toBe(false);
+  });
+
+  it('replays termination to listeners that subscribe after the failure', () => {
+    const server = new CodexAppServerProcess(createLaunchSpec());
+    server.start();
+
+    // ENOENT arrives before the transport subscribes.
+    mockProc.emit('error', Object.assign(new Error('spawn codex ENOENT'), { code: 'ENOENT' }));
+
+    const onExit = jest.fn();
+    server.onExit(onExit);
+
+    expect(onExit).toHaveBeenCalledTimes(1);
+    expect((onExit.mock.calls[0][2] as Error).message).toContain('command not found');
+  });
+
+  it('uses the configured command and preserves the cause for a missing Windows working directory', () => {
+    Object.defineProperty(process, 'platform', { value: 'win32' });
+    const launchSpec = createLaunchSpec({
+      command: 'C:\\Tools\\codex.cmd',
+      spawnCwd: 'C:\\missing-vault',
+    });
+    const server = new CodexAppServerProcess(launchSpec);
+    const onExit = jest.fn();
+    server.onExit(onExit);
+    server.start();
+
+    existsSyncMock.mockReturnValue(false);
+    const enoent = Object.assign(new Error('spawn ENOENT'), { code: 'ENOENT' });
+    mockProc.emit('error', enoent);
+
+    const error = onExit.mock.calls[0][2] as Error & { cause?: unknown };
+    expect(error.message).toContain('working directory not found');
+    expect(error.message).toContain(launchSpec.spawnCwd);
+    expect(error.message).toContain(launchSpec.command);
+    expect(error.message).not.toContain('cmd.exe');
+    expect(error.cause).toBe(enoent);
+  });
+
+  it('notifies exit listeners only once when error is followed by exit', () => {
+    const server = new CodexAppServerProcess(createLaunchSpec());
+    server.start();
+
+    const onExit = jest.fn();
+    server.onExit(onExit);
+
+    mockProc.emit('error', new Error('boom'));
+    mockProc.emit('exit', 1, null);
+
+    expect(onExit).toHaveBeenCalledTimes(1);
   });
 });

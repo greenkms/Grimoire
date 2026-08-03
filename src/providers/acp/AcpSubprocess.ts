@@ -1,4 +1,5 @@
 import { type ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import * as path from 'node:path';
 import type { Readable, Writable } from 'node:stream';
 
@@ -61,8 +62,8 @@ export class AcpSubprocess {
     });
 
     proc.on('error', (error) => {
-      this.closeError = error;
-      this.notifyClose(error);
+      this.closeError = describeSpawnError(error, this.launchSpec.command, this.launchSpec.cwd);
+      this.notifyClose(this.closeError);
     });
 
     proc.on('exit', (code, signal) => {
@@ -86,6 +87,20 @@ export class AcpSubprocess {
   }
 
   onClose(listener: CloseListener): () => void {
+    // The process can die before every consumer has subscribed — a spawn
+    // failure (ENOENT) is emitted on the next tick, which is typically before
+    // the transport is constructed and wired up. `notifyClose` latches, so a
+    // late subscriber would otherwise never hear about it and would sit until
+    // its request timeout expires. Replay the terminal state instead.
+    if (this.notifiedClose) {
+      try {
+        listener(this.closeError ?? undefined);
+      } catch {
+        // Best-effort cleanup notification.
+      }
+      return () => {};
+    }
+
     this.closeListeners.add(listener);
     return () => {
       this.closeListeners.delete(listener);
@@ -126,6 +141,7 @@ export class AcpSubprocess {
     }
 
     this.notifiedClose = true;
+    this.closeError = error ?? null;
     for (const listener of this.closeListeners) {
       try {
         listener(error);
@@ -151,6 +167,25 @@ function shouldUseShell(command: string): boolean {
   }
 
   return !path.win32.isAbsolute(command);
+}
+
+function describeSpawnError(error: Error, command: string, cwd: string): Error {
+  if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+    return error;
+  }
+
+  if (!existsSync(cwd)) {
+    return new Error(
+      `Failed to start "${command}": working directory not found: "${cwd}".`,
+      { cause: error },
+    );
+  }
+
+  return new Error(
+    `Failed to start "${command}": command not found. Set an absolute CLI path `
+    + 'in the provider settings — desktop apps do not inherit the shell PATH.',
+    { cause: error },
+  );
 }
 
 function formatExit(code: number | null, signal: string | null): string {
