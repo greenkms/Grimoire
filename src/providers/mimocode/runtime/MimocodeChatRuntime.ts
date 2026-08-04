@@ -1822,12 +1822,12 @@ function buildAcpApprovalDecisionOptions(
   }[],
 ): ApprovalDecisionOption[] {
   return options.map((option) => ({
-    ...(option.kind === 'allow_once'
-      ? { decision: 'allow' as const }
-      : option.kind === 'allow_always'
-      ? { decision: 'allow-always' as const }
-      : {}),
     label: option.name,
+    presentation: option.kind === 'allow_once'
+      ? 'allow'
+      : option.kind === 'allow_always'
+      ? 'always'
+      : 'reject',
     value: option.optionId,
   }));
 }

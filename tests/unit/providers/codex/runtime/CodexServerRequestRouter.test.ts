@@ -111,9 +111,12 @@ describe('CodexServerRequestRouter', () => {
         expect.stringContaining('api.openai.com'),
         expect.objectContaining({
           networkApprovalContext: { host: 'api.openai.com', protocol: 'https' },
-          decisionOptions: expect.arrayContaining([
-            expect.objectContaining({ label: expect.any(String) }),
-          ]),
+          decisionOptions: [
+            expect.objectContaining({ label: 'Allow once', presentation: 'allow' }),
+            expect.objectContaining({ label: 'Allow similar commands', presentation: 'other' }),
+            expect.objectContaining({ label: 'Allow api.openai.com for this session', presentation: 'other' }),
+            expect.objectContaining({ label: 'Deny', presentation: 'reject' }),
+          ],
         }),
       );
     });

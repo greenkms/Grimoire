@@ -7,6 +7,7 @@ import { GrokTitleGenerationService } from './auxiliary/GrokTitleGenerationServi
 import { GROK_PROVIDER_CAPABILITIES } from './capabilities';
 import { grokSettingsReconciler } from './env/GrokSettingsReconciler';
 import { GrokConversationHistoryService } from './history/GrokConversationHistoryService';
+import { grokSubagentLifecycleAdapter } from './normalization/grokSubagentNormalization';
 import { GrokChatRuntime } from './runtime/GrokChatRuntime';
 import { GROK_ARTIFACTS_SUBDIR } from './runtime/GrokPaths';
 import { getGrokProviderSettings, updateGrokProviderSettings } from './settings';
@@ -29,5 +30,6 @@ export const grokProviderRegistration: ProviderRegistration = {
     `${GRIMOIRE_STORAGE_PATH}/${GROK_ARTIFACTS_SUBDIR}/system.md`,
   ],
   settingsReconciler: grokSettingsReconciler,
+  subagentLifecycleAdapter: grokSubagentLifecycleAdapter,
   taskResultInterpreter: new GrokTaskResultInterpreter(),
 };

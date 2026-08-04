@@ -17,6 +17,10 @@ import { renderStoredThinkingBlock } from '@/features/chat/rendering/ThinkingBlo
 import { renderStoredToolCall, renderStoredToolCallGroup } from '@/features/chat/rendering/ToolCallRenderer';
 import { renderStoredWriteEdit } from '@/features/chat/rendering/WriteEditRenderer';
 import { setLocale } from '@/i18n/i18n';
+import {
+  GROK_SUBAGENT_SPAWN_TOOL,
+  GROK_SUBAGENT_WAIT_TOOL,
+} from '@/providers/grok/normalization/grokSubagentNormalization';
 
 jest.mock('@/features/chat/rendering/SubagentRenderer', () => ({
   renderStoredAsyncSubagent: jest.fn().mockReturnValue({ wrapperEl: {}, cleanup: jest.fn() }),
@@ -55,7 +59,7 @@ function createMockComponent() {
   };
 }
 
-function mockCapabilities(providerId: 'claude' | 'codex' = 'claude') {
+function mockCapabilities(providerId: 'claude' | 'codex' | 'grok' = 'claude') {
   return () => ({
     providerId,
     supportsPersistentRuntime: true,
@@ -71,7 +75,7 @@ function mockCapabilities(providerId: 'claude' | 'codex' = 'claude') {
   });
 }
 
-function createRenderer(messagesEl?: any, providerId: 'claude' | 'codex' = 'claude') {
+function createRenderer(messagesEl?: any, providerId: 'claude' | 'codex' | 'grok' = 'claude') {
   const el = messagesEl ?? createMockEl();
   const comp = createMockComponent();
   const plugin = {
@@ -2038,6 +2042,67 @@ describe('MessageRenderer', () => {
           status: 'completed',
           result: 'Patched utils.ts and verified imports.',
         })
+      );
+    });
+
+    it('rebuilds Grok subagents from spawn and hidden multi-wait calls on reload', () => {
+      const messagesEl = createMockEl();
+      const { renderer } = createRenderer(messagesEl, 'grok');
+
+      (renderStoredSubagent as jest.Mock).mockClear();
+      (renderStoredToolCall as jest.Mock).mockClear();
+
+      const msg: ChatMessage = {
+        id: 'm-grok-subagent',
+        role: 'assistant',
+        content: '',
+        timestamp: Date.now(),
+        toolCalls: [
+          {
+            id: 'spawn-1',
+            name: GROK_SUBAGENT_SPAWN_TOOL,
+            input: {
+              description: 'Explore core vault notes',
+              prompt: 'Inspect the vault and report in Russian.',
+              subagent_type: 'explore',
+            },
+            status: 'completed',
+            result: 'Subagent started in background.\nsubagent_id: agent-1',
+          } as any,
+          {
+            id: 'wait-1',
+            name: GROK_SUBAGENT_WAIT_TOOL,
+            input: { task_ids: ['agent-1'], timeout_ms: 180_000 },
+            status: 'completed',
+            result: JSON.stringify({
+              type: 'TaskOutput',
+              MultiResult: {
+                results: [{ task_id: 'agent-1', status: 'completed', output: 'Vault report' }],
+              },
+            }),
+          } as any,
+        ],
+        contentBlocks: [
+          { type: 'tool_use', toolId: 'spawn-1' } as any,
+          { type: 'tool_use', toolId: 'wait-1' } as any,
+        ],
+      };
+
+      renderer.renderStoredMessage(msg);
+
+      expect(renderStoredSubagent).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          agentId: 'agent-1',
+          description: 'Explore core vault notes',
+          prompt: 'Inspect the vault and report in Russian.',
+          result: 'Vault report',
+          status: 'completed',
+        }),
+      );
+      expect(renderStoredToolCall).not.toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ name: GROK_SUBAGENT_WAIT_TOOL }),
       );
     });
   });

@@ -243,22 +243,33 @@ function mapDecisionOption(
   params: CommandApprovalRequest,
 ): ApprovalDecisionOption {
   if (decision === 'accept') {
-    return { label: 'Allow once', value: 'allow-once', decision: 'allow' };
+    return {
+      label: 'Allow once',
+      value: 'allow-once',
+      decision: 'allow',
+      presentation: 'allow',
+    };
   }
   if (decision === 'acceptForSession') {
-    return { label: 'Always allow', value: 'allow-always', decision: 'allow-always' };
+    return {
+      label: 'Always allow',
+      value: 'allow-always',
+      decision: 'allow-always',
+      presentation: 'always',
+    };
   }
   if (decision === 'decline') {
-    return { label: 'Deny', value: 'deny', decision: 'deny' };
+    return { label: 'Deny', value: 'deny', decision: 'deny', presentation: 'reject' };
   }
   if (decision === 'cancel') {
-    return { label: 'Cancel', value: 'cancel', decision: 'cancel' };
+    return { label: 'Cancel', value: 'cancel', decision: 'cancel', presentation: 'reject' };
   }
   if ('acceptWithExecpolicyAmendment' in decision) {
     return {
       label: 'Allow similar commands',
       description: 'Approve and store an exec policy amendment.',
       value: encodeCommandApprovalDecision(decision),
+      presentation: 'other',
     };
   }
 
@@ -269,6 +280,7 @@ function mapDecisionOption(
     label: `${action} ${host} for this session`,
     description: `Apply a ${networkPolicyAmendment.action} rule for ${host}.`,
     value: encodeCommandApprovalDecision(decision),
+    presentation: 'other',
   };
 }
 

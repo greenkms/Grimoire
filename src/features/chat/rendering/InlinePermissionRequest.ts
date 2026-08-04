@@ -11,6 +11,7 @@ export interface InlinePermissionRequestConfig {
   decisionOptions: ApprovalDecisionOption[];
   decisionReason?: string;
   blockedPath?: string;
+  target?: string;
   agentID?: string;
   resolve: (value: string | null) => void;
 }
@@ -35,11 +36,11 @@ export class InlinePermissionRequest {
 
   render(): void {
     this.rootEl = this.containerEl.createDiv({ cls: 'grimoire-permission-anchor' });
-    this.rootEl.setAttribute('tabindex', '-1');
 
     const cardEl = this.rootEl.createDiv({ cls: 'grimoire-permission-request' });
     cardEl.setAttribute('role', 'dialog');
     cardEl.setAttribute('aria-labelledby', this.titleId);
+    cardEl.setAttribute('tabindex', '-1');
 
     this.renderHeader(cardEl);
     this.renderBody(cardEl);
@@ -49,7 +50,7 @@ export class InlinePermissionRequest {
     ownerDocument.addEventListener('keydown', this.boundKeyDown);
 
     window.requestAnimationFrame(() => {
-      this.rootEl.focus();
+      cardEl.focus();
     });
   }
 
@@ -59,7 +60,6 @@ export class InlinePermissionRequest {
 
   private renderHeader(cardEl: HTMLElement): void {
     const headEl = cardEl.createDiv({ cls: 'grimoire-permission-head' });
-
     const shieldEl = headEl.createSpan({ cls: 'grimoire-permission-shield' });
     setIcon(shieldEl, 'shield-check');
 
@@ -89,6 +89,14 @@ export class InlinePermissionRequest {
   }
 
   private renderBody(cardEl: HTMLElement): void {
+    const command = this.getCommandText();
+    const description = this.getDescription();
+    const target = this.getRequestTarget();
+    const showTarget = Boolean(target);
+    if (!this.config.decisionReason && !this.config.blockedPath && !this.config.agentID && !command && !description && !showTarget) {
+      return;
+    }
+
     const bodyEl = cardEl.createDiv({ cls: 'grimoire-permission-body grimoire-ask-approval-info' });
 
     if (this.config.decisionReason) {
@@ -112,14 +120,16 @@ export class InlinePermissionRequest {
       });
     }
 
-    const command = this.getCommandText();
     if (command) {
       const commandEl = bodyEl.createDiv({ cls: 'grimoire-permission-command' });
       commandEl.createSpan({ cls: 'grimoire-permission-dollar', text: '$' });
       commandEl.createEl('code', { cls: 'grimoire-permission-command-code', text: command });
     }
 
-    const description = this.getDescription();
+    if (showTarget && target) {
+      bodyEl.createEl('code', { cls: 'grimoire-permission-target', text: target });
+    }
+
     if (description) {
       bodyEl.createDiv({
         cls: 'grimoire-permission-description grimoire-ask-approval-desc',
@@ -131,7 +141,9 @@ export class InlinePermissionRequest {
   private renderActions(cardEl: HTMLElement): void {
     const actionsEl = cardEl.createDiv({ cls: 'grimoire-permission-actions grimoire-ask-list' });
 
-    for (const option of this.config.decisionOptions) {
+    let allowShortcutRendered = false;
+    let rejectShortcutRendered = false;
+    for (const option of this.getOrderedOptions()) {
       const action = this.getAction(option);
       const buttonEl = actionsEl.createEl('button', {
         cls: [
@@ -142,11 +154,10 @@ export class InlinePermissionRequest {
         attr: { type: 'button' },
       });
 
-      if (action === 'allow') {
-        setIcon(buttonEl.createSpan({ cls: 'grimoire-permission-button-icon' }), 'check');
-      } else if (action === 'reject') {
-        setIcon(buttonEl.createSpan({ cls: 'grimoire-permission-button-icon' }), 'x');
-      }
+      setIcon(
+        buttonEl.createSpan({ cls: 'grimoire-permission-button-icon' }),
+        this.getActionIcon(option),
+      );
 
       buttonEl.createSpan({
         cls: 'grimoire-permission-button-label',
@@ -162,8 +173,36 @@ export class InlinePermissionRequest {
           text: option.description,
         });
       }
+      const shortcut = action === 'allow' && !allowShortcutRendered
+        ? 'Enter'
+        : action === 'reject' && !rejectShortcutRendered
+          ? 'Esc'
+          : null;
+      if (shortcut) {
+        buttonEl.createEl('kbd', {
+          cls: 'grimoire-permission-button-shortcut',
+          text: shortcut,
+          attr: { 'aria-hidden': 'true' },
+        });
+      }
+      allowShortcutRendered ||= action === 'allow';
+      rejectShortcutRendered ||= action === 'reject';
       buttonEl.addEventListener('click', () => this.handleResolve(option.value));
     }
+  }
+
+  private getOrderedOptions(): ApprovalDecisionOption[] {
+    const actionOrder: Record<PermissionAction, number> = {
+      allow: 0,
+      always: 1,
+      other: 2,
+      reject: 3,
+    };
+    return this.config.decisionOptions
+      .map((option, index) => ({ option, index }))
+      .sort((left, right) => actionOrder[this.getAction(left.option)] - actionOrder[this.getAction(right.option)]
+        || left.index - right.index)
+      .map(({ option }) => option);
   }
 
   private handleKeyDown(event: KeyboardEvent): void {
@@ -202,14 +241,16 @@ export class InlinePermissionRequest {
   }
 
   private getAction(option: ApprovalDecisionOption): PermissionAction {
+    if (option.presentation) return option.presentation;
     if (option.decision === 'allow') return 'allow';
     if (option.decision === 'allow-always') return 'always';
     if (option.decision === 'deny' || option.decision === 'cancel') return 'reject';
+    if (option.decision) return 'other';
 
-    const normalized = option.label.toLowerCase();
-    if (normalized.includes('always')) return 'always';
-    if (normalized.includes('allow')) return 'allow';
-    if (normalized.includes('deny') || normalized.includes('reject') || normalized.includes('cancel')) {
+    const normalized = option.label.trim().toLowerCase();
+    if (/^(?:always allow|allow always)\b/.test(normalized)) return 'always';
+    if (/^(?:allow|allow once|allow this time|allow now)$/.test(normalized)) return 'allow';
+    if (/^(?:deny|reject|cancel)\b/.test(normalized)) {
       return 'reject';
     }
     return 'other';
@@ -223,6 +264,19 @@ export class InlinePermissionRequest {
     return option.label;
   }
 
+  private getActionIcon(option: ApprovalDecisionOption): string {
+    const action = this.getAction(option);
+    if (action === 'allow') return 'check';
+    if (action === 'reject') return 'x';
+    if (action === 'always') {
+      const scope = `${option.label} ${option.value}`;
+      if (/\bproject\b/i.test(scope)) return 'folder-check';
+      if (/\buser\b/i.test(scope)) return 'user-check';
+      return 'shield-check';
+    }
+    return 'circle-dot';
+  }
+
   private getToolLabel(): string {
     const command = this.getCommandText();
     if (command) {
@@ -233,7 +287,7 @@ export class InlinePermissionRequest {
     if (/^(?:bash|execute|run)(?:\s|$)/i.test(toolName)) {
       return 'bash';
     }
-    return toolName.length > 28 ? `${toolName.slice(0, 27)}…` : toolName;
+    return toolName;
   }
 
   private getSubtitle(): string {
@@ -248,9 +302,44 @@ export class InlinePermissionRequest {
     return typeof command === 'string' ? command : '';
   }
 
+  private getRequestTarget(): string | null {
+    if (this.getCommandText()) return null;
+
+    const explicitTarget = this.config.target?.trim();
+    if (explicitTarget && !this.matchesBlockedPath(explicitTarget)) {
+      return explicitTarget;
+    }
+
+    for (const key of [
+      'url',
+      'uri',
+      'host',
+      'path',
+      'filePath',
+      'filepath',
+      'file_path',
+      'notebook_path',
+    ]) {
+      const value = this.config.input[key];
+      if (typeof value === 'string' && value.trim() && !this.matchesBlockedPath(value)) {
+        return value.trim();
+      }
+    }
+
+    return [this.config.description, this.config.toolName]
+      .map(value => value.match(/https?:\/\/[^\s`"')\]}]+/i)?.[0])
+      .find((value): value is string => Boolean(value)) ?? null;
+  }
+
+  private matchesBlockedPath(value: string): boolean {
+    return Boolean(this.config.blockedPath
+      && this.config.blockedPath.trim() === value.trim());
+  }
+
   private getDescription(): string | null {
     if (!this.getCommandText()) {
-      return this.config.description;
+      const description = this.config.description.trim();
+      return this.isRedundantToolDescription(description) ? null : description;
     }
 
     const providerRequest = this.config.description.match(/^(.+?) wants permission to use\b/i);
@@ -268,6 +357,14 @@ export class InlinePermissionRequest {
     }
 
     return description;
+  }
+
+  private isRedundantToolDescription(description: string): boolean {
+    const toolName = this.config.toolName.trim();
+    if (!toolName) return false;
+
+    return normalizePermissionDescription(description)
+      === normalizePermissionDescription(`${toolName} requests permission.`);
   }
 
   private handleResolve(value: string | null): void {
@@ -289,6 +386,10 @@ export function buildPermissionCommandSummary(command: string): string {
   }
 
   const executable = getPathBasename(executableToken) || executableToken;
+  if (executable === 'find') {
+    return buildFindCommandSummary(tokens);
+  }
+
   const argumentLabels: string[] = [];
   let remainingArgumentCount = 0;
 
@@ -322,6 +423,34 @@ export function buildPermissionCommandSummary(command: string): string {
   );
 }
 
+function buildFindCommandSummary(tokens: string[]): string {
+  const patterns: string[] = [];
+  let remainingPatternCount = 0;
+
+  for (let index = 0; index < tokens.length - 1; index += 1) {
+    if (!/^-i?name$/.test(tokens[index] ?? '')) {
+      continue;
+    }
+
+    const pattern = summarizeCommandArgument(tokens[index + 1] ?? '');
+    if (!pattern || patterns.includes(pattern)) {
+      continue;
+    }
+    if (patterns.length < 2) {
+      patterns.push(pattern);
+    } else {
+      remainingPatternCount += 1;
+    }
+  }
+
+  if (patterns.length === 0) {
+    return 'find';
+  }
+
+  const suffix = remainingPatternCount > 0 ? ` +${remainingPatternCount}` : '';
+  return truncateCommandSummary(`find · ${patterns.join(', ')}${suffix}`, 64);
+}
+
 function tokenizeCommandPreview(command: string): string[] {
   return command
     .match(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\S+/g)
@@ -353,4 +482,12 @@ function isRedirectionToken(token: string): boolean {
 
 function truncateCommandSummary(value: string, maxLength: number): string {
   return value.length <= maxLength ? value : `${value.slice(0, maxLength - 1)}…`;
+}
+
+function normalizePermissionDescription(value: string): string {
+  return value
+    .trim()
+    .replace(/\s+/g, ' ')
+    .replace(/[.!?]+$/, '')
+    .toLowerCase();
 }

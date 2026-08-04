@@ -4,10 +4,6 @@ function readContainerCss(): string {
   return readFileSync('src/style/base/container.css', 'utf8');
 }
 
-function readTabsCss(): string {
-  return readFileSync('src/style/components/tabs.css', 'utf8');
-}
-
 function getRuleIncludingSelector(css: string, selector: string): string {
   for (const block of css.split('}')) {
     const [selectors, declarations] = block.split('{');
@@ -20,14 +16,6 @@ function getRuleIncludingSelector(css: string, selector: string): string {
 }
 
 describe('container.css source controls', () => {
-  it('keeps the version compact and right-aligned in the top panel row', () => {
-    const versionRule = getRuleIncludingSelector(readTabsCss(), '.grimoire-panel-version');
-
-    expect(versionRule).toContain('color: var(--text-muted)');
-    expect(versionRule).toContain('font-size: 10px');
-    expect(versionRule).toContain('margin-inline-start: auto');
-  });
-
   it('keeps the composer bottom gutter visually compact', () => {
     const composerRule = getRuleIncludingSelector(readContainerCss(), '.grimoire-composer-surface');
 

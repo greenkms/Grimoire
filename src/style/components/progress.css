@@ -39,6 +39,10 @@
   color: var(--color-green);
 }
 
+.grimoire-progress-block--waiting .grimoire-progress-icon {
+  color: var(--grimoire-brand);
+}
+
 .grimoire-progress-block--blocked .grimoire-progress-icon {
   color: var(--color-orange);
 }

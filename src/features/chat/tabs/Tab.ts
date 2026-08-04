@@ -1,7 +1,6 @@
 import type { Component } from 'obsidian';
 import { Notice, setIcon, TFile } from 'obsidian';
 
-import { formatGrimoireVersion } from '../../../app/version';
 import { ProjectWorkspaceStore } from '../../../core/context/ProjectWorkspaceStore';
 import { RelevantNotesService } from '../../../core/context/RelevantNotesService';
 import { VaultSearchService } from '../../../core/context/VaultSearchService';
@@ -1149,7 +1148,7 @@ export function createTab(options: TabCreateOptions): TabData {
   const vaultSearchService = new VaultSearchService(vaultTextIndex);
   const relevantNotesService = new RelevantNotesService(vaultTextIndex);
 
-  const dom = buildTabDOM(contentEl, formatGrimoireVersion(plugin.manifest));
+  const dom = buildTabDOM(contentEl);
   dom.eventCleanups.push(attachInputResizeHandle(dom));
   state.queueIndicatorEl = dom.queueIndicatorEl;
 
@@ -1237,7 +1236,7 @@ export function createTab(options: TabCreateOptions): TabData {
 /**
  * Builds the DOM structure for a tab.
  */
-function buildTabDOM(contentEl: HTMLElement, versionText: string): TabDOMElements {
+function buildTabDOM(contentEl: HTMLElement): TabDOMElements {
   contentEl.addClass('grimoire-tab-chat-window');
   contentEl.dataset.panelView = 'chat';
 
@@ -1261,11 +1260,6 @@ function buildTabDOM(contentEl: HTMLElement, versionText: string): TabDOMElement
     text: t('chat.ui.view.context'),
     attr: { type: 'button', 'data-panel-view': 'context', 'aria-pressed': 'false' },
   });
-  panelTabsEl.createSpan({
-    cls: 'grimoire-panel-version',
-    text: versionText,
-  });
-
   const chatScrollEl = workbenchGridEl.createDiv({
     cls: 'grimoire-chat-scroll',
     attr: { 'aria-live': 'polite' },

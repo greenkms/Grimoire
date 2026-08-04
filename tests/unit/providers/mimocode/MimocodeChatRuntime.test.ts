@@ -628,9 +628,9 @@ describe('MimocodeChatRuntime', () => {
       {
         blockedPath: '/tmp/outside',
         decisionOptions: [
-          { decision: 'allow', label: 'Allow once', value: 'approve-now' },
-          { decision: 'allow-always', label: 'Always allow', value: 'approve-always' },
-          { label: 'Deny', value: 'deny-now' },
+          { label: 'Allow once', presentation: 'allow', value: 'approve-now' },
+          { label: 'Always allow', presentation: 'always', value: 'approve-always' },
+          { label: 'Deny', presentation: 'reject', value: 'deny-now' },
         ],
         decisionReason: 'Path is outside the session working directory',
       },
@@ -892,7 +892,7 @@ describe('MimocodeChatRuntime', () => {
       'Pre-approve workflow tools for this session: bash: npm test, edit: src/app.ts, read +1 more.',
       {
         decisionOptions: [
-          { decision: 'allow', label: 'Allow once', value: 'approve-now' },
+          { label: 'Allow once', presentation: 'allow', value: 'approve-now' },
         ],
         decisionReason: 'Session-level workflow approval requested',
       },

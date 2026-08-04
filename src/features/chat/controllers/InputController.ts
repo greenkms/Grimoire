@@ -1728,6 +1728,7 @@ export class InputController {
         decisionOptions: normalizedOptions,
         decisionReason: approvalOptions?.decisionReason,
         blockedPath: approvalOptions?.blockedPath,
+        target: approvalOptions?.target,
         agentID: approvalOptions?.agentID,
         resolve: (value: string | null) => {
           this.pendingApprovalInline = null;
