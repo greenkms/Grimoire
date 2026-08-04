@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="../../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.ru.md">Русский</a>
+  <a href="../../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português</a> · <a href="README.ru.md">Русский</a>
 </p>
 
 <p align="center">
@@ -31,7 +31,7 @@ Grimoire 将 agentic CLI 助手带入 Obsidian。Claude Code、Codex、Antigravi
 
 它面向已经在 Obsidian 中工作的人：你可以使用本地上下文、本地文件、明确选择的 provider，并在界面里直接看到 usage 和 cost。
 
-> 英文 [README](../../README.md) 是项目的 canonical 文档。此简体中文版本与 `1.0.11` 文档保持同步。
+> 英文 [README](../../README.md) 是项目的 canonical 文档。此翻译会随当前产品文档维护。
 
 ## 为什么选择 Grimoire
 
@@ -287,6 +287,14 @@ Grok 4.5 目前是 Grok Build 的默认模型。Grimoire 从已认证的 Grok CL
 
 一个专注的侧边栏，支持多个 tabs。每个 tab 都保留自己的 draft、provider、model、context 和 runtime。关闭再打开 Obsidian 后，会话会恢复，并且每个 response 都保留 provider、model 和 reasoning effort。Rewind 和 fork 会在当前 provider 支持时出现。你一旦手动滚动去阅读历史，auto-scroll 会自动让位。10 秒没有可见输出后，shared wait indicator 会显示 active provider 和已等待时间；等待问题或 permission 时会暂停。
 
+### Tab、历史与导航控制
+
+右键点击 tab 可以重命名、复制、关闭、关闭其他 tabs 或关闭右侧 tabs；中键点击会关闭 tab，限时 Undo 会恢复其 draft 和位置。可以从 chat history 通过对应 action、modifier-click 或中键点击在新 tab 中打开保存的对话。长对话提供五向 navigator：顶部、上一条 prompt、对话目录、下一条 prompt 和底部。完成的 message 会在 copy action 旁显示本地化 completion timestamp。
+
+### Parallel workers、settings 与 composer
+
+**Parallel workers** approval card 会显示继承的 model，并且只启动你选择的建议任务。Settings 使用 Obsidian native search，并保留永久的 What's New 入口。Provider settings 与 composer 在各 provider 间使用一致的 surface，同时保留 provider-owned controls 和 configuration。
+
 ### 键盘快捷键
 
 | 快捷键 | 操作 |
@@ -381,9 +389,11 @@ Grimoire 运行在 Obsidian 内部、你的电脑上。它没有 backend，不�
 
 它无法隐藏的是 provider 本身。你启用的 CLI 会收到 prompt、你选择的 context，以及 request 所需的 files、images、tool output 和 commands。该 CLI 可能会访问 Anthropic、OpenAI、Google、你配置的 OpenCode vendors、MCP servers，或者任何你设置过的其他目标。Terms、retention、billing、rate limits 和 privacy policies 属于 provider，而不是 Grimoire。Grimoire 的职责是在 Obsidian 中让这条边界清晰可见，并由你控制。
 
-如需了解面向 Obsidian 政策的网络使用、账户要求、外部文件访问、日志记录和 telemetry 的摘要，请参阅 [DISCLOSURES.md](../DISCLOSURES.md)。
+如需了解面向 Obsidian 政策的网络使用、账户要求、外部文件访问、日志记录和 telemetry 的摘要，请参阅 [DISCLOSURES.md](../../DISCLOSURES.md)。
 
 ## Development
+
+欢迎 contributions。打开 pull request 前请阅读 [CONTRIBUTING.md](../../CONTRIBUTING.md)，其中说明 architecture、security、tests 和 review 的要求。
 
 ```bash
 npm install

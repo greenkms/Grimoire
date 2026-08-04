@@ -98,7 +98,7 @@
     },
     "relevantNotes": {
       "label": "相關",
-      "empty": "No source notes yet"
+      "empty": "尚無來源筆記"
     },
     "greetings": {
       "day": {
@@ -404,6 +404,13 @@
         "awaitingYou": "等待您的回覆"
       },
       "errors": {
+        "generic": "錯誤：{message}",
+        "commandUnsupported": "此提供者不支援 /{command}。",
+        "externalContextAdded": "已新增外部情境：{path}",
+        "unknownCommand": "未知指令：{command}",
+        "openConversationFailed": "無法開啟對話：{message}",
+        "commandFailed": "指令失敗：{message}",
+        "backgroundTaskRenderFailed": "背景工作已完成，但無法顯示結果。",
         "relevantNotesFailed": "相關筆記載入失敗：{error}",
         "couldNotOpenFile": "無法開啟檔案：{path}",
         "openFileFailed": "無法開啟檔案：{error}",
@@ -678,8 +685,8 @@
       "followsObsidian": "跟隨 Obsidian"
     },
     "usageIndicators": {
-      "name": "Usage indicators",
-      "desc": "Show plan usage and API spend indicators beside the model selector and inside the model menu."
+      "name": "用量指示器",
+      "desc": "在模型選擇器旁及模型選單中顯示方案用量和 API 支出指示器。"
     },
     "debugLogging": {
       "name": "除錯日誌",
@@ -817,13 +824,13 @@
       "invalid": "格式無效。使用：256k、1m 或精確數量（1000-10000000）。"
     },
     "customModels": {
-      "name": "Custom models",
-      "desc": "Append additional Claude model IDs to the picker, one per line. Environment model overrides still replace the picker.",
+      "name": "自訂模型",
+      "desc": "每行將一個額外的 Claude 模型 ID 加入選擇器。環境中的模型覆寫仍會取代選擇器。",
       "placeholder": "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
     },
     "respectProjectSettings": {
-      "name": "Respect Claude Code settings",
-      "desc": "Use model and env from Claude Code user and project settings. This enables custom models from providers such as MiniMax, Z.ai, and other Anthropic-compatible gateways. Grimoire settings still override explicit choices."
+      "name": "遵循 Claude Code 設定",
+      "desc": "使用 Claude Code 使用者與專案設定中的模型和環境變數。這可啟用 MiniMax、Z.ai 及其他 Anthropic 相容閘道提供的自訂模型；Grimoire 的明確選擇仍優先。"
     },
     "enableChrome": {
       "name": "啟用 Chrome 擴充功能",
@@ -945,8 +952,8 @@
         "searchPlaceholder": "依模型、provider 或 ID 篩選...",
         "visibleLabel": "可見：",
         "summaryDiscovered": "共發現 {total} 個 - {count} 個 {providerWord}",
-        "providerSingular": "provider",
-        "providerPlural": "providers",
+        "providerSingular": "提供者",
+        "providerPlural": "提供者",
         "noDiscovered": "尚未發現模型",
         "loadingModels": "正在載入模型...",
         "availableCount": "{count} 個可用",
@@ -975,7 +982,7 @@
       },
       "subagents": {
         "desc": "管理 .grok/agent/ 和 legacy .grok/agents/ 中的 vault-level Grok Build subagents。新項目會儲存為 subagent-only 檔案，並顯示在 @mention 選單中。",
-        "title": "Grok Build Subagents",
+        "title": "Grok Build 子代理",
         "noAgents": "vault 中沒有 Grok Build subagents。點擊 + 建立一個。",
         "modalTitleEdit": "編輯 Grok Subagent",
         "modalTitleAdd": "新增 Grok Subagent",
@@ -984,7 +991,7 @@
         "modelDesc": "provider/model 格式的模型覆寫",
         "variant": "Variant",
         "variantDesc": "模型 variant 覆寫",
-        "temperature": "Temperature",
+        "temperature": "溫度",
         "temperatureDesc": "可選 sampling temperature",
         "topP": "Top p",
         "topPDesc": "可選 nucleus sampling 值",
@@ -996,11 +1003,11 @@
         "hideFromMentionDesc": "從 @ autocomplete 選單中隱藏此 subagent",
         "disableAgent": "停用 agent",
         "disableAgentDesc": "停用 agent 但不刪除檔案",
-        "enabledTools": "Enabled tools (JSON)",
+        "enabledTools": "啟用的工具 (JSON)",
         "enabledToolsDesc": "可選 deprecated tools map，例如 {\"write\":false,\"edit\":false}",
-        "permission": "Permission (JSON)",
+        "permission": "權限 (JSON)",
         "permissionDesc": "可選 permission config，例如 {\"edit\":\"deny\",\"bash\":\"allow\"}",
-        "options": "Options (JSON)",
+        "options": "選項 (JSON)",
         "optionsDesc": "可選 custom agent options",
         "promptDesc": "作為 agent prompt 的 Markdown body",
         "promptPlaceholder": "仔細審查程式碼變更，並指出正確性問題、回歸和缺少的覆蓋。",
@@ -1403,5 +1410,9 @@
         "configCorrupted": "設定檔已毀損。請檢查 .claude/mcp.json。"
       }
     }
-  }
+  },
+  "plugin": { "openRibbon": "開啟 Grimoire", "openChatView": "開啟聊天檢視", "inlineEdit": "內嵌編輯", "inlineEditViewUnavailable": "內嵌編輯無法使用：無法存取目前的 Markdown 檢視。", "inlineEditInserted": "已插入", "inlineEditApplied": "已套用編輯", "newTab": "新增分頁", "newSession": "新增工作階段（目前分頁）", "closeCurrentTab": "關閉目前分頁", "switchToTab": "切換至分頁 {index}", "environmentRestartFailed": "環境變更已套用，但有 {count} 個受影響的分頁無法重新啟動。", "environmentAppliedRebuild": "已套用環境變數。工作階段將在下一則訊息時重建。", "environmentApplied": "已套用環境變數。" },
+  "shared": { "slashCommands": { "noMatches": "沒有相符的命令" }, "resumeConversation": { "title": "繼續對話", "empty": "沒有對話", "current": "目前工作階段" }, "instructionModal": { "title": "新增自訂指令", "yourInput": "你的輸入：", "processingInstruction": "正在處理你的指令...", "yourResponse": "你的回覆：", "responsePlaceholder": "請提供更多詳細資料...", "refinedSnippet": "優化後的片段：", "processing": "正在處理...", "submit": "提交", "submitResponseAria": "提交回覆", "editAria": "編輯指令", "accept": "接受", "acceptAria": "接受指令", "preview": "預覽" }, "whatsNew": { "title": "Grimoire v{version} 的新功能", "released": "發佈於 {date}", "latestReleaseNotes": "最新發行說明", "fullChangelog": "完整變更日誌", "gotIt": "知道了" } },
+  "inlineEdit": { "rejectTitle": "拒絕 (Esc)", "acceptTitle": "接受 (Enter)", "editorUnavailable": "內嵌編輯無法使用：無法存取目前的編輯器。請重新開啟筆記。", "vaultFilesLoadFailed": "無法載入 vault 檔案。@ 提及可能無法使用。", "invalidFilePath": "無法附加檔案：路徑無效" },
+  "storage": { "tabLayoutSaveFailed": "無法儲存分頁版面配置" }
 }

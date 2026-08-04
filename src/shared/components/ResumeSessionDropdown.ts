@@ -8,6 +8,7 @@
 import { setIcon } from 'obsidian';
 
 import type { ConversationMeta } from '../../core/types';
+import { t } from '../../i18n/i18n';
 
 export interface ResumeSessionDropdownCallbacks {
   onSelect: (conversationId: string) => void;
@@ -130,10 +131,10 @@ export class ResumeSessionDropdown {
     this.dropdownEl.empty();
 
     const header = this.dropdownEl.createDiv({ cls: 'grimoire-resume-header' });
-    header.createSpan({ text: 'Resume conversation' });
+    header.createSpan({ text: t('shared.resumeConversation.title') });
 
     if (this.conversations.length === 0) {
-      this.dropdownEl.createDiv({ cls: 'grimoire-resume-empty', text: 'No conversations' });
+      this.dropdownEl.createDiv({ cls: 'grimoire-resume-empty', text: t('shared.resumeConversation.empty') });
       return;
     }
 
@@ -155,7 +156,7 @@ export class ResumeSessionDropdown {
       titleEl.setAttribute('title', conv.title);
       content.createDiv({
         cls: 'grimoire-resume-item-date',
-        text: isCurrent ? 'Current session' : this.formatDate(conv.lastResponseAt ?? conv.createdAt),
+        text: isCurrent ? t('shared.resumeConversation.current') : this.formatDate(conv.lastResponseAt ?? conv.createdAt),
       });
 
       item.addEventListener('click', () => {

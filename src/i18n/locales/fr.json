@@ -98,7 +98,7 @@
     },
     "relevantNotes": {
       "label": "Associé",
-      "empty": "No source notes yet"
+      "empty": "Aucune note source pour le moment"
     },
     "greetings": {
       "day": {
@@ -404,6 +404,13 @@
         "awaitingYou": "En attente de vous"
       },
       "errors": {
+        "generic": "Erreur : {message}",
+        "commandUnsupported": "/{command} n’est pas pris en charge par ce fournisseur.",
+        "externalContextAdded": "Contexte externe ajouté : {path}",
+        "unknownCommand": "Commande inconnue : {command}",
+        "openConversationFailed": "Impossible d’ouvrir la conversation : {message}",
+        "commandFailed": "Échec de la commande : {message}",
+        "backgroundTaskRenderFailed": "La tâche en arrière-plan est terminée, mais son résultat n’a pas pu être affiché.",
         "relevantNotesFailed": "Échec des notes pertinentes : {error}",
         "couldNotOpenFile": "Impossible d’ouvrir le fichier : {path}",
         "openFileFailed": "Impossible d’ouvrir le fichier : {error}",
@@ -678,8 +685,8 @@
       "followsObsidian": "Suit Obsidian"
     },
     "usageIndicators": {
-      "name": "Usage indicators",
-      "desc": "Show plan usage and API spend indicators beside the model selector and inside the model menu."
+      "name": "Indicateurs d'utilisation",
+      "desc": "Affiche l'utilisation du forfait et les dépenses API à côté du sélecteur de modèle et dans son menu."
     },
     "debugLogging": {
       "name": "Journalisation de debug",
@@ -817,13 +824,13 @@
       "invalid": "Format invalide. Utilisez : 256k, 1m ou nombre exact (1000-10000000)."
     },
     "customModels": {
-      "name": "Custom models",
-      "desc": "Append additional Claude model IDs to the picker, one per line. Environment model overrides still replace the picker.",
+      "name": "Modèles personnalisés",
+      "desc": "Ajoutez des ID de modèles Claude au sélecteur, un par ligne. Les substitutions de modèle de l'environnement remplacent toujours le sélecteur.",
       "placeholder": "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
     },
     "respectProjectSettings": {
-      "name": "Respect Claude Code settings",
-      "desc": "Use model and env from Claude Code user and project settings. This enables custom models from providers such as MiniMax, Z.ai, and other Anthropic-compatible gateways. Grimoire settings still override explicit choices."
+      "name": "Respecter les paramètres de Claude Code",
+      "desc": "Utilisez le modèle et l'environnement des paramètres utilisateur et projet de Claude Code. Cela active les modèles personnalisés de MiniMax, Z.ai et d'autres passerelles compatibles Anthropic. Les choix explicites de Grimoire restent prioritaires."
     },
     "enableChrome": {
       "name": "Activer l'extension Chrome",
@@ -998,9 +1005,9 @@
         "disableAgentDesc": "Désactiver l’agent sans supprimer le fichier",
         "enabledTools": "Outils activés (JSON)",
         "enabledToolsDesc": "Carte d’outils obsolète facultative, p. ex. {\"write\":false,\"edit\":false}",
-        "permission": "Permission (JSON)",
+        "permission": "Autorisations (JSON)",
         "permissionDesc": "Configuration de permissions facultative, p. ex. {\"edit\":\"deny\",\"bash\":\"allow\"}",
-        "options": "Options (JSON)",
+        "options": "Options (JSON) personnalisées",
         "optionsDesc": "Options personnalisées facultatives de l’agent",
         "promptDesc": "Corps Markdown utilisé comme prompt de l’agent",
         "promptPlaceholder": "Relisez attentivement les changements de code et signalez la correction, les régressions et la couverture manquante.",
@@ -1403,5 +1410,9 @@
         "configCorrupted": "Le fichier de configuration est corrompu. Vérifiez .claude/mcp.json."
       }
     }
-  }
+  },
+  "plugin": { "openRibbon": "Ouvrir Grimoire", "openChatView": "Ouvrir la vue de chat", "inlineEdit": "Modification en ligne", "inlineEditViewUnavailable": "La modification en ligne est indisponible : impossible d'accéder à la vue Markdown active.", "inlineEditInserted": "Inséré", "inlineEditApplied": "Modification appliquée", "newTab": "Nouvel onglet", "newSession": "Nouvelle session (dans l'onglet actuel)", "closeCurrentTab": "Fermer l'onglet actuel", "switchToTab": "Passer à l'onglet {index}", "environmentRestartFailed": "Les modifications d'environnement ont été appliquées, mais {count} onglets concernés n'ont pas pu redémarrer.", "environmentAppliedRebuild": "Variables d'environnement appliquées. Les sessions seront recréées au prochain message.", "environmentApplied": "Variables d'environnement appliquées." },
+  "shared": { "slashCommands": { "noMatches": "Aucune commande correspondante" }, "resumeConversation": { "title": "Reprendre la conversation", "empty": "Aucune conversation", "current": "Session actuelle" }, "instructionModal": { "title": "Ajouter une instruction personnalisée", "yourInput": "Votre saisie :", "processingInstruction": "Traitement de votre instruction...", "yourResponse": "Votre réponse :", "responsePlaceholder": "Fournissez plus de détails...", "refinedSnippet": "Extrait affiné :", "processing": "Traitement...", "submit": "Envoyer", "submitResponseAria": "Envoyer la réponse", "editAria": "Modifier l'instruction", "accept": "Accepter", "acceptAria": "Accepter l'instruction", "preview": "Aperçu" }, "whatsNew": { "title": "Nouveautés de Grimoire v{version}", "released": "Publié le {date}", "latestReleaseNotes": "Dernières notes de version", "fullChangelog": "Journal des modifications complet", "gotIt": "Compris" } },
+  "inlineEdit": { "rejectTitle": "Rejeter (Échap)", "acceptTitle": "Accepter (Entrée)", "editorUnavailable": "La modification en ligne est indisponible : impossible d'accéder à l'éditeur actif. Réouvrez la note.", "vaultFilesLoadFailed": "Impossible de charger les fichiers du vault. Les mentions @ peuvent être indisponibles.", "invalidFilePath": "Impossible de joindre le fichier : chemin non valide" },
+  "storage": { "tabLayoutSaveFailed": "Impossible d'enregistrer la disposition des onglets" }
 }

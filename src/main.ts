@@ -4,8 +4,8 @@ patchSetMaxListenersForElectron();
 
 import './providers';
 
-import type { Editor, WorkspaceLeaf } from 'obsidian';
-import { addIcon, MarkdownView, Notice, Plugin } from 'obsidian';
+import type { Command, Editor, WorkspaceLeaf } from 'obsidian';
+import { addIcon, MarkdownView, Notice, Plugin, setTooltip } from 'obsidian';
 
 import { shouldShowWhatsNew } from './app/changelog/display';
 import { parseChangelogRelease } from './app/changelog/parser';
@@ -50,7 +50,7 @@ import {
 import { GrimoireView } from './features/chat/GrimoireView';
 import { type InlineEditContext, InlineEditModal } from './features/inline-edit/ui/InlineEditModal';
 import { GrimoireSettingTab } from './features/settings/GrimoireSettings';
-import { setLocale } from './i18n/i18n';
+import { setLocale, t } from './i18n/i18n';
 import type { Locale } from './i18n/types';
 import {
   getClaudeProviderSettings,
@@ -94,6 +94,8 @@ export default class GrimoirePlugin extends Plugin {
   private lastKnownTabManagerState: AppTabManagerState | null = null;
   private pendingWhatsNewRelease: ChangelogRelease | null = null;
   private pendingWhatsNewVersion = '';
+  private ribbonIconEl: HTMLElement | null = null;
+  private readonly shellCommands = new Map<string, Command>();
 
   async onload() {
     try {
@@ -124,32 +126,32 @@ export default class GrimoirePlugin extends Plugin {
         scope: 'plugin.onload',
       });
 
-      this.addRibbonIcon(GRIMOIRE_APP_ICON_ID, 'Open Grimoire', () => {
+      this.ribbonIconEl = this.addRibbonIcon(GRIMOIRE_APP_ICON_ID, t('plugin.openRibbon'), () => {
         void this.activateView();
-      });
+      }) ?? null;
       await this.writeDebugLog({
         event: 'ribbon.registered',
         level: 'info',
         scope: 'plugin.onload',
       });
 
-      this.addCommand({
+      this.registerShellCommand({
         id: 'open-view',
-        name: 'Open chat view',
+        name: t('plugin.openChatView'),
         callback: () => {
           void this.activateView();
         },
       });
 
-      this.addCommand({
+      this.registerShellCommand({
         id: 'inline-edit',
-        name: 'Inline edit',
+        name: t('plugin.inlineEdit'),
         editorCallback: async (editor: Editor, ctx) => {
           const view = ctx instanceof MarkdownView
             ? ctx
             : this.app.workspace.getActiveViewOfType(MarkdownView);
           if (!view) {
-            new Notice('Inline edit unavailable: could not access the active Markdown view.');
+            new Notice(t('plugin.inlineEditViewUnavailable'));
             return;
           }
 
@@ -182,14 +184,14 @@ export default class GrimoirePlugin extends Plugin {
           const result = await modal.openAndWait();
 
           if (result.decision === 'accept' && result.editedText !== undefined) {
-            new Notice(editContext.mode === 'cursor' ? 'Inserted' : 'Edit applied');
+            new Notice(t(editContext.mode === 'cursor' ? 'plugin.inlineEditInserted' : 'plugin.inlineEditApplied'));
           }
         },
       });
 
-      this.addCommand({
+      this.registerShellCommand({
         id: 'new-tab',
-        name: 'New tab',
+        name: t('plugin.newTab'),
         checkCallback: (checking: boolean) => {
           if (!this.canCreateNewTab()) return false;
 
@@ -200,9 +202,9 @@ export default class GrimoirePlugin extends Plugin {
         },
       });
 
-      this.addCommand({
+      this.registerShellCommand({
         id: 'new-session',
-        name: 'New session (in current tab)',
+        name: t('plugin.newSession'),
         checkCallback: (checking: boolean) => {
           const view = this.getView();
           if (!view) return false;
@@ -222,9 +224,9 @@ export default class GrimoirePlugin extends Plugin {
         },
       });
 
-      this.addCommand({
+      this.registerShellCommand({
         id: 'close-current-tab',
-        name: 'Close current tab',
+        name: t('plugin.closeCurrentTab'),
         checkCallback: (checking: boolean) => {
           const view = this.getView();
           if (!view) return false;
@@ -244,9 +246,9 @@ export default class GrimoirePlugin extends Plugin {
       });
 
       for (let index = 1; index <= 9; index++) {
-        this.addCommand({
+        this.registerShellCommand({
           id: `switch-to-tab-${index}`,
-          name: `Switch to tab ${index}`,
+          name: t('plugin.switchToTab', { index }),
           checkCallback: (checking: boolean) => {
             const view = this.getView();
             if (!view) return false;
@@ -285,6 +287,33 @@ export default class GrimoirePlugin extends Plugin {
         error,
       });
       throw error;
+    }
+  }
+
+  private registerShellCommand(command: Command): void {
+    const registeredCommand = this.addCommand(command);
+    this.shellCommands.set(command.id, registeredCommand ?? command);
+  }
+
+  refreshShellTranslations(): void {
+    if (this.ribbonIconEl) {
+      setTooltip(this.ribbonIconEl, t('plugin.openRibbon'));
+    }
+
+    const updateCommandName = (id: string, name: string): void => {
+      const command = this.shellCommands.get(id);
+      if (command) {
+        command.name = name;
+      }
+    };
+
+    updateCommandName('open-view', t('plugin.openChatView'));
+    updateCommandName('inline-edit', t('plugin.inlineEdit'));
+    updateCommandName('new-tab', t('plugin.newTab'));
+    updateCommandName('new-session', t('plugin.newSession'));
+    updateCommandName('close-current-tab', t('plugin.closeCurrentTab'));
+    for (let index = 1; index <= 9; index++) {
+      updateCommandName(`switch-to-tab-${index}`, t('plugin.switchToTab', { index }));
     }
   }
 
@@ -710,7 +739,7 @@ export default class GrimoirePlugin extends Plugin {
         }
       }
       if (failedTabs > 0) {
-        new Notice(`Environment changes applied, but ${failedTabs} affected tab(s) failed to restart.`);
+        new Notice(t('plugin.environmentRestartFailed', { count: failedTabs }));
       }
     }
 
@@ -720,8 +749,8 @@ export default class GrimoirePlugin extends Plugin {
     }
 
     const noticeText = changed
-      ? 'Environment variables applied. Sessions will be rebuilt on next message.'
-      : 'Environment variables applied.';
+      ? t('plugin.environmentAppliedRebuild')
+      : t('plugin.environmentApplied');
     new Notice(noticeText);
   }
 

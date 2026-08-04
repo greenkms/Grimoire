@@ -404,6 +404,13 @@
         "awaitingYou": "Wartet auf dich"
       },
       "errors": {
+        "generic": "Fehler: {message}",
+        "commandUnsupported": "/{command} wird von diesem Anbieter nicht unterstützt.",
+        "externalContextAdded": "Externer Kontext hinzugefügt: {path}",
+        "unknownCommand": "Unbekannter Befehl: {command}",
+        "openConversationFailed": "Konversation konnte nicht geöffnet werden: {message}",
+        "commandFailed": "Befehl fehlgeschlagen: {message}",
+        "backgroundTaskRenderFailed": "Hintergrundaufgabe abgeschlossen, aber das Ergebnis konnte nicht angezeigt werden.",
         "relevantNotesFailed": "Verwandte Notizen fehlgeschlagen: {error}",
         "couldNotOpenFile": "Datei konnte nicht geöffnet werden: {path}",
         "openFileFailed": "Datei konnte nicht geöffnet werden: {error}",
@@ -678,8 +685,8 @@
       "followsObsidian": "Folgt Obsidian"
     },
     "usageIndicators": {
-      "name": "Usage indicators",
-      "desc": "Show plan usage and API spend indicators beside the model selector and inside the model menu."
+      "name": "Nutzungsanzeigen",
+      "desc": "Zeigt Tarifnutzung und API-Ausgaben neben der Modellauswahl und im Modellmenü an."
     },
     "debugLogging": {
       "name": "Debug-Protokollierung",
@@ -817,7 +824,7 @@
       "invalid": "Ungültiges Format. Verwenden Sie: 256k, 1m oder exakte Anzahl (1000-10000000)."
     },
     "customModels": {
-      "name": "Custom models",
+      "name": "Benutzerdefinierte Modelle",
       "desc": "Zusätzliche Claude-Modell-IDs zur Auswahl hinzufügen, eine pro Zeile. Modellüberschreibungen aus der Umgebung ersetzen die Auswahl weiterhin.",
       "placeholder": "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
     },
@@ -975,7 +982,7 @@
       },
       "subagents": {
         "desc": "Verwalte vault-weite Grok Build Subagents aus .grok/agent/ und dem Legacy-Pfad .grok/agents/. Neue Einträge werden als reine Subagent-Dateien gespeichert und erscheinen im @mention-Menü.",
-        "title": "Grok Build Subagents",
+        "title": "Grok Build-Subagenten",
         "noAgents": "Keine Grok Build Subagents im Vault. Klicke auf +, um einen zu erstellen.",
         "modalTitleEdit": "Grok Subagent bearbeiten",
         "modalTitleAdd": "Grok Subagent hinzufügen",
@@ -1403,5 +1410,9 @@
         "configCorrupted": "Konfigurationsdatei ist beschädigt. Prüfe .claude/mcp.json."
       }
     }
-  }
+  },
+  "plugin": { "openRibbon": "Grimoire öffnen", "openChatView": "Chatansicht öffnen", "inlineEdit": "Inline bearbeiten", "inlineEditViewUnavailable": "Inline-Bearbeitung nicht verfügbar: Die aktive Markdown-Ansicht konnte nicht aufgerufen werden.", "inlineEditInserted": "Eingefügt", "inlineEditApplied": "Bearbeitung angewendet", "newTab": "Neuer Tab", "newSession": "Neue Sitzung (im aktuellen Tab)", "closeCurrentTab": "Aktuellen Tab schließen", "switchToTab": "Zu Tab {index} wechseln", "environmentRestartFailed": "Umgebungsänderungen wurden angewendet, aber {count} betroffene Tabs konnten nicht neu gestartet werden.", "environmentAppliedRebuild": "Umgebungsvariablen angewendet. Sitzungen werden bei der nächsten Nachricht neu aufgebaut.", "environmentApplied": "Umgebungsvariablen angewendet." },
+  "shared": { "slashCommands": { "noMatches": "Keine passenden Befehle" }, "resumeConversation": { "title": "Unterhaltung fortsetzen", "empty": "Keine Unterhaltungen", "current": "Aktuelle Sitzung" }, "instructionModal": { "title": "Benutzerdefinierte Anweisung hinzufügen", "yourInput": "Ihre Eingabe:", "processingInstruction": "Ihre Anweisung wird verarbeitet...", "yourResponse": "Ihre Antwort:", "responsePlaceholder": "Weitere Details angeben...", "refinedSnippet": "Verfeinerter Ausschnitt:", "processing": "Wird verarbeitet...", "submit": "Senden", "submitResponseAria": "Antwort senden", "editAria": "Anweisung bearbeiten", "accept": "Übernehmen", "acceptAria": "Anweisung übernehmen", "preview": "Vorschau" }, "whatsNew": { "title": "Neu in Grimoire v{version}", "released": "Veröffentlicht am {date}", "latestReleaseNotes": "Neueste Versionshinweise", "fullChangelog": "Vollständiges Änderungsprotokoll", "gotIt": "Verstanden" } },
+  "inlineEdit": { "rejectTitle": "Ablehnen (Esc)", "acceptTitle": "Übernehmen (Eingabe)", "editorUnavailable": "Inline-Bearbeitung nicht verfügbar: Der aktive Editor konnte nicht aufgerufen werden. Öffnen Sie die Notiz erneut.", "vaultFilesLoadFailed": "Vault-Dateien konnten nicht geladen werden. @-Erwähnungen sind möglicherweise nicht verfügbar.", "invalidFilePath": "Datei konnte nicht angehängt werden: ungültiger Pfad" },
+  "storage": { "tabLayoutSaveFailed": "Tab-Layout konnte nicht gespeichert werden" }
 }

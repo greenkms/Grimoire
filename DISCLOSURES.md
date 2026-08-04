@@ -4,7 +4,7 @@ This document summarizes Grimoire's privacy, network, account, payment, and file
 
 ## Short version
 
-Grimoire is a local-first Obsidian desktop plugin. It has no hosted backend, no client-side telemetry, no ads, and no self-update mechanism. It wraps user-installed CLI agents such as Claude Code, Codex, Gemini CLI, OpenCode, and Qwen Code, so enabled providers may send selected prompts, context, files, images, tool output, and commands to their own services according to their own terms and privacy policies.
+Grimoire is a local-first Obsidian desktop plugin. It has no hosted backend, no client-side telemetry, no ads, and no self-update mechanism. It wraps user-installed CLIs for Claude Code, Codex, Antigravity CLI, Gemini CLI (Legacy), OpenCode, MiMoCode, Kimi Code, Grok Build, and Qwen Code. An enabled provider may send selected prompts, context, files, images, tool output, and commands to its own services according to its own terms and privacy policies.
 
 ## Payments and accounts
 
@@ -14,8 +14,12 @@ Full functionality requires at least one external CLI provider. Those providers 
 
 - Claude Code may require a Claude account, subscription, or API key.
 - Codex may require an OpenAI or ChatGPT account, plan access, or API key.
-- Gemini CLI may require a Google account, Gemini API key, or Vertex AI configuration.
+- Antigravity CLI may require an eligible Google account and the model access available to that account.
+- Gemini CLI (Legacy) may require a Google account, Gemini API key, or Vertex AI configuration.
 - OpenCode may require provider credentials for the model vendors configured by the user.
+- MiMoCode may require Xiaomi credentials and any model-provider credentials configured by the user.
+- Kimi Code may require a Moonshot AI account or the credentials for a configured supported provider.
+- Grok Build may require a Grok/xAI account, subscription, OAuth access, or API key.
 - Qwen Code may require an Alibaba ModelStudio, third-party provider, or custom-provider account and configuration.
 
 Provider billing, quotas, rate limits, retention, and account requirements are controlled by the provider, not by Grimoire.
@@ -26,7 +30,7 @@ Grimoire does not send data to a Grimoire server and does not proxy provider tra
 
 Network use can happen when the user enables or configures external tools:
 
-- Provider CLIs may contact Anthropic, OpenAI, Google, Alibaba ModelStudio, OpenCode-configured vendors, or other services required by that provider.
+- Provider CLIs may contact Anthropic, OpenAI, Google, Alibaba ModelStudio, xAI, Moonshot AI, Xiaomi, OpenCode-configured vendors, or other services required by that provider.
 - User-configured MCP servers may contact remote services depending on the MCP server configuration.
 - User-approved shell commands or provider tools may access the network if the command or tool does so.
 - Installation and updates happen through Obsidian, BRAT, npm, or GitHub Releases, depending on the user's installation path.
@@ -68,7 +72,7 @@ Grimoire stores its own data under:
 - `.grimoire/logs/YYYY-MM-DD.jsonl` when debug logging is enabled
 - `.grimoire/claude/statusline-usage.json` when Claude usage snapshots are configured
 
-Grimoire also reads and preserves provider-native vault files such as `.claude/`, `.codex/`, and `.opencode/` when the corresponding provider integration uses them. Qwen Code configuration and MCP settings remain Qwen-owned: the Qwen CLI reads `~/.qwen/settings.json`, and Grimoire does not parse, write, or reconcile that file or Qwen MCP configuration.
+Grimoire also reads and preserves provider-native vault files such as `.claude/`, `.codex/`, `.opencode/`, and provider-owned `.grimoire/<provider>/` launch artifacts when the corresponding integration uses them. Provider credentials and account configuration remain provider-owned. For example, Qwen Code reads `~/.qwen/settings.json`; Grimoire does not parse, write, or reconcile that file or Qwen MCP configuration.
 
 Users can add external context paths outside the vault. When they do, Grimoire may read those paths to surface files as selectable context for provider turns. Provider CLIs and user-approved shell commands may also access files outside the vault according to the provider's runtime and permission settings.
 
@@ -107,26 +111,28 @@ Grimoire does not include closed-source Grimoire code. External provider CLIs, S
 
 ## Dependencies and known advisories
 
-The Obsidian community plugin review may report "Potentially vulnerable dependency" warnings for packages such as `hono`, `@hono/node-server`, `fast-uri`, `ip-address`, `qs`, `@anthropic-ai/sdk`, `ws`, and `brace-expansion`. These are transitive dependencies inherited from the official provider SDKs (`@anthropic-ai/claude-agent-sdk`) and the Model Context Protocol SDK (`@modelcontextprotocol/sdk`), plus development-only tooling (ESLint, Jest, jsdom). None are direct Grimoire dependencies.
+The Obsidian community plugin review may report dependency warnings for packages such as `hono`, `@hono/node-server`, `fast-uri`, `ip-address`, `qs`, `@anthropic-ai/sdk`, `ws`, `brace-expansion`, and `js-yaml`. They are resolved through the Model Context Protocol SDK (`@modelcontextprotocol/sdk`), provider SDKs, or development tooling. The table records the current lockfile graph; the audit and bundle checks are still rerun for every release.
 
-Grimoire keeps patched versions selected by the current dependency graph. Most server-side packages are not shipped to users: `hono`, `@hono/node-server`, `ip-address`, and `qs` are tree-shaken out of the release bundle because Grimoire uses the client-side portions of the MCP SDK.
+Grimoire keeps patched versions selected by the current dependency graph. Server packages such as `hono` and `@hono/node-server` are dependency-review inputs and are not imported as a Grimoire HTTP server. Bundle inclusion must be checked from the actual release build rather than inferred from a package name.
 
-The MCP SDK `1.29.0` still declares `@hono/node-server ^1.19.9`, while [`GHSA-frvp-7c67-39w9`](https://github.com/advisories/GHSA-frvp-7c67-39w9) is fixed in `@hono/node-server >=2.0.5`. Grimoire therefore applies a narrow npm override to `@hono/node-server 2.0.11`.
+The MCP SDK range is `^1.30.0`, whose dependency contract accepts `@hono/node-server` 2.x. Grimoire uses the npm lockfile plus narrow overrides for `@hono/node-server` and `js-yaml` so a clean release graph can be verified without resolver bypasses or stale advisory assumptions.
 
-- Grimoire does not import the affected static-file server helper. Its executable code and `serveStatic` are absent from the built `main.js`; the package name appears only in the bundled changelog entry that documents this fix.
-- The override changes the installation graph used for dependency review but does not change Grimoire's bundled runtime.
-- Clean installation, the full unit suite, release-bundle verification, and `npm audit --omit=dev` are required before publication.
-- `npm audit --omit=dev` reports zero production vulnerabilities with the override applied.
+- Clean installation, the full unit suite, release-bundle verification, and `npm audit --omit=dev` are required release gates before publication.
+- A clean audit is a verified release target, not a standing claim in this document.
 
 | Package | Source | In `main.js` | Locked version | Advisory range | Status |
 |---|---|---|---|---|---|
-| `hono` | MCP SDK | No (tree-shaken) | 4.12.32 | tracked review advisories below 4.12.25 | Above tracked ranges |
-| `@hono/node-server` | MCP SDK | No (tree-shaken) | 2.0.11 | `<2.0.5` | Overridden to patched release; affected helper is not bundled |
-| `fast-uri` | MCP SDK (AJV) | Yes | 3.1.4 | tracked review advisories through 3.1.1 | Above tracked ranges |
-| `ip-address` | MCP SDK (Express) | No (tree-shaken) | 10.3.1 | tracked review advisories through 10.1.0 | Above tracked ranges |
-| `qs` | MCP SDK (Express) | No (tree-shaken) | 6.15.3 | tracked review advisories through 6.15.1 | Above tracked ranges |
-| `@anthropic-ai/sdk` | Claude Agent SDK | Yes | 0.115.0 | tracked review advisories below 0.91.1 | Above tracked ranges |
-| `ws` | jsdom (dev only) | No | 8.21.1 | tracked review advisories below 8.20.1 | Dev-only, above tracked ranges |
-| `brace-expansion` | ESLint/Jest (dev only) | No | 5.0.8 for v5; nested dev-only copies are 1.1.16 and 2.1.2 | tracked v5 review advisory below 5.0.6 | Dev-only, above tracked range |
+| `@modelcontextprotocol/sdk` | Direct dependency | Verify from release bundle | 1.30.0 | Direct SDK; audit gate applies | Locked from the declared `^1.30.0` range |
+| `hono` | MCP SDK | Verify from release bundle | 4.13.0 | `<4.12.34` | Above tracked ranges |
+| `@hono/node-server` | MCP SDK | Verify from release bundle | 2.1.0 | `<2.0.5` | Narrow override to a patched release |
+| `fast-uri` | MCP SDK / AJV | Verify from release bundle | 3.1.5 | `>=3.0.0 <3.1.5` | Above tracked ranges |
+| `ip-address` | MCP SDK / Express rate limit | Verify from release bundle | 10.4.0 | `<=10.1.0` | Above tracked range |
+| `qs` | MCP SDK / Express | Verify from release bundle | 6.15.3 | `>=6.11.1 <=6.15.1` | Above tracked range |
+| `@anthropic-ai/sdk` | Claude Agent SDK | Verify from release bundle | 0.115.0 | `>=0.79.0 <0.91.1` | Above tracked range |
+| `ws` | jsdom | Development dependency | 8.21.2 | `>=8.0.0 <8.20.1` | Development-only; above tracked range |
+| `brace-expansion` 1.x | Nested tooling dependency | Development dependency | 1.1.18 | `<1.1.18` | Development-only; patched |
+| `brace-expansion` 2.x | Nested tooling dependency | Development dependency | 2.1.4 | `>=2.0.0 <2.1.4` | Development-only; patched |
+| `brace-expansion` 4.x / 5.x | Nested tooling dependency | Development dependency | 5.0.9 (no 4.x copy) | `>=4.0.0 <5.0.9` | Development-only; patched |
+| `js-yaml` | Tooling dependency | Development dependency | 4.3.1 | npm audit gate | Narrow override to the current patched release |
 
 The `npm run review:deps` check (run automatically by `npm run build:release`) enforces the resolved versions for tracked review advisories. The release workflow also runs the unmodified `npm audit --omit=dev` command and requires a clean result.

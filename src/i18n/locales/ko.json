@@ -98,7 +98,7 @@
     },
     "relevantNotes": {
       "label": "관련",
-      "empty": "No source notes yet"
+      "empty": "아직 원본 노트가 없습니다"
     },
     "greetings": {
       "day": {
@@ -404,6 +404,13 @@
         "awaitingYou": "응답 대기 중"
       },
       "errors": {
+        "generic": "오류: {message}",
+        "commandUnsupported": "/{command} 명령은 이 제공자에서 지원되지 않습니다.",
+        "externalContextAdded": "외부 컨텍스트 추가됨: {path}",
+        "unknownCommand": "알 수 없는 명령: {command}",
+        "openConversationFailed": "대화를 열지 못했습니다: {message}",
+        "commandFailed": "명령 실패: {message}",
+        "backgroundTaskRenderFailed": "백그라운드 작업이 완료되었지만 결과를 표시할 수 없습니다.",
         "relevantNotesFailed": "관련 노트를 불러오지 못했습니다: {error}",
         "couldNotOpenFile": "파일을 열 수 없습니다: {path}",
         "openFileFailed": "파일을 열지 못했습니다: {error}",
@@ -678,8 +685,8 @@
       "followsObsidian": "Obsidian을 따름"
     },
     "usageIndicators": {
-      "name": "Usage indicators",
-      "desc": "Show plan usage and API spend indicators beside the model selector and inside the model menu."
+      "name": "사용량 표시기",
+      "desc": "모델 선택기 옆과 모델 메뉴 안에 요금제 사용량 및 API 지출 표시기를 보여 줍니다."
     },
     "debugLogging": {
       "name": "디버그 로깅",
@@ -817,13 +824,13 @@
       "invalid": "잘못된 형식입니다. 사용: 256k, 1m 또는 정확한 숫자(1000-10000000)."
     },
     "customModels": {
-      "name": "Custom models",
-      "desc": "Append additional Claude model IDs to the picker, one per line. Environment model overrides still replace the picker.",
+      "name": "사용자 지정 모델",
+      "desc": "추가 Claude 모델 ID를 선택기에 한 줄에 하나씩 추가합니다. 환경의 모델 재정의는 계속 선택기를 대체합니다.",
       "placeholder": "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
     },
     "respectProjectSettings": {
-      "name": "Respect Claude Code settings",
-      "desc": "Use model and env from Claude Code user and project settings. This enables custom models from providers such as MiniMax, Z.ai, and other Anthropic-compatible gateways. Grimoire settings still override explicit choices."
+      "name": "Claude Code 설정 준수",
+      "desc": "Claude Code 사용자 및 프로젝트 설정의 모델과 환경을 사용합니다. MiniMax, Z.ai 및 다른 Anthropic 호환 게이트웨이의 사용자 지정 모델을 사용할 수 있습니다. Grimoire의 명시적 선택은 계속 우선합니다."
     },
     "enableChrome": {
       "name": "Chrome 확장 프로그램 활성화",
@@ -945,8 +952,8 @@
         "searchPlaceholder": "모델, provider 또는 ID로 필터...",
         "visibleLabel": "표시:",
         "summaryDiscovered": "총 {total}개 중 {count}개 {providerWord}",
-        "providerSingular": "provider",
-        "providerPlural": "providers",
+        "providerSingular": "공급자",
+        "providerPlural": "공급자",
         "noDiscovered": "아직 감지된 모델이 없습니다",
         "loadingModels": "모델을 불러오는 중...",
         "availableCount": "{count}개 사용 가능",
@@ -975,7 +982,7 @@
       },
       "subagents": {
         "desc": ".grok/agent/와 legacy .grok/agents/의 vault-level Grok Build subagents를 관리합니다. 새 항목은 subagent-only files로 저장되고 @mention menu에 표시됩니다.",
-        "title": "Grok Build Subagents",
+        "title": "Grok Build 하위 에이전트",
         "noAgents": "vault에 Grok Build subagents가 없습니다. +를 눌러 하나 만드세요.",
         "modalTitleEdit": "Grok Subagent 편집",
         "modalTitleAdd": "Grok Subagent 추가",
@@ -983,8 +990,8 @@
         "descriptionDesc": "Grok Build가 이 subagent를 사용해야 하는 경우",
         "modelDesc": "provider/model 형식의 model override",
         "variant": "Variant",
-        "variantDesc": "Model variant override",
-        "temperature": "Temperature",
+        "variantDesc": "모델 변형 재정의",
+        "temperature": "온도",
         "temperatureDesc": "선택적 sampling temperature",
         "topP": "Top p",
         "topPDesc": "선택적 nucleus sampling value",
@@ -996,11 +1003,11 @@
         "hideFromMentionDesc": "이 subagent를 @ autocomplete menu에서 숨깁니다",
         "disableAgent": "Agent 비활성화",
         "disableAgentDesc": "파일을 삭제하지 않고 agent를 비활성화합니다",
-        "enabledTools": "Enabled tools (JSON)",
+        "enabledTools": "사용 가능한 도구 (JSON)",
         "enabledToolsDesc": "선택적 deprecated tools map, 예: {\"write\":false,\"edit\":false}",
-        "permission": "Permission (JSON)",
+        "permission": "권한 (JSON)",
         "permissionDesc": "선택적 permission config, 예: {\"edit\":\"deny\",\"bash\":\"allow\"}",
-        "options": "Options (JSON)",
+        "options": "옵션 (JSON)",
         "optionsDesc": "선택적 custom agent options",
         "promptDesc": "agent prompt로 사용할 Markdown body",
         "promptPlaceholder": "코드 변경을 꼼꼼히 검토하고 correctness, regressions, missing coverage를 짚어 주세요.",
@@ -1403,5 +1410,9 @@
         "configCorrupted": "구성 파일이 손상되었습니다. .claude/mcp.json을 확인하세요."
       }
     }
-  }
+  },
+  "plugin": { "openRibbon": "Grimoire 열기", "openChatView": "채팅 보기 열기", "inlineEdit": "인라인 편집", "inlineEditViewUnavailable": "인라인 편집을 사용할 수 없습니다. 활성 Markdown 보기에 접근할 수 없습니다.", "inlineEditInserted": "삽입됨", "inlineEditApplied": "편집 적용됨", "newTab": "새 탭", "newSession": "새 세션(현재 탭)", "closeCurrentTab": "현재 탭 닫기", "switchToTab": "탭 {index}(으)로 전환", "environmentRestartFailed": "환경 변경이 적용되었지만 영향을 받은 탭 {count}개를 다시 시작하지 못했습니다.", "environmentAppliedRebuild": "환경 변수가 적용되었습니다. 다음 메시지에서 세션을 다시 만듭니다.", "environmentApplied": "환경 변수가 적용되었습니다." },
+  "shared": { "slashCommands": { "noMatches": "일치하는 명령이 없습니다" }, "resumeConversation": { "title": "대화 재개", "empty": "대화가 없습니다", "current": "현재 세션" }, "instructionModal": { "title": "사용자 지정 지침 추가", "yourInput": "입력:", "processingInstruction": "지침을 처리하는 중...", "yourResponse": "응답:", "responsePlaceholder": "자세한 내용을 입력하세요...", "refinedSnippet": "다듬은 스니펫:", "processing": "처리 중...", "submit": "제출", "submitResponseAria": "응답 제출", "editAria": "지침 편집", "accept": "수락", "acceptAria": "지침 수락", "preview": "미리 보기" }, "whatsNew": { "title": "Grimoire v{version}의 새로운 기능", "released": "출시일 {date}", "latestReleaseNotes": "최신 릴리스 노트", "fullChangelog": "전체 변경 로그", "gotIt": "알겠습니다" } },
+  "inlineEdit": { "rejectTitle": "거부 (Esc)", "acceptTitle": "수락 (Enter)", "editorUnavailable": "인라인 편집을 사용할 수 없습니다. 활성 편집기에 접근할 수 없습니다. 노트를 다시 여세요.", "vaultFilesLoadFailed": "Vault 파일을 불러오지 못했습니다. @ 멘션을 사용할 수 없을 수 있습니다.", "invalidFilePath": "파일을 첨부하지 못했습니다: 잘못된 경로" },
+  "storage": { "tabLayoutSaveFailed": "탭 레이아웃을 저장하지 못했습니다" }
 }

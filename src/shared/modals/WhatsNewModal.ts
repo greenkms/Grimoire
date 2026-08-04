@@ -1,6 +1,7 @@
 import { type App, Modal, Setting } from 'obsidian';
 
 import type { ChangelogRelease } from '../../app/changelog/types';
+import { t } from '../../i18n/i18n';
 
 export interface ShowWhatsNewModalOptions {
   app: App;
@@ -51,12 +52,14 @@ class WhatsNewModal extends Modal {
   }
 
   onOpen() {
-    this.setTitle(`What's New in Grimoire v${this.release.version}`);
+    this.setTitle(t('shared.whatsNew.title', { version: this.release.version }));
     this.modalEl.addClass('grimoire-whats-new-modal');
 
     this.contentEl.createEl('p', {
       cls: 'grimoire-whats-new-summary',
-      text: this.release.date ? `Released ${this.release.date}` : 'Latest release notes',
+      text: this.release.date
+        ? t('shared.whatsNew.released', { date: this.release.date })
+        : t('shared.whatsNew.latestReleaseNotes'),
     });
 
     const listEl = this.contentEl.createDiv({ cls: 'grimoire-whats-new-list' });
@@ -73,7 +76,7 @@ class WhatsNewModal extends Modal {
     if (this.fullChangelogUrl) {
       this.contentEl.createEl('a', {
         cls: 'grimoire-whats-new-link',
-        text: 'Full changelog',
+        text: t('shared.whatsNew.fullChangelog'),
         attr: {
           href: this.fullChangelogUrl,
           rel: 'noopener',
@@ -85,7 +88,7 @@ class WhatsNewModal extends Modal {
     new Setting(this.contentEl)
       .addButton(btn =>
         btn
-          .setButtonText('Got it')
+          .setButtonText(t('shared.whatsNew.gotIt'))
           .setCta()
           .onClick(() => this.dismiss())
       );

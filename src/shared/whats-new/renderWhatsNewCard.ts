@@ -1,4 +1,5 @@
 import type { ChangelogRelease } from '../../app/changelog/types';
+import { t } from '../../i18n/i18n';
 
 export interface RenderWhatsNewCardOptions {
   release: ChangelogRelease;
@@ -20,17 +21,19 @@ export function renderWhatsNewCard(
   const titleBlockEl = headerEl.createDiv({ cls: 'grimoire-whats-new-card-title-block' });
   titleBlockEl.createDiv({
     cls: 'grimoire-whats-new-card-title',
-    text: `What's New in Grimoire v${release.version}`,
+    text: t('shared.whatsNew.title', { version: release.version }),
   });
   titleBlockEl.createDiv({
     cls: 'grimoire-whats-new-card-summary',
-    text: release.date ? `Released ${release.date}` : 'Latest release notes',
+    text: release.date
+      ? t('shared.whatsNew.released', { date: release.date })
+      : t('shared.whatsNew.latestReleaseNotes'),
   });
 
   if (fullChangelogUrl) {
     headerEl.createEl('a', {
       cls: 'grimoire-whats-new-card-link',
-      text: 'Full changelog',
+      text: t('shared.whatsNew.fullChangelog'),
       attr: {
         href: fullChangelogUrl,
         rel: 'noopener',
@@ -41,10 +44,10 @@ export function renderWhatsNewCard(
 
   const dismissButton = headerEl.createEl('button', {
     cls: 'grimoire-whats-new-card-dismiss',
-    text: 'Got it',
+    text: t('shared.whatsNew.gotIt'),
     attr: {
       type: 'button',
-      'aria-label': 'Dismiss release notes',
+      'aria-label': t('shared.whatsNew.gotIt'),
     },
   });
 
@@ -53,7 +56,7 @@ export function renderWhatsNewCard(
     attr: {
       role: 'region',
       tabindex: '0',
-      'aria-label': 'Release notes',
+      'aria-label': t('shared.whatsNew.latestReleaseNotes'),
     },
   });
   for (const category of release.categories) {
