@@ -168,6 +168,7 @@ function createMockDeps(): StreamControllerDeps {
     getFileContextManager: () => fileContextManager as any,
     updateQueueIndicator: jest.fn(),
     getAgentService: () => agentService as any,
+    onSubagentActivityDetected: jest.fn(),
   };
 }
 
@@ -644,6 +645,7 @@ describe('StreamController - Text Content', () => {
           subagent: expect.objectContaining({ id: 'task-1' }),
         })
       );
+      expect(deps.onSubagentActivityDetected).toHaveBeenCalledTimes(1);
     });
 
     it('should render TodoWrite inline and update panel', async () => {
@@ -2258,6 +2260,8 @@ describe('StreamController - Text Content', () => {
         },
         msg,
       );
+
+      expect(deps.onSubagentActivityDetected).toHaveBeenCalledTimes(1);
 
       await controller.handleStreamChunk(
         {

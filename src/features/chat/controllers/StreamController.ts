@@ -107,6 +107,8 @@ export interface StreamControllerDeps {
   onOrchestratorPlanDetected?: (containerEl: HTMLElement, plan: OrchestratorPlan) => void;
   /** Observe provider tool calls that may load files into runtime context. */
   recordRuntimeToolCall?: (toolCall: ToolCallInfo) => void;
+  /** Reveal stream controls that are reserved for responses containing subagents. */
+  onSubagentActivityDetected?: () => void;
 }
 
 export class StreamController {
@@ -210,6 +212,7 @@ export class StreamController {
         await this.finalizeCurrentTextBlock(msg);
 
         if (isSubagentToolName(chunk.name)) {
+          this.deps.onSubagentActivityDetected?.();
           // Flush pending tools before Agent
           this.flushPendingTools();
           this.handleTaskToolUseViaManager(chunk, msg);
@@ -223,6 +226,7 @@ export class StreamController {
 
         const subagentLifecycleAdapter = this.getSubagentLifecycleAdapter(chunk.name);
         if (subagentLifecycleAdapter?.isSpawnTool(chunk.name)) {
+          this.deps.onSubagentActivityDetected?.();
           this.handleProviderSubagentSpawn(chunk, msg, subagentLifecycleAdapter);
           break;
         }
@@ -242,6 +246,7 @@ export class StreamController {
 
       case 'subagent_tool_use':
       case 'subagent_tool_result':
+        this.deps.onSubagentActivityDetected?.();
         await this.handleSubagentChunk(chunk, msg);
         break;
 

@@ -206,6 +206,7 @@ button.grimoire-tab-close-toast-undo:focus-visible {
 
 .grimoire-panel-tabs {
   display: flex;
+  align-items: center;
   gap: 2px;
   margin: 0 var(--grimoire-window-padding-x) 2px;
   padding: 0;
@@ -213,6 +214,16 @@ button.grimoire-tab-close-toast-undo:focus-visible {
   border-radius: 0;
   background: transparent;
   box-shadow: none;
+}
+
+.grimoire-panel-version {
+  margin-inline-start: auto;
+  padding-inline-end: 4px;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 450;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .grimoire-panel-tabs button.grimoire-panel-tab {

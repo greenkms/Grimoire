@@ -79,7 +79,7 @@ body.grimoire-dragging-ns {
   display: flex;
 }
 
-/* Nav row (tab badges start, header icons end) - above input wrapper */
+/* Session controls (tab badges start, context/history actions end) above the composer shell. */
 .grimoire-input-nav-row {
   display: flex;
   align-items: center;
@@ -484,7 +484,7 @@ body.grimoire-dragging-ns {
 }
 
 .grimoire-container--chat-window .grimoire-input-nav-row {
-  padding: 0;
+  padding: 0 0 6px;
 }
 
 .grimoire-container--chat-window.grimoire-container--header-mode .grimoire-input-nav-row,
@@ -660,28 +660,36 @@ body.grimoire-dragging-ns {
   filter: none;
 }
 
-.grimoire-stop-button {
+.grimoire-container--chat-window button.grimoire-stop-button {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
   width: 28px;
   height: 28px;
   padding: 0;
-  border: 1px solid var(--background-modifier-border);
-  border-radius: var(--grimoire-radius-1);
-  background: var(--background-modifier-error);
-  color: var(--text-on-accent);
+  border: 1px solid transparent;
+  border-radius: var(--grimoire-radius-2);
+  background: var(--grimoire-raise);
+  color: var(--grimoire-workbench-muted);
   box-shadow: none;
   cursor: pointer;
 }
 
-.grimoire-stop-button svg {
+.grimoire-container--chat-window button.grimoire-stop-button.grimoire-hidden {
+  display: none;
+}
+
+.grimoire-container--chat-window button.grimoire-stop-button svg {
   width: 14px;
   height: 14px;
   stroke-width: 2.8;
 }
 
-.grimoire-stop-button:hover {
-  filter: brightness(1.06);
+.grimoire-container--chat-window button.grimoire-stop-button:hover {
+  border-color: rgba(var(--grimoire-error-rgb), 0.22);
+  background: rgba(var(--grimoire-error-rgb), 0.1);
+  color: var(--grimoire-error);
+  filter: none;
 }

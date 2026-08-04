@@ -459,23 +459,16 @@
 
 .grimoire-composer-surface {
   position: relative;
+  container-name: grimoire-permission;
+  container-type: inline-size;
   overflow: visible;
-  padding: 6px var(--grimoire-window-padding-x) 13px;
+  padding: 6px var(--grimoire-window-padding-x) 2px;
   background: var(--grimoire-panel);
 }
 
 .grimoire-composer-surface .grimoire-input-container,
 .grimoire-sources-panel .grimoire-status-panel-container {
   padding: 0;
-}
-
-.grimoire-composer-version {
-  margin: 4px 4px 0;
-  color: var(--text-muted);
-  font-size: 10px;
-  font-weight: 450;
-  line-height: 1.2;
-  text-align: right;
 }
 
 .grimoire-operational-panel {

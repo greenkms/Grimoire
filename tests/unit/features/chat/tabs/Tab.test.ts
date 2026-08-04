@@ -681,32 +681,18 @@ describe('Tab - Creation', () => {
       expect(tab.dom.contextRuntimeEl.hasClass('grimoire-context-runtime-panel')).toBe(true);
       expect(tab.dom.sourceCardsEl.hasClass('grimoire-source-card-stack')).toBe(true);
       expect(tab.dom.composerSurfaceEl.contains(tab.dom.inputContainerEl)).toBe(true);
-      expect(tab.dom.composerSurfaceEl.querySelector('.grimoire-composer-version')?.textContent)
+      expect(tab.dom.panelTabsEl.querySelector('.grimoire-panel-version')?.textContent)
         .toBe('Grimoire v9.8.7-test');
       expect(tab.dom.chatStageEl.contains(tab.dom.messagesEl)).toBe(true);
       expect(tab.dom.sourceRailEl.contains(tab.dom.statusPanelContainerEl)).toBe(true);
     });
 
-    it('creates the scroll resume button on the composer edge', () => {
+    it('does not create a separate scroll-to-bottom button beside the composer', () => {
       const options = createMockOptions();
       const tab = createTab(options);
 
-      expect(tab.dom.composerSurfaceEl.contains(tab.dom.scrollResumeButtonEl)).toBe(true);
-      expect(Array.from(tab.dom.workbenchGridEl.children)).not.toContain(tab.dom.scrollResumeButtonEl);
-      expect(tab.dom.chatStageEl.contains(tab.dom.scrollResumeButtonEl)).toBe(false);
-      expect(tab.dom.scrollResumeButtonEl.hasClass('grimoire-hidden')).toBe(true);
-      expect(tab.dom.scrollResumeButtonEl.getAttribute('title')).toBeNull();
-      const svg = Array.from(tab.dom.scrollResumeButtonEl.children)
-        .find(child => child.tagName === 'svg' || child.tagName === 'SVG') as HTMLElement | undefined;
-      const path = Array.from(svg?.children ?? [])
-        .find(child => child.tagName === 'path' || child.tagName === 'PATH') as HTMLElement | undefined;
-      expect(svg).toBeDefined();
-      expect(svg?.getAttribute('viewBox')).toBe('0 0 24 24');
-      expect(svg?.getAttribute('width')).toBe('18');
-      expect(svg?.getAttribute('height')).toBe('18');
-      expect(path?.getAttribute('d'))
-        .toContain('M12 17');
-      expect(setIcon).not.toHaveBeenCalledWith(tab.dom.scrollResumeButtonEl, expect.any(String));
+      expect(tab.dom.composerSurfaceEl.querySelector('.grimoire-scroll-resume-btn')).toBeNull();
+      expect(tab.dom.workbenchGridEl.querySelector('.grimoire-scroll-resume-btn')).toBeNull();
     });
 
     it('should attach an input resize handle cleanup', () => {
@@ -1473,10 +1459,11 @@ describe('Tab - Event Wiring', () => {
 
       wireTabInputEvents(tab, options.plugin);
 
-      expect(tab.dom.eventCleanups.length).toBe(6); // resize handle + keydown, input, focus, resume click, scroll
+      expect(tab.dom.eventCleanups.length).toBe(5); // resize handle + keydown, input, focus, scroll
     });
 
-    it('should pause auto-scroll from the chat scroll container and resume from the button', () => {
+    it('should pause auto-scroll when reading history and resume after returning to the bottom', () => {
+      jest.useFakeTimers();
       const options = createMockOptions();
       const tab = createTab(options);
       tab.controllers.inputController = { sendMessage: jest.fn() } as any;
@@ -1491,19 +1478,16 @@ describe('Tab - Event Wiring', () => {
 
       wireTabInputEvents(tab, options.plugin);
 
-      const button = tab.dom.scrollResumeButtonEl;
-      expect(button).not.toBeNull();
-
       tab.dom.chatScrollEl.dispatchEvent(new Event('scroll'));
 
       expect(tab.state.autoScrollEnabled).toBe(false);
-      expect(button?.hasClass('grimoire-hidden')).toBe(false);
 
-      button?.click();
+      tab.dom.chatScrollEl.scrollTop = 600;
+      tab.dom.chatScrollEl.dispatchEvent(new Event('scroll'));
+      jest.advanceTimersByTime(150);
 
       expect(tab.state.autoScrollEnabled).toBe(true);
-      expect(tab.dom.chatScrollEl.scrollTop).toBe(1000);
-      expect(button?.hasClass('grimoire-hidden')).toBe(true);
+      jest.useRealTimers();
     });
 
     it('hides the chat scrollbar only while streaming auto-follow is active', () => {
@@ -1910,7 +1894,7 @@ describe('Tab - UI Initialization', () => {
       expect(tab.dom.selectionIndicatorEl!.style.display).toBe('none');
     });
 
-    it('should show the stop button only while streaming', () => {
+    it('should keep the stop button hidden for normal streaming', () => {
       const options = createMockOptions();
       const tab = createTab(options);
 
@@ -1919,6 +1903,8 @@ describe('Tab - UI Initialization', () => {
       expect(tab.dom.stopButtonEl).not.toBeNull();
       expect(tab.dom.stopButtonEl?.hasClass('grimoire-hidden')).toBe(true);
       expect(tab.dom.stopButtonEl?.textContent).toBe('');
+      expect(tab.dom.stopButtonEl?.getAttribute('aria-label')).toBe('Stop response');
+      expect(tab.dom.stopButtonEl?.getAttribute('title')).toBeNull();
       expect(setIcon).toHaveBeenCalledWith(tab.dom.stopButtonEl, 'square');
 
       const actionGroup = tab.dom.inputContainerEl.querySelector('.grimoire-send-actions');
@@ -1927,7 +1913,7 @@ describe('Tab - UI Initialization', () => {
       expect(actionGroup?.children[actionGroup.children.length - 1]).toBe(tab.dom.sendButtonEl);
 
       tab.state.isStreaming = true;
-      expect(tab.dom.stopButtonEl?.hasClass('grimoire-hidden')).toBe(false);
+      expect(tab.dom.stopButtonEl?.hasClass('grimoire-hidden')).toBe(true);
 
       tab.state.isStreaming = false;
       expect(tab.dom.stopButtonEl?.hasClass('grimoire-hidden')).toBe(true);

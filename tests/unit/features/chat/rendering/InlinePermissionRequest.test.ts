@@ -13,7 +13,7 @@ describe('InlinePermissionRequest', () => {
     const request = new InlinePermissionRequest(parentEl, {
       toolName: `Execute \`${command}\``,
       input: { command },
-      description: 'Grok Build wants to run a shell command.',
+      description: `Execute: ${command}`,
       decisionOptions: [{ decision: 'allow', label: 'Allow once', value: 'allow' }],
       resolve,
     });
@@ -25,6 +25,11 @@ describe('InlinePermissionRequest', () => {
     expect(parentEl.querySelector('.grimoire-permission-subtitle')?.textContent)
       .toBe('Grimoire wants to run a shell command');
     expect(parentEl.querySelector('.grimoire-permission-command-code')?.textContent).toBe(command);
+    expect(parentEl.querySelector('.grimoire-permission-description')).toBeNull();
+    const dialog = parentEl.querySelector('.grimoire-permission-request');
+    const title = parentEl.querySelector('.grimoire-permission-title');
+    expect(dialog?.getAttribute('aria-label')).toBeNull();
+    expect(dialog?.getAttribute('aria-labelledby')).toBe(title?.getAttribute('id'));
     parentEl.querySelector('.grimoire-permission-button--allow')?.click();
     expect(resolve).toHaveBeenCalledWith('allow');
   });

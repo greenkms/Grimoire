@@ -195,26 +195,8 @@ describe('messages.css', () => {
     expect(finalCopyRule).toContain('inset-inline-end: auto');
   });
 
-  it('anchors the scroll resume button to the composer edge instead of the chat grid', () => {
-    const scrollResumeRule = getExactRule(
-      readMessagesCss(),
-      '.grimoire-scroll-resume-btn'
-    );
-
-    expect(scrollResumeRule).toContain('position: absolute');
-    expect(scrollResumeRule).toContain('top: -36px');
-    expect(scrollResumeRule).toContain('inset-inline-end: calc(var(--grimoire-window-padding-x) + 8px)');
-    expect(scrollResumeRule).not.toContain('grid-row');
-    expect(scrollResumeRule).not.toContain('grid-column');
-
-    const scrollResumeIconRule = getExactRule(
-      readMessagesCss(),
-      '.grimoire-scroll-resume-btn svg,\n.grimoire-scroll-resume-btn .svg-icon'
-    );
-    expect(scrollResumeIconRule).toContain('display: block');
-    expect(scrollResumeIconRule).toContain('width: 18px');
-    expect(scrollResumeIconRule).toContain('height: 18px');
-    expect(scrollResumeIconRule).toContain('overflow: visible');
+  it('does not render a second standalone scroll-to-bottom control', () => {
+    expect(readMessagesCss()).not.toContain('.grimoire-scroll-resume-btn');
   });
 
   it('can hide the chat scrollbar while streaming is auto-following output', () => {

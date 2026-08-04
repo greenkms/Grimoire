@@ -77,7 +77,6 @@ import { generateTabId } from './types';
 
 const AUTO_SCROLL_BOTTOM_THRESHOLD_PX = 20;
 const AUTO_SCROLL_REENABLE_DELAY_MS = 150;
-const SCROLL_RESUME_ICON_PATH = 'M12 17 6 11l1.4-1.4 4.6 4.6 4.6-4.6L18 11l-6 6Zm0-6L6 5l1.4-1.4 4.6 4.6 4.6-4.6L18 5l-6 6Z';
 
 /**
  * Provider settings are shared by every tab in a plugin instance. Keep model
@@ -362,22 +361,6 @@ function mergeDraftSettingsSnapshot(
   }
 
   return merged;
-}
-
-function appendScrollResumeIcon(buttonEl: HTMLButtonElement): void {
-  const svg = buttonEl.createSvg('svg', {
-    attr: {
-      'aria-hidden': 'true',
-      focusable: 'false',
-      viewBox: '0 0 24 24',
-      width: '18',
-      height: '18',
-      fill: 'currentColor',
-    },
-  });
-  svg.createSvg('path', {
-    attr: { d: SCROLL_RESUME_ICON_PATH, fill: 'currentColor' },
-  });
 }
 
 /**
@@ -936,8 +919,9 @@ function syncBoundStatus(tab: TabData, plugin: GrimoirePlugin): void {
   }));
 }
 
-function syncComposerStopButton(tab: TabData): void {
-  tab.dom.stopButtonEl?.toggleClass('grimoire-hidden', !tab.state.isStreaming);
+function syncComposerStopButton(tab: TabData, hasSubagentActivity = false): void {
+  const shouldShow = tab.state.isStreaming && hasSubagentActivity;
+  tab.dom.stopButtonEl?.toggleClass('grimoire-hidden', !shouldShow);
 }
 
 function appendContextSummaryRow(
@@ -1277,6 +1261,10 @@ function buildTabDOM(contentEl: HTMLElement, versionText: string): TabDOMElement
     text: t('chat.ui.view.context'),
     attr: { type: 'button', 'data-panel-view': 'context', 'aria-pressed': 'false' },
   });
+  panelTabsEl.createSpan({
+    cls: 'grimoire-panel-version',
+    text: versionText,
+  });
 
   const chatScrollEl = workbenchGridEl.createDiv({
     cls: 'grimoire-chat-scroll',
@@ -1340,20 +1328,10 @@ function buildTabDOM(contentEl: HTMLElement, versionText: string): TabDOMElement
   const contextRuntimeEl = contextRailEl.createDiv({ cls: 'grimoire-context-runtime-panel grimoire-hidden' });
 
   const composerSurfaceEl = workbenchGridEl.createDiv({ cls: 'grimoire-composer-surface grimoire-composer' });
-  const scrollResumeButtonEl = composerSurfaceEl.createEl('button', {
-    cls: 'grimoire-scroll-resume-btn grimoire-hidden',
-    attr: {
-      type: 'button',
-      'aria-label': t('chat.ui.composer.jumpToLatest'),
-      'aria-hidden': 'true',
-    },
-  });
-  appendScrollResumeIcon(scrollResumeButtonEl);
   const inputContainerEl = composerSurfaceEl.createDiv({
     cls: 'grimoire-input-container grimoire-composer-shell',
   });
   const queueIndicatorEl = inputContainerEl.createDiv({ cls: 'grimoire-input-queue-row' });
-  const navRowEl = inputContainerEl.createDiv({ cls: 'grimoire-input-nav-row' });
   const inputWrapper = inputContainerEl.createDiv({ cls: 'grimoire-input-wrapper' });
   const contextRowEl = inputWrapper.createDiv({ cls: 'grimoire-context-row' });
   const inputEl = inputWrapper.createEl('textarea', {
@@ -1363,10 +1341,6 @@ function buildTabDOM(contentEl: HTMLElement, versionText: string): TabDOMElement
       rows: '3',
       dir: 'auto',
     },
-  });
-  composerSurfaceEl.createDiv({
-    cls: 'grimoire-composer-version',
-    text: versionText,
   });
   const panelViews: Record<TabPanelView, HTMLElement> = {
     chat: chatStageEl,
@@ -1401,7 +1375,6 @@ function buildTabDOM(contentEl: HTMLElement, versionText: string): TabDOMElement
     contextSummaryEl,
     chatStageEl,
     chatScrollEl,
-    scrollResumeButtonEl,
     sourceRailEl,
     sourceCardsEl,
     sourceFiltersEl,
@@ -1428,7 +1401,6 @@ function buildTabDOM(contentEl: HTMLElement, versionText: string): TabDOMElement
     inputEl,
     sendButtonEl: null,
     stopButtonEl: null,
-    navRowEl,
     contextRowEl,
     selectionIndicatorEl: null,
     browserIndicatorEl: null,
@@ -1454,24 +1426,19 @@ function isTabScrollAtBottom(tab: TabData): boolean {
   return scrollHeight - scrollTop - clientHeight <= AUTO_SCROLL_BOTTOM_THRESHOLD_PX;
 }
 
-function updateScrollResumeButton(tab: TabData, plugin: GrimoirePlugin): void {
+function updateAutoScrollUI(tab: TabData, plugin: GrimoirePlugin): void {
   const autoScrollAllowed = plugin.settings.enableAutoScroll ?? true;
-  const shouldShow = autoScrollAllowed && !tab.state.autoScrollEnabled && !isTabScrollAtBottom(tab);
   const shouldQuietScrollbar = autoScrollAllowed && tab.state.isStreaming && tab.state.autoScrollEnabled;
-  tab.dom.scrollResumeButtonEl.toggleClass('grimoire-hidden', !shouldShow);
-  tab.dom.scrollResumeButtonEl.setAttribute('aria-hidden', String(!shouldShow));
   tab.dom.chatScrollEl.toggleClass('grimoire-chat-scroll--quiet', shouldQuietScrollbar);
 }
 
 function scrollTabToBottom(tab: TabData, plugin: GrimoirePlugin): void {
-  if (!(plugin.settings.enableAutoScroll ?? true)) {
-    updateScrollResumeButton(tab, plugin);
-    return;
+  if (plugin.settings.enableAutoScroll ?? true) {
+    tab.state.autoScrollEnabled = true;
   }
 
-  tab.state.autoScrollEnabled = true;
   tab.dom.chatScrollEl.scrollTop = tab.dom.chatScrollEl.scrollHeight;
-  updateScrollResumeButton(tab, plugin);
+  updateAutoScrollUI(tab, plugin);
 }
 
 function shouldAutoScrollTab(tab: TabData, plugin: GrimoirePlugin): boolean {
@@ -2212,7 +2179,6 @@ function initializeInputToolbar(
     attr: {
       type: 'button',
       'aria-label': t('chat.ui.composer.stopResponse'),
-      title: t('chat.ui.composer.stopResponse'),
     },
   });
   setIcon(dom.stopButtonEl, 'square');
@@ -2321,6 +2287,7 @@ export function initializeTabUI(
     dom.workbenchGridEl,
     dom.chatScrollEl,
     dom.messagesEl,
+    () => scrollTabToBottom(tab, plugin),
   );
 
   initializeInstructionAndTodo(tab, plugin);
@@ -2339,7 +2306,7 @@ export function initializeTabUI(
     onStreamingStateChanged: (isStreaming) => {
       syncBoundStatus(tab, plugin);
       syncComposerStopButton(tab);
-      updateScrollResumeButton(tab, plugin);
+      updateAutoScrollUI(tab, plugin);
       previousStreamingStateChanged?.(isStreaming);
     },
     onUsageChanged: (usage) => {
@@ -2559,7 +2526,7 @@ export function initializeTabControllers(
     {
       getScrollEl: () => dom.chatScrollEl,
       shouldAutoScroll: () => shouldAutoScrollTab(tab, plugin),
-      onAutoScrollSuppressed: () => updateScrollResumeButton(tab, plugin),
+      onAutoScrollSuppressed: () => updateAutoScrollUI(tab, plugin),
     },
   );
 
@@ -2604,6 +2571,7 @@ export function initializeTabControllers(
     recordRuntimeToolCall: (toolCall) => {
       tab.ui.runtimeContextActivity?.recordToolCall(getTabProviderId(tab, plugin), toolCall);
     },
+    onSubagentActivityDetected: () => syncComposerStopButton(tab, true),
   });
 
   // Wire subagent callback now that StreamController exists
@@ -2967,7 +2935,7 @@ export function wireTabInputEvents(tab: TabData, plugin: GrimoirePlugin): void {
         reEnableTimeout = null;
       }
       state.autoScrollEnabled = false;
-      updateScrollResumeButton(tab, plugin);
+      updateAutoScrollUI(tab, plugin);
       return;
     }
 
@@ -2980,7 +2948,7 @@ export function wireTabInputEvents(tab: TabData, plugin: GrimoirePlugin): void {
         reEnableTimeout = null;
       }
       state.autoScrollEnabled = false;
-      updateScrollResumeButton(tab, plugin);
+      updateAutoScrollUI(tab, plugin);
     } else if (!state.autoScrollEnabled) {
       // Debounce re-enabling to avoid bounce during scroll animation
       if (!reEnableTimeout) {
@@ -2989,24 +2957,20 @@ export function wireTabInputEvents(tab: TabData, plugin: GrimoirePlugin): void {
           if (isTabScrollAtBottom(tab)) {
             state.autoScrollEnabled = true;
           }
-          updateScrollResumeButton(tab, plugin);
+          updateAutoScrollUI(tab, plugin);
         }, AUTO_SCROLL_REENABLE_DELAY_MS);
       }
     } else {
-      updateScrollResumeButton(tab, plugin);
+      updateAutoScrollUI(tab, plugin);
     }
   };
-
-  const resumeClickHandler = () => scrollTabToBottom(tab, plugin);
-  dom.scrollResumeButtonEl.addEventListener('click', resumeClickHandler);
-  dom.eventCleanups.push(() => dom.scrollResumeButtonEl.removeEventListener('click', resumeClickHandler));
 
   dom.chatScrollEl.addEventListener('scroll', scrollHandler, { passive: true });
   dom.eventCleanups.push(() => {
     dom.chatScrollEl.removeEventListener('scroll', scrollHandler);
     if (reEnableTimeout) window.clearTimeout(reEnableTimeout);
   });
-  updateScrollResumeButton(tab, plugin);
+  updateAutoScrollUI(tab, plugin);
 }
 
 /**

@@ -443,6 +443,21 @@ describe('NavigationSidebar', () => {
       expect(messagesEl.scrollToCalls[0].top).toBe(1000);
       expect(messagesEl.scrollToCalls[0].behavior).toBe('smooth');
     });
+
+    it('delegates to the tab auto-scroll callback when provided', () => {
+      const onScrollBottom = jest.fn();
+      sidebar = new NavigationSidebar(
+        parentEl as unknown as HTMLElement,
+        messagesEl as unknown as HTMLElement,
+        messagesEl as unknown as HTMLElement,
+        onScrollBottom,
+      );
+
+      parentEl.querySelector('.grimoire-nav-sidebar')!.children[4].click();
+
+      expect(onScrollBottom).toHaveBeenCalledTimes(1);
+      expect(messagesEl.scrollToCalls).toHaveLength(0);
+    });
   });
 
   describe('previous/next message navigation', () => {

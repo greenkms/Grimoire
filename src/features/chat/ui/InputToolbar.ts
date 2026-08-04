@@ -2149,7 +2149,6 @@ interface ContextUsageMeterOptions {
 export class ContextUsageMeter {
   private container: HTMLElement;
   private percentEl: HTMLElement | null = null;
-  private tipEl: HTMLElement | null = null;
   private readonly showWhenEmpty: boolean;
 
   constructor(parentEl: HTMLElement, options: ContextUsageMeterOptions = {}) {
@@ -2173,7 +2172,6 @@ export class ContextUsageMeter {
   private render() {
     this.container.createDiv({ cls: 'grimoire-context-meter-ring' });
     this.percentEl = this.container.createSpan({ cls: 'grimoire-context-meter-percent' });
-    this.tipEl = this.container.createDiv({ cls: 'grimoire-context-meter-tip' });
   }
 
   update(usage: UsageInfo | null): void {
@@ -2201,26 +2199,10 @@ export class ContextUsageMeter {
       this.container.removeClass('warning');
     }
 
-    // Keep only the custom detailed tooltip; Obsidian's data-tooltip would
-    // render a second black percentage tooltip on top of it.
-    this.container.removeAttribute('data-tooltip');
-    this.container.removeAttribute('aria-label');
-
-    if (this.tipEl) {
-      const tokensLeft = Math.max(0, usage.contextWindow - usage.contextTokens);
-      this.tipEl.empty();
-      this.tipEl.createDiv({
-        cls: 'grimoire-context-meter-tip-primary',
-        text: t('chat.ui.contextUsage.tokens', {
-          used: this.formatTokens(usage.contextTokens),
-          total: this.formatTokens(usage.contextWindow),
-        }),
-      });
-      this.tipEl.createDiv({
-        cls: 'grimoire-context-meter-tip-secondary',
-        text: t('chat.ui.contextUsage.left', { count: this.formatTokens(tokensLeft) }),
-      });
-    }
+    setTooltip(this.container, t('chat.ui.contextUsage.tokens', {
+      used: this.formatTokens(usage.contextTokens),
+      total: this.formatTokens(usage.contextWindow),
+    }), { placement: 'bottom' });
   }
 
   private renderEmptyState(contextWindow?: number): void {
@@ -2229,23 +2211,13 @@ export class ContextUsageMeter {
     this.container.setCssProps({ '--grimoire-context-meter-pct': '0' });
     this.percentEl?.setText('0%');
     const windowLabel = contextWindow ? this.formatTokens(contextWindow) : t('chat.ui.contextUsage.context');
-    this.container.removeAttribute('data-tooltip');
-    this.container.removeAttribute('aria-label');
-    if (this.tipEl) {
-      this.tipEl.empty();
-      this.tipEl.createDiv({
-        cls: 'grimoire-context-meter-tip-primary',
-        text: contextWindow
-          ? t('chat.ui.contextUsage.tokens', { used: 0, total: windowLabel })
-          : t('chat.ui.contextUsage.noneYet'),
-      });
-      this.tipEl.createDiv({
-        cls: 'grimoire-context-meter-tip-secondary',
-        text: contextWindow
-          ? t('chat.ui.contextUsage.left', { count: windowLabel })
-          : t('chat.ui.contextUsage.hint'),
-      });
-    }
+    setTooltip(
+      this.container,
+      contextWindow
+        ? t('chat.ui.contextUsage.tokens', { used: 0, total: windowLabel })
+        : t('chat.ui.contextUsage.noneYet'),
+      { placement: 'bottom' },
+    );
   }
 
   private formatTokens(tokens: number): string {

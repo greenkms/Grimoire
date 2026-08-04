@@ -17,11 +17,14 @@ export interface InlinePermissionRequestConfig {
 
 type PermissionAction = 'allow' | 'always' | 'reject' | 'other';
 
+let permissionDialogSequence = 0;
+
 export class InlinePermissionRequest {
   private containerEl: HTMLElement;
   private config: InlinePermissionRequestConfig;
   private resolved = false;
   private rootEl!: HTMLElement;
+  private readonly titleId = `grimoire-permission-title-${++permissionDialogSequence}`;
   private boundKeyDown: (event: KeyboardEvent) => void;
 
   constructor(containerEl: HTMLElement, config: InlinePermissionRequestConfig) {
@@ -32,10 +35,11 @@ export class InlinePermissionRequest {
 
   render(): void {
     this.rootEl = this.containerEl.createDiv({ cls: 'grimoire-permission-anchor' });
+    this.rootEl.setAttribute('tabindex', '-1');
 
     const cardEl = this.rootEl.createDiv({ cls: 'grimoire-permission-request' });
     cardEl.setAttribute('role', 'dialog');
-    cardEl.setAttribute('aria-label', t('chat.ui.permission.required'));
+    cardEl.setAttribute('aria-labelledby', this.titleId);
 
     this.renderHeader(cardEl);
     this.renderBody(cardEl);
@@ -63,6 +67,7 @@ export class InlinePermissionRequest {
     titleEl.createEl('strong', {
       cls: 'grimoire-permission-title',
       text: t('chat.ui.permission.required'),
+      attr: { id: this.titleId },
     });
     titleEl.createSpan({
       cls: 'grimoire-permission-subtitle',
@@ -114,10 +119,13 @@ export class InlinePermissionRequest {
       commandEl.createEl('code', { cls: 'grimoire-permission-command-code', text: command });
     }
 
-    bodyEl.createDiv({
-      cls: 'grimoire-permission-description grimoire-ask-approval-desc',
-      text: this.getDescription(),
-    });
+    const description = this.getDescription();
+    if (description) {
+      bodyEl.createDiv({
+        cls: 'grimoire-permission-description grimoire-ask-approval-desc',
+        text: description,
+      });
+    }
   }
 
   private renderActions(cardEl: HTMLElement): void {
@@ -240,15 +248,26 @@ export class InlinePermissionRequest {
     return typeof command === 'string' ? command : '';
   }
 
-  private getDescription(): string {
+  private getDescription(): string | null {
     if (!this.getCommandText()) {
       return this.config.description;
     }
 
     const providerRequest = this.config.description.match(/^(.+?) wants permission to use\b/i);
-    return providerRequest?.[1]
-      ? t('chat.ui.permission.providerRequestedCommand', { provider: providerRequest[1] })
-      : this.config.description;
+    if (providerRequest?.[1]) {
+      return t('chat.ui.permission.providerRequestedCommand', { provider: providerRequest[1] });
+    }
+
+    const command = this.getCommandText().trim();
+    const description = this.config.description.trim();
+    const normalizedDescription = description
+      .replace(/^(?:execute|run(?: command)?):?\s*/i, '')
+      .trim();
+    if (!description || description === command || normalizedDescription === command) {
+      return null;
+    }
+
+    return description;
   }
 
   private handleResolve(value: string | null): void {

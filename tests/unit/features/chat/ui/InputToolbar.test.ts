@@ -1835,8 +1835,7 @@ describe('ContextUsageMeter', () => {
     const container = headerParentEl.querySelector('.grimoire-context-meter');
     expect(container?.style.display).toBe('flex');
     expect(headerParentEl.querySelector('.grimoire-context-meter-percent')?.textContent).toBe('0%');
-    expect(container?.getAttribute('aria-label')).toBeNull();
-    expect(container?.getAttribute('data-tooltip')).toBeNull();
+    expect(setTooltip).toHaveBeenCalledWith(container, 'No context used yet', { placement: 'bottom' });
   });
 
   it('should become visible when contextTokens > 0', () => {
@@ -1864,35 +1863,29 @@ describe('ContextUsageMeter', () => {
     expect(container?.hasClass('warning')).toBe(false);
   });
 
-  it('should not set Obsidian native tooltip alongside the custom tooltip', () => {
+  it('should use a plain tooltip containing only used and total context', () => {
     meter.update(makeUsage({ contextTokens: 50000, contextWindow: 200000, percentage: 25 }));
     const container = parentEl.querySelector('.grimoire-context-meter');
-    expect(container?.getAttribute('data-tooltip')).toBeNull();
-  });
-
-  it('should render a visible detail tooltip with tokens left', () => {
-    meter.update(makeUsage({ contextTokens: 50000, contextWindow: 200000, percentage: 25 }));
-
-    expect(parentEl.querySelector('.grimoire-context-meter-tip-secondary')?.textContent)
-      .toContain('150k left');
+    expect(setTooltip).toHaveBeenCalledWith(container, '50k / 200k tokens', { placement: 'bottom' });
+    expect(parentEl.querySelector('.grimoire-context-meter-tip')).toBeNull();
   });
 
   it('should format small token counts without k suffix', () => {
     meter.update(makeUsage({ contextTokens: 500, contextWindow: 200000, percentage: 0 }));
-    expect(parentEl.querySelector('.grimoire-context-meter-tip-primary')?.textContent)
-      .toContain('500 / 200k tokens');
+    const container = parentEl.querySelector('.grimoire-context-meter');
+    expect(setTooltip).toHaveBeenCalledWith(container, '500 / 200k tokens', { placement: 'bottom' });
   });
 
-  it('should keep the native tooltip disabled when usage is above 80%', () => {
+  it('should keep the plain tooltip when usage is above 80%', () => {
     meter.update(makeUsage({ contextTokens: 170000, contextWindow: 200000, percentage: 85 }));
     const container = parentEl.querySelector('.grimoire-context-meter');
-    expect(container?.getAttribute('data-tooltip')).toBeNull();
+    expect(setTooltip).toHaveBeenCalledWith(container, '170k / 200k tokens', { placement: 'bottom' });
   });
 
-  it('should keep the native tooltip disabled when usage is at 80%', () => {
+  it('should keep the plain tooltip when usage is at 80%', () => {
     meter.update(makeUsage({ contextTokens: 160000, contextWindow: 200000, percentage: 80 }));
     const container = parentEl.querySelector('.grimoire-context-meter');
-    expect(container?.getAttribute('data-tooltip')).toBeNull();
+    expect(setTooltip).toHaveBeenCalledWith(container, '160k / 200k tokens', { placement: 'bottom' });
   });
 });
 

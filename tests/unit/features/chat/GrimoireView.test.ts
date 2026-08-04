@@ -28,8 +28,6 @@ function createViewHarness(options: {
     getTabCount: jest.fn().mockReturnValue(options.tabCount ?? 1),
   };
   view.tabBarContainerEl = createMockEl();
-  view.logoEl = createMockEl();
-  view.titleTextEl = createMockEl();
   view.newTabButtonEl = newTabButtonEl;
 
   return { newTabButtonEl, view };
@@ -48,16 +46,7 @@ describe('GrimoireView tab controls', () => {
     expect(view.getIcon()).toBe('grimoire');
   });
 
-  it('renders the Grimoire header title text', () => {
-    const headerEl = createMockEl();
-    const view = Object.create(GrimoireView.prototype);
-
-    view.buildHeader(headerEl);
-
-    expect(headerEl.querySelector('.grimoire-title-text')?.textContent).toBe('Grimoire');
-  });
-
-  it('builds the session strip with a header context meter', () => {
+  it('builds the composer session controls with a context meter', () => {
     const containerEl = createMockEl();
     const view = Object.create(GrimoireView.prototype);
 
@@ -69,6 +58,19 @@ describe('GrimoireView tab controls', () => {
     expect(nav.querySelector('.grimoire-tab-bar-container')).not.toBeNull();
     expect(nav.querySelector('.grimoire-context-meter')).not.toBeNull();
     expect(nav.querySelector('.grimoire-new-tab-btn')).not.toBeNull();
+  });
+
+  it('places the shared session controls above the panel-view row', () => {
+    const view = Object.create(GrimoireView.prototype);
+    const navContentEl = createMockEl();
+    const sessionStripEl = createMockEl();
+
+    view.navContentEl = navContentEl;
+    view.sessionStripEl = sessionStripEl;
+
+    view.updateNavRowLocation();
+
+    expect(sessionStripEl.children).toContain(navContentEl);
   });
 
   it('places the history button after the new-tab control without appearance controls', () => {
@@ -129,12 +131,14 @@ describe('GrimoireView tab controls', () => {
   it('builds the history sheet inside the chat shell with a dialog role', () => {
     const view = Object.create(GrimoireView.prototype);
     const shell = createMockEl();
+    view.historyDialogTitleId = 'grimoire-history-title-test';
 
     const sheet = view.buildHistorySheet(shell);
 
     expect(sheet.hasClass('grimoire-history-menu')).toBe(true);
     expect(sheet.getAttribute('role')).toBe('dialog');
-    expect(sheet.getAttribute('aria-label')).toBe('Chat history');
+    expect(sheet.getAttribute('aria-label')).toBeNull();
+    expect(sheet.getAttribute('aria-labelledby')).toBe('grimoire-history-title-test');
     expect(sheet.getAttribute('aria-hidden')).toBe('true');
     expect(shell.children.includes(sheet)).toBe(true);
   });
