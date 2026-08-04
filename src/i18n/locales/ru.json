@@ -404,6 +404,13 @@
         "awaitingYou": "Ожидание вас"
       },
       "errors": {
+        "generic": "Ошибка: {message}",
+        "commandUnsupported": "/{command} не поддерживается этим провайдером.",
+        "externalContextAdded": "Внешний контекст добавлен: {path}",
+        "unknownCommand": "Неизвестная команда: {command}",
+        "openConversationFailed": "Не удалось открыть диалог: {message}",
+        "commandFailed": "Команда завершилась с ошибкой: {message}",
+        "backgroundTaskRenderFailed": "Фоновая задача завершена, но результат не удалось отобразить.",
         "relevantNotesFailed": "Не удалось получить релевантные заметки: {error}",
         "couldNotOpenFile": "Не удалось открыть файл: {path}",
         "openFileFailed": "Не удалось открыть файл: {error}",
@@ -678,11 +685,11 @@
       "followsObsidian": "Следует теме Obsidian"
     },
     "usageIndicators": {
-      "name": "Usage indicators",
+      "name": "Индикаторы использования",
       "desc": "Показывать индикаторы plan usage и API spend рядом с выбором модели и внутри меню моделей."
     },
     "debugLogging": {
-      "name": "Debug logging",
+      "name": "Отладочное журналирование",
       "desc": "Писать очищенные технические логи в .grimoire/logs/YYYY-MM-DD.jsonl только пока включено. Промпты, ответы, содержимое заметок, пути, значения окружения и секреты редактируются."
     },
     "hotkeys": "Горячие клавиши",
@@ -817,13 +824,13 @@
       "invalid": "Неверный формат. Используйте: 256k, 1m или точное число (1000-10000000)."
     },
     "customModels": {
-      "name": "Custom models",
-      "desc": "Append additional Claude model IDs to the picker, one per line. Environment model overrides still replace the picker.",
+      "name": "Пользовательские модели",
+      "desc": "Добавляйте дополнительные ID моделей Claude в селектор, по одному в строке. Переопределения модели из окружения по-прежнему заменяют список.",
       "placeholder": "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
     },
     "respectProjectSettings": {
-      "name": "Respect Claude Code settings",
-      "desc": "Use model and env from Claude Code user and project settings. This enables custom models from providers such as MiniMax, Z.ai, and other Anthropic-compatible gateways. Grimoire settings still override explicit choices."
+      "name": "Учитывать настройки Claude Code",
+      "desc": "Используйте модель и окружение из пользовательских и проектных настроек Claude Code. Это включает пользовательские модели от MiniMax, Z.ai и других совместимых с Anthropic шлюзов. Явные настройки Grimoire сохраняют приоритет."
     },
     "enableChrome": {
       "name": "Включить расширение Chrome",
@@ -945,8 +952,8 @@
         "searchPlaceholder": "Фильтр по модели, provider или ID...",
         "visibleLabel": "Видимые:",
         "summaryDiscovered": "из {total} найденных - {count} {providerWord}",
-        "providerSingular": "provider",
-        "providerPlural": "providers",
+        "providerSingular": "провайдер",
+        "providerPlural": "провайдеры",
         "noDiscovered": "Модели пока не найдены",
         "loadingModels": "Загрузка моделей...",
         "availableCount": "Доступно: {count}",
@@ -984,7 +991,7 @@
         "modelDesc": "Переопределение модели в формате provider/model",
         "variant": "Variant",
         "variantDesc": "Переопределение variant модели",
-        "temperature": "Temperature",
+        "temperature": "Температура",
         "temperatureDesc": "Необязательная sampling temperature",
         "topP": "Top p",
         "topPDesc": "Необязательное значение nucleus sampling",
@@ -996,11 +1003,11 @@
         "hideFromMentionDesc": "Скрыть этот subagent из меню @ autocomplete",
         "disableAgent": "Отключить agent",
         "disableAgentDesc": "Отключить agent, не удаляя файл",
-        "enabledTools": "Enabled tools (JSON)",
+        "enabledTools": "Разрешённые инструменты (JSON)",
         "enabledToolsDesc": "Необязательная deprecated tools map, например {\"write\":false,\"edit\":false}",
-        "permission": "Permission (JSON)",
+        "permission": "Разрешения (JSON)",
         "permissionDesc": "Необязательная permission config, например {\"edit\":\"deny\",\"bash\":\"allow\"}",
-        "options": "Options (JSON)",
+        "options": "Параметры (JSON)",
         "optionsDesc": "Необязательные custom agent options",
         "promptDesc": "Markdown body, используемый как agent prompt",
         "promptPlaceholder": "Внимательно проверь изменения кода и укажи проблемы корректности, регрессии и недостающее покрытие.",
@@ -1403,5 +1410,9 @@
         "configCorrupted": "Файл конфигурации повреждён. Проверьте .claude/mcp.json."
       }
     }
-  }
+  },
+  "plugin": { "openRibbon": "Открыть Grimoire", "openChatView": "Открыть чат", "inlineEdit": "Редактировать в строке", "inlineEditViewUnavailable": "Встроенное редактирование недоступно: не удалось получить активный Markdown-представление.", "inlineEditInserted": "Вставлено", "inlineEditApplied": "Изменение применено", "newTab": "Новая вкладка", "newSession": "Новая сессия (в текущей вкладке)", "closeCurrentTab": "Закрыть текущую вкладку", "switchToTab": "Перейти на вкладку {index}", "environmentRestartFailed": "Изменения окружения применены, но не удалось перезапустить затронутые вкладки: {count}.", "environmentAppliedRebuild": "Переменные окружения применены. Сессии будут пересозданы при следующем сообщении.", "environmentApplied": "Переменные окружения применены." },
+  "shared": { "slashCommands": { "noMatches": "Нет подходящих команд" }, "resumeConversation": { "title": "Продолжить разговор", "empty": "Нет разговоров", "current": "Текущая сессия" }, "instructionModal": { "title": "Добавить пользовательскую инструкцию", "yourInput": "Ваш ввод:", "processingInstruction": "Обрабатываем вашу инструкцию...", "yourResponse": "Ваш ответ:", "responsePlaceholder": "Укажите больше деталей...", "refinedSnippet": "Уточнённый фрагмент:", "processing": "Обработка...", "submit": "Отправить", "submitResponseAria": "Отправить ответ", "editAria": "Редактировать инструкцию", "accept": "Принять", "acceptAria": "Принять инструкцию", "preview": "Предпросмотр" }, "whatsNew": { "title": "Что нового в Grimoire v{version}", "released": "Выпущено {date}", "latestReleaseNotes": "Последние примечания к выпуску", "fullChangelog": "Полный список изменений", "gotIt": "Понятно" } },
+  "inlineEdit": { "rejectTitle": "Отклонить (Esc)", "acceptTitle": "Принять (Enter)", "editorUnavailable": "Встроенное редактирование недоступно: не удалось получить активный редактор. Откройте заметку заново.", "vaultFilesLoadFailed": "Не удалось загрузить файлы vault. @-упоминания могут быть недоступны.", "invalidFilePath": "Не удалось прикрепить файл: неверный путь" },
+  "storage": { "tabLayoutSaveFailed": "Не удалось сохранить расположение вкладок" }
 }

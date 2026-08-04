@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="README.md">English</a> · <a href="docs/readme/README.zh-CN.md">简体中文</a> · <a href="docs/readme/README.zh-TW.md">繁體中文</a> · <a href="docs/readme/README.ja.md">日本語</a> · <a href="docs/readme/README.de.md">Deutsch</a> · <a href="docs/readme/README.fr.md">Français</a> · <a href="docs/readme/README.es.md">Español</a> · <a href="docs/readme/README.ru.md">Русский</a>
+  <a href="README.md">English</a> · <a href="docs/readme/README.zh-CN.md">简体中文</a> · <a href="docs/readme/README.zh-TW.md">繁體中文</a> · <a href="docs/readme/README.ja.md">日本語</a> · <a href="docs/readme/README.ko.md">한국어</a> · <a href="docs/readme/README.de.md">Deutsch</a> · <a href="docs/readme/README.fr.md">Français</a> · <a href="docs/readme/README.es.md">Español</a> · <a href="docs/readme/README.pt-BR.md">Português</a> · <a href="docs/readme/README.ru.md">Русский</a>
 </p>
 
 <p align="center">
@@ -289,6 +289,14 @@ Inside Grimoire, Grok Build runs over ACP via `grok agent stdio` with Grimoire-m
 ### Chat workspace
 
 A focused side panel with multiple tabs. Each tab keeps its own draft, provider, model, context, and runtime. Close and reopen Obsidian and your sessions come back, with the provider, model, and reasoning effort preserved on every response. Rewind and fork appear when the active provider supports them. Auto-scroll backs off the moment you scroll away to read something. After 10 seconds without visible output, a shared wait indicator shows the active provider and elapsed time; it pauses while a question or permission is waiting.
+
+### Tab, history, and navigation controls
+
+Right-click a tab to rename, duplicate, close it, close other tabs, or close tabs to its right. Middle-click closes a tab, and the timed Undo action restores a closed tab with its draft and position. Open a saved conversation in a new tab from chat history with its action, a modifier-click, or a middle-click. Long conversations have a five-way navigator for the top, previous prompt, conversation directory, next prompt, and bottom. Completed messages show a localized completion timestamp next to their copy action.
+
+### Parallel workers, settings, and composer
+
+The **Parallel workers** approval card shows the inherited model and lets you select only the proposed tasks to launch. Settings use Obsidian's native search and retain a permanent What's New entry. Provider settings and the composer use one consistent surface across providers, while keeping provider-owned controls and configuration where they belong.
 
 ### Keyboard shortcuts
 

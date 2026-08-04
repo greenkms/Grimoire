@@ -3,15 +3,17 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const lockfilePath = resolve(__dirname, "../package-lock.json");
+const lockfilePath = process.argv[2]
+  ? resolve(process.cwd(), process.argv[2])
+  : resolve(__dirname, "../package-lock.json");
 const lockfile = JSON.parse(readFileSync(lockfilePath, "utf8"));
 
 const advisories = [
   {
     packageName: "hono",
-    vulnerableRange: "<4.12.25",
-    advisory: "GHSA-26pp-8wgv-hjvm / GHSA-r5rp-j6wh-rvv4 / GHSA-xf4j-xp2r-rqqx / GHSA-wmmm-f939-6g9c / GHSA-458j-xx4x-4375 / GHSA-xpcf-pg52-r92g / GHSA-qp7p-654g-cw7p / GHSA-hm8q-7f3q-5f36 / GHSA-p77w-8qqv-26rm / GHSA-9vqf-7f2p-gf9v / GHSA-69xw-7hcm-h432 / GHSA-xrhx-7g5j-rcj5 / GHSA-3hrh-pfw6-9m5x / GHSA-f577-qrjj-4474 / GHSA-2gcr-mfcq-wcc3 / GHSA-wwfh-h76j-fc44 / GHSA-j6c9-x7qj-28xf / GHSA-88fw-hqm2-52qc / GHSA-rv63-4mwf-qqc2 / GHSA-wgpf-jwqj-8h8p",
-    isVulnerable: (version) => lessThan(version, "4.12.25"),
+    vulnerableRange: "<4.12.34",
+    advisory: "GHSA-26pp-8wgv-hjvm / GHSA-r5rp-j6wh-rvv4 / GHSA-xf4j-xp2r-rqqx / GHSA-wmmm-f939-6g9c / GHSA-458j-xx4x-4375 / GHSA-xpcf-pg52-r92g / GHSA-qp7p-654g-cw7p / GHSA-hm8q-7f3q-5f36 / GHSA-p77w-8qqv-26rm / GHSA-9vqf-7f2p-gf9v / GHSA-69xw-7hcm-h432 / GHSA-xrhx-7g5j-rcj5 / GHSA-3hrh-pfw6-9m5x / GHSA-f577-qrjj-4474 / GHSA-2gcr-mfcq-wcc3 / GHSA-wwfh-h76j-fc44 / GHSA-j6c9-x7qj-28xf / GHSA-88fw-hqm2-52qc / GHSA-rv63-4mwf-qqc2 / GHSA-wgpf-jwqj-8h8p / GHSA-8j4g-w8fx-2239",
+    isVulnerable: (version) => lessThan(version, "4.12.34"),
   },
   {
     packageName: "@hono/node-server",
@@ -21,9 +23,9 @@ const advisories = [
   },
   {
     packageName: "fast-uri",
-    vulnerableRange: "<=3.1.1",
-    advisory: "GHSA-q3j6-qgpj-74h6 / GHSA-v39h-62p7-jpjc",
-    isVulnerable: (version) => lessThanOrEqual(version, "3.1.1"),
+    vulnerableRange: ">=3.0.0 <3.1.5",
+    advisory: "GHSA-q3j6-qgpj-74h6 / GHSA-v39h-62p7-jpjc / GHSA-7p8r-x3mc-p8w7",
+    isVulnerable: (version) => greaterThanOrEqual(version, "3.0.0") && lessThan(version, "3.1.5"),
   },
   {
     packageName: "ip-address",
@@ -33,9 +35,14 @@ const advisories = [
   },
   {
     packageName: "brace-expansion",
-    vulnerableRange: ">=5.0.0 <5.0.6",
-    advisory: "GHSA-jxxr-4gwj-5jf2",
-    isVulnerable: (version) => greaterThanOrEqual(version, "5.0.0") && lessThan(version, "5.0.6"),
+    vulnerableRange: "<1.1.18 || >=2.0.0 <2.1.4 || >=3.0.0 <3.0.6 || >=4.0.0 <5.0.9",
+    advisory: "GHSA-jxxr-4gwj-5jf2 / GHSA-mh99-v99m-4gvg / GHSA-rgw5-rvv9-x895",
+    isVulnerable: (version) => (
+      lessThan(version, "1.1.18")
+      || (greaterThanOrEqual(version, "2.0.0") && lessThan(version, "2.1.4"))
+      || (greaterThanOrEqual(version, "3.0.0") && lessThan(version, "3.0.6"))
+      || (greaterThanOrEqual(version, "4.0.0") && lessThan(version, "5.0.9"))
+    ),
   },
   {
     packageName: "ws",
@@ -89,8 +96,11 @@ if (failures.length > 0) {
 }
 
 function packageNameFromLockfilePath(path) {
-  const segments = path.split("/node_modules/");
-  const packagePath = segments[segments.length - 1] ?? "";
+  const nodeModulesMarker = "node_modules/";
+  const markerIndex = path.lastIndexOf(nodeModulesMarker);
+  const packagePath = markerIndex >= 0
+    ? path.slice(markerIndex + nodeModulesMarker.length)
+    : path;
   const parts = packagePath.split("/");
 
   if (parts[0]?.startsWith("@")) {

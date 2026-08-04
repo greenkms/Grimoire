@@ -33,8 +33,8 @@ This file tracks future provider integrations and the implementation sequence fo
 
 ## Current Integration Notes
 
-- Claude Code, Codex, OpenCode, and Qwen Code are the strongest current Grimoire targets. They expose enough runtime structure for reliable chat streaming, file/tool activity, and provider-owned workspace behavior.
-- Antigravity and Gemini are usable but more limited today. Keep them available, but treat provider-specific enhancements as runtime-limited until their CLIs expose richer event streams, safer approval flows, and stronger session/tool metadata.
+- Claude Code, Codex, OpenCode, MiMoCode, Kimi Code, Grok Build, and Qwen Code are current integrations. Their runtime capabilities differ, but each has a registered provider adapter; OpenCode, MiMoCode, Kimi Code, Grok Build, and Qwen Code use ACP-based runtime paths where their CLI supports them.
+- Antigravity CLI and Gemini CLI (Legacy) are current Google integrations with more limited runtime surfaces. Keep Antigravity as the recommended Google path and Gemini only for legacy-compatible accounts; treat provider-specific enhancements as runtime-limited until their CLIs expose richer event streams, safer approval flows, and stronger session/tool metadata.
 - Context visibility should stay provider-neutral. The Context tab should show both user-pinned files and provider runtime file loads when Grimoire can infer them from tool events, while avoiding provider-specific assumptions in shared feature code.
 
 ## Integrated Provider: Qwen Code

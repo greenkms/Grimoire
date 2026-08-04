@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Improved
+
+- Synced the English and localized README documentation with the 1.1.0 tab, history, navigation, completion-time, Parallel workers, settings, and composer experience; added Korean and Portuguese variants.
+- Clarified all provider account, network, storage, and dependency-review boundaries, including the current MCP SDK and patched dependency targets used by the release gate.
+- Updated direct and transitive dependencies to their latest compatible releases, refreshed tracked advisory floors, and kept the Obsidian-pinned CodeMirror packages on their required peer-compatible versions.
+
+### Fixed
+
+- Completed localization for plugin commands, the ribbon, resume and instruction surfaces, What's New, inline editing, storage, and common file/context notices across all ten UI languages; registered command and ribbon labels now refresh immediately when the language changes.
+
 ## 1.1.1 - 2026-08-03
 
 ### Improved

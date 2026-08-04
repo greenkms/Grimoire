@@ -47,7 +47,7 @@ describe('renderWhatsNewCard', () => {
     const list = container.querySelector('.grimoire-whats-new-card-list');
     expect(list?.getAttribute('role')).toBe('region');
     expect(list?.getAttribute('tabindex')).toBe('0');
-    expect(list?.getAttribute('aria-label')).toBe('Release notes');
+    expect(list?.getAttribute('aria-label')).toBe('Latest release notes');
 
     const dismissButton = container.querySelector('.grimoire-whats-new-card-dismiss');
     dismissButton?.click();

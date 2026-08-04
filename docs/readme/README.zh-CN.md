@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="../../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.ru.md">Русский</a>
+  <a href="../../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português</a> · <a href="README.ru.md">Русский</a>
 </p>
 
 <p align="center">
@@ -290,6 +290,14 @@ Grok 4.5 目前是驱动 Grok Build 的默认模型。Grimoire 从已认证的 G
 
 这是一个专注于对话的多标签页侧边栏。每个标签页都保留自己的草稿、供应商、模型、上下文和运行时。关闭并重新打开 Obsidian 后，会话会恢复；每条回答都会保留供应商、模型和推理强度信息。当前供应商支持时，界面会显示回退与分叉操作。当你滚离底部阅读内容时，自动滚动会立即停止跟随。连续 10 秒没有可见输出时，共用的等待指示器会显示当前供应商和已等待时间；等待用户回答或授权时则会暂停计时。
 
+### Tab、历史与导航控制
+
+右键点击 tab 可以重命名、复制、关闭、关闭其他 tabs 或关闭右侧 tabs；中键点击会关闭 tab，限时 Undo 会恢复其 draft 和位置。可以从 chat history 通过对应 action、modifier-click 或中键点击在新 tab 中打开保存的对话。长对话提供五向 navigator：顶部、上一条 prompt、对话目录、下一条 prompt 和底部。完成的 message 会在 copy action 旁显示本地化 completion timestamp。
+
+### Parallel workers、settings 与 composer
+
+**Parallel workers** approval card 会显示继承的 model，并且只启动你选择的建议任务。Settings 使用 Obsidian native search，并保留永久的 What's New 入口。Provider settings 与 composer 在各 provider 间使用一致的 surface，同时保留 provider-owned controls 和 configuration。
+
 ### 键盘快捷键
 
 | 快捷键 | 操作 |
@@ -391,6 +399,8 @@ Grimoire 在你的电脑上、Obsidian 内部运行。它没有后端服务，�
 ## 开发
 
 欢迎贡献。提交 Pull Request 之前，请先阅读 [CONTRIBUTING.md](../../CONTRIBUTING.md)；其中说明了供应商职责归属、安全边界、测试、生成产物和仓库的审查要求。
+
+欢迎 contributions。打开 pull request 前请阅读 [CONTRIBUTING.md](../../CONTRIBUTING.md)，其中说明 architecture、security、tests 和 review 的要求。
 
 ```bash
 npm install

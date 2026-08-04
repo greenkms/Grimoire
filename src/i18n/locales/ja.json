@@ -98,7 +98,7 @@
     },
     "relevantNotes": {
       "label": "関連",
-      "empty": "No source notes yet"
+      "empty": "ソースノートはまだありません"
     },
     "greetings": {
       "day": {
@@ -404,6 +404,13 @@
         "awaitingYou": "入力待ち"
       },
       "errors": {
+        "generic": "エラー: {message}",
+        "commandUnsupported": "/{command} はこのプロバイダーではサポートされていません。",
+        "externalContextAdded": "外部コンテキストを追加しました: {path}",
+        "unknownCommand": "不明なコマンド: {command}",
+        "openConversationFailed": "会話を開けませんでした: {message}",
+        "commandFailed": "コマンドに失敗しました: {message}",
+        "backgroundTaskRenderFailed": "バックグラウンドタスクは完了しましたが、結果を表示できませんでした。",
         "relevantNotesFailed": "関連ノートの取得に失敗しました: {error}",
         "couldNotOpenFile": "ファイルを開けませんでした: {path}",
         "openFileFailed": "ファイルを開けませんでした: {error}",
@@ -678,8 +685,8 @@
       "followsObsidian": "Obsidian に従う"
     },
     "usageIndicators": {
-      "name": "Usage indicators",
-      "desc": "Show plan usage and API spend indicators beside the model selector and inside the model menu."
+      "name": "使用状況インジケーター",
+      "desc": "モデルセレクターの横とモデルメニュー内に、プラン使用量と API 支出を表示します。"
     },
     "debugLogging": {
       "name": "デバッグログ",
@@ -817,13 +824,13 @@
       "invalid": "無効な形式です。使用：256k、1m、または正確な数値（1000-10000000）。"
     },
     "customModels": {
-      "name": "Custom models",
-      "desc": "Append additional Claude model IDs to the picker, one per line. Environment model overrides still replace the picker.",
+      "name": "カスタムモデル",
+      "desc": "追加の Claude モデル ID を1行に1つずつ選択肢へ追加します。環境のモデル上書きは引き続き選択肢を置き換えます。",
       "placeholder": "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
     },
     "respectProjectSettings": {
-      "name": "Respect Claude Code settings",
-      "desc": "Use model and env from Claude Code user and project settings. This enables custom models from providers such as MiniMax, Z.ai, and other Anthropic-compatible gateways. Grimoire settings still override explicit choices."
+      "name": "Claude Code の設定を尊重",
+      "desc": "Claude Code のユーザーおよびプロジェクト設定からモデルと環境を使用します。MiniMax、Z.ai、その他の Anthropic 互換ゲートウェイのカスタムモデルを有効にします。Grimoire の明示的な設定は引き続き優先されます。"
     },
     "enableChrome": {
       "name": "Chrome拡張機能を有効化",
@@ -945,8 +952,8 @@
         "searchPlaceholder": "モデル、provider、ID で絞り込み...",
         "visibleLabel": "表示:",
         "summaryDiscovered": "{total} 件中 {count} {providerWord}",
-        "providerSingular": "provider",
-        "providerPlural": "providers",
+        "providerSingular": "プロバイダー",
+        "providerPlural": "プロバイダー",
         "noDiscovered": "まだモデルが検出されていません",
         "loadingModels": "モデルを読み込み中...",
         "availableCount": "{count} 件利用可能",
@@ -975,7 +982,7 @@
       },
       "subagents": {
         "desc": ".grok/agent/ と legacy .grok/agents/ にある vault-level Grok Build subagents を管理します。新しい項目は subagent-only files として保存され、@mention menu に表示されます。",
-        "title": "Grok Build Subagents",
+        "title": "Grok Build サブエージェント",
         "noAgents": "vault に Grok Build subagents はありません。+ をクリックして作成します。",
         "modalTitleEdit": "Grok Subagent を編集",
         "modalTitleAdd": "Grok Subagent を追加",
@@ -983,8 +990,8 @@
         "descriptionDesc": "Grok Build がこの subagent を使うタイミング",
         "modelDesc": "provider/model 形式の model override",
         "variant": "Variant",
-        "variantDesc": "Model variant override",
-        "temperature": "Temperature",
+        "variantDesc": "モデルバリアントの上書き",
+        "temperature": "温度",
         "temperatureDesc": "任意の sampling temperature",
         "topP": "Top p",
         "topPDesc": "任意の nucleus sampling value",
@@ -996,11 +1003,11 @@
         "hideFromMentionDesc": "この subagent を @ autocomplete menu から隠します",
         "disableAgent": "Agent を無効化",
         "disableAgentDesc": "ファイルを削除せずに agent を無効化します",
-        "enabledTools": "Enabled tools (JSON)",
+        "enabledTools": "有効なツール (JSON)",
         "enabledToolsDesc": "任意の deprecated tools map。例: {\"write\":false,\"edit\":false}",
-        "permission": "Permission (JSON)",
+        "permission": "権限 (JSON)",
         "permissionDesc": "任意の permission config。例: {\"edit\":\"deny\",\"bash\":\"allow\"}",
-        "options": "Options (JSON)",
+        "options": "オプション (JSON)",
         "optionsDesc": "任意の custom agent options",
         "promptDesc": "agent prompt として使う Markdown body",
         "promptPlaceholder": "コード変更を注意深くレビューし、正しさ、regressions、不足している coverage を指摘してください。",
@@ -1403,5 +1410,9 @@
         "configCorrupted": "設定ファイルが破損しています。.claude/mcp.jsonを確認してください。"
       }
     }
-  }
+  },
+  "plugin": { "openRibbon": "Grimoire を開く", "openChatView": "チャットビューを開く", "inlineEdit": "インライン編集", "inlineEditViewUnavailable": "インライン編集を利用できません: アクティブな Markdown ビューにアクセスできませんでした。", "inlineEditInserted": "挿入しました", "inlineEditApplied": "編集を適用しました", "newTab": "新しいタブ", "newSession": "新しいセッション（現在のタブ）", "closeCurrentTab": "現在のタブを閉じる", "switchToTab": "タブ {index} に切り替え", "environmentRestartFailed": "環境の変更は適用されましたが、影響を受けた {count} 個のタブを再起動できませんでした。", "environmentAppliedRebuild": "環境変数を適用しました。次のメッセージでセッションを再構築します。", "environmentApplied": "環境変数を適用しました。" },
+  "shared": { "slashCommands": { "noMatches": "一致するコマンドはありません" }, "resumeConversation": { "title": "会話を再開", "empty": "会話はありません", "current": "現在のセッション" }, "instructionModal": { "title": "カスタム指示を追加", "yourInput": "入力:", "processingInstruction": "指示を処理しています...", "yourResponse": "回答:", "responsePlaceholder": "詳細を入力してください...", "refinedSnippet": "改善されたスニペット:", "processing": "処理中...", "submit": "送信", "submitResponseAria": "回答を送信", "editAria": "指示を編集", "accept": "承認", "acceptAria": "指示を承認", "preview": "プレビュー" }, "whatsNew": { "title": "Grimoire v{version} の新機能", "released": "リリース日: {date}", "latestReleaseNotes": "最新のリリースノート", "fullChangelog": "完全な変更履歴", "gotIt": "了解" } },
+  "inlineEdit": { "rejectTitle": "拒否 (Esc)", "acceptTitle": "承認 (Enter)", "editorUnavailable": "インライン編集を利用できません: アクティブなエディタにアクセスできませんでした。ノートを開き直してください。", "vaultFilesLoadFailed": "Vault ファイルを読み込めませんでした。@ メンションを利用できない場合があります。", "invalidFilePath": "ファイルを添付できませんでした: 無効なパス" },
+  "storage": { "tabLayoutSaveFailed": "タブレイアウトを保存できませんでした" }
 }

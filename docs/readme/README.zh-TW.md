@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="../../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.ru.md">Русский</a>
+  <a href="../../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português</a> · <a href="README.ru.md">Русский</a>
 </p>
 
 <p align="center">
@@ -31,7 +31,7 @@ Grimoire 將 agentic CLI 助手帶入 Obsidian。Claude Code、Codex、Antigravi
 
 它面向已經在 Obsidian 中工作的人：你可以使用本地 context、本地檔案、明確選擇的 provider，並在介面中直接看到 usage 和 cost。
 
-> 英文 [README](../../README.md) 是專案的 canonical 文件。此繁體中文版本與 `1.0.11` 文件保持同步。
+> 英文 [README](../../README.md) 是專案的 canonical 文件。此翻譯會隨目前產品文件維護。
 
 ## 為什麼選擇 Grimoire
 
@@ -287,6 +287,14 @@ Grok 4.5 目前是 Grok Build 的預設模型。Grimoire 從已驗證的 Grok CL
 
 一個專注的側邊欄，支援多個 tabs。每個 tab 都保留自己的 draft、provider、model、context 和 runtime。關閉再開啟 Obsidian 後，sessions 會恢復，並且每個 response 都保留 provider、model 和 reasoning effort。Rewind 和 fork 會在目前 provider 支援時出現。你一旦手動捲動去閱讀歷史，auto-scroll 會自動讓位。10 秒沒有可見輸出後，shared wait indicator 會顯示 active provider 和已等待時間；等待問題或 permission 時會暫停。
 
+### Tab、歷史與導覽控制
+
+右鍵點擊 tab 可重新命名、複製、關閉、關閉其他 tabs 或關閉右側 tabs；middle-click 會關閉 tab，而限時 Undo 會還原其 draft 和位置。可從 chat history 透過 action、modifier-click 或 middle-click 在新 tab 開啟儲存的對話。長對話提供五向 navigator：頂端、上一個 prompt、對話目錄、下一個 prompt 和底端。完成的 message 會在 copy action 旁顯示本地化 completion timestamp。
+
+### Parallel workers、settings 與 composer
+
+**Parallel workers** approval card 會顯示 inherited model，並只啟動你選取的建議任務。Settings 使用 Obsidian native search，並保留永久的 What's New 項目。Provider settings 和 composer 在各 provider 間使用一致的 surface，同時保留 provider-owned controls 和 configuration。
+
 ### 鍵盤快捷鍵
 
 | 快捷鍵 | 操作 |
@@ -381,9 +389,11 @@ Grimoire 執行在 Obsidian 內部、你的電腦上。它沒有 backend，不�
 
 它無法隱藏的是 provider 本身。你啟用的 CLI 會收到 prompt、你選擇的 context，以及 request 所需的 files、images、tool output 和 commands。該 CLI 可能會存取 Anthropic、OpenAI、Google、你設定的 OpenCode vendors、MCP servers，或者任何你設定過的其他目標。Terms、retention、billing、rate limits 和 privacy policies 屬於 provider，而不是 Grimoire。Grimoire 的職責是在 Obsidian 中讓這條邊界清楚可見，並由你控制。
 
-如需了解面向 Obsidian policy 的網路使用、帳戶需求、外部檔案存取、logging 和 telemetry 的摘要，請參閱 [DISCLOSURES.md](../DISCLOSURES.md)。
+如需了解面向 Obsidian policy 的網路使用、帳戶需求、外部檔案存取、logging 和 telemetry 的摘要，請參閱 [DISCLOSURES.md](../../DISCLOSURES.md)。
 
 ## Development
+
+歡迎 contributions。開啟 pull request 前請閱讀 [CONTRIBUTING.md](../../CONTRIBUTING.md)，其中說明 architecture、security、tests 和 review 的要求。
 
 ```bash
 npm install

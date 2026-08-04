@@ -10,6 +10,8 @@
 import type { App } from 'obsidian';
 import { Modal, TextAreaComponent } from 'obsidian';
 
+import { t } from '../../i18n/i18n';
+
 export type InstructionDecision = 'accept' | 'reject';
 
 type ModalState = 'loading' | 'clarification' | 'confirmation';
@@ -59,12 +61,12 @@ export class InstructionModal extends Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.addClass('grimoire-instruction-modal');
-    this.setTitle('Add custom instruction');
+    this.setTitle(t('shared.instructionModal.title'));
 
     // User input section (always visible)
     const inputSection = contentEl.createDiv({ cls: 'grimoire-instruction-section' });
     const inputLabel = inputSection.createDiv({ cls: 'grimoire-instruction-label' });
-    inputLabel.setText('Your input:');
+    inputLabel.setText(t('shared.instructionModal.yourInput'));
     const inputText = inputSection.createDiv({ cls: 'grimoire-instruction-original' });
     inputText.setText(this.rawInstruction);
 
@@ -74,7 +76,7 @@ export class InstructionModal extends Modal {
     // Loading state
     this.loadingEl = this.contentSectionEl.createDiv({ cls: 'grimoire-instruction-loading' });
     this.loadingEl.createDiv({ cls: 'grimoire-instruction-spinner' });
-    this.loadingEl.createSpan({ text: 'Processing your instruction...' });
+    this.loadingEl.createSpan({ text: t('shared.instructionModal.processingInstruction') });
 
     // Clarification state (hidden initially)
     this.clarificationEl = this.contentSectionEl.createDiv({ cls: 'grimoire-instruction-clarification-section' });
@@ -83,12 +85,12 @@ export class InstructionModal extends Modal {
 
     const responseSection = this.clarificationEl.createDiv({ cls: 'grimoire-instruction-section' });
     const responseLabel = responseSection.createDiv({ cls: 'grimoire-instruction-label' });
-    responseLabel.setText('Your response:');
+    responseLabel.setText(t('shared.instructionModal.yourResponse'));
 
     this.responseTextarea = new TextAreaComponent(responseSection);
     this.responseTextarea.inputEl.addClass('grimoire-instruction-response-textarea');
     this.responseTextarea.inputEl.rows = 3;
-    this.responseTextarea.inputEl.placeholder = 'Provide more details...';
+    this.responseTextarea.inputEl.placeholder = t('shared.instructionModal.responsePlaceholder');
 
     this.responseTextarea.inputEl.addEventListener('keydown', (e) => {
       // Check !e.isComposing for IME support (Chinese, Japanese, Korean, etc.)
@@ -105,7 +107,7 @@ export class InstructionModal extends Modal {
     // Refined instruction display/edit
     const refinedSection = this.confirmationEl.createDiv({ cls: 'grimoire-instruction-section' });
     const refinedLabel = refinedSection.createDiv({ cls: 'grimoire-instruction-label' });
-    refinedLabel.setText('Refined snippet:');
+    refinedLabel.setText(t('shared.instructionModal.refinedSnippet'));
 
     this.refinedDisplayEl = refinedSection.createDiv({ cls: 'grimoire-instruction-refined' });
     this.editContainerEl = refinedSection.createDiv({ cls: 'grimoire-instruction-edit-container' });
@@ -158,7 +160,7 @@ export class InstructionModal extends Modal {
     if (this.loadingEl) {
       this.loadingEl.querySelector('.grimoire-instruction-spinner');
       const text = this.loadingEl.querySelector('span');
-      if (text) text.textContent = 'Processing...';
+      if (text) text.textContent = t('shared.instructionModal.processing');
     }
     this.showState('loading');
   }
@@ -184,33 +186,33 @@ export class InstructionModal extends Modal {
     this.buttonsEl.empty();
 
     const cancelBtn = this.buttonsEl.createEl('button', {
-      text: 'Cancel',
+      text: t('common.cancel'),
       cls: 'grimoire-instruction-btn grimoire-instruction-reject-btn',
-      attr: { 'aria-label': 'Cancel' }
+      attr: { 'aria-label': t('common.cancel') }
     });
     cancelBtn.addEventListener('click', () => this.handleReject());
 
     if (this.state === 'clarification') {
       const submitBtn = this.buttonsEl.createEl('button', {
-        text: 'Submit',
+        text: t('shared.instructionModal.submit'),
         cls: 'grimoire-instruction-btn grimoire-instruction-accept-btn',
-        attr: { 'aria-label': 'Submit response' }
+        attr: { 'aria-label': t('shared.instructionModal.submitResponseAria') }
       });
       submitBtn.addEventListener('click', () => {
         void this.submitClarification();
       });
     } else if (this.state === 'confirmation') {
       this.editBtnEl = this.buttonsEl.createEl('button', {
-        text: 'Edit',
+        text: t('common.edit'),
         cls: 'grimoire-instruction-btn grimoire-instruction-edit-btn',
-        attr: { 'aria-label': 'Edit instruction' }
+        attr: { 'aria-label': t('shared.instructionModal.editAria') }
       });
       this.editBtnEl.addEventListener('click', () => this.toggleEdit());
 
       const acceptBtn = this.buttonsEl.createEl('button', {
-        text: 'Accept',
+        text: t('shared.instructionModal.accept'),
         cls: 'grimoire-instruction-btn grimoire-instruction-accept-btn',
-        attr: { 'aria-label': 'Accept instruction' }
+        attr: { 'aria-label': t('shared.instructionModal.acceptAria') }
       });
       acceptBtn.addEventListener('click', () => this.handleAccept());
       acceptBtn.focus();
@@ -238,7 +240,7 @@ export class InstructionModal extends Modal {
     if (this.isEditing) {
       this.refinedDisplayEl?.addClass('grimoire-hidden');
       this.editContainerEl?.removeClass('grimoire-hidden');
-      if (this.editBtnEl) this.editBtnEl.setText('Preview');
+      if (this.editBtnEl) this.editBtnEl.setText(t('shared.instructionModal.preview'));
       this.editTextarea?.inputEl.focus();
     } else {
       const edited = this.editTextarea?.getValue() || this.refinedInstruction;
@@ -248,7 +250,7 @@ export class InstructionModal extends Modal {
         this.refinedDisplayEl.removeClass('grimoire-hidden');
       }
       this.editContainerEl?.addClass('grimoire-hidden');
-      if (this.editBtnEl) this.editBtnEl.setText('Edit');
+      if (this.editBtnEl) this.editBtnEl.setText(t('common.edit'));
     }
   }
 

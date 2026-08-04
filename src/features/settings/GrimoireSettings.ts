@@ -583,6 +583,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
             }
             this.plugin.settings.locale = locale;
             await this.plugin.saveSettings();
+            this.plugin.refreshShellTranslations();
             this.update();
           });
       });

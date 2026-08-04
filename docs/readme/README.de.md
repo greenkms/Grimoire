@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="../../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.ru.md">Русский</a>
+  <a href="../../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português</a> · <a href="README.ru.md">Русский</a>
 </p>
 
 <p align="center">
@@ -31,7 +31,7 @@ Grimoire bringt agentic CLI-Assistenten direkt nach Obsidian. Claude Code, Codex
 
 Grimoire ist für Menschen gebaut, die bereits in Obsidian arbeiten und AI-Hilfe wollen, die sich wie ein Teil des vault anfühlt: lokaler context, lokale files, bewusst gewählte provider und sichtbare usage/cost direkt im UI.
 
-> Das englische [README](../../README.md) ist das canonical document des Projekts. Diese deutsche Version ist mit der Dokumentation fuer `1.0.11` synchronisiert.
+> Das englische [README](../../README.md) ist das canonical document des Projekts. Diese Übersetzung wird mit den aktuellen Produktdokumenten gepflegt.
 
 ## Warum Grimoire
 
@@ -292,7 +292,15 @@ In Grimoire läuft Grok Build über ACP via `grok agent stdio` mit Grimoire-mana
 
 ### Chat workspace
 
-Eine fokussierte Seitenleiste mit mehreren tabs. Jeder tab behält eigenen draft, provider, model, context und runtime. Wenn du Obsidian schließt und wieder öffnest, kommen deine sessions zurück; provider, model und reasoning effort bleiben bei jeder response erhalten. Rewind und fork erscheinen, wenn der aktive provider sie unterstützt. Auto-scroll hält an, sobald du selbst zurückscrollst, um etwas zu lesen.
+Eine fokussierte Seitenleiste mit mehreren tabs. Jeder tab behält eigenen draft, provider, model, context und runtime. Wenn du Obsidian schließt und wieder öffnest, kommen deine sessions zurück; provider, model und reasoning effort bleiben bei jeder response erhalten. Rewind und fork erscheinen, wenn der aktive provider sie unterstützt. Auto-scroll hält an, sobald du selbst zurückscrollst, um etwas zu lesen. Nach 10 Sekunden ohne sichtbare Ausgabe zeigt ein gemeinsamer wait indicator den aktiven provider und die Wartezeit; bei Fragen oder permissions pausiert er.
+
+### Tab-, Verlauf- und Navigationssteuerung
+
+Per Rechtsklick kannst du einen tab umbenennen, duplizieren, schließen, andere tabs schließen oder tabs rechts davon schließen. Ein Mittelklick schließt einen tab; Undo stellt ihn zeitlich begrenzt mit draft und Position wieder her. Öffne gespeicherte Gespräche aus der chat history per Aktion, Modifier-Klick oder Mittelklick in einem neuen tab. Lange Gespräche haben einen Navigator für Anfang, vorherigen prompt, Gesprächsverzeichnis, nächsten prompt und Ende. Fertige Nachrichten zeigen neben der copy action einen lokalisierten completion timestamp.
+
+### Parallel workers, settings und composer
+
+Die approval card **Parallel workers** zeigt das geerbte model und startet nur die ausgewählten vorgeschlagenen Aufgaben. Settings verwenden die native Obsidian-Suche und haben einen permanenten What's New-Eintrag. Provider settings und composer bieten providerübergreifend eine einheitliche Oberfläche, ohne provider-eigene controls oder Konfiguration zu verschieben.
 
 ### Tastenkürzel
 
@@ -388,7 +396,7 @@ Grimoire läuft in Obsidian, auf deinem Rechner. Es hat kein backend, fügt kein
 
 Was Grimoire nicht verstecken kann, ist der provider selbst. Das CLI, das du aktivierst, erhält prompt, gewählten context und die files, images, tool output und commands, die ein request braucht. Dieses CLI kann mit Anthropic, OpenAI, Google, deinen konfigurierten OpenCode vendors, MCP servers oder anderen eingerichteten Zielen sprechen. Terms, retention, billing, rate limits und privacy policies gehören zum provider, nicht zu Grimoire. Grimoire macht diese Grenze in Obsidian sichtbar und kontrollierbar.
 
-Für eine Obsidian-policy-orientierte Zusammenfassung von Netzwerknutzung, Account-Anforderungen, externem Dateizugriff, Logging und Telemetry siehe [DISCLOSURES.md](../DISCLOSURES.md).
+Für eine Obsidian-policy-orientierte Zusammenfassung von Netzwerknutzung, Account-Anforderungen, externem Dateizugriff, Logging und Telemetry siehe [DISCLOSURES.md](../../DISCLOSURES.md).
 
 ## Development
 
@@ -414,6 +422,8 @@ npm run build:release
 `npm run build:release` aktualisiert generated `main.js`, root `styles.css` und `dist/grimoire`.
 
 npm ist der canonical package manager für development, CI und releases. Halte `package-lock.json` aktuell, wenn dependencies geändert werden; secondary package-manager lockfiles werden absichtlich nicht committed.
+
+Beiträge sind willkommen. Lies vor einem Pull Request [CONTRIBUTING.md](../../CONTRIBUTING.md); sie beschreibt Architektur-, Sicherheits-, Test- und Review-Erwartungen.
 
 ## Releases
 

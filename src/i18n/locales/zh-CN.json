@@ -404,6 +404,13 @@
         "awaitingYou": "等待你的操作"
       },
       "errors": {
+        "generic": "错误：{message}",
+        "commandUnsupported": "此提供商不支持 /{command}。",
+        "externalContextAdded": "已添加外部上下文：{path}",
+        "unknownCommand": "未知命令：{command}",
+        "openConversationFailed": "无法打开对话：{message}",
+        "commandFailed": "命令失败：{message}",
+        "backgroundTaskRenderFailed": "后台任务已完成，但无法显示结果。",
         "relevantNotesFailed": "相关笔记加载失败：{error}",
         "couldNotOpenFile": "无法打开文件：{path}",
         "openFileFailed": "打开文件失败：{error}",
@@ -1403,5 +1410,9 @@
         "configCorrupted": "配置文件已损坏。请检查 .claude/mcp.json。"
       }
     }
-  }
+  },
+  "plugin": { "openRibbon": "打开 Grimoire", "openChatView": "打开聊天视图", "inlineEdit": "内联编辑", "inlineEditViewUnavailable": "内联编辑不可用：无法访问当前 Markdown 视图。", "inlineEditInserted": "已插入", "inlineEditApplied": "已应用编辑", "newTab": "新建标签页", "newSession": "新建会话（当前标签页）", "closeCurrentTab": "关闭当前标签页", "switchToTab": "切换到标签页 {index}", "environmentRestartFailed": "环境更改已应用，但有 {count} 个受影响的标签页无法重启。", "environmentAppliedRebuild": "环境变量已应用。会话将在下一条消息时重建。", "environmentApplied": "环境变量已应用。" },
+  "shared": { "slashCommands": { "noMatches": "没有匹配的命令" }, "resumeConversation": { "title": "恢复对话", "empty": "没有对话", "current": "当前会话" }, "instructionModal": { "title": "添加自定义指令", "yourInput": "你的输入：", "processingInstruction": "正在处理你的指令...", "yourResponse": "你的回复：", "responsePlaceholder": "请提供更多详细信息...", "refinedSnippet": "优化后的片段：", "processing": "正在处理...", "submit": "提交", "submitResponseAria": "提交回复", "editAria": "编辑指令", "accept": "接受", "acceptAria": "接受指令", "preview": "预览" }, "whatsNew": { "title": "Grimoire v{version} 的新功能", "released": "发布于 {date}", "latestReleaseNotes": "最新发行说明", "fullChangelog": "完整更新日志", "gotIt": "知道了" } },
+  "inlineEdit": { "rejectTitle": "拒绝 (Esc)", "acceptTitle": "接受 (Enter)", "editorUnavailable": "内联编辑不可用：无法访问当前编辑器。请重新打开笔记。", "vaultFilesLoadFailed": "无法加载 vault 文件。@ 提及可能不可用。", "invalidFilePath": "无法附加文件：路径无效" },
+  "storage": { "tabLayoutSaveFailed": "无法保存标签页布局" }
 }

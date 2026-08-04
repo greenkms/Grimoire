@@ -1673,7 +1673,7 @@ export class InputController {
       }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      new Notice(`Error: ${errorMsg}`);
+      new Notice(t('chat.ui.errors.generic', { message: errorMsg }));
       modal?.showError(errorMsg);
       instructionModeManager?.clear();
     }
@@ -2013,7 +2013,7 @@ export class InputController {
     const capabilities = this.getActiveCapabilities();
 
     if (!isBuiltInCommandSupported(command, capabilities)) {
-      new Notice(`/${command.name} is not supported by this provider.`);
+      new Notice(t('chat.ui.errors.commandUnsupported', { command: command.name }));
       return;
     }
 
@@ -2029,7 +2029,7 @@ export class InputController {
         }
         const result = externalContextSelector.addExternalContext(args);
         if (result.success) {
-          new Notice(`Added external context: ${result.normalizedPath}`);
+          new Notice(t('chat.ui.errors.externalContextAdded', { path: result.normalizedPath }));
         } else {
           new Notice(result.error);
         }
@@ -2073,7 +2073,7 @@ export class InputController {
         const unknownAction = typeof (command as { action?: unknown }).action === 'string'
           ? (command as { action: string }).action
           : 'unknown';
-        new Notice(`Unknown command: ${unknownAction}`);
+        new Notice(t('chat.ui.errors.unknownCommand', { command: unknownAction }));
         break;
       }
     }
@@ -2124,7 +2124,7 @@ export class InputController {
           this.destroyResumeDropdown();
           openConversation(id).catch((err: unknown) => {
             const msg = err instanceof Error ? err.message : String(err);
-            new Notice(`Failed to open conversation: ${msg}`);
+            new Notice(t('chat.ui.errors.openConversationFailed', { message: msg }));
           });
         },
         onDismiss: () => {
