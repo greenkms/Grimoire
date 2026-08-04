@@ -2,6 +2,7 @@ import { getBuiltInCommandsForDropdown } from '../../core/commands/builtInComman
 import type { ProviderCommandDropdownConfig } from '../../core/providers/commands/ProviderCommandCatalog';
 import type { ProviderCommandEntry } from '../../core/providers/commands/ProviderCommandEntry';
 import type { SlashCommand } from '../../core/types';
+import { t } from '../../i18n/i18n';
 import { normalizeArgumentHint } from '../../utils/slashCommand';
 
 interface DropdownItem {
@@ -317,7 +318,7 @@ export class SlashCommandDropdown {
 
     if (this.filteredItems.length === 0) {
       const emptyEl = this.dropdownEl.createDiv({ cls: 'grimoire-slash-empty' });
-      emptyEl.setText('No matching commands');
+      emptyEl.setText(t('shared.slashCommands.noMatches'));
     } else {
       for (let i = 0; i < this.filteredItems.length; i++) {
         const item = this.filteredItems[i];

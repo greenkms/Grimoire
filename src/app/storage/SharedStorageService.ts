@@ -5,6 +5,7 @@ import { SESSIONS_PATH, SessionStorage } from '../../core/bootstrap/SessionStora
 import type { SharedAppStorage } from '../../core/bootstrap/storage';
 import { GRIMOIRE_STORAGE_PATH } from '../../core/bootstrap/StoragePaths';
 import { VaultFileAdapter } from '../../core/storage/VaultFileAdapter';
+import { t } from '../../i18n/i18n';
 import { GrimoireSettingsStorage, type StoredGrimoireSettings } from '../settings/GrimoireSettingsStorage';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -90,7 +91,7 @@ export class SharedStorageService implements SharedAppStorage {
       data.tabManagerState = state;
       await this.plugin.saveData(data);
     } catch {
-      new Notice('Failed to save tab layout');
+      new Notice(t('storage.tabLayoutSaveFailed'));
     }
   }
 

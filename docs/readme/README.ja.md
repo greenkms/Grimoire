@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="../../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.ru.md">Русский</a>
+  <a href="../../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português</a> · <a href="README.ru.md">Русский</a>
 </p>
 
 <p align="center">
@@ -31,7 +31,7 @@ Grimoire は agentic CLI アシスタントを Obsidian に組み込みます。
 
 Grimoire は、すでに Obsidian で作業している人のために作られています。ローカル context、ローカル files、意図して選ぶ provider、そして UI 上で確認できる usage と cost を重視しています。
 
-> 英語版 [README](../../README.md) がプロジェクトの canonical document です。この日本語版は `1.0.11` のドキュメントに同期しています。
+> 英語版 [README](../../README.md) がプロジェクトの canonical document です。この翻訳は現在の製品ドキュメントに合わせて更新されます。
 
 ## Grimoire を使う理由
 
@@ -294,7 +294,15 @@ Grimoire 内では、Grok Build は `grok agent stdio` 経由の ACP で動作�
 
 ### Chat workspace
 
-複数 tabs を持つ集中型サイドパネルです。各 tab は独自の draft、provider、model、context、runtime を保持します。Obsidian を閉じて再度開いても sessions は復元され、各 response に provider、model、reasoning effort が保持されます。Rewind と fork は、active provider がサポートする場合に表示されます。履歴を読むために手動で scroll すると、auto-scroll は自動的に控えます。
+複数 tabs を持つ集中型サイドパネルです。各 tab は独自の draft、provider、model、context、runtime を保持します。Obsidian を閉じて再度開いても sessions は復元され、各 response に provider、model、reasoning effort が保持されます。Rewind と fork は、active provider がサポートする場合に表示されます。履歴を読むために手動で scroll すると、auto-scroll は自動的に控えます。表示出力が 10 秒ないと、shared wait indicator が active provider と経過時間を表示し、質問や permission を待つ間は停止します。
+
+### Tab、履歴、ナビゲーションの操作
+
+Tab を右クリックすると、名前変更、複製、閉じる、他の tabs を閉じる、右側の tabs を閉じる操作ができます。Middle-click で tab を閉じ、時間制限付きの Undo で draft と位置を復元できます。保存済みの会話は chat history の action、modifier-click、middle-click で新しい tab に開けます。長い会話には、先頭、前の prompt、会話ディレクトリ、次の prompt、末尾へ移動する 5 方向 navigator があります。完了した message には copy action の横に localized completion timestamp が表示されます。
+
+### Parallel workers、settings、composer
+
+**Parallel workers** approval card は inherited model を表示し、起動する提案タスクだけを選択できます。Settings は Obsidian の native search を使い、永続的な What's New を保持します。Provider settings と composer は provider 間で一貫した surface を使いつつ、provider-owned controls と設定はそのまま保持します。
 
 ### キーボードショートカット
 
@@ -390,9 +398,11 @@ Grimoire は Obsidian の中で、あなたのマシン上で動作します。B
 
 Grimoire が隠せないものは provider 自体です。有効化した CLI は prompt、選択した context、request に必要な files、images、tool output、commands を受け取ります。その CLI は Anthropic、OpenAI、Google、設定済みの OpenCode vendors、MCP servers、またはあなたが設定した他の接続先と通信する可能性があります。Terms、retention、billing、rate limits、privacy policies は provider のものであり、Grimoire のものではありません。Grimoire の役割は、その境界を Obsidian の中で見えるようにし、あなたが制御できるようにすることです。
 
-Obsidian のポリシーに基づいたネットワーク利用、アカウント要件、外部ファイルアクセス、ログ、telemetry の概要については、[DISCLOSURES.md](../DISCLOSURES.md) を参照してください。
+Obsidian のポリシーに基づいたネットワーク利用、アカウント要件、外部ファイルアクセス、ログ、telemetry の概要については、[DISCLOSURES.md](../../DISCLOSURES.md) を参照してください。
 
 ## Development
+
+Contributions を歓迎します。Pull Request を開く前に [CONTRIBUTING.md](../../CONTRIBUTING.md) を読んでください。architecture、security、tests、review の期待事項を説明しています。
 
 ```bash
 npm install

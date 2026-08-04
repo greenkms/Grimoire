@@ -98,7 +98,7 @@
     },
     "relevantNotes": {
       "label": "Relacionado",
-      "empty": "No source notes yet"
+      "empty": "Ainda não há notas de origem"
     },
     "greetings": {
       "day": {
@@ -404,6 +404,13 @@
         "awaitingYou": "Aguardando você"
       },
       "errors": {
+        "generic": "Erro: {message}",
+        "commandUnsupported": "/{command} não é compatível com este provedor.",
+        "externalContextAdded": "Contexto externo adicionado: {path}",
+        "unknownCommand": "Comando desconhecido: {command}",
+        "openConversationFailed": "Não foi possível abrir a conversa: {message}",
+        "commandFailed": "Falha no comando: {message}",
+        "backgroundTaskRenderFailed": "A tarefa em segundo plano foi concluída, mas não foi possível exibir o resultado.",
         "relevantNotesFailed": "Falha nas notas relevantes: {error}",
         "couldNotOpenFile": "Não foi possível abrir o arquivo: {path}",
         "openFileFailed": "Não foi possível abrir o arquivo: {error}",
@@ -678,8 +685,8 @@
       "followsObsidian": "Segue o Obsidian"
     },
     "usageIndicators": {
-      "name": "Usage indicators",
-      "desc": "Show plan usage and API spend indicators beside the model selector and inside the model menu."
+      "name": "Indicadores de uso",
+      "desc": "Mostra indicadores de uso do plano e gastos de API ao lado do seletor e no menu de modelos."
     },
     "debugLogging": {
       "name": "Log de depuração",
@@ -817,13 +824,13 @@
       "invalid": "Formato inválido. Use: 256k, 1m ou número exato (1000-10000000)."
     },
     "customModels": {
-      "name": "Custom models",
-      "desc": "Append additional Claude model IDs to the picker, one per line. Environment model overrides still replace the picker.",
+      "name": "Modelos personalizados",
+      "desc": "Adicione IDs de modelos Claude ao seletor, um por linha. As substituições de modelo do ambiente continuam a substituir o seletor.",
       "placeholder": "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
     },
     "respectProjectSettings": {
-      "name": "Respect Claude Code settings",
-      "desc": "Use model and env from Claude Code user and project settings. This enables custom models from providers such as MiniMax, Z.ai, and other Anthropic-compatible gateways. Grimoire settings still override explicit choices."
+      "name": "Respeitar configurações do Claude Code",
+      "desc": "Use o modelo e o ambiente das configurações de usuário e projeto do Claude Code. Isso permite modelos personalizados de MiniMax, Z.ai e outros gateways compatíveis com Anthropic. As escolhas explícitas do Grimoire continuam tendo prioridade."
     },
     "enableChrome": {
       "name": "Habilitar extensão do Chrome",
@@ -1315,7 +1322,7 @@
       "agent": "Agent",
       "agentDesc": "Tipo de subagente quando o contexto é bifurcação",
       "promptTemplate": "Modelo de prompt",
-      "promptTemplateDesc": "Use $ARGUMENTS, $1, $2, @file, !`bash`",
+      "promptTemplateDesc": "Utilize $ARGUMENTS, $1, $2, @file, !`bash`",
       "promptTemplatePlaceholder": "Revise este código quanto a:\n$ARGUMENTS\n\n@$1",
       "promptRequired": "O modelo de prompt é obrigatório",
       "commandExists": "Já existe um comando chamado \"/{name}\"",
@@ -1403,5 +1410,9 @@
         "configCorrupted": "O arquivo de configuração está corrompido. Verifique .claude/mcp.json."
       }
     }
-  }
+  },
+  "plugin": { "openRibbon": "Abrir Grimoire", "openChatView": "Abrir visualização de chat", "inlineEdit": "Edição em linha", "inlineEditViewUnavailable": "A edição em linha está indisponível: não foi possível acessar a visualização Markdown ativa.", "inlineEditInserted": "Inserido", "inlineEditApplied": "Edição aplicada", "newTab": "Nova aba", "newSession": "Nova sessão (na aba atual)", "closeCurrentTab": "Fechar aba atual", "switchToTab": "Alternar para a aba {index}", "environmentRestartFailed": "As alterações de ambiente foram aplicadas, mas não foi possível reiniciar {count} abas afetadas.", "environmentAppliedRebuild": "Variáveis de ambiente aplicadas. As sessões serão recriadas na próxima mensagem.", "environmentApplied": "Variáveis de ambiente aplicadas." },
+  "shared": { "slashCommands": { "noMatches": "Nenhum comando correspondente" }, "resumeConversation": { "title": "Retomar conversa", "empty": "Nenhuma conversa", "current": "Sessão atual" }, "instructionModal": { "title": "Adicionar instrução personalizada", "yourInput": "Sua entrada:", "processingInstruction": "Processando sua instrução...", "yourResponse": "Sua resposta:", "responsePlaceholder": "Forneça mais detalhes...", "refinedSnippet": "Trecho refinado:", "processing": "Processando...", "submit": "Enviar", "submitResponseAria": "Enviar resposta", "editAria": "Editar instrução", "accept": "Aceitar", "acceptAria": "Aceitar instrução", "preview": "Prévia" }, "whatsNew": { "title": "Novidades do Grimoire v{version}", "released": "Lançado em {date}", "latestReleaseNotes": "Notas da versão mais recente", "fullChangelog": "Registro completo de alterações", "gotIt": "Entendi" } },
+  "inlineEdit": { "rejectTitle": "Rejeitar (Esc)", "acceptTitle": "Aceitar (Enter)", "editorUnavailable": "A edição em linha está indisponível: não foi possível acessar o editor ativo. Reabra a nota.", "vaultFilesLoadFailed": "Não foi possível carregar os arquivos do vault. As menções @ podem estar indisponíveis.", "invalidFilePath": "Não foi possível anexar o arquivo: caminho inválido" },
+  "storage": { "tabLayoutSaveFailed": "Não foi possível salvar o layout das abas" }
 }

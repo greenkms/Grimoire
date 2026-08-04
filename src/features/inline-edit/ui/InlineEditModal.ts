@@ -8,6 +8,7 @@ import { getHiddenProviderCommandSet } from '../../../core/providers/commands/hi
 import { ProviderRegistry } from '../../../core/providers/ProviderRegistry';
 import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
 import { DEFAULT_CHAT_PROVIDER_ID, type InlineEditMode, type InlineEditService, type ProviderId } from '../../../core/providers/types';
+import { t } from '../../../i18n/i18n';
 import type GrimoirePlugin from '../../../main';
 import { hideSelectionHighlight, showSelectionHighlight } from '../../../shared/components/SelectionHighlight';
 import { SlashCommandDropdown } from '../../../shared/components/SlashCommandDropdown';
@@ -66,11 +67,11 @@ class DiffWidget extends WidgetType {
     const btns = span.createSpan({ cls: 'grimoire-inline-diff-buttons' });
 
     const rejectBtn = btns.createEl('button', { cls: 'grimoire-inline-diff-btn reject', text: '✕' });
-    rejectBtn.title = 'Reject (esc)';
+    rejectBtn.title = t('inlineEdit.rejectTitle');
     rejectBtn.onclick = () => this.controller.reject();
 
     const acceptBtn = btns.createEl('button', { cls: 'grimoire-inline-diff-btn accept', text: '✓' });
-    acceptBtn.title = 'Accept (enter)';
+    acceptBtn.title = t('inlineEdit.acceptTitle');
     acceptBtn.onclick = () => this.controller.accept();
 
     return span;
@@ -257,7 +258,7 @@ export class InlineEditModal {
     }
 
     if (!editorView) {
-      new Notice('Inline edit unavailable: could not access the active editor. Try reopening the note.');
+      new Notice(t('inlineEdit.editorUnavailable'));
       return { decision: 'reject' };
     }
 
@@ -331,7 +332,7 @@ class InlineEditController {
     this.resolvedProviderId = providerId;
     this.mentionDataProvider = new VaultMentionDataProvider(this.app, {
       onFileLoadError: () => {
-        new Notice('Failed to load vault files. Vault @-mentions may be unavailable.');
+        new Notice(t('inlineEdit.vaultFilesLoadFailed'));
       },
     });
     this.mentionDataProvider.initializeInBackground();
@@ -718,7 +719,7 @@ class InlineEditController {
       const vaultPath = getVaultPath(this.app);
       return normalizePathForVaultUtil(rawPath, vaultPath);
     } catch {
-      new Notice('Failed to attach file: invalid path');
+      new Notice(t('inlineEdit.invalidFilePath'));
       return null;
     }
   }

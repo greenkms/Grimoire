@@ -1,7 +1,8 @@
-import { addIcon } from 'obsidian';
+import { addIcon, setTooltip } from 'obsidian';
 
 import { TOOL_SUBAGENT } from '@/core/tools/toolNames';
 import { VIEW_TYPE_GRIMOIRE } from '@/core/types';
+import { setLocale } from '@/i18n/i18n';
 import * as sdkSession from '@/providers/claude/history/ClaudeHistoryStore';
 import { DEFAULT_SETTINGS } from '@/providers/claude/types/settings';
 import { DEFAULT_CODEX_PRIMARY_MODEL } from '@/providers/codex/types/models';
@@ -218,6 +219,20 @@ describe('GrimoirePlugin', () => {
         name: 'Open chat view',
         callback: expect.any(Function),
       });
+    });
+
+    it('refreshes registered command and ribbon labels after a locale change', async () => {
+      const ribbonEl = {} as HTMLElement;
+      (plugin.addRibbonIcon as jest.Mock).mockReturnValue(ribbonEl);
+      await plugin.onload();
+
+      setLocale('ru');
+      plugin.refreshShellTranslations();
+
+      expect(setTooltip).toHaveBeenCalledWith(ribbonEl, 'Открыть Grimoire');
+      expect(getRegisteredCommand('open-view').name).toBe('Открыть чат');
+      expect(getRegisteredCommand('inline-edit').name).toBe('Редактировать в строке');
+      expect(getRegisteredCommand('switch-to-tab-3').name).toBe('Перейти на вкладку 3');
     });
 
   });

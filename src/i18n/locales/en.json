@@ -404,6 +404,13 @@
         "awaitingYou": "Awaiting you"
       },
       "errors": {
+        "generic": "Error: {message}",
+        "commandUnsupported": "/{command} is not supported by this provider.",
+        "externalContextAdded": "Added external context: {path}",
+        "unknownCommand": "Unknown command: {command}",
+        "openConversationFailed": "Failed to open conversation: {message}",
+        "commandFailed": "Command failed: {message}",
+        "backgroundTaskRenderFailed": "Background task completed, but the result could not be rendered.",
         "relevantNotesFailed": "Relevant notes failed: {error}",
         "couldNotOpenFile": "Could not open file: {path}",
         "openFileFailed": "Failed to open file: {error}",
@@ -1403,5 +1410,32 @@
         "configCorrupted": "Configuration file is corrupted. Check .claude/mcp.json."
       }
     }
-  }
+  },
+  "plugin": {
+    "openRibbon": "Open Grimoire",
+    "openChatView": "Open chat view",
+    "inlineEdit": "Inline edit",
+    "inlineEditViewUnavailable": "Inline edit unavailable: could not access the active Markdown view.",
+    "inlineEditInserted": "Inserted",
+    "inlineEditApplied": "Edit applied",
+    "newTab": "New tab",
+    "newSession": "New session (in current tab)",
+    "closeCurrentTab": "Close current tab",
+    "switchToTab": "Switch to tab {index}",
+    "environmentRestartFailed": "Environment changes applied, but {count} affected tab(s) failed to restart.",
+    "environmentAppliedRebuild": "Environment variables applied. Sessions will be rebuilt on next message.",
+    "environmentApplied": "Environment variables applied."
+  },
+  "shared": {
+    "slashCommands": { "noMatches": "No matching commands" },
+    "resumeConversation": { "title": "Resume conversation", "empty": "No conversations", "current": "Current session" },
+    "instructionModal": {
+      "title": "Add custom instruction", "yourInput": "Your input:", "processingInstruction": "Processing your instruction...", "yourResponse": "Your response:", "responsePlaceholder": "Provide more details...", "refinedSnippet": "Refined snippet:", "processing": "Processing...", "submit": "Submit", "submitResponseAria": "Submit response", "editAria": "Edit instruction", "accept": "Accept", "acceptAria": "Accept instruction", "preview": "Preview"
+    },
+    "whatsNew": { "title": "What's New in Grimoire v{version}", "released": "Released {date}", "latestReleaseNotes": "Latest release notes", "fullChangelog": "Full changelog", "gotIt": "Got it" }
+  },
+  "inlineEdit": {
+    "rejectTitle": "Reject (Esc)", "acceptTitle": "Accept (Enter)", "editorUnavailable": "Inline edit unavailable: could not access the active editor. Try reopening the note.", "vaultFilesLoadFailed": "Failed to load vault files. Vault @-mentions may be unavailable.", "invalidFilePath": "Failed to attach file: invalid path"
+  },
+  "storage": { "tabLayoutSaveFailed": "Failed to save tab layout" }
 }

@@ -1,4 +1,7 @@
-import { readFileSync } from 'fs';
+import { spawnSync } from 'child_process';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 
 import { findImportantDeclarations } from '../../../scripts/reviewCss.js';
 import { getReviewSourceEslintArgs } from '../../../scripts/reviewSource.js';
@@ -9,6 +12,20 @@ interface PackageJson {
 
 function readPackageJson(): PackageJson {
   return JSON.parse(readFileSync('package.json', 'utf8')) as PackageJson;
+}
+
+function runDependencyGate(packages: Record<string, { version?: string }>) {
+  const fixtureDir = mkdtempSync(join(tmpdir(), 'grimoire-review-deps-'));
+  const fixturePath = join(fixtureDir, 'package-lock.json');
+  writeFileSync(fixturePath, JSON.stringify({ lockfileVersion: 3, packages }));
+
+  try {
+    return spawnSync(process.execPath, ['scripts/check-review-dependencies.mjs', fixturePath], {
+      encoding: 'utf8',
+    });
+  } finally {
+    rmSync(fixtureDir, { force: true, recursive: true });
+  }
 }
 
 describe('Obsidian review gate', () => {
@@ -24,6 +41,49 @@ describe('Obsidian review gate', () => {
     const scripts = readPackageJson().scripts;
 
     expect(scripts.lint).toBe('eslint "src/**/*.ts" "tests/**/*.ts" --max-warnings=0');
+  });
+
+  it('tracks the current Hono, Fast URI, and brace-expansion advisory floors', () => {
+    const dependencyGate = readFileSync('scripts/check-review-dependencies.mjs', 'utf8');
+
+    expect(dependencyGate).toContain('GHSA-8j4g-w8fx-2239');
+    expect(dependencyGate).toContain('lessThan(version, "4.12.34")');
+    expect(dependencyGate).toContain('GHSA-7p8r-x3mc-p8w7');
+    expect(dependencyGate).toContain('lessThan(version, "3.1.5")');
+    expect(dependencyGate).toContain('GHSA-rgw5-rvv9-x895');
+    expect(dependencyGate).toContain('lessThan(version, "1.1.18")');
+    expect(dependencyGate).toContain('lessThan(version, "2.1.4")');
+    expect(dependencyGate).toContain('lessThan(version, "5.0.9")');
+  });
+
+  it('rejects vulnerable hoisted, scoped, and nested lockfile packages', () => {
+    const result = runDependencyGate({
+      '': { version: '1.0.0' },
+      'node_modules/hono': { version: '4.12.33' },
+      'node_modules/@hono/node-server': { version: '2.0.4' },
+      'node_modules/brace-expansion': { version: '5.0.8' },
+      'node_modules/example/node_modules/brace-expansion': { version: '1.1.17' },
+    });
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('hono@4.12.33');
+    expect(result.stderr).toContain('@hono/node-server@2.0.4');
+    expect(result.stderr).toContain('brace-expansion@5.0.8');
+    expect(result.stderr).toContain('brace-expansion@1.1.17');
+  });
+
+  it('accepts patched hoisted, scoped, and nested lockfile packages', () => {
+    const result = runDependencyGate({
+      '': { version: '1.0.0' },
+      'node_modules/hono': { version: '4.12.34' },
+      'node_modules/@hono/node-server': { version: '2.0.5' },
+      'node_modules/fast-uri': { version: '3.1.5' },
+      'node_modules/brace-expansion': { version: '5.0.9' },
+      'node_modules/example/node_modules/brace-expansion': { version: '1.1.18' },
+    });
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('Obsidian review dependency check passed.');
   });
 
   it('passes Obsidian source-review rules to eslint without shell quoting', () => {

@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="../../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.ru.md">Русский</a>
+  <a href="../../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português</a> · <a href="README.ru.md">Русский</a>
 </p>
 
 <p align="center">
@@ -31,7 +31,7 @@ Grimoire встраивает agentic CLI-ассистентов в Obsidian. Cl
 
 Grimoire сделан для тех, кто уже работает в Obsidian и хочет, чтобы AI-помощник ощущался частью vault: локальный контекст, локальные файлы, осознанный выбор провайдера и usage/cost прямо в интерфейсе.
 
-> Английский [README](../../README.md) остаётся canonical-документом проекта. Эта русская версия синхронизирована с документацией `1.0.11`.
+> Английский [README](../../README.md) остаётся canonical-документом проекта. Этот перевод поддерживается вместе с актуальной документацией продукта.
 
 ## Зачем Grimoire
 
@@ -299,6 +299,14 @@ grok
 
 Фокусная боковая панель с несколькими tabs. У каждой tab свой draft, provider, model, context и runtime. Закройте и снова откройте Obsidian — сессии восстановятся, а provider, model и reasoning effort сохранятся на каждом ответе. Rewind и fork появляются, когда активный provider их поддерживает. Auto-scroll останавливается, когда вы прокручиваете историю вручную. Через 10 секунд без видимого вывода shared wait indicator показывает активный provider и время ожидания; на вопросах и permissions он приостанавливается.
 
+### Управление tabs, историей и навигацией
+
+Щёлкните правой кнопкой по tab, чтобы переименовать, дублировать, закрыть её, закрыть остальные tabs или tabs справа. Средняя кнопка мыши закрывает tab, а временное действие Undo восстанавливает закрытую tab вместе с draft и позицией. Сохранённый диалог можно открыть в новой tab из истории её действием, modifier-click или средней кнопкой. В длинных диалогах есть пятипозиционный navigator: начало, предыдущий prompt, каталог диалогов, следующий prompt и конец. У завершённых messages рядом с copy action показывается локализованный completion timestamp.
+
+### Parallel workers, settings и composer
+
+Карточка подтверждения **Parallel workers** показывает inherited model и позволяет выбрать только те предложенные задачи, которые будут запущены. Settings использует native search Obsidian и содержит постоянный пункт What's New. Provider settings и composer используют единый интерфейс для всех providers, сохраняя provider-owned controls и configuration на их месте.
+
 ### Горячие клавиши
 
 | Сочетание | Действие |
@@ -395,9 +403,11 @@ Grimoire работает внутри Obsidian, на вашем компьют�
 
 Что Grimoire не может скрыть — это сам provider. CLI, который вы включаете, получает prompt, выбранный context и files, images, tool output и commands, нужные для request. Этот CLI может обращаться к Anthropic, OpenAI, Google, configured OpenCode vendors, MCP servers или чему-то ещё, что вы настроили. Terms, retention, billing, rate limits и privacy policies принадлежат provider, а не Grimoire. Задача Grimoire — сделать эту границу видимой и управляемой внутри Obsidian.
 
-Для ориентированного на политику Obsidian summary по использованию сети, требованиям к аккаунту, доступу к внешним файлам, логированию и telemetry см. [DISCLOSURES.md](../DISCLOSURES.md).
+Для ориентированного на политику Obsidian summary по использованию сети, требованиям к аккаунту, доступу к внешним файлам, логированию и telemetry см. [DISCLOSURES.md](../../DISCLOSURES.md).
 
 ## Development
+
+Мы приветствуем contributions. Перед открытием pull request прочитайте [CONTRIBUTING.md](../../CONTRIBUTING.md): в нём описаны требования к architecture, security, tests и review.
 
 ```bash
 npm install

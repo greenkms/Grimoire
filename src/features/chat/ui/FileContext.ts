@@ -3,6 +3,7 @@ import { Notice, TFile } from 'obsidian';
 
 import { isPathInExcludedFolder } from '../../../core/context/exclusions';
 import type { McpServerManager } from '../../../core/mcp/McpServerManager';
+import { t } from '../../../i18n/i18n';
 import type { AgentMentionProvider } from '../../../shared/mention/MentionDropdownController';
 import { MentionDropdownController } from '../../../shared/mention/MentionDropdownController';
 import { VaultMentionDataProvider } from '../../../shared/mention/VaultMentionDataProvider';
@@ -80,13 +81,15 @@ export class FileContextManager {
         void (async (): Promise<void> => {
           const file = this.app.vault.getAbstractFileByPath(filePath);
           if (!(file instanceof TFile)) {
-            new Notice(`Could not open file: ${filePath}`);
+            new Notice(t('chat.ui.errors.couldNotOpenFile', { path: filePath }));
             return;
           }
           try {
             await this.app.workspace.getLeaf().openFile(file);
           } catch (error) {
-            new Notice(`Failed to open file: ${error instanceof Error ? error.message : String(error)}`);
+            new Notice(t('chat.ui.errors.openFileFailed', {
+              error: error instanceof Error ? error.message : String(error),
+            }));
           }
         })();
       },
@@ -331,13 +334,15 @@ export class FileContextManager {
       void (async (): Promise<void> => {
         const file = this.app.vault.getAbstractFileByPath(filePath);
         if (!(file instanceof TFile)) {
-          new Notice(`Could not open file: ${filePath}`);
+          new Notice(t('chat.ui.errors.couldNotOpenFile', { path: filePath }));
           return;
         }
         try {
           await this.app.workspace.getLeaf().openFile(file);
         } catch (error) {
-          new Notice(`Failed to open file: ${error instanceof Error ? error.message : String(error)}`);
+          new Notice(t('chat.ui.errors.openFileFailed', {
+            error: error instanceof Error ? error.message : String(error),
+          }));
         }
       })();
     };
