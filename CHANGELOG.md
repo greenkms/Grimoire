@@ -1,16 +1,27 @@
 # Changelog
 
-## Unreleased
+## 1.1.2 - 2026-08-04
+
+### Added
+
+- Added Grok Build subagent lifecycle rendering from native spawn, wait, completion, failure, and asynchronous activity.
 
 ### Improved
 
+- Migrated the primary compiler and typecheck path to native TypeScript 7.0.2 while retaining the TypeScript 6 compatibility API required by current ESLint and Jest tooling.
 - Synced the English and localized README documentation with the 1.1.0 tab, history, navigation, completion-time, Parallel workers, settings, and composer experience; added Korean and Portuguese variants.
 - Clarified all provider account, network, storage, and dependency-review boundaries, including the current MCP SDK and patched dependency targets used by the release gate.
 - Updated direct and transitive dependencies to their latest compatible releases, refreshed tracked advisory floors, and kept the Obsidian-pinned CodeMirror packages on their required peer-compatible versions.
+- Refined chat history, navigation, tool-call, tab, composer, context-usage, and subagent surfaces for more consistent responsive behavior and accessibility; kept the plugin version in Settings instead of the chat header.
+- Redesigned permission requests with a clear full action or target, readable long-command previews, separate project and user persistence choices, compact vertical actions, keyboard shortcuts, and accessible labeling while preserving provider-native decision values.
+- Showed the Stop control while a parent turn has detected subagent activity and kept Escape available as the general active-turn interrupt without presenting the control as individual background-agent cancellation.
 
 ### Fixed
 
 - Completed localization for plugin commands, the ribbon, resume and instruction surfaces, What's New, inline editing, storage, and common file/context notices across all ten UI languages; registered command and ribbon labels now refresh immediately when the language changes.
+- Kept every permission decision reachable in short panes, preserved full requested-action labels, and prevented long permission content from clipping the dialog.
+- Kept TODO and progress summaries from appearing complete while work remains, and normalized Grok subagent labels and lifecycle states from native tool activity.
+- Prevented Qwen child-agent streams from leaking into the parent response and restored parent-session context-window reporting for turns that use subagents.
 
 ## 1.1.1 - 2026-08-03
 
