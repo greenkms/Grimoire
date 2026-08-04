@@ -89,4 +89,21 @@ describe('ProgressBlockRenderer', () => {
     expect(wrapperEl.hasClass('grimoire-progress-block--completed')).toBe(true);
     expect(wrapperEl.querySelector('.grimoire-progress-meta')?.textContent).toContain('Completed');
   });
+
+  it('restores a legacy completed plan with unfinished items as waiting', () => {
+    const wrapperEl = renderStoredProgressBlock(
+      createMockEl(),
+      {
+        content: 'Inspect the vault',
+        state: 'completed',
+        durationSeconds: 4,
+        items: [{ content: 'Inspect the vault', status: 'in_progress' }],
+      },
+      renderContent,
+    );
+
+    expect(wrapperEl.hasClass('grimoire-progress-block--waiting')).toBe(true);
+    expect(wrapperEl.querySelector('.grimoire-progress-meta')?.textContent).toContain('Waiting');
+    expect(setIcon).toHaveBeenCalledWith(expect.anything(), 'clock-3');
+  });
 });

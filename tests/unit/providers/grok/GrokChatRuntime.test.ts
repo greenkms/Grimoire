@@ -150,6 +150,35 @@ describe('GrokChatRuntime', () => {
     ]);
   });
 
+  it('queues xAI subagent completion notifications for the active turn', () => {
+    const runtime = new GrokChatRuntime(createMockPlugin());
+    const push = jest.fn();
+    (runtime as any).sessionId = 'session-1';
+    (runtime as any).activeTurn = {
+      queue: { push },
+      sawOutput: false,
+      sessionId: 'session-1',
+    };
+
+    (runtime as any).handleGrokExtensionSessionNotification({
+      sessionId: 'session-1',
+      update: {
+        output: 'Finished report',
+        status: 'completed',
+        subagent_id: 'agent-1',
+        sessionUpdate: 'subagent_finished',
+      },
+    });
+
+    expect(push).toHaveBeenCalledWith({
+      agentId: 'agent-1',
+      result: 'Finished report',
+      status: 'completed',
+      type: 'async_subagent_result',
+    });
+    expect((runtime as any).activeTurn.sawOutput).toBe(true);
+  });
+
   it('does not create a session when commands are requested before a session exists', async () => {
     const runtime = new GrokChatRuntime(createMockPlugin());
 
@@ -435,9 +464,9 @@ describe('GrokChatRuntime', () => {
       {
         blockedPath: '/tmp/outside',
         decisionOptions: [
-          { decision: 'allow', label: 'Allow once', value: 'approve-now' },
-          { decision: 'allow-always', label: 'Always allow', value: 'approve-always' },
-          { label: 'Deny', value: 'deny-now' },
+          { label: 'Allow once', presentation: 'allow', value: 'approve-now' },
+          { label: 'Always allow', presentation: 'always', value: 'approve-always' },
+          { label: 'Deny', presentation: 'reject', value: 'deny-now' },
         ],
         decisionReason: 'Path is outside the session working directory',
       },
@@ -891,7 +920,7 @@ describe('GrokChatRuntime', () => {
       'Pre-approve workflow tools for this session: bash: npm test, edit: src/app.ts, read +1 more.',
       {
         decisionOptions: [
-          { decision: 'allow', label: 'Allow once', value: 'approve-now' },
+          { label: 'Allow once', presentation: 'allow', value: 'approve-now' },
         ],
         decisionReason: 'Session-level workflow approval requested',
       },

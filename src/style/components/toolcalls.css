@@ -3,7 +3,11 @@
 }
 
 .grimoire-container--chat-window .grimoire-message-content > .grimoire-tool-call {
+  box-sizing: border-box;
+  width: calc(100% - 44px);
+  max-width: calc(100% - 44px);
   margin: 2px 0;
+  justify-self: start;
 }
 
 .grimoire-tool-header {
@@ -379,6 +383,7 @@
 }
 
 .grimoire-tool-result {
+  grid-column: 4;
   color: var(--grimoire-workbench-faint);
   font-family: var(--font-monospace);
   font-size: 10.5px;
@@ -403,6 +408,7 @@
 }
 
 .grimoire-tool-step .grimoire-tool-status {
+  grid-column: 5;
   min-width: 15px;
   justify-content: center;
   margin-left: 0;

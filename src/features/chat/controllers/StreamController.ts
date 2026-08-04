@@ -107,6 +107,8 @@ export interface StreamControllerDeps {
   onOrchestratorPlanDetected?: (containerEl: HTMLElement, plan: OrchestratorPlan) => void;
   /** Observe provider tool calls that may load files into runtime context. */
   recordRuntimeToolCall?: (toolCall: ToolCallInfo) => void;
+  /** Reveal stream controls that are reserved for responses containing subagents. */
+  onSubagentActivityDetected?: () => void;
 }
 
 export class StreamController {
@@ -210,6 +212,7 @@ export class StreamController {
         await this.finalizeCurrentTextBlock(msg);
 
         if (isSubagentToolName(chunk.name)) {
+          this.deps.onSubagentActivityDetected?.();
           // Flush pending tools before Agent
           this.flushPendingTools();
           this.handleTaskToolUseViaManager(chunk, msg);
@@ -223,6 +226,7 @@ export class StreamController {
 
         const subagentLifecycleAdapter = this.getSubagentLifecycleAdapter(chunk.name);
         if (subagentLifecycleAdapter?.isSpawnTool(chunk.name)) {
+          this.deps.onSubagentActivityDetected?.();
           this.handleProviderSubagentSpawn(chunk, msg, subagentLifecycleAdapter);
           break;
         }
@@ -242,11 +246,12 @@ export class StreamController {
 
       case 'subagent_tool_use':
       case 'subagent_tool_result':
+        this.deps.onSubagentActivityDetected?.();
         await this.handleSubagentChunk(chunk, msg);
         break;
 
       case 'async_subagent_result':
-        await this.handleAsyncSubagentResult(chunk);
+        await this.handleAsyncSubagentResult(chunk, msg);
         break;
 
       case 'tool_output':
@@ -297,8 +302,12 @@ export class StreamController {
         ) {
           break;
         }
-        // Skip usage updates when subagents ran (SDK reports cumulative usage including subagents)
-        if (this.deps.subagentManager.subagentsSpawnedThisStream > 0) {
+        // Some SDKs report aggregate usage after subagents run. Providers that
+        // can query the parent session directly mark that usage explicitly.
+        if (
+          this.deps.subagentManager.subagentsSpawnedThisStream > 0
+          && chunk.usageScope !== 'parent'
+        ) {
           break;
         }
         if (!state.ignoreUsageUpdates) {
@@ -637,6 +646,20 @@ export class StreamController {
   ): void {
     const { state } = this.deps;
 
+    const existingToolCall = msg.toolCalls?.find(toolCall => toolCall.id === chunk.id);
+    if (existingToolCall) {
+      existingToolCall.name = chunk.name;
+      existingToolCall.input = { ...existingToolCall.input, ...chunk.input };
+      const subagentInfo = adapter.buildSubagentInfo(existingToolCall, msg.toolCalls ?? []);
+      existingToolCall.subagent = subagentInfo;
+      const subagentState = this.lifecycleSubagentStates.get(chunk.id);
+      if (subagentState) {
+        this.syncProviderSubagentState(subagentState, subagentInfo);
+      }
+      this.deps.recordRuntimeToolCall?.(existingToolCall);
+      return;
+    }
+
     const toolCall: ToolCallInfo = {
       id: chunk.id,
       name: chunk.name,
@@ -653,6 +676,7 @@ export class StreamController {
     if (state.currentContentEl) {
       this.flushPendingTools();
       const subagentInfo = adapter.buildSubagentInfo(toolCall, msg.toolCalls);
+      toolCall.subagent = subagentInfo;
 
       const subagentState = createSubagentBlock(state.currentContentEl, chunk.id, {
         description: subagentInfo.description,
@@ -660,12 +684,40 @@ export class StreamController {
       });
       this.lifecycleSubagentStates.set(chunk.id, subagentState);
     }
+    this.deps.recordRuntimeToolCall?.(toolCall);
+  }
+
+  private syncProviderSubagentState(
+    subagentState: SubagentState,
+    subagentInfo: SubagentInfo,
+  ): void {
+    subagentState.info.description = subagentInfo.description;
+    subagentState.info.prompt = subagentInfo.prompt;
+    subagentState.info.agentId = subagentInfo.agentId;
+    subagentState.labelEl.setText(
+      subagentInfo.description.length > 40
+        ? subagentInfo.description.substring(0, 40) + '...'
+        : subagentInfo.description,
+    );
+
+    const promptTextEl = subagentState.promptBodyEl?.querySelector(
+      '.grimoire-subagent-prompt-text',
+    );
+    promptTextEl?.setText(subagentInfo.prompt || t('chat.ui.subagent.noPrompt'));
   }
 
   private handleProviderHiddenSubagentTool(
     chunk: { type: 'tool_use'; id: string; name: string; input: Record<string, unknown> },
     msg: ChatMessage
   ): void {
+    const existingToolCall = msg.toolCalls?.find(toolCall => toolCall.id === chunk.id);
+    if (existingToolCall) {
+      existingToolCall.name = chunk.name;
+      existingToolCall.input = { ...existingToolCall.input, ...chunk.input };
+      this.deps.recordRuntimeToolCall?.(existingToolCall);
+      return;
+    }
+
     // Track in toolCalls for data completeness, but don't create DOM or content block
     const toolCall: ToolCallInfo = {
       id: chunk.id,
@@ -676,6 +728,7 @@ export class StreamController {
     };
     msg.toolCalls = msg.toolCalls || [];
     msg.toolCalls.push(toolCall);
+    this.deps.recordRuntimeToolCall?.(toolCall);
   }
 
   /**
@@ -703,15 +756,10 @@ export class StreamController {
       }
 
       const subagentInfo = adapter.buildSubagentInfo(existingToolCall, msg.toolCalls ?? []);
+      existingToolCall.subagent = subagentInfo;
       const subagentState = this.lifecycleSubagentStates.get(chunk.id);
       if (subagentState) {
-        subagentState.info.description = subagentInfo.description;
-        subagentState.info.prompt = subagentInfo.prompt;
-        subagentState.labelEl.setText(
-          subagentInfo.description.length > 40
-            ? subagentInfo.description.substring(0, 40) + '...'
-            : subagentInfo.description
-        );
+        this.syncProviderSubagentState(subagentState, subagentInfo);
       }
 
       if (chunk.isError) {
@@ -735,8 +783,8 @@ export class StreamController {
         if (!spawnToolCall || !subagentState) continue;
 
         const subagentInfo = adapter.buildSubagentInfo(spawnToolCall, msg.toolCalls ?? []);
-        subagentState.info.description = subagentInfo.description;
-        subagentState.info.prompt = subagentInfo.prompt;
+        spawnToolCall.subagent = subagentInfo;
+        this.syncProviderSubagentState(subagentState, subagentInfo);
 
         if (subagentInfo.status === 'completed' || subagentInfo.status === 'error') {
           finalizeSubagentBlock(
@@ -971,11 +1019,12 @@ export class StreamController {
     const id = this.activeProgressId;
     const progress = this.progressBlocks.get(id);
     if (progress?.state === 'running') {
-      const durationSeconds = finalizeProgressBlock(progress, state);
+      const finalState = this.resolveFinalProgressState(progress, state);
+      const durationSeconds = finalizeProgressBlock(progress, finalState);
       if (msg) {
         const block = this.findProgressContentBlock(msg, id);
         if (block) {
-          block.state = state;
+          block.state = finalState;
           block.durationSeconds = durationSeconds;
         }
       }
@@ -994,11 +1043,12 @@ export class StreamController {
     await this.finalizeActiveProgress(msg, state);
     for (const [id, progress] of this.progressBlocks) {
       if (progress.state !== 'running') continue;
-      const durationSeconds = finalizeProgressBlock(progress, state);
+      const finalState = this.resolveFinalProgressState(progress, state);
+      const durationSeconds = finalizeProgressBlock(progress, finalState);
       if (msg) {
         const block = this.findProgressContentBlock(msg, id);
         if (block) {
-          block.state = state;
+          block.state = finalState;
           block.durationSeconds = durationSeconds;
         }
       }
@@ -1008,6 +1058,17 @@ export class StreamController {
     }
     this.progressBlocks.clear();
     this.activeProgressId = null;
+  }
+
+  private resolveFinalProgressState(
+    progress: ProgressBlockState,
+    requestedState: Exclude<ProgressState, 'running'>,
+  ): Exclude<ProgressState, 'running'> {
+    if (requestedState === 'completed'
+      && progress.items?.some(item => item.status !== 'completed')) {
+      return 'waiting';
+    }
+    return requestedState;
   }
 
   private scheduleCurrentTextRender(): Promise<void> {
@@ -1459,7 +1520,8 @@ export class StreamController {
   }
 
   private async handleAsyncSubagentResult(
-    chunk: Extract<StreamChunk, { type: 'async_subagent_result' }>
+    chunk: Extract<StreamChunk, { type: 'async_subagent_result' }>,
+    msg: ChatMessage,
   ): Promise<void> {
     const handled = this.deps.subagentManager.handleAsyncSubagentResult(
       chunk.agentId,
@@ -1468,9 +1530,42 @@ export class StreamController {
     );
 
     await this.hydrateAsyncSubagentToolCalls(handled);
-    if (handled) {
+    const lifecycleHandled = handled
+      ? false
+      : this.handleProviderLifecycleAsyncSubagentResult(chunk, msg);
+    if (handled || lifecycleHandled) {
       this.showThinkingIndicator();
     }
+  }
+
+  private handleProviderLifecycleAsyncSubagentResult(
+    chunk: Extract<StreamChunk, { type: 'async_subagent_result' }>,
+    msg: ChatMessage,
+  ): boolean {
+    const spawnId = this.lifecycleAgentIdToSpawnId.get(chunk.agentId);
+    if (!spawnId) return false;
+
+    const spawnToolCall = msg.toolCalls?.find(toolCall => toolCall.id === spawnId);
+    const subagentState = this.lifecycleSubagentStates.get(spawnId);
+    if (!spawnToolCall || !subagentState) return false;
+
+    const adapter = this.getSubagentLifecycleAdapter(spawnToolCall.name);
+    if (!adapter?.isSpawnTool(spawnToolCall.name)) return false;
+
+    const result = chunk.result?.trim()
+      || (chunk.status === 'error' ? 'Background task failed.' : 'Background task completed.');
+    const currentInfo = adapter.buildSubagentInfo(spawnToolCall, msg.toolCalls ?? []);
+    const completedInfo: SubagentInfo = {
+      ...currentInfo,
+      agentId: chunk.agentId,
+      result,
+      status: chunk.status,
+    };
+    spawnToolCall.subagent = completedInfo;
+    this.syncProviderSubagentState(subagentState, completedInfo);
+    finalizeSubagentBlock(subagentState, result, chunk.status === 'error');
+    this.deps.recordRuntimeToolCall?.(spawnToolCall);
+    return true;
   }
 
   private async hydrateAsyncSubagentToolCalls(subagent: SubagentInfo | undefined): Promise<void> {

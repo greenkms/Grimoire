@@ -99,6 +99,7 @@ import {
   resolveGrokModeForPermissionMode,
   resolveGrokPermissionModeForSettings,
 } from '../modes';
+import { normalizeGrokSubagentExtensionNotification } from '../normalization/grokSubagentNormalization';
 import { createGrokToolStreamAdapter } from '../normalization/grokToolNormalization';
 import { getGrokProviderSettings, updateGrokProviderSettings } from '../settings';
 import { getGrokState, type GrokProviderState } from '../types';
@@ -196,6 +197,7 @@ export class GrokChatRuntime implements ChatRuntime {
   private readonly sessionUpdateNormalizer = new AcpSessionUpdateNormalizer();
   private readonly toolStreamAdapter = createGrokToolStreamAdapter();
   private transport: AcpJsonRpcTransport | null = null;
+  private unregisterGrokSessionNotifications: Array<() => void> = [];
   private unregisterTransportClose: (() => void) | null = null;
 
   constructor(
@@ -764,6 +766,13 @@ export class GrokChatRuntime implements ChatRuntime {
         this.setReady(false);
       }
     });
+    this.unregisterGrokSessionNotifications = [
+      '_x.ai/session/update',
+      'x.ai/session/update',
+    ].map(method => transport.onNotification(
+      method,
+      params => this.handleGrokExtensionSessionNotification(params),
+    ));
 
     this.connection = new AcpClientConnection({
       clientInfo: {
@@ -809,6 +818,9 @@ export class GrokChatRuntime implements ChatRuntime {
 
     this.unregisterTransportClose?.();
     this.unregisterTransportClose = null;
+    for (const unregister of this.unregisterGrokSessionNotifications.splice(0)) {
+      unregister();
+    }
 
     this.connection?.dispose();
     this.connection = null;
@@ -1472,6 +1484,16 @@ export class GrokChatRuntime implements ChatRuntime {
     }
   }
 
+  private handleGrokExtensionSessionNotification(params: unknown): void {
+    const chunk = normalizeGrokSubagentExtensionNotification(params, this.sessionId);
+    if (!chunk || !this.activeTurn || this.activeTurn.sessionId !== this.sessionId) {
+      return;
+    }
+
+    this.activeTurn.sawOutput = true;
+    this.activeTurn.queue.push(chunk);
+  }
+
   private async refreshFallbackPlanUsageFromSessionCost(sessionId: string): Promise<void> {
     const providerState: GrokProviderState = {
       ...(this.currentSessionDirPath ? { sessionDirPath: this.currentSessionDirPath } : {}),
@@ -1978,12 +2000,12 @@ function buildAcpApprovalDecisionOptions(
   }[],
 ): ApprovalDecisionOption[] {
   return options.map((option) => ({
-    ...(option.kind === 'allow_once'
-      ? { decision: 'allow' as const }
-      : option.kind === 'allow_always'
-      ? { decision: 'allow-always' as const }
-      : {}),
     label: option.name,
+    presentation: option.kind === 'allow_once'
+      ? 'allow'
+      : option.kind === 'allow_always'
+      ? 'always'
+      : 'reject',
     value: option.optionId,
   }));
 }

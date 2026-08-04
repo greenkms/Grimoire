@@ -10,7 +10,6 @@ import { VIEW_TYPE_GRIMOIRE } from '../../core/types';
 import { t } from '../../i18n/i18n';
 import type GrimoirePlugin from '../../main';
 import { GRIMOIRE_APP_ICON_ID } from '../../shared/appIcon';
-import { createProviderIconSvg } from '../../shared/icons';
 import { renderWhatsNewCard } from '../../shared/whats-new/renderWhatsNewCard';
 import {
   cancelScheduledAnimationFrame,
@@ -75,6 +74,8 @@ const HISTORY_ICON_PATHS = [
   'M12 7.5V12l3 2',
 ];
 
+let historyDialogSequence = 0;
+
 function appendHistoryHeaderIcon(container: HTMLElement): void {
   container.empty();
 
@@ -99,6 +100,7 @@ function appendHistoryHeaderIcon(container: HTMLElement): void {
 
 export class GrimoireView extends ItemView {
   private plugin: GrimoirePlugin;
+  private readonly historyDialogTitleId = `grimoire-history-title-${++historyDialogSequence}`;
 
   // Tab management
   private tabManager: TabManager | null = null;
@@ -112,10 +114,8 @@ export class GrimoireView extends ItemView {
 
   // DOM Elements
   private viewContainerEl: HTMLElement | null = null;
-  private titleSlotEl: HTMLElement | null = null;
-  private logoEl: HTMLElement | null = null;
-  private titleTextEl: HTMLElement | null = null;
-  private headerActionsEl: HTMLElement | null = null;
+  private sessionStripEl: HTMLElement | null = null;
+  private navContentEl: HTMLElement | null = null;
   private headerActionsContent: HTMLElement | null = null;
   private headerContextUsageMeter: ContextUsageMeter | null = null;
   private newTabButtonEl: HTMLElement | null = null;
@@ -276,9 +276,7 @@ export class GrimoireView extends ItemView {
 
       const shellEl = this.viewContainerEl.createDiv({ cls: 'grimoire-chat-window-shell' });
       this.closeToastHostEl = shellEl.createDiv({ cls: 'grimoire-tab-close-toast-stack' });
-      const header = shellEl.createDiv({ cls: 'grimoire-header grimoire-session-strip' });
-      this.buildHeader(header);
-
+      this.sessionStripEl = shellEl.createDiv({ cls: 'grimoire-header grimoire-session-strip' });
       this.buildNavRowContent();
       this.tabContentEl = shellEl.createDiv({
         cls: 'grimoire-tab-content-container grimoire-tab-content-container--chat-window',
@@ -311,6 +309,7 @@ export class GrimoireView extends ItemView {
           },
           onTabClosed: () => {
             this.updateTabBar();
+            this.updateNavRowLocation();
             this.persistTabState();
             this.syncHeaderContextUsage();
           },
@@ -398,6 +397,8 @@ export class GrimoireView extends ItemView {
     this.tabBar = null;
     this.scope = null;
     this.whatsNewHostEl = null;
+    this.sessionStripEl = null;
+    this.navContentEl = null;
   }
 
   // ============================================
@@ -422,31 +423,15 @@ export class GrimoireView extends ItemView {
     });
   }
 
-  private buildHeader(header: HTMLElement) {
-
-    // Title slot container (logo + title or tabs)
-    this.titleSlotEl = header.createDiv({ cls: 'grimoire-title-slot' });
-
-    // Logo (hidden when 2+ tabs) — populated by syncHeaderLogo()
-    this.logoEl = this.titleSlotEl.createSpan({ cls: 'grimoire-logo' });
-    this.syncHeaderLogo(DEFAULT_CHAT_PROVIDER_ID);
-
-    // Title text (hidden in header mode when 2+ tabs)
-    this.titleTextEl = this.titleSlotEl.createEl('h4', { text: 'Grimoire', cls: 'grimoire-title-text' });
-
-    // Header actions container (for header mode - initially hidden)
-    this.headerActionsEl = header.createDiv({ cls: 'grimoire-header-actions grimoire-header-actions-slot grimoire-hidden' });
-  }
-
   /**
-   * Builds the nav row content (tab badges + header actions).
-   * This is called once and the content is moved between locations.
+   * Builds the shared session strip (tab badges + context/history actions).
    */
   private buildNavRowContent(): HTMLElement {
     const wrapper = this.containerEl.createDiv({ cls: 'grimoire-input-nav-content' });
     wrapper.detach();
+    this.navContentEl = wrapper;
 
-    // Tab badges (left side in nav row, or in title slot for header mode)
+    // Tab badges (left side of the composer nav row)
     this.tabBarContainerEl = wrapper.createDiv({ cls: 'grimoire-tab-bar-container' });
     this.tabBar = new TabBar(this.tabBarContainerEl, {
       onTabClick: (tabId) => this.handleTabClick(tabId),
@@ -460,7 +445,7 @@ export class GrimoireView extends ItemView {
         void this.createNewTab().catch(() => new Notice(t('chat.ui.tabs.createFailed')));
       },
     });
-    // Header actions (right side)
+    // Context, new-tab, and history actions (right side)
     this.headerActionsContent = wrapper.createDiv({ cls: 'grimoire-header-actions' });
 
     this.headerContextUsageMeter = new ContextUsageMeter(this.headerActionsContent, {
@@ -502,24 +487,18 @@ export class GrimoireView extends ItemView {
       attr: {
         role: 'dialog',
         'aria-hidden': 'true',
-        'aria-label': t('chat.ui.tabs.history'),
+        'aria-labelledby': this.historyDialogTitleId,
       },
     });
     sheetEl.addEventListener('click', (e) => e.stopPropagation());
     return sheetEl;
   }
 
-  /** Keeps tab badges and header actions in the top session strip. */
+  /** Keeps session controls above the active tab's panel-view row. */
   private updateNavRowLocation(): void {
-    if (!this.tabBarContainerEl || !this.headerActionsContent) return;
+    if (!this.sessionStripEl || !this.navContentEl) return;
 
-    if (this.titleSlotEl) {
-      this.titleSlotEl.appendChild(this.tabBarContainerEl);
-    }
-    if (this.headerActionsEl) {
-      this.headerActionsEl.appendChild(this.headerActionsContent);
-      this.headerActionsEl.removeClass('grimoire-hidden');
-    }
+    this.sessionStripEl.appendChild(this.navContentEl);
   }
 
   /**
@@ -528,10 +507,7 @@ export class GrimoireView extends ItemView {
   updateLayoutForPosition(): void {
     if (!this.viewContainerEl) return;
 
-    const isHeaderMode = this.isSessionStripMode();
-
-    // Update container class for CSS styling
-    this.viewContainerEl.toggleClass('grimoire-container--header-mode', isHeaderMode);
+    this.viewContainerEl.removeClass('grimoire-container--header-mode');
 
     // Move nav content to appropriate location
     this.updateNavRowLocation();
@@ -722,20 +698,9 @@ export class GrimoireView extends ItemView {
 
     const tabCount = this.tabManager.getTabCount();
     const showTabBar = tabCount >= 1;
-    const isHeaderMode = this.isSessionStripMode();
 
-    // The final chat-window design keeps the numbered session strip visible.
+    // Keep the numbered session strip visible above the panel-view row.
     this.tabBarContainerEl.toggleClass('grimoire-hidden', !showTabBar);
-
-    // In header mode, badges replace logo/title in the same location
-    // In input mode, keep logo/title visible (badges are in nav row)
-    const hideBranding = showTabBar && isHeaderMode;
-    if (this.logoEl) {
-      this.logoEl.toggleClass('grimoire-hidden', hideBranding);
-    }
-    if (this.titleTextEl) {
-      this.titleTextEl.toggleClass('grimoire-hidden', hideBranding);
-    }
 
     this.updateNewTabButtonVisibility();
   }
@@ -755,38 +720,16 @@ export class GrimoireView extends ItemView {
     this.newTabButtonEl.setAttribute('aria-hidden', 'true');
   }
 
-  private isSessionStripMode(): boolean {
-    return true;
-  }
-
   /** Sets `data-provider` on the root container for provider-scoped status accents. */
   private syncProviderBrandColor(): void {
     if (!this.viewContainerEl) return;
     const activeTab = this.tabManager?.getActiveTab();
     const providerId = activeTab ? getTabProviderId(activeTab, this.plugin) : DEFAULT_CHAT_PROVIDER_ID;
     this.viewContainerEl.dataset.provider = providerId;
-    this.syncHeaderLogo(providerId);
   }
 
   private syncHeaderContextUsage(): void {
     this.headerContextUsageMeter?.update(this.tabManager?.getActiveTab()?.state.usage ?? null);
-  }
-
-  /** Rebuilds the header logo SVG to match the given provider. */
-  private syncHeaderLogo(providerId: ProviderId): void {
-    if (!this.logoEl) return;
-    const icon = ProviderRegistry.getChatUIConfig(providerId).getProviderIcon?.();
-    if (!icon) return;
-    const existing = this.logoEl.querySelector('svg');
-    if (existing?.getAttribute('data-provider') === providerId) return;
-    this.logoEl.empty();
-    const svg = createProviderIconSvg(icon, {
-      dataProvider: providerId,
-      height: 18,
-      ownerDocument: this.logoEl.ownerDocument,
-      width: 18,
-    });
-    this.logoEl.appendChild(svg);
   }
 
   // ============================================
@@ -833,6 +776,9 @@ export class GrimoireView extends ItemView {
         getConversationOpenState: (id) => this.getHistoryConversationOpenState(id),
         onClose: () => this.closeHistoryDropdown(),
       });
+      this.historyDropdown
+        .querySelector<HTMLElement>('.grimoire-history-title')
+        ?.setAttribute('id', this.historyDialogTitleId);
     }
   }
 

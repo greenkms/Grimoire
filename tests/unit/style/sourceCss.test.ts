@@ -16,13 +16,10 @@ function getRuleIncludingSelector(css: string, selector: string): string {
 }
 
 describe('container.css source controls', () => {
-  it('keeps the composer version compact, right-aligned, and readable', () => {
-    const css = readContainerCss();
-    const versionRule = getRuleIncludingSelector(css, '.grimoire-composer-version');
+  it('keeps the composer bottom gutter visually compact', () => {
+    const composerRule = getRuleIncludingSelector(readContainerCss(), '.grimoire-composer-surface');
 
-    expect(versionRule).toContain('color: var(--text-muted)');
-    expect(versionRule).toContain('font-size: 10px');
-    expect(versionRule).toContain('text-align: right');
+    expect(composerRule).toContain('padding: 6px var(--grimoire-window-padding-x) 2px');
   });
 
   it('keeps source filter buttons visually flat except the active state', () => {

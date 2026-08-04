@@ -15,6 +15,8 @@ export interface ApprovalDecisionOption {
   description?: string;
   value: string;
   decision?: ApprovalDecision;
+  /** Provider-neutral UI semantics; does not change the value returned to the provider. */
+  presentation?: 'allow' | 'always' | 'reject' | 'other';
 }
 
 export interface ApprovalNetworkContext {
@@ -25,6 +27,8 @@ export interface ApprovalNetworkContext {
 export interface ApprovalCallbackOptions {
   decisionReason?: string;
   blockedPath?: string;
+  /** Exact resource affected by the request when it is not already represented by blockedPath. */
+  target?: string;
   agentID?: string;
   decisionOptions?: ApprovalDecisionOption[];
   networkApprovalContext?: ApprovalNetworkContext;

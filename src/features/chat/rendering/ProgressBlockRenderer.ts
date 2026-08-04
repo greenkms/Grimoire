@@ -26,18 +26,29 @@ export interface ProgressBlockUpdate {
 
 const RUNNING_HEARTBEAT_SECONDS = 60;
 
+function getEffectiveProgressState(update: ProgressBlockUpdate): ProgressState {
+  if (update.state === 'completed'
+    && update.items?.some(item => item.status !== 'completed')) {
+    return 'waiting';
+  }
+  return update.state;
+}
+
 function getElapsedSeconds(progress: ProgressBlockState): number {
   return Math.max(0, Math.floor((Date.now() - progress.startTime) / 1000));
 }
 
 function updateIcon(progress: ProgressBlockState): void {
   progress.wrapperEl.removeClass('grimoire-progress-block--running');
+  progress.wrapperEl.removeClass('grimoire-progress-block--waiting');
   progress.wrapperEl.removeClass('grimoire-progress-block--completed');
   progress.wrapperEl.removeClass('grimoire-progress-block--blocked');
   progress.wrapperEl.addClass(`grimoire-progress-block--${progress.state}`);
 
   const icon = progress.state === 'running'
     ? 'loader-circle'
+    : progress.state === 'waiting'
+      ? 'clock-3'
     : progress.state === 'blocked'
       ? 'circle-alert'
       : 'circle-check';
@@ -54,9 +65,12 @@ function updateMeta(progress: ProgressBlockState): void {
     return;
   }
 
-  progress.metaEl.setText(
-    `${progress.state === 'blocked' ? t('chat.ui.progress.blocked') : t('chat.ui.progress.completed')} · ${formatDurationMmSs(elapsed)}`,
-  );
+  const label = progress.state === 'waiting'
+    ? t('chat.ui.progress.waiting')
+    : progress.state === 'blocked'
+      ? t('chat.ui.progress.blocked')
+      : t('chat.ui.progress.completed');
+  progress.metaEl.setText(`${label} · ${formatDurationMmSs(elapsed)}`);
 }
 
 function renderItems(progress: ProgressBlockState): void {
@@ -179,16 +193,25 @@ export function renderStoredProgressBlock(
   update: ProgressBlockUpdate & { durationSeconds?: number },
   renderContent: RenderContentFn,
 ): HTMLElement {
+  const state = getEffectiveProgressState(update);
   const wrapperEl = parentEl.createDiv({
-    cls: `grimoire-progress-block grimoire-progress-block--${update.state}`,
+    cls: `grimoire-progress-block grimoire-progress-block--${state}`,
   });
   wrapperEl.setAttribute('role', 'status');
   const headerEl = wrapperEl.createDiv({ cls: 'grimoire-progress-header' });
   const iconEl = headerEl.createSpan({ cls: 'grimoire-progress-icon' });
-  setIcon(iconEl, update.state === 'blocked' ? 'circle-alert' : 'circle-check');
+  setIcon(
+    iconEl,
+    state === 'waiting' ? 'clock-3' : state === 'blocked' ? 'circle-alert' : 'circle-check',
+  );
+  const label = state === 'waiting'
+    ? t('chat.ui.progress.waiting')
+    : state === 'blocked'
+      ? t('chat.ui.progress.blocked')
+      : t('chat.ui.progress.completed');
   headerEl.createSpan({
     cls: 'grimoire-progress-meta',
-    text: `${update.state === 'blocked' ? t('chat.ui.progress.blocked') : t('chat.ui.progress.completed')}${
+    text: `${label}${
       update.durationSeconds === undefined ? '' : ` · ${formatDurationMmSs(update.durationSeconds)}`
     }`,
   });
@@ -205,7 +228,7 @@ export function renderStoredProgressBlock(
     metaEl: headerEl,
     content: update.content,
     items: update.items,
-    state: update.state,
+    state,
     startTime: Date.now(),
     timerInterval: null,
   } satisfies ProgressBlockState;

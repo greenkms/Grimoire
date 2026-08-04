@@ -31,7 +31,7 @@ export interface ImageAttachment {
 /** Content block for preserving streaming order in messages. */
 export type AssistantTextPhase = 'commentary' | 'final_answer';
 
-export type ProgressState = 'running' | 'completed' | 'blocked';
+export type ProgressState = 'running' | 'waiting' | 'completed' | 'blocked';
 
 export interface ProgressItem {
   content: string;
@@ -238,7 +238,13 @@ export type StreamChunk =
   | { type: 'error'; content: string }
   | { type: 'notice'; content: string; level?: 'info' | 'warning' }
   | { type: 'done' }
-  | { type: 'usage'; usage: UsageInfo; sessionId?: string | null }
+  | {
+    type: 'usage';
+    usage: UsageInfo;
+    sessionId?: string | null;
+    /** Whether the reported context belongs only to the parent session or may aggregate child agents. */
+    usageScope?: 'parent' | 'aggregate';
+  }
   | { type: 'context_compacted' }
   | { type: 'async_subagent_result'; agentId: string; status: 'completed' | 'error'; result?: string }
   | { type: 'subagent_tool_use'; subagentId: string; id: string; name: string; input: Record<string, unknown> }

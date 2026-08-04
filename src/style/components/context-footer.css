@@ -55,43 +55,6 @@
   color: var(--grimoire-warn);
 }
 
-.grimoire-context-meter-tip {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  z-index: 50;
-  display: none;
-  width: max-content;
-  max-width: 240px;
-  padding: 10px 12px;
-  border-radius: var(--grimoire-radius-2);
-  background: color-mix(in srgb, var(--grimoire-panel-2) 97%, #000);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
-  font-family: var(--font-text);
-  text-align: left;
-}
-
-.grimoire-context-meter:hover .grimoire-context-meter-tip,
-.grimoire-context-meter:focus-visible .grimoire-context-meter-tip,
-.grimoire-context-meter:focus-within .grimoire-context-meter-tip {
-  display: block;
-}
-
-.grimoire-context-meter-tip-primary {
-  color: var(--text-normal);
-  font-size: 12.5px;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.grimoire-context-meter-tip-secondary {
-  margin-top: 5px;
-  color: var(--grimoire-workbench-faint);
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 1.45;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .grimoire-context-meter,
   .grimoire-context-meter-ring {

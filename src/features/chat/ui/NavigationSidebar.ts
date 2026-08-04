@@ -35,6 +35,7 @@ export class NavigationSidebar {
     private readonly parentEl: HTMLElement,
     private readonly scrollEl: HTMLElement,
     private readonly messageListEl: HTMLElement = scrollEl,
+    private readonly onScrollBottom?: () => void,
   ) {
     this.container = this.parentEl.createDiv({ cls: 'grimoire-nav-sidebar' });
     this.topBtn = this.createButton(
@@ -86,7 +87,14 @@ export class NavigationSidebar {
   private setupEventListeners(): void {
     this.scrollEl.addEventListener('scroll', this.scrollHandler, { passive: true });
     this.topBtn.addEventListener('click', () => this.scrollTo(0));
-    this.bottomBtn.addEventListener('click', () => this.scrollTo(this.scrollEl.scrollHeight));
+    this.bottomBtn.addEventListener('click', () => {
+      if (this.onScrollBottom) {
+        this.onScrollBottom();
+        this.updateDirectoryActiveState();
+        return;
+      }
+      this.scrollTo(this.scrollEl.scrollHeight);
+    });
     this.prevBtn.addEventListener('click', () => this.scrollToMessage('prev'));
     this.nextBtn.addEventListener('click', () => this.scrollToMessage('next'));
     this.directoryBtn.addEventListener('click', (event) => {

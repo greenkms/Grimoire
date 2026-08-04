@@ -153,7 +153,6 @@ export interface TabDOMElements {
   contextSummaryEl: HTMLElement;
   chatStageEl: HTMLElement;
   chatScrollEl: HTMLElement;
-  scrollResumeButtonEl: HTMLButtonElement;
   sourceRailEl: HTMLElement;
   sourceCardsEl: HTMLElement;
   sourceFiltersEl: HTMLElement;
@@ -189,9 +188,6 @@ export interface TabDOMElements {
   inputEl: HTMLTextAreaElement;
   sendButtonEl: HTMLButtonElement | null;
   stopButtonEl: HTMLButtonElement | null;
-
-  /** Nav row for tab badges and header icons (above input wrapper). */
-  navRowEl: HTMLElement;
 
   /** Context row for file chips and selection indicator (inside input wrapper). */
   contextRowEl: HTMLElement;

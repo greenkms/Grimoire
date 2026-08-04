@@ -13,9 +13,10 @@ function getRule(css: string, selector: string): string {
 describe('tabs.css', () => {
   it('shows provider-colored activity dots without replacing the tab number', () => {
     const css = readTabsCss();
+    const normalizedCss = css.replace(/\r\n/g, '\n');
 
     expect(getRule(css, '.grimoire-tab-activity-dot')).toContain('display: none');
-    expect(css).toContain(`.grimoire-tab-badge-streaming .grimoire-tab-activity-dot,
+    expect(normalizedCss).toContain(`.grimoire-tab-badge-streaming .grimoire-tab-activity-dot,
 .grimoire-tab-badge-attention .grimoire-tab-activity-dot {
   display: block;
 }`);

@@ -58,4 +58,18 @@ describe('input.css', () => {
     expect(hoverRule).toContain('background: rgba(var(--grimoire-brand-rgb), 0.22)');
     expect(hoverRule).toContain('filter: none');
   });
+
+  it('matches the stop control to the compact toolbar button system', () => {
+    const css = readInputCss();
+    const stopRule = getRule(css, '.grimoire-container--chat-window button.grimoire-stop-button');
+    const hiddenRule = getRule(css, '.grimoire-container--chat-window button.grimoire-stop-button.grimoire-hidden');
+    const hoverRule = getRule(css, '.grimoire-container--chat-window button.grimoire-stop-button:hover');
+
+    expect(stopRule).toContain('width: 28px');
+    expect(stopRule).toContain('border: 1px solid transparent');
+    expect(stopRule).toContain('border-radius: var(--grimoire-radius-2)');
+    expect(stopRule).toContain('background: var(--grimoire-raise)');
+    expect(hiddenRule).toContain('display: none');
+    expect(hoverRule).toContain('background: rgba(var(--grimoire-error-rgb), 0.1)');
+  });
 });

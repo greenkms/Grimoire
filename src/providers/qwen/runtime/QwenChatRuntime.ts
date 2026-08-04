@@ -51,6 +51,7 @@ import {
   type AcpRequestPermissionRequest,
   type AcpRequestPermissionResponse,
   type AcpSessionNotification,
+  type AcpSessionUpdate,
   AcpSessionUpdateNormalizer,
   AcpSubprocess,
   type AcpWriteTextFileRequest,
@@ -86,6 +87,16 @@ interface QwenLaunchSpec {
   cwd: string;
   runtimeEnv: NodeJS.ProcessEnv;
 }
+
+interface QwenContextUsageStatus {
+  usage?: {
+    contextWindowSize?: unknown;
+    totalTokens?: unknown;
+  };
+}
+
+const QWEN_CONTEXT_USAGE_METHOD = 'qwen/status/session/context_usage';
+const QWEN_CONTEXT_USAGE_TIMEOUT_MS = 3_000;
 
 class StreamChunkQueue {
   private closed = false;
@@ -321,18 +332,19 @@ export class QwenChatRuntime implements ChatRuntime {
         queryOptions,
       ),
       sessionId,
-    }).then((response) => {
+    }).then(async (response) => {
       if (response.userMessageId) {
         this.currentTurnMetadata.userMessageId = response.userMessageId;
       }
       this.promptUsage = response.usage ?? null;
+      await this.refreshContextUsage(sessionId);
       const usage = buildAcpUsageInfo({
         contextWindow: this.contextUsage,
         model: this.getActiveModel() ?? undefined,
         promptUsage: this.promptUsage,
       });
       if (usage) {
-        activeTurn.queue.push({ sessionId, type: 'usage', usage });
+        activeTurn.queue.push({ sessionId, type: 'usage', usage, usageScope: 'parent' });
       }
       activeTurn.queue.push({ type: 'done' });
       activeTurn.queue.close();
@@ -588,6 +600,15 @@ export class QwenChatRuntime implements ChatRuntime {
       return;
     }
 
+    // Qwen streams nested agent thoughts, messages, and tool calls through the
+    // parent ACP session. Rendering those updates in the main transcript mixes
+    // concurrently running agents together and corrupts the visible response.
+    // The parent Agent tool call remains visible; only its child activity is
+    // suppressed here.
+    if (isQwenSubagentUpdate(notification.update)) {
+      return;
+    }
+
     const normalized = this.sessionUpdateNormalizer.normalize(notification.update);
     if (normalized.type === 'config_options') {
       this.syncSessionDiscovery({
@@ -649,12 +670,34 @@ export class QwenChatRuntime implements ChatRuntime {
             sessionId: notification.sessionId,
             type: 'usage',
             usage,
+            usageScope: 'parent',
           });
         }
         return;
       }
       default:
         return;
+    }
+  }
+
+  private async refreshContextUsage(sessionId: string): Promise<void> {
+    if (!this.transport) {
+      return;
+    }
+
+    try {
+      const response = await this.transport.request<QwenContextUsageStatus>(
+        QWEN_CONTEXT_USAGE_METHOD,
+        { detail: false, sessionId },
+        { timeoutMs: QWEN_CONTEXT_USAGE_TIMEOUT_MS },
+      );
+      const usage = parseQwenContextUsage(response);
+      if (usage && this.sessionId === sessionId) {
+        this.contextUsage = usage;
+      }
+    } catch {
+      // This Qwen extension is optional. Older ACP runtimes continue to use
+      // standard usage_update notifications or prompt response usage.
     }
   }
 
@@ -727,10 +770,14 @@ export class QwenChatRuntime implements ChatRuntime {
       ? `${title} requests access to ${pathValue}.`
       : `${title} requests permission.`;
     const decision = await this.approvalCallback(title, input, description, {
+      ...(pathValue ? { target: pathValue } : {}),
       decisionOptions: request.options.map((option) => ({
-        ...(option.kind === 'allow_once' ? { decision: 'allow' as const }
-          : option.kind === 'allow_always' ? { decision: 'allow-always' as const } : {}),
         label: option.name,
+        presentation: option.kind === 'allow_once'
+          ? 'allow' as const
+          : option.kind === 'allow_always'
+          ? 'always' as const
+          : 'reject' as const,
         value: option.optionId,
       })),
     });
@@ -916,6 +963,38 @@ export class QwenChatRuntime implements ChatRuntime {
       listener(ready);
     }
   }
+}
+
+function isQwenSubagentUpdate(update: AcpSessionUpdate): boolean {
+  if (
+    update.sessionUpdate !== 'agent_message_chunk'
+    && update.sessionUpdate !== 'agent_thought_chunk'
+    && update.sessionUpdate !== 'tool_call'
+    && update.sessionUpdate !== 'tool_call_update'
+  ) {
+    return false;
+  }
+  const metadata = (update as AcpSessionUpdate & { _meta?: Record<string, unknown> })._meta;
+  return typeof metadata?.parentToolCallId === 'string'
+    && metadata.parentToolCallId.length > 0
+    && typeof metadata.subagentType === 'string'
+    && metadata.subagentType.length > 0;
+}
+
+function parseQwenContextUsage(status: QwenContextUsageStatus): { size: number; used: number } | null {
+  const used = status.usage?.totalTokens;
+  const size = status.usage?.contextWindowSize;
+  if (
+    typeof used !== 'number'
+    || !Number.isFinite(used)
+    || used < 0
+    || typeof size !== 'number'
+    || !Number.isFinite(size)
+    || size <= 0
+  ) {
+    return null;
+  }
+  return { size, used };
 }
 
 function buildQwenPromptBlocks(

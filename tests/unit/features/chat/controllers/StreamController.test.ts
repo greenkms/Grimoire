@@ -14,6 +14,10 @@ import type { ChatMessage } from '@/core/types';
 import { StreamController, type StreamControllerDeps } from '@/features/chat/controllers/StreamController';
 import { ChatState } from '@/features/chat/state/ChatState';
 import { DEFAULT_CODEX_PRIMARY_MODEL } from '@/providers/codex/types/models';
+import {
+  GROK_SUBAGENT_SPAWN_TOOL,
+  GROK_SUBAGENT_WAIT_TOOL,
+} from '@/providers/grok/normalization/grokSubagentNormalization';
 
 jest.mock('@/core/tools/todo', () => ({
   parseTodoInput: jest.fn(),
@@ -168,6 +172,7 @@ function createMockDeps(): StreamControllerDeps {
     getFileContextManager: () => fileContextManager as any,
     updateQueueIndicator: jest.fn(),
     getAgentService: () => agentService as any,
+    onSubagentActivityDetected: jest.fn(),
   };
 }
 
@@ -644,6 +649,7 @@ describe('StreamController - Text Content', () => {
           subagent: expect.objectContaining({ id: 'task-1' }),
         })
       );
+      expect(deps.onSubagentActivityDetected).toHaveBeenCalledTimes(1);
     });
 
     it('should render TodoWrite inline and update panel', async () => {
@@ -1216,6 +1222,27 @@ describe('StreamController - Text Content', () => {
       await controller.handleStreamChunk({ type: 'usage', usage, sessionId: 'session-1' }, msg);
 
       expect(deps.state.usage).toBeNull();
+    });
+
+    it('accepts parent-only context usage when subagents ran', async () => {
+      const msg = createTestMessage();
+      (deps.subagentManager as any).subagentsSpawnedThisStream = 1;
+
+      const usage = createMockUsage({
+        contextWindow: 1_000_000,
+        contextWindowIsAuthoritative: true,
+        contextTokens: 250_000,
+        inputTokens: 0,
+        percentage: 25,
+      });
+
+      await controller.handleStreamChunk({
+        type: 'usage',
+        usage,
+        usageScope: 'parent',
+      } as any, msg);
+
+      expect(deps.state.usage).toEqual(usage);
     });
 
     it('should skip usage when chunk has sessionId but currentSessionId is null', async () => {
@@ -2259,6 +2286,8 @@ describe('StreamController - Text Content', () => {
         msg,
       );
 
+      expect(deps.onSubagentActivityDetected).toHaveBeenCalledTimes(1);
+
       await controller.handleStreamChunk(
         {
           type: 'tool_result',
@@ -2301,6 +2330,126 @@ describe('StreamController - Text Content', () => {
         'Patched utils.ts and verified imports.',
         false,
       );
+    });
+  });
+
+  describe('Grok subagent lifecycle', () => {
+    function useGrokProvider(): void {
+      deps.getAgentService = () => ({
+        providerId: 'grok',
+        getCapabilities: jest.fn().mockReturnValue({ providerId: 'grok' }),
+      }) as any;
+    }
+
+    it('renders one named block and completes it from the hidden multi-wait result', async () => {
+      const { createSubagentBlock, finalizeSubagentBlock } = jest.requireMock('@/features/chat/rendering/SubagentRenderer');
+      const msg = createTestMessage();
+      deps.state.currentContentEl = createMockEl();
+      useGrokProvider();
+
+      const promptTextEl = { setText: jest.fn() };
+      const subagentState = {
+        info: { id: 'spawn-1', description: 'Grok subagent', prompt: '', status: 'running', toolCalls: [] },
+        labelEl: { setText: jest.fn() },
+        promptBodyEl: { querySelector: jest.fn().mockReturnValue(promptTextEl) },
+      };
+      createSubagentBlock.mockReturnValueOnce(subagentState);
+
+      await controller.handleStreamChunk({
+        type: 'tool_use',
+        id: 'spawn-1',
+        name: GROK_SUBAGENT_SPAWN_TOOL,
+        input: {
+          description: 'Explore core vault notes',
+          prompt: 'Inspect the vault.',
+          subagent_type: 'explore',
+        },
+      }, msg);
+      await controller.handleStreamChunk({
+        type: 'tool_use',
+        id: 'spawn-1',
+        name: GROK_SUBAGENT_SPAWN_TOOL,
+        input: {
+          description: 'Explore core vault notes',
+          prompt: 'Inspect the vault and report in Russian.',
+          run_in_background: true,
+        },
+      }, msg);
+
+      expect(createSubagentBlock).toHaveBeenCalledTimes(1);
+      expect(msg.toolCalls?.filter(toolCall => toolCall.id === 'spawn-1')).toHaveLength(1);
+      expect(deps.onSubagentActivityDetected).toHaveBeenCalledTimes(2);
+
+      await controller.handleStreamChunk({
+        type: 'tool_result',
+        id: 'spawn-1',
+        content: 'Subagent started in background.\nsubagent_id: agent-1',
+      }, msg);
+      await controller.handleStreamChunk({
+        type: 'tool_use',
+        id: 'wait-1',
+        name: GROK_SUBAGENT_WAIT_TOOL,
+        input: { task_ids: ['agent-1'], timeout_ms: 180_000 },
+      }, msg);
+      await controller.handleStreamChunk({
+        type: 'tool_use',
+        id: 'wait-1',
+        name: GROK_SUBAGENT_WAIT_TOOL,
+        input: { task_ids: ['agent-1'], timeout_ms: 180_000 },
+      }, msg);
+      await controller.handleStreamChunk({
+        type: 'tool_result',
+        id: 'wait-1',
+        content: JSON.stringify({
+          type: 'TaskOutput',
+          MultiResult: {
+            results: [{ task_id: 'agent-1', status: 'completed', output: 'Vault report' }],
+          },
+        }),
+      }, msg);
+
+      expect(msg.contentBlocks).toEqual([{ type: 'tool_use', toolId: 'spawn-1' }]);
+      expect(msg.toolCalls?.filter(toolCall => toolCall.id === 'wait-1')).toHaveLength(1);
+      expect(finalizeSubagentBlock).toHaveBeenCalledWith(subagentState, 'Vault report', false);
+    });
+
+    it('completes a running block from the xAI subagent_finished event', async () => {
+      const { createSubagentBlock, finalizeSubagentBlock } = jest.requireMock('@/features/chat/rendering/SubagentRenderer');
+      const msg = createTestMessage();
+      deps.state.currentContentEl = createMockEl();
+      useGrokProvider();
+
+      const subagentState = {
+        info: { id: 'spawn-1', description: 'Explore vault', prompt: 'Inspect.', status: 'running', toolCalls: [] },
+        labelEl: { setText: jest.fn() },
+        promptBodyEl: { querySelector: jest.fn().mockReturnValue({ setText: jest.fn() }) },
+      };
+      createSubagentBlock.mockReturnValueOnce(subagentState);
+
+      await controller.handleStreamChunk({
+        type: 'tool_use',
+        id: 'spawn-1',
+        name: GROK_SUBAGENT_SPAWN_TOOL,
+        input: { description: 'Explore vault', prompt: 'Inspect.' },
+      }, msg);
+      await controller.handleStreamChunk({
+        type: 'tool_result',
+        id: 'spawn-1',
+        content: 'Subagent started in background.\nsubagent_id: agent-1',
+      }, msg);
+      await controller.handleStreamChunk({
+        type: 'async_subagent_result',
+        agentId: 'agent-1',
+        status: 'completed',
+        result: 'Finished report',
+      }, msg);
+
+      expect(finalizeSubagentBlock).toHaveBeenCalledWith(subagentState, 'Finished report', false);
+      expect(msg.toolCalls?.[0]?.subagent).toEqual(expect.objectContaining({
+        agentId: 'agent-1',
+        result: 'Finished report',
+        status: 'completed',
+      }));
     });
   });
 
@@ -2661,6 +2810,27 @@ describe('StreamController - User-facing progress', () => {
     expect(msg.contentBlocks?.[0]).toEqual(expect.objectContaining({
       type: 'progress',
       state: 'blocked',
+    }));
+  });
+
+  it('marks an unfinished ACP plan as waiting when the turn ends', async () => {
+    const msg = createTestMessage();
+    await controller.handleStreamChunk({
+      type: 'progress',
+      id: 'acp:plan',
+      content: 'Inspect the vault',
+      state: 'running',
+      items: [
+        { content: 'Inspect the vault', status: 'in_progress' },
+        { content: 'Write the plan', status: 'pending' },
+      ],
+    }, msg);
+
+    await controller.finalizeProgressBlocks(msg);
+
+    expect(msg.contentBlocks?.[0]).toEqual(expect.objectContaining({
+      type: 'progress',
+      state: 'waiting',
     }));
   });
 });

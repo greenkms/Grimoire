@@ -206,6 +206,7 @@ button.grimoire-tab-close-toast-undo:focus-visible {
 
 .grimoire-panel-tabs {
   display: flex;
+  align-items: center;
   gap: 2px;
   margin: 0 var(--grimoire-window-padding-x) 2px;
   padding: 0;

@@ -1,4 +1,4 @@
-/* Messages wrapper (for scroll-to-bottom button positioning) */
+/* Messages wrapper */
 .grimoire-messages-wrapper {
   position: relative;
   flex: 1;
@@ -10,47 +10,6 @@
 
 .grimoire-messages-wrapper.grimoire-chat-scroll {
   overflow: hidden;
-}
-
-.grimoire-scroll-resume-btn {
-  position: absolute;
-  top: -36px;
-  inset-inline-end: calc(var(--grimoire-window-padding-x) + 8px);
-  z-index: 20;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  margin: 0;
-  border: 1px solid rgba(var(--grimoire-brand-rgb), 0.32);
-  border-radius: var(--grimoire-radius-2);
-  background: var(--grimoire-raise);
-  color: var(--text-normal);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
-  cursor: pointer;
-}
-
-.grimoire-tab-chat-window:not([data-panel-view="chat"]) .grimoire-scroll-resume-btn {
-  display: none;
-}
-
-.grimoire-scroll-resume-btn:hover {
-  border-color: rgba(var(--grimoire-brand-rgb), 0.48);
-  background: var(--grimoire-elevated);
-  color: var(--grimoire-brand);
-}
-
-.grimoire-scroll-resume-btn svg,
-.grimoire-scroll-resume-btn .svg-icon {
-  display: block;
-  width: 18px;
-  height: 18px;
-  flex: 0 0 18px;
-  fill: currentColor;
-  stroke: none;
-  overflow: visible;
-  pointer-events: none;
 }
 
 .grimoire-messages {

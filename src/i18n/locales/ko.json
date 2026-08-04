@@ -536,6 +536,7 @@
       "progress": {
         "working": "작업 중",
         "stillWorking": "계속 작업 중",
+        "waiting": "대기 중",
         "blocked": "차단됨",
         "completed": "완료됨"
       },

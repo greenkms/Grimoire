@@ -3127,12 +3127,13 @@ describe('InputController - Message Queue', () => {
     });
 
     it.each([
-      ['Allow once', 'approval-allow-once', 'allow'],
-      ['Always allow', 'approval-allow-always', 'allow-always'],
-      ['Reject', 'approval-reject', { type: 'select-option', value: 'approval-reject' }],
+      ['Allow once', 'approval-allow-once'],
+      ['Always allow for this project', 'approval-project'],
+      ['Always allow for this user', 'approval-user'],
+      ['Reject', 'approval-reject'],
     ] as const)(
-      'preserves provider option values for "%s"',
-      async (optionLabel, optionValue, expectedDecision) => {
+      'preserves the exact provider option value for "%s"',
+      async (optionLabel, optionValue) => {
         const parentEl = createMockEl();
         const inputContainerEl = createMockEl();
         (inputContainerEl).parentElement = parentEl;
@@ -3146,9 +3147,10 @@ describe('InputController - Message Queue', () => {
           'OpenCode wants to access a path outside the working directory.',
           {
             decisionOptions: [
-              { label: 'Allow once', value: 'approval-allow-once', decision: 'allow' },
-              { label: 'Always allow', value: 'approval-allow-always', decision: 'allow-always' },
-              { label: 'Reject', value: 'approval-reject' },
+              { label: 'Allow once', presentation: 'allow', value: 'approval-allow-once' },
+              { label: 'Always allow for this project', presentation: 'always', value: 'approval-project' },
+              { label: 'Always allow for this user', presentation: 'always', value: 'approval-user' },
+              { label: 'Reject', presentation: 'reject', value: 'approval-reject' },
             ],
           },
         );
@@ -3161,7 +3163,10 @@ describe('InputController - Message Queue', () => {
         expect(target).toBeDefined();
         target!.click();
 
-        await expect(approvalPromise).resolves.toEqual(expectedDecision);
+        await expect(approvalPromise).resolves.toEqual({
+          type: 'select-option',
+          value: optionValue,
+        });
       },
     );
 
