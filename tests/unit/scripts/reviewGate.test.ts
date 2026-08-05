@@ -43,6 +43,17 @@ describe('Obsidian review gate', () => {
     expect(scripts.lint).toBe('eslint "src/**/*.ts" "tests/**/*.ts" --max-warnings=0');
   });
 
+  it('uses an isolated npm 12 prefix in CI and release workflows', () => {
+    for (const workflow of ['.github/workflows/ci.yml', '.github/workflows/release.yml']) {
+      const contents = readFileSync(workflow, 'utf8');
+
+      expect(contents).toContain('npm install --global --prefix "${RUNNER_TEMP}/npm-12.0.2" npm@12.0.2 --ignore-scripts --no-audit --no-fund');
+      expect(contents).toContain('echo "${RUNNER_TEMP}/npm-12.0.2/bin" >> "${GITHUB_PATH}"');
+      expect(contents).toContain('test "$(npm --version)" = "12.0.2"');
+      expect(contents).not.toContain('npm install --global npm@12.0.2');
+    }
+  });
+
   it('tracks the current Hono, Fast URI, and brace-expansion advisory floors', () => {
     const dependencyGate = readFileSync('scripts/check-review-dependencies.mjs', 'utf8');
 
