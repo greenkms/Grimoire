@@ -14,7 +14,9 @@ security, testing, and review expectations that apply to contributions.
 
 ## Development Setup
 
-Grimoire is an Obsidian desktop plugin. Node.js 22 and npm are used in CI.
+Grimoire is an Obsidian desktop plugin. Development and CI require npm 12.0.2
+with Node.js 22.22.2 through 22.x, Node.js 24.15.0 through 24.x, or Node.js
+26.0.0 or newer.
 
 ```bash
 npm ci
@@ -149,6 +151,22 @@ the three files from `dist/grimoire` as GitHub Release assets.
 npm is the canonical package manager. Keep `package-lock.json` synchronized with
 `package.json`, and do not add another lockfile unless the repository intentionally
 changes its package-management and CI workflow.
+
+`.npmrc` controls npm resolution: it delays newly published packages by seven
+days (`min-release-age=7`) and only runs install scripts from the exact
+`allowScripts` entries in `package.json`. The `check:lockfile-age` gate validates
+the committed lockfile versions against npm publication timestamps before CI
+installs dependencies. Review every requested script approval, add or update only
+the exact resolved `package@version` after confirming why it is needed, and remove
+approvals that are no longer required. Explicit `false` entries document install
+scripts that must remain disabled.
+
+`lockfile-age-exceptions.json` is a temporary transition policy for already-audited
+locked versions. Each entry must name one exact package and version, explain the
+exception, and expire no later than that version's normal release-age eligibility
+time. The validator still fetches and validates the registry publication timestamp,
+tarball origin, and integrity; exceptions cannot cover new versions or bypass those
+checks. Remove entries once their versions become eligible.
 
 Do not commit temporary handoff material, local transcripts, provider credentials,
 test vault contents, `.env.local`, or unrelated generated files.

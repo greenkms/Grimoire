@@ -6,21 +6,19 @@ on:
       - '[0-9]*.[0-9]*.[0-9]*'
 
 permissions:
-  contents: write
-  id-token: write
-  attestations: write
-  artifact-metadata: write
+  contents: read
 
 jobs:
-  release:
-    name: Build and publish release
+  build:
+    name: Build release assets
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Verify release tag is on main
         run: |
@@ -31,17 +29,32 @@ jobs:
             exit 1
           fi
 
-      - name: Setup Node 22
-        uses: actions/setup-node@v7
+      - name: Setup Node 22.22.2
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: 22
+          node-version: 22.22.2
           cache: 'npm'
+
+      - name: Install npm 12.0.2
+        run: npm install --global npm@12.0.2 --ignore-scripts --no-audit --no-fund
+
+      - name: Verify npm version
+        run: test "$(npm --version)" = "12.0.2"
+
+      - name: Validate lockfile release age
+        run: npm run check:lockfile-age
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Runtime dependency audit
+      - name: Audit dependencies
+        run: npm audit
+
+      - name: Audit production dependencies
         run: npm audit --omit=dev
+
+      - name: Verify package signatures
+        run: npm audit signatures
 
       - name: Lint
         run: npm run lint
@@ -77,14 +90,6 @@ jobs:
           test -s dist/grimoire/manifest.json
           test -s dist/grimoire/styles.css
 
-      - name: Attest release assets
-        uses: actions/attest@v4
-        with:
-          subject-path: |
-            dist/grimoire/main.js
-            dist/grimoire/manifest.json
-            dist/grimoire/styles.css
-
       - name: Generate release notes
         run: |
           set -euo pipefail
@@ -102,6 +107,51 @@ jobs:
             --previous-tag "${previous_tag}" \
             --output RELEASE_NOTES.md
 
+      - name: Upload release assets
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-assets
+          path: |
+            dist/grimoire/main.js
+            dist/grimoire/manifest.json
+            dist/grimoire/styles.css
+            RELEASE_NOTES.md
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+
+    steps:
+      - name: Download release assets
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: release-assets
+          path: release-assets
+
+      - name: Verify release assets
+        run: |
+          test -s release-assets/dist/grimoire/main.js
+          test -s release-assets/dist/grimoire/manifest.json
+          test -s release-assets/dist/grimoire/styles.css
+          test -s release-assets/RELEASE_NOTES.md
+
+      - name: Attest release assets
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            release-assets/dist/grimoire/main.js
+            release-assets/dist/grimoire/manifest.json
+            release-assets/dist/grimoire/styles.css
+
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -113,19 +163,19 @@ jobs:
             gh release edit "${tag}" \
               --title "${title}" \
               --target "${GITHUB_SHA}" \
-              --notes-file RELEASE_NOTES.md
+              --notes-file release-assets/RELEASE_NOTES.md
             gh release upload "${tag}" \
-              dist/grimoire/main.js \
-              dist/grimoire/manifest.json \
-              dist/grimoire/styles.css \
+              release-assets/dist/grimoire/main.js \
+              release-assets/dist/grimoire/manifest.json \
+              release-assets/dist/grimoire/styles.css \
               --clobber
           else
             gh release create "${tag}" \
-              dist/grimoire/main.js \
-              dist/grimoire/manifest.json \
-              dist/grimoire/styles.css \
+              release-assets/dist/grimoire/main.js \
+              release-assets/dist/grimoire/manifest.json \
+              release-assets/dist/grimoire/styles.css \
               --title "${title}" \
               --target "${GITHUB_SHA}" \
-              --notes-file RELEASE_NOTES.md \
+              --notes-file release-assets/RELEASE_NOTES.md \
               --verify-tag
           fi

@@ -14,6 +14,7 @@
     "review:css": "node scripts/check-review-css.mjs",
     "review:deps": "node scripts/check-review-dependencies.mjs",
     "check:release-metadata": "node scripts/check-release-metadata.mjs",
+    "check:lockfile-age": "node scripts/check-lockfile-age.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\" --max-warnings=0",
     "lint:fix": "npm run lint -- --fix",
@@ -38,6 +39,16 @@
   ],
   "author": "Michael Makarov",
   "license": "MIT",
+  "packageManager": "npm@12.0.2",
+  "engines": {
+    "node": "^22.22.2 || ^24.15.0 || >=26.0.0",
+    "npm": ">=12.0.2 <13"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "fsevents@2.3.3": false,
+    "unrs-resolver@1.12.2": true
+  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/jest": "^30.0.0",

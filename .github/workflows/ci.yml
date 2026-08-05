@@ -7,20 +7,41 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Setup Node 22
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: 22
+          node-version: 22.22.2
           cache: 'npm'
+
+      - name: Install npm 12.0.2
+        run: npm install --global npm@12.0.2 --ignore-scripts --no-audit --no-fund
+
+      - name: Verify npm version
+        run: test "$(npm --version)" = "12.0.2"
+
+      - name: Validate lockfile release age
+        run: npm run check:lockfile-age
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Audit dependencies
+        run: npm audit
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev
+
+      - name: Verify package signatures
+        run: npm audit signatures
 
       - name: Lint
         run: npm run lint
@@ -30,9 +51,6 @@ jobs:
 
       - name: Test
         run: npm run test
-
-      - name: Audit production dependencies
-        run: npm audit --omit=dev
 
       - name: Build release artifacts
         run: npm run build:release
