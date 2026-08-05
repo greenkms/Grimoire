@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as path from 'path';
 
 import { OpencodeCliResolver } from '@/providers/opencode/runtime/OpencodeCliResolver';
 
@@ -62,5 +63,23 @@ describe('OpencodeCliResolver', () => {
     );
 
     expect(resolved).toBeNull();
+  });
+
+  it('auto-detects opencode from the provider PATH', () => {
+    const binDirectory = process.platform === 'win32' ? 'C:\\provider\\bin' : '/provider/bin';
+    const executable = path.join(
+      binDirectory,
+      process.platform === 'win32' ? 'opencode.cmd' : 'opencode',
+    );
+    const extensionlessShim = path.join(binDirectory, 'opencode');
+    mockedExists.mockImplementation((filePath: string) => (
+      filePath === executable || filePath === extensionlessShim
+    ));
+    mockedStat.mockReturnValue({ isFile: () => true });
+
+    const resolver = new OpencodeCliResolver();
+    const resolved = resolver.resolve({}, '', `PATH=${binDirectory}`);
+
+    expect(resolved).toBe(executable);
   });
 });

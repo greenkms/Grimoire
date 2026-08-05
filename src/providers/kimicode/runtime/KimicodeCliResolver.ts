@@ -1,10 +1,9 @@
-import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 
 import { getRuntimeEnvironmentText } from '../../../core/providers/providerEnvironment';
 import { getHostnameKey } from '../../../utils/env';
-import { expandHomePath } from '../../../utils/path';
+import { resolveCliExecutable } from '../../../utils/resolveCliExecutable';
 import { getKimicodeProviderSettings } from '../settings';
 
 const KIMI_CODE_DEFAULT_BIN = path.join(os.homedir(), '.kimi-code', 'bin', 'kimi');
@@ -45,12 +44,12 @@ export class KimicodeCliResolver {
   resolve(
     hostnamePaths: Record<string, string> | undefined,
     legacyPath: string,
-    _envText: string,
+    envText: string,
   ): string | null {
     const hostnamePath = (hostnamePaths?.[this.cachedHostname] ?? '').trim();
-    return resolveConfiguredCliPath(hostnamePath)
-      ?? resolveConfiguredCliPath(legacyPath.trim())
-      ?? resolveConfiguredCliPath(KIMI_CODE_DEFAULT_BIN);
+    return resolveCliExecutable('kimi', [hostnamePath, legacyPath], envText, {
+      fallbackPaths: [KIMI_CODE_DEFAULT_BIN],
+    });
   }
 
   reset(): void {
@@ -59,21 +58,4 @@ export class KimicodeCliResolver {
     this.lastEnvText = '';
     this.resolvedPath = null;
   }
-}
-
-function resolveConfiguredCliPath(cliPath: string): string | null {
-  if (!cliPath) {
-    return null;
-  }
-
-  try {
-    const expanded = expandHomePath(cliPath);
-    if (fs.existsSync(expanded) && fs.statSync(expanded).isFile()) {
-      return expanded;
-    }
-  } catch {
-    return null;
-  }
-
-  return null;
 }

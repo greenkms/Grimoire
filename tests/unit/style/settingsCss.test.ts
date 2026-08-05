@@ -1,7 +1,10 @@
 import { readFileSync } from 'fs';
 
 function readSettingsCss(): string {
-  return readFileSync('src/style/settings/base.css', 'utf8').replace(/\r\n/g, '\n');
+  return [
+    readFileSync('src/style/settings/base.css', 'utf8'),
+    readFileSync('src/style/settings/hub.css', 'utf8'),
+  ].join('\n').replace(/\r\n/g, '\n');
 }
 
 function getRule(css: string, selector: string): string {
@@ -50,23 +53,27 @@ describe('settings base CSS', () => {
     expect(tabsRule).toContain('margin-bottom: 16px');
   });
 
-  it('renders settings tabs as rounded filled segments with an accent underline', () => {
+  it('uses the compact Codian tab dimensions with an accent underline', () => {
     const css = readSettingsCss();
     const tabRule = getRule(css, '.grimoire-settings-tabs-viewport > .grimoire-settings-tab');
     const activeRule = getRule(css, '.grimoire-settings-tabs-viewport > .grimoire-settings-tab--active,\n.grimoire-settings-tabs-viewport > .grimoire-settings-tab--active:hover');
 
-    expect(tabRule).toContain('height: 30px');
-    expect(tabRule).toContain('padding: 0 8px');
-    expect(tabRule).toContain('border: 1px solid var(--background-modifier-border)');
-    expect(tabRule).toContain('border-radius: var(--gs-r1) var(--gs-r1) 0 0');
-    expect(tabRule).toContain('background: var(--background-modifier-form-field)');
-    expect(tabRule).toContain('font-weight: 400');
+    expect(tabRule).toContain('height: auto');
+    expect(tabRule).toContain('min-height: 0');
+    expect(tabRule).toContain('padding: 8px 16px');
+    expect(tabRule).toContain('flex: 0 0 auto');
+    expect(tabRule).toContain('border: 0');
+    expect(tabRule).toContain('border-bottom: 4px solid transparent');
+    expect(tabRule).toContain('border-radius: 0');
+    expect(tabRule).toContain('background: transparent');
+    expect(tabRule).toContain('color: var(--text-muted)');
+    expect(tabRule).toContain('font-size: var(--font-ui-small)');
+    expect(tabRule).toContain('font-weight: var(--font-medium)');
 
-    expect(activeRule).toContain('border-bottom-color: var(--grimoire-brand)');
-    expect(activeRule).toContain('border-bottom-width: 3px');
-    expect(activeRule).toContain('background: rgba(var(--grimoire-brand-rgb), 0.1)');
-    expect(activeRule).toContain('color: var(--grimoire-brand)');
-    expect(activeRule).toContain('font-weight: 600');
+    expect(activeRule).toContain('border-bottom-color: var(--interactive-accent)');
+    expect(activeRule).toContain('background: transparent');
+    expect(activeRule).toContain('color: var(--text-normal)');
+    expect(activeRule).not.toContain('font-weight: 600');
   });
 
   it('keeps overflowing provider tabs compact and horizontally scrollable', () => {
@@ -79,13 +86,78 @@ describe('settings base CSS', () => {
     const nextScrollButtonRule = getRule(css, '.grimoire-settings-tab-scroll--next');
 
     expect(viewportRule).toContain('overflow-x: auto');
-    expect(viewportRule).toContain('gap: 4px');
+    expect(viewportRule).toContain('justify-content: flex-start');
+    expect(viewportRule).toContain('gap: 2px');
+    expect(viewportRule).toContain('padding: 0');
     expect(tabRule).toContain('flex: 0 0 auto');
     expect(tabRule).toContain('min-width: max-content');
+    expect(tabRule).toContain('padding: 8px 16px');
     expect(scrollButtonRule).toContain('width: 26px');
-    expect(scrollButtonRule).toContain('height: 30px');
+    expect(scrollButtonRule).toContain('height: auto');
+    expect(scrollButtonRule).toContain('min-height: 0');
     expect(overflowingScrollButtonRule).toContain('display: inline-flex');
     expect(previousScrollButtonRule).toContain('margin-inline-end: 4px');
     expect(nextScrollButtonRule).toContain('margin-inline-start: 4px');
+  });
+
+  it('uses borderless provider cards with muted copy and blue selected states', () => {
+    const css = readSettingsCss();
+    const cardRule = getRule(css, '.grimoire-settings-provider-card');
+    const hoverRule = getRule(css, '.grimoire-settings-provider-card:hover');
+    const activeRule = getRule(css, '.grimoire-settings-provider-card--active');
+    const activeHoverRule = getRule(css, '.grimoire-settings-provider-card--active:hover');
+    const metaRule = getRule(css, '.grimoire-settings-provider-card-meta');
+
+    expect(cardRule).toContain('border: 0');
+    expect(cardRule).toContain('var(--setting-items-background, var(--background-secondary)) 82%');
+    expect(hoverRule).toContain('var(--setting-items-background, var(--background-secondary)) 78%');
+    expect(activeRule).toContain('border: 0');
+    expect(activeRule).toContain('var(--interactive-accent) 18%');
+    expect(activeHoverRule).toContain('var(--interactive-accent) 13%');
+    expect(metaRule).toContain('color: var(--text-muted)');
+  });
+
+  it('removes the outer outline from provider settings panels', () => {
+    const providerDetailsRule = getRule(
+      readSettingsCss(),
+      '.grimoire-settings-provider-details',
+    );
+
+    expect(providerDetailsRule).toContain('box-sizing: border-box');
+    expect(providerDetailsRule).toContain('width: 100%');
+    expect(providerDetailsRule).toContain('max-width: none');
+    expect(providerDetailsRule).toContain('padding: 12px 0 18px');
+    expect(providerDetailsRule).toContain('border: 0');
+    expect(providerDetailsRule).not.toContain(
+      'border: 1px solid var(--background-modifier-border)',
+    );
+  });
+
+  it('stretches provider setting rows to the full panel width', () => {
+    const settingRule = getRule(
+      readSettingsCss(),
+      '.grimoire-settings-provider-details > .setting-item,\n.grimoire-settings-provider-details details .setting-item:not(.setting-item-heading)',
+    );
+
+    expect(settingRule).toContain('box-sizing: border-box');
+    expect(settingRule).toContain('width: 100%');
+    expect(settingRule).toContain('max-width: none');
+  });
+
+  it('uses four provider columns and keeps row edit/delete actions visible', () => {
+    const css = readSettingsCss();
+    const providerGridRule = getRule(css, '.grimoire-settings-provider-grid');
+    const resourceRowRule = getRule(css, '.grimoire-settings-resource-row');
+    const actionRule = getRule(
+      css,
+      '.grimoire-settings-resource-edit,\n.grimoire-settings-resource-delete',
+    );
+
+    expect(providerGridRule).toContain('grid-template-columns: repeat(4, minmax(0, 1fr))');
+    expect(resourceRowRule).toContain(
+      'grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.8fr) minmax(0, 1fr) 76px',
+    );
+    expect(actionRule).toContain('display: inline-flex');
+    expect(actionRule).toContain('width: 28px');
   });
 });

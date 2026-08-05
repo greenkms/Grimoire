@@ -405,7 +405,7 @@
       },
       "errors": {
         "generic": "错误：{message}",
-        "commandUnsupported": "此提供商不支持 /{command}。",
+        "commandUnsupported": "此供应商不支持 /{command}。",
         "externalContextAdded": "已添加外部上下文：{path}",
         "unknownCommand": "未知命令：{command}",
         "openConversationFailed": "无法打开对话：{message}",
@@ -422,11 +422,11 @@
           "sessionCreateFailed": "无法为 {provider} 创建会话。",
           "emptyResponse": "{provider} 已完成，但没有返回响应。请检查供应商凭据和日志，然后重试。",
           "requestFailed": "{provider} 请求失败",
-          "antigravityDisabled": "Antigravity 已禁用。请在提供商设置中启用它。",
+          "antigravityDisabled": "Antigravity 已禁用。请在供应商设置中启用它。",
           "antigravitySafeModeUnavailable": "Antigravity 安全模式不可用，因为 agy --print 无法请求 Grimoire 文件编辑批准。仅当你允许 AGY 无需确认即可编辑文件时，才使用自动批准。",
           "antigravityEmptyOutput": "Antigravity 未返回响应便已结束。请检查身份验证，或在终端中运行 agy --print 后重试。",
           "claudeVaultPathUnavailable": "无法确定 Claude 的仓库路径。",
-          "claudeCliNotFound": "未找到 Claude Code CLI。请安装它，或在提供商设置中配置其路径。"
+          "claudeCliNotFound": "未找到 Claude Code CLI。请安装它，或在供应商设置中配置其路径。"
         },
         "initializeFailed": "初始化对话服务失败",
         "loadConversationFailed": "加载对话失败",

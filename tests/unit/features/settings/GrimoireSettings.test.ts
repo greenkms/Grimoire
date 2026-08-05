@@ -38,6 +38,8 @@ function createSettingsPlugin(overrides: Record<string, any> = {}): any {
     getAllViews: jest.fn().mockReturnValue([]),
     getActiveEnvironmentVariables: jest.fn().mockReturnValue(''),
     getEnvironmentVariablesForScope: jest.fn().mockReturnValue(''),
+    getResolvedProviderCliPath: jest.fn().mockReturnValue(null),
+    refreshShellTranslations: jest.fn(),
     applyEnvironmentVariables: jest.fn().mockResolvedValue(undefined),
     applyEnvironmentVariablesBatch: jest.fn().mockResolvedValue(undefined),
   };
@@ -170,60 +172,70 @@ describe('GrimoireSettingTab general tab settings', () => {
     (tab as any).renderGeneralTab(container);
 
     const allText = collectText(container);
-    const advancedText = collectText(container.querySelector('.grimoire-adv-body'));
-
     expect(allText).toContain('Maximum chat tabs');
     expect(allText).toContain('Maximum number of concurrent chat tabs (1-10).');
-    expect(advancedText).not.toContain('Maximum chat tabs');
+    expect(container.querySelector('.grimoire-adv')).toBeNull();
+    expect(allText).not.toContain('Debug logging');
     expect(allText).not.toContain('Tab bar position');
     expect(container.querySelector('.grimoire-slider-value')?.textContent).toBe('5');
   });
 
-  it('renders the debug logging toggle inside General advanced settings', () => {
+  it('renders the debug logging toggle in the Advanced General section', () => {
     const plugin = createSettingsPlugin({ debugLoggingEnabled: false });
     const app: any = { hotkeyManager: {} };
     const tab = new GrimoireSettingTab(app, plugin);
     const container = createMockEl('div');
     (tab as any).containerEl = createMockEl('div');
 
-    (tab as any).renderGeneralTab(container);
+    (tab as any).renderGeneralAdvancedSettings(container);
 
-    const advancedText = collectText(container.querySelector('.grimoire-adv-body'));
+    const advancedText = collectText(container);
     expect(advancedText).toContain('Debug logging');
     expect(advancedText).toContain('.grimoire/logs/YYYY-MM-DD.jsonl');
   });
 
-  it('renders the usage indicators toggle inside General advanced settings', () => {
+  it('renders the usage indicators toggle in the Advanced General section', () => {
     const plugin = createSettingsPlugin({ usageIndicatorsEnabled: true });
     const app: any = { hotkeyManager: {} };
     const tab = new GrimoireSettingTab(app, plugin);
     const container = createMockEl('div');
     (tab as any).containerEl = createMockEl('div');
 
-    (tab as any).renderGeneralTab(container);
+    (tab as any).renderGeneralAdvancedSettings(container);
 
-    const advancedText = collectText(container.querySelector('.grimoire-adv-body'));
+    const advancedText = collectText(container);
     expect(advancedText).toContain('Usage indicators');
     expect(advancedText).toContain('Show plan usage and API spend indicators');
   });
 
-  it('renders the manual send button setting inside General advanced settings', () => {
+  it('renders the manual send button setting in the Advanced General section', () => {
     const plugin = createSettingsPlugin({ requireCommandOrControlEnterToSend: false });
     const app: any = { hotkeyManager: {} };
     const tab = new GrimoireSettingTab(app, plugin);
     const container = createMockEl('div');
     (tab as any).containerEl = createMockEl('div');
 
-    (tab as any).renderGeneralTab(container);
+    (tab as any).renderGeneralAdvancedSettings(container);
 
-    const advancedText = collectText(container.querySelector('.grimoire-adv-body'));
+    const advancedText = collectText(container);
     expect(advancedText).toContain('Send only with button');
     expect(advancedText).toContain('Use the Send button to submit');
     expect(advancedText).not.toContain('Require Command/Ctrl+Enter to send');
   });
+
+  it('keeps environment settings out of General', () => {
+    const plugin = createSettingsPlugin();
+    const tab = new GrimoireSettingTab(createSettingsApp(), plugin);
+    const container = createMockEl('div');
+
+    (tab as any).renderGeneralTab(container);
+
+    expect(container.querySelector('.grimoire-settings-env-textarea')).toBeNull();
+    expect(collectText(container)).not.toContain('Shared environment');
+  });
 });
 
-describe('GrimoireSettingTab provider tabs', () => {
+describe('GrimoireSettingTab settings hub', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.clearAllMocks();
@@ -249,7 +261,7 @@ describe('GrimoireSettingTab provider tabs', () => {
     expect(Notice).toHaveBeenCalledWith('Could not load provider models.');
   });
 
-  it('renders provider settings tabs in registry order after General', () => {
+  it('renders the four top-level settings tabs', () => {
     const plugin = createSettingsPlugin();
     const app: any = { hotkeyManager: {} };
     const tab = new GrimoireSettingTab(app, plugin);
@@ -259,18 +271,60 @@ describe('GrimoireSettingTab provider tabs', () => {
       settingEl.querySelectorAll('.grimoire-settings-tab'),
     ).map((button: any) => button.textContent?.trim() ?? '');
 
-    expect(tabLabels[0]).toBe('General');
-    expect(tabLabels.slice(1)).toEqual([
-      'Claude',
+    expect(tabLabels).toEqual(['General', 'Providers', 'Advanced', 'About']);
+    expect(settingEl.querySelector('.grimoire-settings-tab-count')).toBeNull();
+  });
+
+  it('re-renders every settings tab immediately after changing the locale in General', async () => {
+    const plugin = createSettingsPlugin();
+    const tab = new GrimoireSettingTab(createSettingsApp(), plugin);
+    const { settingEl } = renderDeclarativeSettings(tab);
+    const languageSelect = settingEl.querySelector('.grimoire-settings-language-select');
+
+    languageSelect.value = 'zh-CN';
+    languageSelect.dispatchEvent('change');
+    await new Promise(resolve => window.setTimeout(resolve, 0));
+
+    const tabLabels = Array.from<any>(
+      settingEl.querySelectorAll('.grimoire-settings-tab'),
+    ).map(button => button.textContent?.trim() ?? '');
+    expect(tabLabels).toEqual(['常规', '供应商', '高级设置', '关于']);
+    expect(plugin.refreshShellTranslations).toHaveBeenCalledTimes(1);
+
+    const providerTab = settingEl.querySelectorAll('.grimoire-settings-tab')[1];
+    providerTab.dispatchEvent('click');
+    await new Promise(resolve => window.setTimeout(resolve, 50));
+
+    const providerNames = Array.from<any>(
+      settingEl.querySelectorAll('.grimoire-settings-provider-card-name'),
+    ).map(element => element.textContent?.trim() ?? '');
+    expect(providerNames).toContain('Gemini CLI（旧版）');
+  });
+
+  it('renders provider cards in registry order inside Providers', () => {
+    const plugin = createSettingsPlugin();
+    plugin.getResolvedProviderCliPath.mockImplementation((providerId: string) => `/bin/${providerId}`);
+    const tab = new GrimoireSettingTab(createSettingsApp(), plugin);
+    (tab as any).activeTab = 'providers';
+    const { settingEl } = renderDeclarativeSettings(tab);
+    const providerNames = Array.from(
+      settingEl.querySelectorAll('.grimoire-settings-provider-card-name'),
+    ).map((element: any) => element.textContent?.trim() ?? '');
+
+    expect(providerNames).toEqual([
+      'Claude Code',
       'Codex',
       'OpenCode',
-      'Grok',
-      'MiMo',
-      'Kimi',
+      'Grok Build',
+      'MiMoCode',
+      'Kimi Code',
       'Antigravity',
-      'Gemini',
-      'Qwen',
+      'Gemini CLI (Legacy)',
+      'Qwen Code',
     ]);
+    expect(collectText(settingEl)).not.toContain('Enabled');
+    expect(collectText(settingEl)).not.toContain('Disabled');
+    expect(settingEl.querySelector('.grimoire-settings-provider-card-meta')?.textContent).toBe('CLI detected');
     expect(ProviderRegistry.getRegisteredProviderIds()).toEqual([
       'claude',
       'codex',
@@ -282,6 +336,86 @@ describe('GrimoireSettingTab provider tabs', () => {
       'gemini',
       'qwen',
     ]);
+  });
+
+  it('reports only CLI availability regardless of persisted provider models', () => {
+    const plugin = createSettingsPlugin();
+    plugin.settings.providerConfigs.claude.discoveredModels = [
+      { rawId: 'stale-model' },
+    ];
+    const tab = new GrimoireSettingTab(createSettingsApp(), plugin);
+
+    expect((tab as any).getProviderStatusText('claude')).toBe('CLI not detected');
+  });
+
+  it('localizes the legacy Gemini provider name in Chinese', () => {
+    const plugin = createSettingsPlugin();
+    plugin.settings.locale = 'zh-CN';
+    const tab = new GrimoireSettingTab(createSettingsApp(), plugin);
+    (tab as any).activeTab = 'providers';
+    const { settingEl } = renderDeclarativeSettings(tab);
+    const providerNames = Array.from(
+      settingEl.querySelectorAll('.grimoire-settings-provider-card-name'),
+    ).map((element: any) => element.textContent?.trim() ?? '');
+
+    expect(providerNames).toContain('Gemini CLI（旧版）');
+    expect(providerNames).not.toContain('Gemini CLI (Legacy)');
+  });
+
+  it('renders six Advanced sections and moves General advanced settings into a direct page', () => {
+    const plugin = createSettingsPlugin();
+    const tab = new GrimoireSettingTab(createSettingsApp(), plugin);
+    const container = createMockEl('div');
+
+    (tab as any).renderWorkspaceHub(container, ProviderRegistry.getRegisteredProviderIds());
+
+    const navigation = container.children[0];
+    const sectionLabels = Array.from(
+      navigation?.children ?? [],
+    ).map((button: any) => button.textContent?.trim() ?? '');
+    expect(sectionLabels).toEqual([
+      'General',
+      'Skills',
+      'Subagents',
+      'MCP',
+      'Environment',
+      'Commands',
+    ]);
+    expect(collectText(container)).toContain('Debug logging');
+    expect(container.querySelector('.grimoire-adv')).toBeNull();
+    expect(container.querySelector('.grimoire-settings-resource-toolbar')).toBeNull();
+    expect(container.querySelector('.grimoire-settings-resource-list')).toBeNull();
+    expect(collectText(container)).not.toContain('Advanced · Skills');
+  });
+
+  it('omits the resource type column and renders edit/delete row actions', () => {
+    const plugin = createSettingsPlugin();
+    const tab = new GrimoireSettingTab(createSettingsApp(), plugin);
+    const container = createMockEl('div');
+    const resourceArea = createMockEl('div');
+
+    (tab as any).renderWorkspaceHubRows(container, [{
+      key: 'skill:claude:review',
+      section: 'skills',
+      name: 'review',
+      description: 'Review code',
+      source: '.claude/skills/',
+      providerIds: ['claude'],
+      ownerProviderId: 'claude',
+      readonly: false,
+      status: 'available',
+      deleteResource: jest.fn().mockResolvedValue(undefined),
+    }], '', ProviderRegistry.getRegisteredProviderIds(), resourceArea);
+
+    expect(container.children[0].children.map((cell: any) => cell.textContent)).toEqual([
+      'Name',
+      'Source',
+      'Provider',
+      'Actions',
+    ]);
+    const actionButtons = container.children[1].children[3].children;
+    expect(actionButtons[0].hasClass('grimoire-settings-resource-edit')).toBe(true);
+    expect(actionButtons[1].hasClass('grimoire-settings-resource-delete')).toBe(true);
   });
 
   it('renders accessible overflow controls and updates their boundary state', () => {
@@ -335,18 +469,53 @@ describe('GrimoireSettingTab provider tabs', () => {
     expect(preventDefault).toHaveBeenCalledTimes(1);
   });
 
-  it('activates, focuses, and reveals keyboard-selected tabs', () => {
+  it('skips scrollIntoView when the compact tab bar is not overflowing', () => {
     const tab = new GrimoireSettingTab(createSettingsApp(), createSettingsPlugin());
     const container = createMockEl('div');
     renderDeclarativeSettings(tab, container);
 
     const buttons = Array.from<any>(container.querySelectorAll('.grimoire-settings-tab'));
     const reveal = jest.fn();
+    buttons[1].scrollIntoView = reveal;
+    buttons[1].dispatchEvent('click');
+
+    expect(reveal).not.toHaveBeenCalled();
+  });
+
+  it('renders each top-level tab once and reuses it on later switches', async () => {
+    const tab = new GrimoireSettingTab(createSettingsApp(), createSettingsPlugin());
+    const generalRender = jest.spyOn(tab as any, 'renderGeneralHub');
+    const providerRender = jest.spyOn(tab as any, 'renderProvidersHub');
+    const container = createMockEl('div');
+    renderDeclarativeSettings(tab, container);
+    const buttons = Array.from<any>(container.querySelectorAll('.grimoire-settings-tab'));
+
+    buttons[1].dispatchEvent('click');
+    await new Promise((resolve) => window.setTimeout(resolve, 50));
+    buttons[0].dispatchEvent('click');
+    buttons[1].dispatchEvent('click');
+
+    expect(generalRender).toHaveBeenCalledTimes(1);
+    expect(providerRender).toHaveBeenCalledTimes(1);
+    expect(container.querySelectorAll('.grimoire-settings-tab-content')).toHaveLength(4);
+  });
+
+  it('activates, focuses, and reveals keyboard-selected tabs', () => {
+    const tab = new GrimoireSettingTab(createSettingsApp(), createSettingsPlugin());
+    const container = createMockEl('div');
+    renderDeclarativeSettings(tab, container);
+
+    const buttons = Array.from<any>(container.querySelectorAll('.grimoire-settings-tab'));
+    const viewport = container.querySelector('.grimoire-settings-tabs-viewport');
+    viewport.clientWidth = 100;
+    viewport.scrollWidth = 300;
+    viewport.dispatchEvent('scroll');
+    const reveal = jest.fn();
     const focus = jest.fn();
     buttons[1].scrollIntoView = reveal;
     buttons[1].focus = focus;
     const preventDefault = jest.fn();
-    container.querySelector('.grimoire-settings-tabs-viewport').dispatchEvent({
+    viewport.dispatchEvent({
       key: 'ArrowRight', preventDefault, target: buttons[0], type: 'keydown',
     });
 

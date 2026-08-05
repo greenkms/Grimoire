@@ -1,5 +1,13 @@
 import type { App, SettingDefinitionItem } from 'obsidian';
-import { Notice, Platform, PluginSettingTab, setIcon, Setting } from 'obsidian';
+import {
+  Modal,
+  Notice,
+  Platform,
+  PluginSettingTab,
+  setIcon,
+  Setting,
+  ToggleComponent,
+} from 'obsidian';
 
 import { parseChangelogRelease } from '../../app/changelog/parser';
 import { GRIMOIRE_CHANGELOG_URL, readBundledChangelog } from '../../app/changelog/source';
@@ -9,10 +17,19 @@ import {
   getHiddenProviderCommands,
   normalizeHiddenCommandList,
 } from '../../core/providers/commands/hiddenCommands';
+import type { ProviderCommandEntry } from '../../core/providers/commands/ProviderCommandEntry';
 import { ProviderRegistry } from '../../core/providers/ProviderRegistry';
 import { ProviderSettingsCoordinator } from '../../core/providers/ProviderSettingsCoordinator';
 import { ProviderWorkspaceRegistry } from '../../core/providers/ProviderWorkspaceRegistry';
-import type { ProviderId } from '../../core/providers/types';
+import type {
+  ProviderId,
+  ProviderSettingsTabRendererContext,
+  ProviderWorkspaceServices,
+} from '../../core/providers/types';
+import type {
+  EnvironmentScope,
+  ManagedMcpServer,
+} from '../../core/types';
 import {
   type ChatViewPlacement,
   MAX_TABS,
@@ -22,6 +39,7 @@ import {
 import { getAvailableLocales, getLocaleDisplayName, setLocale, t } from '../../i18n/i18n';
 import type { Locale, TranslationKey } from '../../i18n/types';
 import type GrimoirePlugin from '../../main';
+import { confirmDelete } from '../../shared/modals/ConfirmModal';
 import { showWhatsNewModal } from '../../shared/modals/WhatsNewModal';
 import { formatContextLimit, parseContextLimit, parseEnvironmentVariables } from '../../utils/env';
 import { buildNavMappingText, parseNavMappings } from './keyboardNavigation';
@@ -29,7 +47,55 @@ import { renderProjectWorkspaceSettings } from './ProjectWorkspaceSettings';
 import { renderAdvancedSection } from './ui/AdvancedSection';
 import { renderEnvironmentSettingsSection } from './ui/EnvironmentSettingsSection';
 
-type SettingsTabId = string;
+type SettingsTabId = 'general' | 'providers' | 'workspace' | 'about';
+type WorkspaceSection = 'skills' | 'agents' | 'mcp' | 'environment' | 'commands';
+type AdvancedSettingsSection = 'general' | WorkspaceSection;
+type WorkspaceResourceStatus = 'available' | 'connected' | 'disabled' | 'readonly';
+
+interface WorkspaceResourceRow {
+  key: string;
+  section: WorkspaceSection;
+  name: string;
+  description: string;
+  source: string;
+  providerIds: string[];
+  ownerProviderId: string;
+  readonly: boolean;
+  status: WorkspaceResourceStatus;
+  deleteResource?: () => Promise<void>;
+}
+
+interface WorkspaceAgentDefinition extends Record<string, unknown> {
+  name: string;
+  description?: string;
+}
+
+interface WorkspaceAgentSummary {
+  id: string;
+  name: string;
+  description?: string;
+  source: 'plugin' | 'vault' | 'global' | 'builtin';
+}
+
+interface WorkspaceAgentStorage {
+  loadAll?: () => Promise<WorkspaceAgentDefinition[]>;
+  delete: (agent: WorkspaceAgentDefinition) => Promise<void>;
+}
+
+interface WorkspaceAgentManager {
+  getAvailableAgents?: () => WorkspaceAgentDefinition[];
+}
+
+interface WorkspaceMcpStorage {
+  save: (servers: ManagedMcpServer[]) => Promise<void>;
+}
+
+type WorkspaceServicesWithStorage = ProviderWorkspaceServices & {
+  agentManager?: WorkspaceAgentManager;
+  agentStorage?: WorkspaceAgentStorage;
+  mcpStorage?: WorkspaceMcpStorage;
+  subagentStorage?: WorkspaceAgentStorage;
+};
 type ObsidianHotkey = { modifiers: string[]; key: string };
 type ObsidianHotkeyManager = {
   customKeys?: Record<string, ObsidianHotkey[] | undefined>;
@@ -84,7 +150,8 @@ class SettingsTabScroller {
   }
 
   reveal(button: HTMLButtonElement | undefined): void {
-    button?.scrollIntoView?.({ behavior: this.motionBehavior(), block: 'nearest', inline: 'nearest' });
+    if (!button || !this.root.hasClass('is-overflowing')) return;
+    button.scrollIntoView?.({ behavior: this.motionBehavior(), block: 'nearest', inline: 'nearest' });
     this.updateState();
   }
 
@@ -126,7 +193,6 @@ class SettingsTabScroller {
     this.activate(nextIndex);
     const button = this.buttons[nextIndex];
     button?.focus?.();
-    this.reveal(button);
   }
 
   private scrollByPage(direction: number): void {
@@ -321,7 +387,13 @@ const GENERAL_SETTINGS_SEARCH_KEYS: TranslationKey[] = [
 export class GrimoireSettingTab extends PluginSettingTab {
   plugin: GrimoirePlugin;
   private activeTab: SettingsTabId = 'general';
+  private activeProviderId: ProviderId | null = null;
+  private activeWorkspaceProviderId: string | null = null;
+  private activeWorkspaceSection: AdvancedSettingsSection = 'general';
   private tabScroller: SettingsTabScroller | null = null;
+  private workspaceLoadToken: symbol | null = null;
+  private settingsRootEl: HTMLElement | null = null;
+  private settingsRenderCycle = 0;
 
   constructor(app: App, plugin: GrimoirePlugin) {
     super(app, plugin);
@@ -329,6 +401,8 @@ export class GrimoireSettingTab extends PluginSettingTab {
   }
 
   hide(): void {
+    this.settingsRenderCycle += 1;
+    this.settingsRootEl = null;
     this.tabScroller?.destroy();
     this.tabScroller = null;
   }
@@ -360,11 +434,16 @@ export class GrimoireSettingTab extends PluginSettingTab {
          * styles every descendant Setting as one grouped card. Mark only this
          * synthetic root so CSS can restore standalone cards inside the custom
          * tabbed page while the definition remains available to native search.
-         */
+        */
         group.addClass('grimoire-settings-root-group');
         setting.settingEl.removeClass('setting-item');
-        this.renderSettings(setting.settingEl);
+        const settingsRoot = setting.settingEl;
+        this.renderSettings(settingsRoot);
         return () => {
+          this.settingsRenderCycle += 1;
+          if (this.settingsRootEl === settingsRoot) {
+            this.settingsRootEl = null;
+          }
           this.tabScroller?.destroy();
           this.tabScroller = null;
         };
@@ -373,6 +452,8 @@ export class GrimoireSettingTab extends PluginSettingTab {
   }
 
   private renderSettings(containerEl: HTMLElement = this.containerEl): void {
+    this.settingsRootEl = containerEl;
+    const renderCycle = ++this.settingsRenderCycle;
     this.tabScroller?.destroy();
     this.tabScroller = null;
     containerEl.empty();
@@ -380,10 +461,18 @@ export class GrimoireSettingTab extends PluginSettingTab {
 
     setLocale(this.plugin.settings.locale as Locale);
 
-    const providerTabs = ProviderRegistry.getRegisteredProviderIds();
-    const tabIds: SettingsTabId[] = ['general', ...providerTabs];
+    const providerIds = this.orderProviderIds(ProviderRegistry.getRegisteredProviderIds());
+    const tabIds: SettingsTabId[] = ['general', 'providers', 'workspace', 'about'];
     if (!tabIds.includes(this.activeTab)) {
       this.activeTab = 'general';
+    }
+    if (!this.activeProviderId || !providerIds.includes(this.activeProviderId)) {
+      const configuredProvider = this.plugin.settings.settingsProvider;
+      this.activeProviderId = providerIds.includes(configuredProvider)
+        ? configuredProvider
+        : (providerIds.find((providerId) => (
+            ProviderRegistry.isEnabled(providerId, this.plugin.settings)
+          )) ?? providerIds[0] ?? null);
     }
 
     const tabBar = containerEl.createDiv({ cls: 'grimoire-settings-tabs' });
@@ -407,24 +496,81 @@ export class GrimoireSettingTab extends PluginSettingTab {
     setIcon(nextTabButton, 'chevron-right');
     const tabButtons = new Map<SettingsTabId, HTMLButtonElement>();
     const tabContents = new Map<SettingsTabId, HTMLDivElement>();
+    const renderedTabs = new Set<SettingsTabId>();
+    const pendingTabs = new Set<SettingsTabId>();
 
     for (const id of tabIds) {
-      const label = id === 'general'
-        ? t('settings.tabs.general' as TranslationKey)
-        : (PROVIDER_SETTING_COPY[id]?.tabName ?? ProviderRegistry.getProviderDisplayName(id));
+      const content = containerEl.createDiv({
+        cls: `grimoire-settings-tab-content${id === this.activeTab
+          ? ' grimoire-settings-tab-content--active'
+          : ''}`,
+      });
+      content.dataset.settingsTab = id;
+      content.setAttribute('role', 'tabpanel');
+      tabContents.set(id, content);
+    }
+
+    const showTabContent = (id: SettingsTabId): void => {
+      for (const tabId of tabIds) {
+        tabContents.get(tabId)?.toggleClass(
+          'grimoire-settings-tab-content--active',
+          tabId === id,
+        );
+      }
+    };
+
+    const renderTab = (id: SettingsTabId): void => {
+      if (renderedTabs.has(id)) return;
+      const content = tabContents.get(id);
+      if (!content) return;
+      switch (id) {
+        case 'general':
+          this.renderGeneralHub(content);
+          break;
+        case 'providers':
+          this.renderProvidersHub(content, providerIds, containerEl);
+          break;
+        case 'workspace':
+          this.renderWorkspaceHub(content, providerIds);
+          break;
+        case 'about':
+          this.renderAboutHub(content);
+          break;
+      }
+      this.markTextareaRows(content);
+      renderedTabs.add(id);
+    };
+
+    const scheduleTabRender = (id: SettingsTabId): void => {
+      if (renderedTabs.has(id) || pendingTabs.has(id)) return;
+      pendingTabs.add(id);
+      const view = containerEl.ownerDocument.defaultView;
+      const run = (): void => {
+        pendingTabs.delete(id);
+        if (renderCycle !== this.settingsRenderCycle) return;
+        renderTab(id);
+        if (this.activeTab === id) showTabContent(id);
+      };
+      if (typeof view?.requestAnimationFrame === 'function') {
+        view.requestAnimationFrame(() => {
+          if (renderCycle !== this.settingsRenderCycle) return;
+          view.requestAnimationFrame(run);
+        });
+        return;
+      }
+      window.setTimeout(run, 0);
+    };
+
+    for (const id of tabIds) {
       const button = tabViewport.createEl('button', {
         cls: `grimoire-settings-tab${id === this.activeTab ? ' grimoire-settings-tab--active' : ''}`,
-        text: label,
+        text: this.getHubText(id),
       });
       button.setAttribute('role', 'tab');
       button.setAttribute('aria-selected', String(id === this.activeTab));
       button.tabIndex = id === this.activeTab ? 0 : -1;
-      if (id !== 'general') {
-        button.createSpan({
-          cls: `grimoire-settings-tab-status${ProviderRegistry.isEnabled(id, this.plugin.settings) ? ' is-enabled' : ''}`,
-        });
-      }
       button.addEventListener('click', () => {
+        if (id === this.activeTab) return;
         this.activeTab = id;
         for (const tabId of tabIds) {
           tabButtons.get(tabId)?.toggleClass('grimoire-settings-tab--active', tabId === id);
@@ -432,9 +578,13 @@ export class GrimoireSettingTab extends PluginSettingTab {
           if (tabButtons.get(tabId)) {
             tabButtons.get(tabId)!.tabIndex = tabId === id ? 0 : -1;
           }
-          tabContents.get(tabId)?.toggleClass('grimoire-settings-tab-content--active', tabId === id);
         }
         this.tabScroller?.reveal(button);
+        if (renderedTabs.has(id)) {
+          showTabContent(id);
+        } else {
+          scheduleTabRender(id);
+        }
       });
       tabButtons.set(id, button);
     }
@@ -447,49 +597,1093 @@ export class GrimoireSettingTab extends PluginSettingTab {
       (index) => tabButtons.get(tabIds[index])?.click(),
     );
     this.tabScroller.reveal(tabButtons.get(this.activeTab));
+    renderTab(this.activeTab);
+  }
 
-    for (const id of tabIds) {
-      const content = containerEl.createDiv({
-        cls: `grimoire-settings-tab-content${id === this.activeTab ? ' grimoire-settings-tab-content--active' : ''}`,
+  private getHubText(key: string): string {
+    const locale = this.plugin.settings.locale;
+    const isChinese = locale.toLowerCase().startsWith('zh');
+    const copy: Record<string, string> = {
+      general: isChinese ? '常规' : 'General',
+      providers: isChinese ? '供应商' : 'Providers',
+      workspace: isChinese ? '高级设置' : 'Advanced',
+      about: isChinese ? '关于' : 'About',
+      cliDetected: isChinese ? '已检测到 CLI' : 'CLI detected',
+      cliNotDetected: isChinese ? '未检测到 CLI' : 'CLI not detected',
+      geminiLegacy: locale === 'zh-TW'
+        ? 'Gemini CLI（舊版）'
+        : (isChinese ? 'Gemini CLI（旧版）' : 'Gemini CLI (Legacy)'),
+      providerDetails: isChinese ? '{provider} 设置' : '{provider} settings',
+      skills: isChinese ? '技能' : 'Skills',
+      agents: isChinese ? '子代理' : 'Subagents',
+      mcp: 'MCP',
+      environment: isChinese ? '环境变量' : 'Environment',
+      commands: isChinese ? '命令' : 'Commands',
+      search: isChinese
+        ? '搜索名称、说明、来源或供应商'
+        : 'Search name, description, source, or provider',
+      name: isChinese ? '名称' : 'Name',
+      source: isChinese ? '来源' : 'Source',
+      provider: isChinese ? '供应商' : 'Provider',
+      actions: isChinese ? '操作' : 'Actions',
+      manage: isChinese ? '管理' : 'Manage',
+      manageTitle: isChinese ? '管理 {section}' : 'Manage {section}',
+      edit: isChinese ? '修改' : 'Edit',
+      delete: isChinese ? '删除' : 'Delete',
+      deleteConfirm: isChinese ? '确定删除“{name}”吗？' : 'Delete “{name}”?',
+      deleted: isChinese ? '已删除“{name}”' : 'Deleted “{name}”',
+      deleteFailed: isChinese ? '删除失败：{message}' : 'Delete failed: {message}',
+      providerOptions: isChinese ? '供应商高级选项' : 'Provider advanced options',
+      readonly: isChinese ? '只读' : 'Read only',
+      available: isChinese ? '可用' : 'Available',
+      connected: isChinese ? '已连接' : 'Connected',
+      disabled: isChinese ? '已停用' : 'Disabled',
+      shared: isChinese ? '共享' : 'Shared',
+      loading: isChinese ? '正在加载资源…' : 'Loading resources…',
+      unsupported: isChinese
+        ? '当前供应商不支持此类资源管理。'
+        : 'This provider does not support this resource category.',
+      none: isChinese ? '没有匹配的高级设置资源。' : 'No matching advanced resources.',
+      aboutCopy: isChinese
+        ? 'Grimoire 在 Obsidian 中连接本地 AI Agent。此处保留插件版本、说明和更新入口。'
+        : 'Grimoire connects local AI agents inside Obsidian. Version and release notes are kept here.',
+    };
+    return copy[key] ?? key;
+  }
+
+  private orderProviderIds(providerIds: ProviderId[]): ProviderId[] {
+    const preferredOrder = [
+      'claude',
+      'codex',
+      'opencode',
+      'grok',
+      'mimocode',
+      'kimicode',
+      'antigravity',
+      'gemini',
+      'qwen',
+      'pi',
+    ];
+    const positions = new Map(preferredOrder.map((providerId, index) => [providerId, index]));
+    return providerIds
+      .map((providerId, index) => ({ providerId, index }))
+      .sort((left, right) => (
+        (positions.get(left.providerId) ?? preferredOrder.length + left.index)
+        - (positions.get(right.providerId) ?? preferredOrder.length + right.index)
+      ))
+      .map(({ providerId }) => providerId);
+  }
+
+  private renderGeneralHub(container: HTMLElement): void {
+    this.renderGeneralTab(container);
+    container.querySelector('.grimoire-settings-version-row')?.remove();
+  }
+
+  private getProviderDisplayName(providerId: ProviderId): string {
+    if (providerId === 'gemini') {
+      return this.getHubText('geminiLegacy');
+    }
+    return PROVIDER_SETTING_COPY[providerId]?.name
+      ?? ProviderRegistry.getProviderDisplayName(providerId);
+  }
+
+  private getProviderStatusText(providerId: ProviderId): string {
+    return this.getHubText(
+      this.plugin.getResolvedProviderCliPath?.(providerId)
+        ? 'cliDetected'
+        : 'cliNotDetected',
+    );
+  }
+
+  private renderProviderCards(
+    container: HTMLElement,
+    providerIds: ProviderId[],
+    settingsRoot: HTMLElement,
+  ): void {
+    const grid = container.createDiv({ cls: 'grimoire-settings-provider-grid' });
+    for (const providerId of providerIds) {
+      const enabled = ProviderRegistry.isEnabled(providerId, this.plugin.settings);
+      const card = grid.createDiv({
+        attr: {
+          'aria-pressed': String(providerId === this.activeProviderId),
+          role: 'button',
+          tabindex: '0',
+        },
+        cls: `grimoire-settings-provider-card${providerId === this.activeProviderId
+          ? ' grimoire-settings-provider-card--active'
+          : ''}`,
       });
-      tabContents.set(id, content);
+      card.dataset.providerId = providerId;
+      const copy = card.createDiv({ cls: 'grimoire-settings-provider-card-copy' });
+      const title = copy.createDiv({ cls: 'grimoire-settings-provider-card-title' });
+      title.createSpan({
+        cls: 'grimoire-settings-provider-card-name',
+        text: this.getProviderDisplayName(providerId),
+      });
+      copy.createDiv({
+        cls: 'grimoire-settings-provider-card-meta',
+        text: this.getProviderStatusText(providerId),
+      });
+
+      const toggleContainer = card.createDiv({ cls: 'grimoire-settings-provider-card-toggle' });
+      toggleContainer.addEventListener('click', (event) => event.stopPropagation());
+      toggleContainer.addEventListener('keydown', (event) => event.stopPropagation());
+      new ToggleComponent(toggleContainer)
+        .setValue(enabled)
+        .onChange(async (value) => {
+          await this.updateProviderEnabled(providerId, value);
+        });
+
+      const activate = (): void => {
+        if (providerId === this.activeProviderId) return;
+        this.activeProviderId = providerId;
+        this.renderSettings(settingsRoot);
+      };
+      card.addEventListener('click', activate);
+      card.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        activate();
+      });
+    }
+  }
+
+  private renderProvidersHub(
+    container: HTMLElement,
+    providerIds: ProviderId[],
+    settingsRoot: HTMLElement,
+  ): void {
+    this.renderProviderCards(container, providerIds, settingsRoot);
+    const details = container.createDiv({ cls: 'grimoire-settings-provider-details' });
+    if (!this.activeProviderId) {
+      details.createDiv({ cls: 'grimoire-settings-hub-empty', text: this.getHubText('none') });
+      return;
     }
 
-    this.renderGeneralTab(tabContents.get('general')!);
+    new Setting(details)
+      .setName(this.getHubText('providerDetails').replace(
+        '{provider}',
+        this.getProviderDisplayName(this.activeProviderId),
+      ))
+      .setHeading();
+    const renderer = ProviderWorkspaceRegistry.getSettingsTabRenderer(this.activeProviderId);
+    if (!renderer) {
+      details.createDiv({ cls: 'grimoire-settings-hub-empty', text: this.getHubText('none') });
+      return;
+    }
 
-    for (const providerId of providerTabs) {
-      const content = tabContents.get(providerId);
-      if (!content) {
+    renderer.render(details, this.createSettingsRendererContext(this.activeProviderId));
+    for (const advancedSection of details.querySelectorAll('.grimoire-adv')) {
+      advancedSection.remove();
+    }
+  }
+
+  private renderWorkspaceHub(container: HTMLElement, providerIds: ProviderId[]): void {
+    const sections: AdvancedSettingsSection[] = [
+      'general',
+      'skills',
+      'agents',
+      'mcp',
+      'environment',
+      'commands',
+    ];
+    if (!sections.includes(this.activeWorkspaceSection)) {
+      this.activeWorkspaceSection = 'general';
+    }
+
+    const navigation = container.createDiv({ cls: 'grimoire-settings-segmented-nav' });
+    navigation.setAttribute('role', 'group');
+    const buttons = new Map<AdvancedSettingsSection, HTMLButtonElement>();
+    const resourceArea = container.createDiv({ cls: 'grimoire-settings-resource-area' });
+    const activate = (section: AdvancedSettingsSection): void => {
+      this.activeWorkspaceSection = section;
+      for (const [buttonSection, button] of buttons) {
+        const isActive = buttonSection === section;
+        button.toggleClass('is-active', isActive);
+        button.setAttribute('aria-pressed', String(isActive));
+      }
+      void this.refreshWorkspaceHubList(resourceArea, providerIds);
+    };
+
+    for (const section of sections) {
+      const button = navigation.createEl('button', {
+        attr: {
+          'aria-pressed': String(section === this.activeWorkspaceSection),
+          type: 'button',
+        },
+        cls: section === this.activeWorkspaceSection ? 'is-active' : '',
+        text: this.getHubText(section),
+      });
+      button.dataset.section = section;
+      button.addEventListener('click', () => activate(section));
+      buttons.set(section, button);
+    }
+    activate(this.activeWorkspaceSection);
+  }
+
+  private async refreshWorkspaceHubList(
+    resourceArea: HTMLElement,
+    providerIds: ProviderId[],
+  ): Promise<void> {
+    resourceArea.empty();
+    const section = this.activeWorkspaceSection;
+    resourceArea.toggleClass('grimoire-settings-resource-area--general', section === 'general');
+    if (section === 'general') {
+      this.renderGeneralAdvancedSettings(resourceArea);
+      this.markTextareaRows(resourceArea);
+      return;
+    }
+    const toolbar = resourceArea.createDiv({
+      cls: 'grimoire-settings-resource-toolbar grimoire-settings-resource-toolbar--compact',
+    });
+    const actions = toolbar.createDiv({ cls: 'grimoire-settings-resource-toolbar-actions' });
+    const search = actions.createEl('input', {
+      cls: 'grimoire-settings-resource-search',
+      placeholder: this.getHubText('search'),
+      type: 'search',
+    });
+    const managerProviders = this.getWorkspaceManagerProviders(providerIds, section);
+    const manageButton = actions.createEl('button', {
+      attr: { type: 'button' },
+      cls: 'mod-cta grimoire-settings-resource-manage',
+      text: this.getHubText('manage'),
+    });
+    manageButton.disabled = managerProviders.length === 0;
+    manageButton.addEventListener('click', () => {
+      this.openWorkspaceManager(
+        section,
+        providerIds,
+        this.activeWorkspaceProviderId ?? managerProviders[0],
+        () => { void this.refreshWorkspaceHubList(resourceArea, providerIds); },
+      );
+    });
+
+    const list = resourceArea.createDiv({ cls: 'grimoire-settings-resource-list' });
+    list.createDiv({
+      cls: 'grimoire-settings-resource-loading',
+      text: this.getHubText('loading'),
+    });
+    const token = Symbol(section);
+    this.workspaceLoadToken = token;
+    try {
+      const rows = await this.loadWorkspaceHubRows(providerIds, section);
+      if (this.workspaceLoadToken !== token || !list.isConnected) return;
+      const render = (): void => {
+        this.renderWorkspaceHubRows(list, rows, search.value, providerIds, resourceArea);
+      };
+      search.addEventListener('input', render);
+      render();
+    } catch (error) {
+      if (this.workspaceLoadToken !== token || !list.isConnected) return;
+      list.empty();
+      list.createDiv({
+        cls: 'grimoire-settings-hub-empty',
+        text: error instanceof Error ? error.message : this.getHubText('none'),
+      });
+    }
+  }
+
+  private getWorkspaceManagerProviders(
+    providerIds: ProviderId[],
+    section: WorkspaceSection,
+  ): string[] {
+    const supportedProviders = providerIds.filter((providerId) => {
+      const services = ProviderWorkspaceRegistry.getServices(providerId);
+      switch (section) {
+        case 'skills':
+          return providerId === 'claude'
+            || providerId === 'codex'
+            || Boolean(services?.commandCatalog || services?.runtimeCommandLoader);
+        case 'commands':
+          return providerId !== 'codex'
+            && (providerId === 'claude'
+              || Boolean(services?.commandCatalog || services?.runtimeCommandLoader));
+        case 'agents':
+          return Boolean(services?.agentMentionProvider);
+        case 'mcp':
+          return providerId === 'claude' || providerId === 'codex';
+        case 'environment':
+          return true;
+      }
+    });
+    return section === 'environment'
+      ? ['__shared__', ...supportedProviders]
+      : supportedProviders;
+  }
+
+  private getWorkspaceServices(providerId: ProviderId): WorkspaceServicesWithStorage | null {
+    return ProviderWorkspaceRegistry.getServices(providerId);
+  }
+
+  private openWorkspaceManager(
+    section: WorkspaceSection,
+    providerIds: ProviderId[],
+    initialProviderId: string | undefined,
+    onClose?: () => void,
+    focusName?: string,
+  ): void {
+    const supportedProviders = this.getWorkspaceManagerProviders(providerIds, section);
+    if (supportedProviders.length === 0) {
+      new Notice(this.getHubText('unsupported'));
+      return;
+    }
+    const providerId = initialProviderId && supportedProviders.includes(initialProviderId)
+      ? initialProviderId
+      : supportedProviders[0];
+
+    new class extends Modal {
+      constructor(app: App, private readonly settingsTab: GrimoireSettingTab) {
+        super(app);
+      }
+
+      onOpen(): void {
+        this.setTitle(this.settingsTab.getHubText('manageTitle').replace(
+          '{section}',
+          this.settingsTab.getHubText(section),
+        ));
+        this.modalEl.addClass('grimoire-workspace-manager-modal');
+        const providerNavigation = this.contentEl.createDiv({
+          cls: 'grimoire-settings-segmented-nav grimoire-workspace-manager-providers',
+        });
+        const content = this.contentEl.createDiv({
+          cls: 'grimoire-settings-workspace-modal-content',
+        });
+        let pendingFocusName = focusName;
+
+        const activateProvider = (nextProviderId: string): void => {
+          this.settingsTab.activeWorkspaceProviderId = nextProviderId;
+          content.empty();
+          for (const button of providerNavigation.querySelectorAll<HTMLButtonElement>('button')) {
+            const isActive = button.dataset.providerId === nextProviderId;
+            button.toggleClass('is-active', isActive);
+            button.setAttribute('aria-pressed', String(isActive));
+          }
+          this.settingsTab.renderWorkspaceProviderSection(content, nextProviderId, section);
+          if (pendingFocusName && nextProviderId === providerId) {
+            this.settingsTab.focusWorkspaceManagerResource(content, pendingFocusName, section);
+            pendingFocusName = undefined;
+          }
+        };
+
+        for (const supportedProviderId of supportedProviders) {
+          const button = providerNavigation.createEl('button', {
+            attr: {
+              'aria-pressed': String(supportedProviderId === providerId),
+              type: 'button',
+            },
+            text: supportedProviderId === '__shared__'
+              ? this.settingsTab.getHubText('shared')
+              : this.settingsTab.getProviderDisplayName(supportedProviderId),
+          });
+          button.dataset.providerId = supportedProviderId;
+          button.addEventListener('click', () => activateProvider(supportedProviderId));
+        }
+        activateProvider(providerId);
+      }
+
+      onClose(): void {
+        this.contentEl.empty();
+        onClose?.();
+      }
+    }(this.app, this).open();
+  }
+
+  private focusWorkspaceManagerResource(
+    container: HTMLElement,
+    resourceName: string,
+    section: WorkspaceSection,
+    attempt = 0,
+  ): void {
+    if (section === 'environment') {
+      const textarea = container.querySelector<HTMLTextAreaElement>('.grimoire-settings-env-textarea');
+      if (!textarea && attempt < 20) {
+        window.setTimeout(() => {
+          this.focusWorkspaceManagerResource(container, resourceName, section, attempt + 1);
+        }, 100);
+        return;
+      }
+      if (!textarea) return;
+
+      const escapedName = resourceName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const matcher = new RegExp(`^(?:export\\s+)?${escapedName}\\s*=`);
+      let offset = 0;
+      for (const line of textarea.value.split(/\r?\n/)) {
+        if (matcher.test(line.trim())) {
+          textarea.focus();
+          textarea.setSelectionRange(offset, offset + line.length);
+          return;
+        }
+        offset += line.length + 1;
+      }
+      return;
+    }
+
+    const resourceItem = Array.from(container.querySelectorAll<HTMLElement>(
+      '.grimoire-sp-item, .grimoire-mcp-item',
+    )).find((item) => {
+      const name = item.querySelector(
+        '.grimoire-sp-item-name, .grimoire-mcp-name',
+      )?.textContent?.trim().replace(/^[/$]/, '');
+      return name === resourceName;
+    });
+    if (!resourceItem && attempt < 20) {
+      window.setTimeout(() => {
+        this.focusWorkspaceManagerResource(container, resourceName, section, attempt + 1);
+      }, 100);
+      return;
+    }
+    if (!resourceItem) return;
+
+    resourceItem.scrollIntoView({ block: 'center' });
+    const editButton = Array.from(resourceItem.querySelectorAll<HTMLButtonElement>('button'))
+      .find((button) => button.getAttribute('aria-label') === t('common.edit'));
+    editButton?.click();
+  }
+
+  private renderWorkspaceProviderSection(
+    container: HTMLElement,
+    providerId: string,
+    section: WorkspaceSection,
+  ): void {
+    if (providerId === '__shared__' && section === 'environment') {
+      renderEnvironmentSettingsSection({
+        container,
+        plugin: this.plugin,
+        scope: 'shared',
+        heading: t('settings.environment'),
+        name: t('settings.sharedEnvironment.name'),
+        desc: t('settings.sharedEnvironment.desc'),
+        placeholder: 'PATH=/opt/homebrew/bin:/usr/local/bin\nHTTPS_PROXY=http://proxy.example.com:8080\nSSL_CERT_FILE=/path/to/cert.pem',
+        renderCustomContextLimits: (target) => this.renderCustomContextLimits(target),
+      });
+      this.markTextareaRows(container);
+      return;
+    }
+
+    if (providerId === '__shared__') {
+      container.createDiv({
+        cls: 'grimoire-settings-hub-empty',
+        text: this.getHubText('unsupported'),
+      });
+      return;
+    }
+    const renderer = ProviderWorkspaceRegistry.getSettingsTabRenderer(providerId);
+    if (!renderer) {
+      container.createDiv({
+        cls: 'grimoire-settings-hub-empty',
+        text: this.getHubText('unsupported'),
+      });
+      return;
+    }
+
+    const staging = container.createDiv({ cls: 'grimoire-workspace-render-staging' });
+    renderer.render(staging, this.createSettingsRendererContext(providerId));
+    let extracted = this.extractWorkspaceProviderSection(
+      staging,
+      container,
+      section,
+      providerId,
+    );
+    if (section === 'environment') {
+      extracted = this.appendWorkspaceProviderExtras(staging, container) || extracted;
+    }
+    staging.remove();
+    if (extracted) {
+      this.markTextareaRows(container);
+    } else {
+      container.createDiv({
+        cls: 'grimoire-settings-hub-empty',
+        text: this.getHubText('unsupported'),
+      });
+    }
+  }
+
+  private extractWorkspaceProviderSection(
+    staging: HTMLElement,
+    target: HTMLElement,
+    section: WorkspaceSection,
+    providerId: ProviderId,
+  ): boolean {
+    const getTitle = (element: Element): string => (
+      element.querySelector('.setting-item-name')?.textContent?.trim() ?? ''
+    );
+    const moveSection = (firstElement: Element): boolean => {
+      let current: Element | null = firstElement;
+      let moved = 0;
+      while (current) {
+        if (current !== firstElement && current.classList.contains('setting-item-heading')) break;
+        const nextElement: Element | null = current.nextElementSibling;
+        target.appendChild(current);
+        current = nextElement;
+        moved += 1;
+      }
+      return moved > 0;
+    };
+
+    const headings = Array.from(staging.querySelectorAll<HTMLElement>('.setting-item-heading'));
+    const localizedHeadings: Record<WorkspaceSection, string[]> = {
+      skills: [
+        t('settings.providerTabs.codex.skills.name'),
+        t('settings.slashCommands.name'),
+      ],
+      commands: [t('settings.slashCommands.name')],
+      agents: [
+        t('settings.subagents.name'),
+        t('settings.providerTabs.codex.subagents.name'),
+      ],
+      mcp: [t('settings.mcpServers.name')],
+      environment: [
+        t('settings.environment'),
+        t('settings.providerTabs.qwen.environment.heading'),
+      ],
+    };
+    const titleMatchers: Record<WorkspaceSection, RegExp> = {
+      skills: /skill|技能/i,
+      commands: /command|命令|slash/i,
+      agents: /sub.?agent|子代理|代理/i,
+      mcp: /mcp/i,
+      environment: /environment|环境/i,
+    };
+    const exactTitles = localizedHeadings[section]
+      .filter((title) => title && !title.startsWith('settings.'));
+    let matchingHeading = headings.find((heading) => exactTitles.includes(getTitle(heading)));
+    if (!matchingHeading && (
+      (section !== 'skills' && section !== 'commands') || providerId === 'codex'
+    )) {
+      matchingHeading = headings.find((heading) => titleMatchers[section].test(getTitle(heading)));
+    }
+
+    if (section === 'environment') {
+      const textarea = staging.querySelector('.grimoire-settings-env-textarea');
+      if (textarea) {
+        const settingItem = textarea.closest('.setting-item');
+        let previous = settingItem?.previousElementSibling ?? null;
+        while (previous && !previous.classList.contains('setting-item-heading')) {
+          previous = previous.previousElementSibling;
+        }
+        matchingHeading = (previous ?? settingItem ?? undefined) as HTMLElement | undefined;
+      }
+    }
+    if (matchingHeading) return moveSection(matchingHeading);
+
+    if (section === 'skills' || section === 'commands') {
+      const hiddenCommandsSetting = Array.from(staging.querySelectorAll<HTMLElement>(
+        '.setting-item:not(.setting-item-heading)',
+      )).find((settingItem) => (
+        /hidden|隐藏|ausgeblend|ocult|masqu|非表示|숨김|скры|oculto/i.test(
+          getTitle(settingItem),
+        ) && Boolean(settingItem.querySelector('textarea'))
+      ));
+      if (hiddenCommandsSetting) {
+        const previous = hiddenCommandsSetting.previousElementSibling;
+        if (previous?.classList.contains('grimoire-sp-settings-desc')
+          || previous?.classList.contains('grimoire-mcp-settings-desc')) {
+          target.appendChild(previous);
+        }
+        target.appendChild(hiddenCommandsSetting);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private appendWorkspaceProviderExtras(staging: HTMLElement, target: HTMLElement): boolean {
+    const extras: HTMLElement[] = [];
+    const resourceMatcher = /skill|技能|command|命令|slash|sub.?agent|子代理|代理|mcp|environment|环境/i;
+    for (const body of staging.querySelectorAll<HTMLElement>('.grimoire-adv-body')) {
+      const children = Array.from(body.children) as HTMLElement[];
+      const resourceElements = new Set<HTMLElement>();
+      for (const [index, child] of children.entries()) {
+        if (!child.classList.contains('setting-item-heading')) continue;
+        const title = child.querySelector('.setting-item-name')?.textContent?.trim() ?? '';
+        if (!resourceMatcher.test(title)) continue;
+        resourceElements.add(child);
+        for (let cursor = index + 1;
+          cursor < children.length && !children[cursor].classList.contains('setting-item-heading');
+          cursor += 1) {
+          resourceElements.add(children[cursor]);
+        }
+      }
+      for (const child of children) {
+        if (child.matches(
+          '.grimoire-slash-commands-container, .grimoire-agents-container, .grimoire-mcp-container',
+        )) {
+          resourceElements.add(child);
+        }
+      }
+      for (const child of children) {
+        if (!child.matches('.setting-item:not(.setting-item-heading)')) continue;
+        const title = child.querySelector('.setting-item-name')?.textContent?.trim() ?? '';
+        if (!/hidden|隐藏|ausgeblend|ocult|masqu|非表示|숨김|скры|oculto/i.test(title)
+          || !child.querySelector('textarea')) continue;
+        resourceElements.add(child);
+        const previous = child.previousElementSibling;
+        if (previous?.classList.contains('grimoire-sp-settings-desc')
+          || previous?.classList.contains('grimoire-mcp-settings-desc')) {
+          resourceElements.add(previous as HTMLElement);
+        }
+      }
+      for (const child of children) {
+        if (!resourceElements.has(child)) extras.push(child);
+      }
+    }
+    if (extras.length === 0) return false;
+
+    new Setting(target).setName(this.getHubText('providerOptions')).setHeading();
+    for (const extra of extras) target.appendChild(extra);
+    return true;
+  }
+
+  private createSettingsRendererContext(
+    providerId: ProviderId = this.activeProviderId ?? this.plugin.settings.settingsProvider,
+  ): ProviderSettingsTabRendererContext {
+    return {
+      plugin: this.plugin,
+      renderHiddenProviderCommandSetting: (target, targetProviderId, copy) => {
+        this.renderHiddenProviderCommandSetting(target, targetProviderId, copy);
+      },
+      refreshModelSelectors: () => this.refreshModelSelectors(),
+      renderCustomContextLimits: (target, targetProviderId) => {
+        this.renderCustomContextLimits(target, targetProviderId);
+      },
+      renderAdvancedSection: (target, options) => (
+        this.renderAdvancedSection(target, providerId, options)
+      ),
+    };
+  }
+
+  private async loadWorkspaceHubRows(
+    providerIds: ProviderId[],
+    section: WorkspaceSection,
+  ): Promise<WorkspaceResourceRow[]> {
+    const rows: WorkspaceResourceRow[] = [];
+    if (section === 'skills' || section === 'commands') {
+      for (const providerId of providerIds) {
+        const catalog = ProviderWorkspaceRegistry.getCommandCatalog(providerId);
+        if (!catalog) continue;
+        try {
+          const vaultEntries = await catalog.listVaultEntries();
+          for (const entry of vaultEntries) {
+            if (entry.kind !== (section === 'skills' ? 'skill' : 'command')) continue;
+            rows.push(this.normalizeWorkspaceCommandEntry(
+              entry,
+              providerId,
+              section,
+              false,
+              catalog,
+            ));
+          }
+          if (section === 'commands' && providerId !== 'claude' && providerId !== 'codex') {
+            const runtimeEntries = await catalog.listDropdownEntries({ includeBuiltIns: false });
+            for (const entry of runtimeEntries) {
+              if (entry.kind !== 'command') continue;
+              rows.push(this.normalizeWorkspaceCommandEntry(
+                entry,
+                providerId,
+                section,
+                true,
+                catalog,
+              ));
+            }
+          }
+        } catch {
+          // A provider that cannot enumerate its local catalog should not hide other providers.
+        }
+      }
+    } else if (section === 'agents') {
+      for (const providerId of providerIds) {
+        const services = this.getWorkspaceServices(providerId);
+        const mentionProvider = services?.agentMentionProvider;
+        if (!mentionProvider) continue;
+        const storage = services.agentStorage ?? services.subagentStorage;
+        try {
+          const summaries = mentionProvider.searchAgents('') as WorkspaceAgentSummary[];
+          const storedDefinitions = storage?.loadAll
+            ? await storage.loadAll()
+            : (services.agentManager?.getAvailableAgents?.() ?? []);
+          const definitionsByName = new Map(
+            storedDefinitions.map((definition) => [definition.name.toLowerCase(), definition]),
+          );
+          for (const summary of summaries) {
+            rows.push(this.normalizeWorkspaceAgentEntry(
+              summary,
+              providerId,
+              storage,
+              definitionsByName.get(summary.name.toLowerCase()),
+            ));
+          }
+        } catch {
+          // Keep the unified list available even if one provider has malformed agent files.
+        }
+      }
+    } else if (section === 'mcp') {
+      for (const providerId of providerIds) {
+        const services = this.getWorkspaceServices(providerId);
+        const manager = services?.mcpServerManager;
+        if (!manager) continue;
+        try {
+          for (const server of manager.getServers()) {
+            const storage = services.mcpStorage;
+            rows.push({
+              key: `mcp:${providerId}:${server.name}`,
+              section: 'mcp',
+              name: server.name,
+              description: this.describeWorkspaceMcp(server),
+              source: providerId === 'claude'
+                ? '.claude/mcp.json'
+                : `${this.getProviderDisplayName(providerId)} MCP`,
+              providerIds: [providerId],
+              ownerProviderId: providerId,
+              readonly: !storage,
+              status: storage
+                ? (server.enabled ? 'connected' : 'disabled')
+                : 'readonly',
+              ...(storage
+                ? {
+                    deleteResource: async (): Promise<void> => {
+                      const nextServers = manager.getServers()
+                        .filter((candidate) => candidate.name !== server.name);
+                      await storage.save(nextServers);
+                      await manager.loadServers();
+                      for (const view of this.plugin.getAllViews()) {
+                        await view.getTabManager()?.broadcastToAllTabs(
+                          (runtime) => runtime.reloadMcpServers(),
+                        );
+                      }
+                    },
+                  }
+                : {}),
+            });
+          }
+        } catch {
+          // Ignore a provider whose MCP config cannot currently be read.
+        }
+      }
+    } else if (section === 'environment') {
+      const scopes: Array<{ id: string; scope: EnvironmentScope }> = [
+        { id: '__shared__', scope: 'shared' },
+        ...providerIds.map((providerId) => ({
+          id: providerId,
+          scope: `provider:${providerId}` as EnvironmentScope,
+        })),
+      ];
+      for (const { id, scope } of scopes) {
+        try {
+          const variables = parseEnvironmentVariables(
+            this.plugin.getEnvironmentVariablesForScope(scope),
+          );
+          for (const name of Object.keys(variables).sort()) {
+            rows.push({
+              key: `env:${id}:${name}`,
+              section: 'environment',
+              name,
+              description: id === '__shared__'
+                ? this.getHubText('shared')
+                : this.getProviderDisplayName(id),
+              source: id === '__shared__'
+                ? 'Grimoire shared environment'
+                : `Grimoire · provider:${id}`,
+              providerIds: [id],
+              ownerProviderId: id,
+              readonly: false,
+              status: 'available',
+              deleteResource: () => this.removeWorkspaceEnvironmentKey(scope, name),
+            });
+          }
+        } catch {
+          // Ignore a malformed scope while preserving the remaining environment rows.
+        }
+      }
+    }
+    return this.mergeWorkspaceRows(rows, providerIds);
+  }
+
+  private normalizeWorkspaceCommandEntry(
+    entry: ProviderCommandEntry,
+    providerId: ProviderId,
+    section: Extract<WorkspaceSection, 'skills' | 'commands'>,
+    forceReadonly: boolean,
+    catalog: ReturnType<typeof ProviderWorkspaceRegistry.getCommandCatalog> & object,
+  ): WorkspaceResourceRow {
+    const readonly = forceReadonly
+      || !entry.isEditable
+      || entry.scope !== 'vault';
+    const source = section === 'skills'
+      ? (providerId === 'claude'
+          ? '.claude/skills/'
+          : providerId === 'codex'
+            ? '.codex/skills/'
+            : '.agents/skills/')
+      : (providerId === 'claude'
+          ? '.claude/commands/'
+          : `${this.getProviderDisplayName(providerId)} runtime`);
+    return {
+      key: `${section}:${providerId}:${entry.id}`,
+      section,
+      name: entry.name,
+      description: entry.description ?? '',
+      source,
+      providerIds: [providerId],
+      ownerProviderId: providerId,
+      readonly,
+      status: readonly ? 'readonly' : 'available',
+      ...(!readonly && entry.isDeletable
+        ? { deleteResource: () => catalog.deleteVaultEntry(entry) }
+        : {}),
+    };
+  }
+
+  private normalizeWorkspaceAgentEntry(
+    summary: WorkspaceAgentSummary,
+    providerId: ProviderId,
+    storage: WorkspaceAgentStorage | undefined,
+    definition: WorkspaceAgentDefinition | undefined,
+  ): WorkspaceResourceRow {
+    const readonly = summary.source !== 'vault' || !storage;
+    const source = providerId === 'claude'
+      ? '.claude/agents/'
+      : providerId === 'codex'
+        ? '.codex/agents/'
+        : providerId === 'opencode'
+          ? '.opencode/agent/'
+          : '.agents/agents/';
+    const deleteTarget = definition ?? {
+      name: summary.name,
+      description: summary.description ?? '',
+    };
+    return {
+      key: `agent:${providerId}:${summary.id}`,
+      section: 'agents',
+      name: summary.name,
+      description: summary.description ?? '',
+      source,
+      providerIds: [providerId],
+      ownerProviderId: providerId,
+      readonly,
+      status: readonly ? 'readonly' : 'available',
+      ...(!readonly && storage
+        ? {
+            deleteResource: async (): Promise<void> => {
+              await storage.delete(deleteTarget);
+              await ProviderWorkspaceRegistry.refreshAgentMentions(providerId);
+            },
+          }
+        : {}),
+    };
+  }
+
+  private describeWorkspaceMcp(server: ManagedMcpServer): string {
+    if ('command' in server.config) {
+      return [server.config.command, ...(server.config.args ?? [])].join(' ');
+    }
+    return server.config.url;
+  }
+
+  private async removeWorkspaceEnvironmentKey(
+    scope: EnvironmentScope,
+    name: string,
+  ): Promise<void> {
+    const current = this.plugin.getEnvironmentVariablesForScope(scope);
+    const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const matcher = new RegExp(`^(?:export\\s+)?${escapedName}\\s*=`);
+    const next = current
+      .split(/\r?\n/)
+      .filter((line) => !matcher.test(line.trim()))
+      .join('\n');
+    await this.plugin.applyEnvironmentVariables(scope, next);
+  }
+
+  private mergeWorkspaceRows(
+    rows: WorkspaceResourceRow[],
+    providerOrder: ProviderId[],
+  ): WorkspaceResourceRow[] {
+    const merged = new Map<string, WorkspaceResourceRow>();
+    const positions = new Map(providerOrder.map((providerId, index) => [providerId, index]));
+    for (const row of rows) {
+      const key = `${row.name.toLowerCase()}\0${row.source}`;
+      const existing = merged.get(key);
+      if (!existing) {
+        merged.set(key, { ...row, providerIds: [...row.providerIds] });
+        continue;
+      }
+      for (const providerId of row.providerIds) {
+        if (!existing.providerIds.includes(providerId)) existing.providerIds.push(providerId);
+      }
+      if (!existing.description && row.description) existing.description = row.description;
+      existing.readonly = existing.readonly && row.readonly;
+      existing.status = existing.readonly
+        ? 'readonly'
+        : (existing.status === 'connected' || row.status === 'connected'
+            ? 'connected'
+            : existing.status);
+    }
+    return Array.from(merged.values())
+      .map((row) => ({
+        ...row,
+        providerIds: row.providerIds.sort((left, right) => (
+          (positions.get(left) ?? providerOrder.length)
+          - (positions.get(right) ?? providerOrder.length)
+        )),
+      }))
+      .sort((left, right) => left.name.localeCompare(right.name));
+  }
+
+  private openWorkspaceResourceEditor(
+    row: WorkspaceResourceRow,
+    providerIds: ProviderId[],
+    onClose: () => void,
+  ): void {
+    this.openWorkspaceManager(
+      row.section,
+      providerIds,
+      row.ownerProviderId,
+      onClose,
+      row.name,
+    );
+  }
+
+  private async deleteWorkspaceResource(
+    row: WorkspaceResourceRow,
+    onDeleted: () => void,
+  ): Promise<void> {
+    if (!row.deleteResource) return;
+    const confirmed = await confirmDelete(
+      this.app,
+      this.getHubText('deleteConfirm').replace('{name}', row.name),
+    );
+    if (!confirmed) return;
+    try {
+      await row.deleteResource();
+      new Notice(this.getHubText('deleted').replace('{name}', row.name));
+      onDeleted();
+    } catch (error) {
+      new Notice(this.getHubText('deleteFailed').replace(
+        '{message}',
+        error instanceof Error ? error.message : String(error),
+      ));
+    }
+  }
+
+  private renderWorkspaceHubRows(
+    container: HTMLElement,
+    rows: WorkspaceResourceRow[],
+    query: string,
+    providerIds: ProviderId[],
+    resourceArea: HTMLElement,
+  ): void {
+    container.empty();
+    const normalizedQuery = query.trim().toLowerCase();
+    const visibleRows = rows.filter((row) => {
+      const providerText = row.providerIds.map((providerId) => (
+        providerId === '__shared__'
+          ? this.getHubText('shared')
+          : this.getProviderDisplayName(providerId)
+      )).join(' ');
+      return !normalizedQuery
+        || `${row.name} ${row.description} ${row.source} ${providerText}`
+          .toLowerCase()
+          .includes(normalizedQuery);
+    });
+    if (visibleRows.length === 0) {
+      container.createDiv({ cls: 'grimoire-settings-hub-empty', text: this.getHubText('none') });
+      return;
+    }
+
+    const header = container.createDiv({ cls: 'grimoire-settings-resource-row is-header' });
+    for (const key of ['name', 'source', 'provider', 'actions']) {
+      header.createSpan({ text: this.getHubText(key) });
+    }
+
+    const refresh = (): void => {
+      void this.refreshWorkspaceHubList(resourceArea, providerIds);
+    };
+    for (const row of visibleRows) {
+      const rowElement = container.createDiv({ cls: 'grimoire-settings-resource-row' });
+      const name = rowElement.createDiv({ cls: 'grimoire-settings-resource-name' });
+      name.createSpan({
+        attr: { title: this.getHubText(row.status) },
+        cls: `grimoire-settings-resource-dot is-${row.status}`,
+      });
+      const nameCopy = name.createDiv({ cls: 'grimoire-settings-resource-name-copy' });
+      nameCopy.createSpan({
+        attr: { title: row.name },
+        cls: 'grimoire-settings-resource-name-title',
+        text: row.name,
+      });
+      if (row.description) {
+        nameCopy.createSpan({
+          attr: { title: row.description },
+          cls: 'grimoire-settings-resource-description',
+          text: row.description,
+        });
+      }
+      rowElement.createSpan({
+        attr: { title: row.source },
+        cls: 'grimoire-settings-resource-source',
+        text: row.source,
+      });
+      rowElement.createSpan({
+        cls: 'grimoire-settings-resource-provider',
+        text: row.providerIds.map((providerId) => (
+          providerId === '__shared__'
+            ? this.getHubText('shared')
+            : this.getProviderDisplayName(providerId)
+        )).join(', '),
+      });
+      const actions = rowElement.createDiv({ cls: 'grimoire-settings-resource-actions' });
+      if (row.readonly) {
+        actions.createSpan({
+          cls: 'grimoire-settings-resource-readonly',
+          text: this.getHubText('readonly'),
+        });
         continue;
       }
 
-      this.renderProviderEnableRow(
-        content,
-        providerId,
-        ProviderRegistry.isEnabled(providerId, this.plugin.settings),
-        async (enabled) => {
-          await this.updateProviderEnabled(providerId, enabled);
+      const editButton = actions.createEl('button', {
+        attr: {
+          'aria-label': this.getHubText('edit'),
+          title: this.getHubText('edit'),
+          type: 'button',
         },
-      );
+        cls: 'grimoire-settings-resource-edit',
+      });
+      setIcon(editButton, 'pencil');
+      editButton.addEventListener('click', () => {
+        this.openWorkspaceResourceEditor(row, providerIds, refresh);
+      });
 
-      ProviderWorkspaceRegistry.getSettingsTabRenderer(providerId)?.render(content, {
-        plugin: this.plugin,
-        renderHiddenProviderCommandSetting: (
-          target,
-          targetProviderId,
-          copy,
-        ) => this.renderHiddenProviderCommandSetting(target, targetProviderId, copy),
-        refreshModelSelectors: () => {
-          for (const view of this.plugin.getAllViews()) {
-            view.refreshModelSelector();
-          }
+      const deleteButton = actions.createEl('button', {
+        attr: {
+          'aria-label': this.getHubText('delete'),
+          title: this.getHubText('delete'),
+          type: 'button',
         },
-        renderCustomContextLimits: (target, providerId) => this.renderCustomContextLimits(target, providerId),
-        renderAdvancedSection: (target, opts) => this.renderAdvancedSection(target, providerId, opts),
+        cls: 'grimoire-settings-resource-delete',
+      });
+      setIcon(deleteButton, 'trash-2');
+      deleteButton.disabled = !row.deleteResource;
+      deleteButton.addEventListener('click', () => {
+        void this.deleteWorkspaceResource(row, refresh);
       });
     }
+  }
 
-    this.markTextareaRows(containerEl);
+  private renderAboutHub(container: HTMLElement): void {
+    const about = container.createDiv({ cls: 'grimoire-settings-about' });
+    about.createDiv({
+      cls: 'grimoire-settings-about-copy',
+      text: this.getHubText('aboutCopy'),
+    });
+    new Setting(about)
+      .setName(t('settings.version.name'))
+      .setDesc(formatGrimoireVersion(this.plugin.manifest))
+      .addButton((button) => {
+        button
+          .setButtonText(t('settings.whatsNew'))
+          .onClick(() => { void this.openCurrentChangelog(); });
+        button.buttonEl.addClass('grimoire-settings-whats-new');
+      })
+      .settingEl.addClass('grimoire-settings-version-row');
   }
 
   private async openCurrentChangelog(): Promise<void> {
@@ -569,6 +1763,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
       .setName(t('settings.language.name'))
       .setDesc(t('settings.language.desc'))
       .addDropdown((dropdown) => {
+        dropdown.selectEl.addClass('grimoire-settings-language-select');
         const locales = getAvailableLocales();
         for (const locale of locales) {
           dropdown.addOption(locale, getLocaleDisplayName(locale));
@@ -584,7 +1779,11 @@ export class GrimoireSettingTab extends PluginSettingTab {
             this.plugin.settings.locale = locale;
             await this.plugin.saveSettings();
             this.plugin.refreshShellTranslations();
-            this.update();
+            if (this.settingsRootEl) {
+              this.renderSettings(this.settingsRootEl);
+            } else {
+              this.update();
+            }
           });
       });
 
@@ -657,12 +1856,9 @@ export class GrimoireSettingTab extends PluginSettingTab {
           void this.restartServiceForPromptChange();
         });
       });
+  }
 
-    const advancedContainer = this.renderAdvancedSection(container, 'general', {
-      count: 11,
-      summary: t('settings.advanced.generalSummary'),
-    });
-
+  private renderGeneralAdvancedSettings(advancedContainer: HTMLElement): void {
     // --- Display (advanced) ---
 
     new Setting(advancedContainer).setName(t('settings.display')).setHeading();
@@ -900,18 +2096,6 @@ export class GrimoireSettingTab extends PluginSettingTab {
           });
       });
 
-    // --- Environment (advanced) ---
-
-    renderEnvironmentSettingsSection({
-      container: advancedContainer,
-      plugin: this.plugin,
-      scope: 'shared',
-      heading: t('settings.environment'),
-      name: t('settings.sharedEnvironment.name'),
-      desc: t('settings.sharedEnvironment.desc'),
-      placeholder: 'PATH=/opt/homebrew/bin:/usr/local/bin\nHTTPS_PROXY=http://proxy.example.com:8080\nSSL_CERT_FILE=/path/to/cert.pem',
-      renderCustomContextLimits: (target) => this.renderCustomContextLimits(target),
-    });
   }
 
   private refreshModelSelectors(): void {
@@ -960,34 +2144,6 @@ export class GrimoireSettingTab extends PluginSettingTab {
     await catalog.refreshModels({
       plugin: this.plugin,
       settings: this.plugin.settings,
-    });
-  }
-
-  private renderProviderEnableRow(
-    container: HTMLElement,
-    providerId: ProviderId,
-    enabled: boolean,
-    onChange: (enabled: boolean) => Promise<void>,
-  ): void {
-    const copy = PROVIDER_SETTING_COPY[providerId] ?? {
-      descKey: 'settings.provider.fallbackDesc',
-      name: ProviderRegistry.getProviderDisplayName(providerId),
-    };
-    const setting = new Setting(container)
-      .setName(t('settings.provider.enableName', { provider: copy.name }))
-      .setDesc(t(copy.descKey, { provider: copy.name }));
-
-    setting.settingEl.addClass('grimoire-provider-row');
-    setting.settingEl.addClass('grimoire-provider-enable-row');
-    setting.settingEl.addClass(`grimoire-provider-row--${providerId}`);
-    setting.settingEl.toggleClass('is-enabled', enabled);
-
-    setting.addToggle((toggle) => {
-      toggle
-        .setValue(enabled)
-        .onChange(async (value) => {
-          await onChange(value);
-        });
     });
   }
 
