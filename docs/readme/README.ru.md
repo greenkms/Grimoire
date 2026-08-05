@@ -106,10 +106,6 @@ cp dist/grimoire/main.js dist/grimoire/manifest.json dist/grimoire/styles.css \
 
 Включите нужных провайдеров в Settings, Grimoire, Providers, и они появятся в model selector. Codex включён при первом запуске; остальные провайдеры opt-in.
 
-<p align="center">
-  <img src="../../assets/readme/settings-providers.png" alt="Настройки Grimoire с provider toggles, tabs и appearance themes" width="100%">
-</p>
-
 ### Рекомендуемые провайдеры
 
 Для лучшего опыта в Grimoire начните с Claude Code, Codex, OpenCode, MiMoCode, Kimi Code, Grok Build или Qwen Code. Сейчас эти провайдеры дают самый сильный runtime surface для vault-native работы: persistent sessions, plan-oriented workflows, tool activity и богатые model controls.
@@ -303,6 +299,10 @@ grok
 
 Щёлкните правой кнопкой по tab, чтобы переименовать, дублировать, закрыть её, закрыть остальные tabs или tabs справа. Средняя кнопка мыши закрывает tab, а временное действие Undo восстанавливает закрытую tab вместе с draft и позицией. Сохранённый диалог можно открыть в новой tab из истории её действием, modifier-click или средней кнопкой. В длинных диалогах есть пятипозиционный navigator: начало, предыдущий prompt, каталог диалогов, следующий prompt и конец. У завершённых messages рядом с copy action показывается локализованный completion timestamp.
 
+<p align="center">
+  <img src="../../assets/readme/conversation-history.png" alt="История диалогов и навигация по вкладкам Grimoire" width="100%">
+</p>
+
 ### Parallel workers, settings и composer
 
 Карточка подтверждения **Parallel workers** показывает inherited model и позволяет выбрать только те предложенные задачи, которые будут запущены. Settings использует native search Obsidian и содержит постоянный пункт What's New. Provider settings и composer используют единый интерфейс для всех providers, сохраняя provider-owned controls и configuration на их месте.
@@ -319,10 +319,6 @@ grok
 ### Model selector
 
 Один picker, сгруппированный по провайдерам и отсортированный по label: Antigravity, Claude Code, Codex, Gemini CLI (Legacy), Grok Build, Kimi Code, MiMoCode, OpenCode и Qwen Code. Search работает по labels, descriptions, groups и model IDs. Catalogs загружаются lazily и запоминают, какие groups вы свернули. В settings можно добавить custom aliases и context-window overrides. Claude 1M variants — дополнительные options, а не замена базовых моделей.
-
-<p align="center">
-  <img src="../../assets/readme/model-selector-usage.png" alt="Model selector Grimoire с provider groups, search и plan usage" width="100%">
-</p>
 
 ### Usage и cost
 
@@ -384,6 +380,10 @@ Permission modes принадлежат provider, поэтому Grimoire пок
 ### Settings
 
 General settings покрывают auto-scroll, title generation, usage indicators, debug logging, locale, tabs и то, какой provider владеет settings view. Per-provider tabs отвечают за CLI paths, model behavior, commands, agents, skills и provider-owned config, если она есть. Также можно задавать project workspace environment variables, scoped per provider.
+
+<p align="center">
+  <img src="../../assets/readme/settings-general.png" alt="Общие настройки Grimoire" width="100%">
+</p>
 
 ## Где Grimoire хранит данные
 

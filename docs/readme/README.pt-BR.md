@@ -106,10 +106,6 @@ Independentemente do caminho escolhido, instale pelo menos um provedor de CLI an
 
 Ative os provedores desejados em Configurações, Grimoire, Provedores; eles aparecerão no seletor de modelo. Codex fica ativado no primeiro início; os demais são opcionais.
 
-<p align="center">
-  <img src="../../assets/readme/settings-providers.png" alt="Configurações do Grimoire mostrando alternâncias de provedores, abas de provedores e temas de aparência" width="100%">
-</p>
-
 ### Provedores recomendados
 
 Para a melhor experiência com o Grimoire, comece com Claude Code, Codex, OpenCode, MiMoCode, Kimi Code, Grok Build ou Qwen Code. Atualmente, esses provedores oferecem as superfícies de runtime mais robustas para trabalho nativo do vault: sessões persistentes, fluxos de trabalho orientados a planos, atividade de ferramentas e controles avançados de modelo.
@@ -296,6 +292,10 @@ Um painel lateral focado, com várias abas. Cada aba mantém seu próprio rascun
 
 Clique com o botão direito em uma aba para renomeá-la, duplicá-la, fechá-la, fechar outras abas ou fechar as abas à sua direita. O clique do meio fecha uma aba, e a ação temporizada de Desfazer restaura uma aba fechada com seu rascunho e posição. Abra uma conversa salva em uma nova aba pelo respectivo item no histórico de chat, com clique modificador ou clique do meio. Conversas longas contam com um navegador de cinco direções para o início, prompt anterior, diretório da conversa, próximo prompt e fim. Mensagens concluídas exibem um horário de conclusão localizado ao lado da ação de copiar.
 
+<p align="center">
+  <img src="../../assets/readme/conversation-history.png" alt="Histórico de conversas e navegação por abas do Grimoire" width="100%">
+</p>
+
 ### Trabalhadores paralelos, configurações e compositor
 
 O cartão de aprovação **Trabalhadores paralelos** mostra o modelo herdado e permite selecionar apenas as tarefas propostas a iniciar. As configurações usam a busca nativa do Obsidian e mantêm uma entrada permanente de Novidades. As configurações do provedor e o compositor usam uma superfície consistente entre os provedores, mantendo controles e configurações pertencentes ao provedor onde devem estar.
@@ -312,10 +312,6 @@ O cartão de aprovação **Trabalhadores paralelos** mostra o modelo herdado e p
 ### Seletor de modelo
 
 Um único seletor, agrupado por provedor e ordenado por rótulo: Antigravity, Claude Code, Codex, Gemini CLI (Legacy), Grok Build, Kimi Code, MiMoCode, OpenCode e Qwen Code. A busca percorre rótulos, descrições, grupos e IDs de modelos sem redimensionar o menu enquanto você filtra. Os catálogos carregam de forma preguiçosa e lembram os grupos que você recolheu. Adicione aliases personalizados e substituições de janela de contexto nas configurações. As variantes 1M do Claude são opções extras, não substitutas dos modelos básicos.
-
-<p align="center">
-  <img src="../../assets/readme/model-selector-usage.png" alt="Seletor de modelos do Grimoire mostrando grupos de provedores, busca de modelos e uso do plano" width="100%">
-</p>
 
 ### Uso e custo
 
@@ -377,6 +373,10 @@ Desativado por padrão. Ao ativá-lo, o Grimoire grava JSONL sanitizado em `.gri
 ### Configurações
 
 As configurações gerais abrangem comportamento de tema que acompanha o Obsidian, rolagem automática, geração de títulos, indicadores de uso, registro de depuração, localidade, abas e qual provedor possui a tela de configurações. As abas de cada provedor tratam caminhos de CLI, comportamento de modelo, comandos, agentes, habilidades e configurações pertencentes ao provedor, quando existentes. Você também pode definir variáveis de ambiente do espaço de trabalho do projeto, com escopo por provedor quando necessário.
+
+<p align="center">
+  <img src="../../assets/readme/settings-general.png" alt="Configurações gerais do Grimoire" width="100%">
+</p>
 
 ## Onde o Grimoire mantém seus dados
 

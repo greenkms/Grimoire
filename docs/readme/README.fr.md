@@ -106,10 +106,6 @@ Quel que soit le chemin choisi, installez au moins un CLI provider avant de comm
 
 Activez les providers voulus dans Settings, Grimoire, Providers, et ils apparaîtront dans le model selector. Codex est activé au premier lancement ; les autres providers sont opt-in.
 
-<p align="center">
-  <img src="../../assets/readme/settings-providers.png" alt="Settings Grimoire avec provider toggles, tabs et appearance themes" width="100%">
-</p>
-
 ### Providers recommandés
 
 Pour la meilleure expérience Grimoire, commencez avec Claude Code, Codex, OpenCode, MiMoCode, Kimi Code, Grok Build ou Qwen Code. Ces providers exposent aujourd'hui les runtime surfaces les plus solides pour le travail vault-native : persistent sessions, plan-oriented workflows, tool activity et model controls riches.
@@ -300,6 +296,10 @@ Un panneau latéral concentré avec plusieurs tabs. Chaque tab garde son draft, 
 
 Un clic droit sur un tab permet de le renommer, dupliquer, fermer, fermer les autres ou fermer les tabs à droite. Le clic central ferme un tab, et Undo le restaure temporairement avec son draft et sa position. Ouvrez une conversation enregistrée dans un nouveau tab depuis l'historique avec son action, un modifier-click ou un clic central. Les longues conversations ont un navigateur à cinq directions : début, prompt précédent, répertoire de conversation, prompt suivant et fin. Les messages terminés affichent un completion timestamp localisé près de la copy action.
 
+<p align="center">
+  <img src="../../assets/readme/conversation-history.png" alt="Historique des conversations et navigation par onglets de Grimoire" width="100%">
+</p>
+
 ### Parallel workers, settings et composer
 
 La carte d'approbation **Parallel workers** affiche le model hérité et permet de sélectionner uniquement les tâches proposées à lancer. Settings utilise la recherche native d'Obsidian et conserve une entrée What's New permanente. Provider settings et composer ont une surface cohérente pour tous les providers, tout en gardant leurs controls et configuration propriétaires à leur place.
@@ -316,10 +316,6 @@ La carte d'approbation **Parallel workers** affiche le model hérité et permet 
 ### Model selector
 
 Un picker unique, groupé par provider et trié par label : Antigravity, Claude Code, Codex, Gemini CLI (Legacy), Grok Build, Kimi Code, MiMoCode, OpenCode et Qwen Code. Search traverse labels, descriptions, groups et model IDs. Les catalogs chargent lazily et mémorisent les groups que vous avez repliés. Ajoutez custom aliases et context-window overrides dans settings. Les variants 1M de Claude sont des options supplémentaires, pas des remplacements des base models.
-
-<p align="center">
-  <img src="../../assets/readme/model-selector-usage.png" alt="Model selector Grimoire avec provider groups, search et plan usage" width="100%">
-</p>
 
 ### Usage et cost
 
@@ -379,6 +375,10 @@ Désactivé par défaut. Si vous l'activez, Grimoire écrit du JSONL sanitized d
 ### Settings
 
 General settings couvre auto-scroll, title generation, usage indicators, debug logging, locale, tabs et le provider qui possède la settings view. Les per-provider tabs gèrent CLI paths, model behavior, commands, agents, skills et provider-owned config quand elle existe. Vous pouvez aussi définir des project workspace environment variables, scoped per provider.
+
+<p align="center">
+  <img src="../../assets/readme/settings-general.png" alt="Paramètres généraux de Grimoire" width="100%">
+</p>
 
 ## Où Grimoire garde vos données
 

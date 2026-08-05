@@ -106,10 +106,6 @@ cp dist/grimoire/main.js dist/grimoire/manifest.json dist/grimoire/styles.css \
 
 在 Settings, Grimoire, Providers 中啟用你需要的 providers，它們會出現在 model selector 中。Codex 在首次啟動時預設啟用；其他 providers 是 opt-in。
 
-<p align="center">
-  <img src="../../assets/readme/settings-providers.png" alt="Grimoire 設定中的 provider toggles、provider tabs 和 appearance themes" width="100%">
-</p>
-
 ### 推薦 providers
 
 為了獲得最好的 Grimoire 體驗，建議先從 Claude Code、Codex、OpenCode、MiMoCode、Kimi Code、Grok Build 或 Qwen Code 開始。這些 providers 目前為 vault-native 工作提供最強的 runtime surface：persistent sessions、plan-oriented workflows、tool activity，以及更豐富的 model controls。
@@ -291,6 +287,10 @@ Grok 4.5 目前是 Grok Build 的預設模型。Grimoire 從已驗證的 Grok CL
 
 右鍵點擊 tab 可重新命名、複製、關閉、關閉其他 tabs 或關閉右側 tabs；middle-click 會關閉 tab，而限時 Undo 會還原其 draft 和位置。可從 chat history 透過 action、modifier-click 或 middle-click 在新 tab 開啟儲存的對話。長對話提供五向 navigator：頂端、上一個 prompt、對話目錄、下一個 prompt 和底端。完成的 message 會在 copy action 旁顯示本地化 completion timestamp。
 
+<p align="center">
+  <img src="../../assets/readme/conversation-history.png" alt="Grimoire 對話歷史與分頁導覽" width="100%">
+</p>
+
 ### Parallel workers、settings 與 composer
 
 **Parallel workers** approval card 會顯示 inherited model，並只啟動你選取的建議任務。Settings 使用 Obsidian native search，並保留永久的 What's New 項目。Provider settings 和 composer 在各 provider 間使用一致的 surface，同時保留 provider-owned controls 和 configuration。
@@ -307,10 +307,6 @@ Grok 4.5 目前是 Grok Build 的預設模型。Grimoire 從已驗證的 Grok CL
 ### Model selector
 
 一個 picker，按 provider 分組，並按 label 排序：Antigravity、Claude Code、Codex、Gemini CLI (Legacy)、Grok Build、Kimi Code、MiMoCode、OpenCode 和 Qwen Code。Search 會匹配 labels、descriptions、groups 和 model IDs。Catalogs 會 lazy load，並記住你摺疊過的 groups。你可以在 settings 中新增 custom aliases 和 context-window overrides。Claude 的 1M variants 是額外 options，不會替代 base models。
-
-<p align="center">
-  <img src="../../assets/readme/model-selector-usage.png" alt="Grimoire model selector 顯示 provider groups、model search 和 plan usage" width="100%">
-</p>
 
 ### Usage 和 cost
 
@@ -370,6 +366,10 @@ Permission modes 屬於 provider，因此 Grimoire 透過 shared composer contro
 ### Settings
 
 General settings 覆蓋 auto-scroll、title generation、usage indicators、debug logging、locale、tabs，以及哪個 provider 擁有 settings view。Per-provider tabs 處理 CLI paths、model behavior、commands、agents、skills 和 provider-owned config。你還可以設定 project workspace environment variables，並按 provider scoped。
+
+<p align="center">
+  <img src="../../assets/readme/settings-general.png" alt="Grimoire 一般設定" width="100%">
+</p>
 
 ## Grimoire 將資料存放在哪裡
 

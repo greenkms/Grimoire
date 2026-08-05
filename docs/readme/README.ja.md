@@ -106,10 +106,6 @@ cp dist/grimoire/main.js dist/grimoire/manifest.json dist/grimoire/styles.css \
 
 Settings, Grimoire, Providers で使いたい providers を有効化すると、model selector に表示されます。Codex は初回起動時に有効です。他の providers は opt-in です。
 
-<p align="center">
-  <img src="../../assets/readme/settings-providers.png" alt="Provider toggles、provider tabs、appearance themes を表示する Grimoire settings" width="100%">
-</p>
-
 ### 推奨 providers
 
 Grimoire で最高の体験を得るには、まず Claude Code、Codex、OpenCode、MiMoCode、Kimi Code、Grok Build、Qwen Code から始めるのがおすすめです。これらの providers は現在、vault-native な作業に必要な runtime surface が最も強く、persistent sessions、plan-oriented workflows、tool activity、豊富な model controls を扱えます。
@@ -300,6 +296,10 @@ Grimoire 内では、Grok Build は `grok agent stdio` 経由の ACP で動作�
 
 Tab を右クリックすると、名前変更、複製、閉じる、他の tabs を閉じる、右側の tabs を閉じる操作ができます。Middle-click で tab を閉じ、時間制限付きの Undo で draft と位置を復元できます。保存済みの会話は chat history の action、modifier-click、middle-click で新しい tab に開けます。長い会話には、先頭、前の prompt、会話ディレクトリ、次の prompt、末尾へ移動する 5 方向 navigator があります。完了した message には copy action の横に localized completion timestamp が表示されます。
 
+<p align="center">
+  <img src="../../assets/readme/conversation-history.png" alt="Grimoire の会話履歴とタブナビゲーション" width="100%">
+</p>
+
 ### Parallel workers、settings、composer
 
 **Parallel workers** approval card は inherited model を表示し、起動する提案タスクだけを選択できます。Settings は Obsidian の native search を使い、永続的な What's New を保持します。Provider settings と composer は provider 間で一貫した surface を使いつつ、provider-owned controls と設定はそのまま保持します。
@@ -316,10 +316,6 @@ Tab を右クリックすると、名前変更、複製、閉じる、他の tab
 ### Model selector
 
 ひとつの picker が provider ごとに grouped され、label 順に並びます：Antigravity、Claude Code、Codex、Gemini CLI (Legacy)、Grok Build、Kimi Code、MiMoCode、OpenCode、Qwen Code。Search は labels、descriptions、groups、model IDs を横断します。Catalogs は lazily に load され、collapse した groups を記憶します。Settings で custom aliases と context-window overrides を追加できます。Claude の 1M variants は base models の置き換えではなく、追加 options です。
-
-<p align="center">
-  <img src="../../assets/readme/model-selector-usage.png" alt="Provider groups、model search、plan usage を表示する Grimoire model selector" width="100%">
-</p>
 
 ### Usage と cost
 
@@ -379,6 +375,10 @@ Default ではオフです。有効にすると、Grimoire は sanitized JSONL �
 ### Settings
 
 General settings は auto-scroll、title generation、usage indicators、debug logging、locale、tabs、どの provider が settings view を所有するかを扱います。Per-provider tabs は CLI paths、model behavior、commands、agents、skills、provider-owned config を扱います。Project workspace environment variables も provider ごとに scoped して設定できます。
+
+<p align="center">
+  <img src="../../assets/readme/settings-general.png" alt="Grimoire の一般設定" width="100%">
+</p>
 
 ## Grimoire がデータを置く場所
 

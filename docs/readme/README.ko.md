@@ -106,10 +106,6 @@ cp dist/grimoire/main.js dist/grimoire/manifest.json dist/grimoire/styles.css \
 
 설정의 Grimoire, 제공자에서 원하는 제공자를 활성화하면 모델 선택기에 표시됩니다. Codex는 처음 실행할 때 활성화되고, 나머지는 선택적으로 활성화할 수 있습니다.
 
-<p align="center">
-  <img src="../../assets/readme/settings-providers.png" alt="제공자 토글, 제공자 탭, 모양 테마를 보여 주는 Grimoire 설정" width="100%">
-</p>
-
 ### 권장 제공자
 
 최상의 Grimoire 경험을 위해 Claude Code, Codex, OpenCode, MiMoCode, Kimi Code, Grok Build 또는 Qwen Code부터 사용하세요. 이 제공자들은 현재 볼트 네이티브 작업에 가장 강력한 런타임 기능, 즉 영속 세션, 계획 중심 워크플로, 도구 활동, 풍부한 모델 제어를 제공합니다.
@@ -296,6 +292,10 @@ Grimoire에서 Grok Build는 `.grimoire/grok/` 아래의 Grimoire 관리 시작 
 
 탭을 마우스 오른쪽 버튼으로 클릭하여 이름 변경, 복제, 닫기, 다른 탭 닫기, 오른쪽 탭 닫기를 실행할 수 있습니다. 가운데 버튼 클릭은 탭을 닫고, 시간 제한이 있는 실행 취소는 초안과 위치를 복원합니다. 채팅 기록의 동작, 수정 키 클릭, 가운데 버튼 클릭으로 저장된 대화를 새 탭에서 엽니다. 긴 대화에는 맨 위, 이전 프롬프트, 대화 디렉터리, 다음 프롬프트, 맨 아래로 이동하는 5방향 탐색기가 있습니다. 완료된 메시지는 복사 동작 옆에 현지화된 완료 시각을 표시합니다.
 
+<p align="center">
+  <img src="../../assets/readme/conversation-history.png" alt="Grimoire 대화 기록 및 탭 탐색" width="100%">
+</p>
+
 ### 병렬 작업자, 설정, 작성기
 
 **병렬 작업자** 승인 카드는 상속된 모델을 보여 주고 시작할 제안 작업만 선택하게 합니다. 설정은 Obsidian 네이티브 검색과 영구적인 새 소식 항목을 제공합니다. 제공자 설정과 작성기는 일관된 화면을 사용하면서 제공자 소유 제어와 구성은 해당 제공자에 둡니다.
@@ -312,10 +312,6 @@ Grimoire에서 Grok Build는 `.grimoire/grok/` 아래의 Grimoire 관리 시작 
 ### 모델 선택기
 
 하나의 선택기에 제공자별로 그룹화하고 레이블 순으로 정렬합니다. Antigravity, Claude Code, Codex, Gemini CLI (Legacy), Grok Build, Kimi Code, MiMoCode, OpenCode, Qwen Code가 포함됩니다. 필터링 중에도 메뉴 크기를 바꾸지 않고 레이블, 설명, 그룹, 모델 ID 전체에서 검색합니다. 카탈로그는 지연 로드되며 접은 그룹을 기억합니다. 설정에서 사용자 지정 별칭과 컨텍스트 창 재정의를 추가하세요. Claude의 1M 변형은 기본 모델을 대체하는 것이 아니라 추가 옵션입니다.
-
-<p align="center">
-  <img src="../../assets/readme/model-selector-usage.png" alt="제공자 그룹, 모델 검색, 계획 사용량을 보여 주는 Grimoire 모델 선택기" width="100%">
-</p>
 
 ### 사용량 및 비용
 
@@ -377,6 +373,10 @@ Grimoire에서 Grok Build는 `.grimoire/grok/` 아래의 Grimoire 관리 시작 
 ### 설정
 
 일반 설정은 Obsidian 테마 동작, 자동 스크롤, 제목 생성, 사용량 표시기, 디버그 로깅, 로캘, 탭, 설정 뷰 소유자를 다룹니다. 제공자별 탭은 CLI 경로, 모델 동작, 명령, 에이전트, 스킬, 제공자 소유 구성을 처리합니다. 필요하면 제공자별 범위 지정 프로젝트 작업 공간 환경 변수도 설정할 수 있습니다.
+
+<p align="center">
+  <img src="../../assets/readme/settings-general.png" alt="Grimoire 일반 설정" width="100%">
+</p>
 
 ## Grimoire 데이터 저장 위치
 

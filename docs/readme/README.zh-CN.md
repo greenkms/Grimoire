@@ -104,10 +104,6 @@ cp dist/grimoire/main.js dist/grimoire/manifest.json dist/grimoire/styles.css \
 
 在“设置 → Grimoire → 供应商”中启用所需供应商，启用后它们会出现在模型选择器中。首次启动时默认启用 Codex，其余供应商需要手动开启。
 
-<p align="center">
-  <img src="../../assets/readme/settings-providers.png" alt="Grimoire 设置中的供应商开关、供应商标签页和外观主题" width="100%">
-</p>
-
 ### 推荐供应商
 
 为了获得最佳 Grimoire 体验，建议先从 Claude Code、Codex、OpenCode、MiMoCode、Kimi Code、Grok Build 或 Qwen Code 开始。这些供应商目前为仓库原生工作提供最强的运行时接口：持久会话、面向规划的工作流、工具活动和丰富的模型控制。
@@ -294,6 +290,10 @@ Grok 4.5 目前是驱动 Grok Build 的默认模型。Grimoire 从已认证的 G
 
 右键点击 tab 可以重命名、复制、关闭、关闭其他 tabs 或关闭右侧 tabs；中键点击会关闭 tab，限时 Undo 会恢复其 draft 和位置。可以从 chat history 通过对应 action、modifier-click 或中键点击在新 tab 中打开保存的对话。长对话提供五向 navigator：顶部、上一条 prompt、对话目录、下一条 prompt 和底部。完成的 message 会在 copy action 旁显示本地化 completion timestamp。
 
+<p align="center">
+  <img src="../../assets/readme/conversation-history.png" alt="Grimoire 对话历史与标签页导航" width="100%">
+</p>
+
 ### Parallel workers、settings 与 composer
 
 **Parallel workers** approval card 会显示继承的 model，并且只启动你选择的建议任务。Settings 使用 Obsidian native search，并保留永久的 What's New 入口。Provider settings 与 composer 在各 provider 间使用一致的 surface，同时保留 provider-owned controls 和 configuration。
@@ -310,10 +310,6 @@ Grok 4.5 目前是驱动 Grok Build 的默认模型。Grimoire 从已认证的 G
 ### 模型选择器
 
 所有模型共用一个选择器，按供应商分组并按名称排序：Antigravity、Claude Code、Codex、Gemini CLI（旧版）、Grok Build、Kimi Code、MiMoCode、OpenCode 和 Qwen Code。搜索会匹配名称、描述、分组和模型 ID，并且在筛选时不会改变菜单尺寸。模型目录按需加载，并会记住你折叠过的分组。你可以在设置中添加自定义别名和上下文窗口覆盖值。Claude 的 1M 上下文变体是额外选项，不会替代基础模型。
-
-<p align="center">
-  <img src="../../assets/readme/model-selector-usage.png" alt="Grimoire 模型选择器显示供应商分组、模型搜索和套餐用量" width="100%">
-</p>
 
 ### 用量与费用
 
@@ -375,6 +371,10 @@ Grok 4.5 目前是驱动 Grok Build 的默认模型。Grimoire 从已认证的 G
 ### 设置
 
 通用设置包括跟随 Obsidian 的主题行为、自动滚动、标题生成、用量指示器、调试日志、界面语言、标签页，以及由哪个供应商负责显示设置页面。各供应商标签页用于配置 CLI 路径、模型行为、命令、代理、技能，以及存在时的供应商自有配置。你还可以设置项目工作区环境变量，并在需要时将其限定到特定供应商。
+
+<p align="center">
+  <img src="../../assets/readme/settings-general.png" alt="Grimoire 通用设置" width="100%">
+</p>
 
 ## Grimoire 将数据存放在哪里
 
