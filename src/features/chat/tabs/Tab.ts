@@ -5,7 +5,6 @@ import { ProjectWorkspaceStore } from '../../../core/context/ProjectWorkspaceSto
 import { RelevantNotesService } from '../../../core/context/RelevantNotesService';
 import { VaultSearchService } from '../../../core/context/VaultSearchService';
 import { VaultTextIndex } from '../../../core/context/VaultTextIndex';
-import { getHiddenProviderCommandSet } from '../../../core/providers/commands/hiddenCommands';
 import type { ProviderCommandDropdownConfig } from '../../../core/providers/commands/ProviderCommandCatalog';
 import type { ProviderCommandEntry } from '../../../core/providers/commands/ProviderCommandEntry';
 import { getOpaqueProviderState } from '../../../core/providers/getOpaqueProviderState';
@@ -14,12 +13,10 @@ import { ProviderRegistry } from '../../../core/providers/ProviderRegistry';
 import { ProviderSettingsCoordinator } from '../../../core/providers/ProviderSettingsCoordinator';
 import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
 import type {
-  ProviderCapabilities,
   ProviderChatUIConfig,
   ProviderId,
   ProviderPlanUsage,
   ProviderPlanUsageWindow,
-  ProviderUIOption,
 } from '../../../core/providers/types';
 import {
   DEFAULT_CHAT_PROVIDER_ID,
@@ -30,7 +27,6 @@ import { TOOL_AGENT_OUTPUT } from '../../../core/tools/toolNames';
 import {
   type ChatMessage,
   type Conversation,
-  type GrimoireSettings,
   type StreamChunk,
   type UsageInfo,
   VIEW_TYPE_GRIMOIRE,
@@ -60,7 +56,6 @@ import { BangBashModeManager as BangBashModeManagerClass } from '../ui/BangBashM
 import { RuntimeContextActivityView } from '../ui/context/RuntimeContextActivity';
 import { FileContextManager } from '../ui/FileContext';
 import { ImageContextManager } from '../ui/ImageContext';
-import { createInputResizeHandle } from '../ui/inputResizeHandle';
 import { createInputToolbar } from '../ui/InputToolbar';
 import { InstructionModeManager as InstructionModeManagerClass } from '../ui/InstructionModeManager';
 import { NavigationSidebar } from '../ui/NavigationSidebar';
@@ -71,59 +66,67 @@ import { buildAssistantResponseMetadata } from '../utils/assistantResponseMetada
 import { localizeReasoningLevel } from '../utils/reasoningDisplay';
 import { recalculateUsageForModel } from '../utils/usageInfo';
 import { getTabProviderId } from './providerResolution';
-import type { TabData, TabDOMElements, TabId, TabPanelView, TabProviderContext } from './types';
+import { attachInputResizeHandle, buildTabDOM } from './tabDOM';
+import {
+  AUTO_SCROLL_REENABLE_DELAY_MS,
+  isTabScrollAtBottom,
+  scrollTabToBottom,
+  shouldAutoScrollTab,
+  updateAutoScrollUI,
+} from './tabScroll';
+import {
+  cloneSerializableRecord,
+  type ContextEngineRelevantSettings,
+  createDraftSettingsSnapshot,
+  enqueueProviderModelPersistence,
+  getBlankTabModelOptions,
+  getProviderMcpManager,
+  getProviderModelPersistenceQueue,
+  getRegistryProviderCatalogInfo,
+  getTabCapabilities,
+  getTabChatUIConfig,
+  getTabHiddenCommands,
+  getTabPermissionMode,
+  getTabSettingsSnapshot,
+  hasStartedConversation,
+  type ProviderCatalogInfo,
+  resolveBlankTabModel,
+  resolveTabModel,
+  shouldSendMessageFromEnterKey,
+  type TabProviderSettings,
+} from './tabSettings';
+import type { TabData, TabId } from './types';
 import { generateTabId } from './types';
 
-const AUTO_SCROLL_BOTTOM_THRESHOLD_PX = 20;
-const AUTO_SCROLL_REENABLE_DELAY_MS = 150;
+export { getTabProviderId } from './providerResolution';
+export {
+  getBlankTabModelOptions,
+  getTabSettingsSnapshot,
+  resolveTabModel,
+} from './tabSettings';
 
-/**
- * Provider settings are shared by every tab in a plugin instance. Keep model
- * selections ordered per provider so a slower earlier save cannot overwrite a
- * later selection's future-tab default.
- */
-interface ProviderModelPersistenceQueue {
-  tail: Promise<void>;
-  durableConversationModels: Map<string, string | undefined>;
+export interface TabCreateOptions {
+  plugin: GrimoirePlugin;
+
+  containerEl: HTMLElement;
+  conversation?: Conversation;
+  tabId?: TabId;
+  /** Restored draft model for blank tabs. */
+  draftModel?: string | null;
+  /** Restored draft provider settings for blank tabs. */
+  draftSettings?: Record<string, unknown> | null;
+  /** Restored tab-scoped orchestrator mode for blank tabs. */
+  orchestratorMode?: boolean;
+  /** Provider to inherit for blank tabs (e.g. from the active tab). */
+  defaultProviderId?: ProviderId;
+  onStreamingChanged?: (isStreaming: boolean) => void;
+  onTitleChanged?: (title: string) => void;
+  onAttentionChanged?: (needsAttention: boolean) => void;
+  onConversationIdChanged?: (conversationId: string | null) => void;
 }
 
-const providerModelPersistenceQueues = new WeakMap<object, Map<ProviderId, ProviderModelPersistenceQueue>>();
 
-function getProviderModelPersistenceQueue(
-  plugin: GrimoirePlugin,
-  providerId: ProviderId,
-): ProviderModelPersistenceQueue {
-  let queues = providerModelPersistenceQueues.get(plugin);
-  if (!queues) {
-    queues = new Map();
-    providerModelPersistenceQueues.set(plugin, queues);
-  }
 
-  let queue = queues.get(providerId);
-  if (!queue) {
-    queue = { tail: Promise.resolve(), durableConversationModels: new Map() };
-    queues.set(providerId, queue);
-  }
-  return queue;
-}
-
-function enqueueProviderModelPersistence<T>(
-  plugin: GrimoirePlugin,
-  providerId: ProviderId,
-  task: (queue: ProviderModelPersistenceQueue) => Promise<T>,
-): Promise<T> {
-  const queue = getProviderModelPersistenceQueue(plugin, providerId);
-  const persistence = queue.tail.catch(() => {}).then(() => task(queue));
-  const continuation = persistence.then(() => {}, () => {});
-  queue.tail = continuation;
-  void continuation.then(() => {
-    const queues = providerModelPersistenceQueues.get(plugin);
-    if (queues?.get(providerId) === queue && queue.tail === continuation) {
-      queues.delete(providerId);
-    }
-  });
-  return persistence;
-}
 
 function getBasename(filePath: string): string {
   const normalizedPath = filePath.replace(/\\/g, '/');
@@ -187,348 +190,6 @@ function renderExternalFileChips(tab: TabData, selectedFilePath?: string): void 
   }
 
   updateContextRowHasContent(tab.dom.contextRowEl);
-}
-
-type TabProviderSettings = Record<string, unknown> & {
-  model: string;
-  thinkingBudget: string;
-  effortLevel: string;
-  serviceTier: string;
-  permissionMode: string;
-  customContextLimits?: Record<string, number>;
-};
-
-const DRAFT_SETTINGS_KEYS = [
-  'model',
-  'thinkingBudget',
-  'effortLevel',
-  'serviceTier',
-  'permissionMode',
-] as const;
-
-type ContextEngineRelevantSettings = GrimoireSettings & {
-  contextEngine?: {
-    relevantNotesEnabled?: boolean;
-    relevantNotesMaxResults?: number;
-  };
-};
-
-/**
- * Returns model options for a blank tab.
- * Uses provider registration metadata to determine which providers are
- * available and how they should appear in the mixed picker.
- */
-export function getBlankTabModelOptions(
-  settings: Record<string, unknown>,
-): ProviderUIOption[] {
-  return ProviderRegistry.getEnabledProviderIds(settings).flatMap((providerId) => {
-    const uiConfig = ProviderRegistry.getChatUIConfig(providerId);
-    const providerIcon = uiConfig.getProviderIcon?.() ?? undefined;
-    const group = ProviderRegistry.getProviderDisplayName(providerId);
-
-    return uiConfig.getModelOptions(settings)
-      .map(model => ({
-        ...model,
-        group,
-        providerId,
-        ...(providerIcon ? { providerIcon } : {}),
-      }));
-  });
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return !!value && typeof value === 'object' && !Array.isArray(value);
-}
-
-function getRecordEntry(record: Record<string, unknown>, key: string): Record<string, unknown> | null {
-  const value = record[key];
-  return isRecord(value) ? value : null;
-}
-
-function hasStartedConversation(conversation: Conversation | null | undefined): conversation is Conversation {
-  if (!conversation) {
-    return false;
-  }
-  if (conversation.messages.length > 0) {
-    return true;
-  }
-  try {
-    const historyService = ProviderRegistry.getConversationHistoryService(conversation.providerId);
-    return !!historyService.resolveSessionIdForConversation?.(conversation);
-  } catch {
-    return !!conversation.sessionId;
-  }
-}
-
-function cloneSerializableValue(value: unknown, depth = 0): unknown {
-  if (depth > 6) {
-    return undefined;
-  }
-  if (
-    value === null
-    || typeof value === 'string'
-    || typeof value === 'boolean'
-    || (typeof value === 'number' && Number.isFinite(value))
-  ) {
-    return value;
-  }
-  if (Array.isArray(value)) {
-    const next = value
-      .map(item => cloneSerializableValue(item, depth + 1))
-      .filter(item => item !== undefined);
-    return next;
-  }
-  if (isRecord(value)) {
-    const next: Record<string, unknown> = {};
-    for (const [key, entry] of Object.entries(value)) {
-      const cloned = cloneSerializableValue(entry, depth + 1);
-      if (cloned !== undefined) {
-        next[key] = cloned;
-      }
-    }
-    return next;
-  }
-  return undefined;
-}
-
-function cloneSerializableRecord(value: unknown): Record<string, unknown> | null {
-  const cloned = cloneSerializableValue(value);
-  return isRecord(cloned) ? cloned : null;
-}
-
-function createDraftSettingsSnapshot(
-  settings: Record<string, unknown>,
-  providerId: ProviderId,
-): Record<string, unknown> {
-  const draftSettings: Record<string, unknown> = {};
-
-  for (const key of DRAFT_SETTINGS_KEYS) {
-    const value = settings[key];
-    if (typeof value === 'string') {
-      draftSettings[key] = value;
-    }
-  }
-
-  const providerConfigs = isRecord(settings.providerConfigs)
-    ? settings.providerConfigs
-    : null;
-  const providerConfig = providerConfigs ? cloneSerializableRecord(providerConfigs[providerId]) : null;
-  if (providerConfig) {
-    draftSettings.providerConfigs = {
-      [providerId]: providerConfig,
-    };
-  }
-
-  return draftSettings;
-}
-
-function mergeDraftSettingsSnapshot(
-  baseSettings: TabProviderSettings,
-  draftSettings: Record<string, unknown> | null,
-  providerId: ProviderId,
-): TabProviderSettings {
-  if (!draftSettings) {
-    return baseSettings;
-  }
-
-  const merged: TabProviderSettings = {
-    ...baseSettings,
-    ...draftSettings,
-  };
-
-  const baseProviderConfigs = isRecord(baseSettings.providerConfigs)
-    ? baseSettings.providerConfigs
-    : {};
-  const draftProviderConfigs = isRecord(draftSettings.providerConfigs)
-    ? draftSettings.providerConfigs
-    : {};
-  const baseProviderConfig = getRecordEntry(baseProviderConfigs, providerId) ?? {};
-  const draftProviderConfig = getRecordEntry(draftProviderConfigs, providerId);
-
-  if (draftProviderConfig) {
-    const providerConfig: Record<string, unknown> = {
-      ...baseProviderConfig,
-      ...draftProviderConfig,
-    };
-    const providerConfigs: Record<string, unknown> = {
-      ...baseProviderConfigs,
-      [providerId]: providerConfig,
-    };
-    merged.providerConfigs = providerConfigs;
-  } else {
-    merged.providerConfigs = baseProviderConfigs;
-  }
-
-  return merged;
-}
-
-/**
- * Resolves the draft model for a new blank tab by projecting provider-specific
- * saved settings. Without this, `plugin.settings.model` reflects only the
- * settings-provider's model, which may belong to a different provider.
- */
-function resolveBlankTabModel(
-  plugin: GrimoirePlugin,
-  providerId?: ProviderId,
-): string {
-  const settings = plugin.settings as unknown as Record<string, unknown>;
-  if (!providerId) {
-    return settings.model as string;
-  }
-
-  const targetProviderId = ProviderRegistry.isEnabled(providerId, settings)
-    ? providerId
-    : ProviderRegistry.resolveSettingsProviderId(settings);
-  const snapshot = ProviderSettingsCoordinator.getProviderSettingsSnapshot(settings, targetProviderId);
-  return snapshot.model as string;
-}
-
-export interface TabCreateOptions {
-  plugin: GrimoirePlugin;
-
-  containerEl: HTMLElement;
-  conversation?: Conversation;
-  tabId?: TabId;
-  /** Restored draft model for blank tabs. */
-  draftModel?: string | null;
-  /** Restored draft provider settings for blank tabs. */
-  draftSettings?: Record<string, unknown> | null;
-  /** Restored tab-scoped orchestrator mode for blank tabs. */
-  orchestratorMode?: boolean;
-  /** Provider to inherit for blank tabs (e.g. from the active tab). */
-  defaultProviderId?: ProviderId;
-  onStreamingChanged?: (isStreaming: boolean) => void;
-  onTitleChanged?: (title: string) => void;
-  onAttentionChanged?: (needsAttention: boolean) => void;
-  onConversationIdChanged?: (conversationId: string | null) => void;
-}
-
-export { getTabProviderId } from './providerResolution';
-
-function getTabCapabilities(
-  tab: TabProviderContext,
-  plugin: GrimoirePlugin,
-  conversation?: Conversation | null,
-): ProviderCapabilities {
-  const providerId = getTabProviderId(tab, plugin, conversation);
-  if (tab.service?.providerId === providerId) {
-    return tab.service.getCapabilities();
-  }
-
-  return ProviderRegistry.getCapabilities(providerId);
-}
-
-function getTabChatUIConfig(
-  tab: TabProviderContext,
-  plugin: GrimoirePlugin,
-  conversation?: Conversation | null,
-): ProviderChatUIConfig {
-  return ProviderRegistry.getChatUIConfig(getTabProviderId(tab, plugin, conversation));
-}
-
-function resolveLegacyConversationModel(conversation: Conversation | null | undefined): string | undefined {
-  if (!conversation) {
-    return undefined;
-  }
-
-  const persisted = conversation.assistantResponseMetadata;
-  for (let index = (persisted?.length ?? 0) - 1; index >= 0; index--) {
-    const model = persisted?.[index]?.metadata.model;
-    if (model) return model;
-  }
-  for (let index = conversation.messages.length - 1; index >= 0; index--) {
-    const model = conversation.messages[index].responseMetadata?.model;
-    if (model) return model;
-  }
-  return conversation.usage?.model;
-}
-
-/** Resolves the model for a tab without making other provider settings tab-local. */
-export function resolveTabModel(
-  tab: TabProviderContext,
-  plugin: GrimoirePlugin,
-  conversation?: Conversation | null,
-): string | undefined {
-  if (tab.lifecycleState === 'blank') {
-    return tab.draftModel ?? undefined;
-  }
-  const boundConversation = conversation ?? (tab.conversationId
-    ? plugin.getConversationSync(tab.conversationId)
-    : null);
-  return boundConversation?.model ?? resolveLegacyConversationModel(boundConversation);
-}
-
-export function getTabSettingsSnapshot(
-  tab: TabProviderContext,
-  plugin: GrimoirePlugin,
-  conversation?: Conversation | null,
-): TabProviderSettings {
-  const providerId = getTabProviderId(tab, plugin, conversation);
-  const snapshot = ProviderSettingsCoordinator.getProviderSettingsSnapshot(
-    plugin.settings,
-    providerId,
-  );
-  if (tab.lifecycleState === 'blank') {
-    return mergeDraftSettingsSnapshot(snapshot, tab.draftSettings, providerId);
-  }
-  const model = resolveTabModel(tab, plugin, conversation);
-  if (model) {
-    snapshot.model = model;
-  }
-  return snapshot;
-}
-
-function getTabPermissionMode(
-  tab: TabProviderContext,
-  plugin: GrimoirePlugin,
-): string {
-  const permissionMode = getTabSettingsSnapshot(tab, plugin).permissionMode;
-  return typeof permissionMode === 'string' && permissionMode
-    ? permissionMode
-    : 'normal';
-}
-
-function getTabHiddenCommands(
-  tab: TabProviderContext,
-  plugin: GrimoirePlugin,
-  conversation?: Conversation | null,
-): Set<string> {
-  return getHiddenProviderCommandSet(
-    plugin.settings,
-    getTabProviderId(tab, plugin, conversation),
-  );
-}
-
-function shouldSendMessageFromEnterKey(
-  e: KeyboardEvent,
-  settings: Pick<GrimoireSettings, 'requireCommandOrControlEnterToSend'>,
-): boolean {
-  if (e.key !== 'Enter' || e.shiftKey || e.isComposing) {
-    return false;
-  }
-
-  return settings.requireCommandOrControlEnterToSend !== true;
-}
-
-type ProviderCatalogInfo = {
-  config: ProviderCommandDropdownConfig;
-  getEntries: () => Promise<ProviderCommandEntry[]>;
-} | null;
-
-function getRegistryProviderCatalogInfo(providerId: ProviderId): ProviderCatalogInfo {
-  const catalog = ProviderWorkspaceRegistry.getCommandCatalog(providerId);
-  if (!catalog) {
-    return null;
-  }
-
-  return {
-    config: catalog.getDropdownConfig(),
-    getEntries: () => catalog.listDropdownEntries({ includeBuiltIns: false }),
-  };
-}
-
-function getProviderMcpManager(providerId: ProviderId) {
-  return ProviderWorkspaceRegistry.getMcpServerManager(providerId);
 }
 
 function getProviderUsageSnapshot(plugin: GrimoirePlugin, providerId: ProviderId): ProviderPlanUsage | null {
@@ -1236,208 +897,7 @@ export function createTab(options: TabCreateOptions): TabData {
 /**
  * Builds the DOM structure for a tab.
  */
-function buildTabDOM(contentEl: HTMLElement): TabDOMElements {
-  contentEl.addClass('grimoire-tab-chat-window');
-  contentEl.dataset.panelView = 'chat';
 
-  const workbenchGridEl = contentEl.createDiv({ cls: 'grimoire-chat-window-grid' });
-
-  const panelTabsEl = workbenchGridEl.createEl('nav', {
-    cls: 'grimoire-panel-tabs',
-  });
-  const chatPanelButtonEl = panelTabsEl.createEl('button', {
-    cls: 'grimoire-panel-tab is-active',
-    text: t('chat.ui.view.chat'),
-    attr: { type: 'button', 'data-panel-view': 'chat', 'aria-pressed': 'true' },
-  });
-  const sourcesPanelButtonEl = panelTabsEl.createEl('button', {
-    cls: 'grimoire-panel-tab',
-    text: t('chat.ui.view.sources'),
-    attr: { type: 'button', 'data-panel-view': 'sources', 'aria-pressed': 'false' },
-  });
-  const contextPanelButtonEl = panelTabsEl.createEl('button', {
-    cls: 'grimoire-panel-tab',
-    text: t('chat.ui.view.context'),
-    attr: { type: 'button', 'data-panel-view': 'context', 'aria-pressed': 'false' },
-  });
-  const chatScrollEl = workbenchGridEl.createDiv({
-    cls: 'grimoire-chat-scroll',
-    attr: { 'aria-live': 'polite' },
-  });
-  const focusedMainEl = chatScrollEl.createDiv({ cls: 'grimoire-panel-content' });
-
-  const chatStageEl = focusedMainEl.createDiv({
-    cls: 'grimoire-panel-view grimoire-chat-panel is-active',
-    attr: { 'data-panel-view': 'chat' },
-  });
-  const boundStatusEl = chatStageEl.createDiv({ cls: 'grimoire-bound-status grimoire-hidden' });
-  const boundStatusDotEl = boundStatusEl.createSpan({ cls: 'grimoire-bound-status-dot' });
-  const boundStatusNoteEl = boundStatusEl.createSpan({ cls: 'grimoire-bound-status-note' });
-  const boundStatusMetaEl = boundStatusEl.createSpan({ cls: 'grimoire-bound-status-meta' });
-  const messagesWrapperEl = chatStageEl.createDiv({ cls: 'grimoire-messages-wrapper' });
-  const messagesEl = messagesWrapperEl.createDiv({ cls: 'grimoire-messages' });
-  const welcomeEl = messagesEl.createDiv({ cls: 'grimoire-welcome grimoire-welcome--chat-window' });
-
-  const sourceRailEl = focusedMainEl.createDiv({
-    cls: 'grimoire-panel-view grimoire-sources-panel',
-    attr: { 'data-panel-view': 'sources' },
-  });
-  sourceRailEl.hidden = true;
-  const sourceHeaderEl = sourceRailEl.createDiv({ cls: 'grimoire-panel-section-heading' });
-  sourceHeaderEl.createSpan({ text: t('chat.ui.view.sourcesInTab') });
-  const sourceShownCountEl = sourceHeaderEl.createSpan({
-    cls: 'grimoire-panel-section-count',
-    text: t('chat.ui.view.shownCount', { count: 0 }),
-  });
-  const sourceFiltersEl = sourceRailEl.createDiv({ cls: 'grimoire-source-filters' });
-  sourceFiltersEl.createEl('button', {
-    cls: 'grimoire-source-filter is-active',
-    text: t('chat.ui.view.all'),
-    attr: { type: 'button', 'data-source-filter': 'all', 'aria-pressed': 'true' },
-  });
-  sourceFiltersEl.createEl('button', {
-    cls: 'grimoire-source-filter',
-    text: t('chat.ui.view.linked'),
-    attr: { type: 'button', 'data-source-filter': 'linked', 'aria-pressed': 'false' },
-  });
-  sourceFiltersEl.createEl('button', {
-    cls: 'grimoire-source-filter',
-    text: t('chat.ui.view.current'),
-    attr: { type: 'button', 'data-source-filter': 'current', 'aria-pressed': 'false' },
-  });
-  const sourceCardsEl = sourceRailEl.createDiv({ cls: 'grimoire-source-card-stack' });
-  const statusPanelContainerEl = sourceRailEl.createDiv({
-    cls: 'grimoire-status-panel-container grimoire-operational-panel',
-  });
-
-  const contextRailEl = focusedMainEl.createDiv({
-    cls: 'grimoire-panel-view grimoire-context-panel',
-    attr: { 'data-panel-view': 'context' },
-  });
-  contextRailEl.hidden = true;
-  const contextHeaderEl = contextRailEl.createDiv({ cls: 'grimoire-panel-section-heading' });
-  contextHeaderEl.createSpan({ text: t('chat.ui.view.contextMemoryTab') });
-  const contextSummaryEl = contextRailEl.createDiv({ cls: 'grimoire-context-summary' });
-  const contextMemoryEl = contextRailEl.createDiv({ cls: 'grimoire-context-memory-panel grimoire-hidden' });
-  const contextRuntimeEl = contextRailEl.createDiv({ cls: 'grimoire-context-runtime-panel grimoire-hidden' });
-
-  const composerSurfaceEl = workbenchGridEl.createDiv({ cls: 'grimoire-composer-surface grimoire-composer' });
-  const inputContainerEl = composerSurfaceEl.createDiv({
-    cls: 'grimoire-input-container grimoire-composer-shell',
-  });
-  const queueIndicatorEl = inputContainerEl.createDiv({ cls: 'grimoire-input-queue-row' });
-  const inputWrapper = inputContainerEl.createDiv({ cls: 'grimoire-input-wrapper' });
-  const contextRowEl = inputWrapper.createDiv({ cls: 'grimoire-context-row' });
-  const inputEl = inputWrapper.createEl('textarea', {
-    cls: 'grimoire-input',
-    attr: {
-      placeholder: t('chat.ui.composer.placeholder'),
-      rows: '3',
-      dir: 'auto',
-    },
-  });
-  const panelViews: Record<TabPanelView, HTMLElement> = {
-    chat: chatStageEl,
-    sources: sourceRailEl,
-    context: contextRailEl,
-  };
-  const panelButtons: Record<TabPanelView, HTMLButtonElement> = {
-    chat: chatPanelButtonEl,
-    sources: sourcesPanelButtonEl,
-    context: contextPanelButtonEl,
-  };
-  const setPanelView = (view: TabPanelView): void => {
-    contentEl.dataset.panelView = view;
-    for (const [name, panelEl] of Object.entries(panelViews) as [TabPanelView, HTMLElement][]) {
-      const isActive = name === view;
-      panelEl.hidden = !isActive;
-      panelEl.toggleClass('is-active', isActive);
-      panelButtons[name].toggleClass('is-active', isActive);
-      panelButtons[name].setAttribute('aria-pressed', String(isActive));
-    }
-  };
-  chatPanelButtonEl.addEventListener('click', () => setPanelView('chat'));
-  sourcesPanelButtonEl.addEventListener('click', () => setPanelView('sources'));
-  contextPanelButtonEl.addEventListener('click', () => setPanelView('context'));
-
-  return {
-    contentEl,
-    workbenchGridEl,
-    contextRailEl,
-    contextMemoryEl,
-    contextRuntimeEl,
-    contextSummaryEl,
-    chatStageEl,
-    chatScrollEl,
-    sourceRailEl,
-    sourceCardsEl,
-    sourceFiltersEl,
-    sourceShownCountEl,
-    composerSurfaceEl,
-    panelTabsEl,
-    chatPanelButtonEl,
-    sourcesPanelButtonEl,
-    contextPanelButtonEl,
-    focusedMainEl,
-    focusedChatPanelEl: chatStageEl,
-    focusedSourcesPanelEl: sourceRailEl,
-    focusedContextPanelEl: contextRailEl,
-    boundStatusEl,
-    boundStatusDotEl,
-    boundStatusNoteEl,
-    boundStatusMetaEl,
-    messagesEl,
-    welcomeEl,
-    statusPanelContainerEl,
-    inputContainerEl,
-    queueIndicatorEl,
-    inputWrapper,
-    inputEl,
-    sendButtonEl: null,
-    stopButtonEl: null,
-    contextRowEl,
-    selectionIndicatorEl: null,
-    browserIndicatorEl: null,
-    canvasIndicatorEl: null,
-    eventCleanups: [],
-  };
-}
-
-function attachInputResizeHandle(dom: TabDOMElements): () => void {
-  const viewport = dom.inputWrapper.closest<HTMLElement>('.grimoire-container');
-  if (!viewport) {
-    return () => {};
-  }
-
-  return createInputResizeHandle({
-    inputWrapper: dom.inputWrapper,
-    viewport,
-  });
-}
-
-function isTabScrollAtBottom(tab: TabData): boolean {
-  const { scrollTop, scrollHeight, clientHeight } = tab.dom.chatScrollEl;
-  return scrollHeight - scrollTop - clientHeight <= AUTO_SCROLL_BOTTOM_THRESHOLD_PX;
-}
-
-function updateAutoScrollUI(tab: TabData, plugin: GrimoirePlugin): void {
-  const autoScrollAllowed = plugin.settings.enableAutoScroll ?? true;
-  const shouldQuietScrollbar = autoScrollAllowed && tab.state.isStreaming && tab.state.autoScrollEnabled;
-  tab.dom.chatScrollEl.toggleClass('grimoire-chat-scroll--quiet', shouldQuietScrollbar);
-}
-
-function scrollTabToBottom(tab: TabData, plugin: GrimoirePlugin): void {
-  if (plugin.settings.enableAutoScroll ?? true) {
-    tab.state.autoScrollEnabled = true;
-  }
-
-  tab.dom.chatScrollEl.scrollTop = tab.dom.chatScrollEl.scrollHeight;
-  updateAutoScrollUI(tab, plugin);
-}
-
-function shouldAutoScrollTab(tab: TabData, plugin: GrimoirePlugin): boolean {
-  return (plugin.settings.enableAutoScroll ?? true) && tab.state.autoScrollEnabled;
-}
 
 /**
  * Initializes the tab's chat runtime for the send path.
