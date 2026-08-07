@@ -2,6 +2,7 @@ export * from './acpApprovals';
 export * from './AcpClientConnection';
 export * from './AcpJsonRpcTransport';
 export * from './acpLifecycle';
+export * from './acpManagedSession';
 export * from './AcpSessionConfig';
 export * from './acpSessionResume';
 export * from './AcpSessionUpdateNormalizer';

@@ -73,8 +73,11 @@ import {
   extractAcpSessionModelState,
   extractAcpSessionModeState,
   extractAcpSessionThoughtLevelState,
-  JsonRpcTransportClosedError,
+  isAcpRetryableTransportClose,
+  planAcpEnsureReadySessionPhase,
   resolveWorkspacePath,
+  runAcpEnsureReadyForQuery,
+  shouldRetryAcpClosedTransport,
 } from '../../acp';
 import { toAcpMcpServers } from '../../acp/mcp/toAcpMcpServers';
 import { mimocodePlanUsageStore } from '../app/MimocodePlanUsageStore';
@@ -364,23 +367,23 @@ export class MimocodeChatRuntime implements ChatRuntime {
       this.loadedSessionId = null;
     }
 
-    if (targetSessionId) {
-      if (this.loadedSessionId !== targetSessionId) {
-        const loaded = await this.loadSession(targetSessionId, cwd);
-        if (!loaded) {
-          this.handleSessionLoadFailure(targetSessionId, cwd);
-        }
+    const sessionPhase = planAcpEnsureReadySessionPhase({
+      allowSessionCreation: options?.allowSessionCreation !== false,
+      loadedSessionId: this.loadedSessionId,
+      sessionId: this.sessionId,
+      sessionInvalidated: this.sessionInvalidated,
+      targetSessionId,
+    });
+    if (sessionPhase.type === 'load') {
+      const loaded = await this.loadSession(sessionPhase.sessionId, cwd);
+      if (!loaded) {
+        this.handleSessionLoadFailure(sessionPhase.sessionId, cwd);
       }
       return true;
     }
-
-    if (!this.sessionId && !this.sessionInvalidated) {
-      if (options?.allowSessionCreation === false) {
-        return true;
-      }
+    if (sessionPhase.type === 'create') {
       return Boolean(await this.createSession(cwd));
     }
-
     return true;
   }
 
@@ -1517,11 +1520,12 @@ export class MimocodeChatRuntime implements ChatRuntime {
     activeTurn: ActiveTurn,
     cwd: string,
   ): Promise<boolean> {
-    if (
-      activeTurn.lifecycleGeneration !== this.lifecycleGeneration
-      || !this.isRetryableTransportClose(error)
-      || activeTurn.sawOutput
-    ) {
+    if (!shouldRetryAcpClosedTransport({
+      activeLifecycleGeneration: activeTurn.lifecycleGeneration,
+      error,
+      runtimeLifecycleGeneration: this.lifecycleGeneration,
+      sawOutput: activeTurn.sawOutput,
+    })) {
       return false;
     }
 
@@ -1543,35 +1547,19 @@ export class MimocodeChatRuntime implements ChatRuntime {
   }
 
   private async ensureReadyForQuery(lifecycleGeneration: number): Promise<boolean> {
-    try {
-      const ready = await this.ensureReady();
-      return lifecycleGeneration === this.lifecycleGeneration && ready;
-    } catch (error) {
-      if (lifecycleGeneration !== this.lifecycleGeneration) {
-        return false;
-      }
-      if (!this.isRetryableTransportClose(error)) {
-        throw error;
-      }
-    }
-
-    try {
-      const ready = await this.ensureReady({ force: true });
-      return lifecycleGeneration === this.lifecycleGeneration && ready;
-    } catch (error) {
-      if (
-        lifecycleGeneration !== this.lifecycleGeneration
-        || this.isRetryableTransportClose(error)
-      ) {
-        return false;
-      }
-      throw error;
-    }
+    const result = await runAcpEnsureReadyForQuery({
+      ensureReady: (options) => (
+        options === undefined ? this.ensureReady() : this.ensureReady(options)
+      ),
+      isLifecycleCurrent: (generation) => generation === this.lifecycleGeneration,
+      isRetryableTransportClose: (error) => this.isRetryableTransportClose(error),
+      lifecycleGeneration,
+    });
+    return result.ready && !result.stale;
   }
 
   private isRetryableTransportClose(error: unknown): boolean {
-    return error instanceof JsonRpcTransportClosedError
-      || (error instanceof Error && error.name === 'JsonRpcTransportClosedError');
+    return isAcpRetryableTransportClose(error);
   }
 
   private resolveUnsupportedModelFallback(errorMessage: string): string | null {

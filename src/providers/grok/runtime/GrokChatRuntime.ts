@@ -73,8 +73,8 @@ import {
   extractAcpSessionModelState,
   extractAcpSessionModeState,
   extractAcpSessionThoughtLevelState,
+  isAcpRetryableTransportClose,
   JsonRpcErrorResponse,
-  JsonRpcTransportClosedError,
   resolveWorkspacePath,
 } from '../../acp';
 import { toAcpMcpServers } from '../../acp/mcp/toAcpMcpServers';
@@ -1687,7 +1687,9 @@ export class GrokChatRuntime implements ChatRuntime {
     activeTurn: ActiveTurn,
     cwd: string,
   ): Promise<boolean> {
-    if (!this.isRetryableTransportClose(error) || activeTurn.sawOutput) {
+    // Grok runtime does not yet track lifecycleGeneration; gate only on
+    // transport-close shape and whether output already started.
+    if (!isAcpRetryableTransportClose(error) || activeTurn.sawOutput) {
       return false;
     }
 
@@ -1702,11 +1704,6 @@ export class GrokChatRuntime implements ChatRuntime {
     }
 
     return true;
-  }
-
-  private isRetryableTransportClose(error: unknown): boolean {
-    return error instanceof JsonRpcTransportClosedError
-      || (error instanceof Error && error.name === 'JsonRpcTransportClosedError');
   }
 
   private updateSessionPaths(sessionId: string, cwd: string): void {
