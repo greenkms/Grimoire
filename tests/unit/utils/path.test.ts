@@ -355,15 +355,21 @@ describe('isPathWithinDirectory', () => {
   });
 
   it('blocks symlink escapes from the allowed directory', () => {
-    const realpathMock = jest.fn((input: fsType.PathLike) => {
+    // Use spyOn (not property reassignment) so afterEach restoreAllMocks can
+    // put realpathSync back — reassignment leaked into later suites and broke
+    // resolveWorkspacePath symlink containment on shared CI workers.
+    const realpathImpl = (input: fsType.PathLike): string => {
       const value = String(input);
       if (value === '/home/test/.claude') return '/home/test/.claude';
       if (value === '/home/test/.claude/skills/link') return '/home/test/.ssh';
       return path.resolve(value);
+    };
+    const realpathSpy = jest.spyOn(fs, 'realpathSync').mockImplementation(realpathImpl as typeof fs.realpathSync);
+    Object.defineProperty(fs.realpathSync, 'native', {
+      configurable: true,
+      value: realpathSpy,
+      writable: true,
     });
-
-    (fs.realpathSync as any) = realpathMock;
-    (fs.realpathSync as any).native = realpathMock;
 
     expect(isPathWithinDirectory('/home/test/.claude/skills/link', '/home/test/.claude', '/vault')).toBe(false);
   });
