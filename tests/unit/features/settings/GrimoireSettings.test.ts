@@ -8,7 +8,8 @@ import { DEFAULT_GRIMOIRE_SETTINGS } from '@/app/settings/defaultSettings';
 import { ProviderRegistry } from '@/core/providers/ProviderRegistry';
 import { ProviderWorkspaceRegistry } from '@/core/providers/ProviderWorkspaceRegistry';
 import { GrimoireSettingTab } from '@/features/settings/GrimoireSettings';
-import { setLocale } from '@/i18n/i18n';
+import { setLocale, t } from '@/i18n/i18n';
+import type { Locale } from '@/i18n/types';
 import { showWhatsNewModal } from '@/shared/modals/WhatsNewModal';
 
 jest.mock('@/shared/modals/WhatsNewModal', () => ({
@@ -53,6 +54,19 @@ function createSettingsApp(): any {
     },
   };
 }
+
+const providerSelectionHints: Record<Locale, string> = {
+  en: 'Select a provider card to view its settings below.',
+  de: 'Klicken Sie auf eine Anbieterkarte, um die Einstellungen darunter anzuzeigen.',
+  es: 'Haz clic en una tarjeta de proveedor para ver su configuración a continuación.',
+  fr: 'Cliquez sur une carte de fournisseur pour afficher ses paramètres ci-dessous.',
+  ja: 'プロバイダーカードをクリックすると、下に設定が表示されます。',
+  ko: '제공업체 카드를 클릭하면 아래에서 설정을 확인할 수 있습니다.',
+  pt: 'Clique em um cartão de provedor para ver as configurações abaixo.',
+  ru: 'Нажмите на карточку провайдера, чтобы открыть его настройки ниже.',
+  'zh-CN': '选择供应商卡片以查看下方设置。',
+  'zh-TW': '選擇供應商卡片以查看下方設定。',
+};
 
 function renderDeclarativeSettings(
   tab: GrimoireSettingTab,
@@ -242,6 +256,28 @@ describe('GrimoireSettingTab settings hub', () => {
     setLocale('en');
   });
 
+  it.each(Object.entries(providerSelectionHints))(
+    'uses the localized provider selection hint for %s',
+    (locale, expectedHint) => {
+      setLocale(locale as Locale);
+      expect(t('settings.providers.selectionHint')).toBe(expectedHint);
+      expect(t('settings.providers.selectionHint')).not.toBe('settings.providers.selectionHint');
+
+      const plugin = createSettingsPlugin({ locale });
+      const tab = new GrimoireSettingTab(createSettingsApp(), plugin);
+      const container = createMockEl('div');
+
+      (tab as any).renderProvidersHub(
+        container,
+        ProviderRegistry.getRegisteredProviderIds(),
+        createMockEl('div'),
+      );
+
+      expect(container.querySelector('.grimoire-settings-provider-hint')?.textContent)
+        .toBe(expectedHint);
+    },
+  );
+
   it('rolls back a provider toggle when its model catalog cannot start', async () => {
     const plugin = createSettingsPlugin();
     const tab = new GrimoireSettingTab(createSettingsApp(), plugin);
@@ -299,6 +335,8 @@ describe('GrimoireSettingTab settings hub', () => {
       settingEl.querySelectorAll('.grimoire-settings-provider-card-name'),
     ).map(element => element.textContent?.trim() ?? '');
     expect(providerNames).toContain('Gemini CLI（旧版）');
+    expect(settingEl.querySelector('.grimoire-settings-provider-hint')?.textContent)
+      .toBe('选择供应商卡片以查看下方设置。');
   });
 
   it('renders provider cards in registry order inside Providers', () => {
@@ -325,6 +363,10 @@ describe('GrimoireSettingTab settings hub', () => {
     expect(collectText(settingEl)).not.toContain('Enabled');
     expect(collectText(settingEl)).not.toContain('Disabled');
     expect(settingEl.querySelector('.grimoire-settings-provider-card-meta')?.textContent).toBe('CLI detected');
+    const providerGrid = settingEl.querySelector('.grimoire-settings-provider-grid');
+    const providerHint = settingEl.querySelector('.grimoire-settings-provider-hint');
+    expect(providerHint?.textContent).toBe('Select a provider card to view its settings below.');
+    expect(providerGrid).not.toBeNull();
     expect(ProviderRegistry.getRegisteredProviderIds()).toEqual([
       'claude',
       'codex',
@@ -336,6 +378,27 @@ describe('GrimoireSettingTab settings hub', () => {
       'gemini',
       'qwen',
     ]);
+  });
+
+  it('renders the provider selection hint between the cards and provider settings', () => {
+    const plugin = createSettingsPlugin();
+    const tab = new GrimoireSettingTab(createSettingsApp(), plugin);
+    const container = createMockEl('div');
+
+    (tab as any).renderProvidersHub(
+      container,
+      ProviderRegistry.getRegisteredProviderIds(),
+      createMockEl('div'),
+    );
+
+    expect(container.children.slice(0, 3).map((child: any) => child.className)).toEqual([
+      'grimoire-settings-provider-grid',
+      'grimoire-settings-provider-hint',
+      'grimoire-settings-provider-details',
+    ]);
+    expect(container.children[1].textContent).toBe(
+      'Select a provider card to view its settings below.',
+    );
   });
 
   it('reports only CLI availability regardless of persisted provider models', () => {
@@ -388,6 +451,218 @@ describe('GrimoireSettingTab settings hub', () => {
     expect(collectText(container)).not.toContain('Advanced · Skills');
   });
 
+  it('shows repository and release links in About', () => {
+    const tab = new GrimoireSettingTab(createSettingsApp(), createSettingsPlugin());
+    const container = createMockEl('div');
+
+    (tab as any).renderAboutHub(container);
+
+    const links = container.querySelector('.grimoire-settings-about-links');
+    const collectHrefs = (element: any): string[] => [
+      ...(element?.tagName === 'A' ? [element.getAttribute('href')] : []),
+      ...(element?.children ?? []).flatMap((child: any) => collectHrefs(child)),
+    ];
+    const hrefs = collectHrefs(links);
+    expect(collectText(links)).toContain('GitHub.com/sandsaber/Grimoire');
+    expect(collectText(links)).toContain('Releases');
+    expect(hrefs).toEqual([
+      'https://github.com/sandsaber/Grimoire',
+      'https://github.com/sandsaber/Grimoire/releases',
+    ]);
+  });
+
+  it('uses explicit provider capabilities for every Advanced manager', () => {
+    const tab = new GrimoireSettingTab(createSettingsApp(), createSettingsPlugin());
+    const providerIds = ProviderRegistry.getRegisteredProviderIds();
+
+    expect((tab as any).getWorkspaceManagerProviders(providerIds, 'skills')).toEqual([
+      'claude',
+      'codex',
+      'opencode',
+      'grok',
+      'mimocode',
+      'kimicode',
+      'gemini',
+      'qwen',
+    ]);
+    expect((tab as any).getWorkspaceManagerProviders(providerIds, 'commands')).toEqual([
+      'claude',
+      'opencode',
+      'grok',
+      'mimocode',
+      'kimicode',
+      'gemini',
+      'qwen',
+    ]);
+    expect((tab as any).getWorkspaceManagerProviders(providerIds, 'agents')).toEqual([
+      'claude',
+      'codex',
+      'opencode',
+      'grok',
+      'mimocode',
+      'kimicode',
+      'gemini',
+      'qwen',
+    ]);
+    expect((tab as any).getWorkspaceManagerProviders(providerIds, 'mcp')).toEqual([
+      'claude',
+      'opencode',
+      'grok',
+      'mimocode',
+      'kimicode',
+      'gemini',
+      'qwen',
+    ]);
+    expect((tab as any).getWorkspaceManagerProviders(providerIds, 'environment')).toEqual([
+      '__shared__',
+      ...providerIds,
+    ]);
+  });
+
+  it('warms runtime commands through an isolated settings discovery context', async () => {
+    const plugin = createSettingsPlugin();
+    const tab = new GrimoireSettingTab(createSettingsApp(), plugin);
+    const runtimeEntry = {
+      id: 'runtime:review',
+      name: 'review',
+      description: 'Review the current workspace',
+      kind: 'command',
+      scope: 'runtime',
+      isEditable: false,
+      isDeletable: false,
+    };
+    const catalog = {
+      listVaultEntries: jest.fn().mockResolvedValue([]),
+      listDropdownEntries: jest.fn().mockResolvedValue([runtimeEntry]),
+      setRuntimeCommands: jest.fn(),
+    };
+    const loader = {
+      isAvailable: jest.fn().mockReturnValue(true),
+      loadCommands: jest.fn().mockResolvedValue([{ name: 'review', description: 'Review the current workspace' }]),
+    };
+    jest.spyOn(ProviderWorkspaceRegistry, 'getCommandCatalog')
+      .mockImplementation((providerId: any) => providerId === 'opencode' ? catalog as any : null);
+    jest.spyOn(ProviderWorkspaceRegistry, 'getRuntimeCommandLoader')
+      .mockImplementation((providerId: any) => providerId === 'opencode' ? loader : null);
+
+    const rows = await (tab as any).loadWorkspaceHubRows(['opencode'], 'commands');
+
+    expect(loader.loadCommands).toHaveBeenCalledWith({
+      allowSessionCreation: true,
+      conversation: null,
+      externalContextPaths: [],
+      plugin,
+      runtime: null,
+    });
+    expect(catalog.setRuntimeCommands).toHaveBeenCalledWith([
+      { name: 'review', description: 'Review the current workspace' },
+    ]);
+    expect(rows).toEqual([expect.objectContaining({
+      name: 'review',
+      ownerProviderId: 'opencode',
+      readonly: true,
+      section: 'commands',
+    })]);
+  });
+
+  it('enumerates stored agents even when mention search hides them and keeps providers independent', async () => {
+    const tab = new GrimoireSettingTab(createSettingsApp(), createSettingsPlugin());
+    const providerIds = ['grok', 'mimocode', 'kimicode'] as const;
+    const storages = Object.fromEntries(providerIds.map((providerId) => [providerId, {
+      delete: jest.fn().mockResolvedValue(undefined),
+      loadAll: jest.fn().mockResolvedValue([{
+        description: `${providerId} hidden reviewer`,
+        mode: 'primary',
+        name: 'review',
+        persistenceKey: `${providerId}-agent:review.md`,
+      }]),
+    }]));
+    jest.spyOn(ProviderWorkspaceRegistry, 'getServices').mockImplementation((providerId: any) => {
+      const storage = storages[providerId];
+      if (!storage) return null;
+      return {
+        agentMentionProvider: { searchAgents: jest.fn().mockReturnValue([]) },
+        agentStorage: storage,
+      } as any;
+    });
+
+    const rows = await (tab as any).loadWorkspaceHubRows([...providerIds], 'agents');
+
+    expect(rows).toHaveLength(3);
+    expect(rows.map((row: any) => [row.ownerProviderId, row.source])).toEqual([
+      ['grok', '.grok/agent/'],
+      ['mimocode', '.mimocode/agent/'],
+      ['kimicode', '.kimicode/agent/'],
+    ]);
+    for (const row of rows) await row.deleteResource();
+    for (const providerId of providerIds) {
+      expect(storages[providerId].delete).toHaveBeenCalledWith(expect.objectContaining({
+        description: `${providerId} hidden reviewer`,
+        name: 'review',
+      }));
+    }
+  });
+
+  it('keeps Codex MCP guidance in the inventory without advertising it as managed', async () => {
+    const tab = new GrimoireSettingTab(createSettingsApp(), createSettingsPlugin());
+    jest.spyOn(ProviderWorkspaceRegistry, 'getServices').mockImplementation((providerId: any) => {
+      if (providerId === 'claude') {
+        return {
+          mcpServerManager: { getServers: jest.fn().mockReturnValue([]) },
+          mcpStorage: { save: jest.fn() },
+          workspaceCapabilities: { mcp: 'managed' },
+        } as any;
+      }
+      if (providerId === 'codex') {
+        return { workspaceCapabilities: { mcp: 'native' } } as any;
+      }
+      return null;
+    });
+
+    expect((tab as any).getWorkspaceManagerProviders(['claude', 'codex'], 'mcp'))
+      .toEqual(['claude']);
+    await expect((tab as any).loadWorkspaceHubRows(['claude', 'codex'], 'mcp'))
+      .resolves.toEqual([expect.objectContaining({
+        name: 'Codex',
+        ownerProviderId: 'codex',
+        readonly: true,
+        source: 'codex mcp',
+        status: 'native',
+      })]);
+  });
+
+  it('extracts only the semantic MCP elements and leaves unrelated provider controls behind', () => {
+    const tab = new GrimoireSettingTab(createSettingsApp(), createSettingsPlugin());
+    const staging = createMockEl('div');
+    const target = createMockEl('div');
+    const heading = staging.createDiv({ cls: 'setting-item setting-item-heading' });
+    heading.createDiv({ cls: 'setting-item-name', text: 'MCP servers' });
+    const description = staging.createDiv({ cls: 'grimoire-mcp-settings-desc', text: 'MCP description' });
+    const manager = staging.createDiv({ cls: 'grimoire-mcp-container', text: 'MCP manager' });
+    const unrelated = staging.createDiv({ cls: 'setting-item' });
+    unrelated.createDiv({ cls: 'setting-item-name', text: 'Respect project settings' });
+    const environmentHeading = staging.createDiv({ cls: 'setting-item setting-item-heading' });
+    environmentHeading.createDiv({ cls: 'setting-item-name', text: 'Environment' });
+    const siblings = [heading, description, manager, unrelated, environmentHeading];
+    for (const [index, element] of siblings.entries()) {
+      element.nextElementSibling = siblings[index + 1] ?? null;
+      element.matches = (selector: string) => selector.split(',').some((part) => {
+        const className = part.trim().replace(/^\./, '');
+        return element.hasClass(className);
+      });
+    }
+
+    expect((tab as any).extractWorkspaceProviderSection(
+      staging,
+      target,
+      'mcp',
+      'claude',
+    )).toBe(true);
+    expect(collectText(target)).toContain('MCP manager');
+    expect(collectText(target)).not.toContain('Respect project settings');
+    expect(collectText(staging)).toContain('Respect project settings');
+  });
+
   it('omits the resource type column and renders edit/delete row actions', () => {
     const plugin = createSettingsPlugin();
     const tab = new GrimoireSettingTab(createSettingsApp(), plugin);
@@ -416,6 +691,60 @@ describe('GrimoireSettingTab settings hub', () => {
     const actionButtons = container.children[1].children[3].children;
     expect(actionButtons[0].hasClass('grimoire-settings-resource-edit')).toBe(true);
     expect(actionButtons[1].hasClass('grimoire-settings-resource-delete')).toBe(true);
+  });
+
+  it('merges the same shared skill path across providers without merging provider-owned skills', () => {
+    const tab = new GrimoireSettingTab(createSettingsApp(), createSettingsPlugin());
+    const catalog = { deleteVaultEntry: jest.fn() };
+    const makeEntry = (providerId: string, storagePath: string) => ({
+      id: `${providerId}-review`,
+      providerId,
+      kind: 'skill',
+      name: 'review',
+      description: 'Review code',
+      content: 'Review it.',
+      scope: 'vault',
+      source: 'user',
+      isEditable: true,
+      isDeletable: true,
+      displayPrefix: '/',
+      insertPrefix: '/',
+      storagePath,
+    });
+    const sharedRows = [
+      (tab as any).normalizeWorkspaceCommandEntry(
+        makeEntry('opencode', '.agents/skills'),
+        'opencode',
+        'skills',
+        false,
+        catalog,
+      ),
+      (tab as any).normalizeWorkspaceCommandEntry(
+        makeEntry('gemini', '.agents/skills'),
+        'gemini',
+        'skills',
+        false,
+        catalog,
+      ),
+    ];
+    const providerOwned = (tab as any).normalizeWorkspaceCommandEntry(
+      makeEntry('qwen', '.qwen/skills'),
+      'qwen',
+      'skills',
+      false,
+      catalog,
+    );
+
+    const merged = (tab as any).mergeWorkspaceRows(
+      [...sharedRows, providerOwned],
+      ['opencode', 'gemini', 'qwen'],
+    );
+
+    expect(merged).toHaveLength(2);
+    expect(merged.find((row: any) => row.source === '.agents/skills')?.providerIds)
+      .toEqual(['opencode', 'gemini']);
+    expect(merged.find((row: any) => row.source === '.qwen/skills')?.providerIds)
+      .toEqual(['qwen']);
   });
 
   it('renders accessible overflow controls and updates their boundary state', () => {

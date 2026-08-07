@@ -912,6 +912,7 @@
       "changeFailed": "Projektarbeitsbereich konnte nicht gewechselt werden"
     },
     "providers": {
+      "selectionHint": "Klicken Sie auf eine Anbieterkarte, um die Einstellungen darunter anzuzeigen.",
       "grok": {
         "desc": "xAIs agentic Coding-CLI mit Planmodus, Subagents, Skills und MCP."
       },
@@ -939,6 +940,9 @@
       "qwen": {
         "desc": "Alibaba Qwen Code über seine native Agent-Client-Protocol-Laufzeit."
       }
+    },
+    "hub": {
+      "general": "Allgemein", "providers": "Anbieter", "workspace": "Erweitert", "about": "Über", "cliDetected": "CLI erkannt", "cliNotDetected": "CLI nicht erkannt", "geminiLegacy": "Gemini CLI (Legacy)", "providerDetails": "{provider}-Einstellungen", "skills": "Skills", "agents": "Subagenten", "mcp": "MCP", "environment": "Umgebung", "commands": "Befehle", "search": "Name, Beschreibung, Quelle oder Anbieter suchen", "name": "Name", "source": "Quelle", "provider": "Anbieter", "actions": "Aktionen", "manage": "Verwalten", "manageTitle": "{section} verwalten", "edit": "Bearbeiten", "delete": "Löschen", "deleteConfirm": "„{name}“ löschen?", "deleted": "„{name}“ gelöscht", "deleteFailed": "Löschen fehlgeschlagen: {message}", "providerOptions": "Erweiterte Anbieteroptionen", "readonly": "Schreibgeschützt", "available": "Verfügbar", "connected": "Verbunden", "disabled": "Deaktiviert", "shared": "Geteilt", "loading": "Ressourcen werden geladen…", "unsupported": "Dieser Anbieter unterstützt diese Ressourcenkategorie nicht.", "none": "Keine passenden erweiterten Ressourcen.", "aboutCopy": "Grimoire verbindet lokale KI-Agenten in Obsidian. Version und Versionshinweise sind hier verfügbar.", "native": "Nativ", "nativeCli": "Native CLI", "nativeMcpDescription": "Native MCP-Unterstützung", "runtimeCommandsPending": "Starten Sie einmal einen {provider}-Chat, um die nativen Befehle zu laden.", "releases": "Veröffentlichungen"
     },
     "grok": {
       "cliPath": {
@@ -1043,7 +1047,7 @@
       "title": "Erweiterte Einstellungen",
       "generalSummary": "Prompts, Tastenkürzel, Diagnose, Umgebungsvariablen und mehr",
       "environmentSummary": "Umgebungsvariablen und Kontextüberschreibungen",
-      "providerSummary": "Befehle, Subagents, Umgebung und Kontextüberschreibungen"
+      "providerSummary": "Skills, Befehle, Subagents, MCP und Umgebung"
     },
     "provider": {
       "enableName": "{provider} aktivieren",
@@ -1179,7 +1183,7 @@
           "name": "Qwen-CLI-Pfad",
           "desc": "Benutzerdefinierter Pfad zur lokalen Qwen CLI. Leer lassen, um `qwen` über PATH zu starten."
         },
-        "advancedSummary": "Ausgeblendete Befehle, Umgebungsvariablen und Kontextüberschreibungen",
+        "advancedSummary": "Skills, Befehle, Subagents, MCP und Umgebung",
         "hiddenCommands": {
           "name": "Ausgeblendete Befehle",
           "desc": "Bestimmte von Qwen Code ACP gemeldete Befehle im Dropdown ausblenden. Namen ohne führenden Schrägstrich eingeben, einen pro Zeile.",

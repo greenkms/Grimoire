@@ -11,10 +11,16 @@ import { confirmDelete } from '../../../shared/modals/ConfirmModal';
 import { McpServerModal } from './McpServerModal';
 import { McpTestModal } from './McpTestModal';
 
+export interface McpSettingsManagerFeatures {
+  contextSaving?: boolean;
+  toolFiltering?: boolean;
+}
+
 export interface McpSettingsManagerDeps {
   app: App;
   mcpStorage: AppMcpStorage;
   broadcastMcpReload: () => Promise<void>;
+  features?: McpSettingsManagerFeatures;
 }
 
 export class McpSettingsManager {
@@ -24,12 +30,17 @@ export class McpSettingsManager {
   private broadcastMcpReload: () => Promise<void>;
   private servers: ManagedMcpServer[] = [];
   private documentClickHandler: (() => void) | null = null;
+  private readonly features: Required<McpSettingsManagerFeatures>;
 
   constructor(containerEl: HTMLElement, deps: McpSettingsManagerDeps) {
     this.app = deps.app;
     this.containerEl = containerEl;
     this.mcpStorage = deps.mcpStorage;
     this.broadcastMcpReload = deps.broadcastMcpReload;
+    this.features = {
+      contextSaving: deps.features?.contextSaving ?? true,
+      toolFiltering: deps.features?.toolFiltering ?? true,
+    };
     void this.loadAndRender();
   }
 
@@ -39,6 +50,7 @@ export class McpSettingsManager {
   }
 
   private render() {
+    this.detachDocumentClickHandler();
     this.containerEl.empty();
 
     const headerEl = this.containerEl.createDiv({ cls: 'grimoire-mcp-header' });
@@ -57,7 +69,7 @@ export class McpSettingsManager {
     setIcon(stdioOption.createSpan({ cls: 'grimoire-mcp-add-option-icon' }), 'terminal');
     stdioOption.createSpan({ text: t('settings.mcp.addStdio') });
     stdioOption.addEventListener('click', () => {
-      dropdown.removeClass('is-visible');
+      this.closeAddDropdown(dropdown);
       this.openModal(null, 'stdio');
     });
 
@@ -65,7 +77,7 @@ export class McpSettingsManager {
     setIcon(httpOption.createSpan({ cls: 'grimoire-mcp-add-option-icon' }), 'globe');
     httpOption.createSpan({ text: t('settings.mcp.addRemote') });
     httpOption.addEventListener('click', () => {
-      dropdown.removeClass('is-visible');
+      this.closeAddDropdown(dropdown);
       this.openModal(null, 'http');
     });
 
@@ -73,23 +85,22 @@ export class McpSettingsManager {
     setIcon(importOption.createSpan({ cls: 'grimoire-mcp-add-option-icon' }), 'clipboard-paste');
     importOption.createSpan({ text: t('settings.mcp.importClipboard') });
     importOption.addEventListener('click', () => {
-      dropdown.removeClass('is-visible');
+      this.closeAddDropdown(dropdown);
       void this.importFromClipboard();
     });
 
     addBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      dropdown.toggleClass('is-visible', !dropdown.hasClass('is-visible'));
+      const shouldOpen = !dropdown.hasClass('is-visible');
+      if (!shouldOpen) {
+        this.closeAddDropdown(dropdown);
+        return;
+      }
+      dropdown.addClass('is-visible');
+      const doc = this.containerEl.ownerDocument ?? window.document;
+      this.documentClickHandler = () => this.closeAddDropdown(dropdown);
+      doc.addEventListener('click', this.documentClickHandler);
     });
-
-    // Re-register the outside-click dismiss handler, removing any previous one
-    // first so repeated renders never accumulate document-level listeners.
-    const doc = this.containerEl.ownerDocument ?? window.document;
-    if (this.documentClickHandler) {
-      doc.removeEventListener('click', this.documentClickHandler);
-    }
-    this.documentClickHandler = () => dropdown.removeClass('is-visible');
-    doc.addEventListener('click', this.documentClickHandler);
 
     if (this.servers.length === 0) {
       const emptyEl = this.containerEl.createDiv({ cls: 'grimoire-mcp-empty' });
@@ -125,7 +136,7 @@ export class McpSettingsManager {
     const typeEl = nameRow.createSpan({ cls: 'grimoire-mcp-type-badge' });
     typeEl.setText(serverType);
 
-    if (server.contextSaving) {
+    if (this.features.contextSaving && server.contextSaving) {
       const csEl = nameRow.createSpan({ cls: 'grimoire-mcp-context-saving-badge' });
       csEl.setText('@');
       csEl.setAttribute('title', t('settings.mcp.contextSavingTitle', { server: server.name }));
@@ -180,17 +191,19 @@ export class McpSettingsManager {
   }
 
   private async testServer(server: ManagedMcpServer) {
-    const modal = new McpTestModal(
-      this.app,
-      server.name,
-      server.disabledTools,
-      async (toolName, enabled) => {
-        await this.updateDisabledTool(server, toolName, enabled);
-      },
-      async (disabledTools) => {
-        await this.updateAllDisabledTools(server, disabledTools);
-      }
-    );
+    const modal = this.features.toolFiltering
+      ? new McpTestModal(
+        this.app,
+        server.name,
+        server.disabledTools,
+        async (toolName, enabled) => {
+          await this.updateDisabledTool(server, toolName, enabled);
+        },
+        async (disabledTools) => {
+          await this.updateAllDisabledTools(server, disabledTools);
+        },
+      )
+      : new McpTestModal(this.app, server.name);
     modal.open();
 
     try {
@@ -268,7 +281,9 @@ export class McpSettingsManager {
           new Notice(error instanceof Error ? error.message : t('settings.mcp.saveFailed'));
         });
       },
-      initialType
+      initialType,
+      undefined,
+      this.features,
     );
     modal.open();
   }
@@ -299,7 +314,8 @@ export class McpSettingsManager {
             });
           },
           type,
-          server  // Pre-fill with parsed config
+          server, // Pre-fill with parsed config
+          this.features,
         );
         modal.open();
         if (parsed.needsName) {
@@ -365,7 +381,9 @@ export class McpSettingsManager {
         name,
         config: server.config,
         enabled: DEFAULT_MCP_SERVER.enabled,
-        contextSaving: DEFAULT_MCP_SERVER.contextSaving,
+        contextSaving: this.features.contextSaving
+          ? DEFAULT_MCP_SERVER.contextSaving
+          : false,
       });
       added.push(name);
     }
@@ -413,9 +431,17 @@ export class McpSettingsManager {
 
   /** Detach the document-level click handler. Call when the owner tears down. */
   public dispose() {
-    if (this.documentClickHandler) {
-      (this.containerEl.ownerDocument ?? window.document).removeEventListener('click', this.documentClickHandler);
-      this.documentClickHandler = null;
-    }
+    this.detachDocumentClickHandler();
+  }
+
+  private closeAddDropdown(dropdown: HTMLElement): void {
+    dropdown.removeClass('is-visible');
+    this.detachDocumentClickHandler();
+  }
+
+  private detachDocumentClickHandler(): void {
+    if (!this.documentClickHandler) return;
+    (this.containerEl.ownerDocument ?? window.document).removeEventListener('click', this.documentClickHandler);
+    this.documentClickHandler = null;
   }
 }

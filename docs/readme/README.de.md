@@ -53,8 +53,8 @@ Grimoire ist für Menschen gebaut, die bereits in Obsidian arbeiten und AI-Hilfe
 | Reasoning effort controls | Ja | Ja | Ja | Ja | Ja | Ja | Ja | Ja | Ja |
 | Rewind | Ja | Nein | Nein | Ja | Nein | Nein | Nein | Nein | Nein |
 | Fork | Ja | Ja | Nein | Ja | Nein | Nein | Nein | Nein | Nein |
-| Provider slash commands | Ja | Nein | Ja | Ja | Ja | Ja | Nein | Nein | Ja |
-| Grimoire-managed MCP UI | Ja | Nein | Nein | Nein | Nein | Nein | Nein | Nein | Nein |
+| Provider slash commands | Ja | Nein | Ja | Ja | Ja | Ja | Nein | Ja | Ja |
+| Grimoire-managed MCP UI | Ja | Nein | Ja | Ja | Ja | Ja | Nein | Ja | Ja |
 
 ## Installation
 
@@ -203,7 +203,7 @@ Starte `qwen`, wähle in `/auth` **Alibaba ModelStudio**, **Third-party Provider
 
 Safe, Auto-approve und Plan werden auf Qwen `default`, `yolo` und `plan` abgebildet; andere oder unbekannte Qwen modes werden in der shared toolbar konservativ als Safe gezeigt. Reasoning effort unterstützt Low, Medium, High, XHigh und Max; High ist der Standard. `/effort <tier>` wird vor dem normalen turn gesetzt, pro Session gecacht und hängt vom effektiven model ab. ACP permission metadata für single-select, multi-select und freeform questions wird in derselben shared inline UI angezeigt.
 
-Grimoire verwaltet weder Qwen MCP noch credentials: Konfiguriere sie in `~/.qwen/settings.json` sowie in der von Qwen verwalteten Umgebung oder `.env`. Usage wird nur angezeigt, wenn Qwen ACP token- oder cost-metadata meldet. Rewind und fork werden nicht unterstützt.
+Qwen verwaltet seine credentials und native Konfiguration weiterhin in `~/.qwen/settings.json`. Grimoire verwaltet eine isolierte Projekt-MCP-Liste in `.grimoire/mcp/qwen.json` und übergibt sie an ACP-Sessions, ohne Qwens native Konfiguration zu überschreiben. Usage wird nur angezeigt, wenn Qwen ACP token- oder cost-metadata meldet. Rewind und fork werden nicht unterstützt.
 
 - [Qwen Code documentation](https://qwenlm.github.io/qwen-code-docs/en/)
 - [Qwen Code authentication](https://qwenlm.github.io/qwen-code-docs/en/users/configuration/auth/)

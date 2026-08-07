@@ -912,6 +912,7 @@
       "changeFailed": "Falha ao alterar o espaço de trabalho do projeto"
     },
     "providers": {
+      "selectionHint": "Clique em um cartão de provedor para ver as configurações abaixo.",
       "grok": {
         "desc": "CLI agentic de programação da xAI com modo de plano, subagentes, skills e MCP."
       },
@@ -939,6 +940,9 @@
       "qwen": {
         "desc": "Alibaba Qwen Code por meio de seu ambiente de execução nativo do Agent Client Protocol."
       }
+    },
+    "hub": {
+      "general": "Geral", "providers": "Provedores", "workspace": "Avançado", "about": "Sobre", "cliDetected": "CLI detectada", "cliNotDetected": "CLI não detectada", "geminiLegacy": "Gemini CLI (legada)", "providerDetails": "Configurações de {provider}", "skills": "Habilidades", "agents": "Subagentes", "mcp": "MCP", "environment": "Ambiente", "commands": "Comandos", "search": "Pesquisar nome, descrição, fonte ou provedor", "name": "Nome", "source": "Fonte", "provider": "Provedor", "actions": "Ações", "manage": "Gerenciar", "manageTitle": "Gerenciar {section}", "edit": "Editar", "delete": "Excluir", "deleteConfirm": "Excluir “{name}”?", "deleted": "“{name}” excluído", "deleteFailed": "Falha ao excluir: {message}", "providerOptions": "Opções avançadas do provedor", "readonly": "Somente leitura", "available": "Disponível", "connected": "Conectado", "disabled": "Desativado", "shared": "Compartilhado", "loading": "Carregando recursos…", "unsupported": "Este provedor não oferece suporte a esta categoria de recurso.", "none": "Nenhum recurso avançado correspondente.", "aboutCopy": "O Grimoire conecta agentes de IA locais dentro do Obsidian. A versão e as notas de lançamento ficam aqui.", "native": "Nativo", "nativeCli": "CLI nativa", "nativeMcpDescription": "Suporte nativo a MCP", "runtimeCommandsPending": "Inicie um chat do {provider} uma vez para carregar os comandos nativos.", "releases": "Versões"
     },
     "grok": {
       "cliPath": {
@@ -1043,7 +1047,7 @@
       "title": "Configurações avançadas",
       "generalSummary": "Prompts, atalhos, diagnósticos, variáveis de ambiente e mais",
       "environmentSummary": "Variáveis de ambiente e substituições de contexto",
-      "providerSummary": "Comandos, subagentes, ambiente e substituições de contexto"
+      "providerSummary": "Skills, comandos, subagentes, MCP e ambiente"
     },
     "provider": {
       "enableName": "Ativar {provider}",
@@ -1179,7 +1183,7 @@
           "name": "Caminho da CLI Qwen",
           "desc": "Caminho personalizado para a CLI Qwen local. Deixe vazio para executar `qwen` do PATH."
         },
-        "advancedSummary": "Comandos ocultos, variáveis de ambiente e substituições de contexto",
+        "advancedSummary": "Skills, comandos, subagentes, MCP e ambiente",
         "hiddenCommands": {
           "name": "Comandos ocultos",
           "desc": "Oculte comandos específicos informados pelo Qwen Code ACP. Insira os nomes sem a barra inicial, um por linha.",

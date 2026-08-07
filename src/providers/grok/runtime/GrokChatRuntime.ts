@@ -8,6 +8,7 @@ import {
 import { getRuntimeEnvironmentText } from '../../../core/providers/providerEnvironment';
 import { ProviderRegistry } from '../../../core/providers/ProviderRegistry';
 import { ProviderSettingsCoordinator } from '../../../core/providers/ProviderSettingsCoordinator';
+import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
 import type {
   ProviderCapabilities,
 } from '../../../core/providers/types';
@@ -73,6 +74,7 @@ import {
   JsonRpcTransportClosedError,
   resolveWorkspacePath,
 } from '../../acp';
+import { toAcpMcpServers } from '../../acp/mcp/toAcpMcpServers';
 import { grokPlanUsageStore } from '../app/GrokPlanUsageStore';
 import { GROK_PROVIDER_CAPABILITIES } from '../capabilities';
 import { getGrokDiscoveryState, updateGrokDiscoveryState } from '../discoveryState';
@@ -264,7 +266,10 @@ export class GrokChatRuntime implements ChatRuntime {
     }
   }
 
-  async reloadMcpServers(): Promise<void> {}
+  async reloadMcpServers(): Promise<void> {
+    await ProviderWorkspaceRegistry.getMcpServerManager('grok')?.loadServers();
+    await this.shutdownProcess();
+  }
 
   async warmModelMetadata(model: string): Promise<boolean> {
     const selectedRawModelId = decodeGrokModelId(model);
@@ -1317,7 +1322,7 @@ export class GrokChatRuntime implements ChatRuntime {
       this.setSupportedCommands([]);
       const response = await this.connection.newSession({
         cwd,
-        mcpServers: [],
+        mcpServers: this.getMcpServers(),
       });
       this.sessionInvalidated = false;
       this.loadedSessionId = response.sessionId;
@@ -1360,7 +1365,7 @@ export class GrokChatRuntime implements ChatRuntime {
       this.setSupportedCommands([]);
       const response = await this.connection.loadSession({
         cwd,
-        mcpServers: [],
+        mcpServers: this.getMcpServers(),
         sessionId,
       });
       this.sessionInvalidated = false;
@@ -1393,6 +1398,11 @@ export class GrokChatRuntime implements ChatRuntime {
       });
       return false;
     }
+  }
+
+  private getMcpServers() {
+    const servers = ProviderWorkspaceRegistry.getMcpServerManager('grok')?.getServers() ?? [];
+    return toAcpMcpServers(servers);
   }
 
   private async handleSessionNotification(

@@ -3,7 +3,9 @@ import { Setting } from 'obsidian';
 
 import type { ProviderSettingsTabRenderer } from '../../../core/providers/types';
 import { renderEnvironmentSettingsSection } from '../../../features/settings/ui/EnvironmentSettingsSection';
+import { McpSettingsManager } from '../../../features/settings/ui/McpSettingsManager';
 import { renderProviderDisabledNotice } from '../../../features/settings/ui/ProviderDisabledNotice';
+import { ProviderSkillSettings } from '../../../features/settings/ui/ProviderSkillSettings';
 import { t } from '../../../i18n/i18n';
 import { sameStringList } from '../../../utils/collections';
 import { getHostnameKey } from '../../../utils/env';
@@ -575,37 +577,51 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
     };
 
     catalogEl.addEventListener('toggle', () => {
-      if (catalogEl.open) {
+      if (catalogEl.open && !context.suppressAutomaticDiscovery) {
         void loadModelCatalog();
       }
     });
-    if (catalogEl.open) {
+    if (catalogEl.open && !context.suppressAutomaticDiscovery) {
       void loadModelCatalog();
     }
 
     const advancedContainer = context.renderAdvancedSection(container, {
-      count: 4,
+      count: 6,
       summary: t('settings.advanced.providerSummary'),
     });
 
-    new Setting(advancedContainer).setName(t('settings.slashCommands.name')).setHeading();
+    const skillsSection = context.createWorkspaceSection(advancedContainer, ['skills']);
+    new Setting(skillsSection).setName(t('settings.hub.skills')).setHeading();
+    if (kimicodeWorkspace?.commandCatalog) {
+      const skillsContainer = skillsSection.createDiv({ cls: 'grimoire-slash-commands-container' });
+      new ProviderSkillSettings(
+        skillsContainer,
+        context.plugin.app,
+        'kimicode',
+        kimicodeWorkspace.commandCatalog,
+      );
+    }
 
-    const commandsDesc = advancedContainer.createDiv({ cls: 'grimoire-sp-settings-desc' });
+    const commandsSection = context.createWorkspaceSection(advancedContainer, ['commands']);
+    new Setting(commandsSection).setName(t('settings.slashCommands.name')).setHeading();
+
+    const commandsDesc = commandsSection.createDiv({ cls: 'grimoire-sp-settings-desc' });
     commandsDesc.createEl('p', {
       cls: 'setting-item-description',
       text: t('settings.providerTabs.acp.commandsDesc', { provider: 'Kimi Code' }),
     });
 
-    context.renderHiddenProviderCommandSetting(advancedContainer, 'kimicode', {
+    context.renderHiddenProviderCommandSetting(commandsSection, 'kimicode', {
       name: t('settings.hiddenSlashCommands.name'),
       desc: t('settings.providerTabs.acp.hiddenCommandsDesc', { provider: 'Kimi Code' }),
       placeholder: 'compact\nreview\nfix',
     });
 
     if (kimicodeWorkspace?.agentStorage) {
-      new Setting(advancedContainer).setName(t('settings.subagents.name')).setHeading();
+      const agentsSection = context.createWorkspaceSection(advancedContainer, ['agents']);
+      new Setting(agentsSection).setName(t('settings.subagents.name')).setHeading();
 
-      const subagentsDesc = advancedContainer.createDiv({ cls: 'grimoire-sp-settings-desc' });
+      const subagentsDesc = agentsSection.createDiv({ cls: 'grimoire-sp-settings-desc' });
       subagentsDesc.createEl('p', {
         cls: 'setting-item-description',
         text: t('settings.providerTabs.acp.subagentsDesc', {
@@ -615,7 +631,7 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
         }),
       });
 
-      const subagentsContainer = advancedContainer.createDiv({ cls: 'grimoire-slash-commands-container' });
+      const subagentsContainer = agentsSection.createDiv({ cls: 'grimoire-slash-commands-container' });
       new KimicodeAgentSettings(
         subagentsContainer,
         kimicodeWorkspace.agentStorage,
@@ -627,8 +643,27 @@ export const kimicodeSettingsTabRenderer: ProviderSettingsTabRenderer = {
       );
     }
 
+    if (kimicodeWorkspace?.mcpStorage) {
+      const mcpSection = context.createWorkspaceSection(advancedContainer, ['mcp']);
+      new Setting(mcpSection).setName(t('settings.mcpServers.name')).setHeading();
+      const mcpContainer = mcpSection.createDiv({ cls: 'grimoire-mcp-container' });
+      new McpSettingsManager(mcpContainer, {
+        app: context.plugin.app,
+        mcpStorage: kimicodeWorkspace.mcpStorage,
+        broadcastMcpReload: async () => {
+          for (const view of context.plugin.getAllViews()) {
+            await view.getTabManager()?.broadcastToProviderTabs?.(
+              'kimicode',
+              (service) => service.reloadMcpServers(),
+            );
+          }
+        },
+        features: { contextSaving: false, toolFiltering: false },
+      });
+    }
+
     renderEnvironmentSettingsSection({
-      container: advancedContainer,
+      container: context.createWorkspaceSection(advancedContainer, ['environment']),
       plugin: context.plugin,
       scope: 'provider:kimicode',
       heading: t('settings.environment'),

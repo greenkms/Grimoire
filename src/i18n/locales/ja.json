@@ -912,6 +912,7 @@
       "changeFailed": "プロジェクトワークスペースの変更に失敗しました"
     },
     "providers": {
+      "selectionHint": "プロバイダーカードをクリックすると、下に設定が表示されます。",
       "grok": {
         "desc": "plan mode、subagents、skills、MCP に対応した xAI の agentic coding CLI。"
       },
@@ -939,6 +940,9 @@
       "qwen": {
         "desc": "ネイティブのAgent Client Protocolランタイムを通じたAlibaba Qwen Code。"
       }
+    },
+    "hub": {
+      "general": "一般", "providers": "プロバイダー", "workspace": "詳細", "about": "情報", "cliDetected": "CLI を検出しました", "cliNotDetected": "CLI が見つかりません", "geminiLegacy": "Gemini CLI（旧版）", "providerDetails": "{provider} の設定", "skills": "スキル", "agents": "サブエージェント", "mcp": "MCP", "environment": "環境", "commands": "コマンド", "search": "名前、説明、ソース、プロバイダーを検索", "name": "名前", "source": "ソース", "provider": "プロバイダー", "actions": "操作", "manage": "管理", "manageTitle": "{section} を管理", "edit": "編集", "delete": "削除", "deleteConfirm": "「{name}」を削除しますか？", "deleted": "「{name}」を削除しました", "deleteFailed": "削除に失敗しました: {message}", "providerOptions": "プロバイダーの詳細オプション", "readonly": "読み取り専用", "available": "利用可能", "connected": "接続済み", "disabled": "無効", "shared": "共有", "loading": "リソースを読み込み中…", "unsupported": "このプロバイダーはこのリソースカテゴリをサポートしていません。", "none": "一致する詳細リソースはありません。", "aboutCopy": "Grimoire は Obsidian 内でローカル AI エージェントに接続します。バージョンとリリースノートはここにあります。", "native": "ネイティブ", "nativeCli": "ネイティブ CLI", "nativeMcpDescription": "ネイティブ MCP サポート", "runtimeCommandsPending": "{provider} のチャットを一度開始すると、ネイティブコマンドが読み込まれます。", "releases": "リリース"
     },
     "grok": {
       "cliPath": {
@@ -1043,7 +1047,7 @@
       "title": "詳細設定",
       "generalSummary": "プロンプト、ホットキー、診断、環境変数など",
       "environmentSummary": "環境変数とコンテキストの上書き",
-      "providerSummary": "コマンド、サブエージェント、環境、コンテキストの上書き"
+      "providerSummary": "スキル、コマンド、サブエージェント、MCP、環境"
     },
     "provider": {
       "enableName": "{provider}を有効化",
@@ -1179,7 +1183,7 @@
           "name": "Qwen CLIパス",
           "desc": "ローカルQwen CLIへのカスタムパス。PATHから`qwen`を起動する場合は空欄にしてください。"
         },
-        "advancedSummary": "非表示コマンド、環境変数、コンテキストの上書き",
+        "advancedSummary": "スキル、コマンド、サブエージェント、MCP、環境",
         "hiddenCommands": {
           "name": "非表示のコマンド",
           "desc": "Qwen Code ACPが報告した特定のコマンドを隠します。先頭のスラッシュを除いた名前を1行に1つ入力してください。",

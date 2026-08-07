@@ -17,8 +17,9 @@
 
 - Keep Qwen-specific runtime behavior in `src/providers/qwen/`.
 - Keep protocol-generic JSON-RPC behavior in `src/providers/acp/`.
-- Do not add Qwen MCP management UI until the provider has a clear Grimoire-owned MCP storage and reconciliation design.
-- Do not claim or add Qwen fork or rewind workflows; Qwen credentials, `~/.qwen/settings.json`, and MCP configuration remain Qwen-owned.
+- Grimoire-owned MCP servers live in `.grimoire/mcp/qwen.json` and are injected into ACP session creation and loading. Do not rewrite Qwen's native MCP configuration.
+- Qwen project skills, commands, and agents use `.qwen/skills/`, `.qwen/commands/**/*.md`, and `.qwen/agents/*.md`. Preserve unknown frontmatter when editing managed files.
+- Do not claim or add Qwen fork or rewind workflows; Qwen credentials and `~/.qwen/settings.json` remain Qwen-owned.
 - Prefer live ACP wire traces over guessed event shapes when expanding support.
 
 ## Launch

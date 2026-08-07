@@ -912,6 +912,7 @@
       "changeFailed": "프로젝트 작업공간 변경 실패"
     },
     "providers": {
+      "selectionHint": "제공업체 카드를 클릭하면 아래에서 설정을 확인할 수 있습니다.",
       "grok": {
         "desc": "plan mode, subagents, skills, MCP를 지원하는 xAI의 agentic coding CLI입니다."
       },
@@ -939,6 +940,9 @@
       "qwen": {
         "desc": "기본 Agent Client Protocol 런타임을 통한 Alibaba Qwen Code입니다."
       }
+    },
+    "hub": {
+      "general": "일반", "providers": "제공업체", "workspace": "고급", "about": "정보", "cliDetected": "CLI 감지됨", "cliNotDetected": "CLI가 감지되지 않음", "geminiLegacy": "Gemini CLI(레거시)", "providerDetails": "{provider} 설정", "skills": "스킬", "agents": "하위 에이전트", "mcp": "MCP", "environment": "환경", "commands": "명령", "search": "이름, 설명, 소스 또는 제공업체 검색", "name": "이름", "source": "소스", "provider": "제공업체", "actions": "작업", "manage": "관리", "manageTitle": "{section} 관리", "edit": "편집", "delete": "삭제", "deleteConfirm": "“{name}”을(를) 삭제하시겠습니까?", "deleted": "“{name}”을(를) 삭제했습니다", "deleteFailed": "삭제 실패: {message}", "providerOptions": "제공업체 고급 옵션", "readonly": "읽기 전용", "available": "사용 가능", "connected": "연결됨", "disabled": "사용 안 함", "shared": "공유됨", "loading": "리소스를 불러오는 중…", "unsupported": "이 제공업체는 이 리소스 범주를 지원하지 않습니다.", "none": "일치하는 고급 리소스가 없습니다.", "aboutCopy": "Grimoire는 Obsidian 내에서 로컬 AI 에이전트를 연결합니다. 버전과 릴리스 노트는 여기에서 확인할 수 있습니다.", "native": "네이티브", "nativeCli": "네이티브 CLI", "nativeMcpDescription": "네이티브 MCP 지원", "runtimeCommandsPending": "{provider} 채팅을 한 번 시작하면 네이티브 명령을 불러옵니다.", "releases": "릴리스"
     },
     "grok": {
       "cliPath": {
@@ -1043,7 +1047,7 @@
       "title": "고급 설정",
       "generalSummary": "프롬프트, 단축키, 진단, 환경 변수 등",
       "environmentSummary": "환경 변수 및 컨텍스트 재정의",
-      "providerSummary": "명령, 하위 에이전트, 환경 및 컨텍스트 재정의"
+      "providerSummary": "스킬, 명령, 하위 에이전트, MCP 및 환경"
     },
     "provider": {
       "enableName": "{provider} 활성화",
@@ -1179,7 +1183,7 @@
           "name": "Qwen CLI 경로",
           "desc": "로컬 Qwen CLI의 사용자 지정 경로입니다. PATH에서 `qwen`를 시작하려면 비워 두세요."
         },
-        "advancedSummary": "숨겨진 명령, 환경 변수 및 컨텍스트 재정의",
+        "advancedSummary": "스킬, 명령, 하위 에이전트, MCP 및 환경",
         "hiddenCommands": {
           "name": "숨겨진 명령",
           "desc": "Qwen Code ACP에서 보고한 특정 명령을 숨깁니다. 앞의 슬래시 없이 이름을 한 줄에 하나씩 입력하세요.",

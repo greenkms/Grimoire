@@ -136,7 +136,7 @@ export const antigravitySettingsTabRenderer: ProviderSettingsTabRenderer = {
     });
 
     renderEnvironmentSettingsSection({
-      container: advancedContainer,
+      container: context.createWorkspaceSection(advancedContainer, ['environment']),
       plugin: context.plugin,
       scope: 'provider:antigravity',
       heading: t('settings.environment'),

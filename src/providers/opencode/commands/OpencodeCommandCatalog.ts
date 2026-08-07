@@ -1,92 +1,23 @@
-import type {
-  ProviderCommandCatalog,
-  ProviderCommandDropdownConfig,
-} from '../../../core/providers/commands/ProviderCommandCatalog';
-import type { ProviderCommandEntry } from '../../../core/providers/commands/ProviderCommandEntry';
-import type { SlashCommand } from '../../../core/types';
+import {
+  VaultSkillCommandCatalog,
+  type VaultSkillStorageAdapter,
+} from '../../../core/providers/commands/VaultSkillCommandCatalog';
 
-function slashCommandToEntry(command: SlashCommand): ProviderCommandEntry {
-  return {
-    id: command.id,
-    providerId: 'opencode',
-    kind: 'command',
-    name: command.name,
-    description: command.description,
-    content: command.content,
-    argumentHint: command.argumentHint,
-    allowedTools: command.allowedTools,
-    model: command.model,
-    disableModelInvocation: command.disableModelInvocation,
-    userInvocable: command.userInvocable,
-    context: command.context,
-    agent: command.agent,
-    hooks: command.hooks,
-    scope: 'runtime',
-    source: command.source ?? 'sdk',
-    isEditable: false,
-    isDeletable: false,
-    displayPrefix: '/',
-    insertPrefix: '/',
-  };
-}
-
-function dedupeRuntimeCommands(commands: SlashCommand[]): SlashCommand[] {
-  const deduped: SlashCommand[] = [];
-  const seen = new Set<string>();
-
-  for (const command of commands) {
-    const normalizedName = command.name.trim().replace(/^\/+/, '');
-    if (!normalizedName) {
-      continue;
-    }
-
-    const key = normalizedName.toLowerCase();
-    if (seen.has(key)) {
-      continue;
-    }
-
-    seen.add(key);
-    deduped.push({
-      ...command,
-      name: normalizedName,
+export class OpencodeCommandCatalog extends VaultSkillCommandCatalog {
+  constructor(adapter?: VaultSkillStorageAdapter) {
+    super(adapter, {
+      providerId: 'opencode',
+      roots: [
+        { id: 'opencode', path: '.opencode/skills', editable: true },
+        { id: 'agents', path: '.agents/skills', editable: true },
+        { id: 'claude', path: '.claude/skills', editable: false },
+      ],
+      dropdown: {
+        triggerChars: ['/'],
+        builtInPrefix: '/',
+        skillPrefix: '/',
+        commandPrefix: '/',
+      },
     });
   }
-
-  return deduped;
-}
-
-export class OpencodeCommandCatalog implements ProviderCommandCatalog {
-  private runtimeCommands: SlashCommand[] = [];
-
-  setRuntimeCommands(commands: SlashCommand[]): void {
-    this.runtimeCommands = dedupeRuntimeCommands(commands);
-  }
-
-  async listDropdownEntries(_context: { includeBuiltIns: boolean }): Promise<ProviderCommandEntry[]> {
-    return this.runtimeCommands.map(slashCommandToEntry);
-  }
-
-  async listVaultEntries(): Promise<ProviderCommandEntry[]> {
-    return [];
-  }
-
-  async saveVaultEntry(_entry: ProviderCommandEntry): Promise<void> {
-    throw new Error('OpenCode runtime commands are not editable from Grimoire.');
-  }
-
-  async deleteVaultEntry(_entry: ProviderCommandEntry): Promise<void> {
-    throw new Error('OpenCode runtime commands are not deletable from Grimoire.');
-  }
-
-  getDropdownConfig(): ProviderCommandDropdownConfig {
-    return {
-      providerId: 'opencode',
-      triggerChars: ['/'],
-      builtInPrefix: '/',
-      skillPrefix: '/',
-      commandPrefix: '/',
-    };
-  }
-
-  async refresh(): Promise<void> {}
 }

@@ -17,5 +17,6 @@ export interface ProviderCommandCatalog {
   deleteVaultEntry(entry: ProviderCommandEntry): Promise<void>;
   setRuntimeCommands(commands: SlashCommand[]): void;
   getDropdownConfig(): ProviderCommandDropdownConfig;
+  getDefaultVaultStoragePath?(): string | null;
   refresh(): Promise<void>;
 }

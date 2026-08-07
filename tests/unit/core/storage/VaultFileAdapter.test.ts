@@ -217,6 +217,26 @@ describe('VaultFileAdapter', () => {
     });
   });
 
+  describe('deleteFolderRecursive', () => {
+    it('deletes an existing folder recursively', async () => {
+      mockAdapter.exists.mockResolvedValue(true);
+      mockAdapter.rmdir = jest.fn().mockResolvedValue(undefined);
+
+      await vaultAdapter.deleteFolderRecursive('skill-bundle');
+
+      expect(mockAdapter.rmdir).toHaveBeenCalledWith('skill-bundle', true);
+    });
+
+    it('does nothing when the folder does not exist', async () => {
+      mockAdapter.exists.mockResolvedValue(false);
+      mockAdapter.rmdir = jest.fn();
+
+      await vaultAdapter.deleteFolderRecursive('missing-bundle');
+
+      expect(mockAdapter.rmdir).not.toHaveBeenCalled();
+    });
+  });
+
   describe('listFiles', () => {
     it('lists files in existing folder', async () => {
       mockAdapter.exists.mockResolvedValue(true);

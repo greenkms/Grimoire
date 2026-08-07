@@ -50,7 +50,7 @@ import { renderEnvironmentSettingsSection } from './ui/EnvironmentSettingsSectio
 type SettingsTabId = 'general' | 'providers' | 'workspace' | 'about';
 type WorkspaceSection = 'skills' | 'agents' | 'mcp' | 'environment' | 'commands';
 type AdvancedSettingsSection = 'general' | WorkspaceSection;
-type WorkspaceResourceStatus = 'available' | 'connected' | 'disabled' | 'readonly';
+type WorkspaceResourceStatus = 'available' | 'connected' | 'disabled' | 'native' | 'readonly';
 
 interface WorkspaceResourceRow {
   key: string;
@@ -63,6 +63,7 @@ interface WorkspaceResourceRow {
   readonly: boolean;
   status: WorkspaceResourceStatus;
   deleteResource?: () => Promise<void>;
+  openResource?: () => void;
 }
 
 interface WorkspaceAgentDefinition extends Record<string, unknown> {
@@ -93,7 +94,7 @@ interface WorkspaceMcpStorage {
 type WorkspaceServicesWithStorage = ProviderWorkspaceServices & {
   agentManager?: WorkspaceAgentManager;
   agentStorage?: WorkspaceAgentStorage;
-  mcpStorage?: WorkspaceMcpStorage;
+  mcpStorage?: WorkspaceMcpStorage | null;
   subagentStorage?: WorkspaceAgentStorage;
 };
 type ObsidianHotkey = { modifiers: string[]; key: string };
@@ -111,6 +112,9 @@ type ObsidianSettingsController = {
   open: () => void;
   openTabById: (id: string) => void;
 };
+
+const GRIMOIRE_REPOSITORY_URL = 'https://github.com/sandsaber/Grimoire';
+const GRIMOIRE_RELEASES_URL = `${GRIMOIRE_REPOSITORY_URL}/releases`;
 type AppWithHotkeyInternals = App & {
   hotkeyManager?: ObsidianHotkeyManager;
   setting?: ObsidianSettingsController;
@@ -601,54 +605,10 @@ export class GrimoireSettingTab extends PluginSettingTab {
   }
 
   private getHubText(key: string): string {
-    const locale = this.plugin.settings.locale;
-    const isChinese = locale.toLowerCase().startsWith('zh');
-    const copy: Record<string, string> = {
-      general: isChinese ? '常规' : 'General',
-      providers: isChinese ? '供应商' : 'Providers',
-      workspace: isChinese ? '高级设置' : 'Advanced',
-      about: isChinese ? '关于' : 'About',
-      cliDetected: isChinese ? '已检测到 CLI' : 'CLI detected',
-      cliNotDetected: isChinese ? '未检测到 CLI' : 'CLI not detected',
-      geminiLegacy: locale === 'zh-TW'
-        ? 'Gemini CLI（舊版）'
-        : (isChinese ? 'Gemini CLI（旧版）' : 'Gemini CLI (Legacy)'),
-      providerDetails: isChinese ? '{provider} 设置' : '{provider} settings',
-      skills: isChinese ? '技能' : 'Skills',
-      agents: isChinese ? '子代理' : 'Subagents',
-      mcp: 'MCP',
-      environment: isChinese ? '环境变量' : 'Environment',
-      commands: isChinese ? '命令' : 'Commands',
-      search: isChinese
-        ? '搜索名称、说明、来源或供应商'
-        : 'Search name, description, source, or provider',
-      name: isChinese ? '名称' : 'Name',
-      source: isChinese ? '来源' : 'Source',
-      provider: isChinese ? '供应商' : 'Provider',
-      actions: isChinese ? '操作' : 'Actions',
-      manage: isChinese ? '管理' : 'Manage',
-      manageTitle: isChinese ? '管理 {section}' : 'Manage {section}',
-      edit: isChinese ? '修改' : 'Edit',
-      delete: isChinese ? '删除' : 'Delete',
-      deleteConfirm: isChinese ? '确定删除“{name}”吗？' : 'Delete “{name}”?',
-      deleted: isChinese ? '已删除“{name}”' : 'Deleted “{name}”',
-      deleteFailed: isChinese ? '删除失败：{message}' : 'Delete failed: {message}',
-      providerOptions: isChinese ? '供应商高级选项' : 'Provider advanced options',
-      readonly: isChinese ? '只读' : 'Read only',
-      available: isChinese ? '可用' : 'Available',
-      connected: isChinese ? '已连接' : 'Connected',
-      disabled: isChinese ? '已停用' : 'Disabled',
-      shared: isChinese ? '共享' : 'Shared',
-      loading: isChinese ? '正在加载资源…' : 'Loading resources…',
-      unsupported: isChinese
-        ? '当前供应商不支持此类资源管理。'
-        : 'This provider does not support this resource category.',
-      none: isChinese ? '没有匹配的高级设置资源。' : 'No matching advanced resources.',
-      aboutCopy: isChinese
-        ? 'Grimoire 在 Obsidian 中连接本地 AI Agent。此处保留插件版本、说明和更新入口。'
-        : 'Grimoire connects local AI agents inside Obsidian. Version and release notes are kept here.',
-    };
-    return copy[key] ?? key;
+    if (key === 'providerSelectionHint') {
+      return t('settings.providers.selectionHint');
+    }
+    return t(`settings.hub.${key}` as TranslationKey);
   }
 
   private orderProviderIds(providerIds: ProviderId[]): ProviderId[] {
@@ -754,6 +714,10 @@ export class GrimoireSettingTab extends PluginSettingTab {
     settingsRoot: HTMLElement,
   ): void {
     this.renderProviderCards(container, providerIds, settingsRoot);
+    container.createDiv({
+      cls: 'grimoire-settings-provider-hint',
+      text: this.getHubText('providerSelectionHint'),
+    });
     const details = container.createDiv({ cls: 'grimoire-settings-provider-details' });
     if (!this.activeProviderId) {
       details.createDiv({ cls: 'grimoire-settings-hub-empty', text: this.getHubText('none') });
@@ -773,9 +737,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
     }
 
     renderer.render(details, this.createSettingsRendererContext(this.activeProviderId));
-    for (const advancedSection of details.querySelectorAll('.grimoire-adv')) {
-      advancedSection.remove();
-    }
+    this.extractProviderAdvancedOptions(details, this.activeProviderId);
   }
 
   private renderWorkspaceHub(container: HTMLElement, providerIds: ProviderId[]): void {
@@ -887,28 +849,32 @@ export class GrimoireSettingTab extends PluginSettingTab {
     providerIds: ProviderId[],
     section: WorkspaceSection,
   ): string[] {
-    const supportedProviders = providerIds.filter((providerId) => {
-      const services = ProviderWorkspaceRegistry.getServices(providerId);
-      switch (section) {
-        case 'skills':
-          return providerId === 'claude'
-            || providerId === 'codex'
-            || Boolean(services?.commandCatalog || services?.runtimeCommandLoader);
-        case 'commands':
-          return providerId !== 'codex'
-            && (providerId === 'claude'
-              || Boolean(services?.commandCatalog || services?.runtimeCommandLoader));
-        case 'agents':
-          return Boolean(services?.agentMentionProvider);
-        case 'mcp':
-          return providerId === 'claude' || providerId === 'codex';
-        case 'environment':
-          return true;
-      }
-    });
+    const supportedProviders = providerIds.filter((providerId) => (
+      ProviderWorkspaceRegistry.getCapabilities(providerId)[section].manager === 'managed'
+    ));
     return section === 'environment'
       ? ['__shared__', ...supportedProviders]
       : supportedProviders;
+  }
+
+  private openWorkspaceGuidance(providerId: ProviderId, section: WorkspaceSection): void {
+    new class extends Modal {
+      constructor(app: App, private readonly settingsTab: GrimoireSettingTab) {
+        super(app);
+      }
+
+      onOpen(): void {
+        this.setTitle(`${this.settingsTab.getProviderDisplayName(providerId)} · ${
+          this.settingsTab.getHubText('nativeCli')
+        }`);
+        this.modalEl.addClass('grimoire-workspace-manager-modal');
+        this.settingsTab.renderWorkspaceProviderSection(this.contentEl, providerId, section);
+      }
+
+      onClose(): void {
+        this.contentEl.empty();
+      }
+    }(this.app, this).open();
   }
 
   private getWorkspaceServices(providerId: ProviderId): WorkspaceServicesWithStorage | null {
@@ -1077,16 +1043,13 @@ export class GrimoireSettingTab extends PluginSettingTab {
     }
 
     const staging = container.createDiv({ cls: 'grimoire-workspace-render-staging' });
-    renderer.render(staging, this.createSettingsRendererContext(providerId));
+    renderer.render(staging, this.createSettingsRendererContext(providerId, true));
     let extracted = this.extractWorkspaceProviderSection(
       staging,
       container,
       section,
       providerId,
     );
-    if (section === 'environment') {
-      extracted = this.appendWorkspaceProviderExtras(staging, container) || extracted;
-    }
     staging.remove();
     if (extracted) {
       this.markTextareaRows(container);
@@ -1104,20 +1067,46 @@ export class GrimoireSettingTab extends PluginSettingTab {
     section: WorkspaceSection,
     providerId: ProviderId,
   ): boolean {
+    const semanticSections = Array.from(staging.querySelectorAll<HTMLElement>(
+      `[data-workspace-sections~="${section}"]`,
+    ));
+    if (semanticSections.length > 0) {
+      for (const semanticSection of semanticSections) target.appendChild(semanticSection);
+      return true;
+    }
+
     const getTitle = (element: Element): string => (
       element.querySelector('.setting-item-name')?.textContent?.trim() ?? ''
     );
-    const moveSection = (firstElement: Element): boolean => {
-      let current: Element | null = firstElement;
-      let moved = 0;
-      while (current) {
-        if (current !== firstElement && current.classList.contains('setting-item-heading')) break;
-        const nextElement: Element | null = current.nextElementSibling;
-        target.appendChild(current);
-        current = nextElement;
-        moved += 1;
+    const moveSemanticSection = (firstElement: Element): boolean => {
+      const candidates: Element[] = [firstElement];
+      let current = firstElement.nextElementSibling;
+      while (current && !current.classList.contains('setting-item-heading')) {
+        const isHiddenCommandSetting = current.classList.contains('setting-item')
+          && Boolean(current.querySelector('textarea'))
+          && /hidden|隐藏|ausgeblend|ocult|masqu|非表示|숨김|скры|oculto/i.test(
+            getTitle(current),
+          );
+        const belongsToSection = section === 'environment'
+          ? current.matches([
+              '.grimoire-env-review-warning',
+              '.grimoire-context-limits-container',
+              '.grimoire-env-snippets-container',
+            ].join(', ')) || Boolean(current.querySelector('.grimoire-settings-env-textarea'))
+          : section === 'mcp'
+            ? current.matches('.grimoire-mcp-settings-desc, .grimoire-mcp-container')
+            : section === 'agents'
+              ? current.matches(
+                  '.grimoire-sp-settings-desc, .grimoire-agents-container, .grimoire-slash-commands-container',
+                )
+              : current.matches(
+                  '.grimoire-sp-settings-desc, .grimoire-slash-commands-container',
+                ) || isHiddenCommandSetting;
+        if (belongsToSection) candidates.push(current);
+        current = current.nextElementSibling;
       }
-      return moved > 0;
+      for (const candidate of candidates) target.appendChild(candidate);
+      return candidates.length > 0;
     };
 
     const headings = Array.from(staging.querySelectorAll<HTMLElement>('.setting-item-heading'));
@@ -1164,7 +1153,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
         matchingHeading = (previous ?? settingItem ?? undefined) as HTMLElement | undefined;
       }
     }
-    if (matchingHeading) return moveSection(matchingHeading);
+    if (matchingHeading) return moveSemanticSection(matchingHeading);
 
     if (section === 'skills' || section === 'commands') {
       const hiddenCommandsSetting = Array.from(staging.querySelectorAll<HTMLElement>(
@@ -1187,58 +1176,47 @@ export class GrimoireSettingTab extends PluginSettingTab {
     return false;
   }
 
-  private appendWorkspaceProviderExtras(staging: HTMLElement, target: HTMLElement): boolean {
-    const extras: HTMLElement[] = [];
-    const resourceMatcher = /skill|技能|command|命令|slash|sub.?agent|子代理|代理|mcp|environment|环境/i;
-    for (const body of staging.querySelectorAll<HTMLElement>('.grimoire-adv-body')) {
-      const children = Array.from(body.children) as HTMLElement[];
-      const resourceElements = new Set<HTMLElement>();
-      for (const [index, child] of children.entries()) {
-        if (!child.classList.contains('setting-item-heading')) continue;
-        const title = child.querySelector('.setting-item-name')?.textContent?.trim() ?? '';
-        if (!resourceMatcher.test(title)) continue;
-        resourceElements.add(child);
-        for (let cursor = index + 1;
-          cursor < children.length && !children[cursor].classList.contains('setting-item-heading');
-          cursor += 1) {
-          resourceElements.add(children[cursor]);
-        }
+  private extractProviderAdvancedOptions(
+    details: HTMLElement,
+    providerId: ProviderId,
+  ): void {
+    const optionGroups: HTMLElement[][] = [];
+    for (const advancedSection of Array.from(
+      details.querySelectorAll<HTMLElement>('.grimoire-adv'),
+    )) {
+      const body = advancedSection.querySelector<HTMLElement>('.grimoire-adv-body');
+      if (!body) {
+        advancedSection.remove();
+        continue;
       }
-      for (const child of children) {
-        if (child.matches(
-          '.grimoire-slash-commands-container, .grimoire-agents-container, .grimoire-mcp-container',
-        )) {
-          resourceElements.add(child);
-        }
+      const discarded = details.createDiv();
+      discarded.detach();
+      for (const section of ['skills', 'commands', 'agents', 'mcp', 'environment'] as const) {
+        this.extractWorkspaceProviderSection(body, discarded, section, providerId);
       }
-      for (const child of children) {
-        if (!child.matches('.setting-item:not(.setting-item-heading)')) continue;
-        const title = child.querySelector('.setting-item-name')?.textContent?.trim() ?? '';
-        if (!/hidden|隐藏|ausgeblend|ocult|masqu|非表示|숨김|скры|oculto/i.test(title)
-          || !child.querySelector('textarea')) continue;
-        resourceElements.add(child);
-        const previous = child.previousElementSibling;
-        if (previous?.classList.contains('grimoire-sp-settings-desc')
-          || previous?.classList.contains('grimoire-mcp-settings-desc')) {
-          resourceElements.add(previous as HTMLElement);
-        }
-      }
-      for (const child of children) {
-        if (!resourceElements.has(child)) extras.push(child);
-      }
+      const extras = Array.from(body.children) as HTMLElement[];
+      if (extras.length > 0) optionGroups.push(extras);
+      advancedSection.remove();
     }
-    if (extras.length === 0) return false;
+    if (optionGroups.length === 0) return;
 
-    new Setting(target).setName(this.getHubText('providerOptions')).setHeading();
-    for (const extra of extras) target.appendChild(extra);
-    return true;
+    new Setting(details).setName(this.getHubText('providerOptions')).setHeading();
+    for (const extras of optionGroups) {
+      for (const extra of extras) details.appendChild(extra);
+    }
   }
 
   private createSettingsRendererContext(
     providerId: ProviderId = this.activeProviderId ?? this.plugin.settings.settingsProvider,
+    suppressAutomaticDiscovery = false,
   ): ProviderSettingsTabRendererContext {
     return {
       plugin: this.plugin,
+      suppressAutomaticDiscovery,
+      createWorkspaceSection: (target, sections) => target.createDiv({
+        attr: { 'data-workspace-sections': sections.join(' ') },
+        cls: 'grimoire-workspace-provider-section',
+      }),
       renderHiddenProviderCommandSetting: (target, targetProviderId, copy) => {
         this.renderHiddenProviderCommandSetting(target, targetProviderId, copy);
       },
@@ -1259,6 +1237,8 @@ export class GrimoireSettingTab extends PluginSettingTab {
     const rows: WorkspaceResourceRow[] = [];
     if (section === 'skills' || section === 'commands') {
       for (const providerId of providerIds) {
+        const capability = ProviderWorkspaceRegistry.getCapabilities(providerId)[section];
+        if (capability.inventory === 'none') continue;
         const catalog = ProviderWorkspaceRegistry.getCommandCatalog(providerId);
         if (!catalog) continue;
         try {
@@ -1274,6 +1254,19 @@ export class GrimoireSettingTab extends PluginSettingTab {
             ));
           }
           if (section === 'commands' && providerId !== 'claude' && providerId !== 'codex') {
+            const discovery = capability.runtimeCommandDiscovery ?? 'none';
+            const loader = ProviderWorkspaceRegistry.getRuntimeCommandLoader(providerId);
+            if (discovery === 'ephemeral'
+              && loader?.isAvailable(this.plugin.settings)) {
+              const commands = await loader.loadCommands({
+                allowSessionCreation: true,
+                conversation: null,
+                externalContextPaths: [],
+                plugin: this.plugin,
+                runtime: null,
+              });
+              catalog.setRuntimeCommands(commands);
+            }
             const runtimeEntries = await catalog.listDropdownEntries({ includeBuiltIns: false });
             for (const entry of runtimeEntries) {
               if (entry.kind !== 'command') continue;
@@ -1285,6 +1278,20 @@ export class GrimoireSettingTab extends PluginSettingTab {
                 catalog,
               ));
             }
+            if (runtimeEntries.length === 0 && discovery === 'active-session-only') {
+              const providerName = this.getProviderDisplayName(providerId);
+              rows.push({
+                key: `command-status:${providerId}`,
+                section: 'commands',
+                name: providerName,
+                description: t('settings.hub.runtimeCommandsPending', { provider: providerName }),
+                source: `${providerName} runtime`,
+                providerIds: [providerId],
+                ownerProviderId: providerId,
+                readonly: true,
+                status: 'readonly',
+              });
+            }
           }
         } catch {
           // A provider that cannot enumerate its local catalog should not hide other providers.
@@ -1294,17 +1301,39 @@ export class GrimoireSettingTab extends PluginSettingTab {
       for (const providerId of providerIds) {
         const services = this.getWorkspaceServices(providerId);
         const mentionProvider = services?.agentMentionProvider;
-        if (!mentionProvider) continue;
-        const storage = services.agentStorage ?? services.subagentStorage;
+        const storage = services?.agentStorage ?? services?.subagentStorage;
+        if (!mentionProvider && !storage) continue;
         try {
-          const summaries = mentionProvider.searchAgents('') as WorkspaceAgentSummary[];
+          const summaries = (mentionProvider?.searchAgents('') ?? []) as WorkspaceAgentSummary[];
           const storedDefinitions = storage?.loadAll
             ? await storage.loadAll()
-            : (services.agentManager?.getAvailableAgents?.() ?? []);
+            : (services?.agentManager?.getAvailableAgents?.() ?? []);
           const definitionsByName = new Map(
             storedDefinitions.map((definition) => [definition.name.toLowerCase(), definition]),
           );
+          for (const definition of storedDefinitions) {
+            const identity = typeof definition.persistenceKey === 'string'
+              ? definition.persistenceKey
+              : typeof definition.filePath === 'string'
+                ? definition.filePath
+                : typeof definition.id === 'string'
+                  ? definition.id
+                  : definition.name;
+            rows.push(this.normalizeWorkspaceAgentEntry(
+              {
+                id: identity,
+                name: definition.name,
+                description: definition.description,
+                source: 'vault',
+              },
+              providerId,
+              storage,
+              definition,
+            ));
+          }
           for (const summary of summaries) {
+            if (summary.source === 'vault'
+              && definitionsByName.has(summary.name.toLowerCase())) continue;
             rows.push(this.normalizeWorkspaceAgentEntry(
               summary,
               providerId,
@@ -1318,45 +1347,64 @@ export class GrimoireSettingTab extends PluginSettingTab {
       }
     } else if (section === 'mcp') {
       for (const providerId of providerIds) {
+        const capability = ProviderWorkspaceRegistry.getCapabilities(providerId).mcp;
         const services = this.getWorkspaceServices(providerId);
         const manager = services?.mcpServerManager;
-        if (!manager) continue;
-        try {
-          for (const server of manager.getServers()) {
-            const storage = services.mcpStorage;
-            rows.push({
-              key: `mcp:${providerId}:${server.name}`,
-              section: 'mcp',
-              name: server.name,
-              description: this.describeWorkspaceMcp(server),
-              source: providerId === 'claude'
-                ? '.claude/mcp.json'
-                : `${this.getProviderDisplayName(providerId)} MCP`,
-              providerIds: [providerId],
-              ownerProviderId: providerId,
-              readonly: !storage,
-              status: storage
-                ? (server.enabled ? 'connected' : 'disabled')
-                : 'readonly',
-              ...(storage
-                ? {
-                    deleteResource: async (): Promise<void> => {
-                      const nextServers = manager.getServers()
-                        .filter((candidate) => candidate.name !== server.name);
-                      await storage.save(nextServers);
-                      await manager.loadServers();
-                      for (const view of this.plugin.getAllViews()) {
-                        await view.getTabManager()?.broadcastToAllTabs(
-                          (runtime) => runtime.reloadMcpServers(),
-                        );
-                      }
-                    },
-                  }
-                : {}),
-            });
+        if (manager && capability.inventory === 'managed') {
+          try {
+            for (const server of manager.getServers()) {
+              const storage = services.mcpStorage;
+              rows.push({
+                key: `mcp:${providerId}:${server.name}`,
+                section: 'mcp',
+                name: server.name,
+                description: this.describeWorkspaceMcp(server),
+                source: providerId === 'claude'
+                  ? '.claude/mcp.json'
+                  : `.grimoire/mcp/${providerId}.json`,
+                providerIds: [providerId],
+                ownerProviderId: providerId,
+                readonly: !storage,
+                status: storage
+                  ? (server.enabled ? 'connected' : 'disabled')
+                  : 'readonly',
+                ...(storage
+                  ? {
+                      deleteResource: async (): Promise<void> => {
+                        const nextServers = manager.getServers()
+                          .filter((candidate) => candidate.name !== server.name);
+                        await storage.save(nextServers);
+                        await manager.loadServers();
+                        for (const view of this.plugin.getAllViews()) {
+                          await view.getTabManager()?.broadcastToAllTabs(
+                            async (runtime) => {
+                              if (runtime.providerId === providerId) {
+                                await runtime.reloadMcpServers();
+                              }
+                            },
+                          );
+                        }
+                      },
+                    }
+                  : {}),
+              });
+            }
+          } catch {
+            // Ignore a provider whose MCP config cannot currently be read.
           }
-        } catch {
-          // Ignore a provider whose MCP config cannot currently be read.
+        } else if (capability.manager === 'guidance') {
+          rows.push({
+            key: `mcp-guidance:${providerId}`,
+            section: 'mcp',
+            name: this.getProviderDisplayName(providerId),
+            description: this.getHubText('nativeMcpDescription'),
+            source: providerId === 'codex' ? 'codex mcp' : this.getHubText('nativeCli'),
+            providerIds: [providerId],
+            ownerProviderId: providerId,
+            readonly: true,
+            status: 'native',
+            openResource: () => this.openWorkspaceGuidance(providerId, 'mcp'),
+          });
         }
       }
     } else if (section === 'environment') {
@@ -1409,16 +1457,21 @@ export class GrimoireSettingTab extends PluginSettingTab {
       || !entry.isEditable
       || entry.scope !== 'vault';
     const source = section === 'skills'
-      ? (providerId === 'claude'
+      ? (entry.storagePath
+          ?? (providerId === 'claude'
           ? '.claude/skills/'
           : providerId === 'codex'
             ? '.codex/skills/'
-            : '.agents/skills/')
-      : (providerId === 'claude'
+            : '.agents/skills/'))
+      : (entry.storagePath
+        ?? (providerId === 'claude'
           ? '.claude/commands/'
-          : `${this.getProviderDisplayName(providerId)} runtime`);
+          : `${this.getProviderDisplayName(providerId)} runtime`));
+    const key = section === 'skills'
+      ? `skill:${source.replace(/\/+$/, '').toLowerCase()}:${entry.name.toLowerCase()}`
+      : `${section}:${providerId}:${entry.id}`;
     return {
-      key: `${section}:${providerId}:${entry.id}`,
+      key,
       section,
       name: entry.name,
       description: entry.description ?? '',
@@ -1439,18 +1492,24 @@ export class GrimoireSettingTab extends PluginSettingTab {
     storage: WorkspaceAgentStorage | undefined,
     definition: WorkspaceAgentDefinition | undefined,
   ): WorkspaceResourceRow {
-    const readonly = summary.source !== 'vault' || !storage;
+    const readonly = summary.source !== 'vault' || !storage || !definition;
     const source = providerId === 'claude'
       ? '.claude/agents/'
       : providerId === 'codex'
         ? '.codex/agents/'
         : providerId === 'opencode'
           ? '.opencode/agent/'
-          : '.agents/agents/';
-    const deleteTarget = definition ?? {
-      name: summary.name,
-      description: summary.description ?? '',
-    };
+          : providerId === 'grok'
+            ? '.grok/agent/'
+            : providerId === 'mimocode'
+              ? '.mimocode/agent/'
+              : providerId === 'kimicode'
+                ? '.kimicode/agent/'
+                : providerId === 'qwen'
+                  ? '.qwen/agents/'
+                  : providerId === 'gemini'
+                    ? '.gemini/agents/'
+                    : `${this.getProviderDisplayName(providerId)} agents`;
     return {
       key: `agent:${providerId}:${summary.id}`,
       section: 'agents',
@@ -1461,10 +1520,10 @@ export class GrimoireSettingTab extends PluginSettingTab {
       ownerProviderId: providerId,
       readonly,
       status: readonly ? 'readonly' : 'available',
-      ...(!readonly && storage
+      ...(!readonly && storage && definition
         ? {
             deleteResource: async (): Promise<void> => {
-              await storage.delete(deleteTarget);
+              await storage.delete(definition);
               await ProviderWorkspaceRegistry.refreshAgentMentions(providerId);
             },
           }
@@ -1500,7 +1559,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
     const merged = new Map<string, WorkspaceResourceRow>();
     const positions = new Map(providerOrder.map((providerId, index) => [providerId, index]));
     for (const row of rows) {
-      const key = `${row.name.toLowerCase()}\0${row.source}`;
+      const key = row.key;
       const existing = merged.get(key);
       if (!existing) {
         merged.set(key, { ...row, providerIds: [...row.providerIds] });
@@ -1631,6 +1690,18 @@ export class GrimoireSettingTab extends PluginSettingTab {
         )).join(', '),
       });
       const actions = rowElement.createDiv({ cls: 'grimoire-settings-resource-actions' });
+      if (row.openResource) {
+        const openButton = actions.createEl('button', {
+          attr: {
+            'aria-label': this.getHubText('nativeCli'),
+            title: this.getHubText('nativeCli'),
+            type: 'button',
+          },
+          cls: 'grimoire-settings-resource-edit',
+        });
+        setIcon(openButton, 'terminal');
+        openButton.addEventListener('click', row.openResource);
+      }
       if (row.readonly) {
         actions.createSpan({
           cls: 'grimoire-settings-resource-readonly',
@@ -1674,6 +1745,17 @@ export class GrimoireSettingTab extends PluginSettingTab {
       cls: 'grimoire-settings-about-copy',
       text: this.getHubText('aboutCopy'),
     });
+    const projectLinks = new Setting(about).setName('GitHub');
+    projectLinks.descEl.createEl('a', {
+      attr: { href: GRIMOIRE_REPOSITORY_URL },
+      text: 'GitHub.com/sandsaber/Grimoire',
+    });
+    projectLinks.descEl.appendText(' · ');
+    projectLinks.descEl.createEl('a', {
+      attr: { href: GRIMOIRE_RELEASES_URL },
+      text: this.getHubText('releases'),
+    });
+    projectLinks.settingEl.addClass('grimoire-settings-about-links');
     new Setting(about)
       .setName(t('settings.version.name'))
       .setDesc(formatGrimoireVersion(this.plugin.manifest))

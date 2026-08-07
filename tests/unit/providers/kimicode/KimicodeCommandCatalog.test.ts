@@ -68,7 +68,7 @@ describe('KimicodeCommandCatalog', () => {
       providerId: 'kimicode',
       triggerChars: ['/'],
       builtInPrefix: '/',
-      skillPrefix: '/',
+      skillPrefix: '/skill:',
       commandPrefix: '/',
     });
   });

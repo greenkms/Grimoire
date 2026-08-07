@@ -117,10 +117,25 @@ describe('settings base CSS', () => {
     expect(metaRule).toContain('color: var(--text-muted)');
   });
 
-  it('removes the outer outline from provider settings panels', () => {
+  it('styles the provider selection hint as compact muted UI copy', () => {
+    const css = readSettingsCss();
+    const gridRule = getRule(css, '.grimoire-settings-provider-grid');
+    const hintRule = getRule(css, '.grimoire-settings-provider-hint');
+
+    expect(gridRule).toContain('margin: 2px 0 8px');
+    expect(hintRule).toContain('margin: 0 0 2px');
+    expect(hintRule).toContain('color: var(--text-faint)');
+    expect(hintRule).toContain('font-size: var(--font-ui-small)');
+  });
+
+  it('keeps provider settings panel wrappers transparent while preserving setting cards', () => {
     const providerDetailsRule = getRule(
       readSettingsCss(),
       '.grimoire-settings-provider-details',
+    );
+    const settingRule = getRule(
+      readSettingsCss(),
+      '.grimoire-settings-provider-details > .setting-item,\n.grimoire-settings-provider-details details .setting-item:not(.setting-item-heading)',
     );
 
     expect(providerDetailsRule).toContain('box-sizing: border-box');
@@ -128,9 +143,31 @@ describe('settings base CSS', () => {
     expect(providerDetailsRule).toContain('max-width: none');
     expect(providerDetailsRule).toContain('padding: 12px 0 18px');
     expect(providerDetailsRule).toContain('border: 0');
+    expect(providerDetailsRule).toContain('background: transparent');
     expect(providerDetailsRule).not.toContain(
       'border: 1px solid var(--background-modifier-border)',
     );
+    expect(providerDetailsRule).not.toContain('background-secondary');
+    expect(settingRule).toContain('border-radius: 8px');
+  });
+
+  it('keeps workspace modal content wrappers transparent while preserving their setting cards', () => {
+    const workspaceContentRule = getRule(
+      readSettingsCss(),
+      '.grimoire-settings-workspace-modal-content',
+    );
+    const settingRule = getRule(
+      readSettingsCss(),
+      '.grimoire-settings-workspace-modal-content > .setting-item:not(.setting-item-heading),\n.grimoire-settings-workspace-modal-content > .grimoire-workspace-provider-section > .setting-item:not(.setting-item-heading),\n.grimoire-settings-workspace-modal-content > .grimoire-workspace-provider-section details .setting-item:not(.setting-item-heading),\n.grimoire-settings-workspace-modal-content details .setting-item:not(.setting-item-heading)',
+    );
+
+    expect(workspaceContentRule).toContain('min-height: 180px');
+    expect(workspaceContentRule).toContain('padding: 14px 16px 16px');
+    expect(workspaceContentRule).toContain('border: 0');
+    expect(workspaceContentRule).toContain('background: transparent');
+    expect(workspaceContentRule).not.toContain('background-secondary');
+    expect(settingRule).toContain('border-radius: 8px');
+    expect(settingRule).toContain('background: var(--background-primary)');
   });
 
   it('stretches provider setting rows to the full panel width', () => {

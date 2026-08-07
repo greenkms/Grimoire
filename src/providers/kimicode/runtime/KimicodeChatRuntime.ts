@@ -8,6 +8,7 @@ import {
 import { getRuntimeEnvironmentText } from '../../../core/providers/providerEnvironment';
 import { ProviderRegistry } from '../../../core/providers/ProviderRegistry';
 import { ProviderSettingsCoordinator } from '../../../core/providers/ProviderSettingsCoordinator';
+import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
 import type {
   ProviderCapabilities,
 } from '../../../core/providers/types';
@@ -70,6 +71,7 @@ import {
   JsonRpcTransportClosedError,
   resolveWorkspacePath,
 } from '../../acp';
+import { toAcpMcpServers } from '../../acp/mcp/toAcpMcpServers';
 import { kimicodePlanUsageStore } from '../app/KimicodePlanUsageStore';
 import { KIMICODE_PROVIDER_CAPABILITIES } from '../capabilities';
 import { updateKimicodeDiscoveryState } from '../discoveryState';
@@ -244,7 +246,10 @@ export class KimicodeChatRuntime implements ChatRuntime {
     }
   }
 
-  async reloadMcpServers(): Promise<void> {}
+  async reloadMcpServers(): Promise<void> {
+    await ProviderWorkspaceRegistry.getMcpServerManager('kimicode')?.loadServers();
+    await this.shutdownProcess();
+  }
 
   async warmModelMetadata(model: string): Promise<boolean> {
     const selectedRawModelId = decodeKimicodeModelId(model);
@@ -1177,7 +1182,7 @@ export class KimicodeChatRuntime implements ChatRuntime {
       this.setSupportedCommands([]);
       const response = await this.connection.newSession({
         cwd,
-        mcpServers: [],
+        mcpServers: this.getMcpServers(),
       });
       this.sessionInvalidated = false;
       this.loadedSessionId = response.sessionId;
@@ -1206,7 +1211,7 @@ export class KimicodeChatRuntime implements ChatRuntime {
       this.setSupportedCommands([]);
       const response = await this.connection.loadSession({
         cwd,
-        mcpServers: [],
+        mcpServers: this.getMcpServers(),
         sessionId,
       });
       this.sessionInvalidated = false;
@@ -1225,6 +1230,11 @@ export class KimicodeChatRuntime implements ChatRuntime {
     } catch {
       return false;
     }
+  }
+
+  private getMcpServers() {
+    const servers = ProviderWorkspaceRegistry.getMcpServerManager('kimicode')?.getServers() ?? [];
+    return toAcpMcpServers(servers);
   }
 
   private async handleSessionNotification(

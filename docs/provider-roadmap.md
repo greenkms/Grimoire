@@ -52,7 +52,7 @@ Current integration:
 Current boundaries:
 
 - Authentication and configuration remain owned by Qwen Code. Configure it through the CLI, `~/.qwen/settings.json`, or Qwen-owned environment variables before refreshing models or starting a chat.
-- Grimoire does not yet reconcile Qwen MCP configuration, fork sessions, or expose a rewind workflow.
+- Grimoire manages an isolated Qwen project MCP list in `.grimoire/mcp/qwen.json` and injects it into ACP sessions without reconciling Qwen's native CLI configuration. Fork and rewind workflows remain unsupported.
 - Token or spend indicators depend on optional ACP usage updates. Qwen account quotas are not inferred when the CLI does not report them.
 
 ## Other Candidates

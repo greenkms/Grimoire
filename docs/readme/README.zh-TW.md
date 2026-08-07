@@ -53,8 +53,8 @@ Grimoire 將 agentic CLI 助手帶入 Obsidian。Claude Code、Codex、Antigravi
 | Reasoning effort controls | 是 | 是 | 是 | 是 | 是 | 是 | 是 | 是 | 是 |
 | Rewind | 是 | 否 | 否 | 是 | 否 | 否 | 否 | 否 | 否 |
 | Fork | 是 | 是 | 否 | 是 | 否 | 否 | 否 | 否 | 否 |
-| Provider slash commands | 是 | 否 | 是 | 是 | 是 | 是 | 否 | 否 | 是 |
-| Grimoire-managed MCP UI | 是 | 否 | 否 | 否 | 否 | 否 | 否 | 否 | 否 |
+| Provider slash commands | 是 | 否 | 是 | 是 | 是 | 是 | 否 | 是 | 是 |
+| Grimoire-managed MCP UI | 是 | 否 | 是 | 是 | 是 | 是 | 否 | 是 | 是 |
 
 ## 安裝
 
@@ -210,7 +210,7 @@ qwen
 
 Reasoning effort 有 Low、Medium、High、XHigh、Max，預設 High。每個 normal turn 前，Grimoire 會執行真正的 Qwen `/effort <tier>` 並按 session 快取；effective tier 仍取決於所選 model/provider。Structured `AskUserQuestion` 透過 ACP permission metadata 到達，並在 shared inline question UI 中支援 single-select、multi-select 和 freeform answers。
 
-Credentials 和 config 由 Qwen 管理：使用 CLI、`~/.qwen/settings.json` 或 Qwen-owned `.env`/environment。Grimoire 可以傳遞 provider environment variables，但不管理 Qwen credentials 或 MCP。只有 Qwen 傳送 ACP token/cost metadata 時才顯示 usage；Qwen 目前不支援 Grimoire fork 或 rewind。
+Credentials 和 native config 仍由 Qwen 在 `~/.qwen/settings.json` 中管理。Grimoire 管理 `.grimoire/mcp/qwen.json` 中隔離的 project MCP list，並在不重寫 Qwen native config 的情況下傳入 ACP sessions。只有 Qwen 傳送 ACP token/cost metadata 時才顯示 usage；Qwen 目前不支援 Grimoire fork 或 rewind。
 
 ### OpenCode
 

@@ -3,6 +3,7 @@ import * as path from 'node:path';
 
 import { applyOrchestratorModeInstructions } from '../../../core/prompt/mainAgent';
 import { ProviderRegistry } from '../../../core/providers/ProviderRegistry';
+import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
 import type { ProviderCapabilities } from '../../../core/providers/types';
 import type { ChatRuntime } from '../../../core/runtime/ChatRuntime';
 import type {
@@ -60,6 +61,7 @@ import {
   extractAcpSessionModeState,
   resolveWorkspacePath,
 } from '../../acp';
+import { toAcpMcpServers } from '../../acp/mcp/toAcpMcpServers';
 import { qwenPlanUsageStore } from '../app/QwenPlanUsageStore';
 import { QWEN_PROVIDER_CAPABILITIES } from '../capabilities';
 import {
@@ -207,7 +209,14 @@ export class QwenChatRuntime implements ChatRuntime {
     this.sessionId = nextSessionId;
   }
 
-  async reloadMcpServers(): Promise<void> {}
+  async reloadMcpServers(): Promise<void> {
+    await ProviderWorkspaceRegistry.getMcpServerManager('qwen')?.loadServers();
+    await this.shutdownProcess();
+  }
+
+  async reloadWorkspaceResources(): Promise<void> {
+    await this.shutdownProcess();
+  }
 
   async ensureReady(options?: ChatRuntimeEnsureReadyOptions): Promise<boolean> {
     const settings = getQwenProviderSettings(this.plugin.settings);
@@ -550,7 +559,7 @@ export class QwenChatRuntime implements ChatRuntime {
     try {
       const response = await this.connection.newSession({
         cwd,
-        mcpServers: [],
+        mcpServers: this.getMcpServers(),
       });
       this.loadedSessionId = response.sessionId;
       this.sessionId = response.sessionId;
@@ -575,7 +584,7 @@ export class QwenChatRuntime implements ChatRuntime {
     try {
       const response = await this.connection.loadSession({
         cwd,
-        mcpServers: [],
+        mcpServers: this.getMcpServers(),
         sessionId,
       });
       this.sessionInvalidated = false;
@@ -593,6 +602,11 @@ export class QwenChatRuntime implements ChatRuntime {
     } catch {
       return false;
     }
+  }
+
+  private getMcpServers() {
+    const servers = ProviderWorkspaceRegistry.getMcpServerManager('qwen')?.getServers() ?? [];
+    return toAcpMcpServers(servers);
   }
 
   private async handleSessionNotification(notification: AcpSessionNotification): Promise<void> {

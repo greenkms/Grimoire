@@ -1,3 +1,4 @@
+import { McpServerManager } from '../../../core/mcp/McpServerManager';
 import type { ProviderCommandCatalog } from '../../../core/providers/commands/ProviderCommandCatalog';
 import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
 import type {
@@ -8,6 +9,7 @@ import type {
 } from '../../../core/providers/types';
 import type { VaultFileAdapter } from '../../../core/storage/VaultFileAdapter';
 import type GrimoirePlugin from '../../../main';
+import { AcpMcpStorage } from '../../acp/mcp/AcpMcpStorage';
 import { GrokAgentMentionProvider } from '../agents/GrokAgentMentionProvider';
 import { GrokCommandCatalog } from '../commands/GrokCommandCatalog';
 import { GrokChatRuntime } from '../runtime/GrokChatRuntime';
@@ -23,6 +25,8 @@ export interface GrokWorkspaceServices extends ProviderWorkspaceServices {
   agentMentionProvider: GrokAgentMentionProvider;
   commandCatalog: ProviderCommandCatalog;
   modelCatalog: ProviderModelCatalog;
+  mcpStorage: AcpMcpStorage;
+  mcpServerManager: McpServerManager;
 }
 
 const grokTabWarmupPolicy: ProviderTabWarmupPolicy = {
@@ -124,6 +128,9 @@ export async function createGrokWorkspaceServices(
   plugin: GrimoirePlugin,
   vaultAdapter: VaultFileAdapter,
 ): Promise<GrokWorkspaceServices> {
+  const mcpStorage = new AcpMcpStorage(vaultAdapter, 'grok');
+  const mcpServerManager = new McpServerManager(mcpStorage);
+  await mcpServerManager.loadServers();
   const agentStorage = new GrokAgentStorage(vaultAdapter);
   const agentMentionProvider = new GrokAgentMentionProvider(agentStorage);
   await agentMentionProvider.loadAgents();
@@ -131,9 +138,11 @@ export async function createGrokWorkspaceServices(
   return {
     agentStorage,
     agentMentionProvider,
-    commandCatalog: new GrokCommandCatalog(),
+    commandCatalog: new GrokCommandCatalog(vaultAdapter),
     cliResolver: new GrokCliResolver(),
     modelCatalog: createGrokModelCatalog(plugin),
+    mcpStorage,
+    mcpServerManager,
     usageProvider: grokPlanUsageStore,
     runtimeCommandLoader: new GrokRuntimeCommandLoader(),
     settingsTabRenderer: grokSettingsTabRenderer,
@@ -145,6 +154,13 @@ export async function createGrokWorkspaceServices(
 }
 
 export const grokWorkspaceRegistration: ProviderWorkspaceRegistration<GrokWorkspaceServices> = {
+  workspaceCapabilities: {
+    skills: { inventory: 'managed', manager: 'managed' },
+    commands: { inventory: 'readonly', manager: 'managed', runtimeCommandDiscovery: 'active-session-only' },
+    agents: { inventory: 'managed', manager: 'managed' },
+    mcp: { inventory: 'managed', manager: 'managed' },
+    environment: { inventory: 'managed', manager: 'managed' },
+  },
   initialize: async ({ plugin, vaultAdapter }) => createGrokWorkspaceServices(plugin, vaultAdapter),
 };
 

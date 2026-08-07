@@ -53,8 +53,8 @@ Grimoire сделан для тех, кто уже работает в Obsidian 
 | Reasoning effort controls | Да | Да | Да | Да | Да | Да | Да | Да | Да |
 | Rewind | Да | Нет | Нет | Да | Нет | Нет | Нет | Нет | Нет |
 | Fork | Да | Да | Нет | Да | Нет | Нет | Нет | Нет | Нет |
-| Provider slash commands | Да | Нет | Да | Да | Да | Да | Нет | Нет | Да |
-| Grimoire-managed MCP UI | Да | Нет | Нет | Нет | Нет | Нет | Нет | Нет | Нет |
+| Provider slash commands | Да | Нет | Да | Да | Да | Да | Нет | Да | Да |
+| Grimoire-managed MCP UI | Да | Нет | Да | Да | Да | Да | Нет | Да | Да |
 
 ## Установка
 
@@ -214,7 +214,7 @@ qwen
 
 Доступны reasoning effort Low, Medium, High, XHigh и Max; по умолчанию High. Перед normal turn Grimoire посылает реальную команду Qwen `/effort <tier>` и кэширует применённый tier в session; effective tier зависит от выбранной model/provider. Structured `AskUserQuestion` приходит через ACP permission metadata и открывается в shared inline question UI с single-select, multi-select и freeform answers.
 
-Credentials и config принадлежат Qwen: используйте CLI, `~/.qwen/settings.json` или Qwen-owned `.env`/environment. Grimoire может передать provider environment variables, но не управляет Qwen credentials или MCP. Usage появляется только если Qwen отдаёт ACP token/cost metadata. Qwen пока не поддерживает Grimoire fork и rewind.
+Credentials и нативный config принадлежат Qwen: используйте CLI, `~/.qwen/settings.json` или Qwen-owned `.env`/environment. Grimoire управляет отдельным project MCP-списком в `.grimoire/mcp/qwen.json` и передаёт его в ACP sessions, не перезаписывая нативный config Qwen. Usage появляется только если Qwen отдаёт ACP token/cost metadata. Qwen пока не поддерживает Grimoire fork и rewind.
 
 ### OpenCode
 

@@ -25,6 +25,8 @@ export interface ProviderCommandEntry {
   isDeletable: boolean;
   displayPrefix: string;
   insertPrefix: string;
+  /** Vault-relative directory or file containing this entry. */
+  storagePath?: string;
   /**
    * Opaque provider-owned persistence token used to preserve storage location
    * across edits, renames, and deletes in shared settings UIs.

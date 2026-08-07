@@ -1,3 +1,5 @@
+import { McpServerManager } from '../../../core/mcp/McpServerManager';
+import type { ProviderCommandCatalog } from '../../../core/providers/commands/ProviderCommandCatalog';
 import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
 import type {
   ProviderCliResolver,
@@ -6,16 +8,24 @@ import type {
   ProviderWorkspaceRegistration,
   ProviderWorkspaceServices,
 } from '../../../core/providers/types';
+import type { VaultFileAdapter } from '../../../core/storage/VaultFileAdapter';
 import type GrimoirePlugin from '../../../main';
+import { AcpMcpStorage } from '../../acp/mcp/AcpMcpStorage';
+import { GeminiCommandCatalog } from '../commands/GeminiCommandCatalog';
 import { GeminiChatRuntime } from '../runtime/GeminiChatRuntime';
 import { GeminiCliResolver } from '../runtime/GeminiCliResolver';
 import { getGeminiProviderSettings } from '../settings';
+import { GeminiAgentStorage } from '../storage/GeminiAgentStorage';
 import { geminiSettingsTabRenderer } from '../ui/GeminiSettingsTab';
 import { geminiPlanUsageStore } from './GeminiPlanUsageStore';
 
 export interface GeminiWorkspaceServices extends ProviderWorkspaceServices {
+  agentStorage: GeminiAgentStorage;
+  commandCatalog: ProviderCommandCatalog;
   cliResolver: ProviderCliResolver;
   modelCatalog: ProviderModelCatalog;
+  mcpStorage: AcpMcpStorage;
+  mcpServerManager: McpServerManager;
 }
 
 function createGeminiCliResolver(): ProviderCliResolver {
@@ -47,10 +57,21 @@ function createGeminiModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog 
   };
 }
 
-export async function createGeminiWorkspaceServices(plugin: GrimoirePlugin): Promise<GeminiWorkspaceServices> {
+export async function createGeminiWorkspaceServices(
+  plugin: GrimoirePlugin,
+  vaultAdapter: VaultFileAdapter,
+): Promise<GeminiWorkspaceServices> {
+  const mcpStorage = new AcpMcpStorage(vaultAdapter, 'gemini');
+  const mcpServerManager = new McpServerManager(mcpStorage);
+  await mcpServerManager.loadServers();
+  const agentStorage = new GeminiAgentStorage(vaultAdapter);
   return {
+    agentStorage,
+    commandCatalog: new GeminiCommandCatalog(vaultAdapter),
     cliResolver: createGeminiCliResolver(),
     modelCatalog: createGeminiModelCatalog(plugin),
+    mcpStorage,
+    mcpServerManager,
     usageProvider: geminiPlanUsageStore,
     settingsTabRenderer: geminiSettingsTabRenderer,
     tabWarmupPolicy: geminiTabWarmupPolicy,
@@ -58,7 +79,14 @@ export async function createGeminiWorkspaceServices(plugin: GrimoirePlugin): Pro
 }
 
 export const geminiWorkspaceRegistration: ProviderWorkspaceRegistration<GeminiWorkspaceServices> = {
-  initialize: async ({ plugin }) => createGeminiWorkspaceServices(plugin),
+  workspaceCapabilities: {
+    skills: { inventory: 'managed', manager: 'managed' },
+    commands: { inventory: 'managed', manager: 'managed', runtimeCommandDiscovery: 'none' },
+    agents: { inventory: 'managed', manager: 'managed' },
+    mcp: { inventory: 'managed', manager: 'managed' },
+    environment: { inventory: 'managed', manager: 'managed' },
+  },
+  initialize: async ({ plugin, vaultAdapter }) => createGeminiWorkspaceServices(plugin, vaultAdapter),
 };
 
 export function maybeGetGeminiWorkspaceServices(): GeminiWorkspaceServices | null {

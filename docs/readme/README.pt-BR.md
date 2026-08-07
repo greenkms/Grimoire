@@ -53,8 +53,8 @@ Ele foi feito para quem já trabalha no Obsidian e quer uma ajuda de IA que se c
 | Controles de esforço de raciocínio | Sim | Sim | Sim | Sim | Sim | Sim | Sim | Sim | Sim |
 | Retroceder | Sim | Não | Não | Sim | Não | Não | Não | Não | Não |
 | Bifurcar | Sim | Sim | Não | Sim | Não | Não | Não | Não | Não |
-| Comandos de barra do provedor | Sim | Não | Sim | Sim | Sim | Sim | Não | Não | Sim |
-| UI de MCP gerenciada pelo Grimoire | Sim | Não | Não | Não | Não | Não | Não | Não | Não |
+| Comandos de barra do provedor | Sim | Não | Sim | Sim | Sim | Sim | Não | Sim | Sim |
+| UI de MCP gerenciada pelo Grimoire | Sim | Não | Sim | Sim | Sim | Sim | Não | Sim | Sim |
 
 ## Instalação
 
@@ -215,7 +215,7 @@ Se o Qwen não iniciar ou nenhum modelo aparecer, execute `/doctor` dentro do Qw
 
 Escolha esforço de raciocínio Low, Medium, High, XHigh ou Max (High é o padrão). Antes de um turno normal, o Grimoire aplica o comando real `/effort <tier>` do Qwen e o armazena em cache para a sessão; o nível efetivo ainda depende do modelo selecionado e do provedor. As solicitações estruturadas `AskUserQuestion` do Qwen chegam por metadados de permissão ACP e usam a UI de perguntas embutida compartilhada do Grimoire, incluindo respostas de seleção única, seleção múltipla e texto livre.
 
-O Qwen é responsável pelas próprias credenciais e configurações em `~/.qwen/settings.json`; prefira a CLI ou os arquivos `.env` e as variáveis de ambiente do Qwen. O Grimoire pode repassar variáveis de ambiente do provedor, mas não gerencia credenciais nem configuração MCP do Qwen. O uso aparece somente quando o Qwen emite metadados ACP de token ou custo. Atualmente, o Qwen não oferece controles de bifurcar nem retroceder do Grimoire.
+O Qwen continua responsável pelas próprias credenciais e pela configuração nativa em `~/.qwen/settings.json`. O Grimoire gerencia uma lista MCP de projeto isolada em `.grimoire/mcp/qwen.json` e a injeta nas sessões ACP sem reescrever a configuração nativa do Qwen. O uso aparece somente quando o Qwen emite metadados ACP de token ou custo. Atualmente, o Qwen não oferece controles de bifurcar nem retroceder do Grimoire.
 
 ### OpenCode
 

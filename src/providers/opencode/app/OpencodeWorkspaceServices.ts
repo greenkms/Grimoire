@@ -1,3 +1,4 @@
+import { McpServerManager } from '../../../core/mcp/McpServerManager';
 import type { ProviderCommandCatalog } from '../../../core/providers/commands/ProviderCommandCatalog';
 import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
 import type {
@@ -8,6 +9,7 @@ import type {
 } from '../../../core/providers/types';
 import type { VaultFileAdapter } from '../../../core/storage/VaultFileAdapter';
 import type GrimoirePlugin from '../../../main';
+import { AcpMcpStorage } from '../../acp/mcp/AcpMcpStorage';
 import { OpencodeAgentMentionProvider } from '../agents/OpencodeAgentMentionProvider';
 import { OpencodeCommandCatalog } from '../commands/OpencodeCommandCatalog';
 import { OpencodeChatRuntime } from '../runtime/OpencodeChatRuntime';
@@ -23,6 +25,8 @@ export interface OpencodeWorkspaceServices extends ProviderWorkspaceServices {
   agentMentionProvider: OpencodeAgentMentionProvider;
   commandCatalog: ProviderCommandCatalog;
   modelCatalog: ProviderModelCatalog;
+  mcpStorage: AcpMcpStorage;
+  mcpServerManager: McpServerManager;
 }
 
 const OPENCODE_METADATA_WARMUP_DB = ':memory:';
@@ -105,6 +109,9 @@ export async function createOpencodeWorkspaceServices(
   plugin: GrimoirePlugin,
   vaultAdapter: VaultFileAdapter,
 ): Promise<OpencodeWorkspaceServices> {
+  const mcpStorage = new AcpMcpStorage(vaultAdapter, 'opencode');
+  const mcpServerManager = new McpServerManager(mcpStorage);
+  await mcpServerManager.loadServers();
   const agentStorage = new OpencodeAgentStorage(vaultAdapter);
   const agentMentionProvider = new OpencodeAgentMentionProvider(agentStorage);
   await agentMentionProvider.loadAgents();
@@ -112,9 +119,11 @@ export async function createOpencodeWorkspaceServices(
   return {
     agentStorage,
     agentMentionProvider,
-    commandCatalog: new OpencodeCommandCatalog(),
+    commandCatalog: new OpencodeCommandCatalog(vaultAdapter),
     cliResolver: new OpencodeCliResolver(),
     modelCatalog: createOpencodeModelCatalog(plugin),
+    mcpStorage,
+    mcpServerManager,
     usageProvider: opencodePlanUsageStore,
     runtimeCommandLoader: new OpencodeRuntimeCommandLoader(),
     settingsTabRenderer: opencodeSettingsTabRenderer,
@@ -126,6 +135,13 @@ export async function createOpencodeWorkspaceServices(
 }
 
 export const opencodeWorkspaceRegistration: ProviderWorkspaceRegistration<OpencodeWorkspaceServices> = {
+  workspaceCapabilities: {
+    skills: { inventory: 'managed', manager: 'managed' },
+    commands: { inventory: 'readonly', manager: 'managed', runtimeCommandDiscovery: 'ephemeral' },
+    agents: { inventory: 'managed', manager: 'managed' },
+    mcp: { inventory: 'managed', manager: 'managed' },
+    environment: { inventory: 'managed', manager: 'managed' },
+  },
   initialize: async ({ plugin, vaultAdapter }) => createOpencodeWorkspaceServices(plugin, vaultAdapter),
 };
 

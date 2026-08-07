@@ -222,11 +222,13 @@ export const claudeSettingsTabRenderer: ProviderSettingsTabRenderer = {
       summary: t('settings.providerTabs.claude.advancedSummary'),
     });
 
+    const slashCommandsSection = context.createWorkspaceSection(advancedContainer, ['skills', 'commands']);
+
     // --- Slash Commands ---
 
-    new Setting(advancedContainer).setName(t('settings.slashCommands.name')).setHeading();
+    new Setting(slashCommandsSection).setName(t('settings.slashCommands.name')).setHeading();
 
-    const slashCommandsDesc = advancedContainer.createDiv({ cls: 'grimoire-sp-settings-desc' });
+    const slashCommandsDesc = slashCommandsSection.createDiv({ cls: 'grimoire-sp-settings-desc' });
     const descP = slashCommandsDesc.createEl('p', { cls: 'setting-item-description' });
     descP.appendText(t('settings.slashCommands.desc') + ' ');
     descP.createEl('a', {
@@ -234,14 +236,14 @@ export const claudeSettingsTabRenderer: ProviderSettingsTabRenderer = {
       href: 'https://code.claude.com/docs/en/skills',
     });
 
-    const slashCommandsContainer = advancedContainer.createDiv({ cls: 'grimoire-slash-commands-container' });
+    const slashCommandsContainer = slashCommandsSection.createDiv({ cls: 'grimoire-slash-commands-container' });
     new SlashCommandSettings(
       slashCommandsContainer,
       context.plugin.app,
       claudeWorkspace.commandCatalog,
     );
 
-    context.renderHiddenProviderCommandSetting(advancedContainer, 'claude', {
+    context.renderHiddenProviderCommandSetting(slashCommandsSection, 'claude', {
       name: t('settings.hiddenSlashCommands.name'),
       desc: t('settings.hiddenSlashCommands.desc'),
       placeholder: t('settings.hiddenSlashCommands.placeholder'),
@@ -249,15 +251,16 @@ export const claudeSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
     // --- Subagents ---
 
-    new Setting(advancedContainer).setName(t('settings.subagents.name')).setHeading();
+    const agentsSection = context.createWorkspaceSection(advancedContainer, ['agents']);
+    new Setting(agentsSection).setName(t('settings.subagents.name')).setHeading();
 
-    const agentsDesc = advancedContainer.createDiv({ cls: 'grimoire-sp-settings-desc' });
+    const agentsDesc = agentsSection.createDiv({ cls: 'grimoire-sp-settings-desc' });
     agentsDesc.createEl('p', {
       text: t('settings.subagents.desc'),
       cls: 'setting-item-description',
     });
 
-    const agentsContainer = advancedContainer.createDiv({ cls: 'grimoire-agents-container' });
+    const agentsContainer = agentsSection.createDiv({ cls: 'grimoire-agents-container' });
     new AgentSettings(agentsContainer, {
       app: context.plugin.app,
       agentManager: claudeWorkspace.agentManager,
@@ -266,15 +269,16 @@ export const claudeSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
     // --- MCP Servers ---
 
-    new Setting(advancedContainer).setName(t('settings.mcpServers.name')).setHeading();
+    const mcpSection = context.createWorkspaceSection(advancedContainer, ['mcp']);
+    new Setting(mcpSection).setName(t('settings.mcpServers.name')).setHeading();
 
-    const mcpDesc = advancedContainer.createDiv({ cls: 'grimoire-mcp-settings-desc' });
+    const mcpDesc = mcpSection.createDiv({ cls: 'grimoire-mcp-settings-desc' });
     mcpDesc.createEl('p', {
       text: t('settings.mcpServers.desc'),
       cls: 'setting-item-description',
     });
 
-    const mcpContainer = advancedContainer.createDiv({ cls: 'grimoire-mcp-container' });
+    const mcpContainer = mcpSection.createDiv({ cls: 'grimoire-mcp-container' });
     new McpSettingsManager(mcpContainer, {
       app: context.plugin.app,
       mcpStorage: claudeWorkspace.mcpStorage,
@@ -304,8 +308,9 @@ export const claudeSettingsTabRenderer: ProviderSettingsTabRenderer = {
           })
       );
 
+    const environmentSection = context.createWorkspaceSection(advancedContainer, ['environment']);
     renderEnvironmentSettingsSection({
-      container: advancedContainer,
+      container: environmentSection,
       plugin: context.plugin,
       scope: 'provider:claude',
       heading: t('settings.environment'),

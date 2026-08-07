@@ -376,4 +376,5 @@ export type TranslationKey =
   | `settings.mcp.${string}`
   | `settings.envSnippets.${string}`
   | `settings.providers.${string}`
+  | `settings.hub.${string}`
   | `settings.grok.${string}`;
