@@ -49,15 +49,16 @@ describe('QwenAgentStorage', () => {
   });
 
   it('treats a case-only rename as an in-place rewrite on case-insensitive file systems', async () => {
-    const mock = adapter({ '.qwen/agents/review.md': markdown });
-    const exactExists = mock.exists as jest.Mock;
-    (mock as { exists: jest.Mock }).exists = jest.fn(
-      async (p: string) => exactExists(p.toLowerCase()),
-    );
+    const base = adapter({ '.qwen/agents/review.md': markdown });
+    const exactExists = base.exists;
+    const mock = {
+      ...base,
+      exists: jest.fn(async (p: string) => exactExists(p.toLowerCase())),
+    } as unknown as VaultFileAdapter;
     const storage = new QwenAgentStorage(mock);
     const previous = (await storage.loadAll())[0];
     await expect(storage.save({ ...previous, name: 'Review' }, previous)).resolves.toBeUndefined();
-    expect(mock.write).toHaveBeenCalledWith('.qwen/agents/Review.md', expect.any(String));
-    expect(mock.delete).not.toHaveBeenCalled();
+    expect(base.write).toHaveBeenCalledWith('.qwen/agents/Review.md', expect.any(String));
+    expect(base.delete).not.toHaveBeenCalled();
   });
 });
