@@ -364,7 +364,7 @@ describe('isPathWithinDirectory', () => {
       if (value === '/home/test/.claude/skills/link') return '/home/test/.ssh';
       return path.resolve(value);
     };
-    const realpathSpy = jest.spyOn(fs, 'realpathSync').mockImplementation(realpathImpl as typeof fs.realpathSync);
+    const realpathSpy = jest.spyOn(fs, 'realpathSync').mockImplementation(realpathImpl);
     Object.defineProperty(fs.realpathSync, 'native', {
       configurable: true,
       value: realpathSpy,
