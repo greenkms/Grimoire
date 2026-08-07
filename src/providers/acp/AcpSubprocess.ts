@@ -114,9 +114,18 @@ export class AcpSubprocess {
 
     await new Promise<void>((resolve) => {
       const proc = this.proc!;
-      const onClose = () => {
+      let settled = false;
+      let forceExitTimer: number | null = null;
+      const settle = () => {
+        if (settled) {
+          return;
+        }
+        settled = true;
         cleanup();
         resolve();
+      };
+      const onClose = () => {
+        settle();
       };
       const killTimer = window.setTimeout(() => {
         if (isWin32() && proc.pid !== undefined) {
@@ -124,9 +133,14 @@ export class AcpSubprocess {
         } else {
           proc.kill('SIGKILL');
         }
+        // If the OS never reaps the child, do not hang plugin unload forever.
+        forceExitTimer = window.setTimeout(settle, KILL_TIMEOUT_MS);
       }, KILL_TIMEOUT_MS);
       const cleanup = () => {
         window.clearTimeout(killTimer);
+        if (forceExitTimer !== null) {
+          window.clearTimeout(forceExitTimer);
+        }
         proc.off('exit', onClose);
       };
 

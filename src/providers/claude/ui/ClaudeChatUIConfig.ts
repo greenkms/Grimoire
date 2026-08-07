@@ -32,7 +32,21 @@ export const claudeChatUIConfig: ProviderChatUIConfig = {
   },
 
   ownsModel(model: string, settings: Record<string, unknown>): boolean {
-    return getClaudeModelOptions(settings).some((option: ProviderUIOption) => option.value === model);
+    if (getClaudeModelOptions(settings).some((option: ProviderUIOption) => option.value === model)) {
+      return true;
+    }
+
+    // Versioned Claude API / Bedrock ids may not appear in the current option
+    // list (e.g. before discovery), but still belong to this provider.
+    const normalized = model.trim().toLowerCase();
+    if (!normalized) {
+      return false;
+    }
+    return (
+      DEFAULT_CLAUDE_MODELS.some((entry) => entry.value.toLowerCase() === normalized)
+      || normalized.startsWith('claude-')
+      || normalized.startsWith('anthropic.')
+    );
   },
 
   isAdaptiveReasoningModel(_model: string, _settings: Record<string, unknown>): boolean {

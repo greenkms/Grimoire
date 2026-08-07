@@ -2071,25 +2071,54 @@ describe('Tab - UI Initialization', () => {
       }
     });
 
-    it('should create bang-bash mode from provider UI config', () => {
+    it('should create bang-bash mode from provider UI config for the tab provider only', () => {
       const getEnhancedPathSpy = jest
         .spyOn(envUtils, 'getEnhancedPath')
         .mockReturnValue('/usr/bin');
       const plugin = createMockPlugin({
         settings: {
           ...createMockPlugin().settings,
+          model: 'claude-sonnet-4-5',
+          settingsProvider: 'claude',
           providerConfigs: {
-            claude: { enableBangBash: true },
+            claude: { enabled: true, enableBangBash: true },
             codex: { enabled: true },
           },
         },
       });
-      const options = createMockOptions({ plugin });
+      const options = createMockOptions({ plugin, defaultProviderId: 'claude' });
       const tab = createTab(options);
 
       initializeTabUI(tab, plugin);
 
+      expect(tab.providerId).toBe('claude');
       expect(tab.ui.bangBashModeManager).toBeDefined();
+
+      getEnhancedPathSpy.mockRestore();
+    });
+
+    it('should not enable bang-bash on a non-Claude tab when only Claude has it', () => {
+      const getEnhancedPathSpy = jest
+        .spyOn(envUtils, 'getEnhancedPath')
+        .mockReturnValue('/usr/bin');
+      const plugin = createMockPlugin({
+        settings: {
+          ...createMockPlugin().settings,
+          model: DEFAULT_CODEX_PRIMARY_MODEL,
+          settingsProvider: 'codex',
+          providerConfigs: {
+            claude: { enabled: true, enableBangBash: true },
+            codex: { enabled: true },
+          },
+        },
+      });
+      const options = createMockOptions({ plugin, defaultProviderId: 'codex' });
+      const tab = createTab(options);
+
+      initializeTabUI(tab, plugin);
+
+      expect(tab.providerId).toBe('codex');
+      expect(tab.ui.bangBashModeManager).toBeNull();
 
       getEnhancedPathSpy.mockRestore();
     });

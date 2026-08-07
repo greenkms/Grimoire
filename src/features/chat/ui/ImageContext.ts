@@ -14,6 +14,13 @@ const IMAGE_EXTENSIONS: Record<string, ImageMediaType> = {
   '.webp': 'image/webp',
 };
 
+const ALLOWED_IMAGE_MEDIA_TYPES = new Set<ImageMediaType>([
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+]);
+
 export interface ImageContextCallbacks {
   onImagesChanged: () => void;
 }
@@ -27,6 +34,7 @@ export class ImageContextManager {
   private dropOverlay: HTMLElement | null = null;
   private attachedImages: Map<string, ImageAttachment> = new Map();
   private enabled = true;
+  private fullImageClose: (() => void) | null = null;
 
   constructor(
     containerEl: HTMLElement,
@@ -48,6 +56,13 @@ export class ImageContextManager {
 
     this.setupDragAndDrop();
     this.setupPasteHandler();
+  }
+
+  destroy(): void {
+    this.fullImageClose?.();
+    this.fullImageClose = null;
+    this.attachedImages.clear();
+    this.imagePreviewEl.remove();
   }
 
   setEnabled(enabled: boolean): void {
@@ -203,6 +218,19 @@ export class ImageContextManager {
     return IMAGE_EXTENSIONS[ext] || null;
   }
 
+  private resolveMediaType(file: File): ImageMediaType | null {
+    const fromName = this.getMediaType(file.name);
+    if (fromName) {
+      return fromName;
+    }
+
+    if (ALLOWED_IMAGE_MEDIA_TYPES.has(file.type as ImageMediaType)) {
+      return file.type as ImageMediaType;
+    }
+
+    return null;
+  }
+
   private async addImageFromFile(file: File, source: 'paste' | 'drop'): Promise<boolean> {
     if (!this.enabled) {
       new Notice(t('chat.ui.images.unsupportedProvider'));
@@ -214,7 +242,7 @@ export class ImageContextManager {
       return false;
     }
 
-    const mediaType = this.getMediaType(file.name) || (file.type as ImageMediaType);
+    const mediaType = this.resolveMediaType(file);
     if (!mediaType) {
       this.notifyImageError(t('chat.ui.images.unsupportedType'));
       return false;
@@ -288,9 +316,14 @@ export class ImageContextManager {
     const sizeEl = infoEl.createSpan({ cls: 'grimoire-image-size' });
     sizeEl.setText(this.formatSize(image.size));
 
-    const removeEl = previewEl.createSpan({ cls: 'grimoire-image-remove' });
+    const removeEl = previewEl.createEl('button', {
+      cls: 'grimoire-image-remove',
+      attr: {
+        type: 'button',
+        'aria-label': t('chat.ui.images.remove'),
+      },
+    });
     removeEl.setText('\u00D7');
-    removeEl.setAttribute('aria-label', t('chat.ui.images.remove'));
 
     removeEl.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -305,6 +338,8 @@ export class ImageContextManager {
   }
 
   private showFullImage(image: ImageAttachment) {
+    this.fullImageClose?.();
+
     const ownerDocument = this.containerEl.ownerDocument ?? window.document;
     const overlay = ownerDocument.body.createDiv({ cls: 'grimoire-image-modal-overlay' });
     const modal = overlay.createDiv({ cls: 'grimoire-image-modal' });
@@ -316,7 +351,13 @@ export class ImageContextManager {
       },
     });
 
-    const closeBtn = modal.createDiv({ cls: 'grimoire-image-modal-close' });
+    const closeBtn = modal.createEl('button', {
+      cls: 'grimoire-image-modal-close',
+      attr: {
+        type: 'button',
+        'aria-label': t('chat.ui.images.remove'),
+      },
+    });
     closeBtn.setText('\u00D7');
 
     const handleEsc = (e: KeyboardEvent) => {
@@ -328,8 +369,12 @@ export class ImageContextManager {
     const close = () => {
       ownerDocument.removeEventListener('keydown', handleEsc);
       overlay.remove();
+      if (this.fullImageClose === close) {
+        this.fullImageClose = null;
+      }
     };
 
+    this.fullImageClose = close;
     closeBtn.addEventListener('click', close);
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) close();

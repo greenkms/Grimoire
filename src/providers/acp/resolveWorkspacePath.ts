@@ -1,5 +1,7 @@
 import * as path from 'path';
 
+import { isPathWithinDirectory } from '../../utils/path';
+
 export interface ResolveWorkspacePathOptions {
   /**
    * When true, paths outside the workspace are allowed. Used for the
@@ -16,8 +18,9 @@ const DEFAULT_CONTAINMENT_MESSAGE = 'File access is limited to the current works
 /**
  * Resolve an ACP-delegated file path against the session workspace.
  *
- * In safe/plan mode the result is contained to `cwd`: absolute paths and
- * `../` traversal that escape the workspace are rejected. In full-access mode
+ * In safe/plan mode the result is contained to `cwd`: absolute paths,
+ * `../` traversal, and symlink/junction escapes are rejected. Containment uses
+ * realpath-aware comparison (see `isPathWithinDirectory`). In full-access mode
  * (`allowOutsideWorkspace`) the resolved path is returned without containment.
  */
 export function resolveWorkspacePath(
@@ -33,8 +36,8 @@ export function resolveWorkspacePath(
     return resolvedPath;
   }
 
-  const relative = path.relative(cwd, resolvedPath);
-  if (relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative))) {
+  // Realpath-aware check so a workspace-relative symlink cannot escape.
+  if (isPathWithinDirectory(resolvedPath, cwd, cwd)) {
     return resolvedPath;
   }
 

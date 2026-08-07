@@ -3,7 +3,9 @@ import type { ProviderCapabilities } from '../../core/providers/types';
 export const QWEN_PROVIDER_CAPABILITIES: Readonly<ProviderCapabilities> = Object.freeze({
   providerId: 'qwen',
   supportsPersistentRuntime: true,
-  supportsNativeHistory: true,
+  // Resume uses ACP loadSession + Grimoire-persisted messages only; no native
+  // transcript store is hydrated yet.
+  supportsNativeHistory: false,
   supportsPlanMode: true,
   supportsRewind: false,
   supportsFork: false,

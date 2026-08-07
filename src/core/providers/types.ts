@@ -37,7 +37,8 @@ export interface ProviderCapabilities {
   planPathPrefix?: string;
 }
 
-export const DEFAULT_CHAT_PROVIDER_ID = 'claude' as const satisfies ProviderId;
+/** Product default for blank tabs and missing providerId fallbacks. */
+export const DEFAULT_CHAT_PROVIDER_ID = 'codex' as const satisfies ProviderId;
 
 export interface CreateChatRuntimeOptions {
   plugin: GrimoirePlugin;

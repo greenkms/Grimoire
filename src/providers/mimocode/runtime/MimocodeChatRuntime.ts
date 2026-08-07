@@ -64,6 +64,7 @@ import {
   type AcpUsage,
   type AcpUsageUpdate,
   type AcpWriteTextFileRequest,
+  approveAcpWriteTextFile,
   buildAcpUsageInfo,
   extractAcpSessionModelState,
   extractAcpSessionModeState,
@@ -1457,6 +1458,13 @@ export class MimocodeChatRuntime implements ChatRuntime {
     request: AcpWriteTextFileRequest,
   ): Promise<Record<string, never>> {
     const resolvedPath = this.resolveSessionPath(request.sessionId, request.path);
+    await approveAcpWriteTextFile({
+      approvalCallback: this.approvalCallback,
+      fullAccess: coercePermissionMode(this.getProviderSettings().permissionMode) === 'full_access',
+      providerLabel: 'MiMoCode',
+      requestPath: request.path,
+      resolvedPath,
+    });
     await fs.mkdir(path.dirname(resolvedPath), { recursive: true });
     await fs.writeFile(resolvedPath, request.content, 'utf-8');
     return {};

@@ -203,17 +203,19 @@ export class ProviderRegistry {
         ? this.resolveSettingsProviderId(settings)
         : DEFAULT_CHAT_PROVIDER_ID);
 
-    for (const providerId of providerIds) {
-      if (providerId === fallbackProviderId) {
-        continue;
-      }
-
-      if (this.getChatUIConfig(providerId).ownsModel(model, settings)) {
-        return providerId;
-      }
+    const owners = providerIds.filter((providerId) => (
+      this.getChatUIConfig(providerId).ownsModel(model, settings)
+    ));
+    if (owners.length === 0) {
+      return fallbackProviderId;
     }
 
-    return fallbackProviderId;
+    // When several providers claim the same id (e.g. Claude env ANTHROPIC_MODEL
+    // set to a Codex model), prefer a built-in/default owner over env-only claims.
+    const defaultOwners = owners.filter((providerId) => (
+      this.getChatUIConfig(providerId).isDefaultModel(model)
+    ));
+    return defaultOwners[0] ?? owners[0];
   }
 
   static getCustomModelIds(envVars: Record<string, string>): Set<string> {

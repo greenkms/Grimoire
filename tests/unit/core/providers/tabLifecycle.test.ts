@@ -32,13 +32,13 @@ describe('Tab Lifecycle - Model-Driven Provider Routing', () => {
       expect(getProviderForModel('o4-mini')).toBe('codex');
     });
 
-    it('defaults unknown models to claude', () => {
-      expect(getProviderForModel('custom-model')).toBe('claude');
-      expect(getProviderForModel('')).toBe('claude');
+    it('defaults unknown models to the product default provider', () => {
+      expect(getProviderForModel('custom-model')).toBe('codex');
+      expect(getProviderForModel('')).toBe('codex');
     });
 
-    it('does not route "obsidian" to codex (no digit after o)', () => {
-      expect(getProviderForModel('obsidian')).toBe('claude');
+    it('does not route "obsidian" to a Claude id and falls back to product default', () => {
+      expect(getProviderForModel('obsidian')).toBe('codex');
     });
   });
 });

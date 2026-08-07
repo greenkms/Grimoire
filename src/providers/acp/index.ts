@@ -1,3 +1,4 @@
+export * from './acpApprovals';
 export * from './AcpClientConnection';
 export * from './AcpJsonRpcTransport';
 export * from './AcpSessionConfig';

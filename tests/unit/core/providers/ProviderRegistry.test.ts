@@ -28,12 +28,12 @@ describe('ProviderRegistry', () => {
       plugin: {} as any,
     });
 
-    expect(runtime.providerId).toBe('claude');
+    expect(runtime.providerId).toBe('codex');
   });
 
   it('returns capabilities for the default provider', () => {
     const caps = ProviderRegistry.getCapabilities();
-    expect(caps.providerId).toBe('claude');
+    expect(caps.providerId).toBe('codex');
     expect(caps).toHaveProperty('supportsPlanMode');
     expect(caps).toHaveProperty('supportsFork');
   });
