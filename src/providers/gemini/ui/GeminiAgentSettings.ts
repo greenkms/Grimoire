@@ -31,7 +31,7 @@ class GeminiAgentModal extends Modal {
       .setDesc(t('settings.subagents.modal.nameDesc'))
       .addText((text) => {
         nameInput = text.inputEl;
-        text.setValue(this.existing?.name ?? '').setPlaceholder('security-auditor');
+        text.setValue(this.existing?.name ?? '').setPlaceholder('Security-auditor');
       });
     new Setting(this.contentEl)
       .setName(t('settings.subagents.modal.description'))
