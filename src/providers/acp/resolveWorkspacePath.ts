@@ -2,8 +2,6 @@ import * as fs from 'node:fs';
 
 import * as path from 'path';
 
-import { isPathWithinDirectory } from '../../utils/path';
-
 export interface ResolveWorkspacePathOptions {
   /**
    * When true, paths outside the workspace are allowed. Used for the
@@ -21,10 +19,9 @@ const DEFAULT_CONTAINMENT_MESSAGE = 'File access is limited to the current works
  * Resolve an ACP-delegated file path against the session workspace.
  *
  * In safe/plan mode the result is contained to `cwd`: absolute paths,
- * `../` traversal, and symlink/junction escapes are rejected. When both the
- * workspace and candidate exist, containment uses `fs.realpathSync` so a
- * workspace-relative symlink cannot escape. Non-existent paths fall back to
- * the shared realpath-aware directory check. In full-access mode
+ * `../` traversal, and symlink/junction escapes are rejected. Containment
+ * resolves each path segment (following directory symlinks) so a
+ * workspace-relative link cannot escape. In full-access mode
  * (`allowOutsideWorkspace`) the resolved path is returned without containment.
  */
 export function resolveWorkspacePath(
@@ -40,27 +37,82 @@ export function resolveWorkspacePath(
     return resolvedPath;
   }
 
-  const message = options.containmentMessage ?? DEFAULT_CONTAINMENT_MESSAGE;
-
-  // Prefer direct realpath when both sides exist (covers directory symlinks on
-  // Linux/macOS without depending on walk-up heuristics for missing suffixes).
-  try {
-    const realCwd = fs.realpathSync(cwd);
-    const realCandidate = fs.realpathSync(resolvedPath);
-    const relative = path.relative(realCwd, realCandidate);
-    if (relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative))) {
-      return resolvedPath;
-    }
-    throw new Error(message);
-  } catch (error) {
-    if (error instanceof Error && error.message === message) {
-      throw error;
-    }
-  }
-
-  if (isPathWithinDirectory(resolvedPath, cwd, cwd)) {
+  const realCwd = resolvePathFollowingSymlinks(cwd);
+  const realCandidate = resolvePathFollowingSymlinks(resolvedPath);
+  if (isContainedPath(realCwd, realCandidate)) {
     return resolvedPath;
   }
 
-  throw new Error(message);
+  throw new Error(options.containmentMessage ?? DEFAULT_CONTAINMENT_MESSAGE);
+}
+
+function isContainedPath(root: string, candidate: string): boolean {
+  const relative = path.relative(root, candidate);
+  if (relative === '') {
+    return true;
+  }
+  if (path.isAbsolute(relative)) {
+    return false;
+  }
+  // Reject ".." and any path that walks above root ("../x", "..\\x").
+  const segments = relative.split(/[/\\]/);
+  return !segments.includes('..');
+}
+
+/**
+ * Resolve path segments left-to-right, following directory symlinks. Missing
+ * trailing segments are appended to the last resolved ancestor so containment
+ * still sees escapes through intermediate links.
+ */
+function resolvePathFollowingSymlinks(target: string): string {
+  const absolute = path.resolve(target);
+  try {
+    return fs.realpathSync(absolute);
+  } catch {
+    // Continue with a segment walk for missing suffixes / partial paths.
+  }
+
+  const root = path.parse(absolute).root;
+  const parts = absolute
+    .slice(root.length)
+    .split(path.sep)
+    .filter(Boolean);
+
+  let current = root;
+  const unresolved: string[] = [];
+
+  for (const part of parts) {
+    if (unresolved.length > 0) {
+      unresolved.push(part);
+      continue;
+    }
+
+    const next = path.join(current, part);
+    try {
+      const stat = fs.lstatSync(next);
+      if (stat.isSymbolicLink()) {
+        const linkTarget = fs.readlinkSync(next);
+        const resolvedLink = path.isAbsolute(linkTarget)
+          ? path.resolve(linkTarget)
+          : path.resolve(path.dirname(next), linkTarget);
+        try {
+          current = fs.realpathSync(resolvedLink);
+        } catch {
+          current = resolvePathFollowingSymlinks(resolvedLink);
+        }
+        continue;
+      }
+      try {
+        current = fs.realpathSync(next);
+      } catch {
+        current = next;
+      }
+    } catch {
+      unresolved.push(part);
+    }
+  }
+
+  return unresolved.length > 0
+    ? path.join(current, ...unresolved)
+    : current;
 }
