@@ -6,6 +6,10 @@
 
 - `GrimoireView` assembles tabs, controllers, renderers, and shared UI.
 - `TabManager`, `Tab`, and `TabBar` own multi-tab lifecycle and tab-level provider coordination.
+- Prefer extracting cohesive helpers from `tabs/Tab.ts` into focused modules rather than growing it further:
+  - `tabSettings.ts` — draft/model snapshots, provider capabilities, command catalogs
+  - `tabDOM.ts` — shell DOM construction and input resize handle
+  - `tabScroll.ts` — per-tab auto-scroll helpers
 - `ChatState` is per-tab. Do not move per-tab runtime or scroll state into globals.
 - `InputController` builds provider-neutral `ChatTurnRequest` values. Providers own prompt encoding through `prepareTurn()`.
 - `StreamController` consumes provider-neutral `StreamChunk` values and updates DOM state.
