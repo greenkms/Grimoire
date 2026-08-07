@@ -10,3 +10,16 @@
 - Prefer current wire traces over guessed method or event shapes when extending ACP support.
 - Grimoire-managed ACP MCP configuration is stored per provider under `.grimoire/mcp/` and converted only at the session boundary. Keep native CLI configuration untouched.
 - ACP session configuration does not currently provide Grimoire's context-saving or per-tool filtering semantics; do not expose those controls for ACP-managed servers.
+
+## Managed session helpers
+
+Shared building blocks for OpenCode-family / Grok-style managed CLIs (incremental base — not a full abstract runtime class yet):
+
+| Module | Responsibility |
+|--------|----------------|
+| `acpSessionResume.ts` | Failed `session/load` wipe policy, persist fields, debug events |
+| `acpManagedSession.ts` | ensureReady load/create phase plan, transport-close retry gates, ensureReadyForQuery |
+| `acpLifecycle.ts` | lifecycle generation + serialized cleanup promises |
+| `acpApprovals.ts` | permission decision mapping + write-text approval |
+
+Provider runtimes should call these helpers instead of re-copying load/create/retry trees.

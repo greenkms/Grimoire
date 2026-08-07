@@ -1787,8 +1787,8 @@ function initializeInstructionAndTodo(tab: TabData, plugin: GrimoirePlugin): voi
     }
   );
 
-  // Bang bash mode (! command execution)
-  if (isBangBashEnabled(plugin.settings)) {
+  // Bang bash mode (! command execution) — only for the tab's provider.
+  if (isBangBashEnabledForProvider(plugin.settings, getTabProviderId(tab, plugin))) {
     const vaultPath = getVaultPath(plugin.app);
     if (vaultPath) {
       const enhancedPath = getEnhancedPath();
@@ -1819,10 +1819,11 @@ function initializeInstructionAndTodo(tab: TabData, plugin: GrimoirePlugin): voi
   tab.ui.statusPanel.mount(dom.statusPanelContainerEl);
 }
 
-function isBangBashEnabled(settings: Record<string, unknown>): boolean {
-  return ProviderRegistry.getEnabledProviderIds(settings).some((providerId) => (
-    ProviderRegistry.getChatUIConfig(providerId).isBangBashEnabled?.(settings) ?? false
-  ));
+function isBangBashEnabledForProvider(
+  settings: Record<string, unknown>,
+  providerId: ProviderId,
+): boolean {
+  return ProviderRegistry.getChatUIConfig(providerId).isBangBashEnabled?.(settings) ?? false;
 }
 
 function getModelCatalogProviderIds(_tab: TabData, plugin: GrimoirePlugin): ProviderId[] {
@@ -2999,6 +3000,16 @@ export function deactivateTab(tab: TabData): void {
 export async function destroyTab(tab: TabData): Promise<void> {
   tab.lifecycleState = 'closing';
 
+  // Invalidate any in-flight stream so sendMessage finally-blocks skip
+  // DOM/save work against a torn-down tab (mirrors createNew({ force })).
+  if (tab.state.isStreaming) {
+    tab.state.cancelRequested = true;
+    tab.state.bumpStreamGeneration();
+    tab.controllers.inputController?.cancelStreaming();
+  }
+  tab.controllers.streamController?.resetStreamingState();
+  tab.state.isStreaming = false;
+
   tab.controllers.selectionController?.stop();
   tab.controllers.selectionController?.clear();
   tab.controllers.browserSelectionController?.stop();
@@ -3015,6 +3026,7 @@ export async function destroyTab(tab: TabData): Promise<void> {
 
   tab.controllers.inputController?.destroyResumeDropdown();
   tab.ui.fileContextManager?.destroy();
+  tab.ui.imageContextManager?.destroy();
   tab.ui.relevantNotesView?.destroy();
   tab.ui.relevantNotesView = null;
   tab.ui.slashCommandDropdown?.destroy();

@@ -525,9 +525,11 @@ export class InputController {
     const agentService = this.getAgentService();
     if (!agentService) {
       new Notice(t('chat.ui.errors.agentUnavailable'));
+      streamController.hideThinkingIndicator();
+      streamController.stopTurnSilenceIndicator();
+      state.isStreaming = false;
       this.activeStreamingAssistantMessage = null;
       this.resetProviderMessageBoundaryState();
-      streamController.stopTurnSilenceIndicator();
       return;
     }
 
@@ -865,9 +867,18 @@ export class InputController {
     const queuedMessage = this.cloneQueuedMessage(state.queuedMessage);
     state.queuedMessage = null;
     this.updateQueueIndicator();
+    const streamGeneration = state.streamGeneration;
 
     window.setTimeout(
       () => {
+        if (
+          state.streamGeneration !== streamGeneration
+          || state.isCreatingConversation
+          || state.isSwitchingConversation
+          || state.isStreaming
+        ) {
+          return;
+        }
         void this.sendMessage({
           content: queuedMessage.content,
           images: queuedMessage.images,

@@ -427,6 +427,55 @@ describe('GeminiChatRuntime', () => {
     await expect(fs.stat('/tmp/grimoire-gemini-test-vault/Notes/New.md')).rejects.toThrow();
   });
 
+  it('maps session permission requests through the approval callback', async () => {
+    const runtime = new GeminiChatRuntime(createMockPlugin());
+    const approvalCallback = jest.fn().mockResolvedValue('allow');
+    runtime.setApprovalCallback(approvalCallback);
+
+    await expect((runtime as any).handlePermissionRequest({
+      options: [
+        { kind: 'allow_once', name: 'Allow', optionId: 'allow-1' },
+        { kind: 'reject_once', name: 'Reject', optionId: 'reject-1' },
+      ],
+      sessionId: 'session-1',
+      toolCall: {
+        kind: 'edit',
+        rawInput: { path: 'Notes/draft.md' },
+        title: 'Edit draft',
+        toolCallId: 'tc-1',
+      },
+    })).resolves.toEqual({
+      outcome: { optionId: 'allow-1', outcome: 'selected' },
+    });
+
+    expect(approvalCallback).toHaveBeenCalledWith(
+      'Edit draft',
+      { path: 'Notes/draft.md' },
+      'Edit draft requests access to Notes/draft.md.',
+      expect.objectContaining({
+        target: 'Notes/draft.md',
+        decisionOptions: expect.arrayContaining([
+          expect.objectContaining({ value: 'allow-1', presentation: 'allow' }),
+        ]),
+      }),
+    );
+  });
+
+  it('cancels session permission requests when no approval callback is registered', async () => {
+    const runtime = new GeminiChatRuntime(createMockPlugin());
+    await expect((runtime as any).handlePermissionRequest({
+      options: [{ kind: 'allow_once', name: 'Allow', optionId: 'allow-1' }],
+      sessionId: 'session-1',
+      toolCall: {
+        kind: 'edit',
+        title: 'Edit draft',
+        toolCallId: 'tc-1',
+      },
+    })).resolves.toEqual({
+      outcome: { outcome: 'cancelled' },
+    });
+  });
+
   describe('resolveSessionPath workspace containment', () => {
     function createRuntimeWithPermissionMode(permissionMode: string): any {
       const settings: Record<string, unknown> = { permissionMode };

@@ -135,6 +135,7 @@ export class StreamController {
   private silentTurnStatusEl: HTMLElement | null = null;
   private silentTurnStartedAt: number | null = null;
   private silentTurnTimerWindow: Window | null = null;
+  private asyncSubagentRetryTimeouts = new Set<number>();
 
   // Provider lifecycle agent tracking (spawn → wait/close lifecycle)
   private lifecycleSubagentStates = new Map<string, SubagentState>(); // spawn callId → SubagentState
@@ -1638,9 +1639,22 @@ export class StreamController {
     if (attempt >= StreamController.ASYNC_SUBAGENT_RESULT_RETRY_DELAYS_MS.length) return;
 
     const delay = StreamController.ASYNC_SUBAGENT_RESULT_RETRY_DELAYS_MS[attempt];
-    window.setTimeout(() => {
+    const streamGeneration = this.deps.state.streamGeneration;
+    const timeoutId = window.setTimeout(() => {
+      this.asyncSubagentRetryTimeouts.delete(timeoutId);
+      if (this.deps.state.streamGeneration !== streamGeneration) {
+        return;
+      }
       void this.retryAsyncSubagentResult(subagent, runtime, attempt);
     }, delay);
+    this.asyncSubagentRetryTimeouts.add(timeoutId);
+  }
+
+  private clearAsyncSubagentResultRetries(): void {
+    for (const timeoutId of this.asyncSubagentRetryTimeouts) {
+      window.clearTimeout(timeoutId);
+    }
+    this.asyncSubagentRetryTimeouts.clear();
   }
 
   private async retryAsyncSubagentResult(
@@ -2071,6 +2085,7 @@ export class StreamController {
     this.cancelPendingThinkingRender();
     this.cancelPendingToolOutputRenders();
     this.cancelPendingScroll();
+    this.clearAsyncSubagentResultRetries();
     this.hideThinkingIndicator();
     this.stopTurnSilenceIndicator();
     for (const progress of this.progressBlocks.values()) {

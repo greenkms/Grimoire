@@ -238,7 +238,7 @@ describe('SessionStorage', () => {
       expect(codexMeta!.providerId).toBe('codex');
     });
 
-    it('defaults providerId to claude for legacy conversations', async () => {
+    it('defaults providerId to the product default for legacy conversations', async () => {
       mockAdapter.listFiles.mockResolvedValue([
         '.grimoire/sessions/old.meta.json',
       ]);
@@ -253,7 +253,7 @@ describe('SessionStorage', () => {
       const metas = await storage.listAllConversations();
 
       expect(metas).toHaveLength(1);
-      expect(metas[0].providerId).toBe('claude');
+      expect(metas[0].providerId).toBe('codex');
     });
 
     it('skips conversations owned by an unregistered provider', async () => {

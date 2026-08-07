@@ -1585,7 +1585,9 @@ export class ClaudeChatRuntime implements ChatRuntime {
         buildPersistentQueryConfig: (vaultPath, cliPath, externalContextPaths, orchestratorMode) =>
           this.buildPersistentQueryConfig(vaultPath, cliPath, externalContextPaths, orchestratorMode),
         needsRestart: (newConfig) => this.needsRestart(newConfig),
-        ensureReady: (options) => this.ensureReady(options),
+        ensureReady: (options) => (
+        options === undefined ? this.ensureReady() : this.ensureReady(options)
+      ),
         setCurrentExternalContextPaths: (paths) => {
           this.currentExternalContextPaths = paths;
         },

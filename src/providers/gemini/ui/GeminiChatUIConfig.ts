@@ -67,7 +67,9 @@ export const geminiChatUIConfig: ProviderChatUIConfig = {
   },
 
   isAdaptiveReasoningModel(_model: string, _settings: Record<string, unknown>): boolean {
-    return true;
+    // Capabilities currently advertise reasoningControl: 'none' until effort is
+    // applied end-to-end by the Gemini ACP runtime.
+    return false;
   },
 
   getReasoningOptions(_model: string, _settings: Record<string, unknown>): ProviderReasoningOption[] {

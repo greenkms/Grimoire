@@ -1,6 +1,8 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
+import { Notice } from 'obsidian';
+
 import {
   computeSystemPromptKey,
   type SystemPromptSettings,
@@ -66,12 +68,13 @@ import {
   type AcpUsage,
   type AcpUsageUpdate,
   type AcpWriteTextFileRequest,
+  approveAcpWriteTextFile,
   buildAcpUsageInfo,
   extractAcpSessionModelState,
   extractAcpSessionModeState,
   extractAcpSessionThoughtLevelState,
+  isAcpRetryableTransportClose,
   JsonRpcErrorResponse,
-  JsonRpcTransportClosedError,
   resolveWorkspacePath,
 } from '../../acp';
 import { toAcpMcpServers } from '../../acp/mcp/toAcpMcpServers';
@@ -418,8 +421,13 @@ export class GrokChatRuntime implements ChatRuntime {
             sessionId: targetSessionId,
             stderrPreview: summarizeGrokCliText(this.process?.getStderrSnapshot() ?? ''),
           }, { level: 'warn' });
+          // Keep session/workspace paths so history hydrate and relaunch still
+          // resolve after a failed ACP session/load.
           this.sessionInvalidated = true;
-          this.clearActiveSession();
+          this.clearActiveSession({ preserveSessionPaths: true });
+          new Notice(t('chat.ui.errors.provider.sessionResumeFailed', {
+            provider: ProviderRegistry.getProviderDisplayNameOrId('grok'),
+          }));
         }
       }
       return true;
@@ -699,29 +707,27 @@ export class GrokChatRuntime implements ChatRuntime {
     const existingState = params.conversation
       ? getGrokState(params.conversation.providerState)
       : null;
+    const sessionDirPath = this.currentSessionDirPath ?? existingState?.sessionDirPath;
+    const workspacePath = this.currentWorkspacePath ?? existingState?.workspacePath;
     const providerState: GrokProviderState = {
-      ...(this.currentSessionDirPath || existingState?.sessionDirPath
-        ? { sessionDirPath: this.currentSessionDirPath ?? existingState?.sessionDirPath }
-        : {}),
-      ...(this.currentWorkspacePath || existingState?.workspacePath
-        ? { workspacePath: this.currentWorkspacePath ?? existingState?.workspacePath }
-        : {}),
-    };
-    const updates: Partial<Conversation> = {
-      providerState: Object.keys(providerState).length > 0
-        ? providerState as Record<string, unknown>
-        : undefined,
-      sessionId: this.sessionId,
+      ...(sessionDirPath ? { sessionDirPath } : {}),
+      ...(workspacePath ? { workspacePath } : {}),
     };
 
-    if (params.sessionInvalidated) {
-      if (!this.sessionId) {
-        updates.providerState = undefined;
-        updates.sessionId = null;
-      }
-    }
+    // On invalidation without a replacement session, clear sessionId so the
+    // next send creates a fresh ACP session, but keep native path metadata.
+    const sessionId = params.sessionInvalidated && !this.sessionId
+      ? null
+      : this.sessionId;
 
-    return { updates };
+    return {
+      updates: {
+        providerState: Object.keys(providerState).length > 0
+          ? providerState as Record<string, unknown>
+          : undefined,
+        sessionId,
+      },
+    };
   }
 
   resolveSessionIdForFork(conversation: Conversation | null): string | null {
@@ -1647,6 +1653,13 @@ export class GrokChatRuntime implements ChatRuntime {
     request: AcpWriteTextFileRequest,
   ): Promise<Record<string, never>> {
     const resolvedPath = this.resolveSessionPath(request.sessionId, request.path);
+    await approveAcpWriteTextFile({
+      approvalCallback: this.approvalCallback,
+      fullAccess: coercePermissionMode(this.getProviderSettings().permissionMode) === 'full_access',
+      providerLabel: 'Grok Build',
+      requestPath: request.path,
+      resolvedPath,
+    });
     await fs.mkdir(path.dirname(resolvedPath), { recursive: true });
     await fs.writeFile(resolvedPath, request.content, 'utf-8');
     return {};
@@ -1674,7 +1687,9 @@ export class GrokChatRuntime implements ChatRuntime {
     activeTurn: ActiveTurn,
     cwd: string,
   ): Promise<boolean> {
-    if (!this.isRetryableTransportClose(error) || activeTurn.sawOutput) {
+    // Grok runtime does not yet track lifecycleGeneration; gate only on
+    // transport-close shape and whether output already started.
+    if (!isAcpRetryableTransportClose(error) || activeTurn.sawOutput) {
       return false;
     }
 
@@ -1691,11 +1706,6 @@ export class GrokChatRuntime implements ChatRuntime {
     return true;
   }
 
-  private isRetryableTransportClose(error: unknown): boolean {
-    return error instanceof JsonRpcTransportClosedError
-      || (error instanceof Error && error.name === 'JsonRpcTransportClosedError');
-  }
-
   private updateSessionPaths(sessionId: string, cwd: string): void {
     const sessionDirPath = resolveGrokSessionDirectory(
       sessionId,
@@ -1707,9 +1717,11 @@ export class GrokChatRuntime implements ChatRuntime {
     this.currentSessionDirPath = sessionDirPath;
   }
 
-  private clearActiveSession(): void {
-    this.currentSessionDirPath = null;
-    this.currentWorkspacePath = null;
+  private clearActiveSession(options?: { preserveSessionPaths?: boolean }): void {
+    if (!options?.preserveSessionPaths) {
+      this.currentSessionDirPath = null;
+      this.currentWorkspacePath = null;
+    }
     this.sessionId = null;
     this.loadedSessionId = null;
     this.currentSessionModelId = null;

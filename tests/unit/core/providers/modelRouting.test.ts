@@ -19,8 +19,8 @@ describe('getProviderForModel', () => {
     expect(getProviderForModel(DEFAULT_CODEX_PRIMARY_MODEL)).toBe('codex');
   });
 
-  it('routes unknown models to claude (default)', () => {
-    expect(getProviderForModel('some-unknown-model')).toBe('claude');
+  it('routes unknown models to the product default provider', () => {
+    expect(getProviderForModel('some-unknown-model')).toBe('codex');
   });
 
   it('routes models starting with gpt- to codex', () => {
@@ -51,8 +51,8 @@ describe('getProviderForModel', () => {
     expect(getProviderForModel('my-custom-model', settings)).toBe('codex');
   });
 
-  it('routes custom OPENAI_MODEL to claude without settings (no context)', () => {
-    expect(getProviderForModel('my-custom-model')).toBe('claude');
+  it('routes unknown custom models to the product default without settings', () => {
+    expect(getProviderForModel('my-custom-model')).toBe('codex');
   });
 
   it('can resolve blank-tab routing within enabled providers only', () => {

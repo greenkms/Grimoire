@@ -56,6 +56,7 @@ import {
   AcpSessionUpdateNormalizer,
   AcpSubprocess,
   type AcpWriteTextFileRequest,
+  approveAcpWriteTextFile,
   buildAcpUsageInfo,
   extractAcpSessionModelState,
   extractAcpSessionModeState,
@@ -843,24 +844,13 @@ export class QwenChatRuntime implements ChatRuntime {
 
   private async writeTextFile(request: AcpWriteTextFileRequest): Promise<Record<string, never>> {
     const resolvedPath = this.resolveSessionPath(request.sessionId, request.path);
-    if (this.plugin.settings.permissionMode !== 'full_access') {
-      if (!this.approvalCallback) {
-        throw new Error('Qwen file write was not approved');
-      }
-
-      const decision = await this.approvalCallback(
-        'write',
-        {
-          path: resolvedPath,
-          relativePath: request.path,
-        },
-        `Qwen wants to write ${request.path}.`,
-        { decisionReason: 'File write permission required' },
-      );
-      if (decision !== 'allow' && decision !== 'allow-always') {
-        throw new Error('Qwen file write was not approved');
-      }
-    }
+    await approveAcpWriteTextFile({
+      approvalCallback: this.approvalCallback,
+      fullAccess: this.plugin.settings.permissionMode === 'full_access',
+      providerLabel: 'Qwen',
+      requestPath: request.path,
+      resolvedPath,
+    });
 
     await fs.mkdir(path.dirname(resolvedPath), { recursive: true });
     await fs.writeFile(resolvedPath, request.content, 'utf-8');

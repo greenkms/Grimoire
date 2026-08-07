@@ -19,7 +19,12 @@ export class HomeFileAdapter implements Pick<VaultFileAdapter,
   }
 
   private resolve(relativePath: string): string {
-    return path.join(this.root, relativePath);
+    const root = path.resolve(this.root);
+    const full = path.resolve(root, relativePath);
+    if (full !== root && !full.startsWith(root + path.sep)) {
+      throw new Error(`Path escapes home adapter root: ${relativePath}`);
+    }
+    return full;
   }
 
   async exists(p: string): Promise<boolean> {

@@ -351,6 +351,7 @@ describe('OpencodeChatRuntime', () => {
 
   it('marks missing saved sessions invalidated without creating a replacement command session', async () => {
     const plugin = createMockPlugin({
+      recordDebugLog: jest.fn(),
       settings: {
         providerConfigs: {
           opencode: {
@@ -385,8 +386,28 @@ describe('OpencodeChatRuntime', () => {
     await expect(runtime.getSupportedCommands()).resolves.toEqual([]);
     expect((runtime as any).createSession).not.toHaveBeenCalled();
     expect(runtime.getSessionId()).toBeNull();
+    // Failed resume must keep the native DB path for hydrate / relaunch.
+    expect((runtime as any).currentDatabasePath).toBe('/persisted/opencode.db');
+    expect(plugin.recordDebugLog).toHaveBeenCalledWith(expect.objectContaining({
+      event: 'session.load_failed',
+      scope: 'provider.opencode',
+    }));
     expect(runtime.consumeSessionInvalidation()).toBe(true);
     expect(runtime.consumeSessionInvalidation()).toBe(false);
+
+    const updates = runtime.buildSessionUpdates({
+      conversation: {
+        id: 'conv-1',
+        providerId: 'opencode',
+        providerState: { databasePath: '/persisted/opencode.db' },
+        sessionId: 'session-1',
+      } as any,
+      sessionInvalidated: true,
+    });
+    expect(updates.updates.sessionId).toBeNull();
+    expect(updates.updates.providerState).toEqual({
+      databasePath: '/persisted/opencode.db',
+    });
   });
 
   it('clears a stale database path when switching to a saved session without persisted provider state', async () => {

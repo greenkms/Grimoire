@@ -78,7 +78,9 @@ export class SubagentManager {
 
   constructor(
     onStateChange: SubagentStateChangeCallback,
-    taskResultInterpreter: ProviderTaskResultInterpreter = ProviderRegistry.getTaskResultInterpreter(),
+    // Interim default for unit tests / pre-bind construction. Tabs always
+    // rebind this via setTaskResultInterpreter to the active provider.
+    taskResultInterpreter: ProviderTaskResultInterpreter = ProviderRegistry.getTaskResultInterpreter('claude'),
   ) {
     this.onStateChange = onStateChange;
     this.taskResultInterpreter = taskResultInterpreter;

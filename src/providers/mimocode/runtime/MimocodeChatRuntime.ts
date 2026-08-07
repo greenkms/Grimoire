@@ -1,6 +1,8 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
+import { Notice } from 'obsidian';
+
 import {
   computeSystemPromptKey,
   type SystemPromptSettings,
@@ -64,12 +66,18 @@ import {
   type AcpUsage,
   type AcpUsageUpdate,
   type AcpWriteTextFileRequest,
+  approveAcpWriteTextFile,
+  buildAcpPersistedSessionFields,
+  buildAcpSessionLoadFailureDebugEvent,
   buildAcpUsageInfo,
   extractAcpSessionModelState,
   extractAcpSessionModeState,
   extractAcpSessionThoughtLevelState,
-  JsonRpcTransportClosedError,
+  isAcpRetryableTransportClose,
+  planAcpEnsureReadySessionPhase,
   resolveWorkspacePath,
+  runAcpEnsureReadyForQuery,
+  shouldRetryAcpClosedTransport,
 } from '../../acp';
 import { toAcpMcpServers } from '../../acp/mcp/toAcpMcpServers';
 import { mimocodePlanUsageStore } from '../app/MimocodePlanUsageStore';
@@ -186,6 +194,7 @@ export class MimocodeChatRuntime implements ChatRuntime {
   private readonly readyListeners: Array<(ready: boolean) => void> = [];
   private ready = false;
   private sessionInvalidated = false;
+  private lastSessionLoadError: unknown = null;
   private readonly supportedCommandWaiters: Array<(commands: SlashCommand[]) => void> = [];
   private supportedCommands: SlashCommand[] = [];
   private sessionCwds = new Map<string, string>();
@@ -358,24 +367,23 @@ export class MimocodeChatRuntime implements ChatRuntime {
       this.loadedSessionId = null;
     }
 
-    if (targetSessionId) {
-      if (this.loadedSessionId !== targetSessionId) {
-        const loaded = await this.loadSession(targetSessionId, cwd);
-        if (!loaded) {
-          this.sessionInvalidated = true;
-          this.clearActiveSession();
-        }
+    const sessionPhase = planAcpEnsureReadySessionPhase({
+      allowSessionCreation: options?.allowSessionCreation !== false,
+      loadedSessionId: this.loadedSessionId,
+      sessionId: this.sessionId,
+      sessionInvalidated: this.sessionInvalidated,
+      targetSessionId,
+    });
+    if (sessionPhase.type === 'load') {
+      const loaded = await this.loadSession(sessionPhase.sessionId, cwd);
+      if (!loaded) {
+        this.handleSessionLoadFailure(sessionPhase.sessionId, cwd);
       }
       return true;
     }
-
-    if (!this.sessionId && !this.sessionInvalidated) {
-      if (options?.allowSessionCreation === false) {
-        return true;
-      }
+    if (sessionPhase.type === 'create') {
       return Boolean(await this.createSession(cwd));
     }
-
     return true;
   }
 
@@ -664,26 +672,23 @@ export class MimocodeChatRuntime implements ChatRuntime {
     const existingState = params.conversation
       ? getMimocodeState(params.conversation.providerState)
       : null;
-    const providerState: MimocodeProviderState = {
-      ...(this.currentDatabasePath || existingState?.databasePath
-        ? { databasePath: this.currentDatabasePath ?? existingState?.databasePath }
-        : {}),
-    };
-    const updates: Partial<Conversation> = {
-      providerState: Object.keys(providerState).length > 0
-        ? providerState as Record<string, unknown>
-        : undefined,
+    const fields = buildAcpPersistedSessionFields({
+      conversationDatabasePath: existingState?.databasePath,
+      currentDatabasePath: this.currentDatabasePath,
       sessionId: this.sessionId,
+      sessionInvalidated: params.sessionInvalidated,
+    });
+    const providerState: MimocodeProviderState = {
+      ...(fields.databasePath ? { databasePath: fields.databasePath } : {}),
     };
-
-    if (params.sessionInvalidated) {
-      if (!this.sessionId) {
-        updates.providerState = undefined;
-        updates.sessionId = null;
-      }
-    }
-
-    return { updates };
+    return {
+      updates: {
+        providerState: Object.keys(providerState).length > 0
+          ? providerState as Record<string, unknown>
+          : undefined,
+        sessionId: fields.sessionId,
+      },
+    };
   }
 
   resolveSessionIdForFork(conversation: Conversation | null): string | null {
@@ -1257,9 +1262,30 @@ export class MimocodeChatRuntime implements ChatRuntime {
         modes: response.modes ?? null,
       });
       return true;
-    } catch {
+    } catch (error) {
+      this.lastSessionLoadError = error;
       return false;
     }
+  }
+
+  private handleSessionLoadFailure(sessionId: string, cwd: string): void {
+    const error = this.lastSessionLoadError;
+    this.lastSessionLoadError = null;
+    const stderr = this.process?.getStderrSnapshot();
+    this.plugin.recordDebugLog?.(buildAcpSessionLoadFailureDebugEvent({
+      cwd,
+      databasePath: this.currentDatabasePath,
+      error,
+      providerId: 'mimocode',
+      sessionId,
+      stderr,
+    }));
+    // Keep databasePath so SQLite hydrate / native DB env still resolve.
+    this.sessionInvalidated = true;
+    this.clearActiveSession({ preserveDatabasePath: true });
+    new Notice(t('chat.ui.errors.provider.sessionResumeFailed', {
+      provider: ProviderRegistry.getProviderDisplayNameOrId('mimocode'),
+    }));
   }
 
   private getMcpServers() {
@@ -1457,6 +1483,13 @@ export class MimocodeChatRuntime implements ChatRuntime {
     request: AcpWriteTextFileRequest,
   ): Promise<Record<string, never>> {
     const resolvedPath = this.resolveSessionPath(request.sessionId, request.path);
+    await approveAcpWriteTextFile({
+      approvalCallback: this.approvalCallback,
+      fullAccess: coercePermissionMode(this.getProviderSettings().permissionMode) === 'full_access',
+      providerLabel: 'MiMoCode',
+      requestPath: request.path,
+      resolvedPath,
+    });
     await fs.mkdir(path.dirname(resolvedPath), { recursive: true });
     await fs.writeFile(resolvedPath, request.content, 'utf-8');
     return {};
@@ -1487,11 +1520,12 @@ export class MimocodeChatRuntime implements ChatRuntime {
     activeTurn: ActiveTurn,
     cwd: string,
   ): Promise<boolean> {
-    if (
-      activeTurn.lifecycleGeneration !== this.lifecycleGeneration
-      || !this.isRetryableTransportClose(error)
-      || activeTurn.sawOutput
-    ) {
+    if (!shouldRetryAcpClosedTransport({
+      activeLifecycleGeneration: activeTurn.lifecycleGeneration,
+      error,
+      runtimeLifecycleGeneration: this.lifecycleGeneration,
+      sawOutput: activeTurn.sawOutput,
+    })) {
       return false;
     }
 
@@ -1513,35 +1547,19 @@ export class MimocodeChatRuntime implements ChatRuntime {
   }
 
   private async ensureReadyForQuery(lifecycleGeneration: number): Promise<boolean> {
-    try {
-      const ready = await this.ensureReady();
-      return lifecycleGeneration === this.lifecycleGeneration && ready;
-    } catch (error) {
-      if (lifecycleGeneration !== this.lifecycleGeneration) {
-        return false;
-      }
-      if (!this.isRetryableTransportClose(error)) {
-        throw error;
-      }
-    }
-
-    try {
-      const ready = await this.ensureReady({ force: true });
-      return lifecycleGeneration === this.lifecycleGeneration && ready;
-    } catch (error) {
-      if (
-        lifecycleGeneration !== this.lifecycleGeneration
-        || this.isRetryableTransportClose(error)
-      ) {
-        return false;
-      }
-      throw error;
-    }
+    const result = await runAcpEnsureReadyForQuery({
+      ensureReady: (options) => (
+        options === undefined ? this.ensureReady() : this.ensureReady(options)
+      ),
+      isLifecycleCurrent: (generation) => generation === this.lifecycleGeneration,
+      isRetryableTransportClose: (error) => this.isRetryableTransportClose(error),
+      lifecycleGeneration,
+    });
+    return result.ready && !result.stale;
   }
 
   private isRetryableTransportClose(error: unknown): boolean {
-    return error instanceof JsonRpcTransportClosedError
-      || (error instanceof Error && error.name === 'JsonRpcTransportClosedError');
+    return isAcpRetryableTransportClose(error);
   }
 
   private resolveUnsupportedModelFallback(errorMessage: string): string | null {
@@ -1572,8 +1590,10 @@ export class MimocodeChatRuntime implements ChatRuntime {
     this.refreshModelSelectors();
   }
 
-  private clearActiveSession(): void {
-    this.currentDatabasePath = null;
+  private clearActiveSession(options?: { preserveDatabasePath?: boolean }): void {
+    if (!options?.preserveDatabasePath) {
+      this.currentDatabasePath = null;
+    }
     this.sessionId = null;
     this.loadedSessionId = null;
     this.currentSessionModelId = null;

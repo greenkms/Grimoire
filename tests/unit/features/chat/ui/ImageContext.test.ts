@@ -444,17 +444,15 @@ describe('ImageContextManager - Private Helpers', () => {
       expect(images[0].name).toMatch(/^image-\d+\.png$/);
     });
 
-    it('should use file.type as fallback media type when getMediaType returns null', async () => {
+    it('should accept allowlisted file.type when extension is missing', async () => {
       const mockBuffer = new ArrayBuffer(4);
-      // File with .svg extension (not in IMAGE_EXTENSIONS), but valid image/* type
       const file = {
-        name: 'icon.svg',
-        type: 'image/svg+xml',
+        name: 'clipboard-image',
+        type: 'image/png',
         size: 512,
         arrayBuffer: jest.fn().mockResolvedValue(mockBuffer),
       } as unknown as File;
 
-      // The getMediaType for .svg returns null, so file.type is used as fallback
       const callbacks = createMockCallbacks();
       const { container } = createContainerWithInputWrapper();
       const inputEl = createMockTextArea();
@@ -464,7 +462,26 @@ describe('ImageContextManager - Private Helpers', () => {
       expect(result).toBe(true);
 
       const images = mgr.getAttachedImages();
-      expect(images[0].mediaType).toBe('image/svg+xml');
+      expect(images[0].mediaType).toBe('image/png');
+    });
+
+    it('should reject non-allowlisted image MIME types like SVG', async () => {
+      const mockBuffer = new ArrayBuffer(4);
+      const file = {
+        name: 'icon.svg',
+        type: 'image/svg+xml',
+        size: 512,
+        arrayBuffer: jest.fn().mockResolvedValue(mockBuffer),
+      } as unknown as File;
+
+      const callbacks = createMockCallbacks();
+      const { container } = createContainerWithInputWrapper();
+      const inputEl = createMockTextArea();
+      const mgr: any = new ImageContextManager(container, inputEl, callbacks);
+
+      const result = await mgr['addImageFromFile'](file, 'paste');
+      expect(result).toBe(false);
+      expect(mgr.getAttachedImages()).toHaveLength(0);
     });
   });
 

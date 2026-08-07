@@ -54,9 +54,12 @@ import {
   AcpSessionUpdateNormalizer,
   AcpSubprocess,
   type AcpWriteTextFileRequest,
+  approveAcpWriteTextFile,
+  buildAcpApprovalDecisionOptions,
   buildAcpUsageInfo,
   extractAcpSessionModelState,
   extractAcpSessionModeState,
+  mapAcpApprovalDecision,
   resolveWorkspacePath,
 } from '../../acp';
 import { toAcpMcpServers } from '../../acp/mcp/toAcpMcpServers';
@@ -671,13 +674,28 @@ export class GeminiChatRuntime implements ChatRuntime {
   }
 
   private async handlePermissionRequest(
-    _request: AcpRequestPermissionRequest,
+    request: AcpRequestPermissionRequest,
   ): Promise<AcpRequestPermissionResponse> {
     if (!this.approvalCallback) {
       return { outcome: { outcome: 'cancelled' } };
     }
 
-    return { outcome: { outcome: 'cancelled' } };
+    const rawInput = request.toolCall.rawInput;
+    const input = rawInput && typeof rawInput === 'object' && !Array.isArray(rawInput)
+      ? rawInput as Record<string, unknown>
+      : {};
+    const pathValue = ['path', 'filePath', 'filepath'].map((key) => input[key])
+      .find((value): value is string => typeof value === 'string' && value.trim().length > 0)
+      ?? request.toolCall.locations?.find((location) => location.path.trim())?.path;
+    const title = request.toolCall.title?.trim() || request.toolCall.kind?.trim() || 'Gemini action';
+    const description = pathValue
+      ? `${title} requests access to ${pathValue}.`
+      : `${title} requests permission.`;
+    const decision = await this.approvalCallback(title, input, description, {
+      ...(pathValue ? { target: pathValue } : {}),
+      decisionOptions: buildAcpApprovalDecisionOptions(request.options),
+    });
+    return mapAcpApprovalDecision(decision, request.options);
   }
 
   private async readTextFile(request: AcpReadTextFileRequest): Promise<{ content: string }> {
@@ -701,24 +719,13 @@ export class GeminiChatRuntime implements ChatRuntime {
 
   private async writeTextFile(request: AcpWriteTextFileRequest): Promise<Record<string, never>> {
     const resolvedPath = this.resolveSessionPath(request.sessionId, request.path);
-    if (this.plugin.settings.permissionMode !== 'full_access') {
-      if (!this.approvalCallback) {
-        throw new Error('Gemini file write was not approved');
-      }
-
-      const decision = await this.approvalCallback(
-        'write',
-        {
-          path: resolvedPath,
-          relativePath: request.path,
-        },
-        `Gemini wants to write ${request.path}.`,
-        { decisionReason: 'File write permission required' },
-      );
-      if (decision !== 'allow' && decision !== 'allow-always') {
-        throw new Error('Gemini file write was not approved');
-      }
-    }
+    await approveAcpWriteTextFile({
+      approvalCallback: this.approvalCallback,
+      fullAccess: this.plugin.settings.permissionMode === 'full_access',
+      providerLabel: 'Gemini',
+      requestPath: request.path,
+      resolvedPath,
+    });
 
     await fs.mkdir(path.dirname(resolvedPath), { recursive: true });
     await fs.writeFile(resolvedPath, request.content, 'utf-8');
