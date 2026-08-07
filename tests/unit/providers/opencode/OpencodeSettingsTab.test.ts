@@ -76,6 +76,14 @@ jest.mock('@/features/settings/ui/EnvironmentSettingsSection', () => ({
   renderEnvironmentSettingsSection: (...args: unknown[]) => mockRenderEnvironmentSettingsSection(...args),
 }));
 
+jest.mock('@/features/settings/ui/ProviderSkillSettings', () => ({
+  ProviderSkillSettings: jest.fn(),
+}));
+
+jest.mock('@/features/settings/ui/McpSettingsManager', () => ({
+  McpSettingsManager: jest.fn(),
+}));
+
 jest.mock('@/providers/opencode/ui/OpencodeAgentSettings', () => ({
   OpencodeAgentSettings: class MockOpencodeAgentSettings {
     constructor(
@@ -397,6 +405,8 @@ function createPlugin(overrides: Record<string, unknown> = {}): any {
 function createContext(plugin: any) {
   return {
     plugin,
+    suppressAutomaticDiscovery: false,
+    createWorkspaceSection: jest.fn((container: any) => container),
     renderHiddenProviderCommandSetting: jest.fn(),
     refreshModelSelectors: jest.fn(),
     renderCustomContextLimits: jest.fn(),
@@ -468,6 +478,8 @@ describe('OpencodeSettingsTab', () => {
 
     opencodeSettingsTabRenderer.render(createContainer(), context);
 
+    expect(findSetting(t('settings.hub.skills')).heading).toBe(true);
+    expect(context.createWorkspaceSection).toHaveBeenCalledWith(expect.anything(), ['skills']);
     expect(findSetting(t('settings.slashCommands.name')).heading).toBe(true);
     expect(context.renderHiddenProviderCommandSetting).toHaveBeenCalledWith(
       expect.anything(),

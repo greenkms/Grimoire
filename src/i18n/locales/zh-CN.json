@@ -405,7 +405,7 @@
       },
       "errors": {
         "generic": "错误：{message}",
-        "commandUnsupported": "此提供商不支持 /{command}。",
+        "commandUnsupported": "此供应商不支持 /{command}。",
         "externalContextAdded": "已添加外部上下文：{path}",
         "unknownCommand": "未知命令：{command}",
         "openConversationFailed": "无法打开对话：{message}",
@@ -422,11 +422,11 @@
           "sessionCreateFailed": "无法为 {provider} 创建会话。",
           "emptyResponse": "{provider} 已完成，但没有返回响应。请检查供应商凭据和日志，然后重试。",
           "requestFailed": "{provider} 请求失败",
-          "antigravityDisabled": "Antigravity 已禁用。请在提供商设置中启用它。",
+          "antigravityDisabled": "Antigravity 已禁用。请在供应商设置中启用它。",
           "antigravitySafeModeUnavailable": "Antigravity 安全模式不可用，因为 agy --print 无法请求 Grimoire 文件编辑批准。仅当你允许 AGY 无需确认即可编辑文件时，才使用自动批准。",
           "antigravityEmptyOutput": "Antigravity 未返回响应便已结束。请检查身份验证，或在终端中运行 agy --print 后重试。",
           "claudeVaultPathUnavailable": "无法确定 Claude 的仓库路径。",
-          "claudeCliNotFound": "未找到 Claude Code CLI。请安装它，或在提供商设置中配置其路径。"
+          "claudeCliNotFound": "未找到 Claude Code CLI。请安装它，或在供应商设置中配置其路径。"
         },
         "initializeFailed": "初始化对话服务失败",
         "loadConversationFailed": "加载对话失败",
@@ -912,6 +912,7 @@
       "changeFailed": "切换项目工作区失败"
     },
     "providers": {
+      "selectionHint": "选择供应商卡片以查看下方设置。",
       "grok": {
         "desc": "xAI 的代理式编程 CLI，支持规划模式、子代理、技能和 MCP。"
       },
@@ -939,6 +940,9 @@
       "qwen": {
         "desc": "通过原生 Agent Client Protocol 运行的阿里巴巴 Qwen Code。"
       }
+    },
+    "hub": {
+      "general": "常规", "providers": "供应商", "workspace": "高级设置", "about": "关于", "cliDetected": "已检测到 CLI", "cliNotDetected": "未检测到 CLI", "geminiLegacy": "Gemini CLI（旧版）", "providerDetails": "{provider} 设置", "skills": "技能", "agents": "子代理", "mcp": "MCP", "environment": "环境", "commands": "命令", "search": "搜索名称、说明、来源或供应商", "name": "名称", "source": "来源", "provider": "供应商", "actions": "操作", "manage": "管理", "manageTitle": "管理 {section}", "edit": "修改", "delete": "删除", "deleteConfirm": "确定删除“{name}”吗？", "deleted": "已删除“{name}”", "deleteFailed": "删除失败：{message}", "providerOptions": "供应商高级选项", "readonly": "只读", "available": "可用", "connected": "已连接", "disabled": "已停用", "shared": "共享", "loading": "正在加载资源…", "unsupported": "当前供应商不支持此类资源管理。", "none": "没有匹配的高级设置资源。", "aboutCopy": "Grimoire 在 Obsidian 中连接本地 AI Agent。此处保留插件版本、说明和更新入口。", "native": "原生", "nativeCli": "原生 CLI", "nativeMcpDescription": "原生 MCP 支持", "runtimeCommandsPending": "启动一次 {provider} 聊天以加载其原生命令。", "releases": "发布版本"
     },
     "grok": {
       "cliPath": {
@@ -1043,7 +1047,7 @@
       "title": "高级设置",
       "generalSummary": "提示词、快捷键、诊断、环境变量等",
       "environmentSummary": "环境变量与上下文覆盖",
-      "providerSummary": "命令、子代理、环境与上下文覆盖"
+      "providerSummary": "技能、命令、子代理、MCP 和环境"
     },
     "provider": {
       "enableName": "启用 {provider}",
@@ -1179,7 +1183,7 @@
           "name": "Qwen CLI 路径",
           "desc": "Qwen CLI 的本地路径。留空则从 PATH 启动 `qwen`。"
         },
-        "advancedSummary": "隐藏命令、环境变量和上下文覆盖",
+        "advancedSummary": "技能、命令、子代理、MCP 和环境",
         "hiddenCommands": {
           "name": "隐藏的命令",
           "desc": "隐藏 Qwen Code ACP 报告的指定命令。每行填写一个不带斜杠前缀的名称。",

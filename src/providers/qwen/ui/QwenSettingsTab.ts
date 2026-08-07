@@ -3,19 +3,33 @@ import { Setting } from 'obsidian';
 
 import type { ProviderSettingsTabRenderer } from '../../../core/providers/types';
 import { renderEnvironmentSettingsSection } from '../../../features/settings/ui/EnvironmentSettingsSection';
+import { McpSettingsManager } from '../../../features/settings/ui/McpSettingsManager';
 import { renderProviderDisabledNotice } from '../../../features/settings/ui/ProviderDisabledNotice';
+import { ProviderSkillSettings } from '../../../features/settings/ui/ProviderSkillSettings';
 import { t } from '../../../i18n/i18n';
 import { getHostnameKey } from '../../../utils/env';
 import { expandHomePath } from '../../../utils/path';
+import { maybeGetQwenWorkspaceServices } from '../app/QwenWorkspaceServices';
 import { getQwenProviderSettings, updateQwenProviderSettings } from '../settings';
+import { QwenAgentSettings } from './QwenAgentSettings';
+import { QwenCommandSettings } from './QwenCommandSettings';
 
 const QWEN_CLI_PATH_PLACEHOLDER = '/usr/local/bin/qwen';
 
 export const qwenSettingsTabRenderer: ProviderSettingsTabRenderer = {
   render(container, context) {
+    const qwenWorkspace = maybeGetQwenWorkspaceServices();
     const settingsBag = context.plugin.settings as unknown as Record<string, unknown>;
     const qwenSettings = getQwenProviderSettings(settingsBag);
     const hostnameKey = getHostnameKey();
+    const reloadWorkspaceResources = async (): Promise<void> => {
+      for (const view of context.plugin.getAllViews()) {
+        await view.getTabManager()?.broadcastToProviderTabs?.(
+          'qwen',
+          (service) => service.reloadWorkspaceResources?.() ?? Promise.resolve(),
+        );
+      }
+    };
 
     if (!qwenSettings.enabled) {
       renderProviderDisabledNotice(container, 'Qwen Code');
@@ -92,18 +106,71 @@ export const qwenSettingsTabRenderer: ProviderSettingsTabRenderer = {
     });
 
     const advancedContainer = context.renderAdvancedSection(container, {
-      count: 3,
-      summary: t('settings.providerTabs.qwen.advancedSummary'),
+      count: 5,
+      summary: t('settings.advanced.providerSummary'),
     });
 
-    context.renderHiddenProviderCommandSetting(advancedContainer, 'qwen', {
+    const skillsSection = context.createWorkspaceSection(advancedContainer, ['skills']);
+    new Setting(skillsSection).setName(t('settings.hub.skills')).setHeading();
+    if (qwenWorkspace?.commandCatalog) {
+      const skillsContainer = skillsSection.createDiv({ cls: 'grimoire-slash-commands-container' });
+      new ProviderSkillSettings(
+        skillsContainer,
+        context.plugin.app,
+        'qwen',
+        qwenWorkspace.commandCatalog,
+        reloadWorkspaceResources,
+      );
+    }
+
+    const commandsSection = context.createWorkspaceSection(advancedContainer, ['commands']);
+    new Setting(commandsSection).setName(t('settings.slashCommands.name')).setHeading();
+    context.renderHiddenProviderCommandSetting(commandsSection, 'qwen', {
       name: t('settings.providerTabs.qwen.hiddenCommands.name'),
       desc: t('settings.providerTabs.qwen.hiddenCommands.desc'),
       placeholder: t('settings.providerTabs.qwen.hiddenCommands.placeholder'),
     });
+    if (qwenWorkspace?.commandCatalog) {
+      new QwenCommandSettings(
+        commandsSection.createDiv({ cls: 'grimoire-slash-commands-container' }),
+        context.plugin.app,
+        qwenWorkspace.commandCatalog,
+        reloadWorkspaceResources,
+      );
+    }
+
+    if (qwenWorkspace?.agentStorage) {
+      const agentsSection = context.createWorkspaceSection(advancedContainer, ['agents']);
+      new Setting(agentsSection).setName(t('settings.subagents.name')).setHeading();
+      new QwenAgentSettings(
+        agentsSection.createDiv({ cls: 'grimoire-slash-commands-container' }),
+        qwenWorkspace.agentStorage,
+        context.plugin.app,
+        reloadWorkspaceResources,
+      );
+    }
+
+    if (qwenWorkspace?.mcpStorage) {
+      const mcpSection = context.createWorkspaceSection(advancedContainer, ['mcp']);
+      new Setting(mcpSection).setName(t('settings.mcpServers.name')).setHeading();
+      const mcpContainer = mcpSection.createDiv({ cls: 'grimoire-mcp-container' });
+      new McpSettingsManager(mcpContainer, {
+        app: context.plugin.app,
+        mcpStorage: qwenWorkspace.mcpStorage,
+        broadcastMcpReload: async () => {
+          for (const view of context.plugin.getAllViews()) {
+            await view.getTabManager()?.broadcastToProviderTabs?.(
+              'qwen',
+              (service) => service.reloadMcpServers(),
+            );
+          }
+        },
+        features: { contextSaving: false, toolFiltering: false },
+      });
+    }
 
     renderEnvironmentSettingsSection({
-      container: advancedContainer,
+      container: context.createWorkspaceSection(advancedContainer, ['environment']),
       plugin: context.plugin,
       scope: 'provider:qwen',
       heading: t('settings.providerTabs.qwen.environment.heading'),

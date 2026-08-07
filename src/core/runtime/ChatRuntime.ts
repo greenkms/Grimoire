@@ -29,6 +29,7 @@ export interface ChatRuntime {
     externalContextPaths?: string[],
   ): void;
   reloadMcpServers(): Promise<void>;
+  reloadWorkspaceResources?(): Promise<void>;
   ensureReady(options?: ChatRuntimeEnsureReadyOptions): Promise<boolean>;
   query(
     turn: PreparedChatTurn,

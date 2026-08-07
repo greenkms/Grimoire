@@ -7,7 +7,10 @@ import { McpSettingsManager } from '@/features/settings/ui/McpSettingsManager';
 const docAdd = jest.fn();
 const docRemove = jest.fn();
 
-function createManager(servers: any[] = []) {
+function createManager(
+  servers: any[] = [],
+  features?: { contextSaving?: boolean; toolFiltering?: boolean },
+) {
   const container = createMockEl();
   const manager = new McpSettingsManager(container, {
     app: {} as any,
@@ -16,6 +19,7 @@ function createManager(servers: any[] = []) {
       save: jest.fn().mockResolvedValue(undefined),
     },
     broadcastMcpReload: jest.fn().mockResolvedValue(undefined),
+    features,
   });
 
   return { container, manager };
@@ -33,8 +37,8 @@ describe('McpSettingsManager document click listener lifecycle', () => {
   afterEach(() => {
     delete (globalThis as any).document;
   });
-  it('does not accumulate document click listeners across re-renders', async () => {
-    const { manager } = createManager();
+  it('registers an outside-click listener only while the add menu is open', async () => {
+    const { container, manager } = createManager();
     await flush();
 
     docAdd.mockClear();
@@ -44,10 +48,11 @@ describe('McpSettingsManager document click listener lifecycle', () => {
     (manager as any).render();
     (manager as any).render();
 
-    // Each render registers its dismiss handler but first removes the previous
-    // one, so the number of live document listeners never grows past one.
-    expect(docAdd).toHaveBeenCalledTimes(3);
-    expect(docRemove).toHaveBeenCalledTimes(3);
+    expect(docAdd).not.toHaveBeenCalled();
+    expect(docRemove).not.toHaveBeenCalled();
+
+    container.querySelectorAll('.grimoire-settings-action-btn')[0]?.click();
+    expect(docAdd).toHaveBeenCalledTimes(1);
   });
 
   it('removes the document click listener on dispose', async () => {
@@ -59,7 +64,7 @@ describe('McpSettingsManager document click listener lifecycle', () => {
 
     (manager as any).dispose();
 
-    expect(docRemove).toHaveBeenCalledTimes(1);
+    expect(docRemove).not.toHaveBeenCalled();
     expect(docAdd).not.toHaveBeenCalled();
   });
 
@@ -80,5 +85,19 @@ describe('McpSettingsManager document click listener lifecycle', () => {
 
     expect(toggle?.getAttribute('aria-pressed')).toBe('true');
     expect(toggle?.getAttribute('title')).toBe('Enabled');
+  });
+
+  it('does not show unsupported context-saving state for ACP-managed servers', async () => {
+    const { container } = createManager([
+      {
+        name: 'filesystem',
+        config: { command: 'filesystem-server' },
+        enabled: true,
+        contextSaving: true,
+      },
+    ], { contextSaving: false, toolFiltering: false });
+    await flush();
+
+    expect((container).querySelectorAll('.grimoire-mcp-context-saving-badge')).toHaveLength(0);
   });
 });

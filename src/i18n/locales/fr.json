@@ -912,6 +912,7 @@
       "changeFailed": "Échec du changement d’espace de travail"
     },
     "providers": {
+      "selectionHint": "Cliquez sur une carte de fournisseur pour afficher ses paramètres ci-dessous.",
       "grok": {
         "desc": "CLI agentique de xAI pour le code, avec mode plan, sous-agents, skills et MCP."
       },
@@ -939,6 +940,9 @@
       "qwen": {
         "desc": "Alibaba Qwen Code via son environnement d’exécution Agent Client Protocol natif."
       }
+    },
+    "hub": {
+      "general": "Général", "providers": "Fournisseurs", "workspace": "Avancé", "about": "À propos", "cliDetected": "CLI détectée", "cliNotDetected": "CLI non détectée", "geminiLegacy": "Gemini CLI (ancienne)", "providerDetails": "Paramètres de {provider}", "skills": "Compétences", "agents": "Sous-agents", "mcp": "MCP", "environment": "Environnement", "commands": "Commandes", "search": "Rechercher par nom, description, source ou fournisseur", "name": "Nom", "source": "Source", "provider": "Fournisseur", "actions": "Actions", "manage": "Gérer", "manageTitle": "Gérer {section}", "edit": "Modifier", "delete": "Supprimer", "deleteConfirm": "Supprimer « {name} » ?", "deleted": "« {name} » supprimé", "deleteFailed": "Échec de la suppression : {message}", "providerOptions": "Options avancées du fournisseur", "readonly": "Lecture seule", "available": "Disponible", "connected": "Connecté", "disabled": "Désactivé", "shared": "Partagé", "loading": "Chargement des ressources…", "unsupported": "Ce fournisseur ne prend pas en charge cette catégorie de ressources.", "none": "Aucune ressource avancée correspondante.", "aboutCopy": "Grimoire connecte des agents IA locaux dans Obsidian. La version et les notes de version sont disponibles ici.", "native": "Natif", "nativeCli": "CLI native", "nativeMcpDescription": "Prise en charge native de MCP", "runtimeCommandsPending": "Lancez une fois un chat {provider} pour charger ses commandes natives.", "releases": "Versions"
     },
     "grok": {
       "cliPath": {
@@ -1043,7 +1047,7 @@
       "title": "Paramètres avancés",
       "generalSummary": "Invites, raccourcis, diagnostics, variables d’environnement et plus encore",
       "environmentSummary": "Variables d’environnement et remplacements de contexte",
-      "providerSummary": "Commandes, sous-agents, environnement et remplacements de contexte"
+      "providerSummary": "Compétences, commandes, sous-agents, MCP et environnement"
     },
     "provider": {
       "enableName": "Activer {provider}",
@@ -1179,7 +1183,7 @@
           "name": "Chemin de la CLI Qwen",
           "desc": "Chemin personnalisé vers la CLI Qwen locale. Laissez vide pour lancer `qwen` depuis PATH."
         },
-        "advancedSummary": "Commandes masquées, variables d’environnement et remplacements de contexte",
+        "advancedSummary": "Compétences, commandes, sous-agents, MCP et environnement",
         "hiddenCommands": {
           "name": "Commandes masquées",
           "desc": "Masquez certaines commandes signalées par Qwen Code ACP. Saisissez les noms sans le slash initial, un par ligne.",

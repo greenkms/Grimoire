@@ -53,8 +53,8 @@ Está diseñado para quienes ya trabajan en Obsidian y quieren ayuda de IA que s
 | Reasoning effort controls | Sí | Sí | Sí | Sí | Sí | Sí | Sí | Sí | Sí |
 | Rewind | Sí | No | No | Sí | No | No | No | No | No |
 | Fork | Sí | Sí | No | Sí | No | No | No | No | No |
-| Provider slash commands | Sí | No | Sí | Sí | Sí | Sí | No | No | Sí |
-| Grimoire-managed MCP UI | Sí | No | No | No | No | No | No | No | No |
+| Provider slash commands | Sí | No | Sí | Sí | Sí | Sí | No | Sí | Sí |
+| Grimoire-managed MCP UI | Sí | No | Sí | Sí | Sí | Sí | No | Sí | Sí |
 
 ## Instalación
 
@@ -203,7 +203,7 @@ Inicia `qwen`, elige en `/auth` **Alibaba ModelStudio**, **Third-party Providers
 
 Safe, Auto-approve y Plan se asignan a `default`, `yolo` y `plan` de Qwen; otros modos de Qwen, incluidos los desconocidos, se muestran conservadoramente como Safe en la shared toolbar. Reasoning effort admite Low, Medium, High, XHigh y Max; High es el valor predeterminado. `/effort <tier>` se aplica antes de un turn normal, se guarda en caché por sesión y depende del modelo efectivo. Los metadatos de permisos ACP para preguntas single-select, multi-select y freeform se muestran en la misma UI inline compartida.
 
-Grimoire no gestiona MCP ni credentials de Qwen: configúralos en `~/.qwen/settings.json` y en el entorno o `.env` propiedad de Qwen. El usage aparece solo cuando Qwen informa metadata ACP de tokens o coste. Rewind y fork no están disponibles.
+Qwen conserva la propiedad de sus credentials y configuración nativa en `~/.qwen/settings.json`. Grimoire gestiona una lista MCP de proyecto aislada en `.grimoire/mcp/qwen.json` y la inyecta en las sesiones ACP sin reescribir la configuración nativa de Qwen. El usage aparece solo cuando Qwen informa metadata ACP de tokens o coste. Rewind y fork no están disponibles.
 
 - [Qwen Code documentation](https://qwenlm.github.io/qwen-code-docs/en/)
 - [Qwen Code authentication](https://qwenlm.github.io/qwen-code-docs/en/users/configuration/auth/)

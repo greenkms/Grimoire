@@ -8,3 +8,5 @@
 - Normalize ACP events into shared provider-neutral shapes only when the mapping is stable across ACP providers.
 - Keep provider-specific model/mode discovery, settings UI, launch paths, and history ownership under the concrete provider directory.
 - Prefer current wire traces over guessed method or event shapes when extending ACP support.
+- Grimoire-managed ACP MCP configuration is stored per provider under `.grimoire/mcp/` and converted only at the session boundary. Keep native CLI configuration untouched.
+- ACP session configuration does not currently provide Grimoire's context-saving or per-tool filtering semantics; do not expose those controls for ACP-managed servers.

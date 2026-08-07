@@ -51,8 +51,8 @@ Grimoire 面向已经使用 Obsidian 工作，并希望 AI 助手像仓库的一
 | 推理强度控制 | 是 | 是 | 是 | 是 | 是 | 是 | 是 | 是 | 是 |
 | 回退 | 是 | 否 | 否 | 是 | 否 | 否 | 否 | 否 | 否 |
 | 分叉 | 是 | 是 | 否 | 是 | 否 | 否 | 否 | 否 | 否 |
-| 供应商斜杠命令 | 是 | 否 | 是 | 是 | 是 | 是 | 否 | 否 | 是 |
-| Grimoire 管理的 MCP 界面 | 是 | 否 | 否 | 否 | 否 | 否 | 否 | 否 | 否 |
+| 供应商斜杠命令 | 是 | 否 | 是 | 是 | 是 | 是 | 否 | 是 | 是 |
+| Grimoire 管理的 MCP 界面 | 是 | 否 | 是 | 是 | 是 | 是 | 否 | 是 | 是 |
 
 ## 安装
 
@@ -213,7 +213,7 @@ qwen
 
 推理强度可选 Low、Medium、High、XHigh 和 Max，默认为 High。在普通轮次开始前，Grimoire 会实际执行 Qwen 的 `/effort <tier>` 命令，并在该会话中缓存这一设置；实际生效的级别仍取决于所选模型与供应商。Qwen 的结构化 `AskUserQuestion` 请求通过 ACP 权限元数据传入，并使用 Grimoire 共用的内联提问界面，其中包括单选、多选和自由输入。
 
-Qwen 在 `~/.qwen/settings.json` 中自行管理凭据和配置；应优先使用 CLI，或 Qwen 自己的 `.env` 与环境变量。Grimoire 可以传递供应商环境变量，但不会管理 Qwen 凭据或 MCP 配置。只有当 Qwen 发出 ACP 令牌或费用元数据时，界面才会显示用量。Qwen 目前不支持 Grimoire 的分叉或回退控件。
+Qwen 仍在 `~/.qwen/settings.json` 中自行管理凭据和原生配置。Grimoire 管理 `.grimoire/mcp/qwen.json` 中隔离的项目 MCP 列表，并在不改写 Qwen 原生配置的情况下将其注入 ACP 会话。只有当 Qwen 发出 ACP 令牌或费用元数据时，界面才会显示用量。Qwen 目前不支持 Grimoire 的分叉或回退控件。
 
 ### OpenCode
 

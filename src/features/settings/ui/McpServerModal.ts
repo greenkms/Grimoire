@@ -13,6 +13,11 @@ import { DEFAULT_MCP_SERVER, getMcpServerType } from '../../../core/types';
 import { t } from '../../../i18n/i18n';
 import { parseCommand } from '../../../utils/mcp';
 
+export interface McpServerModalFeatures {
+  contextSaving?: boolean;
+  toolFiltering?: boolean;
+}
+
 export class McpServerModal extends Modal {
   private existingServer: ManagedMcpServer | null;
   private onSave: (server: ManagedMcpServer) => void;
@@ -27,17 +32,23 @@ export class McpServerModal extends Modal {
   private headers = '';
   private typeFieldsEl: HTMLElement | null = null;
   private nameInputEl: HTMLInputElement | null = null;
+  private readonly features: Required<McpServerModalFeatures>;
 
   constructor(
     app: App,
     existingServer: ManagedMcpServer | null,
     onSave: (server: ManagedMcpServer) => void,
     initialType?: McpServerType,
-    prefillConfig?: { name: string; config: McpServerConfig }
+    prefillConfig?: { name: string; config: McpServerConfig },
+    features: McpServerModalFeatures = {},
   ) {
     super(app);
     this.existingServer = existingServer;
     this.onSave = onSave;
+    this.features = {
+      contextSaving: features.contextSaving ?? true,
+      toolFiltering: features.toolFiltering ?? true,
+    };
 
     if (existingServer) {
       this.serverName = existingServer.name;
@@ -51,6 +62,10 @@ export class McpServerModal extends Modal {
       this.initFromConfig(prefillConfig.config);
     } else if (initialType) {
       this.serverType = initialType;
+    }
+
+    if (!this.features.contextSaving) {
+      this.contextSaving = false;
     }
   }
 
@@ -117,15 +132,17 @@ export class McpServerModal extends Modal {
         });
       });
 
-    new Setting(contentEl)
-      .setName(t('settings.mcp.modal.contextSaving'))
-      .setDesc(t('settings.mcp.modal.contextSavingDesc'))
-      .addToggle((toggle) => {
-        toggle.setValue(this.contextSaving);
-        toggle.onChange((value) => {
-          this.contextSaving = value;
+    if (this.features.contextSaving) {
+      new Setting(contentEl)
+        .setName(t('settings.mcp.modal.contextSaving'))
+        .setDesc(t('settings.mcp.modal.contextSavingDesc'))
+        .addToggle((toggle) => {
+          toggle.setValue(this.contextSaving);
+          toggle.onChange((value) => {
+            this.contextSaving = value;
+          });
         });
-      });
+    }
 
     const buttonContainer = contentEl.createDiv({ cls: 'grimoire-mcp-buttons' });
 
@@ -294,7 +311,9 @@ export class McpServerModal extends Modal {
       config,
       enabled: this.enabled,
       contextSaving: this.contextSaving,
-      disabledTools: this.existingServer?.disabledTools,
+      disabledTools: this.features.toolFiltering
+        ? this.existingServer?.disabledTools
+        : undefined,
     };
 
     this.onSave(server);

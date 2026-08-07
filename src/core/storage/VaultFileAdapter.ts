@@ -57,6 +57,13 @@ export class VaultFileAdapter {
     }
   }
 
+  /** Delete a folder and all of its contents. The caller must provide an exact, scoped path. */
+  async deleteFolderRecursive(path: string): Promise<void> {
+    if (await this.exists(path)) {
+      await this.app.vault.adapter.rmdir(path, true);
+    }
+  }
+
   async listFiles(folder: string): Promise<string[]> {
     if (!(await this.exists(folder))) {
       return [];

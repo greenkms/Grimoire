@@ -107,6 +107,7 @@ The project requires Obsidian 1.13.0 or newer and uses the declarative settings 
 | `.grimoire/grimoire-settings.json` | Shared Grimoire app settings plus provider-specific configuration |
 | `.grimoire/sessions/*.meta.json` | Provider-neutral session metadata |
 | `.grimoire/logs/YYYY-MM-DD.jsonl` | Optional sanitized debug logs, written only when Advanced debug logging is enabled |
+| `.grimoire/mcp/<provider>.json` | Grimoire-owned MCP servers injected into ACP sessions for OpenCode, Grok Build, MiMoCode, Kimi Code, Qwen Code, and Gemini CLI |
 | `.grimoire/claude/statusline-usage.json` | Claude Code status-line usage snapshot used to hydrate plan-limit indicators |
 | `.claude/settings.json` | Claude Code-compatible project settings and permissions |
 | `.claude/mcp.json` | Claude-compatible MCP servers plus Grimoire metadata under `_grimoire.servers` |
@@ -115,9 +116,19 @@ The project requires Obsidian 1.13.0 or newer and uses the declarative settings 
 | `.claude/agents/*.md` | Claude vault agents |
 | `.codex/skills/*/SKILL.md` | Codex vault skills |
 | `.codex/agents/*.toml` | Codex vault subagent definitions |
-| `.agents/skills/*/SKILL.md` | Alternate Codex vault skill root |
+| `.agents/skills/*/SKILL.md` | Shared cross-provider vault skills |
+| `.opencode/skills/*/SKILL.md` | OpenCode vault skills |
+| `.mimocode/skills/*/SKILL.md` | MiMoCode vault skills |
+| `.kimi-code/skills/*/SKILL.md` | Kimi Code vault skills |
+| `.grok/skills/*/SKILL.md` | Grok Build vault skills |
+| `.qwen/skills/*/SKILL.md` | Qwen Code vault skills |
+| `.gemini/skills/*/SKILL.md` | Gemini CLI vault skills |
 | `.opencode/agent/**/*.md` | OpenCode agent definitions |
 | `.opencode/agents/**/*.md` | Legacy OpenCode agent definition root |
+| `.qwen/commands/**/*.md` | Qwen project custom commands |
+| `.qwen/agents/*.md` | Qwen project agent definitions |
+| `.gemini/commands/**/*.toml` | Gemini project custom commands |
+| `.gemini/agents/*.md` | Gemini project agent definitions |
 
 The `_grimoire` MCP metadata key and `grimoire-*` internal OpenCode IDs are implementation details, not product copy.
 

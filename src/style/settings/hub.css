@@ -1,0 +1,466 @@
+/* Four-tab settings hub and provider/resource management surfaces. */
+
+.grimoire-settings-provider-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 2px 0 8px;
+}
+
+.grimoire-settings-provider-hint {
+  margin: 0 0 2px;
+  color: var(--text-faint);
+  font-size: var(--font-ui-small);
+}
+
+.grimoire-settings-provider-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: color-mix(
+    in srgb,
+    var(--setting-items-background, var(--background-secondary)) 82%,
+    var(--background-secondary-alt, var(--background-secondary))
+  );
+  color: var(--text-normal);
+  cursor: pointer;
+  transition: background-color 0.14s ease;
+}
+
+.grimoire-settings-provider-card:hover {
+  background: color-mix(
+    in srgb,
+    var(--setting-items-background, var(--background-secondary)) 78%,
+    var(--background-primary)
+  );
+}
+
+.grimoire-settings-provider-card--active {
+  border: 0;
+  background: color-mix(in srgb, var(--interactive-accent) 18%, var(--background-primary));
+}
+
+.grimoire-settings-provider-card--active:hover {
+  background: color-mix(in srgb, var(--interactive-accent) 13%, var(--background-primary));
+}
+
+.grimoire-settings-provider-card-copy {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  gap: 3px;
+}
+
+.grimoire-settings-provider-card-title {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.grimoire-settings-provider-card-name {
+  overflow: hidden;
+  color: var(--text-normal);
+  font-size: 12.5px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-settings-provider-card-meta {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 9px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-settings-provider-card-toggle {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+}
+
+.grimoire-settings-provider-details {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  padding: 12px 0 18px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+}
+
+.grimoire-settings-provider-details > .setting-item,
+.grimoire-settings-provider-details details .setting-item:not(.setting-item-heading) {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  border-radius: 8px;
+}
+
+.grimoire-settings-segmented-nav {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 3px;
+  border-radius: 8px;
+  background: var(--background-secondary);
+}
+
+.grimoire-settings-segmented-nav button {
+  height: auto;
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.grimoire-settings-segmented-nav button:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.grimoire-settings-segmented-nav button.is-active {
+  background: var(--background-primary);
+  box-shadow: var(--shadow-s);
+  color: var(--text-normal);
+}
+
+.grimoire-settings-resource-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 20px;
+  margin: 0 0 8px;
+  padding: 0 0 10px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.grimoire-settings-resource-toolbar-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.grimoire-settings-resource-search {
+  flex: 0 0 230px;
+  width: 230px;
+}
+
+.grimoire-settings-resource-manage {
+  height: 32px;
+  padding-inline: 13px;
+  white-space: nowrap;
+}
+
+.grimoire-settings-resource-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.grimoire-settings-resource-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.8fr) minmax(0, 1fr) 76px;
+  align-items: center;
+  min-width: 0;
+  gap: 12px;
+  padding: 9px 6px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: transparent;
+}
+
+.grimoire-settings-resource-row:not(.is-header):hover {
+  background: var(--background-modifier-hover);
+}
+
+.grimoire-settings-resource-row.is-header {
+  padding-top: 5px;
+  padding-bottom: 7px;
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller);
+}
+
+.grimoire-settings-resource-name {
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
+  gap: 8px;
+  overflow: hidden;
+  font-family: var(--font-monospace);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-settings-resource-name-copy {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.grimoire-settings-resource-name-title,
+.grimoire-settings-resource-description,
+.grimoire-settings-resource-source,
+.grimoire-settings-resource-provider {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoire-settings-resource-name-title {
+  color: var(--text-normal);
+  font-family: var(--font-monospace);
+  font-weight: var(--font-semibold);
+}
+
+.grimoire-settings-resource-description {
+  color: var(--text-faint);
+  font-family: var(--font-interface);
+  font-size: var(--font-ui-smaller);
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.grimoire-settings-resource-dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--text-faint);
+}
+
+.grimoire-settings-resource-dot.is-available,
+.grimoire-settings-resource-dot.is-connected {
+  background: var(--color-green);
+}
+
+.grimoire-settings-resource-dot.is-readonly {
+  background: var(--color-orange);
+}
+
+.grimoire-settings-resource-dot.is-native {
+  background: var(--color-blue);
+}
+
+.grimoire-settings-resource-source {
+  color: var(--text-faint);
+  font-family: var(--font-monospace);
+  font-size: var(--font-ui-smaller);
+}
+
+.grimoire-settings-resource-provider {
+  color: var(--text-muted);
+}
+
+.grimoire-settings-resource-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.grimoire-settings-resource-edit,
+.grimoire-settings-resource-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-muted);
+}
+
+.grimoire-settings-resource-edit:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.grimoire-settings-resource-delete:hover:not(:disabled) {
+  background: var(--background-modifier-error-hover);
+  color: var(--text-error);
+}
+
+.grimoire-settings-resource-delete:disabled {
+  display: none;
+}
+
+.grimoire-settings-resource-readonly,
+.grimoire-settings-resource-loading {
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller);
+}
+
+.grimoire-settings-resource-loading,
+.grimoire-settings-hub-empty {
+  padding: 26px 12px;
+  text-align: center;
+}
+
+.grimoire-settings-hub-empty {
+  color: var(--text-faint);
+}
+
+.grimoire-settings-about {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 720px;
+}
+
+.grimoire-settings-about-copy {
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: var(--background-secondary);
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.grimoire-workspace-manager-modal {
+  width: min(920px, 92vw);
+  max-width: 92vw;
+}
+
+.grimoire-workspace-manager-modal .modal-content {
+  width: auto;
+}
+
+.grimoire-workspace-manager-providers {
+  margin-bottom: 14px;
+}
+
+.grimoire-settings-workspace-modal-content {
+  min-height: 180px;
+  padding: 14px 16px 16px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+}
+
+.grimoire-settings-workspace-modal-content > .setting-item:not(.setting-item-heading),
+.grimoire-settings-workspace-modal-content > .grimoire-workspace-provider-section > .setting-item:not(.setting-item-heading),
+.grimoire-settings-workspace-modal-content > .grimoire-workspace-provider-section details .setting-item:not(.setting-item-heading),
+.grimoire-settings-workspace-modal-content details .setting-item:not(.setting-item-heading) {
+  margin-bottom: 4px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--background-primary);
+}
+
+.grimoire-settings-workspace-modal-content textarea,
+.grimoire-settings-workspace-modal-content input,
+.grimoire-settings-workspace-modal-content .setting-item-control {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.grimoire-workspace-render-staging {
+  display: none;
+}
+
+.grimoire-workspace-provider-section {
+  display: contents;
+}
+
+@media (max-width: 1100px) {
+  .grimoire-settings-provider-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .grimoire-settings-provider-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grimoire-settings-resource-row {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.3fr) 76px;
+  }
+
+  .grimoire-settings-resource-row > :nth-child(3) {
+    display: none;
+  }
+
+  .grimoire-settings-resource-row > :nth-child(4) {
+    display: flex;
+  }
+}
+
+@media (max-width: 560px) {
+  .grimoire-settings-provider-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .grimoire-settings-resource-toolbar,
+  .grimoire-settings-resource-toolbar-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .grimoire-settings-resource-search,
+  .grimoire-settings-resource-manage {
+    width: 100%;
+  }
+
+  .grimoire-settings-resource-search {
+    flex-basis: auto;
+  }
+
+  .grimoire-settings-resource-row {
+    grid-template-columns: minmax(0, 1fr) 76px;
+  }
+
+  .grimoire-settings-resource-row.is-header {
+    display: none;
+  }
+
+  .grimoire-settings-resource-row > :nth-child(1) {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .grimoire-settings-resource-row > :nth-child(2) {
+    display: block;
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .grimoire-settings-resource-row > :nth-child(3) {
+    display: none;
+  }
+
+  .grimoire-settings-resource-row > :nth-child(4) {
+    display: flex;
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .grimoire-workspace-manager-modal {
+    width: 96vw;
+    max-width: 96vw;
+  }
+
+  .grimoire-settings-workspace-modal-content {
+    padding-inline: 10px;
+  }
+}

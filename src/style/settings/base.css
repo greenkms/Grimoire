@@ -64,7 +64,7 @@
 .grimoire-settings-tabs {
   position: relative;
   display: flex;
-  align-items: flex-end;
+  align-items: stretch;
   margin-bottom: 16px;
   padding: 0;
   border-bottom: 1px solid var(--background-modifier-border);
@@ -73,9 +73,11 @@
 .grimoire-settings-tabs-viewport {
   display: flex;
   flex: 1 1 auto;
-  align-items: flex-end;
+  align-items: stretch;
+  justify-content: flex-start;
   min-width: 0;
-  gap: 4px;
+  gap: 2px;
+  padding: 0;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
@@ -93,13 +95,14 @@
   justify-content: center;
   flex: 0 0 auto;
   width: 26px;
-  height: 30px;
+  height: auto;
+  min-height: 0;
   margin: 0 0 -1px;
-  padding: 0;
-  border: 1px solid var(--background-modifier-border);
+  padding: 8px 0;
+  border: 0;
   border-bottom: 2px solid transparent;
-  border-radius: var(--gs-r1) var(--gs-r1) 0 0;
-  background: var(--background-modifier-form-field);
+  border-radius: 0;
+  background: transparent;
   color: var(--text-muted);
   cursor: pointer;
   box-shadow: none;
@@ -173,37 +176,40 @@
   appearance: none;
   box-sizing: border-box;
   min-width: max-content;
-  height: 30px;
+  height: auto;
+  min-height: 0;
   flex: 0 0 auto;
   margin: 0 0 -1px;
-  padding: 0 8px;
-  border: 1px solid var(--background-modifier-border);
-  border-bottom: 2px solid transparent;
-  border-radius: var(--gs-r1) var(--gs-r1) 0 0;
-  background: var(--background-modifier-form-field);
+  padding: 8px 16px;
+  border: 0;
+  border-bottom: 4px solid transparent;
+  border-radius: 0;
+  background: transparent;
   color: var(--text-muted);
   font-size: var(--font-ui-small);
-  font-weight: 400;
-  line-height: 1;
+  font-weight: var(--font-medium);
+  line-height: 1.2;
   white-space: nowrap;
   cursor: pointer;
   box-shadow: none;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
 
 .grimoire-settings-tabs-viewport > .grimoire-settings-tab:hover {
   color: var(--text-normal);
-  background: var(--background-modifier-hover);
+  background: transparent;
+}
+
+.grimoire-settings-tabs-viewport > .grimoire-settings-tab:focus-visible {
+  outline: 2px solid var(--background-modifier-border-focus);
+  outline-offset: -3px;
 }
 
 .grimoire-settings-tabs-viewport > .grimoire-settings-tab--active,
 .grimoire-settings-tabs-viewport > .grimoire-settings-tab--active:hover {
-  border-color: var(--background-modifier-border);
-  border-bottom-width: 3px;
-  border-bottom-color: var(--grimoire-brand);
-  background: rgba(var(--grimoire-brand-rgb), 0.1);
-  color: var(--grimoire-brand);
-  font-weight: 600;
+  border-bottom-color: var(--interactive-accent);
+  background: transparent;
+  color: var(--text-normal);
 }
 
 .grimoire-settings-tab-status {

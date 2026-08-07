@@ -51,8 +51,8 @@ It's built for people who already work in Obsidian and want AI help that behaves
 | Reasoning effort controls | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
 | Rewind | Yes | No | No | Yes | No | No | No | No | No |
 | Fork | Yes | Yes | No | Yes | No | No | No | No | No |
-| Provider slash commands | Yes | No | Yes | Yes | Yes | Yes | No | No | Yes |
-| Grimoire-managed MCP UI | Yes | No | No | No | No | No | No | No | No |
+| Provider slash commands | Yes | No | Yes | Yes | Yes | Yes | No | Yes | Yes |
+| Grimoire-managed MCP UI | Yes | No | Yes | Yes | Yes | Yes | No | Yes | Yes |
 
 ## Installation
 
@@ -213,7 +213,7 @@ If Qwen does not start or no models appear, run `/doctor` inside Qwen Code, comp
 
 Choose Low, Medium, High, XHigh, or Max reasoning effort (High by default). Before a normal turn, Grimoire applies Qwen's real `/effort <tier>` command and caches it for that session; the effective tier still depends on the selected model and provider. Qwen's structured `AskUserQuestion` requests arrive through ACP permission metadata and use Grimoire's shared inline question UI, including single-select, multi-select, and freeform answers.
 
-Qwen owns its credentials and configuration in `~/.qwen/settings.json`; prefer the CLI or Qwen-owned `.env` and environment variables. Grimoire can pass provider environment variables but does not manage Qwen credentials or MCP configuration. Usage appears only when Qwen emits ACP token or cost metadata. Qwen does not currently support Grimoire fork or rewind controls.
+Qwen owns its credentials and native configuration in `~/.qwen/settings.json`; prefer the CLI or Qwen-owned `.env` and environment variables for those settings. Grimoire manages an isolated project MCP list in `.grimoire/mcp/qwen.json` and injects it into ACP sessions without rewriting Qwen's native configuration. Usage appears only when Qwen emits ACP token or cost metadata. Qwen does not currently support Grimoire fork or rewind controls.
 
 ### OpenCode
 

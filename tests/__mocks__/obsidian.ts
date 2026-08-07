@@ -242,6 +242,9 @@ export class DropdownComponent {
 
   onChange(handler: (value: string) => void | Promise<void>): this {
     this.onChangeHandler = handler;
+    this.selectEl?.addEventListener?.('change', () => {
+      void handler(this.selectEl.value ?? '');
+    });
     return this;
   }
 }

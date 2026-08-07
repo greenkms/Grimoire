@@ -190,6 +190,16 @@ const localizedKeys = [
 const staleBangBashDesc =
   'Type ! on empty input to enter bash mode. Runs commands directly via Node.js child_process.';
 
+const hubKeys = [
+  'general', 'providers', 'workspace', 'about', 'cliDetected', 'cliNotDetected',
+  'geminiLegacy', 'providerDetails', 'skills', 'agents', 'mcp', 'environment',
+  'commands', 'search', 'name', 'source', 'provider', 'actions', 'manage',
+  'manageTitle', 'edit', 'delete', 'deleteConfirm', 'deleted', 'deleteFailed',
+  'providerOptions', 'readonly', 'available', 'connected', 'disabled', 'shared',
+  'loading', 'unsupported', 'none', 'aboutCopy', 'native', 'nativeCli',
+  'nativeMcpDescription', 'runtimeCommandsPending', 'releases',
+] as const;
+
 function flattenTranslations(
   translations: TranslationTree,
   prefix = '',
@@ -241,6 +251,15 @@ describe('locale files', () => {
           locale: localeName,
           placeholders: extractPlaceholders(englishValue),
         });
+      }
+    }
+  });
+
+  it('defines Advanced hub copy in every locale', () => {
+    for (const translations of [en, ...Object.values(locales)]) {
+      const locale = flattenTranslations(translations);
+      for (const key of hubKeys) {
+        expect(locale[`settings.hub.${key}`]).toBeTruthy();
       }
     }
   });

@@ -3,16 +3,22 @@ import { Setting } from 'obsidian';
 
 import type { ProviderSettingsTabRenderer } from '../../../core/providers/types';
 import { renderEnvironmentSettingsSection } from '../../../features/settings/ui/EnvironmentSettingsSection';
+import { McpSettingsManager } from '../../../features/settings/ui/McpSettingsManager';
 import { renderProviderDisabledNotice } from '../../../features/settings/ui/ProviderDisabledNotice';
+import { ProviderSkillSettings } from '../../../features/settings/ui/ProviderSkillSettings';
 import { t } from '../../../i18n/i18n';
 import { getHostnameKey } from '../../../utils/env';
 import { expandHomePath } from '../../../utils/path';
+import { maybeGetGeminiWorkspaceServices } from '../app/GeminiWorkspaceServices';
 import { getGeminiProviderSettings, updateGeminiProviderSettings } from '../settings';
+import { GeminiAgentSettings } from './GeminiAgentSettings';
+import { GeminiCommandSettings } from './GeminiCommandSettings';
 
 const GEMINI_CLI_PATH_PLACEHOLDER = '/usr/local/bin/gemini';
 
 export const geminiSettingsTabRenderer: ProviderSettingsTabRenderer = {
   render(container, context) {
+    const geminiWorkspace = maybeGetGeminiWorkspaceServices();
     const settingsBag = context.plugin.settings as unknown as Record<string, unknown>;
     const geminiSettings = getGeminiProviderSettings(settingsBag);
     const hostnameKey = getHostnameKey();
@@ -92,12 +98,65 @@ export const geminiSettingsTabRenderer: ProviderSettingsTabRenderer = {
     });
 
     const advancedContainer = context.renderAdvancedSection(container, {
-      count: 2,
-      summary: t('settings.advanced.environmentSummary'),
+      count: 6,
+      summary: t('settings.advanced.providerSummary'),
     });
 
+    const skillsSection = context.createWorkspaceSection(advancedContainer, ['skills']);
+    new Setting(skillsSection).setName(t('settings.hub.skills')).setHeading();
+    if (geminiWorkspace?.commandCatalog) {
+      const skillsContainer = skillsSection.createDiv({ cls: 'grimoire-slash-commands-container' });
+      new ProviderSkillSettings(
+        skillsContainer,
+        context.plugin.app,
+        'gemini',
+        geminiWorkspace.commandCatalog,
+      );
+    }
+
+    if (geminiWorkspace?.commandCatalog) {
+      const commandsSection = context.createWorkspaceSection(advancedContainer, ['commands']);
+      new Setting(commandsSection).setName(t('settings.slashCommands.name')).setHeading();
+      const commandsContainer = commandsSection.createDiv({ cls: 'grimoire-slash-commands-container' });
+      new GeminiCommandSettings(
+        commandsContainer,
+        context.plugin.app,
+        geminiWorkspace.commandCatalog,
+      );
+    }
+
+    if (geminiWorkspace?.agentStorage) {
+      const agentsSection = context.createWorkspaceSection(advancedContainer, ['agents']);
+      new Setting(agentsSection).setName(t('settings.subagents.name')).setHeading();
+      const agentsContainer = agentsSection.createDiv({ cls: 'grimoire-slash-commands-container' });
+      new GeminiAgentSettings(
+        agentsContainer,
+        geminiWorkspace.agentStorage,
+        context.plugin.app,
+      );
+    }
+
+    if (geminiWorkspace?.mcpStorage) {
+      const mcpSection = context.createWorkspaceSection(advancedContainer, ['mcp']);
+      new Setting(mcpSection).setName(t('settings.mcpServers.name')).setHeading();
+      const mcpContainer = mcpSection.createDiv({ cls: 'grimoire-mcp-container' });
+      new McpSettingsManager(mcpContainer, {
+        app: context.plugin.app,
+        mcpStorage: geminiWorkspace.mcpStorage,
+        broadcastMcpReload: async () => {
+          for (const view of context.plugin.getAllViews()) {
+            await view.getTabManager()?.broadcastToProviderTabs?.(
+              'gemini',
+              (service) => service.reloadMcpServers(),
+            );
+          }
+        },
+        features: { contextSaving: false, toolFiltering: false },
+      });
+    }
+
     renderEnvironmentSettingsSection({
-      container: advancedContainer,
+      container: context.createWorkspaceSection(advancedContainer, ['environment']),
       plugin: context.plugin,
       scope: 'provider:gemini',
       heading: t('settings.environment'),

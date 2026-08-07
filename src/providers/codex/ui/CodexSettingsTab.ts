@@ -341,23 +341,25 @@ export const codexSettingsTabRenderer: ProviderSettingsTabRenderer = {
       summary: t('settings.providerTabs.codex.advancedSummary'),
     });
 
+    const skillsSection = context.createWorkspaceSection(advancedContainer, ['skills']);
+
     // --- Skills ---
 
     const codexCatalog = codexWorkspace.commandCatalog;
     if (codexCatalog) {
-      new Setting(advancedContainer).setName(t('settings.providerTabs.codex.skills.name')).setHeading();
+      new Setting(skillsSection).setName(t('settings.providerTabs.codex.skills.name')).setHeading();
 
-      const skillsDesc = advancedContainer.createDiv({ cls: 'grimoire-sp-settings-desc' });
+      const skillsDesc = skillsSection.createDiv({ cls: 'grimoire-sp-settings-desc' });
       skillsDesc.createEl('p', {
         cls: 'setting-item-description',
         text: t('settings.providerTabs.codex.skills.desc'),
       });
 
-      const skillsContainer = advancedContainer.createDiv({ cls: 'grimoire-slash-commands-container' });
+      const skillsContainer = skillsSection.createDiv({ cls: 'grimoire-slash-commands-container' });
       new CodexSkillSettings(skillsContainer, codexCatalog, context.plugin.app);
     }
 
-    context.renderHiddenProviderCommandSetting(advancedContainer, 'codex', {
+    context.renderHiddenProviderCommandSetting(skillsSection, 'codex', {
       name: t('settings.providerTabs.codex.hiddenSkills.name'),
       desc: t('settings.providerTabs.codex.hiddenSkills.desc'),
       placeholder: 'analyze\nexplain\nfix',
@@ -365,23 +367,25 @@ export const codexSettingsTabRenderer: ProviderSettingsTabRenderer = {
 
     // --- Subagents ---
 
-    new Setting(advancedContainer).setName(t('settings.providerTabs.codex.subagents.name')).setHeading();
+    const agentsSection = context.createWorkspaceSection(advancedContainer, ['agents']);
+    new Setting(agentsSection).setName(t('settings.providerTabs.codex.subagents.name')).setHeading();
 
-    const subagentDesc = advancedContainer.createDiv({ cls: 'grimoire-sp-settings-desc' });
+    const subagentDesc = agentsSection.createDiv({ cls: 'grimoire-sp-settings-desc' });
     subagentDesc.createEl('p', {
       cls: 'setting-item-description',
       text: t('settings.providerTabs.codex.subagents.desc'),
     });
 
-    const subagentContainer = advancedContainer.createDiv({ cls: 'grimoire-slash-commands-container' });
+    const subagentContainer = agentsSection.createDiv({ cls: 'grimoire-slash-commands-container' });
     new CodexSubagentSettings(subagentContainer, codexWorkspace.subagentStorage, context.plugin.app, () => {
       void codexWorkspace.refreshAgentMentions?.();
     });
 
     // --- MCP Servers ---
 
-    new Setting(advancedContainer).setName(t('settings.mcpServers.name')).setHeading();
-    const mcpNotice = advancedContainer.createDiv({ cls: 'grimoire-mcp-settings-desc' });
+    const mcpSection = context.createWorkspaceSection(advancedContainer, ['mcp']);
+    new Setting(mcpSection).setName(t('settings.mcpServers.name')).setHeading();
+    const mcpNotice = mcpSection.createDiv({ cls: 'grimoire-mcp-settings-desc' });
     const mcpDesc = mcpNotice.createEl('p', { cls: 'setting-item-description' });
     mcpDesc.appendText(t('settings.providerTabs.codex.mcp.beforeCommand'));
     mcpDesc.createEl('code').appendText('codex mcp');
@@ -394,7 +398,7 @@ export const codexSettingsTabRenderer: ProviderSettingsTabRenderer = {
     // --- Environment ---
 
     renderEnvironmentSettingsSection({
-      container: advancedContainer,
+      container: context.createWorkspaceSection(advancedContainer, ['environment']),
       plugin: context.plugin,
       scope: 'provider:codex',
       heading: t('settings.environment'),

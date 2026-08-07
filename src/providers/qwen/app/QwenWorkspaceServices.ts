@@ -1,3 +1,5 @@
+import { McpServerManager } from '../../../core/mcp/McpServerManager';
+import type { ProviderCommandCatalog } from '../../../core/providers/commands/ProviderCommandCatalog';
 import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
 import type {
   ProviderCliResolver,
@@ -6,16 +8,24 @@ import type {
   ProviderWorkspaceRegistration,
   ProviderWorkspaceServices,
 } from '../../../core/providers/types';
+import type { VaultFileAdapter } from '../../../core/storage/VaultFileAdapter';
 import type GrimoirePlugin from '../../../main';
+import { AcpMcpStorage } from '../../acp/mcp/AcpMcpStorage';
+import { QwenCommandCatalog } from '../commands/QwenCommandCatalog';
 import { QwenChatRuntime } from '../runtime/QwenChatRuntime';
 import { QwenCliResolver } from '../runtime/QwenCliResolver';
 import { getQwenProviderSettings } from '../settings';
+import { QwenAgentStorage } from '../storage/QwenAgentStorage';
 import { qwenSettingsTabRenderer } from '../ui/QwenSettingsTab';
 import { qwenPlanUsageStore } from './QwenPlanUsageStore';
 
 export interface QwenWorkspaceServices extends ProviderWorkspaceServices {
+  agentStorage: QwenAgentStorage;
+  commandCatalog: ProviderCommandCatalog;
   cliResolver: ProviderCliResolver;
   modelCatalog: ProviderModelCatalog;
+  mcpStorage: AcpMcpStorage;
+  mcpServerManager: McpServerManager;
 }
 
 function createQwenCliResolver(): ProviderCliResolver {
@@ -47,10 +57,21 @@ function createQwenModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
   };
 }
 
-export async function createQwenWorkspaceServices(plugin: GrimoirePlugin): Promise<QwenWorkspaceServices> {
+export async function createQwenWorkspaceServices(
+  plugin: GrimoirePlugin,
+  vaultAdapter: VaultFileAdapter,
+): Promise<QwenWorkspaceServices> {
+  const mcpStorage = new AcpMcpStorage(vaultAdapter, 'qwen');
+  const mcpServerManager = new McpServerManager(mcpStorage);
+  await mcpServerManager.loadServers();
+  const agentStorage = new QwenAgentStorage(vaultAdapter);
   return {
+    agentStorage,
+    commandCatalog: new QwenCommandCatalog(vaultAdapter),
     cliResolver: createQwenCliResolver(),
     modelCatalog: createQwenModelCatalog(plugin),
+    mcpStorage,
+    mcpServerManager,
     usageProvider: qwenPlanUsageStore,
     settingsTabRenderer: qwenSettingsTabRenderer,
     tabWarmupPolicy: qwenTabWarmupPolicy,
@@ -58,7 +79,14 @@ export async function createQwenWorkspaceServices(plugin: GrimoirePlugin): Promi
 }
 
 export const qwenWorkspaceRegistration: ProviderWorkspaceRegistration<QwenWorkspaceServices> = {
-  initialize: async ({ plugin }) => createQwenWorkspaceServices(plugin),
+  workspaceCapabilities: {
+    skills: { inventory: 'managed', manager: 'managed' },
+    commands: { inventory: 'managed', manager: 'managed', runtimeCommandDiscovery: 'active-session-only' },
+    agents: { inventory: 'managed', manager: 'managed' },
+    mcp: { inventory: 'managed', manager: 'managed' },
+    environment: { inventory: 'managed', manager: 'managed' },
+  },
+  initialize: async ({ plugin, vaultAdapter }) => createQwenWorkspaceServices(plugin, vaultAdapter),
 };
 
 export function maybeGetQwenWorkspaceServices(): QwenWorkspaceServices | null {

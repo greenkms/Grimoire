@@ -1,3 +1,4 @@
+import { McpServerManager } from '../../../core/mcp/McpServerManager';
 import type { ProviderCommandCatalog } from '../../../core/providers/commands/ProviderCommandCatalog';
 import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
 import type {
@@ -8,6 +9,7 @@ import type {
 } from '../../../core/providers/types';
 import type { VaultFileAdapter } from '../../../core/storage/VaultFileAdapter';
 import type GrimoirePlugin from '../../../main';
+import { AcpMcpStorage } from '../../acp/mcp/AcpMcpStorage';
 import { KimicodeAgentMentionProvider } from '../agents/KimicodeAgentMentionProvider';
 import { KimicodeCommandCatalog } from '../commands/KimicodeCommandCatalog';
 import { KimicodeChatRuntime } from '../runtime/KimicodeChatRuntime';
@@ -23,6 +25,8 @@ export interface KimicodeWorkspaceServices extends ProviderWorkspaceServices {
   agentMentionProvider: KimicodeAgentMentionProvider;
   commandCatalog: ProviderCommandCatalog;
   modelCatalog: ProviderModelCatalog;
+  mcpStorage: AcpMcpStorage;
+  mcpServerManager: McpServerManager;
 }
 
 const KIMICODE_METADATA_WARMUP_DB = ':memory:';
@@ -105,6 +109,9 @@ export async function createKimicodeWorkspaceServices(
   plugin: GrimoirePlugin,
   vaultAdapter: VaultFileAdapter,
 ): Promise<KimicodeWorkspaceServices> {
+  const mcpStorage = new AcpMcpStorage(vaultAdapter, 'kimicode');
+  const mcpServerManager = new McpServerManager(mcpStorage);
+  await mcpServerManager.loadServers();
   const agentStorage = new KimicodeAgentStorage(vaultAdapter);
   const agentMentionProvider = new KimicodeAgentMentionProvider(agentStorage);
   await agentMentionProvider.loadAgents();
@@ -112,9 +119,11 @@ export async function createKimicodeWorkspaceServices(
   return {
     agentStorage,
     agentMentionProvider,
-    commandCatalog: new KimicodeCommandCatalog(),
+    commandCatalog: new KimicodeCommandCatalog(vaultAdapter),
     cliResolver: new KimicodeCliResolver(),
     modelCatalog: createKimicodeModelCatalog(plugin),
+    mcpStorage,
+    mcpServerManager,
     usageProvider: kimicodePlanUsageStore,
     runtimeCommandLoader: new KimicodeRuntimeCommandLoader(),
     settingsTabRenderer: kimicodeSettingsTabRenderer,
@@ -126,6 +135,13 @@ export async function createKimicodeWorkspaceServices(
 }
 
 export const kimicodeWorkspaceRegistration: ProviderWorkspaceRegistration<KimicodeWorkspaceServices> = {
+  workspaceCapabilities: {
+    skills: { inventory: 'managed', manager: 'managed' },
+    commands: { inventory: 'readonly', manager: 'managed', runtimeCommandDiscovery: 'ephemeral' },
+    agents: { inventory: 'managed', manager: 'managed' },
+    mcp: { inventory: 'managed', manager: 'managed' },
+    environment: { inventory: 'managed', manager: 'managed' },
+  },
   initialize: async ({ plugin, vaultAdapter }) => createKimicodeWorkspaceServices(plugin, vaultAdapter),
 };
 

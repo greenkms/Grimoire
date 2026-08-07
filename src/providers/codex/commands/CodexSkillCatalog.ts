@@ -11,6 +11,8 @@ import {
   getCodexSkillDescription,
 } from '../skills/CodexSkillListingService';
 import {
+  AGENTS_VAULT_SKILLS_PATH,
+  CODEX_VAULT_SKILLS_PATH,
   type CodexSkillStorage,
   createCodexSkillPersistenceKey,
   parseCodexSkillPersistenceKey,
@@ -130,6 +132,9 @@ export class CodexSkillCatalog implements ProviderCommandCatalog {
         isDeletable: true,
         displayPrefix: '$',
         insertPrefix: '$',
+        storagePath: location.rootId === 'vault-agents'
+          ? AGENTS_VAULT_SKILLS_PATH
+          : CODEX_VAULT_SKILLS_PATH,
         persistenceKey: createCodexSkillPersistenceKey({
           rootId: location.rootId,
           currentName: location.name,

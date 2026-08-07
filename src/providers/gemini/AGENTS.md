@@ -15,7 +15,8 @@
 
 - Keep Gemini-specific runtime behavior in `src/providers/gemini/`.
 - Keep protocol-generic JSON-RPC behavior in `src/providers/acp/`.
-- Do not add Gemini MCP management UI until the provider has a clear Grimoire-owned MCP storage and reconciliation design.
+- Grimoire-owned MCP servers live in `.grimoire/mcp/gemini.json` and are injected into ACP session creation and loading. Do not rewrite Gemini's native MCP configuration.
+- Gemini project skills, commands, and agents use `.gemini/skills/`, `.agents/skills/`, `.gemini/commands/**/*.toml`, and `.gemini/agents/*.md`. Use structured TOML/YAML parsing and preserve unknown fields when editing managed files.
 - Prefer live ACP wire traces over guessed event shapes when expanding support.
 
 ## Launch

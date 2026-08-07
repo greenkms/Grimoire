@@ -53,8 +53,8 @@ Grimoire は、すでに Obsidian で作業している人のために作られ�
 | Reasoning effort controls | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
 | Rewind | Yes | No | No | Yes | No | No | No | No | No |
 | Fork | Yes | Yes | No | Yes | No | No | No | No | No |
-| Provider slash commands | Yes | No | Yes | Yes | Yes | Yes | No | No | Yes |
-| Grimoire-managed MCP UI | Yes | No | No | No | No | No | No | No | No |
+| Provider slash commands | Yes | No | Yes | Yes | Yes | Yes | No | Yes | Yes |
+| Grimoire-managed MCP UI | Yes | No | Yes | Yes | Yes | Yes | No | Yes | Yes |
 
 ## インストール
 
@@ -205,7 +205,7 @@ qwen
 
 Safe、Auto-approve、Plan は Qwen の `default`、`yolo`、`plan` に対応します。その他または不明な Qwen modes は shared toolbar で保守的に Safe と表示されます。Reasoning effort は Low、Medium、High、XHigh、Max をサポートし、デフォルトは High です。`/effort <tier>` は通常の turn の前に適用され、session ごとに cache され、effective model に依存します。single-select、multi-select、freeform questions の ACP permission metadata は shared inline UI に表示されます。
 
-Grimoire は Qwen の MCP や credentials を管理しません。`~/.qwen/settings.json` と Qwen が所有する environment または `.env` で設定してください。Usage は Qwen が ACP の token または cost metadata を報告した場合だけ表示されます。Rewind と fork はサポートしません。
+Qwen の credentials と native configuration は引き続き `~/.qwen/settings.json` で Qwen が管理します。Grimoire は `.grimoire/mcp/qwen.json` に分離された project MCP list を管理し、Qwen の native configuration を書き換えずに ACP sessions へ渡します。Usage は Qwen が ACP の token または cost metadata を報告した場合だけ表示されます。Rewind と fork はサポートしません。
 
 - [Qwen Code documentation](https://qwenlm.github.io/qwen-code-docs/en/)
 - [Qwen Code authentication](https://qwenlm.github.io/qwen-code-docs/en/users/configuration/auth/)

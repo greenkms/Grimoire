@@ -361,6 +361,8 @@ function createPlugin(overrides: Record<string, unknown> = {}): any {
 function createContext(plugin: any) {
   return {
     plugin,
+    suppressAutomaticDiscovery: false,
+    createWorkspaceSection: jest.fn((container: any) => container),
     renderHiddenProviderCommandSetting: jest.fn(),
     refreshModelSelectors: jest.fn(),
     renderCustomContextLimits: jest.fn(),

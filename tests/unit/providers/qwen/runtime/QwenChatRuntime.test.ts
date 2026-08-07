@@ -1,5 +1,6 @@
 import * as fs from 'node:fs/promises';
 
+import { ProviderWorkspaceRegistry } from '@/core/providers/ProviderWorkspaceRegistry';
 import type { StreamChunk } from '@/core/types';
 import type { AcpContentBlock } from '@/providers/acp';
 import { QwenChatRuntime } from '@/providers/qwen/runtime/QwenChatRuntime';
@@ -46,6 +47,15 @@ describe('QwenChatRuntime', () => {
 
     await expect(runtime.ensureReady()).resolves.toBe(false);
     expect(runtime.isReady()).toBe(false);
+  });
+
+  it('recycles the ACP process after managed workspace resources change', async () => {
+    const runtime = new QwenChatRuntime(createMockPlugin());
+    const shutdown = jest.spyOn(runtime as any, 'shutdownProcess').mockResolvedValue(undefined);
+
+    await runtime.reloadWorkspaceResources();
+
+    expect(shutdown).toHaveBeenCalledTimes(1);
   });
 
   it('launches Qwen in ACP mode', async () => {
@@ -344,6 +354,38 @@ describe('QwenChatRuntime', () => {
 
     await expect((runtime as any).loadSession('requested-id', '/tmp/grimoire-qwen-test-vault')).resolves.toBe(true);
     expect(runtime.getSessionId()).toBe('requested-id');
+  });
+
+  it('passes enabled Grimoire-managed MCP servers into ACP sessions', async () => {
+    jest.spyOn(ProviderWorkspaceRegistry, 'getMcpServerManager').mockReturnValue({
+      getServers: () => [{
+        name: 'vault-search',
+        config: { command: 'node', args: ['server.js'], env: { TOKEN: 'secret' } },
+        contextSaving: false,
+        enabled: true,
+      }],
+    } as any);
+    const runtime = new QwenChatRuntime(createMockPlugin());
+    const newSession = jest.fn().mockResolvedValue({
+      configOptions: null,
+      models: null,
+      modes: null,
+      sessionId: 'session-mcp',
+    });
+    (runtime as any).connection = { newSession };
+
+    await expect((runtime as any).createSession('/tmp/grimoire-qwen-test-vault'))
+      .resolves.toBe('session-mcp');
+
+    expect(newSession).toHaveBeenCalledWith({
+      cwd: '/tmp/grimoire-qwen-test-vault',
+      mcpServers: [{
+        args: ['server.js'],
+        command: 'node',
+        env: [{ name: 'TOKEN', value: 'secret' }],
+        name: 'vault-search',
+      }],
+    });
   });
 
   it('maps ACP approval decisions to the supplied option ids', async () => {

@@ -76,6 +76,14 @@ jest.mock('@/features/settings/ui/EnvironmentSettingsSection', () => ({
   renderEnvironmentSettingsSection: (...args: unknown[]) => mockRenderEnvironmentSettingsSection(...args),
 }));
 
+jest.mock('@/features/settings/ui/ProviderSkillSettings', () => ({
+  ProviderSkillSettings: jest.fn(),
+}));
+
+jest.mock('@/features/settings/ui/McpSettingsManager', () => ({
+  McpSettingsManager: jest.fn(),
+}));
+
 jest.mock('@/providers/grok/ui/GrokAgentSettings', () => ({
   GrokAgentSettings: class MockGrokAgentSettings {
     constructor(
@@ -397,6 +405,8 @@ function createPlugin(overrides: Record<string, unknown> = {}): any {
 function createContext(plugin: any) {
   return {
     plugin,
+    suppressAutomaticDiscovery: false,
+    createWorkspaceSection: jest.fn((container: any) => container),
     renderHiddenProviderCommandSetting: jest.fn(),
     refreshModelSelectors: jest.fn(),
     renderCustomContextLimits: jest.fn(),
@@ -468,6 +478,8 @@ describe('GrokSettingsTab', () => {
 
     grokSettingsTabRenderer.render(createContainer(), context);
 
+    expect(findSetting(t('settings.hub.skills')).heading).toBe(true);
+    expect(context.createWorkspaceSection).toHaveBeenCalledWith(expect.anything(), ['skills']);
     expect(findSetting(t('settings.slashCommands.name')).heading).toBe(true);
     expect(context.renderHiddenProviderCommandSetting).toHaveBeenCalledWith(
       expect.anything(),
@@ -605,6 +617,20 @@ describe('GrokSettingsTab', () => {
     );
     expect(mockRuntimeCleanup).toHaveBeenCalledTimes(1);
     expect(context.refreshModelSelectors).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not create a Grok session while settings are rendered for workspace extraction', async () => {
+    const plugin = createPlugin();
+    const context = createContext(plugin);
+    context.suppressAutomaticDiscovery = true;
+
+    grokSettingsTabRenderer.render(createContainer(), context);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(mockRuntimeSyncConversationState).not.toHaveBeenCalled();
+    expect(mockRuntimeEnsureReady).not.toHaveBeenCalled();
+    expect(mockRuntimeCleanup).not.toHaveBeenCalled();
   });
 
   it('warms and persists thinking metadata when a model is added to the visible list', async () => {

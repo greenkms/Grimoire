@@ -1,8 +1,6 @@
-import * as fs from 'node:fs';
-
 import { getRuntimeEnvironmentText } from '../../../core/providers/providerEnvironment';
 import { getHostnameKey } from '../../../utils/env';
-import { expandHomePath } from '../../../utils/path';
+import { resolveCliExecutable } from '../../../utils/resolveCliExecutable';
 import { getGeminiProviderSettings } from '../settings';
 
 export class GeminiCliResolver {
@@ -41,10 +39,10 @@ export class GeminiCliResolver {
   resolve(
     hostnamePaths: Record<string, string> | undefined,
     legacyPath: string,
-    _envText: string,
+    envText: string,
   ): string | null {
     const hostnamePath = (hostnamePaths?.[this.cachedHostname] ?? '').trim();
-    return resolveConfiguredCliPath(hostnamePath) ?? resolveConfiguredCliPath(legacyPath.trim());
+    return resolveCliExecutable('gemini', [hostnamePath, legacyPath], envText);
   }
 
   reset(): void {
@@ -53,21 +51,4 @@ export class GeminiCliResolver {
     this.lastHostnamePath = '';
     this.resolvedPath = null;
   }
-}
-
-function resolveConfiguredCliPath(cliPath: string): string | null {
-  if (!cliPath) {
-    return null;
-  }
-
-  try {
-    const expanded = expandHomePath(cliPath);
-    if (fs.existsSync(expanded) && fs.statSync(expanded).isFile()) {
-      return expanded;
-    }
-  } catch {
-    return null;
-  }
-
-  return null;
 }

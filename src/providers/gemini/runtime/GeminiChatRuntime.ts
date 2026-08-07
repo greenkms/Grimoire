@@ -3,6 +3,7 @@ import * as path from 'node:path';
 
 import { applyOrchestratorModeInstructions } from '../../../core/prompt/mainAgent';
 import { ProviderRegistry } from '../../../core/providers/ProviderRegistry';
+import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
 import type { ProviderCapabilities } from '../../../core/providers/types';
 import type { ChatRuntime } from '../../../core/runtime/ChatRuntime';
 import type {
@@ -58,6 +59,7 @@ import {
   extractAcpSessionModeState,
   resolveWorkspacePath,
 } from '../../acp';
+import { toAcpMcpServers } from '../../acp/mcp/toAcpMcpServers';
 import { geminiPlanUsageStore } from '../app/GeminiPlanUsageStore';
 import { GEMINI_PROVIDER_CAPABILITIES } from '../capabilities';
 import {
@@ -186,7 +188,10 @@ export class GeminiChatRuntime implements ChatRuntime {
     this.sessionId = nextSessionId;
   }
 
-  async reloadMcpServers(): Promise<void> {}
+  async reloadMcpServers(): Promise<void> {
+    await ProviderWorkspaceRegistry.getMcpServerManager('gemini')?.loadServers();
+    await this.shutdownProcess();
+  }
 
   async ensureReady(options?: ChatRuntimeEnsureReadyOptions): Promise<boolean> {
     const settings = getGeminiProviderSettings(this.plugin.settings);
@@ -518,7 +523,7 @@ export class GeminiChatRuntime implements ChatRuntime {
     try {
       const response = await this.connection.newSession({
         cwd,
-        mcpServers: [],
+        mcpServers: this.getMcpServers(),
       });
       this.loadedSessionId = response.sessionId;
       this.sessionId = response.sessionId;
@@ -542,7 +547,7 @@ export class GeminiChatRuntime implements ChatRuntime {
     try {
       const response = await this.connection.loadSession({
         cwd,
-        mcpServers: [],
+        mcpServers: this.getMcpServers(),
         sessionId,
       });
       this.sessionInvalidated = false;
@@ -558,6 +563,11 @@ export class GeminiChatRuntime implements ChatRuntime {
     } catch {
       return false;
     }
+  }
+
+  private getMcpServers() {
+    const servers = ProviderWorkspaceRegistry.getMcpServerManager('gemini')?.getServers() ?? [];
+    return toAcpMcpServers(servers);
   }
 
   private async handleSessionNotification(notification: AcpSessionNotification): Promise<void> {

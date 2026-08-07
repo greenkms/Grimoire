@@ -132,6 +132,7 @@ export interface AppSkillStorage {
 }
 
 export interface AppAgentStorage {
+  loadAll(): Promise<AgentDefinition[]>;
   load(agent: AgentDefinition): Promise<AgentDefinition | null>;
   save(agent: AgentDefinition): Promise<void>;
   delete(agent: AgentDefinition): Promise<void>;
@@ -409,6 +410,28 @@ export interface ProviderTabWarmupPolicy {
   resolveMode(context: ProviderTabWarmupContext): ProviderTabWarmupMode;
 }
 
+export type ProviderWorkspaceResourceKind =
+  | 'skills'
+  | 'commands'
+  | 'agents'
+  | 'mcp'
+  | 'environment';
+
+export type ProviderWorkspaceInventoryAccess = 'managed' | 'readonly' | 'none';
+export type ProviderWorkspaceManagerAccess = 'managed' | 'guidance' | 'none';
+export type ProviderRuntimeCommandDiscovery = 'ephemeral' | 'active-session-only' | 'none';
+
+export interface ProviderWorkspaceResourceCapability {
+  inventory: ProviderWorkspaceInventoryAccess;
+  manager: ProviderWorkspaceManagerAccess;
+  runtimeCommandDiscovery?: ProviderRuntimeCommandDiscovery;
+}
+
+export type ProviderWorkspaceCapabilities = Record<
+  ProviderWorkspaceResourceKind,
+  ProviderWorkspaceResourceCapability
+>;
+
 export interface ProviderWorkspaceServices {
   commandCatalog?: ProviderCommandCatalog | null;
   agentMentionProvider?: AgentMentionProvider | null;
@@ -417,6 +440,7 @@ export interface ProviderWorkspaceServices {
   usageProvider?: ProviderPlanUsageProvider | null;
   runtimeCommandLoader?: ProviderRuntimeCommandLoader | null;
   tabWarmupPolicy?: ProviderTabWarmupPolicy | null;
+  mcpStorage?: AppMcpStorage | null;
   mcpServerManager?: McpServerManager | null;
   settingsTabRenderer?: ProviderSettingsTabRenderer | null;
   refreshAgentMentions?(): Promise<void>;
@@ -424,6 +448,11 @@ export interface ProviderWorkspaceServices {
 
 export interface ProviderSettingsTabRendererContext {
   plugin: GrimoirePlugin;
+  suppressAutomaticDiscovery: boolean;
+  createWorkspaceSection(
+    container: HTMLElement,
+    sections: ProviderWorkspaceResourceKind[],
+  ): HTMLElement;
   renderHiddenProviderCommandSetting(
     container: HTMLElement,
     providerId: ProviderId,
@@ -451,6 +480,7 @@ export interface ProviderWorkspaceInitContext {
 export interface ProviderWorkspaceRegistration<
   TServices extends ProviderWorkspaceServices = ProviderWorkspaceServices,
 > {
+  workspaceCapabilities: ProviderWorkspaceCapabilities;
   initialize(context: ProviderWorkspaceInitContext): Promise<TServices>;
 }
 

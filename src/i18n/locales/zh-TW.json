@@ -912,6 +912,7 @@
       "changeFailed": "切換專案工作區失敗"
     },
     "providers": {
+      "selectionHint": "選擇供應商卡片以查看下方設定。",
       "grok": {
         "desc": "xAI 的 agentic coding CLI，支援 plan mode、subagents、skills 和 MCP。"
       },
@@ -939,6 +940,9 @@
       "qwen": {
         "desc": "透過原生 Agent Client Protocol 執行的阿里巴巴 Qwen Code。"
       }
+    },
+    "hub": {
+      "general": "一般", "providers": "供應商", "workspace": "進階設定", "about": "關於", "cliDetected": "已偵測到 CLI", "cliNotDetected": "未偵測到 CLI", "geminiLegacy": "Gemini CLI（舊版）", "providerDetails": "{provider} 設定", "skills": "技能", "agents": "子代理", "mcp": "MCP", "environment": "環境", "commands": "命令", "search": "搜尋名稱、說明、來源或供應商", "name": "名稱", "source": "來源", "provider": "供應商", "actions": "操作", "manage": "管理", "manageTitle": "管理 {section}", "edit": "編輯", "delete": "刪除", "deleteConfirm": "確定刪除「{name}」嗎？", "deleted": "已刪除「{name}」", "deleteFailed": "刪除失敗：{message}", "providerOptions": "供應商進階選項", "readonly": "唯讀", "available": "可用", "connected": "已連線", "disabled": "已停用", "shared": "共用", "loading": "正在載入資源…", "unsupported": "目前供應商不支援此類資源管理。", "none": "沒有相符的進階設定資源。", "aboutCopy": "Grimoire 在 Obsidian 中連接本機 AI Agent。此處保留外掛版本、說明和更新入口。", "native": "原生", "nativeCli": "原生 CLI", "nativeMcpDescription": "原生 MCP 支援", "runtimeCommandsPending": "啟動一次 {provider} 聊天以載入其原生命令。", "releases": "發布版本"
     },
     "grok": {
       "cliPath": {
@@ -1043,7 +1047,7 @@
       "title": "進階設定",
       "generalSummary": "提示、快速鍵、診斷、環境變數及更多項目",
       "environmentSummary": "環境變數與脈絡覆寫",
-      "providerSummary": "指令、子代理、環境與脈絡覆寫"
+      "providerSummary": "技能、指令、子代理、MCP 與環境"
     },
     "provider": {
       "enableName": "啟用 {provider}",
@@ -1179,7 +1183,7 @@
           "name": "Qwen CLI 路徑",
           "desc": "Qwen CLI 的本機路徑。留空則從 PATH 啟動 `qwen`。"
         },
-        "advancedSummary": "隱藏命令、環境變數與上下文覆寫",
+        "advancedSummary": "技能、指令、子代理、MCP 與環境",
         "hiddenCommands": {
           "name": "隱藏的命令",
           "desc": "隱藏 Qwen Code ACP 回報的指定命令。每行輸入一個不含斜線前綴的名稱。",

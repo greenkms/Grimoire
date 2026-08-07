@@ -8,6 +8,7 @@ import {
 import { getRuntimeEnvironmentText } from '../../../core/providers/providerEnvironment';
 import { ProviderRegistry } from '../../../core/providers/ProviderRegistry';
 import { ProviderSettingsCoordinator } from '../../../core/providers/ProviderSettingsCoordinator';
+import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
 import type {
   ProviderCapabilities,
 } from '../../../core/providers/types';
@@ -70,6 +71,7 @@ import {
   JsonRpcTransportClosedError,
   resolveWorkspacePath,
 } from '../../acp';
+import { toAcpMcpServers } from '../../acp/mcp/toAcpMcpServers';
 import { mimocodePlanUsageStore } from '../app/MimocodePlanUsageStore';
 import { MIMOCODE_PROVIDER_CAPABILITIES } from '../capabilities';
 import { updateMimocodeDiscoveryState } from '../discoveryState';
@@ -249,7 +251,10 @@ export class MimocodeChatRuntime implements ChatRuntime {
     }
   }
 
-  async reloadMcpServers(): Promise<void> {}
+  async reloadMcpServers(): Promise<void> {
+    await ProviderWorkspaceRegistry.getMcpServerManager('mimocode')?.loadServers();
+    await this.shutdownProcess();
+  }
 
   async warmModelMetadata(model: string): Promise<boolean> {
     const selectedRawModelId = decodeMimocodeModelId(model);
@@ -1207,7 +1212,7 @@ export class MimocodeChatRuntime implements ChatRuntime {
       this.setSupportedCommands([]);
       const response = await this.connection.newSession({
         cwd,
-        mcpServers: [],
+        mcpServers: this.getMcpServers(),
       });
       this.sessionInvalidated = false;
       this.loadedSessionId = response.sessionId;
@@ -1236,7 +1241,7 @@ export class MimocodeChatRuntime implements ChatRuntime {
       this.setSupportedCommands([]);
       const response = await this.connection.loadSession({
         cwd,
-        mcpServers: [],
+        mcpServers: this.getMcpServers(),
         sessionId,
       });
       this.sessionInvalidated = false;
@@ -1255,6 +1260,11 @@ export class MimocodeChatRuntime implements ChatRuntime {
     } catch {
       return false;
     }
+  }
+
+  private getMcpServers() {
+    const servers = ProviderWorkspaceRegistry.getMcpServerManager('mimocode')?.getServers() ?? [];
+    return toAcpMcpServers(servers);
   }
 
   private async handleSessionNotification(

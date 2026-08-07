@@ -53,8 +53,8 @@ Grimoire est conçu pour les personnes qui travaillent déjà dans Obsidian et v
 | Reasoning effort controls | Oui | Oui | Oui | Oui | Oui | Oui | Oui | Oui | Oui |
 | Rewind | Oui | Non | Non | Oui | Non | Non | Non | Non | Non |
 | Fork | Oui | Oui | Non | Oui | Non | Non | Non | Non | Non |
-| Provider slash commands | Oui | Non | Oui | Oui | Oui | Oui | Non | Non | Oui |
-| Grimoire-managed MCP UI | Oui | Non | Non | Non | Non | Non | Non | Non | Non |
+| Provider slash commands | Oui | Non | Oui | Oui | Oui | Oui | Non | Oui | Oui |
+| Grimoire-managed MCP UI | Oui | Non | Oui | Oui | Oui | Oui | Non | Oui | Oui |
 
 ## Installation
 
@@ -205,7 +205,7 @@ Lancez `qwen`, choisissez dans `/auth` **Alibaba ModelStudio**, **Third-party Pr
 
 Safe, Auto-approve et Plan correspondent à `default`, `yolo` et `plan` de Qwen ; les autres modes Qwen, y compris inconnus, sont affichés prudemment comme Safe dans la shared toolbar. Reasoning effort prend en charge Low, Medium, High, XHigh et Max ; High est la valeur par défaut. `/effort <tier>` est appliqué avant un turn normal, mis en cache par session et dépend du modèle effectif. Les ACP permission metadata pour les questions single-select, multi-select et freeform utilisent la même inline UI partagée.
 
-Grimoire ne gère ni MCP ni credentials Qwen : configurez-les dans `~/.qwen/settings.json` et dans l'environnement ou `.env` géré par Qwen. L'usage apparaît seulement lorsque Qwen rapporte des ACP token ou cost metadata. Rewind et fork ne sont pas pris en charge.
+Qwen reste propriétaire de ses credentials et de sa configuration native dans `~/.qwen/settings.json`. Grimoire gère une liste MCP de projet isolée dans `.grimoire/mcp/qwen.json` et l'injecte dans les sessions ACP sans réécrire la configuration native de Qwen. L'usage apparaît seulement lorsque Qwen rapporte des ACP token ou cost metadata. Rewind et fork ne sont pas pris en charge.
 
 - [Qwen Code documentation](https://qwenlm.github.io/qwen-code-docs/en/)
 - [Qwen Code authentication](https://qwenlm.github.io/qwen-code-docs/en/users/configuration/auth/)

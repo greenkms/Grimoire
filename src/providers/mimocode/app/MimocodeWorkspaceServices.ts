@@ -1,3 +1,4 @@
+import { McpServerManager } from '../../../core/mcp/McpServerManager';
 import type { ProviderCommandCatalog } from '../../../core/providers/commands/ProviderCommandCatalog';
 import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
 import type {
@@ -8,6 +9,7 @@ import type {
 } from '../../../core/providers/types';
 import type { VaultFileAdapter } from '../../../core/storage/VaultFileAdapter';
 import type GrimoirePlugin from '../../../main';
+import { AcpMcpStorage } from '../../acp/mcp/AcpMcpStorage';
 import { MimocodeAgentMentionProvider } from '../agents/MimocodeAgentMentionProvider';
 import { MimocodeCommandCatalog } from '../commands/MimocodeCommandCatalog';
 import { MimocodeChatRuntime } from '../runtime/MimocodeChatRuntime';
@@ -23,6 +25,8 @@ export interface MimocodeWorkspaceServices extends ProviderWorkspaceServices {
   agentMentionProvider: MimocodeAgentMentionProvider;
   commandCatalog: ProviderCommandCatalog;
   modelCatalog: ProviderModelCatalog;
+  mcpStorage: AcpMcpStorage;
+  mcpServerManager: McpServerManager;
 }
 
 const MIMOCODE_METADATA_WARMUP_DB = ':memory:';
@@ -105,6 +109,9 @@ export async function createMimocodeWorkspaceServices(
   plugin: GrimoirePlugin,
   vaultAdapter: VaultFileAdapter,
 ): Promise<MimocodeWorkspaceServices> {
+  const mcpStorage = new AcpMcpStorage(vaultAdapter, 'mimocode');
+  const mcpServerManager = new McpServerManager(mcpStorage);
+  await mcpServerManager.loadServers();
   const agentStorage = new MimocodeAgentStorage(vaultAdapter);
   const agentMentionProvider = new MimocodeAgentMentionProvider(agentStorage);
   await agentMentionProvider.loadAgents();
@@ -112,9 +119,11 @@ export async function createMimocodeWorkspaceServices(
   return {
     agentStorage,
     agentMentionProvider,
-    commandCatalog: new MimocodeCommandCatalog(),
+    commandCatalog: new MimocodeCommandCatalog(vaultAdapter),
     cliResolver: new MimocodeCliResolver(),
     modelCatalog: createMimocodeModelCatalog(plugin),
+    mcpStorage,
+    mcpServerManager,
     usageProvider: mimocodePlanUsageStore,
     runtimeCommandLoader: new MimocodeRuntimeCommandLoader(),
     settingsTabRenderer: mimocodeSettingsTabRenderer,
@@ -126,6 +135,13 @@ export async function createMimocodeWorkspaceServices(
 }
 
 export const mimocodeWorkspaceRegistration: ProviderWorkspaceRegistration<MimocodeWorkspaceServices> = {
+  workspaceCapabilities: {
+    skills: { inventory: 'managed', manager: 'managed' },
+    commands: { inventory: 'readonly', manager: 'managed', runtimeCommandDiscovery: 'ephemeral' },
+    agents: { inventory: 'managed', manager: 'managed' },
+    mcp: { inventory: 'managed', manager: 'managed' },
+    environment: { inventory: 'managed', manager: 'managed' },
+  },
   initialize: async ({ plugin, vaultAdapter }) => createMimocodeWorkspaceServices(plugin, vaultAdapter),
 };
 
