@@ -46,8 +46,14 @@ describe('resolveWorkspacePath', () => {
       const root = fs.mkdtempSync(path.join(os.tmpdir(), 'grimoire-workspace-'));
       const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'grimoire-outside-'));
       const linkPath = path.join(root, 'escape-link');
+      const outsideFile = path.join(outside, 'secret.md');
       try {
+        fs.writeFileSync(outsideFile, 'secret');
         fs.symlinkSync(outside, linkPath);
+        expect(fs.lstatSync(linkPath).isSymbolicLink()).toBe(true);
+        // Ensure the linked file is readable through the symlink before asserting
+        // containment (realpath of a missing target is platform-dependent).
+        expect(fs.readFileSync(path.join(linkPath, 'secret.md'), 'utf8')).toBe('secret');
         expect(() => resolveWorkspacePath(root, 'escape-link/secret.md')).toThrow(
           'File access is limited to the current workspace.',
         );

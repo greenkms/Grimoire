@@ -178,6 +178,8 @@ export function resolveNvmDefaultBin(home: string): string | null {
 
 // Best-effort realpath: if the full path doesn't exist, resolve the nearest
 // existing ancestor and re-append the remaining segments.
+// Symlink ancestors must be resolved (not skipped) so containment checks cannot
+// treat `workspace/link-to-outside/file` as still inside the workspace.
 function resolveRealPath(p: string): string {
   const realpathFn = (fs.realpathSync.native ?? fs.realpathSync) as (path: fs.PathLike) => string;
 
@@ -190,14 +192,30 @@ function resolveRealPath(p: string): string {
 
     for (;;) {
       try {
-        if (fs.existsSync(current)) {
-          const resolvedExisting = realpathFn(current);
-          return suffix.length > 0
-            ? path.join(resolvedExisting, ...suffix.reverse())
-            : resolvedExisting;
+        if (fs.existsSync(current) || fs.lstatSync(current).isSymbolicLink()) {
+          // Prefer realpath so directory symlinks escape containment correctly.
+          // Fall back to resolving the link target manually when realpath fails.
+          try {
+            const resolvedExisting = realpathFn(current);
+            return suffix.length > 0
+              ? path.join(resolvedExisting, ...suffix.reverse())
+              : resolvedExisting;
+          } catch {
+            const stat = fs.lstatSync(current);
+            if (stat.isSymbolicLink()) {
+              const target = fs.readlinkSync(current);
+              const resolvedTarget = path.isAbsolute(target)
+                ? target
+                : path.resolve(path.dirname(current), target);
+              const resolvedBase = resolveRealPath(resolvedTarget);
+              return suffix.length > 0
+                ? path.join(resolvedBase, ...suffix.reverse())
+                : resolvedBase;
+            }
+          }
         }
       } catch {
-        // Keep walking up
+        // Keep walking up past missing path segments.
       }
 
       const parent = path.dirname(current);
