@@ -1,3 +1,4 @@
+import * as fs from 'node:fs';
 import * as path from 'path';
 
 import { isPathWithinDirectory } from '../../utils/path';
@@ -19,8 +20,10 @@ const DEFAULT_CONTAINMENT_MESSAGE = 'File access is limited to the current works
  * Resolve an ACP-delegated file path against the session workspace.
  *
  * In safe/plan mode the result is contained to `cwd`: absolute paths,
- * `../` traversal, and symlink/junction escapes are rejected. Containment uses
- * realpath-aware comparison (see `isPathWithinDirectory`). In full-access mode
+ * `../` traversal, and symlink/junction escapes are rejected. When both the
+ * workspace and candidate exist, containment uses `fs.realpathSync` so a
+ * workspace-relative symlink cannot escape. Non-existent paths fall back to
+ * the shared realpath-aware directory check. In full-access mode
  * (`allowOutsideWorkspace`) the resolved path is returned without containment.
  */
 export function resolveWorkspacePath(
@@ -36,10 +39,27 @@ export function resolveWorkspacePath(
     return resolvedPath;
   }
 
-  // Realpath-aware check so a workspace-relative symlink cannot escape.
+  const message = options.containmentMessage ?? DEFAULT_CONTAINMENT_MESSAGE;
+
+  // Prefer direct realpath when both sides exist (covers directory symlinks on
+  // Linux/macOS without depending on walk-up heuristics for missing suffixes).
+  try {
+    const realCwd = fs.realpathSync(cwd);
+    const realCandidate = fs.realpathSync(resolvedPath);
+    const relative = path.relative(realCwd, realCandidate);
+    if (relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative))) {
+      return resolvedPath;
+    }
+    throw new Error(message);
+  } catch (error) {
+    if (error instanceof Error && error.message === message) {
+      throw error;
+    }
+  }
+
   if (isPathWithinDirectory(resolvedPath, cwd, cwd)) {
     return resolvedPath;
   }
 
-  throw new Error(options.containmentMessage ?? DEFAULT_CONTAINMENT_MESSAGE);
+  throw new Error(message);
 }
