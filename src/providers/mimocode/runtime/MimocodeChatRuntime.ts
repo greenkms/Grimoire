@@ -1,6 +1,8 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
+import { Notice } from 'obsidian';
+
 import {
   computeSystemPromptKey,
   type SystemPromptSettings,
@@ -65,6 +67,8 @@ import {
   type AcpUsageUpdate,
   type AcpWriteTextFileRequest,
   approveAcpWriteTextFile,
+  buildAcpPersistedSessionFields,
+  buildAcpSessionLoadFailureDebugEvent,
   buildAcpUsageInfo,
   extractAcpSessionModelState,
   extractAcpSessionModeState,
@@ -187,6 +191,7 @@ export class MimocodeChatRuntime implements ChatRuntime {
   private readonly readyListeners: Array<(ready: boolean) => void> = [];
   private ready = false;
   private sessionInvalidated = false;
+  private lastSessionLoadError: unknown = null;
   private readonly supportedCommandWaiters: Array<(commands: SlashCommand[]) => void> = [];
   private supportedCommands: SlashCommand[] = [];
   private sessionCwds = new Map<string, string>();
@@ -363,8 +368,7 @@ export class MimocodeChatRuntime implements ChatRuntime {
       if (this.loadedSessionId !== targetSessionId) {
         const loaded = await this.loadSession(targetSessionId, cwd);
         if (!loaded) {
-          this.sessionInvalidated = true;
-          this.clearActiveSession();
+          this.handleSessionLoadFailure(targetSessionId, cwd);
         }
       }
       return true;
@@ -665,26 +669,23 @@ export class MimocodeChatRuntime implements ChatRuntime {
     const existingState = params.conversation
       ? getMimocodeState(params.conversation.providerState)
       : null;
-    const providerState: MimocodeProviderState = {
-      ...(this.currentDatabasePath || existingState?.databasePath
-        ? { databasePath: this.currentDatabasePath ?? existingState?.databasePath }
-        : {}),
-    };
-    const updates: Partial<Conversation> = {
-      providerState: Object.keys(providerState).length > 0
-        ? providerState as Record<string, unknown>
-        : undefined,
+    const fields = buildAcpPersistedSessionFields({
+      conversationDatabasePath: existingState?.databasePath,
+      currentDatabasePath: this.currentDatabasePath,
       sessionId: this.sessionId,
+      sessionInvalidated: params.sessionInvalidated,
+    });
+    const providerState: MimocodeProviderState = {
+      ...(fields.databasePath ? { databasePath: fields.databasePath } : {}),
     };
-
-    if (params.sessionInvalidated) {
-      if (!this.sessionId) {
-        updates.providerState = undefined;
-        updates.sessionId = null;
-      }
-    }
-
-    return { updates };
+    return {
+      updates: {
+        providerState: Object.keys(providerState).length > 0
+          ? providerState as Record<string, unknown>
+          : undefined,
+        sessionId: fields.sessionId,
+      },
+    };
   }
 
   resolveSessionIdForFork(conversation: Conversation | null): string | null {
@@ -1258,9 +1259,30 @@ export class MimocodeChatRuntime implements ChatRuntime {
         modes: response.modes ?? null,
       });
       return true;
-    } catch {
+    } catch (error) {
+      this.lastSessionLoadError = error;
       return false;
     }
+  }
+
+  private handleSessionLoadFailure(sessionId: string, cwd: string): void {
+    const error = this.lastSessionLoadError;
+    this.lastSessionLoadError = null;
+    const stderr = this.process?.getStderrSnapshot();
+    this.plugin.recordDebugLog?.(buildAcpSessionLoadFailureDebugEvent({
+      cwd,
+      databasePath: this.currentDatabasePath,
+      error,
+      providerId: 'mimocode',
+      sessionId,
+      stderr,
+    }));
+    // Keep databasePath so SQLite hydrate / native DB env still resolve.
+    this.sessionInvalidated = true;
+    this.clearActiveSession({ preserveDatabasePath: true });
+    new Notice(t('chat.ui.errors.provider.sessionResumeFailed', {
+      provider: ProviderRegistry.getProviderDisplayNameOrId('mimocode'),
+    }));
   }
 
   private getMcpServers() {
@@ -1580,8 +1602,10 @@ export class MimocodeChatRuntime implements ChatRuntime {
     this.refreshModelSelectors();
   }
 
-  private clearActiveSession(): void {
-    this.currentDatabasePath = null;
+  private clearActiveSession(options?: { preserveDatabasePath?: boolean }): void {
+    if (!options?.preserveDatabasePath) {
+      this.currentDatabasePath = null;
+    }
     this.sessionId = null;
     this.loadedSessionId = null;
     this.currentSessionModelId = null;
