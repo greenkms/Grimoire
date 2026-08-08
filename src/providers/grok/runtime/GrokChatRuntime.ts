@@ -1,8 +1,6 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
-import { Notice } from 'obsidian';
-
 import {
   computeSystemPromptKey,
   type SystemPromptSettings,
@@ -417,6 +415,9 @@ export class GrokChatRuntime implements ChatRuntime {
       if (this.loadedSessionId !== targetSessionId) {
         const loaded = await this.loadSession(targetSessionId, cwd);
         if (!loaded) {
+          // Soft-fail: keep chat history and native paths, start a fresh ACP
+          // session on the next turn. Log only — a toast scares users for a
+          // non-actionable recovery that already preserves Grimoire history.
           logGrokDebug(this.plugin, 'session.load.failed', {
             sessionId: targetSessionId,
             stderrPreview: summarizeGrokCliText(this.process?.getStderrSnapshot() ?? ''),
@@ -425,9 +426,6 @@ export class GrokChatRuntime implements ChatRuntime {
           // resolve after a failed ACP session/load.
           this.sessionInvalidated = true;
           this.clearActiveSession({ preserveSessionPaths: true });
-          new Notice(t('chat.ui.errors.provider.sessionResumeFailed', {
-            provider: ProviderRegistry.getProviderDisplayNameOrId('grok'),
-          }));
         }
       }
       return true;

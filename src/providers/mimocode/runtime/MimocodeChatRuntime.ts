@@ -1,8 +1,6 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
-import { Notice } from 'obsidian';
-
 import {
   computeSystemPromptKey,
   type SystemPromptSettings,
@@ -1272,6 +1270,8 @@ export class MimocodeChatRuntime implements ChatRuntime {
     const error = this.lastSessionLoadError;
     this.lastSessionLoadError = null;
     const stderr = this.process?.getStderrSnapshot();
+    // Soft-fail resume: preserve history / DB path and open a new session next
+    // turn. Debug log only — no user-facing toast (recovery is automatic).
     this.plugin.recordDebugLog?.(buildAcpSessionLoadFailureDebugEvent({
       cwd,
       databasePath: this.currentDatabasePath,
@@ -1283,9 +1283,6 @@ export class MimocodeChatRuntime implements ChatRuntime {
     // Keep databasePath so SQLite hydrate / native DB env still resolve.
     this.sessionInvalidated = true;
     this.clearActiveSession({ preserveDatabasePath: true });
-    new Notice(t('chat.ui.errors.provider.sessionResumeFailed', {
-      provider: ProviderRegistry.getProviderDisplayNameOrId('mimocode'),
-    }));
   }
 
   private getMcpServers() {
