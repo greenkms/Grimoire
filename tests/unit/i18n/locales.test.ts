@@ -1,3 +1,4 @@
+import { t } from '@/i18n/i18n';
 import * as de from '@/i18n/locales/de.json';
 import * as en from '@/i18n/locales/en.json';
 import * as es from '@/i18n/locales/es.json';
@@ -8,6 +9,7 @@ import * as pt from '@/i18n/locales/pt.json';
 import * as ru from '@/i18n/locales/ru.json';
 import * as zhCN from '@/i18n/locales/zh-CN.json';
 import * as zhTW from '@/i18n/locales/zh-TW.json';
+import type { TranslationKey } from '@/i18n/types';
 
 interface TranslationTree {
   [key: string]: string | TranslationTree;
@@ -282,5 +284,15 @@ describe('locale files', () => {
     expect(english['settings.hiddenSlashCommands.desc']).toBe(
       'Hide specific commands and skills from the dropdown. Useful for hiding Claude Code entries that are not relevant to Grimoire. Enter names without the leading slash, one per line.',
     );
+  });
+
+  it('resolves every English leaf key through t() (TranslationKey derives from en.json)', () => {
+    const englishKeys = Object.keys(english);
+    expect(englishKeys.length).toBeGreaterThan(1000);
+
+    for (const key of englishKeys) {
+      const value = t(key as TranslationKey);
+      expect(value).toBe(english[key]);
+    }
   });
 });

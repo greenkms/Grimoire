@@ -1,4 +1,5 @@
 import { t } from '../../../i18n/i18n';
+import type { TranslationKey } from '../../../i18n/types';
 
 type GreetingInput = {
   day: number;
@@ -7,7 +8,7 @@ type GreetingInput = {
   random?: () => number;
 };
 
-type GreetingKey = `chat.greetings.${string}`;
+type GreetingKey = Extract<TranslationKey, `chat.greetings.${string}`>;
 type GreetingEntry = GreetingKey | {
   named?: GreetingKey;
   plain: GreetingKey;

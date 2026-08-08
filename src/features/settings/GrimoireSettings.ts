@@ -482,7 +482,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
     const tabBar = containerEl.createDiv({ cls: 'grimoire-settings-tabs' });
     const previousTabButton = tabBar.createEl('button', {
       attr: {
-        'aria-label': t('settings.tabs.scrollBackward' as TranslationKey),
+        'aria-label': t('settings.tabs.scrollBackward'),
         type: 'button',
       },
       cls: 'grimoire-settings-tab-scroll grimoire-settings-tab-scroll--previous',
@@ -492,7 +492,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
     tabViewport.setAttribute('role', 'tablist');
     const nextTabButton = tabBar.createEl('button', {
       attr: {
-        'aria-label': t('settings.tabs.scrollForward' as TranslationKey),
+        'aria-label': t('settings.tabs.scrollForward'),
         type: 'button',
       },
       cls: 'grimoire-settings-tab-scroll grimoire-settings-tab-scroll--next',
