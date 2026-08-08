@@ -1,11 +1,10 @@
-import { dump as dumpYaml } from 'js-yaml';
-
 import type { ProviderCommandCatalog, ProviderCommandDropdownConfig } from '../../../core/providers/commands/ProviderCommandCatalog';
 import type { ProviderCommandEntry } from '../../../core/providers/commands/ProviderCommandEntry';
 import { VaultSkillCommandCatalog, type VaultSkillStorageAdapter } from '../../../core/providers/commands/VaultSkillCommandCatalog';
 import type { VaultFileAdapter } from '../../../core/storage/VaultFileAdapter';
 import type { SlashCommand } from '../../../core/types';
 import { parseFrontmatter } from '../../../utils/frontmatter';
+import { dumpYamlFrontmatter } from '../../../utils/yamlFrontmatter';
 
 const COMMANDS_PATH = '.qwen/commands';
 const COMMAND_PREFIX = 'qwen-command';
@@ -143,7 +142,7 @@ function parsePersistenceKey(key?: string): string | null {
 
 function serializeCommand(entry: ProviderCommandEntry, extra: Record<string, unknown>): string {
   const frontmatter = { name: entry.name, ...(entry.description ? { description: entry.description } : {}), ...extra };
-  return `---\n${dumpYaml(frontmatter, { lineWidth: -1, noRefs: true }).trimEnd()}\n---\n${entry.content}\n`;
+  return `---\n${dumpYamlFrontmatter(frontmatter)}\n---\n${entry.content}\n`;
 }
 
 function isValidName(name: string): boolean {

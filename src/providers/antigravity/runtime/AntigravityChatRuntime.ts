@@ -415,7 +415,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
             level: 'error',
             scope: 'provider.antigravity',
           });
-          reject(error);
+          reject(error instanceof Error ? error : new Error(String(error)));
         });
       });
       proc.on('exit', (code, signal) => {

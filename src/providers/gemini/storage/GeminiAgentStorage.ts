@@ -1,8 +1,7 @@
 import * as path from 'node:path';
 
-import { dump as dumpYaml, load as loadYaml } from 'js-yaml';
-
 import type { VaultFileAdapter } from '../../../core/storage/VaultFileAdapter';
+import { dumpYamlFrontmatter, loadYamlFrontmatter } from '../../../utils/yamlFrontmatter';
 import type { GeminiAgentDefinition } from '../types/agent';
 
 export const GEMINI_AGENTS_PATH = '.gemini/agents';
@@ -91,7 +90,7 @@ export function parseGeminiAgentMarkdown(
   if (!match) return null;
   let frontmatter: Record<string, unknown>;
   try {
-    const parsed: unknown = loadYaml(match[1]);
+    const parsed: unknown = loadYamlFrontmatter(match[1]);
     if (!isRecord(parsed)) return null;
     frontmatter = parsed;
   } catch {
@@ -151,7 +150,7 @@ export function serializeGeminiAgentMarkdown(agent: GeminiAgentDefinition): stri
   if (agent.temperature !== undefined) frontmatter.temperature = agent.temperature;
   if (agent.maxTurns !== undefined) frontmatter.max_turns = agent.maxTurns;
   if (agent.timeoutMins !== undefined) frontmatter.timeout_mins = agent.timeoutMins;
-  const yaml = dumpYaml(frontmatter, { lineWidth: -1, noRefs: true }).trimEnd();
+  const yaml = dumpYamlFrontmatter(frontmatter);
   return `---\n${yaml}\n---\n\n${agent.prompt.trimEnd()}\n`;
 }
 

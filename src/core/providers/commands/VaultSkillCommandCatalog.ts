@@ -1,5 +1,4 @@
-import { dump as dumpYaml, load as loadYaml } from 'js-yaml';
-
+import { dumpYamlFrontmatter, loadYamlFrontmatter } from '../../../utils/yamlFrontmatter';
 import type { VaultFileAdapter } from '../../storage/VaultFileAdapter';
 import type { SlashCommand } from '../../types';
 import type { ProviderId } from '../types';
@@ -119,7 +118,7 @@ function serializeSkill(
   frontmatter: Record<string, unknown>,
   content: string,
 ): string {
-  const yaml = dumpYaml(frontmatter, { lineWidth: -1, noRefs: true }).trimEnd();
+  const yaml = dumpYamlFrontmatter(frontmatter);
   const body = content.trimEnd();
   return `---\n${yaml}\n---\n\n${body}\n`;
 }
@@ -131,7 +130,7 @@ function parseSkillMarkdown(
   if (!match) return null;
 
   try {
-    const parsed: unknown = loadYaml(match[1]);
+    const parsed: unknown = loadYamlFrontmatter(match[1]);
     if (parsed !== null && (typeof parsed !== 'object' || Array.isArray(parsed))) {
       return null;
     }

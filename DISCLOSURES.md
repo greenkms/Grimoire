@@ -111,11 +111,11 @@ Grimoire does not include closed-source Grimoire code. External provider CLIs, S
 
 ## Dependencies and known advisories
 
-The Obsidian community plugin review may report dependency warnings for packages such as `hono`, `@hono/node-server`, `fast-uri`, `ip-address`, `qs`, `@anthropic-ai/sdk`, `ws`, `brace-expansion`, and `js-yaml`. They are resolved through the Model Context Protocol SDK (`@modelcontextprotocol/sdk`), provider SDKs, or development tooling. The table records the current lockfile graph; the audit and bundle checks are still rerun for every release.
+The Obsidian community plugin review may report dependency warnings for packages such as `hono`, `@hono/node-server`, `fast-uri`, `ip-address`, `qs`, `@anthropic-ai/sdk`, `ws`, and `brace-expansion`. They are resolved through the Model Context Protocol SDK (`@modelcontextprotocol/sdk`), provider SDKs, or development tooling. The table records the current lockfile graph; the audit and bundle checks are still rerun for every release.
 
 Grimoire keeps patched versions selected by the current dependency graph. Server packages such as `hono` and `@hono/node-server` are dependency-review inputs and are not imported as a Grimoire HTTP server. Bundle inclusion must be checked from the actual release build rather than inferred from a package name.
 
-The MCP SDK range is `^1.30.0`, whose dependency contract accepts `@hono/node-server` 2.x. Grimoire uses the npm lockfile plus narrow overrides for `@hono/node-server` and `js-yaml` so a clean release graph can be verified without resolver bypasses or stale advisory assumptions.
+The MCP SDK range is `^1.30.0`, whose dependency contract accepts `@hono/node-server` 2.x. Grimoire uses the npm lockfile plus a narrow override for `@hono/node-server` so a clean release graph can be verified without resolver bypasses or stale advisory assumptions. Vault YAML frontmatter uses the `yaml` package (not `js-yaml`).
 
 - Clean installation, the full unit suite, release-bundle verification, and `npm audit --omit=dev` are required release gates before publication.
 - A clean audit is a verified release target, not a standing claim in this document.
@@ -133,6 +133,6 @@ The MCP SDK range is `^1.30.0`, whose dependency contract accepts `@hono/node-se
 | `brace-expansion` 1.x | Nested tooling dependency | Development dependency | 1.1.18 | `<1.1.18` | Development-only; patched |
 | `brace-expansion` 2.x | Nested tooling dependency | Development dependency | 2.1.4 | `>=2.0.0 <2.1.4` | Development-only; patched |
 | `brace-expansion` 4.x / 5.x | Nested tooling dependency | Development dependency | 5.0.9 (no 4.x copy) | `>=4.0.0 <5.0.9` | Development-only; patched |
-| `js-yaml` | Tooling dependency | Development dependency | 4.3.1 | npm audit gate | Narrow override to the current patched release |
+| `yaml` | Direct dependency (frontmatter) | Verify from release bundle | current lockfile | npm audit gate | Replaces `js-yaml` for skills/agents/command YAML |
 
 The `npm run review:deps` check (run automatically by `npm run build:release`) enforces the resolved versions for tracked review advisories. The release workflow also runs the unmodified `npm audit --omit=dev` command and requires a clean result.

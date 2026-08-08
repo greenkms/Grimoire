@@ -1,9 +1,8 @@
 import * as path from 'node:path';
 
-import { dump as dumpYaml } from 'js-yaml';
-
 import type { VaultFileAdapter } from '../../../core/storage/VaultFileAdapter';
 import { parseFrontmatter } from '../../../utils/frontmatter';
+import { dumpYamlFrontmatter } from '../../../utils/yamlFrontmatter';
 import type { QwenAgentDefinition } from '../types/agent';
 
 export const QWEN_AGENTS_PATH = '.qwen/agents';
@@ -119,7 +118,7 @@ export function parseQwenAgentMarkdown(content: string, filePath: string): QwenA
 
 export function serializeQwenAgentMarkdown(agent: QwenAgentDefinition): string {
   const frontmatter = { name: agent.name, description: agent.description, ...agent.extraFrontmatter };
-  return `---\n${dumpYaml(frontmatter, { lineWidth: -1, noRefs: true }).trimEnd()}\n---\n${agent.prompt}\n`;
+  return `---\n${dumpYamlFrontmatter(frontmatter)}\n---\n${agent.prompt}\n`;
 }
 
 function relativeName(filePath: string): string {

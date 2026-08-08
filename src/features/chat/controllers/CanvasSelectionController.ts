@@ -91,15 +91,27 @@ export class CanvasSelectionController {
 
   private getCanvasView(): CanvasViewLike | null {
     const activeLeaf = this.app.workspace.getMostRecentLeaf?.();
-    const activeView = activeLeaf?.view as CanvasViewLike | undefined;
-    if (activeView?.getViewType?.() === 'canvas' && activeView.file) {
-      return activeView;
+    if (this.isCanvasView(activeLeaf?.view)) {
+      return activeLeaf.view;
     }
 
-    const leaves = this.app.workspace.getLeavesOfType('canvas');
-    if (leaves.length === 0) return null;
-    const leaf = leaves.find(l => (l.view as CanvasViewLike).file);
-    return leaf ? (leaf.view as CanvasViewLike) : null;
+    for (const leaf of this.app.workspace.getLeavesOfType('canvas')) {
+      if (this.isCanvasView(leaf.view)) {
+        return leaf.view;
+      }
+    }
+    return null;
+  }
+
+  private isCanvasView(view: unknown): view is CanvasViewLike {
+    if (!view || typeof view !== 'object') {
+      return false;
+    }
+
+    const candidate = view as Partial<ItemView> & { file?: unknown };
+    return typeof candidate.getViewType === 'function'
+      && candidate.getViewType() === 'canvas'
+      && candidate.file != null;
   }
 
   private updateIndicator(): void {

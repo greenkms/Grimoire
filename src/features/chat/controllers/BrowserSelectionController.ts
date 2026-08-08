@@ -84,14 +84,26 @@ export class BrowserSelectionController {
 
   private getActiveBrowserView(): { view: ItemView; viewType: string; containerEl: HTMLElement } | null {
     const activeLeaf = this.app.workspace.getMostRecentLeaf?.();
-    const activeView = activeLeaf?.view as ItemView | undefined;
-    const containerEl = (activeView as unknown as { containerEl?: HTMLElement }).containerEl;
-    if (!activeView || !containerEl) return null;
+    const activeView = activeLeaf?.view;
+    if (!this.isItemView(activeView)) {
+      return null;
+    }
 
+    const containerEl = activeView.containerEl;
     const viewType = activeView.getViewType?.() ?? '';
     if (!this.isBrowserLikeView(viewType, containerEl)) return null;
 
     return { view: activeView, viewType, containerEl };
+  }
+
+  private isItemView(view: unknown): view is ItemView {
+    if (!view || typeof view !== 'object') {
+      return false;
+    }
+
+    const candidate = view as Partial<ItemView>;
+    return typeof candidate.getViewType === 'function'
+      && candidate.containerEl instanceof HTMLElement;
   }
 
   private isBrowserLikeView(viewType: string, containerEl: HTMLElement): boolean {

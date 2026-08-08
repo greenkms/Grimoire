@@ -52,6 +52,7 @@ export function createCustomSpawnFunction(
       throw new Error('Failed to create process streams');
     }
 
-    return child as unknown as SpawnedProcess;
+    // ChildProcess with piped stdio satisfies the SDK SpawnedProcess surface.
+    return child as SpawnedProcess;
   };
 }
