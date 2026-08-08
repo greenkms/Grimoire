@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.1.3 - 2026-08-08
+
+### Added
+
+- Redesigned Settings into four stable top-level tabs (General, Providers, Advanced, About) with a compact provider card grid, inline enable toggles, and a full-width provider details panel instead of one top-level tab per provider.
+- Added Advanced hub management for provider skills, subagents/agents, MCP servers, environment variables, and commands, including vault skill catalog entries and Gemini/Qwen agent and command editors.
+- Added Grimoire-owned ACP MCP storage under `.grimoire/mcp/<provider>.json` and inject those servers into ACP provider sessions.
+
+### Improved
+
+- Report provider card status as CLI detected or not detected only, without starting model-catalog discovery just to fill the settings overview.
+- Resolve Gemini, Qwen, Grok Build, OpenCode, MiMoCode, and Kimi Code CLIs from configured paths, provider `PATH`, the enhanced GUI process `PATH`, and provider-specific fallbacks so PATH-installed binaries are detected reliably.
+- Rebuild the live Settings UI immediately when the language changes so tab labels and lazy content switch without reopening the settings window.
+- Harden ACP session resume for OpenCode-family providers and Grok Build: failed `session/load` keeps native store paths for history hydrate, notifies the user, and starts a fresh session instead of wiping recoverable state.
+- Split the large chat tab implementation into focused settings, DOM, scroll, context, and provider UI modules for clearer ownership and safer maintenance.
+- Derive `TranslationKey` types from the English locale catalog so every UI string stays type-checked as translations grow.
+- Refresh README settings screenshots to match the current settings hub.
+
+### Fixed
+
+- Close symlink-based workspace path escapes in ACP containment checks by resolving symlink ancestors and path segments with realpath-aware checks.
+- Route Gemini ACP permission requests through the shared approval UI and keep write approvals consistent across ACP providers.
+- Prefer built-in/default model ownership when several providers claim the same model id, and set Codex as the product default chat provider.
+- Invalidate in-flight tab and stream work on teardown so abandoned turns cannot write into the wrong surface.
+- Scope bang-bash to the active tab provider and tighten related safety and accessibility edge cases.
+- Prevent `path` unit tests from leaking a `realpathSync` mock into later suites.
+
 ## 1.1.2 - 2026-08-04
 
 ### Added
