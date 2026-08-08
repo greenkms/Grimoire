@@ -76,7 +76,7 @@ npm run lint
 npm run build:release
 ```
 
-`npm run build:release` refreshes generated `main.js`, root `styles.css`, and `dist/grimoire`. Generated release artifacts must match source output after the build.
+`npm run build:release` refreshes generated `main.js`, root `styles.css`, and `dist/grimoire`. Generated release artifacts must match source output after the build. The release prebuild also runs Obsidian community-review gates: `review:source`, `review:css`, and `review:deps`.
 
 When bumping the plugin version, update `package.json`, `package-lock.json`, `manifest.json`, and `versions.json` together. `versions.json` maps each released plugin version to the minimum supported Obsidian app version and must include the new release before tagging or publishing.
 Keep `CHANGELOG.md` as the source of truth for user-facing release notes. Every release bump should add a dated version section there before tagging or publishing; in-app "What's New" surfaces should read changelog content bundled into `main.js` rather than maintaining separate copy or publishing `CHANGELOG.md` as an Obsidian release asset.
@@ -89,6 +89,8 @@ npm audit --omit=dev
 ```
 
 Fix production dependency advisories when an upstream-compatible update is available. If a warning remains because it comes from an embedded provider SDK or required runtime behavior, document the reason in `DISCLOSURES.md` rather than leaving it unexplained.
+
+Obsidian community CSS review rates styles against their Electron / older-app compatibility baseline (historically 1.11.4), not only against Grimoire's `minAppVersion`. Treat review CSS warnings as product score issues. Keep `review:css` green: no `!important`, and no features listed in `scripts/reviewCss.js` `OBSIDIAN_PARTIAL_CSS_FEATURES` (for example `display: contents` / `css-display-contents`). When Obsidian flags a new partial feature, rewrite the CSS and extend that denylist plus tests. Path-specific style rules live in `src/style/AGENTS.md`.
 
 Dependency changes use npm as the canonical package manager. Keep `package-lock.json` current with `package.json`; do not add secondary package-manager lockfiles unless the repository intentionally changes its install, CI, and release workflow.
 

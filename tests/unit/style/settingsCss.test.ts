@@ -170,6 +170,13 @@ describe('settings base CSS', () => {
     expect(settingRule).toContain('background: var(--background-primary)');
   });
 
+  it('keeps workspace provider sections as normal flow containers for Obsidian CSS review', () => {
+    const sectionRule = getRule(readSettingsCss(), '.grimoire-workspace-provider-section');
+
+    expect(sectionRule).toContain('display: block');
+    expect(sectionRule).not.toMatch(/display\s*:\s*contents\b/);
+  });
+
   it('stretches provider setting rows to the full panel width', () => {
     const settingRule = getRule(
       readSettingsCss(),

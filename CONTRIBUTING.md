@@ -141,6 +141,31 @@ State which commands were run and report any environment limitation. Do not clai
 manual verification unless the behavior was exercised in Obsidian with the relevant
 provider.
 
+## Obsidian Community Review Gates
+
+Obsidian community plugin review scores CSS and dependency graphs and affects
+how the plugin is rated. Local release checks mirror the durable parts of that
+process:
+
+| Gate | Command | Catches |
+|------|---------|---------|
+| Source | `npm run review:source` | Stricter type-aware ESLint used for review |
+| CSS | `npm run review:css` | `!important` and CSS features only partially supported by Obsidian's review baseline |
+| Dependencies | `npm run review:deps` | Known advisory floors in the lockfile |
+
+`npm run build:release` runs all three via `prebuild:release`.
+
+CSS review is stricter than “works in current Obsidian.” The community lint
+baseline is historically Electron / app **1.11.4**, while Grimoire's
+`minAppVersion` may be newer. Do not use `display: contents` (flagged as
+`css-display-contents`); prefer real layout boxes. When Obsidian reports a new
+partial-support CSS warning, fix the stylesheet, add the feature to
+`OBSIDIAN_PARTIAL_CSS_FEATURES` in `scripts/reviewCss.js`, and cover it with a
+unit test. Full style conventions live in `src/style/AGENTS.md`.
+
+Document unavoidable dependency review findings in `DISCLOSURES.md` rather than
+leaving them unexplained.
+
 ## Generated Artifacts And Dependencies
 
 `npm run build:release` refreshes generated `main.js`, root `styles.css`, and

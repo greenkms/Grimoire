@@ -3,7 +3,10 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
-import { findImportantDeclarations } from '../../../scripts/reviewCss.js';
+import {
+  findImportantDeclarations,
+  findPartialCssSupportFeatures,
+} from '../../../scripts/reviewCss.js';
 import { getReviewSourceEslintArgs } from '../../../scripts/reviewSource.js';
 
 interface PackageJson {
@@ -133,6 +136,32 @@ describe('Obsidian review gate', () => {
         declaration: 'color: var(--text-normal) !important;',
         file: 'src/style/example.css',
         line: 2,
+      },
+    ]);
+  });
+
+  it('reports CSS features that Obsidian review only partially supports', () => {
+    const findings = findPartialCssSupportFeatures([
+      {
+        file: 'src/style/example.css',
+        contents: [
+          '.section {',
+          '  display: contents;',
+          '  color: var(--text-normal);',
+          '}',
+          '/* display: contents is fine inside comments */',
+        ].join('\n'),
+      },
+    ]);
+
+    expect(findings).toEqual([
+      {
+        declaration: 'display: contents;',
+        featureId: 'css-display-contents',
+        file: 'src/style/example.css',
+        line: 2,
+        message:
+          'Unexpected browser feature "css-display-contents" is only partially supported by Obsidian 1.11.4',
       },
     ]);
   });

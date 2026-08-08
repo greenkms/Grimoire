@@ -378,8 +378,11 @@
   display: none;
 }
 
+/* Marker wrapper for workspace section extraction (`data-workspace-sections`).
+ * Keep as a normal flow container (not css-display-contents) so Obsidian's CSS
+ * review baseline (Electron / 1.11.4) does not flag partial browser support. */
 .grimoire-workspace-provider-section {
-  display: contents;
+  display: block;
 }
 
 @media (max-width: 1100px) {
