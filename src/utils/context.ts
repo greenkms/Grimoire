@@ -76,22 +76,40 @@ export function extractContentBeforeXmlContext(text: string): string | undefined
 
 /**
  * Extracts the actual user query from an XML-wrapped prompt.
- * Used for comparing prompts during history deduplication.
+ * Used for comparing prompts during history deduplication and history hydrate.
  *
  * Always returns a string - falls back to stripping all XML tags if no
  * structured context is found.
+ *
+ * Also understands Grok Build harness wrappers:
+ * - `<user_info>...</user_info>` environment blocks (not user-visible)
+ * - `<user_query>...</user_query>` (closing tag may be missing in partial history)
  */
 export function extractUserQuery(prompt: string): string {
   if (!prompt) return '';
 
+  // Drop Grok Build environment harness; pure user_info is not a chat message.
+  const withoutUserInfo = prompt.replace(/<user_info\b[^>]*>[\s\S]*?<\/user_info>\s*/gi, '').trim();
+  if (!withoutUserInfo) {
+    return '';
+  }
+
+  // Grok Build wraps the real request; history sometimes omits the closing tag.
+  const userQueryMatch = withoutUserInfo.match(
+    /<user_query\b[^>]*>\s*([\s\S]*?)(?:\s*<\/user_query\s*>|$)/i,
+  );
+  if (userQueryMatch) {
+    return userQueryMatch[1].trim();
+  }
+
   // Try to extract content before XML context
-  const extracted = extractContentBeforeXmlContext(prompt);
+  const extracted = extractContentBeforeXmlContext(withoutUserInfo);
   if (extracted !== undefined) {
     return extracted;
   }
 
   // No XML context - return the whole prompt stripped of any remaining tags
-  return prompt
+  return withoutUserInfo
     .replace(/<current_note>[\s\S]*?<\/current_note>\s*/g, '')
     .replace(/<editor_selection[\s\S]*?<\/editor_selection>\s*/g, '')
     .replace(/<editor_cursor[\s\S]*?<\/editor_cursor>\s*/g, '')

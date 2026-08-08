@@ -280,6 +280,36 @@ describe('extractUserQuery', () => {
       expect(extractUserQuery('  plain query  ')).toBe('plain query');
     });
   });
+
+  describe('Grok Build harness wrappers', () => {
+    it('returns empty for pure user_info environment blocks', () => {
+      const prompt = [
+        '<user_info>',
+        'OS Version: macos',
+        'Shell: /bin/zsh',
+        'Workspace Path: /vault',
+        "</user_info>",
+      ].join('\n');
+      expect(extractUserQuery(prompt)).toBe('');
+    });
+
+    it('extracts text from user_query tags without a closing tag', () => {
+      expect(extractUserQuery('<user_query>\nнтык тык')).toBe('нтык тык');
+    });
+
+    it('extracts text from closed user_query tags and drops leading user_info', () => {
+      const prompt = [
+        '<user_info>',
+        'OS Version: macos',
+        '</user_info>',
+        '',
+        '<user_query>',
+        'hello vault',
+        '</user_query>',
+      ].join('\n');
+      expect(extractUserQuery(prompt)).toBe('hello vault');
+    });
+  });
 });
 
 describe('appendContextFiles', () => {

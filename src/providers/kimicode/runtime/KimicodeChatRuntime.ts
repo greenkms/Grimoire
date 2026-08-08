@@ -1702,7 +1702,9 @@ function extractPermissionPath(
     }
   }
 
-  const locationPath = locations?.find((location) => location.path.trim())?.path;
+  const locationPath = locations
+    ?.map((location) => (typeof location?.path === 'string' ? location.path.trim() : ''))
+    .find((path) => path.length > 0);
   return locationPath?.trim() || undefined;
 }
 

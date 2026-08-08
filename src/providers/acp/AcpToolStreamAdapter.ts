@@ -170,7 +170,9 @@ function mergeLocationPaths(
     return input;
   }
 
-  const locationPath = locations?.find((location) => location.path.trim())?.path.trim();
+  const locationPath = firstTrimmedString(
+    ...(locations ?? []).map((location) => location?.path),
+  );
   if (!locationPath) {
     return input;
   }

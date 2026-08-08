@@ -2,8 +2,8 @@ import type { ProviderConversationHistoryService } from '../../../core/providers
 import type { Conversation } from '../../../core/types';
 import { getGrokState, type GrokProviderState } from '../types';
 import {
-  isImportedGrokSystemReminder,
   loadGrokSessionMessages,
+  normalizeImportedGrokUserMessage,
 } from './GrokHistoryStore';
 
 export class GrokConversationHistoryService implements ProviderConversationHistoryService {
@@ -19,9 +19,9 @@ export class GrokConversationHistoryService implements ProviderConversationHisto
       return;
     }
 
-    conversation.messages = conversation.messages.filter((message) =>
-      !isImportedGrokSystemReminder(message)
-    );
+    conversation.messages = conversation.messages
+      .map((message) => normalizeImportedGrokUserMessage(message))
+      .filter((message): message is NonNullable<typeof message> => message !== null);
 
     const state = getGrokState(conversation.providerState);
     const hydrationKey = [

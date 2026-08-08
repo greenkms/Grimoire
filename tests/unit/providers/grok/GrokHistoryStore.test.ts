@@ -1,6 +1,8 @@
 import {
   isImportedGrokSystemReminder,
+  isImportedGrokUserInfoMessage,
   mapGrokMessages,
+  normalizeImportedGrokUserMessage,
   parseGrokChatHistoryJsonl,
 } from '../../../../src/providers/grok/history/GrokHistoryStore';
 
@@ -83,6 +85,83 @@ describe('parseGrokChatHistoryJsonl', () => {
       role: 'user',
       timestamp: 1_000,
     })).toBe(false);
+  });
+
+  it('hides Grok Build user_info harness and unwraps user_query tags', () => {
+    const messages = parseGrokChatHistoryJsonl([
+      JSON.stringify({
+        content: [
+          {
+            text: [
+              '<user_info>',
+              'OS Version: macos',
+              'Shell: /bin/zsh',
+              'Workspace Path: /vault',
+              "</user_info>",
+            ].join('\n'),
+            type: 'text',
+          },
+        ],
+        type: 'user',
+      }),
+      JSON.stringify({
+        content: [{ text: '<user_query>\nнтык тык', type: 'text' }],
+        type: 'user',
+      }),
+      JSON.stringify({
+        content: 'Тык-тык — на связи.',
+        type: 'assistant',
+      }),
+    ].join('\n'));
+
+    expect(messages).toEqual([
+      {
+        assistantMessageId: undefined,
+        content: 'нтык тык',
+        id: 'grok-user-2',
+        role: 'user',
+        timestamp: 2_000,
+        userMessageId: 'grok-user-2',
+      },
+      {
+        assistantMessageId: 'grok-assistant-3',
+        content: 'Тык-тык — на связи.',
+        contentBlocks: [
+          { content: 'Тык-тык — на связи.', type: 'text' },
+        ],
+        id: 'grok-assistant-3',
+        role: 'assistant',
+        timestamp: 3_000,
+      },
+    ]);
+  });
+
+  it('normalizes already-persisted harness user bubbles for hydrate', () => {
+    expect(isImportedGrokUserInfoMessage({
+      content: '<user_info>\nOS Version: macos\n</user_info>',
+      id: 'u1',
+      role: 'user',
+      timestamp: 1,
+    })).toBe(true);
+
+    expect(normalizeImportedGrokUserMessage({
+      content: '<user_info>\nOS Version: macos\n</user_info>',
+      id: 'u1',
+      role: 'user',
+      timestamp: 1,
+    })).toBeNull();
+
+    expect(normalizeImportedGrokUserMessage({
+      content: '<user_query>\nнтык тык',
+      id: 'u2',
+      role: 'user',
+      timestamp: 1,
+    })).toEqual({
+      content: 'нтык тык',
+      id: 'u2',
+      role: 'user',
+      timestamp: 1,
+    });
   });
 });
 

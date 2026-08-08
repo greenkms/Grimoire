@@ -222,6 +222,44 @@ export function isImportedGrokSystemReminder(message: ChatMessage): boolean {
     && content.endsWith('</system-reminder>');
 }
 
+/** Grok Build environment harness that must never appear as a chat bubble. */
+export function isImportedGrokUserInfoMessage(message: ChatMessage): boolean {
+  if (message.role !== 'user') {
+    return false;
+  }
+
+  const content = message.content.trim();
+  return /^<user_info\b[^>]*>[\s\S]*<\/user_info>$/i.test(content);
+}
+
+/**
+ * Normalize already-persisted Grok user bubbles (strip harness tags / drop env-only).
+ * Returns null when the message should be removed from the transcript.
+ */
+export function normalizeImportedGrokUserMessage(message: ChatMessage): ChatMessage | null {
+  if (message.role !== 'user') {
+    return message;
+  }
+
+  if (isImportedGrokSystemReminder(message) || isImportedGrokUserInfoMessage(message)) {
+    return null;
+  }
+
+  const content = extractUserQuery(message.content);
+  if (!content) {
+    return null;
+  }
+
+  if (content === message.content) {
+    return message;
+  }
+
+  return {
+    ...message,
+    content,
+  };
+}
+
 function isSyntheticGrokHistoryEvent(event: GrokJsonlEvent): boolean {
   return Boolean(
     getString(event.synthetic_reason)

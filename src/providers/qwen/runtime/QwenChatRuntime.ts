@@ -779,7 +779,9 @@ export class QwenChatRuntime implements ChatRuntime {
       : {};
     const pathValue = ['path', 'filePath', 'filepath'].map((key) => input[key])
       .find((value): value is string => typeof value === 'string' && value.trim().length > 0)
-      ?? request.toolCall.locations?.find((location) => location.path.trim())?.path;
+      ?? request.toolCall.locations
+        ?.map((location) => (typeof location?.path === 'string' ? location.path.trim() : ''))
+        .find((path) => path.length > 0);
     const title = request.toolCall.title?.trim() || request.toolCall.kind?.trim() || 'Qwen Code action';
     const description = pathValue
       ? `${title} requests access to ${pathValue}.`

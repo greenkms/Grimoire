@@ -1930,8 +1930,15 @@ function extractPermissionPath(
     }
   }
 
-  const locationPath = locations?.find((location) => location.path.trim())?.path;
-  return locationPath?.trim() || undefined;
+  for (const location of locations ?? []) {
+    if (typeof location?.path === 'string') {
+      const trimmed = location.path.trim();
+      if (trimmed) {
+        return trimmed;
+      }
+    }
+  }
+  return undefined;
 }
 
 function summarizeWorkflowTools(input: Record<string, unknown>): string {
