@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.1.4 - 2026-08-09
+
+### Improved
+
+- Improved Obsidian community-review compatibility by allowing scanner dependency installation across npm versions, replacing the flagged YAML parser, and avoiding partially supported CSS features.
+- Kept recoverable ACP session-resume failures in debug logs instead of showing alarming notices when Grimoire can safely start a fresh provider session.
+
+### Fixed
+
+- Restored Antigravity model selection by parsing the tab-separated `agy models` output correctly and repairing affected saved model entries automatically.
+- Prevented the compact composer toolbar from overflowing when the input is resized to its minimum height, including when themes change the wrapped toolbar size.
+- Hid Grok Build's internal `user_info` and `user_query` wrappers when importing or hydrating conversation history.
+- Prevented ACP session loading from crashing when a provider reports a tool call without an optional location path.
+
 ## 1.1.3 - 2026-08-08
 
 ### Added
