@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.1.5 - 2026-08-10
+
+### Improved
+
+- Kept recently used provider runtimes warm in a bounded cache so switching tabs avoids unnecessary restarts while older inactive runtimes are reclaimed predictably.
+- Made model catalog refreshes responsive with stale-while-revalidate caching keyed to provider configuration, so menus stay usable while updated models load.
+- Moved OpenCode, MiMoCode, and Kimi Code history, usage, and session-error reads to shared asynchronous SQLite access to avoid blocking the Obsidian UI.
+- Respected custom Claude Code configuration directories across agents, plugins, history, and sidecar data, and safely discovered relocated SDK sessions without scanning outside the configured roots.
+
+### Fixed
+
+- Restored Grok Build responses that arrived through alternate session notifications and deduplicated mirrored events, fixing turns that could appear to return no answer.
+- Recovered Codex turns when the app server reports completion before the expected terminal stream event, while preserving genuine empty-response failures.
+- Treated missing saved sessions consistently for OpenCode, MiMoCode, and Kimi Code so stale session IDs fall back to a fresh session without surfacing misleading errors.
+- Kept provider usage details in the compact accessible tooltip and removed the oversized duplicate message that could overflow narrow chat panes.
+
 ## 1.1.4 - 2026-08-09
 
 ### Improved
