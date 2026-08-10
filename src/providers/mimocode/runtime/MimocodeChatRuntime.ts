@@ -71,6 +71,7 @@ import {
   extractAcpSessionModelState,
   extractAcpSessionModeState,
   extractAcpSessionThoughtLevelState,
+  isAcpMissingSessionError,
   isAcpRetryableTransportClose,
   planAcpEnsureReadySessionPhase,
   resolveWorkspacePath,
@@ -1261,6 +1262,9 @@ export class MimocodeChatRuntime implements ChatRuntime {
       });
       return true;
     } catch (error) {
+      if (!isAcpMissingSessionError(error)) {
+        throw error;
+      }
       this.lastSessionLoadError = error;
       return false;
     }

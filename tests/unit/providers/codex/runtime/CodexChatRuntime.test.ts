@@ -603,6 +603,98 @@ describe('CodexChatRuntime', () => {
       expect(chunks).toContainEqual({ type: 'done' });
     });
 
+    it('recovers a completed turn when the completion notification is missing', async () => {
+      jest.useFakeTimers();
+      try {
+        mockTransportRequest.mockImplementation(async (method: string) => {
+          switch (method) {
+            case 'initialize':
+              return { userAgent: 'test/0.1', codexHome: '/tmp', platformFamily: 'unix', platformOs: 'macos' };
+            case 'thread/start':
+              return threadStartResponse('thread-recovery');
+            case 'turn/start':
+              emitNotification('thread/status/changed', {
+                threadId: 'thread-recovery',
+                status: { type: 'idle' },
+              });
+              return turnStartResponse('turn-recovery');
+            case 'thread/read':
+              return {
+                thread: {
+                  ...threadStartResponse('thread-recovery').thread,
+                  turns: [{
+                    id: 'turn-recovery',
+                    status: 'completed',
+                    error: null,
+                    items: [{
+                      type: 'agentMessage',
+                      id: 'message-recovery',
+                      text: 'Recovered response',
+                      phase: 'final_answer',
+                      memoryCitation: null,
+                    }],
+                  }],
+                },
+              };
+            default:
+              return {};
+          }
+        });
+
+        const chunksPromise = collectChunks(runtime.query(createTurn('hi')));
+        await jest.runAllTimersAsync();
+        const chunks = await chunksPromise;
+
+        expect(mockTransportRequest).toHaveBeenCalledWith('thread/read', {
+          threadId: 'thread-recovery',
+          includeTurns: true,
+        });
+        expect(chunks).toContainEqual({ type: 'text', content: 'Recovered response', phase: 'final_answer' });
+        expect(chunks).toContainEqual({ type: 'done' });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('cancels completion recovery when the native completion arrives during the grace period', async () => {
+      jest.useFakeTimers();
+      try {
+        mockTransportRequest.mockImplementation(async (method: string) => {
+          switch (method) {
+            case 'initialize':
+              return { userAgent: 'test/0.1', codexHome: '/tmp', platformFamily: 'unix', platformOs: 'macos' };
+            case 'thread/start':
+              return threadStartResponse('thread-native-completion');
+            case 'turn/start':
+              emitNotification('thread/status/changed', {
+                threadId: 'thread-native-completion',
+                status: { type: 'idle' },
+              });
+              window.setTimeout(() => {
+                emitNotification('turn/completed', {
+                  threadId: 'thread-native-completion',
+                  turn: { id: 'turn-native-completion', items: [], status: 'completed', error: null },
+                });
+              }, 50);
+              return turnStartResponse('turn-native-completion');
+            case 'thread/read':
+              throw new Error('thread/read should not be called');
+            default:
+              return {};
+          }
+        });
+
+        const chunksPromise = collectChunks(runtime.query(createTurn('hi')));
+        await jest.runAllTimersAsync();
+        const chunks = await chunksPromise;
+
+        expect(findCall('thread/read')).toBeUndefined();
+        expect(chunks).toContainEqual({ type: 'done' });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
     it('rebuilds prior conversation context when starting a replacement thread', async () => {
       const history = [
         { id: 'user-previous', role: 'user' as const, content: 'Keep the language rich.', timestamp: 1 },

@@ -1,8 +1,7 @@
-import { spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
 
 import type { ProviderCostValue } from '../../../core/providers/ProviderSpendUsageStore';
-import { loadNodeSqliteModule, type NodeSqliteModule } from '../../acp/history/sqliteModule';
+import { readAcpSqliteRows } from '../../acp/history/AcpSqliteReader';
 import { resolveExistingOpencodeDatabasePath } from '../runtime/OpencodePaths';
 import type { OpencodeProviderState } from '../types';
 
@@ -41,64 +40,11 @@ async function loadOpencodeCostRows(
   sessionId: string,
   source: 'message' | 'step',
 ): Promise<StoredCostRow[] | null> {
-  const viaNodeSqlite = await loadCostRowsWithNodeSqlite(databasePath, sessionId, source);
-  if (viaNodeSqlite) {
-    return viaNodeSqlite;
-  }
-
-  return loadCostRowsWithSqliteCli(databasePath, sessionId, source);
-}
-
-async function loadCostRowsWithNodeSqlite(
-  databasePath: string,
-  sessionId: string,
-  source: 'message' | 'step',
-): Promise<StoredCostRow[] | null> {
-  const sqlite = loadNodeSqliteModule<StoredCostRow>();
-  if (!sqlite) {
-    return null;
-  }
-
-  let db: InstanceType<NodeSqliteModule<StoredCostRow>['DatabaseSync']> | null = null;
-  try {
-    db = new sqlite.DatabaseSync(databasePath, { readonly: true });
-    return db.prepare(buildCostQuery(source, '?')).all(sessionId);
-  } catch {
-    return null;
-  } finally {
-    db?.close();
-  }
-}
-
-function loadCostRowsWithSqliteCli(
-  databasePath: string,
-  sessionId: string,
-  source: 'message' | 'step',
-): StoredCostRow[] | null {
-  const result = spawnSync(
-    'sqlite3',
-    [
-      '-json',
-      databasePath,
-      `${buildCostQuery(source, `'${escapeSqlLiteral(sessionId)}'`)};`,
-    ],
-    {
-      encoding: 'utf8',
-    },
-  );
-
-  if (result.error || result.status !== 0) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(result.stdout || '[]') as unknown;
-    return Array.isArray(parsed)
-      ? parsed.filter((row): row is StoredCostRow => isPlainObject(row))
-      : null;
-  } catch {
-    return null;
-  }
+  const rows = await readAcpSqliteRows<StoredCostRow>(databasePath, [{
+    params: [sessionId],
+    sql: buildCostQuery(source, '?'),
+  }]);
+  return rows?.[0] ?? null;
 }
 
 function buildCostQuery(source: 'message' | 'step', sessionPlaceholder: string): string {
@@ -130,12 +76,4 @@ function readCostAmount(value: unknown): number | null {
   }
 
   return null;
-}
-
-function escapeSqlLiteral(value: string): string {
-  return value.replace(/'/g, "''");
-}
-
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return !!value && typeof value === 'object' && !Array.isArray(value);
 }

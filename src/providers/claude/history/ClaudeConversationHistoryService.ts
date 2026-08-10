@@ -1,3 +1,4 @@
+import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
 import type { ProviderConversationHistoryService } from '../../../core/providers/types';
 import { isSubagentToolName, TOOL_TASK } from '../../../core/tools/toolNames';
 import type {
@@ -8,12 +9,13 @@ import type {
   SubagentInfo,
   ToolCallInfo,
 } from '../../../core/types';
+import type { ClaudeConfigDirContext } from '../config/ClaudeConfigDir';
 import { type ClaudeProviderState, getClaudeState } from '../types/providerState';
 import {
   deleteSDKSession,
   loadSDKSessionMessages,
   loadSubagentToolCalls,
-  sdkSessionExists,
+  locateSDKSessions,
 } from './ClaudeHistoryStore';
 
 function chooseRicherResult(sdkResult?: string, cachedResult?: string): string | undefined {
@@ -25,6 +27,16 @@ function chooseRicherResult(sdkResult?: string, cachedResult?: string): string |
   if (cachedText.length === 0) return sdkResult;
 
   return sdkText.length >= cachedText.length ? sdkResult : cachedResult;
+}
+
+function getClaudeConfigDirContext(vaultPath: string): ClaudeConfigDirContext {
+  const services = ProviderWorkspaceRegistry.getServices('claude') as {
+    getClaudeConfigDir?: () => string;
+  } | null;
+  const configDir = services?.getClaudeConfigDir?.();
+  return configDir
+    ? { environment: { CLAUDE_CONFIG_DIR: configDir }, vaultPath }
+    : { vaultPath };
 }
 
 function chooseRicherToolCalls(
@@ -168,6 +180,7 @@ async function enrichAsyncSubagentToolCalls(
   subagentData: Record<string, SubagentInfo>,
   vaultPath: string,
   sessionIds: string[],
+  sessionPaths?: Map<string, string>,
 ): Promise<void> {
   const uniqueSessionIds = [...new Set(sessionIds)];
   if (uniqueSessionIds.length === 0) return;
@@ -184,7 +197,12 @@ async function enrichAsyncSubagentToolCalls(
 
       let loader = loaderCache.get(cacheKey);
       if (!loader) {
-        loader = loadSubagentToolCalls(vaultPath, sessionId, subagent.agentId);
+        loader = loadSubagentToolCalls(
+          vaultPath,
+          sessionId,
+          subagent.agentId,
+          sessionPaths?.get(sessionId),
+        );
         loaderCache.set(cacheKey, loader);
       }
 
@@ -384,8 +402,25 @@ export class ClaudeConversationHistoryService implements ProviderConversationHis
       ? state.forkSource!.sessionId
       : (state.providerSessionId ?? conversation.sessionId);
 
+    const locations = await locateSDKSessions(
+      vaultPath,
+      allSessionIds,
+      getClaudeConfigDirContext(vaultPath),
+    );
+    const resolvedSessionPaths = new Map<string, string>();
+
     for (const sessionId of allSessionIds) {
-      if (!sdkSessionExists(vaultPath, sessionId)) {
+      const location = locations.get(sessionId);
+      if (!location?.sessionPath) {
+        if (location?.availability === 'missing') {
+          missingSessionCount++;
+        } else {
+          errorCount++;
+        }
+        continue;
+      }
+      resolvedSessionPaths.set(sessionId, location.sessionPath);
+      if (location.availability === 'missing') {
         missingSessionCount++;
         continue;
       }
@@ -394,7 +429,12 @@ export class ClaudeConversationHistoryService implements ProviderConversationHis
       const truncateAt = isCurrentSession
         ? (isPendingFork ? state.forkSource!.resumeAt : conversation.resumeAtMessageId)
         : undefined;
-      const result = await loadSDKSessionMessages(vaultPath, sessionId, truncateAt);
+      const result = await loadSDKSessionMessages(
+        vaultPath,
+        sessionId,
+        truncateAt,
+        location.sessionPath,
+      );
 
       if (result.error) {
         errorCount++;
@@ -423,6 +463,7 @@ export class ClaudeConversationHistoryService implements ProviderConversationHis
         state.subagentData,
         vaultPath,
         allSessionIds,
+        resolvedSessionPaths,
       );
       applySubagentData(merged, state.subagentData);
     }
@@ -441,6 +482,6 @@ export class ClaudeConversationHistoryService implements ProviderConversationHis
       return;
     }
 
-    await deleteSDKSession(vaultPath, sessionId);
+    await deleteSDKSession(vaultPath, sessionId, getClaudeConfigDirContext(vaultPath));
   }
 }

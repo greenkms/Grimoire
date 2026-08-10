@@ -1,5 +1,6 @@
 import { McpServerManager } from '../../../core/mcp/McpServerManager';
 import type { ProviderCommandCatalog } from '../../../core/providers/commands/ProviderCommandCatalog';
+import { ProviderModelCatalogRefreshCache } from '../../../core/providers/ProviderModelCatalogRefreshCache';
 import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
 import type {
   ProviderModelCatalog,
@@ -41,8 +42,10 @@ const MODEL_CATALOG_CACHE_TTL_MS = 10 * 60 * 1000;
 
 function createMimocodeModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
   const initialSettings = getMimocodeProviderSettings(plugin.settings ?? {});
-  let lastRefreshAt = initialSettings.discoveredModels.length > 0 ? Date.now() : 0;
-  let lastRefreshCacheKey = buildMimocodeModelCatalogCacheKey(initialSettings);
+  const refreshCache = new ProviderModelCatalogRefreshCache(MODEL_CATALOG_CACHE_TTL_MS);
+  if (initialSettings.discoveredModels.length > 0) {
+    refreshCache.seed(buildMimocodeModelCatalogCacheKey(initialSettings));
+  }
 
   return {
     isAvailable(settings) {
@@ -51,19 +54,9 @@ function createMimocodeModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalo
     async refreshModels({ settings }) {
       const currentSettings = getMimocodeProviderSettings(settings);
       const cacheKey = buildMimocodeModelCatalogCacheKey(currentSettings);
-      if (currentSettings.discoveredModels.length > 0 && lastRefreshAt === 0) {
-        lastRefreshAt = Date.now();
-        lastRefreshCacheKey = cacheKey;
-      }
-      const cacheAgeMs = lastRefreshAt > 0 ? Date.now() - lastRefreshAt : Number.POSITIVE_INFINITY;
-      if (
-        currentSettings.discoveredModels.length > 0
-        && cacheKey === lastRefreshCacheKey
-        && cacheAgeMs < MODEL_CATALOG_CACHE_TTL_MS
-      ) {
+      if (refreshCache.isFresh(cacheKey, currentSettings.discoveredModels.length > 0)) {
         plugin.recordDebugLog?.({
           data: {
-            ageMs: cacheAgeMs,
             modelCount: currentSettings.discoveredModels.length,
             providerId: 'mimocode',
             reason: 'cache_fresh',
@@ -76,22 +69,25 @@ function createMimocodeModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalo
         return false;
       }
 
-      const before = JSON.stringify(currentSettings.discoveredModels);
-      const runtime = new MimocodeChatRuntime(plugin);
-      try {
-        runtime.syncConversationState({
-          providerState: { databasePath: MIMOCODE_METADATA_WARMUP_DB },
-          sessionId: null,
-        });
-        const loaded = await runtime.ensureReady({ allowSessionCreation: true });
-        const updatedSettings = getMimocodeProviderSettings(settings);
-        lastRefreshAt = Date.now();
-        lastRefreshCacheKey = buildMimocodeModelCatalogCacheKey(updatedSettings);
-        const after = JSON.stringify(getMimocodeProviderSettings(settings).discoveredModels);
-        return loaded && before !== after;
-      } finally {
-        runtime.cleanup();
-      }
+      return refreshCache.refresh({
+        fingerprint: cacheKey,
+        hasCachedModels: currentSettings.discoveredModels.length > 0,
+        load: async () => {
+          const before = JSON.stringify(currentSettings.discoveredModels);
+          const runtime = new MimocodeChatRuntime(plugin);
+          try {
+            runtime.syncConversationState({
+              providerState: { databasePath: MIMOCODE_METADATA_WARMUP_DB },
+              sessionId: null,
+            });
+            const loaded = await runtime.ensureReady({ allowSessionCreation: true });
+            const after = JSON.stringify(getMimocodeProviderSettings(settings).discoveredModels);
+            return loaded && before !== after;
+          } finally {
+            runtime.cleanup();
+          }
+        },
+      });
     },
   };
 }

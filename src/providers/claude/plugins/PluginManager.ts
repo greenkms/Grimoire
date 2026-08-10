@@ -12,14 +12,11 @@
 
 import * as fs from 'fs';
 import { Notice } from 'obsidian';
-import * as os from 'os';
 import * as path from 'path';
 
 import type { PluginInfo, PluginScope } from '../../../core/types';
+import { resolveClaudeConfigDir } from '../config/ClaudeConfigDir';
 import type { InstalledPluginEntry, InstalledPluginsFile } from '../types/plugins';
-
-const INSTALLED_PLUGINS_PATH = path.join(os.homedir(), '.claude', 'plugins', 'installed_plugins.json');
-const GLOBAL_SETTINGS_PATH = path.join(os.homedir(), '.claude', 'settings.json');
 
 interface SettingsFile {
   enabledPlugins?: Record<string, boolean>;
@@ -76,14 +73,22 @@ function extractPluginName(pluginId: string): string {
 export class PluginManager {
   private vaultPath: string;
   private plugins: PluginInfo[] = [];
+  private getClaudeConfigDir: () => string;
 
-  constructor(vaultPath: string) {
+  constructor(
+    vaultPath: string,
+    getClaudeConfigDir: () => string = () => resolveClaudeConfigDir({ vaultPath }),
+  ) {
     this.vaultPath = vaultPath;
+    this.getClaudeConfigDir = getClaudeConfigDir;
   }
 
   async loadPlugins(): Promise<void> {
-    const installedPlugins = readJsonFile<InstalledPluginsFile>(INSTALLED_PLUGINS_PATH);
-    const globalSettings = readJsonFile<SettingsFile>(GLOBAL_SETTINGS_PATH);
+    const configDir = this.getClaudeConfigDir();
+    const installedPlugins = readJsonFile<InstalledPluginsFile>(
+      path.join(configDir, 'plugins', 'installed_plugins.json'),
+    );
+    const globalSettings = readJsonFile<SettingsFile>(path.join(configDir, 'settings.json'));
     const projectSettings = await this.loadProjectSettings();
 
     const globalEnabled = globalSettings?.enabledPlugins ?? {};

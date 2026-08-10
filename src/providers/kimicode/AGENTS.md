@@ -15,3 +15,8 @@
 - Do not project Kimi Code provider state into generic chat UI code. Use provider helpers and shared contracts.
 - When changing launch artifacts or command loading, verify against current Kimi Code runtime output rather than inferred schemas.
 - Plan indicators are spend-only today. `KimicodePlanUsageStore` aggregates ACP/session cost for the current month; do not invent a cross-vendor quota window unless Kimi Code exposes one.
+
+## Session resume
+
+- Persist both `sessionId` and `providerState.databasePath` after turns.
+- Invalidate only when `session/load` explicitly reports a missing session. Preserve `databasePath`; propagate transport, authentication, and configuration errors without clearing the binding.

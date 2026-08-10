@@ -165,18 +165,6 @@ function formatQuotaLimitDescription(window: ProviderPlanUsageWindow): string {
   return t('chat.ui.usage.namedLimit', { name: window.label });
 }
 
-function findWeeklyWindow(usage: ProviderPlanUsage): ProviderPlanUsageWindow | null {
-  if (!isQuotaUsage(usage)) {
-    return null;
-  }
-  const window = usage.windows.find(item => WEEKLY_WINDOW_PATTERN.test(item.label));
-  if (!window) {
-    return null;
-  }
-  const normalized = normalizeUsageWindow(window);
-  return isUsagePctKnown(normalized) ? normalized : null;
-}
-
 function stripThisMonth(spend: string): string {
   return spend.replace(/\s+this\s+month\s*$/i, '').trim() || spend.trim();
 }
@@ -187,17 +175,6 @@ function isUsagePctKnown(window: ProviderPlanUsageWindow): boolean {
 
 function formatUsagePct(window: ProviderPlanUsageWindow): string {
   return isUsagePctKnown(window) ? `${window.pct}%` : '—';
-}
-
-function formatUsageUpdatedAt(updatedAt: number | undefined): string | null {
-  if (typeof updatedAt !== 'number' || !Number.isFinite(updatedAt)) {
-    return null;
-  }
-
-  return new Intl.DateTimeFormat(undefined, {
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(new Date(updatedAt));
 }
 
 function isUsageWindowHot(window: ProviderPlanUsageWindow): boolean {
@@ -778,7 +755,6 @@ export class PlanUsageBadge {
   private meterEl: HTMLElement | null = null;
   private fillEl: HTMLElement | null = null;
   private valueEl: HTMLElement | null = null;
-  private tipEl: HTMLElement | null = null;
   private refreshPromise: Promise<ProviderPlanUsage | null> | null = null;
   private callbacks: ToolbarCallbacks;
 
@@ -797,7 +773,6 @@ export class PlanUsageBadge {
     this.meterEl = this.container.createSpan({ cls: 'grimoire-plan-usage-badge-meter' });
     this.fillEl = this.meterEl.createSpan({ cls: 'grimoire-plan-usage-badge-fill' });
     this.valueEl = this.container.createSpan({ cls: 'grimoire-plan-usage-badge-value' });
-    this.tipEl = this.container.createDiv({ cls: 'grimoire-plan-usage-badge-tip' });
   }
 
   refreshInBackground(): void {
@@ -855,27 +830,7 @@ export class PlanUsageBadge {
     }
     this.valueEl?.setText(formatUsagePct(window));
 
-    const weeklyWindow = findWeeklyWindow(usage);
-    const secondaryParts = [
-      ...(isUsagePctKnown(window) ? [t('chat.ui.usage.percentUsed', { percent: window.pct })] : []),
-      t('chat.ui.usage.resets', { reset: window.reset }),
-    ];
-    if (weeklyWindow) {
-      secondaryParts.push(isUsagePctKnown(weeklyWindow)
-        ? t('chat.ui.usage.weeklyPercent', { percent: weeklyWindow.pct })
-        : t('chat.ui.usage.weeklyUnavailable'));
-    }
-    const updatedAt = formatUsageUpdatedAt(usage.updatedAt);
-    if (updatedAt) {
-      secondaryParts.push(t('chat.ui.usage.updated', { time: updatedAt }));
-    }
-
-    const limitDescription = formatQuotaLimitDescription(window);
     this.container.setAttribute('aria-label', formatQuotaAriaLabel(usage.plan, window));
-    this.renderTip(
-      `${usage.plan} · ${limitDescription}`,
-      secondaryParts.join(' · '),
-    );
   }
 
   private renderSpendUsage(usage: ProviderPlanUsage & { spend: string }): void {
@@ -888,24 +843,6 @@ export class PlanUsageBadge {
     this.meterEl?.addClass('grimoire-hidden');
     this.valueEl?.setText(stripThisMonth(usage.spend));
     this.container.setAttribute('aria-label', `${usage.plan}: ${usage.spend}`);
-    this.renderTip(`${usage.plan} · ${usage.spend}`, usage.note ?? '');
-  }
-
-  private renderTip(primary: string, secondary: string): void {
-    if (!this.tipEl) {
-      return;
-    }
-    this.tipEl.empty();
-    this.tipEl.createDiv({
-      cls: 'grimoire-plan-usage-badge-tip-primary',
-      text: primary,
-    });
-    if (secondary) {
-      this.tipEl.createDiv({
-        cls: 'grimoire-plan-usage-badge-tip-secondary',
-        text: secondary,
-      });
-    }
   }
 }
 

@@ -1,4 +1,3 @@
-import { spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
 
 import { extractResolvedAnswersFromResultText } from '../../../core/tools/toolInput';
@@ -6,7 +5,7 @@ import { isWriteEditTool, TOOL_ASK_USER_QUESTION } from '../../../core/tools/too
 import type { ChatMessage, ContentBlock, ToolCallInfo } from '../../../core/types';
 import { extractUserQuery } from '../../../utils/context';
 import { extractDiffData } from '../../../utils/diff';
-import { loadNodeSqliteModule, type NodeSqliteModule } from '../../acp/history/sqliteModule';
+import { readAcpSqliteRows } from '../../acp/history/AcpSqliteReader';
 import {
   normalizeKimicodeToolInput,
   normalizeKimicodeToolName,
@@ -391,87 +390,15 @@ async function loadKimicodeSessionRows(
   databasePath: string,
   sessionId: string,
 ): Promise<StoredSessionRows | null> {
-  const viaNodeSqlite = await loadSessionRowsWithNodeSqlite(databasePath, sessionId);
-  if (viaNodeSqlite) {
-    return viaNodeSqlite;
-  }
-
-  return loadSessionRowsWithSqliteCli(databasePath, sessionId);
-}
-
-async function loadSessionRowsWithNodeSqlite(
-  databasePath: string,
-  sessionId: string,
-): Promise<StoredSessionRows | null> {
-  const sqlite = loadNodeSqliteModule<StoredRow>();
-  if (!sqlite) {
-    return null;
-  }
-
-  let db: InstanceType<NodeSqliteModule<StoredRow>['DatabaseSync']> | null = null;
-  try {
-    db = new sqlite.DatabaseSync(databasePath, { readonly: true });
-    const messageRows = db.prepare(
-      'select id, time_created, data from message where session_id = ? order by time_created asc, id asc',
-    ).all(sessionId);
-    const partRows = db.prepare(
-      'select id, message_id, data from part where session_id = ? order by message_id asc, id asc',
-    ).all(sessionId);
-    return { messageRows, partRows };
-  } catch {
-    return null;
-  } finally {
-    db?.close();
-  }
-}
-
-function loadSessionRowsWithSqliteCli(
-  databasePath: string,
-  sessionId: string,
-): StoredSessionRows | null {
-  const escapedSessionId = escapeSqlLiteral(sessionId);
-  const messageRows = runSqlite3JsonQuery(
-    databasePath,
-    `select id, time_created, data from message where session_id = '${escapedSessionId}' order by time_created asc, id asc;`,
-  );
-  const partRows = runSqlite3JsonQuery(
-    databasePath,
-    `select id, message_id, data from part where session_id = '${escapedSessionId}' order by message_id asc, id asc;`,
-  );
-
-  if (!messageRows || !partRows) {
-    return null;
-  }
-
-  return { messageRows, partRows };
-}
-
-function runSqlite3JsonQuery(
-  databasePath: string,
-  sql: string,
-): StoredRow[] | null {
-  const result = spawnSync(
-    'sqlite3',
-    ['-json', databasePath, sql],
+  const rows = await readAcpSqliteRows<StoredRow>(databasePath, [
     {
-      encoding: 'utf8',
+      params: [sessionId],
+      sql: 'select id, time_created, data from message where session_id = ? order by time_created asc, id asc',
     },
-  );
-
-  if (result.error || result.status !== 0) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(result.stdout || '[]') as unknown;
-    return Array.isArray(parsed)
-      ? parsed.filter((row): row is StoredRow => isPlainObject(row))
-      : null;
-  } catch {
-    return null;
-  }
-}
-
-function escapeSqlLiteral(value: string): string {
-  return value.replaceAll('\'', '\'\'');
+    {
+      params: [sessionId],
+      sql: 'select id, message_id, data from part where session_id = ? order by message_id asc, id asc',
+    },
+  ]);
+  return rows ? { messageRows: rows[0], partRows: rows[1] } : null;
 }

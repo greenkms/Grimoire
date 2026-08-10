@@ -960,8 +960,7 @@ describe('PlanUsageBadge', () => {
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-fill')?.style.width).toBe('47%');
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-value')?.textContent).toBe('47%');
     expect(container?.getAttribute('aria-label')).toBe('Max 20x 5-hour limit: 47% used, resets 3:20p');
-    expect(parentEl.querySelector('.grimoire-plan-usage-badge-tip-secondary')?.textContent)
-      .toContain('47% used · resets 3:20p · weekly 71% · updated ');
+    expect(parentEl.querySelector('.grimoire-plan-usage-badge-tip')).toBeNull();
   });
 
   it('renders non-5-hour quota windows inline next to the model selector', () => {
@@ -981,8 +980,7 @@ describe('PlanUsageBadge', () => {
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-fill')?.style.width).toBe('6%');
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-value')?.textContent).toBe('6%');
     expect(container?.getAttribute('aria-label')).toBe('SuperGrok Credits limit: 6% used, resets Jul 1');
-    expect(parentEl.querySelector('.grimoire-plan-usage-badge-tip-primary')?.textContent).toBe('SuperGrok · Credits limit');
-    expect(parentEl.querySelector('.grimoire-plan-usage-badge-tip-secondary')?.textContent).toBe('6% used · resets Jul 1');
+    expect(parentEl.querySelector('.grimoire-plan-usage-badge-tip')).toBeNull();
   });
 
   it('falls back to spend instead of rendering reset-only quota windows', () => {
@@ -1032,8 +1030,8 @@ describe('PlanUsageBadge', () => {
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-label')?.textContent).toBe('API');
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-meter')?.hasClass('grimoire-hidden')).toBe(true);
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-value')?.textContent).toBe('$4.20');
-    expect(parentEl.querySelector('.grimoire-plan-usage-badge-tip-primary')?.textContent).toBe('API keys · $4.20 this month');
-    expect(parentEl.querySelector('.grimoire-plan-usage-badge-tip-secondary')?.textContent).toBe('Pay per token across vendors · no cap set.');
+    expect(container?.getAttribute('aria-label')).toBe('API keys: $4.20 this month');
+    expect(parentEl.querySelector('.grimoire-plan-usage-badge-tip')).toBeNull();
   });
 
   it('prefers quota in the mini badge when quota and spend are both available', () => {
@@ -1052,7 +1050,8 @@ describe('PlanUsageBadge', () => {
     expect(container?.hasClass('grimoire-plan-usage-badge--spend')).toBe(false);
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-label')?.textContent).toBe('5H');
     expect(parentEl.querySelector('.grimoire-plan-usage-badge-value')?.textContent).toBe('11%');
-    expect(parentEl.querySelector('.grimoire-plan-usage-badge-tip-primary')?.textContent).toBe('Claude Code · 5-hour limit');
+    expect(container?.getAttribute('aria-label')).toBe('Claude Code 5-hour limit: 11% used, resets 5:50 PM');
+    expect(parentEl.querySelector('.grimoire-plan-usage-badge-tip')).toBeNull();
   });
 
   it('hides the mini badge when usage indicators are disabled globally', () => {

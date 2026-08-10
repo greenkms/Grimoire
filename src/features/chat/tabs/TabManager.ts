@@ -44,6 +44,7 @@ import {
   type TabManagerInterface,
   type TabManagerViewHost,
 } from './types';
+import { WarmRuntimeLru } from './WarmRuntimeLru';
 
 function isTabManagerViewHost(value: unknown): value is TabManagerViewHost {
   return !!value
@@ -93,6 +94,8 @@ type ProviderCommandWarmupEntry = {
   promise: Promise<SlashCommand[]>;
 };
 
+export const MAX_WARM_PROVIDER_RUNTIMES = 5;
+
 /**
  * TabManager coordinates multiple chat tabs.
  */
@@ -106,6 +109,7 @@ export class TabManager implements TabManagerInterface {
   private callbacks: TabManagerCallbacks;
   private providerCommandWarmups = new Map<TabId, ProviderCommandWarmupEntry>();
   private providerCommandCache = new Map<TabId, ProviderCommandCacheEntry>();
+  private warmRuntimes = new WarmRuntimeLru<ChatRuntime>(MAX_WARM_PROVIDER_RUNTIMES);
   private isRestoringState = false;
 
   /** Guard to prevent concurrent tab switches. */
@@ -240,6 +244,7 @@ export class TabManager implements TabManagerInterface {
       defaultProviderId,
       onStreamingChanged: (isStreaming) => {
         this.callbacks.onTabStreamingChanged?.(tab.id, isStreaming);
+        this.touchWarmRuntime(tab);
       },
       onTitleChanged: (title) => {
         this.callbacks.onTabTitleChanged?.(tab.id, title);
@@ -392,6 +397,7 @@ export class TabManager implements TabManagerInterface {
       }
 
       this.callbacks.onTabSwitched?.(previousTabId, tabId);
+      this.touchWarmRuntime(tab);
       this.maybePrimeProviderRuntime(tab);
     } finally {
       this.isSwitchingTab = false;
@@ -429,6 +435,7 @@ export class TabManager implements TabManagerInterface {
 
     // Destroy tab resources (async for proper cleanup)
     await destroyTab(tab);
+    this.warmRuntimes.remove(tabId);
     this.providerCommandWarmups.delete(tabId);
     this.providerCommandCache.delete(tabId);
     this.tabs.delete(tabId);
@@ -1035,6 +1042,7 @@ export class TabManager implements TabManagerInterface {
 
     const targetService = targetTab.service;
     if (targetService?.providerId === providerId && targetService.isReady()) {
+      this.touchWarmRuntime(targetTab);
       sdkCommands = await targetService.getSupportedCommands();
     } else if (!runtimeCommandLoader) {
       for (const tab of this.tabs.values()) {
@@ -1150,6 +1158,7 @@ export class TabManager implements TabManagerInterface {
 
     runtime.syncConversationState(context.conversation, context.externalContextPaths);
     await runtime.ensureReady();
+    this.touchWarmRuntime(tab);
     if (tab.lifecycleState === 'blank') {
       tab.ui.modelSelector?.updateDisplay();
       tab.ui.modelSelector?.renderOptions();
@@ -1264,6 +1273,57 @@ export class TabManager implements TabManagerInterface {
     return commands;
   }
 
+  private touchWarmRuntime(tab: TabData): void {
+    const runtime = tab.service;
+    if (!runtime || typeof runtime.isReady !== 'function' || !runtime.isReady()) {
+      this.warmRuntimes.remove(tab.id);
+      this.trimWarmRuntimes();
+      return;
+    }
+
+    this.warmRuntimes.touch(tab.id, runtime);
+    this.trimWarmRuntimes();
+  }
+
+  private trimWarmRuntimes(): void {
+    this.warmRuntimes.trim({
+      isLive: (tabId, runtime) => {
+        const tab = this.tabs.get(tabId);
+        return tab?.service === runtime
+          && typeof runtime.isReady === 'function'
+          && runtime.isReady();
+      },
+      isProtected: (tabId) => {
+        const tab = this.tabs.get(tabId);
+        return tabId === this.activeTabId || tab?.state.isStreaming === true;
+      },
+      onEvict: (tabId, runtime) => {
+        const tab = this.tabs.get(tabId);
+        if (!tab || tab.service !== runtime) {
+          return;
+        }
+
+        runtime.cleanup();
+        tab.service = null;
+        tab.serviceInitialized = false;
+        if (tab.lifecycleState === 'bound_active') {
+          tab.lifecycleState = 'bound_cold';
+        }
+        this.providerCommandWarmups.delete(tabId);
+        this.plugin.recordDebugLog?.({
+          data: {
+            limit: MAX_WARM_PROVIDER_RUNTIMES,
+            providerId: runtime.providerId,
+            reason: 'lru_limit',
+          },
+          event: 'runtime.warm.evicted',
+          level: 'debug',
+          scope: 'tabs.runtime',
+        });
+      },
+    });
+  }
+
   // ============================================
   // Provider Command Catalog
   // ============================================
@@ -1340,6 +1400,7 @@ export class TabManager implements TabManagerInterface {
     // Destroy all tabs in parallel (independent per-tab, must run after saves complete)
     await Promise.all(Array.from(this.tabs.values()).map(tab => destroyTab(tab)));
 
+    this.warmRuntimes.clear();
     this.tabs.clear();
     this.activeTabId = null;
   }

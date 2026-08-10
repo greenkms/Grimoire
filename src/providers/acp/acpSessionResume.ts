@@ -1,3 +1,5 @@
+import { JsonRpcErrorResponse } from './AcpJsonRpcTransport';
+
 /**
  * Shared helpers for ACP managed-CLI session resume.
  *
@@ -33,6 +35,57 @@ export interface AcpPersistedSessionUpdateInput {
   currentDatabasePath?: string | null;
   sessionId: string | null;
   sessionInvalidated: boolean;
+}
+
+const MISSING_SESSION_REASON_PATTERN = /^(?:invalid[_ -]?session(?:[_ -]?id)?|missing[_ -]?session|session[_ -]?(?:missing|not[_ -]?found|unknown))$/i;
+const MISSING_SESSION_MESSAGE_PATTERNS = [
+  /\bsession\b.{0,80}\b(?:does not exist|missing|not found|unknown)\b/i,
+  /\b(?:missing|no|unknown)\b.{0,40}\bsession\b/i,
+  /\bcould not find\b.{0,40}\bsession\b/i,
+  /\binvalid session(?: id)?\b/i,
+];
+
+/**
+ * Return true only when session/load explicitly reports that the persisted
+ * session no longer exists. Transport, authentication, and configuration
+ * failures must propagate without invalidating the saved binding.
+ */
+export function isAcpMissingSessionError(error: unknown): boolean {
+  if (!(error instanceof JsonRpcErrorResponse)) {
+    return false;
+  }
+  if (error.method !== 'session/load' && error.method !== 'loadSession') {
+    return false;
+  }
+
+  return collectDiagnosticStrings(error.message, error.data).some((value) => {
+    const normalized = value.trim();
+    return MISSING_SESSION_REASON_PATTERN.test(normalized)
+      || MISSING_SESSION_MESSAGE_PATTERNS.some(pattern => pattern.test(normalized));
+  });
+}
+
+function collectDiagnosticStrings(...values: unknown[]): string[] {
+  const result: string[] = [];
+  const visit = (value: unknown, depth: number): void => {
+    if (typeof value === 'string') {
+      result.push(value);
+      return;
+    }
+    if (depth >= 3 || value === null || typeof value !== 'object') {
+      return;
+    }
+    if (Array.isArray(value)) {
+      for (const entry of value.slice(0, 20)) visit(entry, depth + 1);
+      return;
+    }
+    for (const entry of Object.values(value as Record<string, unknown>).slice(0, 20)) {
+      visit(entry, depth + 1);
+    }
+  };
+
+  for (const value of values) visit(value, 0);
+  return result;
 }
 
 /**

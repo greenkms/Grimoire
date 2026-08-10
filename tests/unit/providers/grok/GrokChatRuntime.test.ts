@@ -150,17 +150,18 @@ describe('GrokChatRuntime', () => {
     ]);
   });
 
-  it('queues xAI subagent completion notifications for the active turn', () => {
+  it('queues xAI subagent completion notifications for the active turn', async () => {
     const runtime = new GrokChatRuntime(createMockPlugin());
     const push = jest.fn();
     (runtime as any).sessionId = 'session-1';
     (runtime as any).activeTurn = {
       queue: { push },
+      sawAssistantText: false,
       sawOutput: false,
       sessionId: 'session-1',
     };
 
-    (runtime as any).handleGrokExtensionSessionNotification({
+    await (runtime as any).handleGrokTransportSessionNotification('x.ai/session/update', {
       sessionId: 'session-1',
       update: {
         output: 'Finished report',
@@ -177,6 +178,104 @@ describe('GrokChatRuntime', () => {
       type: 'async_subagent_result',
     });
     expect((runtime as any).activeTurn.sawOutput).toBe(true);
+  });
+
+  it('routes assistant text from xAI session update aliases through the ACP normalizer', async () => {
+    const runtime = new GrokChatRuntime(createMockPlugin());
+    const push = jest.fn();
+    (runtime as any).sessionId = 'session-1';
+    (runtime as any).activeTurn = {
+      queue: { push },
+      sawAssistantText: false,
+      sawOutput: false,
+      sessionId: 'session-1',
+    };
+
+    await (runtime as any).handleGrokTransportSessionNotification('x.ai/session/update', {
+      sessionId: 'session-1',
+      update: {
+        content: { text: 'Recovered answer', type: 'text' },
+        messageId: 'assistant-1',
+        sessionUpdate: 'agent_message_chunk',
+      },
+    });
+
+    expect(push.mock.calls.map(call => call[0])).toEqual([
+      { itemId: 'assistant-1', type: 'assistant_message_start' },
+      { content: 'Recovered answer', type: 'text' },
+    ]);
+    expect((runtime as any).activeTurn.sawAssistantText).toBe(true);
+    expect((runtime as any).activeTurn.sawOutput).toBe(true);
+  });
+
+  it('unwraps wrapped xAI session notifications and suppresses their standard mirror', async () => {
+    const runtime = new GrokChatRuntime(createMockPlugin());
+    const push = jest.fn();
+    const notification = {
+      sessionId: 'session-1',
+      update: {
+        content: { text: 'One answer', type: 'text' },
+        messageId: 'assistant-1',
+        sessionUpdate: 'agent_message_chunk',
+      },
+    };
+    (runtime as any).sessionId = 'session-1';
+    (runtime as any).activeTurn = {
+      queue: { push },
+      sawAssistantText: false,
+      sawOutput: false,
+      sessionId: 'session-1',
+    };
+
+    await (runtime as any).handleSessionNotification(notification, 'standard');
+    await (runtime as any).handleGrokTransportSessionNotification(
+      '_x.ai/session_notification',
+      {
+        method: 'x.ai/session_notification',
+        params: notification,
+      },
+    );
+
+    expect(push.mock.calls.map(call => call[0])).toEqual([
+      { itemId: 'assistant-1', type: 'assistant_message_start' },
+      { content: 'One answer', type: 'text' },
+    ]);
+  });
+
+  it('surfaces an empty-response error when Grok ends after thinking without final text', async () => {
+    const runtime = new GrokChatRuntime(createMockPlugin());
+    const prompt = jest.fn().mockImplementation(async () => {
+      await (runtime as any).handleSessionNotification({
+        sessionId: 'session-1',
+        update: {
+          content: { text: 'Working through the edit', type: 'text' },
+          messageId: 'thought-1',
+          sessionUpdate: 'agent_thought_chunk',
+        },
+      });
+      return { stopReason: 'end_turn' };
+    });
+
+    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+    (runtime as any).sessionId = 'session-1';
+    (runtime as any).loadedSessionId = 'session-1';
+    (runtime as any).connection = { prompt };
+    (runtime as any).applySelectedMode = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedModel = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedEffort = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).refreshFallbackPlanUsageFromSessionCost = jest.fn().mockResolvedValue(undefined);
+
+    const chunks = await collectRuntimeChunks(runtime);
+
+    expect(chunks).toEqual([
+      { content: 'Working through the edit', type: 'thinking' },
+      expect.objectContaining({
+        content: expect.stringContaining('Grok Build'),
+        type: 'error',
+      }),
+      { type: 'done' },
+    ]);
+    expect(runtime.consumeTurnMetadata()).toEqual({ wasSent: true });
   });
 
   it('does not create a session when commands are requested before a session exists', async () => {

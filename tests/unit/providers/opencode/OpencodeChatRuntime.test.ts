@@ -2,7 +2,7 @@ import '@/providers';
 
 import { ProviderRegistry } from '@/core/providers/ProviderRegistry';
 import { ProviderSettingsCoordinator } from '@/core/providers/ProviderSettingsCoordinator';
-import { JsonRpcTransportClosedError } from '@/providers/acp';
+import { JsonRpcErrorResponse, JsonRpcTransportClosedError } from '@/providers/acp';
 import { opencodePlanUsageStore } from '@/providers/opencode/app/OpencodePlanUsageStore';
 import {
   OPENCODE_BUILD_MODE_ID,
@@ -408,6 +408,20 @@ describe('OpencodeChatRuntime', () => {
     expect(updates.updates.providerState).toEqual({
       databasePath: '/persisted/opencode.db',
     });
+  });
+
+  it('preserves the saved session binding when session/load fails transiently', async () => {
+    const runtime = new OpencodeChatRuntime(createMockPlugin());
+    runtime.syncConversationState({ sessionId: 'session-1' });
+    const error = new JsonRpcErrorResponse('session/load', -32000, 'Authentication failed');
+    (runtime as any).connection = {
+      loadSession: jest.fn().mockRejectedValue(error),
+    };
+
+    await expect((runtime as any).loadSession('session-1', '/vault')).rejects.toBe(error);
+
+    expect(runtime.getSessionId()).toBe('session-1');
+    expect(runtime.consumeSessionInvalidation()).toBe(false);
   });
 
   it('clears a stale database path when switching to a saved session without persisted provider state', async () => {

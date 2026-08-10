@@ -13,10 +13,12 @@ import type {
 } from '../../../core/providers/types';
 import type { VaultFileAdapter } from '../../../core/storage/VaultFileAdapter';
 import type GrimoirePlugin from '../../../main';
+import { parseEnvironmentVariables } from '../../../utils/env';
 import { getVaultPath } from '../../../utils/path';
 import { AgentManager } from '../agents/AgentManager';
 import { ClaudeCommandCatalog } from '../commands/ClaudeCommandCatalog';
 import { probeRuntimeCommands } from '../commands/probeRuntimeCommands';
+import { resolveClaudeConfigDir } from '../config/ClaudeConfigDir';
 import { PluginManager } from '../plugins/PluginManager';
 import { ClaudeCliResolver } from '../runtime/ClaudeCliResolver';
 import { StorageService } from '../storage/StorageService';
@@ -35,6 +37,7 @@ export interface ClaudeWorkspaceServices extends ProviderWorkspaceServices {
   commandCatalog: ProviderCommandCatalog;
   agentMentionProvider: AppAgentManager;
   modelCatalog: ProviderModelCatalog;
+  getClaudeConfigDir(): string;
 }
 
 export async function createClaudeWorkspaceServices(
@@ -45,16 +48,24 @@ export async function createClaudeWorkspaceServices(
   await claudeStorage.ensureDirectories();
 
   const vaultPath = getVaultPath(plugin.app) ?? '';
+  const getClaudeConfigDir = () => resolveClaudeConfigDir({
+    environment: {
+      ...process.env,
+      ...parseEnvironmentVariables(plugin.getActiveEnvironmentVariables?.('claude') ?? ''),
+    },
+    hostPlatform: process.platform,
+    vaultPath,
+  });
   const cliResolver = new ClaudeCliResolver();
   const mcpStorage = claudeStorage.mcp;
   const mcpManager = new McpServerManager(mcpStorage);
   await mcpManager.loadServers();
 
-  const pluginManager = new PluginManager(vaultPath);
+  const pluginManager = new PluginManager(vaultPath, getClaudeConfigDir);
   await pluginManager.loadPlugins();
 
   const agentStorage = claudeStorage.agents;
-  const agentManager = new AgentManager(vaultPath, pluginManager);
+  const agentManager = new AgentManager(vaultPath, pluginManager, getClaudeConfigDir);
   await agentManager.loadAgents();
 
   const commandCatalog = new ClaudeCommandCatalog(
@@ -75,6 +86,7 @@ export async function createClaudeWorkspaceServices(
     commandCatalog,
     agentMentionProvider: agentManager,
     modelCatalog: createClaudeModelCatalog(plugin),
+    getClaudeConfigDir,
     usageProvider: claudePlanUsageStore,
     settingsTabRenderer: claudeSettingsTabRenderer,
     refreshAgentMentions: async () => {

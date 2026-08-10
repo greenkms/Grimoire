@@ -2,7 +2,7 @@ import '@/providers';
 
 import { ProviderRegistry } from '@/core/providers/ProviderRegistry';
 import { ProviderSettingsCoordinator } from '@/core/providers/ProviderSettingsCoordinator';
-import { JsonRpcTransportClosedError } from '@/providers/acp';
+import { JsonRpcErrorResponse, JsonRpcTransportClosedError } from '@/providers/acp';
 import { kimicodePlanUsageStore } from '@/providers/kimicode/app/KimicodePlanUsageStore';
 import {
   KIMICODE_BUILD_MODE_ID,
@@ -386,6 +386,20 @@ describe('KimicodeChatRuntime', () => {
     expect((runtime as any).createSession).not.toHaveBeenCalled();
     expect(runtime.getSessionId()).toBeNull();
     expect(runtime.consumeSessionInvalidation()).toBe(true);
+    expect(runtime.consumeSessionInvalidation()).toBe(false);
+  });
+
+  it('preserves the saved session binding when session/load fails transiently', async () => {
+    const runtime = new KimicodeChatRuntime(createMockPlugin());
+    runtime.syncConversationState({ sessionId: 'session-1' });
+    const error = new JsonRpcErrorResponse('session/load', -32000, 'Authentication failed');
+    (runtime as any).connection = {
+      loadSession: jest.fn().mockRejectedValue(error),
+    };
+
+    await expect((runtime as any).loadSession('session-1', '/vault')).rejects.toBe(error);
+
+    expect(runtime.getSessionId()).toBe('session-1');
     expect(runtime.consumeSessionInvalidation()).toBe(false);
   });
 

@@ -19,5 +19,5 @@
 ## Session resume
 
 - Persist both `sessionId` and `providerState.databasePath` after turns.
-- On ACP `session/load` failure: log via debug, notify the user, mark invalidated, and **keep** `databasePath` so SQLite hydrate and `OPENCODE_DB` still resolve. Clear only the live session binding.
+- On ACP `session/load`, invalidate only when the JSON-RPC response explicitly says the session is missing. Log the missing session via debug and **keep** `databasePath` so SQLite hydrate and `OPENCODE_DB` still resolve. Transport, authentication, and configuration errors must propagate without clearing the live or persisted binding.
 - Use shared helpers in `src/providers/acp/acpSessionResume.ts` rather than inventing a fourth wipe policy.

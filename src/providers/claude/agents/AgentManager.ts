@@ -7,14 +7,13 @@
  */
 
 import * as fs from 'fs';
-import * as os from 'os';
 import * as path from 'path';
 
 import type { AgentDefinition, AgentFrontmatter } from '../../../core/types';
+import { resolveClaudeConfigDir } from '../config/ClaudeConfigDir';
 import type { PluginManager } from '../plugins/PluginManager';
 import { buildAgentFromFrontmatter, parseAgentFile } from './AgentStorage';
 
-const GLOBAL_AGENTS_DIR = path.join(os.homedir(), '.claude', 'agents');
 const VAULT_AGENTS_DIR = '.claude/agents';
 const PLUGIN_AGENTS_DIR = 'agents';
 
@@ -47,10 +46,16 @@ export class AgentManager {
   private builtinAgentNames: string[] = FALLBACK_BUILTIN_AGENT_NAMES;
   private vaultPath: string;
   private pluginManager: PluginManager;
+  private getClaudeConfigDir: () => string;
 
-  constructor(vaultPath: string, pluginManager: PluginManager) {
+  constructor(
+    vaultPath: string,
+    pluginManager: PluginManager,
+    getClaudeConfigDir: () => string = () => resolveClaudeConfigDir({ vaultPath }),
+  ) {
     this.vaultPath = vaultPath;
     this.pluginManager = pluginManager;
+    this.getClaudeConfigDir = getClaudeConfigDir;
   }
 
   /** Built-in agents are those from init that are NOT loaded from files. */
@@ -116,7 +121,7 @@ export class AgentManager {
   }
 
   private loadGlobalAgents(): void {
-    this.loadAgentsFromDirectory(GLOBAL_AGENTS_DIR, 'global');
+    this.loadAgentsFromDirectory(path.join(this.getClaudeConfigDir(), 'agents'), 'global');
   }
 
   private loadAgentsFromDirectory(

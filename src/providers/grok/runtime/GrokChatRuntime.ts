@@ -118,10 +118,19 @@ import { prepareGrokLaunchArtifacts } from './GrokLaunchArtifacts';
 import { buildManagedGrokProcessEnv, resolveGrokSessionDirectory } from './GrokPaths';
 import { resolveGrokProviderAuthPath } from './GrokRuntimeEnvironment';
 import { buildGrokRuntimeEnv } from './GrokRuntimeEnvironment';
+import { GrokSessionNotificationMirrorDeduplicator } from './GrokSessionNotificationMirrorDeduplicator';
+import {
+  GROK_SESSION_NOTIFICATION_METHODS,
+  type GrokSessionNotificationSource,
+  isGrokTurnCompletedUpdate,
+  isSupportedAcpSessionUpdate,
+  parseGrokSessionNotification,
+} from './GrokSessionNotifications';
 import { normalizeGrokAcpSessionModels } from './normalizeGrokAcpSessionState';
 
 interface ActiveTurn {
   queue: StreamChunkQueue;
+  sawAssistantText: boolean;
   sawOutput: boolean;
   sessionId: string;
 }
@@ -198,6 +207,7 @@ export class GrokChatRuntime implements ChatRuntime {
   private sessionCwds = new Map<string, string>();
   private sessionId: string | null = null;
   private readonly sessionUpdateNormalizer = new AcpSessionUpdateNormalizer();
+  private readonly sessionNotificationDeduplicator = new GrokSessionNotificationMirrorDeduplicator();
   private readonly toolStreamAdapter = createGrokToolStreamAdapter();
   private transport: AcpJsonRpcTransport | null = null;
   private unregisterGrokSessionNotifications: Array<() => void> = [];
@@ -498,6 +508,7 @@ export class GrokChatRuntime implements ChatRuntime {
     this.activeTurn?.queue.close();
     this.activeTurn = {
       queue: new StreamChunkQueue(),
+      sawAssistantText: false,
       sawOutput: false,
       sessionId,
     };
@@ -505,6 +516,7 @@ export class GrokChatRuntime implements ChatRuntime {
     this.currentTurnSawAcpCost = false;
     this.contextUsage = null;
     this.promptUsage = null;
+    this.sessionNotificationDeduplicator.reset();
     this.sessionUpdateNormalizer.reset();
     this.toolStreamAdapter.reset();
 
@@ -525,6 +537,7 @@ export class GrokChatRuntime implements ChatRuntime {
     }
 
     const runPrompt = async (promptSessionId: string): Promise<void> => {
+      this.currentTurnMetadata.wasSent = true;
       const response = await this.connection!.prompt({
         prompt: buildGrokPromptBlocks(
           turn.request,
@@ -548,6 +561,18 @@ export class GrokChatRuntime implements ChatRuntime {
       }
 
       await this.refreshFallbackPlanUsageFromSessionCost(promptSessionId);
+      if (
+        !activeTurn.sawAssistantText
+        && response.stopReason
+        && !/cancel/i.test(response.stopReason)
+      ) {
+        activeTurn.queue.push({
+          type: 'error',
+          content: t('chat.ui.errors.provider.emptyResponse', {
+            provider: ProviderRegistry.getProviderDisplayNameOrId('grok'),
+          }),
+        });
+      }
       activeTurn.queue.push({ type: 'done' });
       activeTurn.queue.close();
     };
@@ -566,6 +591,7 @@ export class GrokChatRuntime implements ChatRuntime {
             this.currentTurnSawAcpCost = false;
             this.contextUsage = null;
             this.promptUsage = null;
+            this.sessionNotificationDeduplicator.reset();
             this.sessionUpdateNormalizer.reset();
             this.toolStreamAdapter.reset();
             await this.applySelectedMode(retrySessionId);
@@ -775,13 +801,12 @@ export class GrokChatRuntime implements ChatRuntime {
         this.setReady(false);
       }
     });
-    this.unregisterGrokSessionNotifications = [
-      '_x.ai/session/update',
-      'x.ai/session/update',
-    ].map(method => transport.onNotification(
-      method,
-      params => this.handleGrokExtensionSessionNotification(params),
-    ));
+    this.unregisterGrokSessionNotifications = GROK_SESSION_NOTIFICATION_METHODS.map(
+      method => transport.onNotification(
+        method,
+        params => this.handleGrokTransportSessionNotification(method, params),
+      ),
+    );
 
     this.connection = new AcpClientConnection({
       clientInfo: {
@@ -794,7 +819,7 @@ export class GrokChatRuntime implements ChatRuntime {
           readTextFile: (request) => this.readTextFile(request),
           writeTextFile: (request) => this.writeTextFile(request),
         },
-        onSessionNotification: (notification) => this.handleSessionNotification(notification),
+        onSessionNotification: (notification) => this.handleSessionNotification(notification, 'standard'),
         requestPermission: (request) => this.handlePermissionRequest(request),
       },
       transport: this.transport,
@@ -1411,8 +1436,33 @@ export class GrokChatRuntime implements ChatRuntime {
 
   private async handleSessionNotification(
     notification: AcpSessionNotification,
+    source: GrokSessionNotificationSource = 'standard',
   ): Promise<void> {
     if (notification.sessionId !== this.sessionId) {
+      return;
+    }
+
+    if (!this.sessionNotificationDeduplicator.shouldProcess(notification, source)) {
+      return;
+    }
+
+    const subagentChunk = normalizeGrokSubagentExtensionNotification(
+      notification,
+      this.sessionId,
+    );
+    if (subagentChunk) {
+      if (this.activeTurn?.sessionId === notification.sessionId) {
+        this.activeTurn.sawOutput = true;
+        this.activeTurn.queue.push(subagentChunk);
+      }
+      return;
+    }
+
+    if (isGrokTurnCompletedUpdate(notification.update)) {
+      return;
+    }
+
+    if (!isSupportedAcpSessionUpdate(notification.update)) {
       return;
     }
 
@@ -1451,6 +1501,23 @@ export class GrokChatRuntime implements ChatRuntime {
         if (normalized.role === 'user' && normalized.messageId) {
           this.currentTurnMetadata.userMessageId = normalized.messageId;
         }
+        if (
+          normalized.role === 'assistant'
+          && normalized.streamChunks.some(chunk => (
+            chunk.type === 'text' && chunk.content.trim().length > 0
+          ))
+        ) {
+          this.activeTurn.sawAssistantText = true;
+        }
+        if (normalized.streamChunks.length > 0) {
+          this.activeTurn.sawOutput = true;
+        }
+        for (const chunk of normalized.streamChunks) {
+          this.activeTurn.queue.push(chunk);
+        }
+        return;
+      }
+      case 'plan': {
         if (normalized.streamChunks.length > 0) {
           this.activeTurn.sawOutput = true;
         }
@@ -1498,14 +1565,15 @@ export class GrokChatRuntime implements ChatRuntime {
     }
   }
 
-  private handleGrokExtensionSessionNotification(params: unknown): void {
-    const chunk = normalizeGrokSubagentExtensionNotification(params, this.sessionId);
-    if (!chunk || !this.activeTurn || this.activeTurn.sessionId !== this.sessionId) {
+  private async handleGrokTransportSessionNotification(
+    source: Exclude<GrokSessionNotificationSource, 'standard'>,
+    params: unknown,
+  ): Promise<void> {
+    const notification = parseGrokSessionNotification(source, params);
+    if (!notification) {
       return;
     }
-
-    this.activeTurn.sawOutput = true;
-    this.activeTurn.queue.push(chunk);
+    await this.handleSessionNotification(notification, source);
   }
 
   private async refreshFallbackPlanUsageFromSessionCost(sessionId: string): Promise<void> {

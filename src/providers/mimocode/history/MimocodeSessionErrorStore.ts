@@ -1,7 +1,6 @@
-import { spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
 
-import { loadNodeSqliteModule, type NodeSqliteModule } from '../../acp/history/sqliteModule';
+import { readAcpSqliteRows } from '../../acp/history/AcpSqliteReader';
 import { resolveExistingMimocodeDatabasePath } from '../runtime/MimocodePaths';
 import type { MimocodeProviderState } from '../types';
 
@@ -86,55 +85,11 @@ async function loadRecentMessageRows(
   sessionId: string,
   sinceEpochMs: number,
 ): Promise<StoredErrorRow[] | null> {
-  const viaNodeSqlite = await loadRowsWithNodeSqlite(databasePath, sessionId, sinceEpochMs);
-  if (viaNodeSqlite) {
-    return viaNodeSqlite;
-  }
-
-  return loadRowsWithSqliteCli(databasePath, sessionId, sinceEpochMs);
-}
-
-async function loadRowsWithNodeSqlite(
-  databasePath: string,
-  sessionId: string,
-  sinceEpochMs: number,
-): Promise<StoredErrorRow[] | null> {
-  const sqlite = loadNodeSqliteModule<StoredErrorRow>();
-  if (!sqlite) {
-    return null;
-  }
-
-  let db: InstanceType<NodeSqliteModule<StoredErrorRow>['DatabaseSync']> | null = null;
-  try {
-    db = new sqlite.DatabaseSync(databasePath, { readonly: true });
-    return db.prepare(buildRecentMessagesQuery('?')).all(sessionId, sinceEpochMs);
-  } catch {
-    return null;
-  } finally {
-    db?.close();
-  }
-}
-
-function loadRowsWithSqliteCli(
-  databasePath: string,
-  sessionId: string,
-  sinceEpochMs: number,
-): StoredErrorRow[] | null {
-  const query = buildRecentMessagesQuery(`'${escapeSqlLiteral(sessionId)}'`)
-    .replace('time_created >= ?', `time_created >= ${Math.floor(sinceEpochMs)}`);
-  const result = spawnSync('sqlite3', ['-json', databasePath, `${query};`], { encoding: 'utf8' });
-  if (result.error || result.status !== 0) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(result.stdout || '[]') as unknown;
-    return Array.isArray(parsed)
-      ? parsed.filter((row): row is StoredErrorRow => isPlainObject(row))
-      : null;
-  } catch {
-    return null;
-  }
+  const rows = await readAcpSqliteRows<StoredErrorRow>(databasePath, [{
+    params: [sessionId, Math.floor(sinceEpochMs)],
+    sql: buildRecentMessagesQuery('?'),
+  }]);
+  return rows?.[0] ?? null;
 }
 
 function buildRecentMessagesQuery(sessionPlaceholder: string): string {
@@ -182,8 +137,4 @@ function getNumber(value: unknown): number | null {
 
 function isPlainObject(value: unknown): value is StoredErrorRow {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
-}
-
-function escapeSqlLiteral(value: string): string {
-  return value.replaceAll('\'', '\'\'');
 }

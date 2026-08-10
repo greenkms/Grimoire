@@ -1,4 +1,5 @@
 import type { ProviderCommandCatalog } from '../../../core/providers/commands/ProviderCommandCatalog';
+import { ProviderModelCatalogRefreshCache } from '../../../core/providers/ProviderModelCatalogRefreshCache';
 import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
 import type {
   ProviderCliResolver,
@@ -41,13 +42,41 @@ const codexTabWarmupPolicy: ProviderTabWarmupPolicy = {
   },
 };
 
+const MODEL_CATALOG_CACHE_TTL_MS = 10 * 60 * 1000;
+
 function createCodexModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
   const modelListingService = new CodexModelListingService(plugin);
+  const initialSettings = getCodexProviderSettings(plugin.settings ?? {});
+  const refreshCache = new ProviderModelCatalogRefreshCache(MODEL_CATALOG_CACHE_TTL_MS);
+  if (initialSettings.discoveredModels.length > 0) {
+    refreshCache.seed(buildCodexModelCatalogFingerprint(plugin, initialSettings));
+  }
   return {
     isAvailable(settings) {
       return getCodexProviderSettings(settings).enabled;
     },
     async refreshModels({ settings }) {
+      const currentSettings = getCodexProviderSettings(settings);
+      const fingerprint = buildCodexModelCatalogFingerprint(plugin, currentSettings);
+      if (refreshCache.isFresh(fingerprint, currentSettings.discoveredModels.length > 0)) {
+        plugin.recordDebugLog?.({
+          data: {
+            modelCount: currentSettings.discoveredModels.length,
+            providerId: 'codex',
+            reason: 'cache_fresh',
+            ttlMs: MODEL_CATALOG_CACHE_TTL_MS,
+          },
+          event: 'modelCatalog.refresh.skipped',
+          level: 'debug',
+          scope: 'provider.codex',
+        });
+        return false;
+      }
+
+      return refreshCache.refresh({
+        fingerprint,
+        hasCachedModels: currentSettings.discoveredModels.length > 0,
+        load: async () => {
       plugin.recordDebugLog?.({
         data: { providerId: 'codex' },
         event: 'modelCatalog.refresh.started',
@@ -56,6 +85,7 @@ function createCodexModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
       });
 
       try {
+        modelListingService.invalidate();
         const models = await modelListingService.listModels();
         if (models.length === 0) {
           plugin.recordDebugLog?.({
@@ -95,8 +125,23 @@ function createCodexModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
         });
         throw error;
       }
+        },
+      });
     },
   };
+}
+
+function buildCodexModelCatalogFingerprint(
+  plugin: GrimoirePlugin,
+  settings: ReturnType<typeof getCodexProviderSettings>,
+): string {
+  return JSON.stringify({
+    cliPath: plugin.getResolvedProviderCliPath?.('codex') ?? settings.cliPath,
+    cliPathsByHost: settings.cliPathsByHost,
+    environmentHash: settings.environmentHash,
+    environmentVariables: plugin.getActiveEnvironmentVariables?.('codex')
+      ?? settings.environmentVariables,
+  });
 }
 
 export async function createCodexWorkspaceServices(

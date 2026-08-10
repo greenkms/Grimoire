@@ -2306,6 +2306,40 @@ describe('TabManager - Provider Command Catalog', () => {
     expect(modelSelector.renderOptions).toHaveBeenCalled();
   });
 
+  it('evicts the least recently used inactive runtime after the warm limit is exceeded', () => {
+    const plugin = createMockPlugin({ recordDebugLog: jest.fn() });
+    const manager = createManager({ plugin });
+    const tabs = Array.from({ length: 6 }, (_, index) => {
+      const runtime = {
+        cleanup: jest.fn(),
+        isReady: jest.fn().mockReturnValue(true),
+        providerId: 'codex',
+      };
+      const tab = createMockTabData({
+        id: `tab-${index + 1}`,
+        lifecycleState: 'bound_active',
+        service: runtime as any,
+        serviceInitialized: true,
+      });
+      return { runtime, tab };
+    });
+    (manager as any).tabs = new Map(tabs.map(({ tab }) => [tab.id, tab]));
+    (manager as any).activeTabId = 'tab-6';
+
+    for (const { tab } of tabs) {
+      (manager as any).touchWarmRuntime(tab);
+    }
+
+    expect(tabs[0].runtime.cleanup).toHaveBeenCalledTimes(1);
+    expect(tabs[0].tab.service).toBeNull();
+    expect(tabs[0].tab.lifecycleState).toBe('bound_cold');
+    expect(tabs.slice(1).every(({ runtime }) => runtime.cleanup.mock.calls.length === 0)).toBe(true);
+    expect(plugin.recordDebugLog).toHaveBeenCalledWith(expect.objectContaining({
+      event: 'runtime.warm.evicted',
+      scope: 'tabs.runtime',
+    }));
+  });
+
   it('should return null catalog config when provider has no catalog', async () => {
     // No catalog assigned to registry for 'claude'
 

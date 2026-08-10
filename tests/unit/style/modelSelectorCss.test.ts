@@ -102,7 +102,7 @@ describe('model-selector.css', () => {
     expect(labelRule).toContain('font-weight: 500');
   });
 
-  it('keeps the plan usage badge compact while the tooltip carries its full context', () => {
+  it('keeps the plan usage badge compact and delegates its tooltip to the aria label', () => {
     const css = readModelSelectorCss();
     const badgeRule = getRule(css, '.grimoire-plan-usage-badge');
     const labelRule = getRule(css, '.grimoire-plan-usage-badge-label');
@@ -112,5 +112,7 @@ describe('model-selector.css', () => {
     expect(badgeRule).toContain('padding: 0 6px');
     expect(labelRule).toContain('display: none');
     expect(meterRule).toContain('width: 18px');
+    expect(css).not.toContain('.grimoire-plan-usage-badge-tip');
+    expect(css).not.toContain('.grimoire-plan-usage-badge-accessible-label');
   });
 });

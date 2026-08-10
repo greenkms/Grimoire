@@ -3,7 +3,7 @@ import '@/providers';
 import { ProviderRegistry } from '@/core/providers/ProviderRegistry';
 import { ProviderSettingsCoordinator } from '@/core/providers/ProviderSettingsCoordinator';
 import { setLocale } from '@/i18n/i18n';
-import { JsonRpcTransportClosedError } from '@/providers/acp';
+import { JsonRpcErrorResponse, JsonRpcTransportClosedError } from '@/providers/acp';
 import { mimocodePlanUsageStore } from '@/providers/mimocode/app/MimocodePlanUsageStore';
 import * as sessionErrorStore from '@/providers/mimocode/history/MimocodeSessionErrorStore';
 import {
@@ -484,6 +484,20 @@ describe('MimocodeChatRuntime', () => {
     expect((runtime as any).createSession).not.toHaveBeenCalled();
     expect(runtime.getSessionId()).toBeNull();
     expect(runtime.consumeSessionInvalidation()).toBe(true);
+    expect(runtime.consumeSessionInvalidation()).toBe(false);
+  });
+
+  it('preserves the saved session binding when session/load fails transiently', async () => {
+    const runtime = new MimocodeChatRuntime(createMockPlugin());
+    runtime.syncConversationState({ sessionId: 'session-1' });
+    const error = new JsonRpcErrorResponse('session/load', -32000, 'Authentication failed');
+    (runtime as any).connection = {
+      loadSession: jest.fn().mockRejectedValue(error),
+    };
+
+    await expect((runtime as any).loadSession('session-1', '/vault')).rejects.toBe(error);
+
+    expect(runtime.getSessionId()).toBe('session-1');
     expect(runtime.consumeSessionInvalidation()).toBe(false);
   });
 

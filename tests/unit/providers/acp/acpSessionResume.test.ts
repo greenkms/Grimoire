@@ -1,7 +1,9 @@
+import { JsonRpcErrorResponse } from '@/providers/acp/AcpJsonRpcTransport';
 import {
   buildAcpPersistedSessionFields,
   buildAcpSessionLoadFailureDebugEvent,
   clearAcpManagedSessionState,
+  isAcpMissingSessionError,
   markAcpSessionLoadFailed,
 } from '@/providers/acp/acpSessionResume';
 
@@ -83,5 +85,24 @@ describe('acpSessionResume', () => {
       status: 'abcdefghijkl',
       stderrPreview: 'boom',
     }));
+  });
+
+  it.each([
+    new JsonRpcErrorResponse('session/load', -32001, 'Session not found: session-1'),
+    new JsonRpcErrorResponse('loadSession', -32000, 'Unable to load session', {
+      reason: 'session_not_found',
+    }),
+    new JsonRpcErrorResponse('session/load', -32602, 'Invalid session id'),
+  ])('recognizes explicit missing-session JSON-RPC errors', (error) => {
+    expect(isAcpMissingSessionError(error)).toBe(true);
+  });
+
+  it.each([
+    new JsonRpcErrorResponse('session/load', -32000, 'Authentication failed'),
+    new JsonRpcErrorResponse('session/load', -32000, 'Connection timed out'),
+    new JsonRpcErrorResponse('session/new', -32001, 'Session not found'),
+    new Error('Session not found'),
+  ])('does not classify transient or unrelated failures as missing sessions', (error) => {
+    expect(isAcpMissingSessionError(error)).toBe(false);
   });
 });
