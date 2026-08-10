@@ -34,6 +34,22 @@ describe('GrimoirePlugin', () => {
     return call[0];
   }
 
+  function getMockSdkSessionPath(sessionId: string): string {
+    return `/mock/claude/${sessionId}.jsonl`;
+  }
+
+  function mockLocatedSdkSessions() {
+    return jest.spyOn(sdkSession, 'locateSDKSessions').mockImplementation(async (_vaultPath, sessionIds) => (
+      new Map(sessionIds.map(sessionId => [
+        sessionId,
+        {
+          availability: 'available' as const,
+          sessionPath: getMockSdkSessionPath(sessionId),
+        },
+      ]))
+    ));
+  }
+
   beforeEach(() => {
     // Reset mocks
     jest.clearAllMocks();
@@ -1302,7 +1318,7 @@ describe('GrimoirePlugin', () => {
         sessionId: null,
       });
 
-      const existsSpy = jest.spyOn(sdkSession, 'sdkSessionExists').mockReturnValue(true);
+      const locationsSpy = mockLocatedSdkSessions();
       const loadSpy = jest.spyOn(sdkSession, 'loadSDKSessionMessages').mockResolvedValue({
         messages: [
           { id: 'sdk-msg-1', role: 'user', content: 'Hello', timestamp: 1000 },
@@ -1314,23 +1330,25 @@ describe('GrimoirePlugin', () => {
       // Trigger loadSdkMessagesForConversation via public API
       const loaded = await plugin.getConversationById(conv.id);
 
-      // Should check existence of source session, not the conversation's own session
-      expect(existsSpy).toHaveBeenCalledWith(
+      // Should resolve the source session, not the conversation's own session.
+      expect(locationsSpy).toHaveBeenCalledWith(
         expect.any(String),
-        'source-session-abc'
+        ['source-session-abc'],
+        expect.any(Object)
       );
 
       // Should load from forkSource.sessionId with forkSource.resumeAt as truncation point
       expect(loadSpy).toHaveBeenCalledWith(
         expect.any(String),
         'source-session-abc',
-        'asst-uuid-cutoff'
+        'asst-uuid-cutoff',
+        getMockSdkSessionPath('source-session-abc')
       );
 
       // Messages should be loaded
       expect(loaded?.messages).toBeDefined();
 
-      existsSpy.mockRestore();
+      locationsSpy.mockRestore();
       loadSpy.mockRestore();
     });
 
@@ -1345,7 +1363,7 @@ describe('GrimoirePlugin', () => {
         },
       });
 
-      const existsSpy = jest.spyOn(sdkSession, 'sdkSessionExists').mockReturnValue(true);
+      const locationsSpy = mockLocatedSdkSessions();
       const loadSpy = jest.spyOn(sdkSession, 'loadSDKSessionMessages').mockResolvedValue({
         messages: [],
         skippedLines: 0,
@@ -1353,13 +1371,14 @@ describe('GrimoirePlugin', () => {
 
       await plugin.getConversationById(conv.id);
 
-      // Should load from own session, not forkSource session
-      expect(existsSpy).toHaveBeenCalledWith(
+      // Should resolve the conversation's own session, not the fork source.
+      expect(locationsSpy).toHaveBeenCalledWith(
         expect.any(String),
-        'own-session-id'
+        ['own-session-id'],
+        expect.any(Object)
       );
 
-      existsSpy.mockRestore();
+      locationsSpy.mockRestore();
       loadSpy.mockRestore();
     });
   });
@@ -1412,7 +1431,7 @@ describe('GrimoirePlugin', () => {
         ],
       });
 
-      const existsSpy = jest.spyOn(sdkSession, 'sdkSessionExists').mockReturnValue(true);
+      const locationsSpy = mockLocatedSdkSessions();
       const loadSpy = jest.spyOn(sdkSession, 'loadSDKSessionMessages').mockResolvedValue({
         messages: [],
         skippedLines: 0,
@@ -1422,7 +1441,8 @@ describe('GrimoirePlugin', () => {
       expect(loadSpy).toHaveBeenCalledWith(
         expect.any(String),
         'session-subagent-recovery',
-        undefined
+        undefined,
+        getMockSdkSessionPath('session-subagent-recovery')
       );
       expect(loaded?.messages[0].toolCalls?.find(tc => tc.id === 'task-1')).toEqual(
         expect.objectContaining({
@@ -1439,7 +1459,7 @@ describe('GrimoirePlugin', () => {
         ])
       );
 
-      existsSpy.mockRestore();
+      locationsSpy.mockRestore();
       loadSpy.mockRestore();
     });
 
@@ -1483,7 +1503,7 @@ describe('GrimoirePlugin', () => {
         ],
       });
 
-      const existsSpy = jest.spyOn(sdkSession, 'sdkSessionExists').mockReturnValue(true);
+      const locationsSpy = mockLocatedSdkSessions();
       const loadSpy = jest.spyOn(sdkSession, 'loadSDKSessionMessages').mockResolvedValue({
         messages: [],
         skippedLines: 0,
@@ -1495,12 +1515,13 @@ describe('GrimoirePlugin', () => {
       expect(loadSpy).toHaveBeenCalledWith(
         expect.any(String),
         'session-subagent-merge',
-        undefined
+        undefined,
+        getMockSdkSessionPath('session-subagent-merge')
       );
       expect(taskTool?.result).toBe('Full SDK result from queue-operation');
       expect(taskTool?.subagent?.result).toBe('Full SDK result from queue-operation');
 
-      existsSpy.mockRestore();
+      locationsSpy.mockRestore();
       loadSpy.mockRestore();
     });
 
@@ -1528,7 +1549,7 @@ describe('GrimoirePlugin', () => {
         messages: [],
       });
 
-      const existsSpy = jest.spyOn(sdkSession, 'sdkSessionExists').mockReturnValue(true);
+      const locationsSpy = mockLocatedSdkSessions();
       const loadSpy = jest.spyOn(sdkSession, 'loadSDKSessionMessages').mockResolvedValue({
         messages: [
           {
@@ -1569,7 +1590,7 @@ describe('GrimoirePlugin', () => {
       expect(taskTool?.result).toBe('Recovered final result with full details');
       expect(taskTool?.subagent?.result).toBe('Recovered final result with full details');
 
-      existsSpy.mockRestore();
+      locationsSpy.mockRestore();
       loadSpy.mockRestore();
     });
 
@@ -1613,7 +1634,7 @@ describe('GrimoirePlugin', () => {
         ],
       });
 
-      const existsSpy = jest.spyOn(sdkSession, 'sdkSessionExists').mockReturnValue(true);
+      const locationsSpy = mockLocatedSdkSessions();
       const loadSpy = jest.spyOn(sdkSession, 'loadSDKSessionMessages').mockResolvedValue({
         messages: [],
         skippedLines: 0,
@@ -1625,7 +1646,7 @@ describe('GrimoirePlugin', () => {
       expect(taskTool?.subagent?.mode).toBe('sync');
       expect(taskTool?.subagent?.asyncStatus).toBeUndefined();
 
-      existsSpy.mockRestore();
+      locationsSpy.mockRestore();
       loadSpy.mockRestore();
     });
 
@@ -1652,7 +1673,7 @@ describe('GrimoirePlugin', () => {
         messages: [],
       });
 
-      const existsSpy = jest.spyOn(sdkSession, 'sdkSessionExists').mockReturnValue(true);
+      const locationsSpy = mockLocatedSdkSessions();
       const loadSpy = jest.spyOn(sdkSession, 'loadSDKSessionMessages').mockResolvedValue({
         messages: [
           {
@@ -1695,7 +1716,7 @@ describe('GrimoirePlugin', () => {
       expect(taskTool?.subagent?.asyncStatus).toBe('completed');
       expect(taskTool?.subagent?.result).toBe('Full SDK final result');
 
-      existsSpy.mockRestore();
+      locationsSpy.mockRestore();
       loadSpy.mockRestore();
     });
 
@@ -1723,7 +1744,7 @@ describe('GrimoirePlugin', () => {
         messages: [],
       });
 
-      const existsSpy = jest.spyOn(sdkSession, 'sdkSessionExists').mockReturnValue(true);
+      const locationsSpy = mockLocatedSdkSessions();
       const loadSpy = jest.spyOn(sdkSession, 'loadSDKSessionMessages').mockResolvedValue({
         messages: [
           {
@@ -1766,7 +1787,7 @@ describe('GrimoirePlugin', () => {
       expect(taskTool?.subagent?.asyncStatus).toBe('completed');
       expect(taskTool?.subagent?.result).toBe('Recovered final result');
 
-      existsSpy.mockRestore();
+      locationsSpy.mockRestore();
       loadSpy.mockRestore();
     });
 
@@ -1810,7 +1831,7 @@ describe('GrimoirePlugin', () => {
         ],
       });
 
-      const existsSpy = jest.spyOn(sdkSession, 'sdkSessionExists').mockReturnValue(true);
+      const locationsSpy = mockLocatedSdkSessions();
       const loadSpy = jest.spyOn(sdkSession, 'loadSDKSessionMessages').mockResolvedValue({
         messages: [],
         skippedLines: 0,
@@ -1835,7 +1856,7 @@ describe('GrimoirePlugin', () => {
         expect.objectContaining({ type: 'subagent', subagentId: 'task-async-1', mode: 'async' })
       );
 
-      existsSpy.mockRestore();
+      locationsSpy.mockRestore();
       loadSpy.mockRestore();
     });
 
@@ -1880,7 +1901,7 @@ describe('GrimoirePlugin', () => {
         ],
       });
 
-      const existsSpy = jest.spyOn(sdkSession, 'sdkSessionExists').mockReturnValue(true);
+      const locationsSpy = mockLocatedSdkSessions();
       const loadSpy = jest.spyOn(sdkSession, 'loadSDKSessionMessages').mockResolvedValue({
         messages: [],
         skippedLines: 0,
@@ -1902,7 +1923,8 @@ describe('GrimoirePlugin', () => {
       expect(loadSubagentToolsSpy).toHaveBeenCalledWith(
         expect.any(String),
         'session-async-subagent-tools',
-        'agent-a123'
+        'agent-a123',
+        getMockSdkSessionPath('session-async-subagent-tools')
       );
       expect(taskTool?.subagent?.toolCalls).toEqual(
         expect.arrayContaining([
@@ -1914,7 +1936,7 @@ describe('GrimoirePlugin', () => {
         ])
       );
 
-      existsSpy.mockRestore();
+      locationsSpy.mockRestore();
       loadSpy.mockRestore();
       loadSubagentToolsSpy.mockRestore();
     });
@@ -1950,7 +1972,7 @@ describe('GrimoirePlugin', () => {
         ],
       });
 
-      const existsSpy = jest.spyOn(sdkSession, 'sdkSessionExists').mockReturnValue(true);
+      const locationsSpy = mockLocatedSdkSessions();
       const loadSpy = jest.spyOn(sdkSession, 'loadSDKSessionMessages').mockResolvedValue({
         messages: [],
         skippedLines: 0,
@@ -1981,7 +2003,7 @@ describe('GrimoirePlugin', () => {
         })
       );
 
-      existsSpy.mockRestore();
+      locationsSpy.mockRestore();
       loadSpy.mockRestore();
     });
   });
