@@ -80,6 +80,10 @@ import { grokPlanUsageStore } from '../app/GrokPlanUsageStore';
 import { GROK_PROVIDER_CAPABILITIES } from '../capabilities';
 import { getGrokDiscoveryState, updateGrokDiscoveryState } from '../discoveryState';
 import {
+  GrokNativeTranscriptRecovery,
+  type GrokTranscriptRecoveryPort,
+} from '../history/GrokTranscriptRecovery';
+import {
   loadGrokSessionContextUsage,
   loadGrokSessionCost,
 } from '../history/GrokUsageMetadataStore';
@@ -127,6 +131,9 @@ import {
   parseGrokSessionNotification,
 } from './GrokSessionNotifications';
 import { normalizeGrokAcpSessionModels } from './normalizeGrokAcpSessionState';
+
+/** Upper bound for an answer read back from Grok's own session log. */
+const GROK_RECOVERED_ANSWER_LIMIT_BYTES = 1_000_000;
 
 interface ActiveTurn {
   queue: StreamChunkQueue;
@@ -209,6 +216,8 @@ export class GrokChatRuntime implements ChatRuntime {
   private readonly sessionUpdateNormalizer = new AcpSessionUpdateNormalizer();
   private readonly sessionNotificationDeduplicator = new GrokSessionNotificationMirrorDeduplicator();
   private readonly toolStreamAdapter = createGrokToolStreamAdapter();
+  private readonly transcriptRecovery: GrokTranscriptRecoveryPort
+    = new GrokNativeTranscriptRecovery();
   private transport: AcpJsonRpcTransport | null = null;
   private unregisterGrokSessionNotifications: Array<() => void> = [];
   private unregisterTransportClose: (() => void) | null = null;
@@ -566,12 +575,18 @@ export class GrokChatRuntime implements ChatRuntime {
         && response.stopReason
         && !/cancel/i.test(response.stopReason)
       ) {
-        activeTurn.queue.push({
-          type: 'error',
-          content: t('chat.ui.errors.provider.emptyResponse', {
-            provider: ProviderRegistry.getProviderDisplayNameOrId('grok'),
-          }),
-        });
+        const recovered = await this.recoverNativeTranscriptOutput(promptSessionId, cwd);
+        if (recovered) {
+          activeTurn.sawAssistantText = true;
+          activeTurn.queue.push({ type: 'text', content: recovered });
+        } else {
+          activeTurn.queue.push({
+            type: 'error',
+            content: t('chat.ui.errors.provider.emptyResponse', {
+              provider: ProviderRegistry.getProviderDisplayNameOrId('grok'),
+            }),
+          });
+        }
       }
       activeTurn.queue.push({ type: 'done' });
       activeTurn.queue.close();
@@ -1608,6 +1623,32 @@ export class GrokChatRuntime implements ChatRuntime {
     const cost = await loadGrokSessionCost(sessionId, providerState);
     if (grokPlanUsageStore.recordSessionTotalCost(sessionId, cost)) {
       this.refreshModelSelectors();
+    }
+  }
+
+  /**
+   * Recovers an answer Grok completed but never streamed. Grok can finish a turn
+   * without delivering its final `agent_message_chunk` over ACP while still writing the
+   * answer to its own session log, which otherwise surfaces as a credentials error.
+   */
+  private async recoverNativeTranscriptOutput(
+    sessionId: string,
+    workspacePath: string | null,
+  ): Promise<string> {
+    const providerState: GrokProviderState = {
+      ...(this.currentSessionDirPath ? { sessionDirPath: this.currentSessionDirPath } : {}),
+      ...(this.currentWorkspacePath ? { workspacePath: this.currentWorkspacePath } : {}),
+    };
+    try {
+      return await this.transcriptRecovery.recoverFinalAssistantMessage({
+        nativeSessionRef: sessionId,
+        workspacePath,
+        providerState,
+        maxBytes: GROK_RECOVERED_ANSWER_LIMIT_BYTES,
+      });
+    } catch {
+      // Recovery is best-effort; an unreadable log must not mask the real turn outcome.
+      return '';
     }
   }
 

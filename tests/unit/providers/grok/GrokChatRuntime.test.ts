@@ -278,6 +278,32 @@ describe('GrokChatRuntime', () => {
     expect(runtime.consumeTurnMetadata()).toEqual({ wasSent: true });
   });
 
+  it('recovers an answer from the Grok session log when the turn streamed no text', async () => {
+    const runtime = new GrokChatRuntime(createMockPlugin());
+    const prompt = jest.fn().mockResolvedValue({ stopReason: 'end_turn' });
+    const recoverFinalAssistantMessage = jest.fn().mockResolvedValue('Recovered answer');
+
+    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+    (runtime as any).sessionId = 'session-1';
+    (runtime as any).loadedSessionId = 'session-1';
+    (runtime as any).connection = { prompt };
+    (runtime as any).transcriptRecovery = { recoverFinalAssistantMessage };
+    (runtime as any).applySelectedMode = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedModel = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedEffort = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).refreshFallbackPlanUsageFromSessionCost = jest.fn().mockResolvedValue(undefined);
+
+    const chunks = await collectRuntimeChunks(runtime);
+
+    expect(recoverFinalAssistantMessage).toHaveBeenCalledWith(expect.objectContaining({
+      nativeSessionRef: 'session-1',
+    }));
+    expect(chunks).toEqual([
+      { content: 'Recovered answer', type: 'text' },
+      { type: 'done' },
+    ]);
+  });
+
   it('does not create a session when commands are requested before a session exists', async () => {
     const runtime = new GrokChatRuntime(createMockPlugin());
 
