@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.6 - 2026-08-14
+
+### Fixed
+
+- Kept non-Latin CLI output intact when a multibyte character is split across process output chunks, so Chinese and other non-ASCII text no longer shows replacement characters in Antigravity responses and model names or in ACP provider error details.
+- Recovered Grok Build answers from Grok's own session log when a finished turn never delivered its final message, instead of failing the turn with a misleading "no response" error.
+
 ## 1.1.5 - 2026-08-10
 
 ### Improved
