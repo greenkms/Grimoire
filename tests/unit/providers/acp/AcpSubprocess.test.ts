@@ -222,6 +222,19 @@ describe('AcpSubprocess spawn failure', () => {
     expect(received.cause).toBe(enoent);
   });
 
+  it('keeps multibyte stderr text intact across chunk boundaries', () => {
+    const proc = createMockProcess();
+    spawnMock.mockReturnValue(proc);
+    const subprocess = new AcpSubprocess(createLaunchSpec());
+    subprocess.start();
+
+    const bytes = Buffer.from('引擎修改文件失败', 'utf8');
+    proc.stderr.emit('data', bytes.subarray(0, 5));
+    proc.stderr.emit('data', bytes.subarray(5));
+
+    expect(subprocess.getStderrSnapshot()).toBe('引擎修改文件失败');
+  });
+
   it('replays a non-zero exit to late subscribers', () => {
     const proc = createMockProcess();
     spawnMock.mockReturnValue(proc);

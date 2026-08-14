@@ -131,4 +131,21 @@ describe('AntigravityModelDiscovery', () => {
       await fs.rm(tempRoot, { force: true, recursive: true });
     }
   });
+
+  it('keeps multibyte model labels intact across stdout chunk boundaries', async () => {
+    const proc = createMockChildProcess();
+    mockedSpawn.mockReturnValue(proc);
+    const plugin = createMockPlugin();
+
+    const resultPromise = discoverAntigravityModels(plugin);
+    const output = Buffer.from('gemini-3.6-flash-high\t文心模型 (High)\n', 'utf8');
+    proc.stdout.write(output.subarray(0, 23));
+    proc.stdout.write(output.subarray(23));
+    await new Promise(resolve => setImmediate(resolve));
+    proc.emit('exit', 0, null);
+
+    await expect(resultPromise).resolves.toEqual([
+      { label: '文心模型 (High)', rawId: '文心模型 (High)' },
+    ]);
+  });
 });

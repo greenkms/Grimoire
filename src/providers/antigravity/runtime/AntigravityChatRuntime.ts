@@ -41,6 +41,7 @@ import {
 } from '../../../utils/context';
 import { appendEditorContext } from '../../../utils/editor';
 import { getVaultPath } from '../../../utils/path';
+import { createUtf8ChunkDecoder, type Utf8ChunkDecoder } from '../../../utils/utf8Stream';
 import { ANTIGRAVITY_PROVIDER_CAPABILITIES } from '../capabilities';
 import { decodeAntigravityModelId } from '../models';
 import { getAntigravityProviderSettings } from '../settings';
@@ -316,6 +317,10 @@ export class AntigravityChatRuntime implements ChatRuntime {
 
       let stdout = '';
       let stderr = '';
+      // Each stream needs its own decoder: a multibyte character can straddle two
+      // chunks, and decoding chunks independently turns both halves into U+FFFD.
+      const stdoutDecoder = createUtf8ChunkDecoder();
+      const stderrDecoder = createUtf8ChunkDecoder();
       let settled = false;
       let sawStdout = false;
       let sawStderr = false;
@@ -372,7 +377,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
       }, PRINT_TIMEOUT_MS);
 
       proc.stdout.on('data', (chunk: Buffer | string) => {
-        stdout = appendLimited(stdout, chunk);
+        stdout = appendLimited(stdout, chunk, stdoutDecoder);
         if (!sawStdout) {
           sawStdout = true;
           this.plugin.recordDebugLog?.({
@@ -388,7 +393,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
         }
       });
       proc.stderr.on('data', (chunk: Buffer | string) => {
-        stderr = appendLimited(stderr, chunk);
+        stderr = appendLimited(stderr, chunk, stderrDecoder);
         if (!sawStderr) {
           sawStderr = true;
           this.plugin.recordDebugLog?.({
@@ -685,9 +690,12 @@ function extractLastAntigravityModelContent(transcriptText: string): string {
   return lastContent;
 }
 
-function appendLimited(current: string, chunk: Buffer | string): string {
-  const text = typeof chunk === 'string' ? chunk : chunk.toString('utf-8');
-  return `${current}${text}`.slice(-OUTPUT_BUFFER_LIMIT);
+function appendLimited(
+  current: string,
+  chunk: Buffer | string,
+  decoder: Utf8ChunkDecoder,
+): string {
+  return `${current}${decoder.write(chunk)}`.slice(-OUTPUT_BUFFER_LIMIT);
 }
 
 function getCwdLabel(plugin: GrimoirePlugin, cwd: string): string {

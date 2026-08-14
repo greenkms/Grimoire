@@ -113,6 +113,28 @@ describe('AntigravityChatRuntime', () => {
     expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
   });
 
+  it('keeps a multibyte character that agy split across two stdout chunks intact', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const proc = createMockChildProcess();
+    mockedSpawn.mockReturnValue(proc);
+
+    const result = (runtime as any).runPrint({
+      command: 'agy',
+      cwd: '/tmp/grimoire-antigravity-test-vault',
+      model: null,
+      permissionMode: 'full_access',
+      prompt: '你好',
+      runtimeEnv: process.env,
+    });
+
+    const answer = Buffer.from('修改文件', 'utf8');
+    proc.stdout.write(answer.subarray(0, 4));
+    proc.stdout.write(answer.subarray(4));
+    proc.emit('exit', 0, null);
+
+    await expect(result).resolves.toBe('修改文件');
+  });
+
   it('uses the explicit query model instead of the saved provider default', async () => {
     const plugin = createMockPlugin();
     plugin.settings.savedProviderModel = { antigravity: 'antigravity:gemini-2.5-pro' };

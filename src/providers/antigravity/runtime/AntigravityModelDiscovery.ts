@@ -5,6 +5,7 @@ import path from 'node:path';
 
 import type GrimoirePlugin from '../../../main';
 import { getVaultPath } from '../../../utils/path';
+import { createUtf8ChunkDecoder } from '../../../utils/utf8Stream';
 import {
   ANTIGRAVITY_FALLBACK_DISCOVERED_MODELS,
   normalizeAntigravityModelSelector,
@@ -190,8 +191,10 @@ function runAgyModels(spec: {
       settle(() => reject(new Error('Antigravity model discovery timed out.')));
     }, MODEL_LIST_TIMEOUT_MS);
 
+    const stdoutDecoder = createUtf8ChunkDecoder();
+    const stderrDecoder = createUtf8ChunkDecoder();
     proc.stdout.on('data', (chunk: Buffer | string) => {
-      stdout = appendLimited(stdout, chunk);
+      stdout = appendLimited(stdout, stdoutDecoder.write(chunk));
       if (!sawStdout) {
         sawStdout = true;
         spec.plugin.recordDebugLog?.({
@@ -207,7 +210,7 @@ function runAgyModels(spec: {
       }
     });
     proc.stderr.on('data', (chunk: Buffer | string) => {
-      stderr = appendLimited(stderr, chunk);
+      stderr = appendLimited(stderr, stderrDecoder.write(chunk));
       if (!sawStderr) {
         sawStderr = true;
         spec.plugin.recordDebugLog?.({
@@ -379,8 +382,7 @@ function clearActiveModelsProcess(proc: ChildProcess): void {
   }
 }
 
-function appendLimited(current: string, chunk: Buffer | string): string {
-  const text = typeof chunk === 'string' ? chunk : chunk.toString('utf-8');
+function appendLimited(current: string, text: string): string {
   return `${current}${text}`.slice(-MODEL_LIST_BUFFER_LIMIT);
 }
 

@@ -3,6 +3,8 @@ import { existsSync } from 'node:fs';
 import * as path from 'node:path';
 import type { Readable, Writable } from 'node:stream';
 
+import { createUtf8ChunkDecoder } from '../../utils/utf8Stream';
+
 const KILL_TIMEOUT_MS = 3_000;
 const STDERR_BUFFER_LIMIT = 8_000;
 
@@ -56,8 +58,12 @@ export class AcpSubprocess {
       windowsHide: true,
     });
 
+    const stderrDecoder = createUtf8ChunkDecoder();
     proc.stderr.on('data', (chunk: Buffer | string) => {
-      const text = typeof chunk === 'string' ? chunk : chunk.toString('utf-8');
+      const text = stderrDecoder.write(chunk);
+      if (!text) {
+        return;
+      }
       this.stderrBuffer = `${this.stderrBuffer}${text}`.slice(-STDERR_BUFFER_LIMIT);
     });
 
