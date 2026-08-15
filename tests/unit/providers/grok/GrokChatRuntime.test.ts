@@ -14,6 +14,14 @@ import { GrokChatRuntime } from '@/providers/grok/runtime/GrokChatRuntime';
 import * as launchArtifacts from '@/providers/grok/runtime/GrokLaunchArtifacts';
 import { getGrokProviderSettings } from '@/providers/grok/settings';
 
+jest.mock('@/providers/grok/runtime/GrokModelsCache', () => {
+  const actual = jest.requireActual('@/providers/grok/runtime/GrokModelsCache');
+  return {
+    ...actual,
+    readGrokNativeModelCatalog: jest.fn(() => ({ defaultModelId: null, models: [] })),
+  };
+});
+
 function createMockPlugin(overrides: Record<string, unknown> = {}): any {
   return {
     settings: {},
@@ -1346,6 +1354,54 @@ describe('GrokChatRuntime', () => {
     expect(plugin.settings.effortLevel).toBe('default');
     expect(plugin.saveSettings).toHaveBeenCalledTimes(1);
     expect(refreshModelSelector).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps Grok 4.6 visible and selected when ACP only reports a seeded 4.5 session', async () => {
+    const refreshModelSelector = jest.fn();
+    const plugin = createMockPlugin({
+      getAllViews: jest.fn().mockReturnValue([{ refreshModelSelector }]),
+      settings: {
+        model: 'grok:grok-4.5',
+        providerConfigs: {
+          grok: {
+            visibleModels: ['grok-4.5'],
+          },
+        },
+        savedProviderModel: {
+          grok: 'grok:grok-4.5',
+        },
+        settingsProvider: 'grok',
+      },
+    });
+    const runtime = new GrokChatRuntime(plugin);
+    jest.spyOn(runtime as any, 'readNativeModelCatalog').mockReturnValue({
+      defaultModelId: 'grok-4.6',
+      models: [
+        { label: 'Grok 4.6', rawId: 'grok-4.6' },
+        { label: 'Grok 4.5', rawId: 'grok-4.5' },
+      ],
+    });
+    jest.spyOn(ProviderRegistry, 'resolveSettingsProviderId').mockReturnValue('grok');
+
+    await (runtime as any).syncSessionModelState({
+      models: {
+        availableModels: [
+          { id: 'grok-4.5', name: 'Grok 4.5' },
+        ],
+        currentModelId: 'grok-4.5',
+      },
+    });
+
+    expect(getGrokProviderSettings(plugin.settings).discoveredModels).toEqual([
+      { label: 'Grok 4.6', rawId: 'grok-4.6' },
+      { label: 'Grok 4.5', rawId: 'grok-4.5' },
+    ]);
+    expect(plugin.settings.providerConfigs.grok.visibleModels).toEqual([
+      'grok-4.5',
+      'grok-4.6',
+    ]);
+    expect(plugin.settings.savedProviderModel.grok).toBe('grok:grok-4.6');
+    expect(plugin.settings.model).toBe('grok:grok-4.6');
   });
 
   it('syncs detached ACP thought-level options into Grok Build provider state', async () => {

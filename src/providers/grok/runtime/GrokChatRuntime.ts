@@ -94,6 +94,7 @@ import {
   encodeGrokModelId,
   GROK_DEFAULT_THINKING_LEVEL,
   GROK_SYNTHETIC_MODEL_ID,
+  type GrokDiscoveredModel,
   isGrokModelSelectionId,
   normalizeGrokDiscoveredModels,
   normalizeGrokModelVariants,
@@ -120,7 +121,19 @@ import {
 } from './grokDebugLog';
 import { buildGrokAgentProcessArgs } from './GrokLaunchArgs';
 import { prepareGrokLaunchArtifacts } from './GrokLaunchArtifacts';
-import { buildManagedGrokProcessEnv, resolveGrokSessionDirectory } from './GrokPaths';
+import {
+  applyGrokNativeModelCatalog,
+  expandGrokVisibleModelsWithFrontier,
+  mergeGrokDiscoveredModels,
+  readGrokNativeModelCatalog,
+  resolveGrokCatalogDefaultModel,
+  shouldUpgradeGrokFrontierDefault,
+} from './GrokModelsCache';
+import {
+  buildManagedGrokProcessEnv,
+  resolveGrokSessionDirectory,
+  resolveManagedGrokHomePath,
+} from './GrokPaths';
 import { resolveGrokProviderAuthPath } from './GrokRuntimeEnvironment';
 import { buildGrokRuntimeEnv } from './GrokRuntimeEnvironment';
 import { GrokSessionNotificationMirrorDeduplicator } from './GrokSessionNotificationMirrorDeduplicator';
@@ -346,7 +359,9 @@ export class GrokChatRuntime implements ChatRuntime {
     const permissionMode = resolveGrokPermissionModeForSettings(
       providerSettings.permissionMode,
     );
+    this.hydrateNativeModelCatalog();
     const artifacts = await prepareGrokLaunchArtifacts({
+      defaultModel: this.resolveLaunchDefaultModel(),
       permissionMode,
       settings: promptSettings,
       workspaceRoot: cwd,
@@ -1197,13 +1212,17 @@ export class GrokChatRuntime implements ChatRuntime {
       ? options.currentRawModelId.trim()
       : '';
     const currentRawModelId = forcedCurrentRawModelId || acpState.currentModelId || this.currentSessionModelId;
-    const discoveredModels = normalizeGrokDiscoveredModels(
+    const acpDiscoveredModels = normalizeGrokDiscoveredModels(
       acpState.availableModels.map((model) => ({
         ...(model.description ? { description: model.description } : {}),
         label: model.name,
         rawId: model.id,
       })),
     );
+    const nativeCatalog = this.readNativeModelCatalog();
+    const discoveredModels = nativeCatalog.models.length > 0
+      ? mergeGrokDiscoveredModels(nativeCatalog.models, acpDiscoveredModels)
+      : acpDiscoveredModels;
     if (currentRawModelId) {
       this.currentSessionModelId = currentRawModelId;
     }
@@ -1247,7 +1266,7 @@ export class GrokChatRuntime implements ChatRuntime {
     );
     const removedUnavailableVisibleModels = discoveredBaseModelIds.length > 0
       && availableVisibleModels.length !== currentSettings.visibleModels.length;
-    const nextVisibleModels = currentSettings.visibleModels.length === 0
+    const reconciledVisibleModels = currentSettings.visibleModels.length === 0
       ? (discoveredBaseModelIds.length > 0
         ? discoveredBaseModelIds
         : (currentBaseRawModelId ? [currentBaseRawModelId] : []))
@@ -1262,6 +1281,10 @@ export class GrokChatRuntime implements ChatRuntime {
             : []),
         ]
       : currentSettings.visibleModels;
+    const nextVisibleModels = expandGrokVisibleModelsWithFrontier(
+      reconciledVisibleModels,
+      discoveredModels,
+    );
     const currentPreferredThinking = currentBaseRawModelId
       ? currentSettings.preferredThinkingByModel[currentBaseRawModelId]
       : '';
@@ -1280,6 +1303,12 @@ export class GrokChatRuntime implements ChatRuntime {
         [currentBaseRawModelId]: currentThinkingLevel,
       }
       : currentSettings.preferredThinkingByModel;
+    const upgradedDefault = this.upgradeFrontierDefaultSelection(
+      settingsBag,
+      discoveredModels,
+      currentSettings.visibleModels,
+      nativeCatalog.defaultModelId,
+    );
     const shouldSeedVisibleModels = !sameStringList(currentSettings.visibleModels, nextVisibleModels);
     const shouldSeedPreferredThinking = !sameStringMap(
       currentSettings.preferredThinkingByModel,
@@ -1303,7 +1332,7 @@ export class GrokChatRuntime implements ChatRuntime {
         level: discoveryChanged ? 'info' : 'debug',
       });
     }
-    let changed = shouldSeedVisibleModels || shouldSeedPreferredThinking;
+    let changed = shouldSeedVisibleModels || shouldSeedPreferredThinking || upgradedDefault;
 
     if (currentBaseRawModelId && options.seedActiveSelection !== false) {
       const seeded = this.seedActiveModelSelection(
@@ -1330,6 +1359,75 @@ export class GrokChatRuntime implements ChatRuntime {
       await this.plugin.saveSettings();
     }
     this.refreshModelSelectors();
+  }
+
+  private hydrateNativeModelCatalog(): void {
+    const catalog = this.readNativeModelCatalog();
+    const settingsBag = this.plugin.settings as unknown as Record<string, unknown>;
+    if (!applyGrokNativeModelCatalog(settingsBag, catalog)) {
+      return;
+    }
+
+    void this.plugin.saveSettings();
+    this.refreshModelSelectors();
+  }
+
+  private readNativeModelCatalog() {
+    const cwd = getVaultPath(this.plugin.app) ?? process.cwd();
+    const runtimeEnv = this.buildRuntimeEnv(
+      this.plugin.getResolvedProviderCliPath('grok') ?? 'grok',
+      resolveManagedGrokHomePath(cwd),
+    );
+    return readGrokNativeModelCatalog({
+      env: runtimeEnv,
+      managedGrokHomePath: runtimeEnv.GROK_HOME ?? null,
+    });
+  }
+
+  private resolveLaunchDefaultModel(): string | null {
+    const providerSettings = this.getProviderSettings();
+    const selectedRawModelId = this.resolveSelectedRawModelId();
+    if (selectedRawModelId) {
+      return selectedRawModelId;
+    }
+
+    return resolveGrokCatalogDefaultModel(
+      getGrokProviderSettings(providerSettings).discoveredModels,
+      this.readNativeModelCatalog().defaultModelId,
+    );
+  }
+
+  private upgradeFrontierDefaultSelection(
+    settingsBag: Record<string, unknown>,
+    discoveredModels: readonly { rawId: string }[],
+    visibleModels: readonly string[],
+    configuredDefault?: string | null,
+  ): boolean {
+    const savedProviderModel = ensureProviderProjectionMap(settingsBag, 'savedProviderModel');
+    const savedRawId = typeof savedProviderModel.grok === 'string'
+      ? resolveGrokBaseModelRawId(
+        decodeGrokModelId(savedProviderModel.grok) ?? '',
+        discoveredModels as GrokDiscoveredModel[],
+      )
+      : null;
+    const defaultRawId = resolveGrokCatalogDefaultModel(
+      discoveredModels as GrokDiscoveredModel[],
+      configuredDefault,
+    );
+    if (!shouldUpgradeGrokFrontierDefault({
+      defaultRawId,
+      savedRawId: savedRawId || null,
+      visibleModels,
+    }) || !defaultRawId) {
+      return false;
+    }
+
+    const nextModelId = encodeGrokModelId(defaultRawId);
+    savedProviderModel.grok = nextModelId;
+    if (ProviderRegistry.resolveSettingsProviderId(settingsBag) === this.providerId) {
+      settingsBag.model = nextModelId;
+    }
+    return true;
   }
 
   private seedActiveModelSelection(

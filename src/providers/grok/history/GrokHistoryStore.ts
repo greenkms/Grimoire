@@ -253,13 +253,14 @@ export function normalizeImportedGrokUserMessage(message: ChatMessage): ChatMess
     return null;
   }
 
-  if (content === message.content) {
+  if (content === message.content && content === (message.displayContent ?? content)) {
     return message;
   }
 
   return {
     ...message,
     content,
+    displayContent: content,
   };
 }
 
