@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.7 - 2026-08-15
+
+### Fixed
+
+- Stopped OpenCode, MiMoCode, and Kimi Code from flipping Auto-approve to Safe when the first message creates a session.
+- Stopped Grok Build from aborting later turns with a raw `Invalid params` error, leaking MCP stderr into the chat, and dropping the question when you reopen the conversation.
+
 ## 1.1.6 - 2026-08-14
 
 ### Fixed
