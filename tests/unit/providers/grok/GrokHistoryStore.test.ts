@@ -162,6 +162,20 @@ describe('parseGrokChatHistoryJsonl', () => {
       role: 'user',
       timestamp: 1,
     });
+
+    expect(normalizeImportedGrokUserMessage({
+      content: '',
+      displayContent: 'Question that never reached Grok',
+      id: 'u3',
+      role: 'user',
+      timestamp: 1,
+    })).toEqual({
+      content: 'Question that never reached Grok',
+      displayContent: 'Question that never reached Grok',
+      id: 'u3',
+      role: 'user',
+      timestamp: 1,
+    });
   });
 });
 

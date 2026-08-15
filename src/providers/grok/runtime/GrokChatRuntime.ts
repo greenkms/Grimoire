@@ -103,6 +103,7 @@ import {
   getManagedGrokModes,
   type GrokPermissionMode,
   normalizeGrokAvailableModes,
+  resolveGrokAcpModeId,
   resolveGrokModeForPermissionMode,
   resolveGrokPermissionModeForSettings,
 } from '../modes';
@@ -234,7 +235,7 @@ export class GrokChatRuntime implements ChatRuntime {
     return {
       isCompact: false,
       mcpMentions: request.enabledMcpServers ?? new Set(),
-      persistedContent: '',
+      persistedContent: request.text,
       prompt: buildGrokPromptText(request),
       request,
     };
@@ -618,6 +619,17 @@ export class GrokChatRuntime implements ChatRuntime {
         }
       } catch (retryError) {
         reportedError = retryError;
+      }
+
+      if (!activeTurn.sawAssistantText) {
+        const recovered = await this.recoverNativeTranscriptOutput(activeTurn.sessionId, cwd);
+        if (recovered) {
+          activeTurn.sawAssistantText = true;
+          activeTurn.queue.push({ type: 'text', content: recovered });
+          activeTurn.queue.push({ type: 'done' });
+          activeTurn.queue.close();
+          return;
+        }
       }
 
       activeTurn.queue.push({
@@ -1028,7 +1040,7 @@ export class GrokChatRuntime implements ChatRuntime {
     }
 
     const selectedModeId = this.resolveSelectedModeId();
-    if (!selectedModeId || selectedModeId === this.currentSessionModeId) {
+    if (!selectedModeId) {
       return;
     }
 
@@ -1038,15 +1050,30 @@ export class GrokChatRuntime implements ChatRuntime {
       return;
     }
 
+    const advertisedModeIds = getGrokProviderSettings(this.getProviderSettings())
+      .availableModes
+      .map((mode) => mode.id);
+    const modeToSend = resolveGrokAcpModeId(
+      selectedModeId,
+      this.currentSessionModeId,
+      advertisedModeIds,
+    );
+    if (!modeToSend || modeToSend === this.currentSessionModeId) {
+      return;
+    }
+
     let unsupportedMethodError: JsonRpcErrorResponse | null = null;
     try {
       await this.connection.setMode({
-        modeId: selectedModeId,
+        modeId: modeToSend,
         sessionId,
       });
-      this.currentSessionModeId = selectedModeId;
+      this.currentSessionModeId = modeToSend;
       return;
     } catch (error) {
+      if (this.isIgnorableAcpModeError(error, modeToSend, sessionId, 'session.set_mode')) {
+        return;
+      }
       if (!(error instanceof JsonRpcErrorResponse) || error.code !== -32601) {
         throw error;
       }
@@ -1057,16 +1084,43 @@ export class GrokChatRuntime implements ChatRuntime {
       throw unsupportedMethodError;
     }
 
-    const response = await this.connection.setConfigOption({
-      configId: this.currentSessionModeConfigId,
+    try {
+      const response = await this.connection.setConfigOption({
+        configId: this.currentSessionModeConfigId,
+        sessionId,
+        type: 'select',
+        value: modeToSend,
+      });
+      this.currentSessionModeId = modeToSend;
+      await this.syncSessionModeState({
+        configOptions: response.configOptions,
+      });
+    } catch (error) {
+      if (this.isIgnorableAcpModeError(error, modeToSend, sessionId, 'session.set_config_option')) {
+        return;
+      }
+      throw error;
+    }
+  }
+
+  private isIgnorableAcpModeError(
+    error: unknown,
+    modeId: string,
+    sessionId: string,
+    event: string,
+  ): boolean {
+    if (!(error instanceof JsonRpcErrorResponse) || error.code !== -32602) {
+      return false;
+    }
+
+    logGrokDebug(this.plugin, event, {
+      modeId,
       sessionId,
-      type: 'select',
-      value: selectedModeId,
+    }, {
+      error,
+      level: 'warn',
     });
-    this.currentSessionModeId = selectedModeId;
-    await this.syncSessionModeState({
-      configOptions: response.configOptions,
-    });
+    return true;
   }
 
   private async applySelectedModel(
@@ -1784,9 +1838,31 @@ export class GrokChatRuntime implements ChatRuntime {
   }
 
   private formatRuntimeError(error: unknown): string {
-    const baseMessage = error instanceof Error ? error.message : t('chat.ui.errors.provider.requestFailed', { provider: ProviderRegistry.getProviderDisplayNameOrId('grok') });
-    const stderr = this.process?.getStderrSnapshot();
-    return stderr ? `${baseMessage}\n\n${stderr}` : baseMessage;
+    const stderr = this.process?.getStderrSnapshot() ?? '';
+    if (stderr) {
+      logGrokDebug(this.plugin, 'runtime.error.stderr', {
+        stderrPreview: summarizeGrokCliText(stderr),
+      }, {
+        error,
+        level: 'warn',
+      });
+    }
+
+    const fallback = t('chat.ui.errors.provider.requestFailed', {
+      provider: ProviderRegistry.getProviderDisplayNameOrId('grok'),
+    });
+    if (!(error instanceof Error)) {
+      return fallback;
+    }
+
+    // Generic JSON-RPC strings like "Invalid params" are not actionable, and
+    // accumulated CLI stderr (MCP spawn failures, ANSI rust logs) must stay in
+    // debug logs rather than replace the user's question with a wall of noise.
+    if (error instanceof JsonRpcErrorResponse && isGenericJsonRpcErrorMessage(error.message)) {
+      return fallback;
+    }
+
+    return error.message.trim() || fallback;
   }
 
   private async prepareClosedTransportRetry(
@@ -1836,6 +1912,11 @@ export class GrokChatRuntime implements ChatRuntime {
     this.currentSessionModeId = null;
     this.setSupportedCommands([]);
   }
+}
+
+function isGenericJsonRpcErrorMessage(message: string): boolean {
+  return /^(invalid params|invalid request|method not found|parse error|internal error)$/i
+    .test(message.trim());
 }
 
 function resolveGrokRestartReasons(params: {
