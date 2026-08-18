@@ -1,3 +1,4 @@
+import { extractFirstParagraph } from '../../../utils/slashCommand';
 import { dumpYamlFrontmatter, loadYamlFrontmatter } from '../../../utils/yamlFrontmatter';
 import type { VaultFileAdapter } from '../../storage/VaultFileAdapter';
 import type { SlashCommand } from '../../types';
@@ -29,6 +30,7 @@ export interface VaultSkillRoot {
   path: string;
   editable?: boolean;
   includeFlatFiles?: boolean;
+  allowContentOnlySkills?: boolean;
 }
 
 export interface VaultSkillCommandCatalogOptions {
@@ -125,9 +127,13 @@ function serializeSkill(
 
 function parseSkillMarkdown(
   content: string,
+  allowContentOnlySkills = false,
 ): { frontmatter: Record<string, unknown>; body: string } | null {
   const match = content.match(SKILL_FRONTMATTER_PATTERN);
-  if (!match) return null;
+  if (!match) {
+    if (!allowContentOnlySkills || content.trimStart().startsWith('---')) return null;
+    return { frontmatter: {}, body: content };
+  }
 
   try {
     const parsed: unknown = loadYamlFrontmatter(match[1]);
@@ -285,14 +291,14 @@ export class VaultSkillCommandCatalog implements ProviderCommandCatalog {
     if (!this.adapter) return null;
     try {
       const markdown = await this.adapter.read(this.filePath(root, location));
-      const parsed = parseSkillMarkdown(markdown);
+      const parsed = parseSkillMarkdown(markdown, root.allowContentOnlySkills);
       if (!parsed) return null;
       const frontmatterName = typeof parsed.frontmatter.name === 'string'
         ? parsed.frontmatter.name.trim()
         : '';
       const description = typeof parsed.frontmatter.description === 'string'
         ? parsed.frontmatter.description.trim()
-        : undefined;
+        : extractFirstParagraph(parsed.body);
       const name = frontmatterName || location.name;
       const editable = root.editable !== false;
       return {

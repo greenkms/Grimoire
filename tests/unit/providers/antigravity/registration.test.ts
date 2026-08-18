@@ -47,8 +47,39 @@ describe('Antigravity provider registration', () => {
     });
 
     expect(services.cliResolver).toBeDefined();
+    expect(services.commandCatalog).toBeDefined();
     expect(services.modelCatalog).toBeDefined();
     expect(services.usageProvider).toBeDefined();
+  });
+
+  it('lists frontmatter and content-only skills in the AGY slash menu', async () => {
+    const files = new Map([
+      ['.claude/skills/start-my-day/SKILL.md', '---\nname: start-my-day\ndescription: Plan today\n---\n\nStart the day.'],
+      ['.claude/skills/shared/SKILL.md', '---\nname: shared\ndescription: Claude copy\n---\n\nUse Claude copy.'],
+      ['.agents/skills/review/SKILL.md', 'Review the current changes before merging.'],
+      ['.agents/skills/shared/SKILL.md', 'Shared copy that must be hidden.'],
+    ]);
+    const vaultAdapter = {
+      listFiles: jest.fn().mockResolvedValue([]),
+      listFolders: jest.fn(async (root: string) => root === '.claude/skills'
+        ? ['.claude/skills/start-my-day', '.claude/skills/shared']
+        : ['.agents/skills/review', '.agents/skills/shared']),
+      read: jest.fn(async (path: string) => files.get(path) ?? Promise.reject(new Error('Missing skill'))),
+    };
+    const services = await antigravityWorkspaceRegistration.initialize({
+      homeAdapter: {} as any,
+      plugin: {} as any,
+      storage: {} as any,
+      vaultAdapter: vaultAdapter as any,
+    });
+
+    const entries = await services.commandCatalog.listDropdownEntries({ includeBuiltIns: false });
+
+    expect(entries.map(({ name, displayPrefix, insertPrefix }) => ({ name, displayPrefix, insertPrefix }))).toEqual([
+      { name: 'start-my-day', displayPrefix: '/', insertPrefix: '/' },
+      { name: 'shared', displayPrefix: '/', insertPrefix: '/' },
+      { name: 'review', displayPrefix: '/', insertPrefix: '/' },
+    ]);
   });
 
   it('replaces the synthetic fallback with discovered agy models on refresh', async () => {

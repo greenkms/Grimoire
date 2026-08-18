@@ -12,6 +12,7 @@ import { setLocale } from '@/i18n/i18n';
 import {
   AntigravityChatRuntime,
   buildAntigravityPrintArgs,
+  expandAntigravityVaultSkillInvocation,
 } from '@/providers/antigravity/runtime/AntigravityChatRuntime';
 import { updateAntigravityProviderSettings } from '@/providers/antigravity/settings';
 
@@ -111,6 +112,44 @@ describe('AntigravityChatRuntime', () => {
     }));
     expect(chunks).toContainEqual({ content: 'Hi from Antigravity', type: 'text' });
     expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
+  });
+
+  it('expands a shared content-only skill and passes its arguments to AGY', async () => {
+    const plugin = createMockPlugin({
+      app: {
+        vault: {
+          adapter: {
+            list: jest.fn(async (root: string) => root === '.claude/skills'
+              ? { folders: [], files: [] }
+              : { folders: ['.agents/skills/start-my-day'], files: [] }),
+            read: jest.fn(async (path: string) => path === '.agents/skills/start-my-day/SKILL.md'
+              ? 'Prepare a focused daily plan.'
+              : Promise.reject(new Error('Missing skill'))),
+          },
+        },
+      },
+    });
+
+    await expect(expandAntigravityVaultSkillInvocation(plugin, '/start-my-day prioritize health'))
+      .resolves.toContain('Prepare a focused daily plan.');
+    await expect(expandAntigravityVaultSkillInvocation(plugin, '/start-my-day prioritize health'))
+      .resolves.toContain('User input for this skill:\nprioritize health');
+  });
+
+  it('expands a skill selected by its frontmatter name', async () => {
+    const plugin = createMockPlugin({
+      app: {
+        vault: {
+          adapter: {
+            list: jest.fn(async () => ({ folders: ['.claude/skills/daily-routine'], files: [] })),
+            read: jest.fn(async () => '---\nname: start-my-day\n---\n\nStart calmly.'),
+          },
+        },
+      },
+    });
+
+    await expect(expandAntigravityVaultSkillInvocation(plugin, '/start-my-day'))
+      .resolves.toContain('Start calmly.');
   });
 
   it('keeps a multibyte character that agy split across two stdout chunks intact', async () => {
