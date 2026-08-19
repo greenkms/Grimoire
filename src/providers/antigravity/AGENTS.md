@@ -12,6 +12,7 @@
 - Antigravity settings expose custom model labels so users can add account-specific models when Windows model discovery is incomplete.
 - The AGY slash menu lists read-only vault skills from `.claude/skills` and `.agents/skills` through `VaultSkillCommandCatalog` (content-only SKILL.md files allowed). Because `agy --print` has no slash surface, `AntigravityChatRuntime` expands a leading `/skill-name` invocation client-side through the registered command catalog before launching AGY; keep menu filtering and the expansion grammar in sync.
 - Antigravity CLI 1.0.7 does not expose Gemini CLI's `--acp` flag; do not route it through `src/providers/acp/` unless a real ACP-compatible runtime is confirmed.
+- On Windows, resolved `.exe` commands launch directly; `.cmd`/`.bat` launchers and bare command names go through an explicit `cmd.exe /d /s /c` invocation with per-argument quoting in `AntigravityProcessLaunch` — never Node's `shell: true`, which concatenates the command line without quoting arguments (#59).
 - Auxiliary workflows such as title generation, instruction refinement, and inline edit are unsupported until an Antigravity auxiliary runner exists.
 
 ## Boundaries
