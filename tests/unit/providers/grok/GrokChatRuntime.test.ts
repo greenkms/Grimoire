@@ -490,6 +490,53 @@ describe('GrokChatRuntime', () => {
     expect(startProcess).toHaveBeenCalled();
   });
 
+  it('serializes concurrent ensureReady calls into a single process restart', async () => {
+    const plugin = createMockPlugin({
+      settings: {
+        providerConfigs: {
+          grok: {
+            enabled: true,
+          },
+        },
+      },
+    });
+    const runtime = new GrokChatRuntime(plugin);
+
+    jest.spyOn(launchArtifacts, 'prepareGrokLaunchArtifacts').mockResolvedValue({
+      configContent: '# managed\n',
+      grokHomePath: '/tmp/grimoire-grok-home',
+      launchKey: 'launch-key',
+      managedConfigPath: '/tmp/grimoire-grok-home/managed_config.toml',
+      systemPromptPath: '/tmp/grimoire-grok-home/system.md',
+    });
+    // A slow start reproduces the real race: without serialization the second
+    // caller evaluates restart reasons while the first restart is mid-flight,
+    // shuts the fresh process down, and starts its own.
+    const startProcess = jest.spyOn(runtime as any, 'startProcess').mockImplementation(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      (runtime as any).process = { isAlive: () => true };
+      (runtime as any).transport = { isClosed: false };
+      (runtime as any).connection = {};
+      (runtime as any).ready = true;
+    });
+    const shutdownProcess = jest.spyOn(runtime as any, 'shutdownProcess').mockResolvedValue(undefined);
+    (runtime as any).createSession = jest.fn().mockImplementation(async () => {
+      (runtime as any).sessionId = 'session-1';
+      return 'session-1';
+    });
+    (runtime as any).loadSession = jest.fn().mockResolvedValue(true);
+
+    const [fromSend, fromCommandCatalog] = await Promise.all([
+      runtime.ensureReady({ allowSessionCreation: true }),
+      runtime.ensureReady({ allowSessionCreation: false }),
+    ]);
+
+    expect(fromSend).toBe(true);
+    expect(fromCommandCatalog).toBe(true);
+    expect(startProcess).toHaveBeenCalledTimes(1);
+    expect(shutdownProcess).toHaveBeenCalledTimes(1);
+  });
+
   it('builds launch artifacts from the Grok-projected permission mode', async () => {
     const plugin = createMockPlugin({
       settings: {
