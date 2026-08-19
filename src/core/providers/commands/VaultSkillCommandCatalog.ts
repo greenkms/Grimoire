@@ -31,6 +31,7 @@ export interface VaultSkillRoot {
   editable?: boolean;
   includeFlatFiles?: boolean;
   allowContentOnlySkills?: boolean;
+  deriveDescriptionFromBody?: boolean;
 }
 
 export interface VaultSkillCommandCatalogOptions {
@@ -131,7 +132,11 @@ function parseSkillMarkdown(
 ): { frontmatter: Record<string, unknown>; body: string } | null {
   const match = content.match(SKILL_FRONTMATTER_PATTERN);
   if (!match) {
-    if (!allowContentOnlySkills || content.trimStart().startsWith('---')) return null;
+    if (
+      !allowContentOnlySkills
+      || !content.trim()
+      || content.trimStart().startsWith('---')
+    ) return null;
     return { frontmatter: {}, body: content };
   }
 
@@ -298,7 +303,9 @@ export class VaultSkillCommandCatalog implements ProviderCommandCatalog {
         : '';
       const description = typeof parsed.frontmatter.description === 'string'
         ? parsed.frontmatter.description.trim()
-        : extractFirstParagraph(parsed.body);
+        : root.deriveDescriptionFromBody
+          ? extractFirstParagraph(parsed.body)
+          : undefined;
       const name = frontmatterName || location.name;
       const editable = root.editable !== false;
       return {

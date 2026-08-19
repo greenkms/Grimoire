@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { ProviderRegistry } from '../../../core/providers/ProviderRegistry';
+import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
 import type { ProviderCapabilities } from '../../../core/providers/types';
 import type { ChatRuntime } from '../../../core/runtime/ChatRuntime';
 import type {
@@ -38,9 +39,9 @@ import {
   appendProjectWorkspaceContext,
   appendVaultSearchContext,
   formatCurrentNote,
+  XML_CONTEXT_PATTERN,
 } from '../../../utils/context';
 import { appendEditorContext } from '../../../utils/editor';
-import { parseFrontmatter } from '../../../utils/frontmatter';
 import { getVaultPath } from '../../../utils/path';
 import { createUtf8ChunkDecoder, type Utf8ChunkDecoder } from '../../../utils/utf8Stream';
 import { ANTIGRAVITY_PROVIDER_CAPABILITIES } from '../capabilities';
@@ -140,7 +141,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
     }
 
     const prompt = buildAntigravityPrintPrompt(
-      await expandAntigravityVaultSkillInvocation(this.plugin, turn.prompt),
+      await expandAntigravityVaultSkillInvocation(turn.prompt),
       conversationHistory,
     );
 
@@ -534,68 +535,53 @@ export class AntigravityChatRuntime implements ChatRuntime {
  * `agy --print` does not expose Claude-style slash skills.  Preserve the
  * familiar `/skill-name` workflow by expanding a vault skill before the
  * prompt is handed to AGY.  Only an invocation at the beginning of a turn is
- * expanded; ordinary prose containing a slash is left untouched.
+ * expanded; ordinary prose containing a slash is left untouched.  Skills are
+ * resolved through the registered command catalog so the slash menu and the
+ * expansion always refer to the same skill, and appended XML context blocks
+ * stay outside the wrapper instead of being labeled as skill input.
  */
-export async function expandAntigravityVaultSkillInvocation(
-  plugin: GrimoirePlugin,
-  prompt: string,
-): Promise<string> {
-  const match = prompt.match(/^\/([\p{L}\p{N}_-]+)(?:\s|$)([\s\S]*)$/u);
+export async function expandAntigravityVaultSkillInvocation(prompt: string): Promise<string> {
+  const { userText, contextTail } = splitPromptXmlContext(prompt);
+  const match = userText.match(/^\/([\p{L}\p{N}_-]+)(?:\s|$)([\s\S]*)$/u);
   if (!match) return prompt;
 
   const [, skillName, argumentsText] = match;
-  const skill = await findAntigravityVaultSkill(plugin, skillName);
+  const skill = await findAntigravityVaultSkill(skillName);
   if (!skill) return prompt;
-  return [
+  const expanded = [
     `You are executing the vault skill "${skillName}". Follow its instructions.`,
     '',
     skill,
     argumentsText.trim()
       ? `\nUser input for this skill:\n${argumentsText.trim()}`
       : '',
-  ].join('\n');
+  ].join('\n').trimEnd();
+  return contextTail ? `${expanded}${contextTail}` : expanded;
 }
 
-async function findAntigravityVaultSkill(
-  plugin: GrimoirePlugin,
-  skillName: string,
-): Promise<string | null> {
-  const roots = ['.claude/skills', '.agents/skills'];
-  const adapter = plugin.app.vault.adapter;
-  for (const root of roots) {
-    const direct = await readVaultSkill(adapter, `${root}/${skillName}/SKILL.md`);
-    if (direct) return direct;
-
-    try {
-      const listing = await adapter.list(root);
-      for (const folder of listing.folders) {
-        const candidate = await readVaultSkill(adapter, `${folder}/SKILL.md`);
-        if (candidate && skillNameMatches(candidate, skillName)) return candidate;
-      }
-    } catch {
-      // Missing or unreadable roots do not block the next root.
-    }
+function splitPromptXmlContext(prompt: string): { userText: string; contextTail: string } {
+  const xmlMatch = prompt.match(XML_CONTEXT_PATTERN);
+  if (xmlMatch?.index === undefined) {
+    return { userText: prompt, contextTail: '' };
   }
-
-  return null;
+  return {
+    userText: prompt.substring(0, xmlMatch.index),
+    contextTail: prompt.substring(xmlMatch.index),
+  };
 }
 
-async function readVaultSkill(
-  adapter: GrimoirePlugin['app']['vault']['adapter'],
-  path: string,
-): Promise<string | null> {
+async function findAntigravityVaultSkill(skillName: string): Promise<string | null> {
+  const catalog = ProviderWorkspaceRegistry.getCommandCatalog('antigravity');
+  if (!catalog) return null;
   try {
-    const content = await adapter.read(path);
-    return content.trim() ? content : null;
+    const entries = await catalog.listVaultEntries();
+    const entry = entries.find(
+      (candidate) => candidate.name.toLowerCase() === skillName.toLowerCase(),
+    );
+    return entry?.content?.trim() ? entry.content : null;
   } catch {
     return null;
   }
-}
-
-function skillNameMatches(content: string, name: string): boolean {
-  const parsed = parseFrontmatter(content);
-  return typeof parsed?.frontmatter.name === 'string'
-    && parsed.frontmatter.name.trim().toLowerCase() === name.toLowerCase();
 }
 
 export function buildAntigravityPrintArgs(spec: AntigravityPrintArgsSpec): string[] {

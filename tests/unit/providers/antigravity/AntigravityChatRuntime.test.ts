@@ -7,8 +7,10 @@ import os from 'node:os';
 import path from 'node:path';
 import { PassThrough } from 'node:stream';
 
+import { ProviderWorkspaceRegistry } from '@/core/providers/ProviderWorkspaceRegistry';
 import type { StreamChunk } from '@/core/types';
 import { setLocale } from '@/i18n/i18n';
+import { AntigravityCommandCatalog } from '@/providers/antigravity/commands/AntigravityCommandCatalog';
 import {
   AntigravityChatRuntime,
   buildAntigravityPrintArgs,
@@ -75,6 +77,7 @@ describe('AntigravityChatRuntime', () => {
     setLocale('en');
     jest.restoreAllMocks();
     mockedSpawn.mockReset();
+    ProviderWorkspaceRegistry.setServices('antigravity', undefined);
   });
 
   it('does not start when the provider is disabled', async () => {
@@ -114,42 +117,102 @@ describe('AntigravityChatRuntime', () => {
     expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
   });
 
+  function registerSkillCatalog(files: Record<string, string>): void {
+    const catalog = new AntigravityCommandCatalog({
+      listFiles: jest.fn(async () => []),
+      listFolders: jest.fn(async (root: string) => [
+        ...new Set(Object.keys(files)
+          .filter((file) => file.startsWith(`${root}/`))
+          .map((file) => file.slice(0, file.lastIndexOf('/')))),
+      ]),
+      read: jest.fn(async (path: string) => {
+        const content = files[path];
+        if (content === undefined) throw new Error(`Missing ${path}`);
+        return content;
+      }),
+    } as any);
+    ProviderWorkspaceRegistry.setServices('antigravity', { commandCatalog: catalog });
+  }
+
   it('expands a shared content-only skill and passes its arguments to AGY', async () => {
-    const plugin = createMockPlugin({
-      app: {
-        vault: {
-          adapter: {
-            list: jest.fn(async (root: string) => root === '.claude/skills'
-              ? { folders: [], files: [] }
-              : { folders: ['.agents/skills/start-my-day'], files: [] }),
-            read: jest.fn(async (path: string) => path === '.agents/skills/start-my-day/SKILL.md'
-              ? 'Prepare a focused daily plan.'
-              : Promise.reject(new Error('Missing skill'))),
-          },
-        },
-      },
+    registerSkillCatalog({
+      '.agents/skills/start-my-day/SKILL.md': 'Prepare a focused daily plan.',
     });
 
-    await expect(expandAntigravityVaultSkillInvocation(plugin, '/start-my-day prioritize health'))
+    await expect(expandAntigravityVaultSkillInvocation('/start-my-day prioritize health'))
       .resolves.toContain('Prepare a focused daily plan.');
-    await expect(expandAntigravityVaultSkillInvocation(plugin, '/start-my-day prioritize health'))
+    await expect(expandAntigravityVaultSkillInvocation('/start-my-day prioritize health'))
       .resolves.toContain('User input for this skill:\nprioritize health');
   });
 
-  it('expands a skill selected by its frontmatter name', async () => {
-    const plugin = createMockPlugin({
-      app: {
-        vault: {
-          adapter: {
-            list: jest.fn(async () => ({ folders: ['.claude/skills/daily-routine'], files: [] })),
-            read: jest.fn(async () => '---\nname: start-my-day\n---\n\nStart calmly.'),
-          },
-        },
-      },
+  it('expands a skill selected by its frontmatter name without the frontmatter block', async () => {
+    registerSkillCatalog({
+      '.claude/skills/daily-routine/SKILL.md': '---\nname: start-my-day\n---\n\nStart calmly.',
     });
 
-    await expect(expandAntigravityVaultSkillInvocation(plugin, '/start-my-day'))
+    const expanded = await expandAntigravityVaultSkillInvocation('/start-my-day');
+    expect(expanded).toContain('Start calmly.');
+    expect(expanded).not.toContain('name: start-my-day');
+    await expect(expandAntigravityVaultSkillInvocation('/Start-My-Day'))
       .resolves.toContain('Start calmly.');
+  });
+
+  it('resolves duplicate names with the same root priority as the slash menu', async () => {
+    registerSkillCatalog({
+      '.claude/skills/shared/SKILL.md': 'Claude copy wins.',
+      '.agents/skills/shared/SKILL.md': 'Agents copy must not be used.',
+    });
+
+    await expect(expandAntigravityVaultSkillInvocation('/shared'))
+      .resolves.toContain('Claude copy wins.');
+    await expect(expandAntigravityVaultSkillInvocation('/shared'))
+      .resolves.not.toContain('Agents copy must not be used.');
+  });
+
+  it('passes an unknown skill invocation through unchanged', async () => {
+    registerSkillCatalog({
+      '.agents/skills/start-my-day/SKILL.md': 'Prepare a focused daily plan.',
+    });
+
+    await expect(expandAntigravityVaultSkillInvocation('/other-skill do things'))
+      .resolves.toBe('/other-skill do things');
+  });
+
+  it('keeps appended XML context outside the skill instructions', async () => {
+    registerSkillCatalog({
+      '.agents/skills/start-my-day/SKILL.md': 'Prepare a focused daily plan.',
+    });
+    const prompt = '/start-my-day prioritize health\n\n<current_note>\ndaily.md\n</current_note>';
+
+    await expect(expandAntigravityVaultSkillInvocation(prompt)).resolves.toBe([
+      'You are executing the vault skill "start-my-day". Follow its instructions.',
+      '',
+      'Prepare a focused daily plan.',
+      '',
+      'User input for this skill:',
+      'prioritize health',
+      '',
+      '<current_note>',
+      'daily.md',
+      '</current_note>',
+    ].join('\n'));
+  });
+
+  it('keeps appended XML context after a skill invoked without arguments', async () => {
+    registerSkillCatalog({
+      '.agents/skills/start-my-day/SKILL.md': 'Prepare a focused daily plan.',
+    });
+    const prompt = '/start-my-day\n\n<current_note>\ndaily.md\n</current_note>';
+
+    await expect(expandAntigravityVaultSkillInvocation(prompt)).resolves.toBe([
+      'You are executing the vault skill "start-my-day". Follow its instructions.',
+      '',
+      'Prepare a focused daily plan.',
+      '',
+      '<current_note>',
+      'daily.md',
+      '</current_note>',
+    ].join('\n'));
   });
 
   it('keeps a multibyte character that agy split across two stdout chunks intact', async () => {
