@@ -217,6 +217,7 @@ export class GrokChatRuntime implements ChatRuntime {
   private currentSessionModeId: string | null = null;
   private currentTurnSawAcpCost = false;
   private currentTurnMetadata: ChatTurnMetadata = {};
+  private ensureReadyChain: Promise<unknown> = Promise.resolve(true);
   private loadedSessionId: string | null = null;
   private process: AcpSubprocess | null = null;
   private promptUsage: AcpUsage | null = null;
@@ -342,6 +343,20 @@ export class GrokChatRuntime implements ChatRuntime {
   }
 
   async ensureReady(options?: ChatRuntimeEnsureReadyOptions): Promise<boolean> {
+    // Serialize readiness checks: concurrent callers (the send path and the
+    // slash-menu command catalog) each evaluate restart reasons against shared
+    // process/transport state. Without serialization, a caller that evaluates
+    // mid-restart sees partial state, shuts the fresh process down, and races
+    // its own start — the first turn then fails with a start error.
+    const run = this.ensureReadyChain.then(
+      () => this.runEnsureReady(options),
+      () => this.runEnsureReady(options),
+    );
+    this.ensureReadyChain = run.then(() => undefined, () => undefined);
+    return run;
+  }
+
+  private async runEnsureReady(options?: ChatRuntimeEnsureReadyOptions): Promise<boolean> {
     const settings = getGrokProviderSettings(this.plugin.settings);
     if (!settings.enabled) {
       logGrokDebug(this.plugin, 'ensureReady.skipped', {
