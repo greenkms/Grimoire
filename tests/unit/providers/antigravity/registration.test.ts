@@ -47,8 +47,43 @@ describe('Antigravity provider registration', () => {
     });
 
     expect(services.cliResolver).toBeDefined();
+    expect(services.commandCatalog).toBeDefined();
     expect(services.modelCatalog).toBeDefined();
     expect(services.usageProvider).toBeDefined();
+  });
+
+  it('lists frontmatter and content-only skills in the AGY slash menu', async () => {
+    const files = new Map([
+      ['.claude/skills/start-my-day/SKILL.md', '---\nname: start-my-day\ndescription: Plan today\n---\n\nStart the day.'],
+      ['.claude/skills/shared/SKILL.md', '---\nname: shared\ndescription: Claude copy\n---\n\nUse Claude copy.'],
+      ['.agents/skills/review/SKILL.md', 'Review the current changes before merging.'],
+      ['.agents/skills/shared/SKILL.md', 'Shared copy that must be hidden.'],
+      ['.agents/skills/deep-work/SKILL.md', '---\nname: "Deep Work"\ndescription: Uninvocable name\n---\n\nCannot be typed as /Deep Work.'],
+      ['.agents/skills/empty/SKILL.md', '   '],
+    ]);
+    const vaultAdapter = {
+      listFiles: jest.fn().mockResolvedValue([]),
+      listFolders: jest.fn(async (root: string) => root === '.claude/skills'
+        ? ['.claude/skills/start-my-day', '.claude/skills/shared']
+        : ['.agents/skills/review', '.agents/skills/shared', '.agents/skills/deep-work', '.agents/skills/empty']),
+      read: jest.fn(async (path: string) => files.get(path) ?? Promise.reject(new Error('Missing skill'))),
+    };
+    const services = await antigravityWorkspaceRegistration.initialize({
+      homeAdapter: {} as any,
+      plugin: {} as any,
+      storage: {} as any,
+      vaultAdapter: vaultAdapter as any,
+    });
+
+    const entries = await services.commandCatalog.listDropdownEntries({ includeBuiltIns: false });
+
+    expect(entries.map(({ name, description, displayPrefix, insertPrefix }) => (
+      { name, description, displayPrefix, insertPrefix }
+    ))).toEqual([
+      { name: 'start-my-day', description: 'Plan today', displayPrefix: '/', insertPrefix: '/' },
+      { name: 'shared', description: 'Claude copy', displayPrefix: '/', insertPrefix: '/' },
+      { name: 'review', description: 'Review the current changes before merging.', displayPrefix: '/', insertPrefix: '/' },
+    ]);
   });
 
   it('replaces the synthetic fallback with discovered agy models on refresh', async () => {

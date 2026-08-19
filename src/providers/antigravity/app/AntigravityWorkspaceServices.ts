@@ -1,3 +1,4 @@
+import type { ProviderCommandCatalog } from '../../../core/providers/commands/ProviderCommandCatalog';
 import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
 import type {
   ProviderCliResolver,
@@ -6,7 +7,9 @@ import type {
   ProviderWorkspaceRegistration,
   ProviderWorkspaceServices,
 } from '../../../core/providers/types';
+import type { VaultFileAdapter } from '../../../core/storage/VaultFileAdapter';
 import type GrimoirePlugin from '../../../main';
+import { AntigravityCommandCatalog } from '../commands/AntigravityCommandCatalog';
 import { ANTIGRAVITY_FALLBACK_DISCOVERED_MODELS } from '../models';
 import { AntigravityCliResolver } from '../runtime/AntigravityCliResolver';
 import { discoverAntigravityModels } from '../runtime/AntigravityModelDiscovery';
@@ -16,6 +19,7 @@ import { antigravityPlanUsageStore } from './AntigravityPlanUsageStore';
 
 export interface AntigravityWorkspaceServices extends ProviderWorkspaceServices {
   cliResolver: ProviderCliResolver;
+  commandCatalog: ProviderCommandCatalog;
   modelCatalog: ProviderModelCatalog;
 }
 
@@ -164,9 +168,13 @@ function buildAntigravityModelCatalogCacheKey(settings: ReturnType<typeof getAnt
   });
 }
 
-export async function createAntigravityWorkspaceServices(plugin: GrimoirePlugin): Promise<AntigravityWorkspaceServices> {
+export async function createAntigravityWorkspaceServices(
+  plugin: GrimoirePlugin,
+  vaultAdapter: VaultFileAdapter,
+): Promise<AntigravityWorkspaceServices> {
   return {
     cliResolver: createAntigravityCliResolver(),
+    commandCatalog: new AntigravityCommandCatalog(vaultAdapter),
     modelCatalog: createAntigravityModelCatalog(plugin),
     usageProvider: antigravityPlanUsageStore,
     settingsTabRenderer: antigravitySettingsTabRenderer,
@@ -176,13 +184,13 @@ export async function createAntigravityWorkspaceServices(plugin: GrimoirePlugin)
 
 export const antigravityWorkspaceRegistration: ProviderWorkspaceRegistration<AntigravityWorkspaceServices> = {
   workspaceCapabilities: {
-    skills: { inventory: 'none', manager: 'none' },
+    skills: { inventory: 'readonly', manager: 'none' },
     commands: { inventory: 'none', manager: 'none' },
     agents: { inventory: 'none', manager: 'none' },
     mcp: { inventory: 'none', manager: 'none' },
     environment: { inventory: 'managed', manager: 'managed' },
   },
-  initialize: async ({ plugin }) => createAntigravityWorkspaceServices(plugin),
+  initialize: async ({ plugin, vaultAdapter }) => createAntigravityWorkspaceServices(plugin, vaultAdapter),
 };
 
 export function maybeGetAntigravityWorkspaceServices(): AntigravityWorkspaceServices | null {

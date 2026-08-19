@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { ProviderRegistry } from '../../../core/providers/ProviderRegistry';
+import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
 import type { ProviderCapabilities } from '../../../core/providers/types';
 import type { ChatRuntime } from '../../../core/runtime/ChatRuntime';
 import type {
@@ -38,6 +39,7 @@ import {
   appendProjectWorkspaceContext,
   appendVaultSearchContext,
   formatCurrentNote,
+  XML_CONTEXT_PATTERN,
 } from '../../../utils/context';
 import { appendEditorContext } from '../../../utils/editor';
 import { getVaultPath } from '../../../utils/path';
@@ -138,7 +140,10 @@ export class AntigravityChatRuntime implements ChatRuntime {
       return;
     }
 
-    const prompt = buildAntigravityPrintPrompt(turn.prompt, conversationHistory);
+    const prompt = buildAntigravityPrintPrompt(
+      await expandAntigravityVaultSkillInvocation(turn.prompt),
+      conversationHistory,
+    );
 
     try {
       yield { content: 'Starting Antigravity...', type: 'status' };
@@ -523,6 +528,59 @@ export class AntigravityChatRuntime implements ChatRuntime {
     for (const listener of this.readyListeners) {
       listener(ready);
     }
+  }
+}
+
+/**
+ * `agy --print` does not expose Claude-style slash skills.  Preserve the
+ * familiar `/skill-name` workflow by expanding a vault skill before the
+ * prompt is handed to AGY.  Only an invocation at the beginning of a turn is
+ * expanded; ordinary prose containing a slash is left untouched.  Skills are
+ * resolved through the registered command catalog so the slash menu and the
+ * expansion always refer to the same skill, and appended XML context blocks
+ * stay outside the wrapper instead of being labeled as skill input.
+ */
+export async function expandAntigravityVaultSkillInvocation(prompt: string): Promise<string> {
+  const { userText, contextTail } = splitPromptXmlContext(prompt);
+  const match = userText.match(/^\/([\p{L}\p{N}_-]+)(?:\s|$)([\s\S]*)$/u);
+  if (!match) return prompt;
+
+  const [, skillName, argumentsText] = match;
+  const skill = await findAntigravityVaultSkill(skillName);
+  if (!skill) return prompt;
+  const expanded = [
+    `You are executing the vault skill "${skillName}". Follow its instructions.`,
+    '',
+    skill,
+    argumentsText.trim()
+      ? `\nUser input for this skill:\n${argumentsText.trim()}`
+      : '',
+  ].join('\n').trimEnd();
+  return contextTail ? `${expanded}${contextTail}` : expanded;
+}
+
+function splitPromptXmlContext(prompt: string): { userText: string; contextTail: string } {
+  const xmlMatch = prompt.match(XML_CONTEXT_PATTERN);
+  if (xmlMatch?.index === undefined) {
+    return { userText: prompt, contextTail: '' };
+  }
+  return {
+    userText: prompt.substring(0, xmlMatch.index),
+    contextTail: prompt.substring(xmlMatch.index),
+  };
+}
+
+async function findAntigravityVaultSkill(skillName: string): Promise<string | null> {
+  const catalog = ProviderWorkspaceRegistry.getCommandCatalog('antigravity');
+  if (!catalog) return null;
+  try {
+    const entries = await catalog.listVaultEntries();
+    const entry = entries.find(
+      (candidate) => candidate.name.toLowerCase() === skillName.toLowerCase(),
+    );
+    return entry?.content?.trim() ? entry.content : null;
+  } catch {
+    return null;
   }
 }
 
