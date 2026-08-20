@@ -47,6 +47,7 @@ import { createUtf8ChunkDecoder, type Utf8ChunkDecoder } from '../../../utils/ut
 import { ANTIGRAVITY_PROVIDER_CAPABILITIES } from '../capabilities';
 import { decodeAntigravityModelId } from '../models';
 import { getAntigravityProviderSettings } from '../settings';
+import { probeAntigravityAddDirSupport } from './AntigravityAddDirSupport';
 import { buildAntigravityProcessLaunch } from './AntigravityProcessLaunch';
 import { buildAntigravityRuntimeEnv } from './AntigravityRuntimeEnvironment';
 
@@ -54,6 +55,7 @@ const OUTPUT_BUFFER_LIMIT = 64_000;
 const PRINT_TIMEOUT_MS = 5 * 60 * 1000;
 
 interface AntigravityPrintSpec {
+  addDirPath: string | null;
   command: string;
   cwd: string;
   model: string | null;
@@ -63,6 +65,7 @@ interface AntigravityPrintSpec {
 }
 
 export interface AntigravityPrintArgsSpec {
+  addDirPath?: string | null;
   logFilePath?: string;
   model: string | null;
   permissionMode: string;
@@ -74,6 +77,8 @@ export class AntigravityChatRuntime implements ChatRuntime {
 
   private activeProcess: ChildProcess | null = null;
   private currentTurnMetadata: ChatTurnMetadata = {};
+  private cancelRequested = false;
+  private probeProcess: ChildProcess | null = null;
   private readonly readyListeners: Array<(ready: boolean) => void> = [];
   private ready = false;
 
@@ -127,9 +132,12 @@ export class AntigravityChatRuntime implements ChatRuntime {
       yield { type: 'done' };
       return;
     }
+    this.cancelRequested = false;
 
-    const cwd = getVaultPath(this.plugin.app) ?? process.cwd();
+    const vaultPath = getVaultPath(this.plugin.app);
+    const cwd = vaultPath ?? process.cwd();
     const command = this.plugin.getResolvedProviderCliPath('antigravity') ?? 'agy';
+    const runtimeEnv = buildAntigravityRuntimeEnv(this.plugin.settings, command);
     const permissionMode = this.getPermissionMode();
     if (permissionMode !== 'full_access') {
       yield {
@@ -147,13 +155,34 @@ export class AntigravityChatRuntime implements ChatRuntime {
 
     try {
       yield { content: 'Starting Antigravity...', type: 'status' };
+      const addDirSupported = await probeAntigravityAddDirSupport(command, runtimeEnv, (child) => {
+        this.probeProcess = child;
+      });
+      this.probeProcess = null;
+      if (this.cancelRequested) {
+        // The consumer discards chunks once cancelRequested is set, so a bare
+        // done ends the turn without launching a print run the user stopped.
+        yield { type: 'done' };
+        return;
+      }
+      this.plugin.recordDebugLog?.({
+        data: {
+          command,
+          providerId: this.providerId,
+          supported: addDirSupported,
+        },
+        event: 'print.addDirProbe',
+        level: 'debug',
+        scope: 'provider.antigravity',
+      });
       const output = await this.runPrint({
+        addDirPath: addDirSupported ? vaultPath : null,
         command,
         cwd,
         model: this.getSelectedRawModel(queryOptions),
         permissionMode,
         prompt,
-        runtimeEnv: buildAntigravityRuntimeEnv(this.plugin.settings, command),
+        runtimeEnv,
       });
       const trimmed = output.trim();
       if (trimmed) {
@@ -177,11 +206,16 @@ export class AntigravityChatRuntime implements ChatRuntime {
       yield { type: 'done' };
     } finally {
       this.activeProcess = null;
+      this.probeProcess = null;
     }
   }
 
   cancel(): void {
+    this.cancelRequested = true;
     this.activeProcess?.kill('SIGTERM');
+    // Kill the in-flight help probe too so cancel does not wait out its
+    // timeout before the generator can observe the flag.
+    this.probeProcess?.kill('SIGTERM');
   }
 
   resetSession(): void {}
@@ -586,6 +620,9 @@ async function findAntigravityVaultSkill(skillName: string): Promise<string | nu
 
 export function buildAntigravityPrintArgs(spec: AntigravityPrintArgsSpec): string[] {
   const args: string[] = [];
+  if (spec.addDirPath) {
+    args.push('--add-dir', spec.addDirPath);
+  }
   if (spec.permissionMode === 'full_access') {
     args.push('--dangerously-skip-permissions');
   } else {
@@ -762,11 +799,16 @@ function getCwdLabel(plugin: GrimoirePlugin, cwd: string): string {
 
 function summarizeAntigravityPrintArgs(args: string[]): string {
   return args.map((arg, index) => {
-    if (arg === '--print') {
+    if (arg === '--print' || arg === '--add-dir') {
       return arg;
     }
     if (index > 0 && args[index - 1] === '--print') {
       return '<prompt>';
+    }
+    // Keep the absolute vault path out of debug logs; the shared sanitizer's
+    // path redaction does not cover every platform's home prefixes.
+    if (index > 0 && args[index - 1] === '--add-dir') {
+      return '<vault-path>';
     }
     return arg;
   }).join(' ');
