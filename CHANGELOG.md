@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.8 - 2026-08-20
+
+### Fixed
+
+- Fixed Antigravity on Windows hanging until timeout with no output when the CLI resolves to a `.cmd`/`.bat` wrapper or a bare command name: the multi-line print prompt now reaches `agy` intact through an explicitly quoted `cmd.exe` invocation instead of Node's unquoted `shell: true`.
+- Added the vault root to the Antigravity agent workspace: Grimoire probes `agy --help` once for `--add-dir` support and passes `--add-dir <vault>` to `agy --print`, so the agent works directly on your notes and `.cmd` wrapper workarounds are no longer needed.
+- Honored Stop while Antigravity is still starting up: a cancelled turn now ends immediately instead of launching the CLI anyway and running to completion.
+- Made Antigravity vault skills appear in the slash menu and expand reliably when invoked, instead of silently passing the raw `/skill` text to the model.
+- Serialized concurrent Grok Build runtime restarts so rapidly opening chats no longer races the agent startup and interrupts the first turn.
+
 ## 1.1.7 - 2026-08-15
 
 ### Improved
