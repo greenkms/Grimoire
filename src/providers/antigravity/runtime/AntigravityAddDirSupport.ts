@@ -3,6 +3,12 @@ import { type ChildProcess, spawn } from 'node:child_process';
 import { buildAntigravityProcessLaunch } from './AntigravityProcessLaunch';
 
 const ADD_DIR_HELP_PROBE_TIMEOUT_MS = 10_000;
+const PROBE_OUTPUT_LIMIT = 64_000;
+
+// Anchored so sibling flags like a hypothetical `--add-directory` do not
+// register as support; `--no-add-dir` cannot match because its only `--`
+// precedes `no`.
+const ADD_DIR_FLAG_PATTERN = /--add-dir\b/;
 
 const addDirSupportByCommand = new Map<string, Promise<boolean>>();
 
@@ -15,12 +21,13 @@ const addDirSupportByCommand = new Map<string, Promise<boolean>>();
 export function probeAntigravityAddDirSupport(
   command: string,
   runtimeEnv: NodeJS.ProcessEnv,
+  onSpawn?: (child: ChildProcess) => void,
 ): Promise<boolean> {
   const cached = addDirSupportByCommand.get(command);
   if (cached) {
     return cached;
   }
-  const probe = detectAddDirSupport(command, runtimeEnv).catch(() => false);
+  const probe = detectAddDirSupport(command, runtimeEnv, onSpawn).catch(() => false);
   addDirSupportByCommand.set(command, probe);
   return probe;
 }
@@ -32,6 +39,7 @@ export function resetAntigravityAddDirSupportCache(): void {
 async function detectAddDirSupport(
   command: string,
   runtimeEnv: NodeJS.ProcessEnv,
+  onSpawn?: (child: ChildProcess) => void,
 ): Promise<boolean> {
   const launch = buildAntigravityProcessLaunch(command, ['--help'], runtimeEnv);
   return new Promise<boolean>((resolve) => {
@@ -47,6 +55,7 @@ async function detectAddDirSupport(
       resolve(false);
       return;
     }
+    onSpawn?.(child);
 
     let output = '';
     let settled = false;
@@ -64,19 +73,27 @@ async function detectAddDirSupport(
       } catch {
         // The child already exited between the event and this call.
       }
+      // Destroying the read ends stops accumulation and closes the pipe so an
+      // orphaned writer (e.g. agy under a killed cmd.exe wrapper) gets EPIPE
+      // instead of keeping a broken CLI streaming into memory.
+      child.stdout?.destroy();
+      child.stderr?.destroy();
       resolve(supported);
     };
     const collect = (chunk: Buffer | string): void => {
+      if (settled || output.length >= PROBE_OUTPUT_LIMIT) {
+        return;
+      }
       output += chunk.toString();
-      if (output.includes('--add-dir')) {
+      if (ADD_DIR_FLAG_PATTERN.test(output)) {
         settle(true);
       }
     };
 
     child.stdout?.on('data', collect);
     child.stderr?.on('data', collect);
-    child.on('error', () => settle(output.includes('--add-dir')));
-    child.on('close', () => settle(output.includes('--add-dir')));
+    child.on('error', () => settle(ADD_DIR_FLAG_PATTERN.test(output)));
+    child.on('close', () => settle(ADD_DIR_FLAG_PATTERN.test(output)));
     timer = window.setTimeout(() => settle(false), ADD_DIR_HELP_PROBE_TIMEOUT_MS);
   });
 }

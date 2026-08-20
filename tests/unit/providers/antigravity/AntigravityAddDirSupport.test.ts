@@ -17,6 +17,9 @@ function createMockChildProcess(): any {
   const proc = new EventEmitter() as any;
   proc.stdout = new PassThrough();
   proc.stderr = new PassThrough();
+  // Probe teardown destroys the pipes; tolerate writes that arrive after it.
+  proc.stdout.on('error', () => {});
+  proc.stderr.on('error', () => {});
   proc.stdin = null;
   proc.kill = jest.fn();
   proc.pid = 4321;
@@ -98,6 +101,81 @@ describe('probeAntigravityAddDirSupport', () => {
 
     await expect(probeAntigravityAddDirSupport('/usr/local/bin/agy', {})).resolves.toBe(true);
     expect(mockedSpawn).toHaveBeenCalledTimes(1);
+  });
+
+  it('also caches negative results so failed probes do not respawn every turn', async () => {
+    const proc = createMockChildProcess();
+    mockedSpawn.mockReturnValue(proc);
+
+    const first = probeAntigravityAddDirSupport('agy', {});
+    emitHelpAndExit(proc, '  --print');
+    await expect(first).resolves.toBe(false);
+
+    await expect(probeAntigravityAddDirSupport('agy', {})).resolves.toBe(false);
+    expect(mockedSpawn).toHaveBeenCalledTimes(1);
+  });
+
+  it('fail-closes when agy --help never finishes, and stays settled once', async () => {
+    jest.useFakeTimers();
+    try {
+      const proc = createMockChildProcess();
+      mockedSpawn.mockReturnValue(proc);
+
+      const promise = probeAntigravityAddDirSupport('agy', {});
+      jest.advanceTimersByTime(10_000);
+
+      await expect(promise).resolves.toBe(false);
+      expect(proc.kill).toHaveBeenCalledTimes(1);
+
+      // Late help output after the timeout must not flip the cached result.
+      proc.stdout.write('  --add-dir <dir>');
+      proc.emit('close', 0, null);
+      await expect(probeAntigravityAddDirSupport('agy', {})).resolves.toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('does not match sibling flags that merely contain the substring', async () => {
+    const directoryProc = createMockChildProcess();
+    mockedSpawn.mockReturnValue(directoryProc);
+    const directoryPromise = probeAntigravityAddDirSupport('agy', {});
+    emitHelpAndExit(directoryProc, '  --add-directory <dir>   Add many directories\n  --print');
+    await expect(directoryPromise).resolves.toBe(false);
+
+    resetAntigravityAddDirSupportCache();
+    const negationProc = createMockChildProcess();
+    mockedSpawn.mockReturnValue(negationProc);
+    const negationPromise = probeAntigravityAddDirSupport('agy', {});
+    emitHelpAndExit(negationProc, '  --no-add-dir            Disable extra directories\n  --print');
+    await expect(negationPromise).resolves.toBe(false);
+  });
+
+  it('fail-closes past the output cap even when --add-dir arrives later', async () => {
+    const proc = createMockChildProcess();
+    mockedSpawn.mockReturnValue(proc);
+
+    const promise = probeAntigravityAddDirSupport('agy', {});
+    const filler = `${'x'.repeat(1024)}\n`;
+    for (let i = 0; i < 80; i += 1) {
+      proc.stdout.write(filler);
+    }
+    proc.stdout.write('  --add-dir <dir>');
+    proc.emit('close', 0, null);
+
+    await expect(promise).resolves.toBe(false);
+  });
+
+  it('reports the spawned probe child so callers can cancel it', async () => {
+    const proc = createMockChildProcess();
+    mockedSpawn.mockReturnValue(proc);
+    const onSpawn = jest.fn();
+
+    const promise = probeAntigravityAddDirSupport('agy', {}, onSpawn);
+    expect(onSpawn).toHaveBeenCalledWith(proc);
+    emitHelpAndExit(proc, '  --add-dir <dir>');
+
+    await expect(promise).resolves.toBe(true);
   });
 
   it('probes different CLI commands separately', async () => {

@@ -563,4 +563,51 @@ describe('AntigravityChatRuntime', () => {
     await chunksPromise;
     expect(getSpawnedAgyArgs()).not.toContain('--add-dir');
   });
+
+  it('drops the print run when cancelled while the add-dir probe is in flight', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const probeProc = createMockChildProcess();
+    const printProc = createMockChildProcess();
+    mockedSpawn.mockImplementation((command: string, args: string[]) => {
+      if (args.includes('--help')) return probeProc;
+      return printProc;
+    });
+
+    const chunksPromise = collect(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
+    await new Promise((resolve) => setImmediate(resolve));
+    runtime.cancel();
+    probeProc.emit('close', 0, null);
+    await new Promise((resolve) => setImmediate(resolve));
+
+    const chunks = await chunksPromise;
+    expect(mockedSpawn).toHaveBeenCalledTimes(1);
+    expect(chunks).not.toContainEqual(expect.objectContaining({ type: 'text' }));
+    expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
+  });
+
+  it('masks the vault path in the print.spawn args summary', async () => {
+    const recordDebugLog = jest.fn();
+    const runtime = new AntigravityChatRuntime(createMockPlugin({ recordDebugLog }));
+    const probeProc = createMockChildProcess();
+    const printProc = createMockChildProcess();
+    mockedSpawn.mockImplementation((command: string, args: string[]) => {
+      if (args.includes('--help')) return probeProc;
+      return printProc;
+    });
+
+    const chunksPromise = collect(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
+    await new Promise((resolve) => setImmediate(resolve));
+    probeProc.stdout.write('Usage: agy\n  --add-dir <dir>\n');
+    probeProc.emit('close', 0, null);
+    await new Promise((resolve) => setImmediate(resolve));
+    printProc.stdout.write('Hi\n');
+    printProc.emit('exit', 0, null);
+    await chunksPromise;
+
+    const spawnLog = recordDebugLog.mock.calls
+      .map(([entry]) => entry)
+      .find((entry: any) => entry.event === 'print.spawn');
+    expect(spawnLog?.data?.argsSummary).toContain('--add-dir <vault-path>');
+    expect(spawnLog?.data?.argsSummary).not.toContain('/tmp/grimoire-antigravity-test-vault');
+  });
 });
