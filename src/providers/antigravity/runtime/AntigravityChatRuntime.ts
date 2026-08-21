@@ -62,7 +62,15 @@ import {
 } from './AntigravityStreamJson';
 
 const OUTPUT_BUFFER_LIMIT = 64_000;
-const PRINT_TIMEOUT_MS = 5 * 60 * 1000;
+// A healthy agy run emits a frame at every step transition, so pipe activity
+// refreshes the inactivity timer while a silent hang is still cut quickly.
+const PRINT_INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000;
+// Absolute ceiling for one request, independent of how active the run stays.
+const PRINT_ABSOLUTE_TIMEOUT_MS = 30 * 60 * 1000;
+// Keep agy's own print timeout just below Grimoire's absolute ceiling so the
+// CLI self-terminates with a structured result frame instead of being killed
+// from outside (#70).
+const ANTIGRAVITY_PRINT_TIMEOUT_FLAG = '29m';
 
 interface AntigravityPrintSpec {
   addDirPath: string | null;
@@ -80,6 +88,7 @@ export interface AntigravityPrintArgsSpec {
   logFilePath?: string;
   model: string | null;
   permissionMode: string;
+  printTimeout?: boolean;
   prompt: string;
   streamJson?: boolean;
 }
@@ -318,6 +327,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
     const args = buildAntigravityPrintArgs({
       ...spec,
       logFilePath: printLogFilePath,
+      printTimeout: cliCapabilities.printTimeout,
       streamJson,
     });
     this.plugin.recordDebugLog?.({
@@ -403,15 +413,18 @@ export class AntigravityChatRuntime implements ChatRuntime {
       let sawStdout = false;
       let sawStderr = false;
       const startedAt = Date.now();
+      let inactivityTimer: number | undefined;
+      let absoluteTimer: number | undefined;
       const settle = (callback: () => void): void => {
         if (settled) {
           return;
         }
         settled = true;
-        window.clearTimeout(timeout);
+        window.clearTimeout(inactivityTimer);
+        window.clearTimeout(absoluteTimer);
         callback();
       };
-      const timeout = window.setTimeout(() => {
+      const expire = (reason: 'absolute' | 'inactivity'): void => {
         this.plugin.recordDebugLog?.({
           data: {
             killSignal: 'SIGTERM',
@@ -442,19 +455,35 @@ export class AntigravityChatRuntime implements ChatRuntime {
           data: {
             durationMs: Date.now() - startedAt,
             providerId: this.providerId,
+            reason,
             stderrBytes: stderr.length,
             stderrPreview: summarizeCliText(stderr),
             stdoutBytes: stdout.length,
-            timeoutMs: PRINT_TIMEOUT_MS,
+            timeoutMs: reason === 'inactivity'
+              ? PRINT_INACTIVITY_TIMEOUT_MS
+              : PRINT_ABSOLUTE_TIMEOUT_MS,
           },
           event: 'print.timeout',
           level: 'error',
           scope: 'provider.antigravity',
         });
-        settle(() => reject(new Error('Antigravity request timed out.')));
-      }, PRINT_TIMEOUT_MS);
+        const message = reason === 'inactivity'
+          ? 'Antigravity request timed out after 5 minutes without CLI output.'
+          : 'Antigravity request exceeded the 30-minute limit.';
+        settle(() => reject(new Error(message)));
+      };
+      const armInactivityTimer = (): void => {
+        if (settled) {
+          return;
+        }
+        window.clearTimeout(inactivityTimer);
+        inactivityTimer = window.setTimeout(() => expire('inactivity'), PRINT_INACTIVITY_TIMEOUT_MS);
+      };
+      absoluteTimer = window.setTimeout(() => expire('absolute'), PRINT_ABSOLUTE_TIMEOUT_MS);
+      armInactivityTimer();
 
       proc.stdout?.on('data', (chunk: Buffer | string) => {
+        armInactivityTimer();
         if (streamParser) {
           streamParser.write(stdoutDecoder.write(chunk));
         } else {
@@ -475,6 +504,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
         }
       });
       proc.stderr?.on('data', (chunk: Buffer | string) => {
+        armInactivityTimer();
         stderr = appendLimited(stderr, chunk, stderrDecoder);
         if (!sawStderr) {
           sawStderr = true;
@@ -522,9 +552,10 @@ export class AntigravityChatRuntime implements ChatRuntime {
               level: code === 0 ? 'info' : 'error',
               scope: 'provider.antigravity',
             });
+            streamParser?.end();
+            const streamResult = streamParser?.getResult() ?? null;
+            let succeeded = false;
             try {
-              streamParser?.end();
-              const streamResult = streamParser?.getResult() ?? null;
               if (streamResult?.status === 'ERROR') {
                 // agy writes a structured result before exiting non-zero;
                 // its error string says why, while the exit code alone does not.
@@ -547,13 +578,29 @@ export class AntigravityChatRuntime implements ChatRuntime {
                     scope: 'provider.antigravity',
                   });
                 }
+                succeeded = true;
                 resolve(directOutput || transcriptOutput);
                 return;
               }
 
               reject(new Error(formatAntigravityExitError(code, signal, stderr)));
             } finally {
-              await fs.unlink(printLogFilePath).catch(() => undefined);
+              // The log file is the only place agy records the real
+              // wall-clock cause of an aborted run, so keep it for
+              // diagnosis and remove it only once the turn succeeded.
+              if (succeeded) {
+                await fs.unlink(printLogFilePath).catch(() => undefined);
+              } else {
+                this.plugin.recordDebugLog?.({
+                  data: {
+                    logFilePath: printLogFilePath,
+                    providerId: this.providerId,
+                  },
+                  event: 'print.logFilePreserved',
+                  level: 'warn',
+                  scope: 'provider.antigravity',
+                });
+              }
             }
           })().catch(reject);
         });
@@ -685,6 +732,11 @@ export function buildAntigravityPrintArgs(spec: AntigravityPrintArgsSpec): strin
   }
   if (spec.model) {
     args.push('--model', spec.model);
+  }
+  if (spec.printTimeout) {
+    // Without an explicit value agy defaults its own print timeout to five
+    // minutes and kills healthy long turns before Grimoire can see why (#70).
+    args.push('--print-timeout', ANTIGRAVITY_PRINT_TIMEOUT_FLAG);
   }
   if (spec.streamJson) {
     // agy rejects `--print` combined with `--input-format stream-json`, so the
