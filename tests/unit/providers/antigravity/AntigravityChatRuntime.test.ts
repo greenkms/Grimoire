@@ -11,12 +11,12 @@ import { ProviderWorkspaceRegistry } from '@/core/providers/ProviderWorkspaceReg
 import type { StreamChunk } from '@/core/types';
 import { setLocale } from '@/i18n/i18n';
 import { AntigravityCommandCatalog } from '@/providers/antigravity/commands/AntigravityCommandCatalog';
-import { resetAntigravityAddDirSupportCache } from '@/providers/antigravity/runtime/AntigravityAddDirSupport';
 import {
   AntigravityChatRuntime,
   buildAntigravityPrintArgs,
   expandAntigravityVaultSkillInvocation,
 } from '@/providers/antigravity/runtime/AntigravityChatRuntime';
+import { resetAntigravityCliCapabilitiesCache } from '@/providers/antigravity/runtime/AntigravityCliCapabilities';
 import { updateAntigravityProviderSettings } from '@/providers/antigravity/settings';
 
 jest.mock('node:child_process', () => ({
@@ -53,11 +53,11 @@ async function collect(generator: AsyncGenerator<StreamChunk>): Promise<StreamCh
   return chunks;
 }
 
-function createMockChildProcess(): any {
+function createMockChildProcess(options: { stdin?: boolean } = {}): any {
   const proc = new EventEmitter() as any;
   proc.stdout = new PassThrough();
   proc.stderr = new PassThrough();
-  proc.stdin = null;
+  proc.stdin = options.stdin ? new PassThrough() : null;
   proc.kill = jest.fn();
   proc.pid = 1234;
   proc.exitCode = null;
@@ -65,11 +65,41 @@ function createMockChildProcess(): any {
   return proc;
 }
 
+interface TrackedStdin {
+  chunks: string[];
+  ended: boolean;
+}
+
+function trackStdin(proc: any): TrackedStdin {
+  const state: TrackedStdin = { chunks: [], ended: false };
+  proc.stdin.on('data', (chunk: Buffer) => state.chunks.push(chunk.toString('utf8')));
+  const originalEnd = proc.stdin.end.bind(proc.stdin);
+  proc.stdin.end = () => {
+    state.ended = true;
+    return originalEnd();
+  };
+  return state;
+}
+
+const STREAM_JSON_CAPABILITIES = { addDir: true, printTimeout: true, streamJson: true };
+
+function writeStreamJsonFrame(proc: any, event: Record<string, unknown>): void {
+  proc.stdout.write(`${JSON.stringify(event)}\n`);
+}
+
+function writeStreamJsonResult(
+  proc: any,
+  result: { error?: string; response: string; status: string },
+): void {
+  writeStreamJsonFrame(proc, { event: 'result', result });
+}
+
 function getSpawnedAgyArgs(): string[] {
   const printCall = mockedSpawn.mock.calls
     .map(([, args]: [string, string[]]) => {
       const flagArgs = args[0] === '-lc' && args[1] === 'exec "$0" "$@"' ? args.slice(3) : args;
-      return { args: flagArgs, isPrint: flagArgs.includes('--print') };
+      const isPrint = flagArgs.includes('--print') || flagArgs.includes('--input-format');
+      return { args: flagArgs, isPrint };
     })
     .find((entry: { isPrint: boolean }) => entry.isPrint);
   return printCall ? printCall.args : [];
@@ -80,7 +110,7 @@ describe('AntigravityChatRuntime', () => {
     setLocale('en');
     jest.restoreAllMocks();
     mockedSpawn.mockReset();
-    resetAntigravityAddDirSupportCache();
+    resetAntigravityCliCapabilitiesCache();
     ProviderWorkspaceRegistry.setServices('antigravity', undefined);
   });
 
@@ -562,6 +592,202 @@ describe('AntigravityChatRuntime', () => {
 
     await chunksPromise;
     expect(getSpawnedAgyArgs()).not.toContain('--add-dir');
+    expect(getSpawnedAgyArgs()).toContain('--print');
+  });
+
+  it('sends the prompt over stdin and parses the stream-json result frame', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const probeProc = createMockChildProcess();
+    const printProc = createMockChildProcess({ stdin: true });
+    const stdin = trackStdin(printProc);
+    mockedSpawn.mockImplementation((command: string, args: string[]) => {
+      if (args.includes('--help')) return probeProc;
+      return printProc;
+    });
+
+    const chunksPromise = collect(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
+    await new Promise((resolve) => setImmediate(resolve));
+    probeProc.stdout.write([
+      'Usage: agy [flags]',
+      '  --add-dir <dir>',
+      '  --input-format <format>',
+      '  --output-format <format>',
+    ].join('\n'));
+    probeProc.emit('close', 0, null);
+    await new Promise((resolve) => setImmediate(resolve));
+
+    const spawnOptions = mockedSpawn.mock.calls
+      .filter(([, args]: [string, string[]]) => !args.includes('--help'))
+      .map(([, , options]: [string, string[], Record<string, unknown>]) => options)[0];
+    expect(spawnOptions).toEqual(expect.objectContaining({
+      stdio: ['pipe', 'pipe', 'pipe'],
+    }));
+    const agyArgs = getSpawnedAgyArgs();
+    expect(agyArgs).toEqual(expect.arrayContaining([
+      '--input-format',
+      'stream-json',
+      '--output-format',
+      'stream-json',
+    ]));
+    expect(agyArgs).not.toContain('--print');
+
+    expect(stdin.chunks).toHaveLength(1);
+    expect(JSON.parse(stdin.chunks[0])).toEqual({
+      event: 'user',
+      message: { role: 'user', content: 'Hello' },
+    });
+    expect(stdin.ended).toBe(true);
+
+    writeStreamJsonFrame(printProc, { event: 'init', cwd: '/tmp/grimoire-antigravity-test-vault' });
+    writeStreamJsonFrame(printProc, {
+      event: 'step_update',
+      step_update: { step_type: 'agent_response', state: 'DONE' },
+    });
+    writeStreamJsonResult(printProc, { response: 'Streamed answer\n', status: 'SUCCESS' });
+    printProc.emit('exit', 0, null);
+
+    const chunks = await chunksPromise;
+    expect(chunks).toContainEqual({ content: 'Streamed answer', type: 'text' });
+    expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
+  });
+
+  it('rejects with the structured result error when agy reports status ERROR', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const probeProc = createMockChildProcess();
+    const printProc = createMockChildProcess({ stdin: true });
+    mockedSpawn.mockImplementation((command: string, args: string[]) => {
+      if (args.includes('--help')) return probeProc;
+      return printProc;
+    });
+
+    const chunksPromise = collect(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
+    await new Promise((resolve) => setImmediate(resolve));
+    probeProc.stdout.write('Usage: agy\n  --input-format <f>\n  --output-format <f>\n');
+    probeProc.emit('close', 0, null);
+    await new Promise((resolve) => setImmediate(resolve));
+    writeStreamJsonResult(printProc, {
+      error: 'timeout waiting for response',
+      response: '',
+      status: 'ERROR',
+    });
+    printProc.emit('exit', 1, null);
+
+    const chunks = await chunksPromise;
+    expect(chunks).toContainEqual({
+      type: 'error',
+      content: 'Antigravity CLI reported an error: timeout waiting for response',
+    });
+  });
+
+  it('survives EPIPE on stdin when the child exits before draining it', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const probeProc = createMockChildProcess();
+    const printProc = createMockChildProcess({ stdin: true });
+    mockedSpawn.mockImplementation((command: string, args: string[]) => {
+      if (args.includes('--help')) return probeProc;
+      return printProc;
+    });
+
+    const chunksPromise = collect(runtime.query(runtime.prepareTurn({ text: '' })));
+    await new Promise((resolve) => setImmediate(resolve));
+    probeProc.stdout.write('Usage: agy\n  --input-format <f>\n  --output-format <f>\n');
+    probeProc.emit('close', 0, null);
+    await new Promise((resolve) => setImmediate(resolve));
+
+    printProc.stdin.emit('error', new Error('write EPIPE'));
+    printProc.stderr.write('prompt must not be empty\n');
+    printProc.emit('exit', 1, null);
+
+    const chunks = await chunksPromise;
+    expect(chunks).toContainEqual({
+      type: 'error',
+      content: expect.stringContaining('Antigravity CLI exited (code 1)'),
+    });
+  });
+
+  it('keeps a multibyte character split across stream-json chunks parseable', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const proc = createMockChildProcess({ stdin: true });
+    mockedSpawn.mockReturnValue(proc);
+
+    const result = (runtime as any).runPrint({
+      cliCapabilities: STREAM_JSON_CAPABILITIES,
+      command: 'agy',
+      cwd: '/tmp/grimoire-antigravity-test-vault',
+      model: null,
+      permissionMode: 'full_access',
+      prompt: '你好',
+      runtimeEnv: process.env,
+    });
+
+    const frame = `${JSON.stringify({
+      event: 'result',
+      result: { response: '修改文件完成', status: 'SUCCESS' },
+    })}\n`;
+    const bytes = Buffer.from(frame, 'utf8');
+    proc.stdout.write(bytes.subarray(0, 20));
+    proc.stdout.write(bytes.subarray(20));
+    proc.emit('exit', 0, null);
+
+    await expect(result).resolves.toBe('修改文件完成');
+  });
+
+  it('recovers a stream-json run from the transcript when no result frame arrives', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const proc = createMockChildProcess({ stdin: true });
+    mockedSpawn.mockReturnValue(proc);
+    const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'grimoire-antigravity-test-'));
+    const conversationId = '28b04652-35c4-46ca-8231-3e9f904bb0dd';
+    const appDataDir = path.join(tempRoot, 'antigravity-cli');
+    const transcriptDir = path.join(appDataDir, 'brain', conversationId, '.system_generated', 'logs');
+
+    try {
+      const result = (runtime as any).runPrint({
+        cliCapabilities: STREAM_JSON_CAPABILITIES,
+        command: 'agy',
+        cwd: '/tmp/grimoire-antigravity-test-vault',
+        model: null,
+        permissionMode: 'full_access',
+        prompt: 'Hello from transcript',
+        runtimeEnv: process.env,
+      });
+      const spawnArgs = mockedSpawn.mock.calls[0][1] as string[];
+      const logFilePath = spawnArgs[spawnArgs.indexOf('--log-file') + 1];
+      await fs.mkdir(transcriptDir, { recursive: true });
+      await fs.writeFile(logFilePath, [
+        `I0620 common.go:156] CLI app data directory: ${appDataDir}`,
+        `I0620 printmode.go:156] Print mode: conversation=${conversationId}, sending message`,
+      ].join('\n'));
+      await fs.writeFile(path.join(transcriptDir, 'transcript.jsonl'), [
+        JSON.stringify({
+          content: 'Recovered from transcript.\n',
+          source: 'MODEL',
+          status: 'DONE',
+          type: 'PLANNER_RESPONSE',
+        }),
+      ].join('\n'));
+      writeStreamJsonFrame(proc, { event: 'init', cwd: '/tmp/grimoire-antigravity-test-vault' });
+      proc.emit('exit', 0, null);
+
+      await expect(result).resolves.toBe('Recovered from transcript.\n');
+    } finally {
+      await fs.rm(tempRoot, { force: true, recursive: true });
+    }
+  });
+
+  it('maps stream-json capability onto transport flags', () => {
+    expect(buildAntigravityPrintArgs({
+      model: null,
+      permissionMode: 'full_access',
+      prompt: 'Hello',
+      streamJson: true,
+    })).toEqual([
+      '--dangerously-skip-permissions',
+      '--input-format',
+      'stream-json',
+      '--output-format',
+      'stream-json',
+    ]);
   });
 
   it('drops the print run when cancelled while the add-dir probe is in flight', async () => {

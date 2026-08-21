@@ -47,15 +47,26 @@ import { createUtf8ChunkDecoder, type Utf8ChunkDecoder } from '../../../utils/ut
 import { ANTIGRAVITY_PROVIDER_CAPABILITIES } from '../capabilities';
 import { decodeAntigravityModelId } from '../models';
 import { getAntigravityProviderSettings } from '../settings';
-import { probeAntigravityAddDirSupport } from './AntigravityAddDirSupport';
+import {
+  type AntigravityCliCapabilities,
+  NO_ANTIGRAVITY_CLI_CAPABILITIES,
+  probeAntigravityCliCapabilities,
+} from './AntigravityCliCapabilities';
 import { buildAntigravityProcessLaunch } from './AntigravityProcessLaunch';
 import { buildAntigravityRuntimeEnv } from './AntigravityRuntimeEnvironment';
+import {
+  type AntigravityResultFrame,
+  type AntigravityStreamJsonParser,
+  createAntigravityStreamJsonParser,
+  formatAntigravityUserEvent,
+} from './AntigravityStreamJson';
 
 const OUTPUT_BUFFER_LIMIT = 64_000;
 const PRINT_TIMEOUT_MS = 5 * 60 * 1000;
 
 interface AntigravityPrintSpec {
   addDirPath: string | null;
+  cliCapabilities?: AntigravityCliCapabilities;
   command: string;
   cwd: string;
   model: string | null;
@@ -70,6 +81,7 @@ export interface AntigravityPrintArgsSpec {
   model: string | null;
   permissionMode: string;
   prompt: string;
+  streamJson?: boolean;
 }
 
 export class AntigravityChatRuntime implements ChatRuntime {
@@ -155,7 +167,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
 
     try {
       yield { content: 'Starting Antigravity...', type: 'status' };
-      const addDirSupported = await probeAntigravityAddDirSupport(command, runtimeEnv, (child) => {
+      const cliCapabilities = await probeAntigravityCliCapabilities(command, runtimeEnv, (child) => {
         this.probeProcess = child;
       });
       this.probeProcess = null;
@@ -169,14 +181,16 @@ export class AntigravityChatRuntime implements ChatRuntime {
         data: {
           command,
           providerId: this.providerId,
-          supported: addDirSupported,
+          supported: cliCapabilities.addDir,
+          streamJson: cliCapabilities.streamJson,
         },
         event: 'print.addDirProbe',
         level: 'debug',
         scope: 'provider.antigravity',
       });
       const output = await this.runPrint({
-        addDirPath: addDirSupported ? vaultPath : null,
+        addDirPath: cliCapabilities.addDir ? vaultPath : null,
+        cliCapabilities,
         command,
         cwd,
         model: this.getSelectedRawModel(queryOptions),
@@ -298,10 +312,13 @@ export class AntigravityChatRuntime implements ChatRuntime {
   }
 
   private runPrint(spec: AntigravityPrintSpec): Promise<string> {
+    const cliCapabilities = spec.cliCapabilities ?? NO_ANTIGRAVITY_CLI_CAPABILITIES;
+    const streamJson = cliCapabilities.streamJson;
     const printLogFilePath = createAntigravityPrintLogPath();
     const args = buildAntigravityPrintArgs({
       ...spec,
       logFilePath: printLogFilePath,
+      streamJson,
     });
     this.plugin.recordDebugLog?.({
       data: {
@@ -337,7 +354,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
         cwd: spec.cwd,
         env: spec.runtimeEnv,
         shell: launch.shell,
-        stdio: ['ignore', 'pipe', 'pipe'],
+        stdio: [streamJson ? 'pipe' : 'ignore', 'pipe', 'pipe'],
         windowsHide: true,
       });
       this.activeProcess = proc;
@@ -346,13 +363,29 @@ export class AntigravityChatRuntime implements ChatRuntime {
           launchMode: launch.launchMode,
           pid: proc.pid ?? -1,
           providerId: this.providerId,
-          stdinMode: 'ignore',
-          stdioMode: 'ignore-pipe-pipe',
+          stdinMode: streamJson ? 'pipe' : 'ignore',
+          stdioMode: streamJson ? 'pipe-pipe-pipe' : 'ignore-pipe-pipe',
         },
         event: 'print.processStarted',
         level: 'debug',
         scope: 'provider.antigravity',
       });
+      if (streamJson && proc.stdin) {
+        // The child can exit before draining stdin (agy exits 1 on an empty
+        // prompt), and the resulting EPIPE arrives as a stream error that
+        // would otherwise crash the renderer (#69).
+        proc.stdin.on('error', (error) => {
+          this.plugin.recordDebugLog?.({
+            data: { providerId: this.providerId },
+            error,
+            event: 'print.stdinError',
+            level: 'warn',
+            scope: 'provider.antigravity',
+          });
+        });
+        proc.stdin.write(formatAntigravityUserEvent(spec.prompt));
+        proc.stdin.end();
+      }
 
       let stdout = '';
       let stderr = '';
@@ -360,6 +393,12 @@ export class AntigravityChatRuntime implements ChatRuntime {
       // chunks, and decoding chunks independently turns both halves into U+FFFD.
       const stdoutDecoder = createUtf8ChunkDecoder();
       const stderrDecoder = createUtf8ChunkDecoder();
+      // In stream-json mode stdout is parsed line-by-line so a `result` frame
+      // longer than any fixed buffer cap still parses; the capped accumulator
+      // remains only for the legacy free-text `--print` transport.
+      const streamParser: AntigravityStreamJsonParser | null = streamJson
+        ? createAntigravityStreamJsonParser()
+        : null;
       let settled = false;
       let sawStdout = false;
       let sawStderr = false;
@@ -415,8 +454,12 @@ export class AntigravityChatRuntime implements ChatRuntime {
         settle(() => reject(new Error('Antigravity request timed out.')));
       }, PRINT_TIMEOUT_MS);
 
-      proc.stdout.on('data', (chunk: Buffer | string) => {
-        stdout = appendLimited(stdout, chunk, stdoutDecoder);
+      proc.stdout?.on('data', (chunk: Buffer | string) => {
+        if (streamParser) {
+          streamParser.write(stdoutDecoder.write(chunk));
+        } else {
+          stdout = appendLimited(stdout, chunk, stdoutDecoder);
+        }
         if (!sawStdout) {
           sawStdout = true;
           this.plugin.recordDebugLog?.({
@@ -431,7 +474,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
           });
         }
       });
-      proc.stderr.on('data', (chunk: Buffer | string) => {
+      proc.stderr?.on('data', (chunk: Buffer | string) => {
         stderr = appendLimited(stderr, chunk, stderrDecoder);
         if (!sawStderr) {
           sawStderr = true;
@@ -480,8 +523,17 @@ export class AntigravityChatRuntime implements ChatRuntime {
               scope: 'provider.antigravity',
             });
             try {
+              streamParser?.end();
+              const streamResult = streamParser?.getResult() ?? null;
+              if (streamResult?.status === 'ERROR') {
+                // agy writes a structured result before exiting non-zero;
+                // its error string says why, while the exit code alone does not.
+                reject(new Error(formatAntigravityResultError(streamResult)));
+                return;
+              }
               if (code === 0) {
-                const transcriptOutput = stdout
+                const directOutput = streamResult ? streamResult.response : stdout;
+                const transcriptOutput = directOutput
                   ? ''
                   : await recoverAntigravityPrintOutputFromTranscript(printLogFilePath, spec.runtimeEnv);
                 if (transcriptOutput) {
@@ -495,7 +547,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
                     scope: 'provider.antigravity',
                   });
                 }
-                resolve(stdout || transcriptOutput);
+                resolve(directOutput || transcriptOutput);
                 return;
               }
 
@@ -634,7 +686,14 @@ export function buildAntigravityPrintArgs(spec: AntigravityPrintArgsSpec): strin
   if (spec.model) {
     args.push('--model', spec.model);
   }
-  args.push('--print', spec.prompt);
+  if (spec.streamJson) {
+    // agy rejects `--print` combined with `--input-format stream-json`, so the
+    // prompt moves to stdin and never touches argv: on Windows the whole
+    // transcript as one argv argument hits CreateProcess's ~32k limit (#69).
+    args.push('--input-format', 'stream-json', '--output-format', 'stream-json');
+  } else {
+    args.push('--print', spec.prompt);
+  }
   return args;
 }
 
@@ -837,4 +896,9 @@ function formatAntigravityExitError(
   const message = `Antigravity CLI exited (${status})`;
   const details = stderr.trim();
   return details ? `${message}\n\n${details}` : message;
+}
+
+function formatAntigravityResultError(result: AntigravityResultFrame): string {
+  const detail = result.error?.trim() || `status ${result.status}`;
+  return `Antigravity CLI reported an error: ${detail}`;
 }

@@ -13,7 +13,7 @@
 - The AGY slash menu lists read-only vault skills from `.claude/skills` and `.agents/skills` through `VaultSkillCommandCatalog` (content-only SKILL.md files allowed). Because `agy --print` has no slash surface, `AntigravityChatRuntime` expands a leading `/skill-name` invocation client-side through the registered command catalog before launching AGY; keep menu filtering and the expansion grammar in sync.
 - Antigravity CLI 1.0.7 does not expose Gemini CLI's `--acp` flag; do not route it through `src/providers/acp/` unless a real ACP-compatible runtime is confirmed.
 - On Windows, resolved `.exe` commands launch directly; `.cmd`/`.bat` launchers and bare command names go through an explicit `cmd.exe /d /s /c` invocation with per-argument quoting in `AntigravityProcessLaunch` — never Node's `shell: true`, which concatenates the command line without quoting arguments (#59).
-- Grimoire probes `agy --help` once per CLI command for `--add-dir` support (`AntigravityAddDirSupport`) and prepends `--add-dir <vault>` to `agy --print` when advertised, so the agent workspace includes the vault root without wrapper scripts (#67). The probe fails closed: spawn errors, timeouts, or the Windows empty-help quirk launch without the flag.
+- Grimoire probes `agy --help` once per CLI command for capability flags (`--add-dir` from #67, `--input-format`/`--output-format` stream-json from #69) via `AntigravityCliCapabilities` and prepends `--add-dir <vault>` to the print run when advertised, so the agent workspace includes the vault root without wrapper scripts (#67). The probe fails closed: spawn errors, timeouts, or the Windows empty-help quirk launch without the flags.
 - Auxiliary workflows such as title generation, instruction refinement, and inline edit are unsupported until an Antigravity auxiliary runner exists.
 
 ## Boundaries
@@ -25,7 +25,14 @@
 
 ## Launch
 
-The runtime launches one request at a time:
+The runtime launches one request at a time. When the CLI advertises stream-json support, the prompt travels over stdin as one NDJSON user event (`AntigravityStreamJson`), stdout is parsed line-by-line for the final `{"event":"result"}` frame, and the transcript never touches argv — Windows `CreateProcess` rejects command lines longer than ~32767 characters, which a growing conversation used to hit as `spawn ENAMETOOLONG` (#69):
+
+```bash
+agy --input-format stream-json --output-format stream-json
+stdin: {"event":"user","message":{"role":"user","content":"<prompt>"}}\n
+```
+
+Older CLIs without `--input-format` keep the legacy argv transport:
 
 ```bash
 agy --print "<prompt>"
