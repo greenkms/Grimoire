@@ -188,12 +188,13 @@ export class AntigravityChatRuntime implements ChatRuntime {
       }
       this.plugin.recordDebugLog?.({
         data: {
+          addDir: cliCapabilities.addDir,
           command,
+          printTimeout: cliCapabilities.printTimeout,
           providerId: this.providerId,
-          supported: cliCapabilities.addDir,
           streamJson: cliCapabilities.streamJson,
         },
-        event: 'print.addDirProbe',
+        event: 'print.capabilityProbe',
         level: 'debug',
         scope: 'provider.antigravity',
       });
@@ -399,6 +400,9 @@ export class AntigravityChatRuntime implements ChatRuntime {
 
       let stdout = '';
       let stderr = '';
+      // The accumulator stays empty in stream-json mode, so byte counts for
+      // debug logs come from this counter instead of `stdout.length`.
+      let stdoutBytesSeen = 0;
       // Each stream needs its own decoder: a multibyte character can straddle two
       // chunks, and decoding chunks independently turns both halves into U+FFFD.
       const stdoutDecoder = createUtf8ChunkDecoder();
@@ -409,6 +413,17 @@ export class AntigravityChatRuntime implements ChatRuntime {
       const streamParser: AntigravityStreamJsonParser | null = streamJson
         ? createAntigravityStreamJsonParser()
         : null;
+      // `exit` can fire before the final stdout chunks drain from the pipe, so
+      // the parser is only considered complete after the decoder hands back
+      // any held-back partial character and the trailing newline-less line is
+      // flushed.
+      const flushStreamParser = (): void => {
+        if (!streamParser) {
+          return;
+        }
+        streamParser.write(stdoutDecoder.end());
+        streamParser.end();
+      };
       let settled = false;
       let sawStdout = false;
       let sawStderr = false;
@@ -458,7 +473,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
             reason,
             stderrBytes: stderr.length,
             stderrPreview: summarizeCliText(stderr),
-            stdoutBytes: stdout.length,
+            stdoutBytes: stdoutBytesSeen,
             timeoutMs: reason === 'inactivity'
               ? PRINT_INACTIVITY_TIMEOUT_MS
               : PRINT_ABSOLUTE_TIMEOUT_MS,
@@ -467,9 +482,33 @@ export class AntigravityChatRuntime implements ChatRuntime {
           level: 'error',
           scope: 'provider.antigravity',
         });
+        // The kill below means the close handler never runs its cleanup, so
+        // record that the log file is being kept.
+        this.plugin.recordDebugLog?.({
+          data: {
+            logFilePath: printLogFilePath,
+            providerId: this.providerId,
+          },
+          event: 'print.logFilePreserved',
+          level: 'warn',
+          scope: 'provider.antigravity',
+        });
+        // A CLI that hangs right after emitting its result frame (no
+        // --print-timeout support, or a stall post-answer) still delivered
+        // the answer; resolve with it instead of discarding a healthy reply.
+        flushStreamParser();
+        const streamResult = streamParser?.getResult() ?? null;
+        if (streamResult && streamResult.status !== 'ERROR' && streamResult.response.trim()) {
+          settle(() => resolve(streamResult.response));
+          return;
+        }
+        if (streamResult?.status === 'ERROR') {
+          settle(() => reject(new Error(formatAntigravityResultError(streamResult))));
+          return;
+        }
         const message = reason === 'inactivity'
-          ? 'Antigravity request timed out after 5 minutes without CLI output.'
-          : 'Antigravity request exceeded the 30-minute limit.';
+          ? `Antigravity request timed out after ${PRINT_INACTIVITY_TIMEOUT_MS / 60_000} minutes without CLI output.`
+          : `Antigravity request exceeded the ${PRINT_ABSOLUTE_TIMEOUT_MS / 60_000}-minute limit.`;
         settle(() => reject(new Error(message)));
       };
       const armInactivityTimer = (): void => {
@@ -484,6 +523,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
 
       proc.stdout?.on('data', (chunk: Buffer | string) => {
         armInactivityTimer();
+        stdoutBytesSeen += chunk.length;
         if (streamParser) {
           streamParser.write(stdoutDecoder.write(chunk));
         } else {
@@ -495,7 +535,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
             data: {
               pid: proc.pid ?? -1,
               providerId: this.providerId,
-              stdoutBytes: stdout.length,
+              stdoutBytes: stdoutBytesSeen,
             },
             event: 'print.stdout',
             level: 'debug',
@@ -535,10 +575,27 @@ export class AntigravityChatRuntime implements ChatRuntime {
           reject(error instanceof Error ? error : new Error(String(error)));
         });
       });
-      proc.on('exit', (code, signal) => {
+      // `exit` can fire before the final stdout chunks drain from the pipe,
+      // and the result frame is agy's last write, so the outcome is only
+      // settled on `close`, which Node emits once stdio has flushed too.
+      proc.on('close', (code, signal) => {
+        const status = signal ? `signal ${signal}` : `code ${code ?? 'unknown'}`;
+        this.plugin.recordDebugLog?.({
+          data: {
+            durationMs: Date.now() - startedAt,
+            pid: proc.pid ?? -1,
+            providerId: this.providerId,
+            signal: signal ?? 'none',
+            status,
+            stderrBytes: stderr.length,
+            stdoutBytes: stdoutBytesSeen,
+          },
+          event: 'print.close',
+          level: 'debug',
+          scope: 'provider.antigravity',
+        });
         settle(() => {
           void (async () => {
-            const status = signal ? `signal ${signal}` : `code ${code ?? 'unknown'}`;
             this.plugin.recordDebugLog?.({
               data: {
                 durationMs: Date.now() - startedAt,
@@ -546,13 +603,13 @@ export class AntigravityChatRuntime implements ChatRuntime {
                 status,
                 stderrBytes: stderr.length,
                 stderrPreview: summarizeCliText(stderr),
-                stdoutBytes: stdout.length,
+                stdoutBytes: stdoutBytesSeen,
               },
               event: code === 0 ? 'print.exit' : 'print.failed',
               level: code === 0 ? 'info' : 'error',
               scope: 'provider.antigravity',
             });
-            streamParser?.end();
+            flushStreamParser();
             const streamResult = streamParser?.getResult() ?? null;
             let succeeded = false;
             try {
@@ -578,7 +635,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
                     scope: 'provider.antigravity',
                   });
                 }
-                succeeded = true;
+                succeeded = Boolean(directOutput || transcriptOutput);
                 resolve(directOutput || transcriptOutput);
                 return;
               }
@@ -587,8 +644,10 @@ export class AntigravityChatRuntime implements ChatRuntime {
             } finally {
               // The log file is the only place agy records the real
               // wall-clock cause of an aborted run, so keep it for
-              // diagnosis and remove it only once the turn succeeded.
-              if (succeeded) {
+              // diagnosis and remove it only once the turn produced an
+              // answer. A routine user cancel is not a failure worth
+              // diagnosing, so those logs are removed too.
+              if (succeeded || this.cancelRequested) {
                 await fs.unlink(printLogFilePath).catch(() => undefined);
               } else {
                 this.plugin.recordDebugLog?.({
@@ -603,23 +662,6 @@ export class AntigravityChatRuntime implements ChatRuntime {
               }
             }
           })().catch(reject);
-        });
-      });
-      proc.on('close', (code, signal) => {
-        const status = signal ? `signal ${signal}` : `code ${code ?? 'unknown'}`;
-        this.plugin.recordDebugLog?.({
-          data: {
-            durationMs: Date.now() - startedAt,
-            pid: proc.pid ?? -1,
-            providerId: this.providerId,
-            signal: signal ?? 'none',
-            status,
-            stderrBytes: stderr.length,
-            stdoutBytes: stdout.length,
-          },
-          event: 'print.close',
-          level: 'debug',
-          scope: 'provider.antigravity',
         });
       });
     });

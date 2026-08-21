@@ -100,6 +100,41 @@ describe('AntigravityStreamJson', () => {
 
       expect(parser.getResult()).toBeNull();
     });
+
+    it('parses a replayed agy session with CRLF framing coalesced into few chunks', () => {
+      const parser = createAntigravityStreamJsonParser();
+      // Frame vocabulary observed from a real agy stream-json session (#69):
+      // init, step_update frames, then the final result.
+      const frames = [
+        { event: 'init', cwd: '/vault', model: 'Gemini 3.7 Flash (Low)' },
+        { event: 'step_update', step_update: { step_type: 'user_input', state: 'DONE' } },
+        { event: 'step_update', step_update: { step_type: 'checkpoint', state: 'DONE' } },
+        { event: 'step_update', step_update: { step_type: 'tool', state: 'ACTIVE' } },
+        { event: 'step_update', step_update: { step_type: 'tool', state: 'DONE' } },
+        { event: 'step_update', step_update: { step_type: 'agent_response', state: 'ACTIVE', text_delta: '修改' } },
+        { event: 'step_update', step_update: { step_type: 'agent_response', state: 'DONE', text_delta: '文件' } },
+        {
+          event: 'result',
+          result: {
+            status: 'SUCCESS',
+            response: '修改文件',
+            error: null,
+            duration_seconds: 12.3,
+            num_turns: 1,
+            usage: { input_tokens: 100, output_tokens: 5, total_tokens: 105 },
+          },
+        },
+      ];
+      const blob = `${frames.map((frame) => JSON.stringify(frame)).join('\r\n')}\r\n`;
+      parser.write(blob.slice(0, 140));
+      parser.write(blob.slice(140));
+
+      expect(parser.getResult()).toEqual({
+        error: null,
+        response: '修改文件',
+        status: 'SUCCESS',
+      });
+    });
   });
 
   describe('formatAntigravityUserEvent', () => {

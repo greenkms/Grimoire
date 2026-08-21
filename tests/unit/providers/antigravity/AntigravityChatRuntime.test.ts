@@ -83,6 +83,21 @@ function trackStdin(proc: any): TrackedStdin {
 
 const STREAM_JSON_CAPABILITIES = { addDir: true, printTimeout: true, streamJson: true };
 
+// Real children emit `exit` and then `close` once stdio has drained; the
+// runtime settles on `close` because the result frame is the last stdout write.
+function emitProcessExit(proc: any, code: number | null, signal: string | null): void {
+  proc.emit('exit', code, signal);
+  proc.emit('close', code, signal);
+}
+
+// Fake timers also fake setImmediate, so async setup inside fake-timer tests
+// must be flushed through microtasks instead.
+async function flushAsyncQueue(times = 10): Promise<void> {
+  for (let i = 0; i < times; i += 1) {
+    await Promise.resolve();
+  }
+}
+
 function writeStreamJsonFrame(proc: any, event: Record<string, unknown>): void {
   proc.stdout.write(`${JSON.stringify(event)}\n`);
 }
@@ -271,7 +286,7 @@ describe('AntigravityChatRuntime', () => {
     const answer = Buffer.from('修改文件', 'utf8');
     proc.stdout.write(answer.subarray(0, 4));
     proc.stdout.write(answer.subarray(4));
-    proc.emit('exit', 0, null);
+    emitProcessExit(proc, 0, null);
 
     await expect(result).resolves.toBe('修改文件');
   });
@@ -484,7 +499,7 @@ describe('AntigravityChatRuntime', () => {
           type: 'PLANNER_RESPONSE',
         }),
       ].join('\n'));
-      proc.emit('exit', 0, null);
+      emitProcessExit(proc, 0, null);
 
       await expect(result).resolves.toBe('Recovered from transcript.\n');
       expect(getSpawnedAgyArgs()).toEqual(expect.arrayContaining([
@@ -563,7 +578,7 @@ describe('AntigravityChatRuntime', () => {
     probeProc.emit('close', 0, null);
     await new Promise((resolve) => setImmediate(resolve));
     printProc.stdout.write('Vault listed\n');
-    printProc.emit('exit', 0, null);
+    emitProcessExit(printProc, 0, null);
 
     const chunks = await chunksPromise;
     expect(chunks).toContainEqual({ content: 'Vault listed', type: 'text' });
@@ -593,7 +608,7 @@ describe('AntigravityChatRuntime', () => {
     probeProc.emit('close', 0, null);
     await new Promise((resolve) => setImmediate(resolve));
     printProc.stdout.write('Hi\n');
-    printProc.emit('exit', 0, null);
+    emitProcessExit(printProc, 0, null);
 
     await chunksPromise;
     expect(getSpawnedAgyArgs()).not.toContain('--add-dir');
@@ -617,6 +632,7 @@ describe('AntigravityChatRuntime', () => {
       '  --add-dir <dir>',
       '  --input-format <format>',
       '  --output-format <format>',
+      '  --print-timeout <dur>',
     ].join('\n'));
     probeProc.emit('close', 0, null);
     await new Promise((resolve) => setImmediate(resolve));
@@ -633,6 +649,8 @@ describe('AntigravityChatRuntime', () => {
       'stream-json',
       '--output-format',
       'stream-json',
+      '--print-timeout',
+      '29m',
     ]));
     expect(agyArgs).not.toContain('--print');
 
@@ -649,7 +667,7 @@ describe('AntigravityChatRuntime', () => {
       step_update: { step_type: 'agent_response', state: 'DONE' },
     });
     writeStreamJsonResult(printProc, { response: 'Streamed answer\n', status: 'SUCCESS' });
-    printProc.emit('exit', 0, null);
+    emitProcessExit(printProc, 0, null);
 
     const chunks = await chunksPromise;
     expect(chunks).toContainEqual({ content: 'Streamed answer', type: 'text' });
@@ -675,7 +693,7 @@ describe('AntigravityChatRuntime', () => {
       response: '',
       status: 'ERROR',
     });
-    printProc.emit('exit', 1, null);
+    emitProcessExit(printProc, 1, null);
 
     const chunks = await chunksPromise;
     expect(chunks).toContainEqual({
@@ -685,7 +703,8 @@ describe('AntigravityChatRuntime', () => {
   });
 
   it('survives EPIPE on stdin when the child exits before draining it', async () => {
-    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const recordDebugLog = jest.fn();
+    const runtime = new AntigravityChatRuntime(createMockPlugin({ recordDebugLog }));
     const probeProc = createMockChildProcess();
     const printProc = createMockChildProcess({ stdin: true });
     mockedSpawn.mockImplementation((command: string, args: string[]) => {
@@ -701,13 +720,16 @@ describe('AntigravityChatRuntime', () => {
 
     printProc.stdin.emit('error', new Error('write EPIPE'));
     printProc.stderr.write('prompt must not be empty\n');
-    printProc.emit('exit', 1, null);
+    emitProcessExit(printProc, 1, null);
 
     const chunks = await chunksPromise;
     expect(chunks).toContainEqual({
       type: 'error',
       content: expect.stringContaining('Antigravity CLI exited (code 1)'),
     });
+    expect(recordDebugLog.mock.calls
+      .map(([entry]) => entry)
+      .some((entry: any) => entry.event === 'print.stdinError')).toBe(true);
   });
 
   it('keeps a multibyte character split across stream-json chunks parseable', async () => {
@@ -732,7 +754,7 @@ describe('AntigravityChatRuntime', () => {
     const bytes = Buffer.from(frame, 'utf8');
     proc.stdout.write(bytes.subarray(0, 20));
     proc.stdout.write(bytes.subarray(20));
-    proc.emit('exit', 0, null);
+    emitProcessExit(proc, 0, null);
 
     await expect(result).resolves.toBe('修改文件完成');
   });
@@ -772,7 +794,7 @@ describe('AntigravityChatRuntime', () => {
         }),
       ].join('\n'));
       writeStreamJsonFrame(proc, { event: 'init', cwd: '/tmp/grimoire-antigravity-test-vault' });
-      proc.emit('exit', 0, null);
+      emitProcessExit(proc, 0, null);
 
       await expect(result).resolves.toBe('Recovered from transcript.\n');
     } finally {
@@ -793,6 +815,195 @@ describe('AntigravityChatRuntime', () => {
       '--output-format',
       'stream-json',
     ]);
+  });
+
+  it('combines every advertised flag without the prompt in argv', () => {
+    expect(buildAntigravityPrintArgs({
+      addDirPath: '/vault',
+      logFilePath: '/tmp/grimoire-antigravity.log',
+      model: 'Gemini 3.5 Flash (High)',
+      permissionMode: 'full_access',
+      printTimeout: true,
+      prompt: 'Hello',
+      streamJson: true,
+    })).toEqual([
+      '--add-dir',
+      '/vault',
+      '--dangerously-skip-permissions',
+      '--log-file',
+      '/tmp/grimoire-antigravity.log',
+      '--model',
+      'Gemini 3.5 Flash (High)',
+      '--print-timeout',
+      '29m',
+      '--input-format',
+      'stream-json',
+      '--output-format',
+      'stream-json',
+    ]);
+  });
+
+  it('settles only after stdio drains, so a result frame landing after exit still parses', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const proc = createMockChildProcess({ stdin: true });
+    mockedSpawn.mockReturnValue(proc);
+
+    const result = (runtime as any).runPrint({
+      cliCapabilities: STREAM_JSON_CAPABILITIES,
+      command: 'agy',
+      cwd: '/tmp/grimoire-antigravity-test-vault',
+      model: null,
+      permissionMode: 'full_access',
+      prompt: 'Hello',
+      runtimeEnv: process.env,
+    });
+
+    // Node can emit `exit` before the final buffered frame drains from the
+    // pipe; the real order for a fast writer is exit -> data -> close.
+    proc.emit('exit', 0, null);
+    writeStreamJsonResult(proc, { response: 'late frame\n', status: 'SUCCESS' });
+    proc.emit('close', 0, null);
+
+    await expect(result).resolves.toBe('late frame\n');
+  });
+
+  it('rejects a structured ERROR result even when agy exits zero', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const proc = createMockChildProcess({ stdin: true });
+    mockedSpawn.mockReturnValue(proc);
+
+    const result = (runtime as any).runPrint({
+      cliCapabilities: STREAM_JSON_CAPABILITIES,
+      command: 'agy',
+      cwd: '/tmp/grimoire-antigravity-test-vault',
+      model: null,
+      permissionMode: 'full_access',
+      prompt: 'Hello',
+      runtimeEnv: process.env,
+    });
+    writeStreamJsonResult(proc, {
+      error: 'timeout waiting for response',
+      response: '',
+      status: 'ERROR',
+    });
+    emitProcessExit(proc, 0, null);
+
+    await expect(result).rejects.toThrow('Antigravity CLI reported an error: timeout waiting for response');
+  });
+
+  it('keeps the exit-code error when the result frame says SUCCESS but agy exits non-zero', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const proc = createMockChildProcess({ stdin: true });
+    mockedSpawn.mockReturnValue(proc);
+
+    const result = (runtime as any).runPrint({
+      cliCapabilities: STREAM_JSON_CAPABILITIES,
+      command: 'agy',
+      cwd: '/tmp/grimoire-antigravity-test-vault',
+      model: null,
+      permissionMode: 'full_access',
+      prompt: 'Hello',
+      runtimeEnv: process.env,
+    });
+    writeStreamJsonResult(proc, { response: 'Partial answer', status: 'SUCCESS' });
+    proc.stderr.write('store manager failed\n');
+    emitProcessExit(proc, 1, null);
+
+    await expect(result).rejects.toThrow('Antigravity CLI exited (code 1)');
+  });
+
+  it('treats stderr progress as activity for the inactivity timer', async () => {
+    jest.useFakeTimers();
+    try {
+      const runtime = new AntigravityChatRuntime(createMockPlugin());
+      const proc = createMockChildProcess();
+      mockedSpawn.mockReturnValue(proc);
+
+      const result = (runtime as any).runPrint({
+        command: 'agy',
+        cwd: '/tmp/grimoire-antigravity-test-vault',
+        model: null,
+        permissionMode: 'full_access',
+        prompt: 'Noisy stderr',
+        runtimeEnv: process.env,
+      });
+
+      jest.advanceTimersByTime(4 * 60 * 1000);
+      proc.stderr.write('log progress\n');
+      jest.advanceTimersByTime(4 * 60 * 1000);
+      expect(proc.kill).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(5 * 60 * 1000);
+      expect(proc.kill).toHaveBeenCalledWith('SIGTERM');
+
+      await expect(result).rejects.toThrow('timed out after 5 minutes without CLI output');
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('settles a running print child through cancel without leaving timers armed', async () => {
+    jest.useFakeTimers();
+    try {
+      const runtime = new AntigravityChatRuntime(createMockPlugin());
+      const probeProc = createMockChildProcess();
+      const printProc = createMockChildProcess({ stdin: true });
+      mockedSpawn.mockImplementation((command: string, args: string[]) => {
+        if (args.includes('--help')) return probeProc;
+        return printProc;
+      });
+
+      const chunksPromise = collect(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
+      await flushAsyncQueue();
+      probeProc.stdout.write('Usage: agy\n  --input-format <f>\n  --output-format <f>\n');
+      probeProc.emit('close', 0, null);
+      await flushAsyncQueue();
+
+      runtime.cancel();
+      expect(printProc.kill).toHaveBeenCalledWith('SIGTERM');
+      emitProcessExit(printProc, null, 'SIGTERM');
+
+      const chunks = await chunksPromise;
+      expect(chunks).toContainEqual(expect.objectContaining({ type: 'error' }));
+      expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
+
+      jest.advanceTimersByTime(31 * 60 * 1000);
+      expect(printProc.kill).not.toHaveBeenCalledWith('SIGKILL');
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('re-probes CLI capabilities after a cancelled probe instead of pinning legacy flags', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const firstProbeProc = createMockChildProcess();
+    const secondProbeProc = createMockChildProcess();
+    const printProc = createMockChildProcess({ stdin: true });
+    const helpProbes = [firstProbeProc, secondProbeProc];
+    mockedSpawn.mockImplementation((command: string, args: string[]) => {
+      if (args.includes('--help')) return helpProbes.shift();
+      return printProc;
+    });
+
+    const firstTurn = collect(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
+    await new Promise((resolve) => setImmediate(resolve));
+    runtime.cancel();
+    firstProbeProc.emit('close', null, 'SIGTERM');
+    await firstTurn;
+
+    const secondTurn = collect(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
+    await new Promise((resolve) => setImmediate(resolve));
+    secondProbeProc.stdout.write('Usage: agy\n  --input-format <f>\n  --output-format <f>\n');
+    secondProbeProc.emit('close', 0, null);
+    await new Promise((resolve) => setImmediate(resolve));
+    writeStreamJsonResult(printProc, { response: 'Recovered\n', status: 'SUCCESS' });
+    emitProcessExit(printProc, 0, null);
+
+    const chunks = await secondTurn;
+    expect(chunks).toContainEqual({ content: 'Recovered', type: 'text' });
+    // Two help probes (the first was cancelled and not cached) plus one print run.
+    expect(mockedSpawn).toHaveBeenCalledTimes(3);
+    expect(getSpawnedAgyArgs()).toContain('--input-format');
   });
 
   it('passes an explicit print timeout just below the absolute ceiling', () => {
@@ -825,10 +1036,12 @@ describe('AntigravityChatRuntime', () => {
     probeProc.emit('close', 0, null);
     await new Promise((resolve) => setImmediate(resolve));
     printProc.stdout.write('Hi\n');
-    printProc.emit('exit', 0, null);
+    emitProcessExit(printProc, 0, null);
 
     await chunksPromise;
-    expect(getSpawnedAgyArgs()).toEqual(expect.arrayContaining(['--print-timeout', '29m']));
+    const agyArgs = getSpawnedAgyArgs();
+    expect(agyArgs).toEqual(expect.arrayContaining(['--print-timeout', '29m', '--print', 'Hello']));
+    expect(agyArgs).not.toContain('--input-format');
   });
 
   it('keeps an active run alive and cuts a silent one at the inactivity timeout', async () => {
@@ -899,41 +1112,46 @@ describe('AntigravityChatRuntime', () => {
     const failingProc = createMockChildProcess();
     mockedSpawn.mockReturnValue(failingProc);
 
-    const failingResult = (runtime as any).runPrint({
-      command: 'agy',
-      cwd: '/tmp/grimoire-antigravity-test-vault',
-      model: null,
-      permissionMode: 'full_access',
-      prompt: 'Fail',
-      runtimeEnv: process.env,
-    });
-    const failingLogPath = getPrintLogFilePath();
-    await fs.writeFile(failingLogPath, 'simulated agy failure log\n');
-    failingProc.stderr.write('boom\n');
-    failingProc.emit('exit', 1, null);
-    await expect(failingResult).rejects.toThrow('exited (code 1)');
-    await new Promise((resolve) => setImmediate(resolve));
-    await expect(fs.access(failingLogPath)).resolves.toBeUndefined();
+    let failingLogPath = '';
+    let succeedingLogPath = '';
+    try {
+      const failingResult = (runtime as any).runPrint({
+        command: 'agy',
+        cwd: '/tmp/grimoire-antigravity-test-vault',
+        model: null,
+        permissionMode: 'full_access',
+        prompt: 'Fail',
+        runtimeEnv: process.env,
+      });
+      failingLogPath = getPrintLogFilePath();
+      await fs.writeFile(failingLogPath, 'simulated agy failure log\n');
+      failingProc.stderr.write('boom\n');
+      emitProcessExit(failingProc, 1, null);
+      await expect(failingResult).rejects.toThrow('exited (code 1)');
+      await new Promise((resolve) => setImmediate(resolve));
+      await expect(fs.access(failingLogPath)).resolves.toBeUndefined();
 
-    const succeedingProc = createMockChildProcess();
-    mockedSpawn.mockReturnValue(succeedingProc);
-    const succeedingResult = (runtime as any).runPrint({
-      command: 'agy',
-      cwd: '/tmp/grimoire-antigravity-test-vault',
-      model: null,
-      permissionMode: 'full_access',
-      prompt: 'Succeed',
-      runtimeEnv: process.env,
-    });
-    const succeedingLogPath = getPrintLogFilePath();
-    await fs.writeFile(succeedingLogPath, 'simulated agy success log\n');
-    succeedingProc.stdout.write('Hi\n');
-    succeedingProc.emit('exit', 0, null);
-    await expect(succeedingResult).resolves.toBe('Hi\n');
-    await new Promise((resolve) => setImmediate(resolve));
-    await expect(fs.access(succeedingLogPath)).rejects.toThrow();
-
-    await fs.rm(failingLogPath, { force: true });
+      const succeedingProc = createMockChildProcess();
+      mockedSpawn.mockReturnValue(succeedingProc);
+      const succeedingResult = (runtime as any).runPrint({
+        command: 'agy',
+        cwd: '/tmp/grimoire-antigravity-test-vault',
+        model: null,
+        permissionMode: 'full_access',
+        prompt: 'Succeed',
+        runtimeEnv: process.env,
+      });
+      succeedingLogPath = getPrintLogFilePath();
+      await fs.writeFile(succeedingLogPath, 'simulated agy success log\n');
+      succeedingProc.stdout.write('Hi\n');
+      emitProcessExit(succeedingProc, 0, null);
+      await expect(succeedingResult).resolves.toBe('Hi\n');
+      await new Promise((resolve) => setImmediate(resolve));
+      await expect(fs.access(succeedingLogPath)).rejects.toThrow();
+    } finally {
+      await fs.rm(failingLogPath, { force: true });
+      await fs.rm(succeedingLogPath, { force: true });
+    }
   });
 
   it('drops the print run when cancelled while the add-dir probe is in flight', async () => {
@@ -973,7 +1191,7 @@ describe('AntigravityChatRuntime', () => {
     probeProc.emit('close', 0, null);
     await new Promise((resolve) => setImmediate(resolve));
     printProc.stdout.write('Hi\n');
-    printProc.emit('exit', 0, null);
+    emitProcessExit(printProc, 0, null);
     await chunksPromise;
 
     const spawnLog = recordDebugLog.mock.calls

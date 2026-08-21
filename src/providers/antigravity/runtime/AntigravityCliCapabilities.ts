@@ -31,8 +31,10 @@ const capabilitiesByCommand = new Map<string, Promise<AntigravityCliCapabilities
  * Older `agy` builds predate `--add-dir` (#67), `--input-format
  * stream-json` (#69), and `--print-timeout` (#70), and Windows builds can
  * return exit code 0 with empty stdout (#67), so support is probed from
- * `agy --help` instead of assumed. The result is cached per CLI command;
- * callers degrade to the `--print` argv transport when a flag is missing.
+ * `agy --help` instead of assumed. Conclusive help output is cached per CLI
+ * command; aborted, timed-out, or errored probes resolve fail-closed but
+ * stay out of the cache so one cancelled turn cannot pin the CLI to the
+ * legacy argv transport for the rest of the session.
  */
 export function probeAntigravityCliCapabilities(
   command: string,
@@ -44,7 +46,17 @@ export function probeAntigravityCliCapabilities(
     return cached;
   }
   const probe = detectCliCapabilities(command, runtimeEnv, onSpawn)
-    .catch(() => NO_ANTIGRAVITY_CLI_CAPABILITIES);
+    .then((capabilities) => {
+      if (capabilities) {
+        return capabilities;
+      }
+      capabilitiesByCommand.delete(command);
+      return NO_ANTIGRAVITY_CLI_CAPABILITIES;
+    })
+    .catch(() => {
+      capabilitiesByCommand.delete(command);
+      return NO_ANTIGRAVITY_CLI_CAPABILITIES;
+    });
   capabilitiesByCommand.set(command, probe);
   return probe;
 }
@@ -57,9 +69,9 @@ function detectCliCapabilities(
   command: string,
   runtimeEnv: NodeJS.ProcessEnv,
   onSpawn?: (child: ChildProcess) => void,
-): Promise<AntigravityCliCapabilities> {
+): Promise<AntigravityCliCapabilities | null> {
   const launch = buildAntigravityProcessLaunch(command, ['--help'], runtimeEnv);
-  return new Promise<AntigravityCliCapabilities>((resolve) => {
+  return new Promise<AntigravityCliCapabilities | null>((resolve) => {
     let child: ChildProcess;
     try {
       child = spawn(launch.command, launch.args, {
@@ -69,7 +81,7 @@ function detectCliCapabilities(
         windowsHide: true,
       });
     } catch {
-      resolve(NO_ANTIGRAVITY_CLI_CAPABILITIES);
+      resolve(null);
       return;
     }
     onSpawn?.(child);
@@ -82,7 +94,10 @@ function detectCliCapabilities(
       printTimeout: PRINT_TIMEOUT_FLAG_PATTERN.test(output),
       streamJson: INPUT_FORMAT_FLAG_PATTERN.test(output) && OUTPUT_FORMAT_FLAG_PATTERN.test(output),
     });
-    const settle = (): void => {
+    // `conclusive` marks outcomes safe to cache: a clean close settles on the
+    // help output agy actually printed, while cancellation (a signal close),
+    // timeouts, and spawn errors stay retryable.
+    const settle = (conclusive: boolean): void => {
       if (settled) {
         return;
       }
@@ -100,7 +115,7 @@ function detectCliCapabilities(
       // instead of keeping a broken CLI streaming into memory.
       child.stdout?.destroy();
       child.stderr?.destroy();
-      resolve(evaluate());
+      resolve(conclusive ? evaluate() : null);
     };
     const collect = (chunk: Buffer | string): void => {
       if (settled || output.length >= PROBE_OUTPUT_LIMIT) {
@@ -111,14 +126,14 @@ function detectCliCapabilities(
       // more capabilities, so the child can be released early.
       const capabilities = evaluate();
       if (capabilities.addDir && capabilities.printTimeout && capabilities.streamJson) {
-        settle();
+        settle(true);
       }
     };
 
     child.stdout?.on('data', collect);
     child.stderr?.on('data', collect);
-    child.on('error', settle);
-    child.on('close', settle);
-    timer = window.setTimeout(settle, HELP_PROBE_TIMEOUT_MS);
+    child.on('error', () => settle(false));
+    child.on('close', (_code, signal) => settle(signal === null));
+    timer = window.setTimeout(() => settle(false), HELP_PROBE_TIMEOUT_MS);
   });
 }

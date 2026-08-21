@@ -31,6 +31,14 @@ function emitHelpAndExit(proc: any, helpText: string): void {
   proc.emit('close', 0, null);
 }
 
+// Fake timers also fake setImmediate, so async setup inside fake-timer tests
+// must be flushed through microtasks instead.
+async function flushAsyncQueue(times = 10): Promise<void> {
+  for (let i = 0; i < times; i += 1) {
+    await Promise.resolve();
+  }
+}
+
 describe('probeAntigravityCliCapabilities', () => {
   beforeEach(() => {
     resetAntigravityCliCapabilitiesCache();
@@ -196,7 +204,7 @@ describe('probeAntigravityCliCapabilities', () => {
     expect(proc.kill).toHaveBeenCalledTimes(1);
   });
 
-  it('fail-closes when agy --help never finishes, and stays settled once', async () => {
+  it('fail-closes when agy --help never finishes and retries instead of caching', async () => {
     jest.useFakeTimers();
     try {
       const proc = createMockChildProcess();
@@ -212,17 +220,62 @@ describe('probeAntigravityCliCapabilities', () => {
       });
       expect(proc.kill).toHaveBeenCalledTimes(1);
 
-      // Late help output after the timeout must not flip the cached result.
-      proc.stdout.write('  --add-dir <dir>  --input-format <f>  --output-format <f>  --print-timeout <d>');
-      proc.emit('close', 0, null);
-      await expect(probeAntigravityCliCapabilities('agy', {})).resolves.toEqual({
-        addDir: false,
-        printTimeout: false,
-        streamJson: false,
+      // The timed-out probe is inconclusive, so the next turn probes again
+      // instead of reusing the fail-closed result.
+      const retryProc = createMockChildProcess();
+      mockedSpawn.mockReturnValue(retryProc);
+      const retry = probeAntigravityCliCapabilities('agy', {});
+      await flushAsyncQueue();
+      retryProc.stdout.write('  --add-dir <dir>  --input-format <f>  --output-format <f>  --print-timeout <d>');
+      retryProc.emit('close', 0, null);
+
+      await expect(retry).resolves.toEqual({
+        addDir: true,
+        printTimeout: true,
+        streamJson: true,
       });
+      expect(mockedSpawn).toHaveBeenCalledTimes(2);
     } finally {
       jest.useRealTimers();
     }
+  });
+
+  it('does not cache a probe killed mid-flight so cancellation cannot pin legacy flags', async () => {
+    const cancelledProc = createMockChildProcess();
+    mockedSpawn.mockReturnValue(cancelledProc);
+
+    const first = probeAntigravityCliCapabilities('agy', {});
+    await new Promise((resolve) => setImmediate(resolve));
+    cancelledProc.stdout.write('  --add-dir <dir>');
+    cancelledProc.emit('close', null, 'SIGTERM');
+    await expect(first).resolves.toEqual(expect.objectContaining({ addDir: false }));
+
+    const retryProc = createMockChildProcess();
+    mockedSpawn.mockReturnValue(retryProc);
+    const second = probeAntigravityCliCapabilities('agy', {});
+    await new Promise((resolve) => setImmediate(resolve));
+    retryProc.stdout.write('  --add-dir <dir>');
+    retryProc.emit('close', 0, null);
+    await expect(second).resolves.toEqual(expect.objectContaining({ addDir: true }));
+    expect(mockedSpawn).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not cache a probe that failed to spawn', async () => {
+    const failedProc = createMockChildProcess();
+    mockedSpawn.mockReturnValue(failedProc);
+
+    const first = probeAntigravityCliCapabilities('agy', {});
+    failedProc.emit('error', new Error('ENOENT'));
+    await expect(first).resolves.toEqual(expect.objectContaining({ addDir: false }));
+
+    const retryProc = createMockChildProcess();
+    mockedSpawn.mockReturnValue(retryProc);
+    const second = probeAntigravityCliCapabilities('agy', {});
+    await new Promise((resolve) => setImmediate(resolve));
+    retryProc.stdout.write('  --add-dir <dir>');
+    retryProc.emit('close', 0, null);
+    await expect(second).resolves.toEqual(expect.objectContaining({ addDir: true }));
+    expect(mockedSpawn).toHaveBeenCalledTimes(2);
   });
 
   it('does not match sibling flags that merely contain the substring', async () => {
