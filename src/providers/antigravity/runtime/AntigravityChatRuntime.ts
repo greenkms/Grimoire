@@ -109,6 +109,9 @@ export class AntigravityChatRuntime implements ChatRuntime {
   // Bumped by every query() so a turn that is still draining (e.g. transcript
   // recovery) cannot clear process handles a newer turn already claimed.
   private runSequence = 0;
+  // Children this side killed through cancel(); their runs are routine user
+  // cancels, not failures worth diagnosing.
+  private readonly cancelledProcesses = new WeakSet<ChildProcess>();
 
   constructor(private readonly plugin: GrimoirePlugin) {}
 
@@ -161,7 +164,6 @@ export class AntigravityChatRuntime implements ChatRuntime {
       return;
     }
     this.cancelRequested = false;
-    const runToken = ++this.runSequence;
 
     const vaultPath = getVaultPath(this.plugin.app);
     const cwd = vaultPath ?? process.cwd();
@@ -176,6 +178,9 @@ export class AntigravityChatRuntime implements ChatRuntime {
       yield { type: 'done' };
       return;
     }
+    // Bumped only once this turn can really run, so an early-returning turn
+    // never invalidates the guarded cleanup of a turn that is still draining.
+    const runToken = ++this.runSequence;
 
     const prompt = buildAntigravityPrintPrompt(
       await expandAntigravityVaultSkillInvocation(turn.prompt),
@@ -248,10 +253,19 @@ export class AntigravityChatRuntime implements ChatRuntime {
 
   cancel(): void {
     this.cancelRequested = true;
-    this.activeProcess?.kill('SIGTERM');
+    // Track the killed children per process: a close event can arrive long
+    // after cancel (drain grace, slow pipes), when the instance flag may
+    // already belong to a newer turn.
+    if (this.activeProcess) {
+      this.cancelledProcesses.add(this.activeProcess);
+      this.activeProcess.kill('SIGTERM');
+    }
     // Kill the in-flight help probe too so cancel does not wait out its
     // timeout before the generator can observe the flag.
-    this.probeProcess?.kill('SIGTERM');
+    if (this.probeProcess) {
+      this.cancelledProcesses.add(this.probeProcess);
+      this.probeProcess.kill('SIGTERM');
+    }
   }
 
   resetSession(): void {}
@@ -499,9 +513,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
           level: 'error',
           scope: 'provider.antigravity',
         });
-        // The kill below means the close handler never runs its cleanup, so
-        // record that the log file is being kept.
-        // The kill below means the close handler never runs its cleanup, so
+        // The kill above means the close handler never runs its cleanup;
         // record that the log file is being kept — unless a complete answer
         // was already delivered, in which case the turn succeeded.
         flushStreamParser();
@@ -617,10 +629,9 @@ export class AntigravityChatRuntime implements ChatRuntime {
       proc.on('close', (code, signal) => {
         sawClose = true;
         window.clearTimeout(drainGraceTimer);
-        // Snapshot before the async work below: a newer turn resets the
-        // instance flag, and this run's log-retention decision must reflect
-        // its own cancellation only.
-        const cancelledByUser = this.cancelRequested;
+        // A routine user cancel is identified per process: the instance flag
+        // may already belong to a newer turn by the time this close lands.
+        const cancelledByUser = this.cancelledProcesses.has(proc);
         const status = signal ? `signal ${signal}` : `code ${code ?? 'unknown'}`;
         this.plugin.recordDebugLog?.({
           data: {

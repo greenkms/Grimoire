@@ -1169,7 +1169,8 @@ describe('AntigravityChatRuntime', () => {
     }
   });
 
-  it('keeps an active run alive and cuts a silent one at the inactivity timeout', async () => {    jest.useFakeTimers();
+  it('keeps an active run alive and cuts a silent one at the inactivity timeout', async () => {
+    jest.useFakeTimers();
     try {
       const runtime = new AntigravityChatRuntime(createMockPlugin());
       const proc = createMockChildProcess();
