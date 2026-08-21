@@ -133,7 +133,10 @@ function detectCliCapabilities(
     child.stdout?.on('data', collect);
     child.stderr?.on('data', collect);
     child.on('error', () => settle(false));
-    child.on('close', (_code, signal) => settle(signal === null));
+    // Windows has no POSIX signals: a killed child closes with (1, null), so
+    // an abort is recognized by this side having killed the child rather
+    // than by the signal argument.
+    child.on('close', () => settle(!child.killed));
     timer = window.setTimeout(() => settle(false), HELP_PROBE_TIMEOUT_MS);
   });
 }

@@ -67,6 +67,10 @@ const OUTPUT_BUFFER_LIMIT = 64_000;
 const PRINT_INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000;
 // Absolute ceiling for one request, independent of how active the run stays.
 const PRINT_ABSOLUTE_TIMEOUT_MS = 30 * 60 * 1000;
+// How long `close` may lag `exit` while buffered stdio drains before the
+// streams are forced closed; an orphaned grandchild holding the pipes would
+// otherwise hold the whole run hostage.
+const PRINT_DRAIN_GRACE_MS = 2_000;
 // Keep agy's own print timeout just below Grimoire's absolute ceiling so the
 // CLI self-terminates with a structured result frame instead of being killed
 // from outside (#70).
@@ -102,6 +106,9 @@ export class AntigravityChatRuntime implements ChatRuntime {
   private probeProcess: ChildProcess | null = null;
   private readonly readyListeners: Array<(ready: boolean) => void> = [];
   private ready = false;
+  // Bumped by every query() so a turn that is still draining (e.g. transcript
+  // recovery) cannot clear process handles a newer turn already claimed.
+  private runSequence = 0;
 
   constructor(private readonly plugin: GrimoirePlugin) {}
 
@@ -154,6 +161,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
       return;
     }
     this.cancelRequested = false;
+    const runToken = ++this.runSequence;
 
     const vaultPath = getVaultPath(this.plugin.app);
     const cwd = vaultPath ?? process.cwd();
@@ -229,8 +237,12 @@ export class AntigravityChatRuntime implements ChatRuntime {
       };
       yield { type: 'done' };
     } finally {
-      this.activeProcess = null;
-      this.probeProcess = null;
+      // A newer turn that already spawned must keep its handles; clearing
+      // them here would make that turn un-cancellable.
+      if (runToken === this.runSequence) {
+        this.activeProcess = null;
+        this.probeProcess = null;
+      }
     }
   }
 
@@ -400,9 +412,11 @@ export class AntigravityChatRuntime implements ChatRuntime {
 
       let stdout = '';
       let stderr = '';
-      // The accumulator stays empty in stream-json mode, so byte counts for
-      // debug logs come from this counter instead of `stdout.length`.
+      // The accumulators stay empty in stream-json mode (stdout) and are
+      // tail-capped (stderr), so byte counts for debug logs come from these
+      // counters instead of the retained strings.
       let stdoutBytesSeen = 0;
+      let stderrBytesSeen = 0;
       // Each stream needs its own decoder: a multibyte character can straddle two
       // chunks, and decoding chunks independently turns both halves into U+FFFD.
       const stdoutDecoder = createUtf8ChunkDecoder();
@@ -425,11 +439,13 @@ export class AntigravityChatRuntime implements ChatRuntime {
         streamParser.end();
       };
       let settled = false;
+      let sawClose = false;
       let sawStdout = false;
       let sawStderr = false;
       const startedAt = Date.now();
       let inactivityTimer: number | undefined;
       let absoluteTimer: number | undefined;
+      let drainGraceTimer: number | undefined;
       const settle = (callback: () => void): void => {
         if (settled) {
           return;
@@ -437,6 +453,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
         settled = true;
         window.clearTimeout(inactivityTimer);
         window.clearTimeout(absoluteTimer);
+        window.clearTimeout(drainGraceTimer);
         callback();
       };
       const expire = (reason: 'absolute' | 'inactivity'): void => {
@@ -471,7 +488,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
             durationMs: Date.now() - startedAt,
             providerId: this.providerId,
             reason,
-            stderrBytes: stderr.length,
+            stderrBytes: stderrBytesSeen,
             stderrPreview: summarizeCliText(stderr),
             stdoutBytes: stdoutBytesSeen,
             timeoutMs: reason === 'inactivity'
@@ -484,6 +501,19 @@ export class AntigravityChatRuntime implements ChatRuntime {
         });
         // The kill below means the close handler never runs its cleanup, so
         // record that the log file is being kept.
+        // The kill below means the close handler never runs its cleanup, so
+        // record that the log file is being kept — unless a complete answer
+        // was already delivered, in which case the turn succeeded.
+        flushStreamParser();
+        const streamResult = streamParser?.getResult() ?? null;
+        if (streamResult && streamResult.status !== 'ERROR' && streamResult.response.trim()) {
+          // A CLI that hangs right after emitting its result frame still
+          // delivered the answer; resolve with it instead of discarding a
+          // healthy reply.
+          void fs.unlink(printLogFilePath).catch(() => undefined);
+          settle(() => resolve(streamResult.response));
+          return;
+        }
         this.plugin.recordDebugLog?.({
           data: {
             logFilePath: printLogFilePath,
@@ -493,15 +523,6 @@ export class AntigravityChatRuntime implements ChatRuntime {
           level: 'warn',
           scope: 'provider.antigravity',
         });
-        // A CLI that hangs right after emitting its result frame (no
-        // --print-timeout support, or a stall post-answer) still delivered
-        // the answer; resolve with it instead of discarding a healthy reply.
-        flushStreamParser();
-        const streamResult = streamParser?.getResult() ?? null;
-        if (streamResult && streamResult.status !== 'ERROR' && streamResult.response.trim()) {
-          settle(() => resolve(streamResult.response));
-          return;
-        }
         if (streamResult?.status === 'ERROR') {
           settle(() => reject(new Error(formatAntigravityResultError(streamResult))));
           return;
@@ -545,6 +566,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
       });
       proc.stderr?.on('data', (chunk: Buffer | string) => {
         armInactivityTimer();
+        stderrBytesSeen += chunk.length;
         stderr = appendLimited(stderr, chunk, stderrDecoder);
         if (!sawStderr) {
           sawStderr = true;
@@ -552,7 +574,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
             data: {
               pid: proc.pid ?? -1,
               providerId: this.providerId,
-              stderrBytes: stderr.length,
+              stderrBytes: stderrBytesSeen,
               stderrPreview: summarizeCliText(stderr),
             },
             event: 'print.stderr',
@@ -560,6 +582,20 @@ export class AntigravityChatRuntime implements ChatRuntime {
             scope: 'provider.antigravity',
           });
         }
+      });
+      proc.on('exit', () => {
+        // Killing a cmd.exe wrapper (the default Windows launch shape)
+        // orphans the real CLI, which inherits the pipe handles and can keep
+        // `close` from ever firing. Force the streams closed shortly after
+        // the process itself is gone so the run still settles; buffered
+        // output has long since drained by then.
+        drainGraceTimer = window.setTimeout(() => {
+          if (settled || sawClose) {
+            return;
+          }
+          proc.stdout?.destroy();
+          proc.stderr?.destroy();
+        }, PRINT_DRAIN_GRACE_MS);
       });
       proc.on('error', (error) => {
         settle(() => {
@@ -579,6 +615,12 @@ export class AntigravityChatRuntime implements ChatRuntime {
       // and the result frame is agy's last write, so the outcome is only
       // settled on `close`, which Node emits once stdio has flushed too.
       proc.on('close', (code, signal) => {
+        sawClose = true;
+        window.clearTimeout(drainGraceTimer);
+        // Snapshot before the async work below: a newer turn resets the
+        // instance flag, and this run's log-retention decision must reflect
+        // its own cancellation only.
+        const cancelledByUser = this.cancelRequested;
         const status = signal ? `signal ${signal}` : `code ${code ?? 'unknown'}`;
         this.plugin.recordDebugLog?.({
           data: {
@@ -587,7 +629,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
             providerId: this.providerId,
             signal: signal ?? 'none',
             status,
-            stderrBytes: stderr.length,
+            stderrBytes: stderrBytesSeen,
             stdoutBytes: stdoutBytesSeen,
           },
           event: 'print.close',
@@ -601,7 +643,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
                 durationMs: Date.now() - startedAt,
                 providerId: this.providerId,
                 status,
-                stderrBytes: stderr.length,
+                stderrBytes: stderrBytesSeen,
                 stderrPreview: summarizeCliText(stderr),
                 stdoutBytes: stdoutBytesSeen,
               },
@@ -647,7 +689,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
               // diagnosis and remove it only once the turn produced an
               // answer. A routine user cancel is not a failure worth
               // diagnosing, so those logs are removed too.
-              if (succeeded || this.cancelRequested) {
+              if (succeeded || cancelledByUser) {
                 await fs.unlink(printLogFilePath).catch(() => undefined);
               } else {
                 this.plugin.recordDebugLog?.({
@@ -952,16 +994,20 @@ function getCwdLabel(plugin: GrimoirePlugin, cwd: string): string {
 
 function summarizeAntigravityPrintArgs(args: string[]): string {
   return args.map((arg, index) => {
-    if (arg === '--print' || arg === '--add-dir') {
+    if (arg === '--print' || arg === '--add-dir' || arg === '--log-file') {
       return arg;
     }
     if (index > 0 && args[index - 1] === '--print') {
       return '<prompt>';
     }
-    // Keep the absolute vault path out of debug logs; the shared sanitizer's
-    // path redaction does not cover every platform's home prefixes.
+    // Keep the absolute vault path and the temp log path (which embeds the
+    // username) out of debug logs; the shared sanitizer's path redaction
+    // does not cover every platform's home and temp prefixes.
     if (index > 0 && args[index - 1] === '--add-dir') {
       return '<vault-path>';
+    }
+    if (index > 0 && args[index - 1] === '--log-file') {
+      return '<log-path>';
     }
     return arg;
   }).join(' ');

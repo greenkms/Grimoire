@@ -1,6 +1,6 @@
 import '@/providers';
 
-import { spawn } from 'node:child_process';
+import { execSync, spawn } from 'node:child_process';
 import { EventEmitter } from 'node:events';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
@@ -20,6 +20,7 @@ import { resetAntigravityCliCapabilitiesCache } from '@/providers/antigravity/ru
 import { updateAntigravityProviderSettings } from '@/providers/antigravity/settings';
 
 jest.mock('node:child_process', () => ({
+  ...jest.requireActual('node:child_process'),
   spawn: jest.fn(),
 }));
 
@@ -58,7 +59,11 @@ function createMockChildProcess(options: { stdin?: boolean } = {}): any {
   proc.stdout = new PassThrough();
   proc.stderr = new PassThrough();
   proc.stdin = options.stdin ? new PassThrough() : null;
-  proc.kill = jest.fn();
+  // Mirrors ChildProcess.kill flipping `killed`; the capability probe detects
+  // aborted children through it.
+  proc.kill = jest.fn(() => {
+    proc.killed = true;
+  });
   proc.pid = 1234;
   proc.exitCode = null;
   proc.signalCode = null;
@@ -123,6 +128,17 @@ function getSpawnedAgyArgs(): string[] {
 function getPrintLogFilePath(): string {
   const [, args] = mockedSpawn.mock.calls[mockedSpawn.mock.calls.length - 1] as [string, string[]];
   return args[args.indexOf('--log-file') + 1];
+}
+
+// FIFOs exist on POSIX only; the drain-race test parks transcript recovery
+// on a named pipe so it deterministically overlaps the next turn.
+async function writeToFifo(fifoPath: string, content: string): Promise<void> {
+  const handle = await fs.open(fifoPath, 'w');
+  try {
+    await handle.write(content);
+  } finally {
+    await handle.close();
+  }
 }
 
 describe('AntigravityChatRuntime', () => {
@@ -1006,6 +1022,52 @@ describe('AntigravityChatRuntime', () => {
     expect(getSpawnedAgyArgs()).toContain('--input-format');
   });
 
+  it('keeps the newest run cancellable while an older turn is still draining', async () => {
+    if (process.platform === 'win32') {
+      // The test parks transcript recovery on a FIFO, which Windows lacks.
+      return;
+    }
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const probeProc = createMockChildProcess();
+    const firstProc = createMockChildProcess();
+    const secondProc = createMockChildProcess();
+    const printProcs = [firstProc, secondProc];
+    mockedSpawn.mockImplementation((command: string, args: string[]) => {
+      if (args.includes('--help')) return probeProc;
+      return printProcs.shift();
+    });
+
+    // First turn: empty stdout on exit 0, so its close handler parks in
+    // transcript recovery reading a FIFO-backed log file.
+    const firstTurn = collect(runtime.query(runtime.prepareTurn({ text: 'First' })));
+    await new Promise((resolve) => setImmediate(resolve));
+    probeProc.emit('close', 0, null);
+    await new Promise((resolve) => setImmediate(resolve));
+    const firstLogPath = getPrintLogFilePath();
+    execSync(`mkfifo ${JSON.stringify(firstLogPath)}`);
+    emitProcessExit(firstProc, 0, null);
+
+    // Second turn claims the process handles while the first still drains.
+    const secondTurn = collect(runtime.query(runtime.prepareTurn({ text: 'Second' })));
+    await new Promise((resolve) => setImmediate(resolve));
+    await new Promise((resolve) => setImmediate(resolve));
+    expect((runtime as any).activeProcess).toBe(secondProc);
+
+    // Release the first turn's recovery.
+    await writeToFifo(firstLogPath, 'no conversation id here');
+    const firstChunks = await firstTurn;
+    expect(firstChunks[firstChunks.length - 1]).toEqual({ type: 'done' });
+
+    // The second run must still own its handles and stay cancellable.
+    runtime.cancel();
+    expect(secondProc.kill).toHaveBeenCalledWith('SIGTERM');
+    emitProcessExit(secondProc, null, 'SIGTERM');
+    const secondChunks = await secondTurn;
+    expect(secondChunks).toContainEqual(expect.objectContaining({ type: 'error' }));
+
+    await fs.rm(firstLogPath, { force: true });
+  });
+
   it('passes an explicit print timeout just below the absolute ceiling', () => {
     expect(buildAntigravityPrintArgs({
       model: null,
@@ -1044,8 +1106,70 @@ describe('AntigravityChatRuntime', () => {
     expect(agyArgs).not.toContain('--input-format');
   });
 
-  it('keeps an active run alive and cuts a silent one at the inactivity timeout', async () => {
+  it('forces the streams closed when close lags exit, so the run still settles', async () => {
     jest.useFakeTimers();
+    try {
+      const runtime = new AntigravityChatRuntime(createMockPlugin());
+      const proc = createMockChildProcess();
+      const destroyStdout = jest.spyOn(proc.stdout, 'destroy');
+      mockedSpawn.mockReturnValue(proc);
+
+      const result = (runtime as any).runPrint({
+        command: 'agy',
+        cwd: '/tmp/grimoire-antigravity-test-vault',
+        model: null,
+        permissionMode: 'full_access',
+        prompt: 'Orphaned wrapper',
+        runtimeEnv: process.env,
+      });
+      proc.stdout.write('Hi\n');
+      proc.emit('exit', 0, null);
+      jest.advanceTimersByTime(2_000);
+      expect(destroyStdout).toHaveBeenCalledTimes(1);
+
+      // Real children emit `close` once the destroyed streams actually close.
+      proc.emit('close', 0, null);
+      await expect(result).resolves.toBe('Hi\n');
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('resolves with an already-delivered answer when the CLI hangs after it', async () => {
+    jest.useFakeTimers();
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const proc = createMockChildProcess({ stdin: true });
+    mockedSpawn.mockReturnValue(proc);
+    let logFilePath = '';
+    try {
+      const result = (runtime as any).runPrint({
+        cliCapabilities: STREAM_JSON_CAPABILITIES,
+        command: 'agy',
+        cwd: '/tmp/grimoire-antigravity-test-vault',
+        model: null,
+        permissionMode: 'full_access',
+        prompt: 'Hang after answer',
+        runtimeEnv: process.env,
+      });
+      logFilePath = getPrintLogFilePath();
+      await fs.writeFile(logFilePath, 'simulated agy log\n');
+      writeStreamJsonResult(proc, { response: 'Salvaged answer', status: 'SUCCESS' });
+
+      jest.advanceTimersByTime(5 * 60 * 1000);
+      await expect(result).resolves.toBe('Salvaged answer');
+
+      // The turn produced an answer, so its log file is removed.
+      jest.useRealTimers();
+      await new Promise((resolve) => setImmediate(resolve));
+      await expect(fs.access(logFilePath)).rejects.toThrow();
+      logFilePath = '';
+    } finally {
+      jest.useRealTimers();
+      await fs.rm(logFilePath, { force: true });
+    }
+  });
+
+  it('keeps an active run alive and cuts a silent one at the inactivity timeout', async () => {    jest.useFakeTimers();
     try {
       const runtime = new AntigravityChatRuntime(createMockPlugin());
       const proc = createMockChildProcess();
@@ -1199,5 +1323,7 @@ describe('AntigravityChatRuntime', () => {
       .find((entry: any) => entry.event === 'print.spawn');
     expect(spawnLog?.data?.argsSummary).toContain('--add-dir <vault-path>');
     expect(spawnLog?.data?.argsSummary).not.toContain('/tmp/grimoire-antigravity-test-vault');
+    expect(spawnLog?.data?.argsSummary).toContain('--log-file <log-path>');
+    expect(spawnLog?.data?.argsSummary).not.toMatch(/grimoire-antigravity-print-/);
   });
 });

@@ -21,7 +21,11 @@ function createMockChildProcess(): any {
   proc.stdout.on('error', () => {});
   proc.stderr.on('error', () => {});
   proc.stdin = null;
-  proc.kill = jest.fn();
+  // Mirrors ChildProcess.kill, which flips `killed`; the probe detects
+  // aborted children through it because Windows closes carry no signal.
+  proc.kill = jest.fn(() => {
+    proc.killed = true;
+  });
   proc.pid = 4321;
   return proc;
 }
@@ -247,6 +251,7 @@ describe('probeAntigravityCliCapabilities', () => {
     const first = probeAntigravityCliCapabilities('agy', {});
     await new Promise((resolve) => setImmediate(resolve));
     cancelledProc.stdout.write('  --add-dir <dir>');
+    (cancelledProc.kill as jest.Mock)('SIGTERM');
     cancelledProc.emit('close', null, 'SIGTERM');
     await expect(first).resolves.toEqual(expect.objectContaining({ addDir: false }));
 
@@ -266,6 +271,28 @@ describe('probeAntigravityCliCapabilities', () => {
 
     const first = probeAntigravityCliCapabilities('agy', {});
     failedProc.emit('error', new Error('ENOENT'));
+    await expect(first).resolves.toEqual(expect.objectContaining({ addDir: false }));
+
+    const retryProc = createMockChildProcess();
+    mockedSpawn.mockReturnValue(retryProc);
+    const second = probeAntigravityCliCapabilities('agy', {});
+    await new Promise((resolve) => setImmediate(resolve));
+    retryProc.stdout.write('  --add-dir <dir>');
+    retryProc.emit('close', 0, null);
+    await expect(second).resolves.toEqual(expect.objectContaining({ addDir: true }));
+    expect(mockedSpawn).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not cache a probe killed on Windows where close carries no signal', async () => {
+    const cancelledProc = createMockChildProcess();
+    mockedSpawn.mockReturnValue(cancelledProc);
+
+    const first = probeAntigravityCliCapabilities('agy', {});
+    await new Promise((resolve) => setImmediate(resolve));
+    // cancel() kills the probe; on Windows TerminateProcess surfaces as
+    // close(1, null) with no signal argument.
+    (cancelledProc.kill as jest.Mock)();
+    cancelledProc.emit('close', 1, null);
     await expect(first).resolves.toEqual(expect.objectContaining({ addDir: false }));
 
     const retryProc = createMockChildProcess();
