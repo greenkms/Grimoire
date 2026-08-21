@@ -518,12 +518,14 @@ export class AntigravityChatRuntime implements ChatRuntime {
         // was already delivered, in which case the turn succeeded.
         flushStreamParser();
         const streamResult = streamParser?.getResult() ?? null;
-        if (streamResult && streamResult.status !== 'ERROR' && streamResult.response.trim()) {
+        if (streamResult?.response.trim()) {
           // A CLI that hangs right after emitting its result frame still
           // delivered the answer; resolve with it instead of discarding a
-          // healthy reply.
+          // healthy reply — even when the frame is ERROR-flagged, because
+          // agy reports tool-permission bookkeeping failures after the
+          // agent has already streamed its complete answer.
           void fs.unlink(printLogFilePath).catch(() => undefined);
-          settle(() => resolve(streamResult.response));
+          settle(() => resolve(formatAntigravityAnswerWithNotice(streamResult)));
           return;
         }
         this.plugin.recordDebugLog?.({
@@ -666,6 +668,28 @@ export class AntigravityChatRuntime implements ChatRuntime {
             const streamResult = streamParser?.getResult() ?? null;
             let succeeded = false;
             try {
+              const answeredResult = streamResult?.response.trim() ? streamResult : null;
+              if (answeredResult) {
+                // A complete streamed answer wins over the exit code: agy
+                // emits status ERROR for tool-permission bookkeeping defects
+                // after the agent has already finished its work, and the
+                // text_delta frames sum exactly to result.response. Surface
+                // the CLI complaint as a trailing note, not a hard failure.
+                if (answeredResult.status === 'ERROR') {
+                  this.plugin.recordDebugLog?.({
+                    data: {
+                      errorPreview: summarizeCliText(answeredResult.error ?? ''),
+                      providerId: this.providerId,
+                    },
+                    event: 'print.resultErrorWithAnswer',
+                    level: 'warn',
+                    scope: 'provider.antigravity',
+                  });
+                }
+                succeeded = true;
+                resolve(formatAntigravityAnswerWithNotice(answeredResult));
+                return;
+              }
               if (streamResult?.status === 'ERROR') {
                 // agy writes a structured result before exiting non-zero;
                 // its error string says why, while the exit code alone does not.
@@ -673,7 +697,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
                 return;
               }
               if (code === 0) {
-                const directOutput = streamResult ? streamResult.response : stdout;
+                const directOutput = stdout;
                 const transcriptOutput = directOutput
                   ? ''
                   : await recoverAntigravityPrintOutputFromTranscript(printLogFilePath, spec.runtimeEnv);
@@ -1052,4 +1076,20 @@ function formatAntigravityExitError(
 function formatAntigravityResultError(result: AntigravityResultFrame): string {
   const detail = result.error?.trim() || `status ${result.status}`;
   return `Antigravity CLI reported an error: ${detail}`;
+}
+
+/**
+ * agy can flag `status:"ERROR"` for CLI-internal tool-permission bookkeeping
+ * after the agent has already streamed a complete answer; the answer is real
+ * (the text_delta frames sum exactly to result.response), so it survives and
+ * the complaint rides along as a trailing note instead of a hard failure.
+ */
+function formatAntigravityAnswerWithNotice(result: AntigravityResultFrame): string {
+  const detail = result.status === 'ERROR'
+    ? result.error?.trim().replace(/\s+/g, ' ')
+    : '';
+  if (!detail) {
+    return result.response;
+  }
+  return `${result.response}\n\n> Warning: Antigravity CLI reported an error after this answer: ${detail.slice(0, 500)}`;
 }

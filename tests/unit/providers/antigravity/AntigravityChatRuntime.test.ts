@@ -907,7 +907,7 @@ describe('AntigravityChatRuntime', () => {
     await expect(result).rejects.toThrow('Antigravity CLI reported an error: timeout waiting for response');
   });
 
-  it('keeps the exit-code error when the result frame says SUCCESS but agy exits non-zero', async () => {
+  it('resolves a complete answer from the result frame even when agy exits non-zero', async () => {
     const runtime = new AntigravityChatRuntime(createMockPlugin());
     const proc = createMockChildProcess({ stdin: true });
     mockedSpawn.mockReturnValue(proc);
@@ -921,11 +921,66 @@ describe('AntigravityChatRuntime', () => {
       prompt: 'Hello',
       runtimeEnv: process.env,
     });
-    writeStreamJsonResult(proc, { response: 'Partial answer', status: 'SUCCESS' });
+    writeStreamJsonResult(proc, { response: 'Complete answer', status: 'SUCCESS' });
     proc.stderr.write('store manager failed\n');
     emitProcessExit(proc, 1, null);
 
-    await expect(result).rejects.toThrow('Antigravity CLI exited (code 1)');
+    await expect(result).resolves.toBe('Complete answer');
+  });
+
+  it('keeps a fully streamed answer when agy flags ERROR only after answering', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const proc = createMockChildProcess({ stdin: true });
+    mockedSpawn.mockReturnValue(proc);
+
+    const result = (runtime as any).runPrint({
+      cliCapabilities: STREAM_JSON_CAPABILITIES,
+      command: 'agy',
+      cwd: '/tmp/grimoire-antigravity-test-vault',
+      model: null,
+      permissionMode: 'full_access',
+      prompt: 'Write into a subdirectory',
+      runtimeEnv: process.env,
+    });
+    writeStreamJsonResult(proc, {
+      error: 'declaring permissions: cortex tool write_to_file: not a valid artifact path',
+      response: 'The files were created and the batch finished.',
+      status: 'ERROR',
+    });
+    emitProcessExit(proc, 1, null);
+
+    const answer = await result;
+    expect(answer).toContain('The files were created and the batch finished.');
+    expect(answer).toContain('> Warning: Antigravity CLI reported an error after this answer:');
+    expect(answer).toContain('not a valid artifact path');
+  });
+
+  it('resolves an ERROR-flagged answer when the CLI hangs after it', async () => {
+    jest.useFakeTimers();
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const proc = createMockChildProcess({ stdin: true });
+    mockedSpawn.mockReturnValue(proc);
+    try {
+      const result = (runtime as any).runPrint({
+        cliCapabilities: STREAM_JSON_CAPABILITIES,
+        command: 'agy',
+        cwd: '/tmp/grimoire-antigravity-test-vault',
+        model: null,
+        permissionMode: 'full_access',
+        prompt: 'Hang after answer',
+        runtimeEnv: process.env,
+      });
+      writeStreamJsonResult(proc, {
+        error: 'view_file: no such file',
+        response: 'Everything else completed.',
+        status: 'ERROR',
+      });
+
+      jest.advanceTimersByTime(5 * 60 * 1000);
+      await expect(result).resolves.toContain('Everything else completed.');
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('treats stderr progress as activity for the inactivity timer', async () => {

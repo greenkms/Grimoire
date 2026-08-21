@@ -130,6 +130,10 @@ function detectCliCapabilities(
       }
     };
 
+    // Both streams must feed the detector: the Windows build of agy prints
+    // --help only to stderr (stdout stays empty, measured on the 2026-08-20
+    // build), and reading stdout alone would silently downgrade Windows to
+    // the legacy argv transport — the original #69 failure.
     child.stdout?.on('data', collect);
     child.stderr?.on('data', collect);
     child.on('error', () => settle(false));
