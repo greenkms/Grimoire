@@ -151,10 +151,13 @@ describe('parsePathEntries', () => {
 
   it('splits on platform separator', () => {
     const sep = isWindows ? ';' : ':';
-    const result = parsePathEntries(`/a${sep}/b${sep}/c`);
-    expect(result).toContain('/a');
-    expect(result).toContain('/b');
-    expect(result).toContain('/c');
+    // Multi-character segments on purpose: translateMsysPath reads a
+    // single-letter root as an MSYS drive spec, so `/a` would arrive as `A:`
+    // and this test would be measuring that translation instead of splitting.
+    const result = parsePathEntries(`/alpha${sep}/beta${sep}/gamma`);
+    expect(result).toContain('/alpha');
+    expect(result).toContain('/beta');
+    expect(result).toContain('/gamma');
   });
 
   it('filters out empty segments', () => {
@@ -237,22 +240,22 @@ describe('normalizePathForFilesystem', () => {
 
   it('normalizes a regular path', () => {
     const result = normalizePathForFilesystem('/usr/local/bin');
-    expect(result).toBe('/usr/local/bin');
+    expect(result).toBe(path.normalize('/usr/local/bin'));
   });
 
   it('normalizes path with redundant separators', () => {
     const result = normalizePathForFilesystem('/usr//local///bin');
-    expect(result).toBe('/usr/local/bin');
+    expect(result).toBe(path.normalize('/usr/local/bin'));
   });
 
   it('normalizes path with . segments', () => {
     const result = normalizePathForFilesystem('/usr/./local/./bin');
-    expect(result).toBe('/usr/local/bin');
+    expect(result).toBe(path.normalize('/usr/local/bin'));
   });
 
   it('normalizes path with .. segments', () => {
     const result = normalizePathForFilesystem('/usr/local/../bin');
-    expect(result).toBe('/usr/bin');
+    expect(result).toBe(path.normalize('/usr/bin'));
   });
 
   it('expands ~ in path', () => {
