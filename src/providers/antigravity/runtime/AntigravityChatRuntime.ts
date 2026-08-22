@@ -47,15 +47,38 @@ import { createUtf8ChunkDecoder, type Utf8ChunkDecoder } from '../../../utils/ut
 import { ANTIGRAVITY_PROVIDER_CAPABILITIES } from '../capabilities';
 import { decodeAntigravityModelId } from '../models';
 import { getAntigravityProviderSettings } from '../settings';
-import { probeAntigravityAddDirSupport } from './AntigravityAddDirSupport';
+import {
+  type AntigravityCliCapabilities,
+  NO_ANTIGRAVITY_CLI_CAPABILITIES,
+  probeAntigravityCliCapabilities,
+} from './AntigravityCliCapabilities';
 import { buildAntigravityProcessLaunch } from './AntigravityProcessLaunch';
 import { buildAntigravityRuntimeEnv } from './AntigravityRuntimeEnvironment';
+import {
+  type AntigravityResultFrame,
+  type AntigravityStreamJsonParser,
+  createAntigravityStreamJsonParser,
+  formatAntigravityUserEvent,
+} from './AntigravityStreamJson';
 
 const OUTPUT_BUFFER_LIMIT = 64_000;
-const PRINT_TIMEOUT_MS = 5 * 60 * 1000;
+// A healthy agy run emits a frame at every step transition, so pipe activity
+// refreshes the inactivity timer while a silent hang is still cut quickly.
+const PRINT_INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000;
+// Absolute ceiling for one request, independent of how active the run stays.
+const PRINT_ABSOLUTE_TIMEOUT_MS = 30 * 60 * 1000;
+// How long `close` may lag `exit` while buffered stdio drains before the
+// streams are forced closed; an orphaned grandchild holding the pipes would
+// otherwise hold the whole run hostage.
+const PRINT_DRAIN_GRACE_MS = 2_000;
+// Keep agy's own print timeout just below Grimoire's absolute ceiling so the
+// CLI self-terminates with a structured result frame instead of being killed
+// from outside (#70).
+const ANTIGRAVITY_PRINT_TIMEOUT_FLAG = '29m';
 
 interface AntigravityPrintSpec {
   addDirPath: string | null;
+  cliCapabilities?: AntigravityCliCapabilities;
   command: string;
   cwd: string;
   model: string | null;
@@ -69,7 +92,9 @@ export interface AntigravityPrintArgsSpec {
   logFilePath?: string;
   model: string | null;
   permissionMode: string;
+  printTimeout?: boolean;
   prompt: string;
+  streamJson?: boolean;
 }
 
 export class AntigravityChatRuntime implements ChatRuntime {
@@ -81,6 +106,12 @@ export class AntigravityChatRuntime implements ChatRuntime {
   private probeProcess: ChildProcess | null = null;
   private readonly readyListeners: Array<(ready: boolean) => void> = [];
   private ready = false;
+  // Bumped by every query() so a turn that is still draining (e.g. transcript
+  // recovery) cannot clear process handles a newer turn already claimed.
+  private runSequence = 0;
+  // Children this side killed through cancel(); their runs are routine user
+  // cancels, not failures worth diagnosing.
+  private readonly cancelledProcesses = new WeakSet<ChildProcess>();
 
   constructor(private readonly plugin: GrimoirePlugin) {}
 
@@ -147,6 +178,9 @@ export class AntigravityChatRuntime implements ChatRuntime {
       yield { type: 'done' };
       return;
     }
+    // Bumped only once this turn can really run, so an early-returning turn
+    // never invalidates the guarded cleanup of a turn that is still draining.
+    const runToken = ++this.runSequence;
 
     const prompt = buildAntigravityPrintPrompt(
       await expandAntigravityVaultSkillInvocation(turn.prompt),
@@ -155,7 +189,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
 
     try {
       yield { content: 'Starting Antigravity...', type: 'status' };
-      const addDirSupported = await probeAntigravityAddDirSupport(command, runtimeEnv, (child) => {
+      const cliCapabilities = await probeAntigravityCliCapabilities(command, runtimeEnv, (child) => {
         this.probeProcess = child;
       });
       this.probeProcess = null;
@@ -167,16 +201,19 @@ export class AntigravityChatRuntime implements ChatRuntime {
       }
       this.plugin.recordDebugLog?.({
         data: {
+          addDir: cliCapabilities.addDir,
           command,
+          printTimeout: cliCapabilities.printTimeout,
           providerId: this.providerId,
-          supported: addDirSupported,
+          streamJson: cliCapabilities.streamJson,
         },
-        event: 'print.addDirProbe',
+        event: 'print.capabilityProbe',
         level: 'debug',
         scope: 'provider.antigravity',
       });
       const output = await this.runPrint({
-        addDirPath: addDirSupported ? vaultPath : null,
+        addDirPath: cliCapabilities.addDir ? vaultPath : null,
+        cliCapabilities,
         command,
         cwd,
         model: this.getSelectedRawModel(queryOptions),
@@ -205,17 +242,30 @@ export class AntigravityChatRuntime implements ChatRuntime {
       };
       yield { type: 'done' };
     } finally {
-      this.activeProcess = null;
-      this.probeProcess = null;
+      // A newer turn that already spawned must keep its handles; clearing
+      // them here would make that turn un-cancellable.
+      if (runToken === this.runSequence) {
+        this.activeProcess = null;
+        this.probeProcess = null;
+      }
     }
   }
 
   cancel(): void {
     this.cancelRequested = true;
-    this.activeProcess?.kill('SIGTERM');
+    // Track the killed children per process: a close event can arrive long
+    // after cancel (drain grace, slow pipes), when the instance flag may
+    // already belong to a newer turn.
+    if (this.activeProcess) {
+      this.cancelledProcesses.add(this.activeProcess);
+      this.activeProcess.kill('SIGTERM');
+    }
     // Kill the in-flight help probe too so cancel does not wait out its
     // timeout before the generator can observe the flag.
-    this.probeProcess?.kill('SIGTERM');
+    if (this.probeProcess) {
+      this.cancelledProcesses.add(this.probeProcess);
+      this.probeProcess.kill('SIGTERM');
+    }
   }
 
   resetSession(): void {}
@@ -298,10 +348,14 @@ export class AntigravityChatRuntime implements ChatRuntime {
   }
 
   private runPrint(spec: AntigravityPrintSpec): Promise<string> {
+    const cliCapabilities = spec.cliCapabilities ?? NO_ANTIGRAVITY_CLI_CAPABILITIES;
+    const streamJson = cliCapabilities.streamJson;
     const printLogFilePath = createAntigravityPrintLogPath();
     const args = buildAntigravityPrintArgs({
       ...spec,
       logFilePath: printLogFilePath,
+      printTimeout: cliCapabilities.printTimeout,
+      streamJson,
     });
     this.plugin.recordDebugLog?.({
       data: {
@@ -337,7 +391,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
         cwd: spec.cwd,
         env: spec.runtimeEnv,
         shell: launch.shell,
-        stdio: ['ignore', 'pipe', 'pipe'],
+        stdio: [streamJson ? 'pipe' : 'ignore', 'pipe', 'pipe'],
         windowsHide: true,
       });
       this.activeProcess = proc;
@@ -346,33 +400,77 @@ export class AntigravityChatRuntime implements ChatRuntime {
           launchMode: launch.launchMode,
           pid: proc.pid ?? -1,
           providerId: this.providerId,
-          stdinMode: 'ignore',
-          stdioMode: 'ignore-pipe-pipe',
+          stdinMode: streamJson ? 'pipe' : 'ignore',
+          stdioMode: streamJson ? 'pipe-pipe-pipe' : 'ignore-pipe-pipe',
         },
         event: 'print.processStarted',
         level: 'debug',
         scope: 'provider.antigravity',
       });
+      if (streamJson && proc.stdin) {
+        // The child can exit before draining stdin (agy exits 1 on an empty
+        // prompt), and the resulting EPIPE arrives as a stream error that
+        // would otherwise crash the renderer (#69).
+        proc.stdin.on('error', (error) => {
+          this.plugin.recordDebugLog?.({
+            data: { providerId: this.providerId },
+            error,
+            event: 'print.stdinError',
+            level: 'warn',
+            scope: 'provider.antigravity',
+          });
+        });
+        proc.stdin.write(formatAntigravityUserEvent(spec.prompt));
+        proc.stdin.end();
+      }
 
       let stdout = '';
       let stderr = '';
+      // The accumulators stay empty in stream-json mode (stdout) and are
+      // tail-capped (stderr), so byte counts for debug logs come from these
+      // counters instead of the retained strings.
+      let stdoutBytesSeen = 0;
+      let stderrBytesSeen = 0;
       // Each stream needs its own decoder: a multibyte character can straddle two
       // chunks, and decoding chunks independently turns both halves into U+FFFD.
       const stdoutDecoder = createUtf8ChunkDecoder();
       const stderrDecoder = createUtf8ChunkDecoder();
+      // In stream-json mode stdout is parsed line-by-line so a `result` frame
+      // longer than any fixed buffer cap still parses; the capped accumulator
+      // remains only for the legacy free-text `--print` transport.
+      const streamParser: AntigravityStreamJsonParser | null = streamJson
+        ? createAntigravityStreamJsonParser()
+        : null;
+      // `exit` can fire before the final stdout chunks drain from the pipe, so
+      // the parser is only considered complete after the decoder hands back
+      // any held-back partial character and the trailing newline-less line is
+      // flushed.
+      const flushStreamParser = (): void => {
+        if (!streamParser) {
+          return;
+        }
+        streamParser.write(stdoutDecoder.end());
+        streamParser.end();
+      };
       let settled = false;
+      let sawClose = false;
       let sawStdout = false;
       let sawStderr = false;
       const startedAt = Date.now();
+      let inactivityTimer: number | undefined;
+      let absoluteTimer: number | undefined;
+      let drainGraceTimer: number | undefined;
       const settle = (callback: () => void): void => {
         if (settled) {
           return;
         }
         settled = true;
-        window.clearTimeout(timeout);
+        window.clearTimeout(inactivityTimer);
+        window.clearTimeout(absoluteTimer);
+        window.clearTimeout(drainGraceTimer);
         callback();
       };
-      const timeout = window.setTimeout(() => {
+      const expire = (reason: 'absolute' | 'inactivity'): void => {
         this.plugin.recordDebugLog?.({
           data: {
             killSignal: 'SIGTERM',
@@ -403,27 +501,76 @@ export class AntigravityChatRuntime implements ChatRuntime {
           data: {
             durationMs: Date.now() - startedAt,
             providerId: this.providerId,
-            stderrBytes: stderr.length,
+            reason,
+            stderrBytes: stderrBytesSeen,
             stderrPreview: summarizeCliText(stderr),
-            stdoutBytes: stdout.length,
-            timeoutMs: PRINT_TIMEOUT_MS,
+            stdoutBytes: stdoutBytesSeen,
+            timeoutMs: reason === 'inactivity'
+              ? PRINT_INACTIVITY_TIMEOUT_MS
+              : PRINT_ABSOLUTE_TIMEOUT_MS,
           },
           event: 'print.timeout',
           level: 'error',
           scope: 'provider.antigravity',
         });
-        settle(() => reject(new Error('Antigravity request timed out.')));
-      }, PRINT_TIMEOUT_MS);
+        // The kill above means the close handler never runs its cleanup;
+        // record that the log file is being kept — unless a complete answer
+        // was already delivered, in which case the turn succeeded.
+        flushStreamParser();
+        const streamResult = streamParser?.getResult() ?? null;
+        if (streamResult?.response.trim()) {
+          // A CLI that hangs right after emitting its result frame still
+          // delivered the answer; resolve with it instead of discarding a
+          // healthy reply — even when the frame is ERROR-flagged, because
+          // agy reports tool-permission bookkeeping failures after the
+          // agent has already streamed its complete answer.
+          void fs.unlink(printLogFilePath).catch(() => undefined);
+          settle(() => resolve(formatAntigravityAnswerWithNotice(streamResult)));
+          return;
+        }
+        this.plugin.recordDebugLog?.({
+          data: {
+            logFilePath: printLogFilePath,
+            providerId: this.providerId,
+          },
+          event: 'print.logFilePreserved',
+          level: 'warn',
+          scope: 'provider.antigravity',
+        });
+        if (streamResult?.status === 'ERROR') {
+          settle(() => reject(new Error(formatAntigravityResultError(streamResult))));
+          return;
+        }
+        const message = reason === 'inactivity'
+          ? `Antigravity request timed out after ${PRINT_INACTIVITY_TIMEOUT_MS / 60_000} minutes without CLI output.`
+          : `Antigravity request exceeded the ${PRINT_ABSOLUTE_TIMEOUT_MS / 60_000}-minute limit.`;
+        settle(() => reject(new Error(message)));
+      };
+      const armInactivityTimer = (): void => {
+        if (settled) {
+          return;
+        }
+        window.clearTimeout(inactivityTimer);
+        inactivityTimer = window.setTimeout(() => expire('inactivity'), PRINT_INACTIVITY_TIMEOUT_MS);
+      };
+      absoluteTimer = window.setTimeout(() => expire('absolute'), PRINT_ABSOLUTE_TIMEOUT_MS);
+      armInactivityTimer();
 
-      proc.stdout.on('data', (chunk: Buffer | string) => {
-        stdout = appendLimited(stdout, chunk, stdoutDecoder);
+      proc.stdout?.on('data', (chunk: Buffer | string) => {
+        armInactivityTimer();
+        stdoutBytesSeen += chunk.length;
+        if (streamParser) {
+          streamParser.write(stdoutDecoder.write(chunk));
+        } else {
+          stdout = appendLimited(stdout, chunk, stdoutDecoder);
+        }
         if (!sawStdout) {
           sawStdout = true;
           this.plugin.recordDebugLog?.({
             data: {
               pid: proc.pid ?? -1,
               providerId: this.providerId,
-              stdoutBytes: stdout.length,
+              stdoutBytes: stdoutBytesSeen,
             },
             event: 'print.stdout',
             level: 'debug',
@@ -431,7 +578,9 @@ export class AntigravityChatRuntime implements ChatRuntime {
           });
         }
       });
-      proc.stderr.on('data', (chunk: Buffer | string) => {
+      proc.stderr?.on('data', (chunk: Buffer | string) => {
+        armInactivityTimer();
+        stderrBytesSeen += chunk.length;
         stderr = appendLimited(stderr, chunk, stderrDecoder);
         if (!sawStderr) {
           sawStderr = true;
@@ -439,7 +588,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
             data: {
               pid: proc.pid ?? -1,
               providerId: this.providerId,
-              stderrBytes: stderr.length,
+              stderrBytes: stderrBytesSeen,
               stderrPreview: summarizeCliText(stderr),
             },
             event: 'print.stderr',
@@ -447,6 +596,20 @@ export class AntigravityChatRuntime implements ChatRuntime {
             scope: 'provider.antigravity',
           });
         }
+      });
+      proc.on('exit', () => {
+        // Killing a cmd.exe wrapper (the default Windows launch shape)
+        // orphans the real CLI, which inherits the pipe handles and can keep
+        // `close` from ever firing. Force the streams closed shortly after
+        // the process itself is gone so the run still settles; buffered
+        // output has long since drained by then.
+        drainGraceTimer = window.setTimeout(() => {
+          if (settled || sawClose) {
+            return;
+          }
+          proc.stdout?.destroy();
+          proc.stderr?.destroy();
+        }, PRINT_DRAIN_GRACE_MS);
       });
       proc.on('error', (error) => {
         settle(() => {
@@ -462,26 +625,80 @@ export class AntigravityChatRuntime implements ChatRuntime {
           reject(error instanceof Error ? error : new Error(String(error)));
         });
       });
-      proc.on('exit', (code, signal) => {
+      // `exit` can fire before the final stdout chunks drain from the pipe,
+      // and the result frame is agy's last write, so the outcome is only
+      // settled on `close`, which Node emits once stdio has flushed too.
+      proc.on('close', (code, signal) => {
+        sawClose = true;
+        window.clearTimeout(drainGraceTimer);
+        // A routine user cancel is identified per process: the instance flag
+        // may already belong to a newer turn by the time this close lands.
+        const cancelledByUser = this.cancelledProcesses.has(proc);
+        const status = signal ? `signal ${signal}` : `code ${code ?? 'unknown'}`;
+        this.plugin.recordDebugLog?.({
+          data: {
+            durationMs: Date.now() - startedAt,
+            pid: proc.pid ?? -1,
+            providerId: this.providerId,
+            signal: signal ?? 'none',
+            status,
+            stderrBytes: stderrBytesSeen,
+            stdoutBytes: stdoutBytesSeen,
+          },
+          event: 'print.close',
+          level: 'debug',
+          scope: 'provider.antigravity',
+        });
         settle(() => {
           void (async () => {
-            const status = signal ? `signal ${signal}` : `code ${code ?? 'unknown'}`;
             this.plugin.recordDebugLog?.({
               data: {
                 durationMs: Date.now() - startedAt,
                 providerId: this.providerId,
                 status,
-                stderrBytes: stderr.length,
+                stderrBytes: stderrBytesSeen,
                 stderrPreview: summarizeCliText(stderr),
-                stdoutBytes: stdout.length,
+                stdoutBytes: stdoutBytesSeen,
               },
               event: code === 0 ? 'print.exit' : 'print.failed',
               level: code === 0 ? 'info' : 'error',
               scope: 'provider.antigravity',
             });
+            flushStreamParser();
+            const streamResult = streamParser?.getResult() ?? null;
+            let succeeded = false;
             try {
+              const answeredResult = streamResult?.response.trim() ? streamResult : null;
+              if (answeredResult) {
+                // A complete streamed answer wins over the exit code: agy
+                // emits status ERROR for tool-permission bookkeeping defects
+                // after the agent has already finished its work, and the
+                // text_delta frames sum exactly to result.response. Surface
+                // the CLI complaint as a trailing note, not a hard failure.
+                if (answeredResult.status === 'ERROR') {
+                  this.plugin.recordDebugLog?.({
+                    data: {
+                      errorPreview: summarizeCliText(answeredResult.error ?? ''),
+                      providerId: this.providerId,
+                    },
+                    event: 'print.resultErrorWithAnswer',
+                    level: 'warn',
+                    scope: 'provider.antigravity',
+                  });
+                }
+                succeeded = true;
+                resolve(formatAntigravityAnswerWithNotice(answeredResult));
+                return;
+              }
+              if (streamResult?.status === 'ERROR') {
+                // agy writes a structured result before exiting non-zero;
+                // its error string says why, while the exit code alone does not.
+                reject(new Error(formatAntigravityResultError(streamResult)));
+                return;
+              }
               if (code === 0) {
-                const transcriptOutput = stdout
+                const directOutput = stdout;
+                const transcriptOutput = directOutput
                   ? ''
                   : await recoverAntigravityPrintOutputFromTranscript(printLogFilePath, spec.runtimeEnv);
                 if (transcriptOutput) {
@@ -495,32 +712,33 @@ export class AntigravityChatRuntime implements ChatRuntime {
                     scope: 'provider.antigravity',
                   });
                 }
-                resolve(stdout || transcriptOutput);
+                succeeded = Boolean(directOutput || transcriptOutput);
+                resolve(directOutput || transcriptOutput);
                 return;
               }
 
               reject(new Error(formatAntigravityExitError(code, signal, stderr)));
             } finally {
-              await fs.unlink(printLogFilePath).catch(() => undefined);
+              // The log file is the only place agy records the real
+              // wall-clock cause of an aborted run, so keep it for
+              // diagnosis and remove it only once the turn produced an
+              // answer. A routine user cancel is not a failure worth
+              // diagnosing, so those logs are removed too.
+              if (succeeded || cancelledByUser) {
+                await fs.unlink(printLogFilePath).catch(() => undefined);
+              } else {
+                this.plugin.recordDebugLog?.({
+                  data: {
+                    logFilePath: printLogFilePath,
+                    providerId: this.providerId,
+                  },
+                  event: 'print.logFilePreserved',
+                  level: 'warn',
+                  scope: 'provider.antigravity',
+                });
+              }
             }
           })().catch(reject);
-        });
-      });
-      proc.on('close', (code, signal) => {
-        const status = signal ? `signal ${signal}` : `code ${code ?? 'unknown'}`;
-        this.plugin.recordDebugLog?.({
-          data: {
-            durationMs: Date.now() - startedAt,
-            pid: proc.pid ?? -1,
-            providerId: this.providerId,
-            signal: signal ?? 'none',
-            status,
-            stderrBytes: stderr.length,
-            stdoutBytes: stdout.length,
-          },
-          event: 'print.close',
-          level: 'debug',
-          scope: 'provider.antigravity',
         });
       });
     });
@@ -634,7 +852,19 @@ export function buildAntigravityPrintArgs(spec: AntigravityPrintArgsSpec): strin
   if (spec.model) {
     args.push('--model', spec.model);
   }
-  args.push('--print', spec.prompt);
+  if (spec.printTimeout) {
+    // Without an explicit value agy defaults its own print timeout to five
+    // minutes and kills healthy long turns before Grimoire can see why (#70).
+    args.push('--print-timeout', ANTIGRAVITY_PRINT_TIMEOUT_FLAG);
+  }
+  if (spec.streamJson) {
+    // agy rejects `--print` combined with `--input-format stream-json`, so the
+    // prompt moves to stdin and never touches argv: on Windows the whole
+    // transcript as one argv argument hits CreateProcess's ~32k limit (#69).
+    args.push('--input-format', 'stream-json', '--output-format', 'stream-json');
+  } else {
+    args.push('--print', spec.prompt);
+  }
   return args;
 }
 
@@ -799,16 +1029,20 @@ function getCwdLabel(plugin: GrimoirePlugin, cwd: string): string {
 
 function summarizeAntigravityPrintArgs(args: string[]): string {
   return args.map((arg, index) => {
-    if (arg === '--print' || arg === '--add-dir') {
+    if (arg === '--print' || arg === '--add-dir' || arg === '--log-file') {
       return arg;
     }
     if (index > 0 && args[index - 1] === '--print') {
       return '<prompt>';
     }
-    // Keep the absolute vault path out of debug logs; the shared sanitizer's
-    // path redaction does not cover every platform's home prefixes.
+    // Keep the absolute vault path and the temp log path (which embeds the
+    // username) out of debug logs; the shared sanitizer's path redaction
+    // does not cover every platform's home and temp prefixes.
     if (index > 0 && args[index - 1] === '--add-dir') {
       return '<vault-path>';
+    }
+    if (index > 0 && args[index - 1] === '--log-file') {
+      return '<log-path>';
     }
     return arg;
   }).join(' ');
@@ -837,4 +1071,25 @@ function formatAntigravityExitError(
   const message = `Antigravity CLI exited (${status})`;
   const details = stderr.trim();
   return details ? `${message}\n\n${details}` : message;
+}
+
+function formatAntigravityResultError(result: AntigravityResultFrame): string {
+  const detail = result.error?.trim() || `status ${result.status}`;
+  return `Antigravity CLI reported an error: ${detail}`;
+}
+
+/**
+ * agy can flag `status:"ERROR"` for CLI-internal tool-permission bookkeeping
+ * after the agent has already streamed a complete answer; the answer is real
+ * (the text_delta frames sum exactly to result.response), so it survives and
+ * the complaint rides along as a trailing note instead of a hard failure.
+ */
+function formatAntigravityAnswerWithNotice(result: AntigravityResultFrame): string {
+  const detail = result.status === 'ERROR'
+    ? result.error?.trim().replace(/\s+/g, ' ')
+    : '';
+  if (!detail) {
+    return result.response;
+  }
+  return `${result.response}\n\n> Warning: Antigravity CLI reported an error after this answer: ${detail.slice(0, 500)}`;
 }
