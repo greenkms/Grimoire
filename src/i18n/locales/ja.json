@@ -552,7 +552,8 @@
         "orphaned": "孤立",
         "inProgress": "進行中",
         "errorUpper": "エラー",
-        "doneUpper": "完了"
+        "doneUpper": "完了",
+        "antigravityWorking": "Antigravity が処理中 — {seconds} 秒"
       },
       "subagent": {
         "task": "サブエージェントタスク",

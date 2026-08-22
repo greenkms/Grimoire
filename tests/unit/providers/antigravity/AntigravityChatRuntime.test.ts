@@ -724,6 +724,206 @@ describe('AntigravityChatRuntime', () => {
     expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
   });
 
+  // A frame travels stdout -> decoder -> parser -> queue -> generator -> the
+  // consuming loop, so several event-loop turns separate the write from the
+  // chunk landing in the collected array.
+  async function flushStreamedChunks(turns = 6): Promise<void> {
+    for (let i = 0; i < turns; i += 1) {
+      await new Promise((resolve) => setImmediate(resolve));
+    }
+  }
+
+  // Starts consuming without waiting for the run to finish, so the test can
+  // assert that progress reached the chat while agy was still working.
+  function pumpChunks(generator: AsyncGenerator<StreamChunk>): {
+    chunks: StreamChunk[];
+    done: Promise<void>;
+  } {
+    const chunks: StreamChunk[] = [];
+    const done = (async () => {
+      for await (const chunk of generator) {
+        chunks.push(chunk);
+      }
+    })();
+    return { chunks, done };
+  }
+
+  async function settleStreamJsonProbe(probeProc: any): Promise<void> {
+    await new Promise((resolve) => setImmediate(resolve));
+    probeProc.stdout.write('Usage: agy\n  --input-format <f>\n  --output-format <f>\n');
+    probeProc.emit('close', 0, null);
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+
+  function mockStreamJsonSpawn(probeProc: any, printProc: any): void {
+    mockedSpawn.mockImplementation((command: string, args: string[]) => {
+      if (isHelpProbeArgs(args)) return probeProc;
+      return printProc;
+    });
+  }
+
+  it('streams text deltas into the chat before agy exits', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const probeProc = createMockChildProcess();
+    const printProc = createMockChildProcess({ stdin: true });
+    mockStreamJsonSpawn(probeProc, printProc);
+
+    const { chunks, done } = pumpChunks(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
+    await settleStreamJsonProbe(probeProc);
+
+    writeStreamJsonFrame(printProc, {
+      event: 'step_update',
+      step_update: { state: 'ACTIVE', step_type: 'agent_response', text_delta: 'Half ' },
+    });
+    await flushStreamedChunks();
+
+    // The process has not exited yet: this is the regression that proves the
+    // answer is rendered live instead of only after `close`.
+    expect(chunks).toContainEqual({ content: 'Half ', type: 'text' });
+
+    writeStreamJsonFrame(printProc, {
+      event: 'step_update',
+      step_update: { state: 'DONE', step_type: 'agent_response', text_delta: 'an answer' },
+    });
+    writeStreamJsonResult(printProc, { response: 'Half an answer', status: 'SUCCESS' });
+    emitProcessExit(printProc, 0, null);
+    await done;
+
+    const streamed = chunks
+      .filter((chunk): chunk is Extract<StreamChunk, { type: 'text' }> => chunk.type === 'text')
+      .map((chunk) => chunk.content)
+      .join('');
+    // The deltas already carry the whole answer, so the result frame must not
+    // repeat it at the end of the turn.
+    expect(streamed).toBe('Half an answer');
+    expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
+  });
+
+  it('renders agy tool steps as tool cards while the run is open', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const probeProc = createMockChildProcess();
+    const printProc = createMockChildProcess({ stdin: true });
+    mockStreamJsonSpawn(probeProc, printProc);
+
+    const { chunks, done } = pumpChunks(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
+    await settleStreamJsonProbe(probeProc);
+
+    writeStreamJsonFrame(printProc, {
+      event: 'step_update',
+      step_update: {
+        state: 'ACTIVE',
+        step_index: 3,
+        step_type: 'tool',
+        tool_info: { name: 'run_command', parameters: { CommandLine: 'echo hi' } },
+        tool_name: 'run_command',
+      },
+    });
+    await flushStreamedChunks();
+    expect(chunks).toContainEqual({
+      id: 'antigravity-step-3',
+      input: { CommandLine: 'echo hi' },
+      name: 'run_command',
+      type: 'tool_use',
+    });
+
+    writeStreamJsonFrame(printProc, {
+      event: 'step_update',
+      step_update: {
+        duration_seconds: 0.4,
+        state: 'DONE',
+        step_index: 3,
+        step_type: 'tool',
+        tool_name: 'run_command',
+      },
+    });
+    await flushStreamedChunks();
+    expect(chunks).toContainEqual({
+      content: '',
+      id: 'antigravity-step-3',
+      type: 'tool_result',
+    });
+
+    writeStreamJsonResult(printProc, { response: 'Done', status: 'SUCCESS' });
+    emitProcessExit(printProc, 0, null);
+    await done;
+    expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
+  });
+
+  it('appends only the untold tail when the result adds a warning to a streamed answer', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const probeProc = createMockChildProcess();
+    const printProc = createMockChildProcess({ stdin: true });
+    mockStreamJsonSpawn(probeProc, printProc);
+
+    const { chunks, done } = pumpChunks(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
+    await settleStreamJsonProbe(probeProc);
+
+    writeStreamJsonFrame(printProc, {
+      event: 'step_update',
+      step_update: { state: 'DONE', step_type: 'agent_response', text_delta: 'The answer' },
+    });
+    writeStreamJsonResult(printProc, {
+      error: 'tool permission bookkeeping failed',
+      response: 'The answer',
+      status: 'ERROR',
+    });
+    emitProcessExit(printProc, 0, null);
+    await done;
+
+    const texts = chunks
+      .filter((chunk): chunk is Extract<StreamChunk, { type: 'text' }> => chunk.type === 'text')
+      .map((chunk) => chunk.content);
+    expect(texts.join('')).toBe(
+      'The answer\n\n> Warning: Antigravity CLI reported an error after this answer:'
+      + ' tool permission bookkeeping failed',
+    );
+    // The delta already carried the answer, so the result frame may only add
+    // the warning on top of it instead of repeating the answer itself.
+    expect(texts).toEqual([
+      'The answer',
+      '\n\n> Warning: Antigravity CLI reported an error after this answer:'
+      + ' tool permission bookkeeping failed',
+    ]);
+  });
+
+  it('still delivers a recovered transcript answer that was never streamed', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    jest.spyOn(runtime as any, 'runPrint').mockResolvedValue('Recovered from transcript');
+
+    const chunks = await collect(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
+
+    expect(chunks).toContainEqual({ content: 'Recovered from transcript', type: 'text' });
+  });
+
+  it('reports an empty response as an error even after tool cards were rendered', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const probeProc = createMockChildProcess();
+    const printProc = createMockChildProcess({ stdin: true });
+    mockStreamJsonSpawn(probeProc, printProc);
+
+    const { chunks, done } = pumpChunks(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
+    await settleStreamJsonProbe(probeProc);
+
+    writeStreamJsonFrame(printProc, {
+      event: 'step_update',
+      step_update: {
+        state: 'ACTIVE',
+        step_index: 1,
+        step_type: 'tool',
+        tool_name: 'view_file',
+      },
+    });
+    writeStreamJsonResult(printProc, { response: '', status: 'SUCCESS' });
+    emitProcessExit(printProc, 0, null);
+    await done;
+
+    expect(chunks).toContainEqual({
+      type: 'error',
+      content: 'Antigravity finished without a response.'
+        + ' Check authentication or run agy --print in a terminal, then retry.',
+    });
+  });
+
   it('rejects with the structured result error when agy reports status ERROR', async () => {
     const runtime = new AntigravityChatRuntime(createMockPlugin());
     const probeProc = createMockChildProcess();

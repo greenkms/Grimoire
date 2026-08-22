@@ -552,7 +552,8 @@
         "orphaned": "Orphelin",
         "inProgress": "en cours",
         "errorUpper": "ERREUR",
-        "doneUpper": "TERMINÉ"
+        "doneUpper": "TERMINÉ",
+        "antigravityWorking": "Antigravity travaille — {seconds} s"
       },
       "subagent": {
         "task": "Tâche de sous-agent",

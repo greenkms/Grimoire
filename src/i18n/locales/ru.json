@@ -552,7 +552,8 @@
         "orphaned": "Отсоединено",
         "inProgress": "в процессе",
         "errorUpper": "ОШИБКА",
-        "doneUpper": "ГОТОВО"
+        "doneUpper": "ГОТОВО",
+        "antigravityWorking": "Antigravity работает — {seconds} с"
       },
       "subagent": {
         "task": "Задача подагента",

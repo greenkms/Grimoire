@@ -1,3 +1,4 @@
+import type { AntigravityStreamEvent } from '@/providers/antigravity/runtime/AntigravityStreamJson';
 import {
   createAntigravityStreamJsonParser,
   formatAntigravityUserEvent,
@@ -134,6 +135,175 @@ describe('AntigravityStreamJson', () => {
         response: '修改文件',
         status: 'SUCCESS',
       });
+    });
+  });
+
+  describe('live progress events', () => {
+    function collect(): { events: AntigravityStreamEvent[]; onEvent: (event: AntigravityStreamEvent) => void } {
+      const events: AntigravityStreamEvent[] = [];
+      return { events, onEvent: (event) => events.push(event) };
+    }
+
+    it('reports text deltas in arrival order while the run is still open', () => {
+      const { events, onEvent } = collect();
+      const parser = createAntigravityStreamJsonParser({ onEvent });
+      parser.write(`${JSON.stringify({
+        event: 'step_update',
+        step_update: { state: 'ACTIVE', step_type: 'agent_response', text_delta: 'Hello ' },
+      })}\n`);
+      parser.write(`${JSON.stringify({
+        event: 'step_update',
+        step_update: { state: 'DONE', step_type: 'agent_response', text_delta: 'world' },
+      })}\n`);
+
+      expect(events).toEqual([
+        { text: 'Hello ', type: 'text' },
+        { text: 'world', type: 'text' },
+      ]);
+    });
+
+    it('pairs a tool start with its completion through the shared step index', () => {
+      const { events, onEvent } = collect();
+      const parser = createAntigravityStreamJsonParser({ onEvent });
+      parser.write(`${JSON.stringify({
+        event: 'step_update',
+        step_update: {
+          state: 'ACTIVE',
+          step_index: 3,
+          step_type: 'tool',
+          tool_info: { name: 'run_command', parameters: { CommandLine: 'echo hi' } },
+          tool_name: 'run_command',
+        },
+      })}\n`);
+      parser.write(`${JSON.stringify({
+        event: 'step_update',
+        step_update: {
+          duration_seconds: 0.4038462,
+          state: 'DONE',
+          step_index: 3,
+          step_type: 'tool',
+          tool_info: { name: 'run_command', parameters: { CommandLine: 'echo hi' } },
+          tool_name: 'run_command',
+        },
+      })}\n`);
+
+      expect(events).toEqual([
+        {
+          input: { CommandLine: 'echo hi' },
+          stepIndex: 3,
+          toolName: 'run_command',
+          type: 'tool_start',
+        },
+        {
+          durationSeconds: 0.4038462,
+          stepIndex: 3,
+          toolName: 'run_command',
+          type: 'tool_end',
+        },
+      ]);
+    });
+
+    it('keeps sequential tools apart when agy omits the step index', () => {
+      const { events, onEvent } = collect();
+      const parser = createAntigravityStreamJsonParser({ onEvent });
+      for (const state of ['ACTIVE', 'DONE']) {
+        parser.write(`${JSON.stringify({
+          event: 'step_update',
+          step_update: { state, step_type: 'tool', tool_name: 'view_file' },
+        })}\n`);
+      }
+      for (const state of ['ACTIVE', 'DONE']) {
+        parser.write(`${JSON.stringify({
+          event: 'step_update',
+          step_update: { state, step_type: 'tool', tool_name: 'run_command' },
+        })}\n`);
+      }
+
+      const indices = events.map((event) => (event.type === 'text' ? null : event.stepIndex));
+      expect(indices).toEqual([0, 0, 1, 1]);
+    });
+
+    it('ignores lifecycle frames that carry no user-visible progress', () => {
+      const { events, onEvent } = collect();
+      const parser = createAntigravityStreamJsonParser({ onEvent });
+      parser.write(`${JSON.stringify({ event: 'init', init: { cwd: '/vault' } })}\n`);
+      parser.write(`${JSON.stringify({
+        event: 'step_update',
+        step_update: { state: 'DONE', step_type: 'user_input' },
+      })}\n`);
+      parser.write(`${JSON.stringify({
+        event: 'step_update',
+        step_update: { state: 'DONE', step_type: 'checkpoint' },
+      })}\n`);
+      parser.write(`${JSON.stringify({
+        event: 'step_update',
+        step_update: { state: 'DONE', step_type: 'agent_response', text_delta: '' },
+      })}\n`);
+      parser.write(`${JSON.stringify({
+        event: 'result',
+        result: { response: 'done', status: 'SUCCESS' },
+      })}\n`);
+
+      expect(events).toEqual([]);
+      expect(parser.getResult()?.response).toBe('done');
+    });
+
+    it('concatenates the streamed deltas into exactly the final response', () => {
+      const { events, onEvent } = collect();
+      const parser = createAntigravityStreamJsonParser({ onEvent });
+      const deltas = ['Пишу ', 'файл', ' — готово'];
+      for (const [index, delta] of deltas.entries()) {
+        parser.write(`${JSON.stringify({
+          event: 'step_update',
+          step_update: {
+            state: index === deltas.length - 1 ? 'DONE' : 'ACTIVE',
+            step_type: 'agent_response',
+            text_delta: delta,
+          },
+        })}\n`);
+      }
+      parser.write(`${JSON.stringify({
+        event: 'result',
+        result: { response: deltas.join(''), status: 'SUCCESS' },
+      })}\n`);
+
+      const streamed = events
+        .filter((event): event is Extract<AntigravityStreamEvent, { type: 'text' }> => event.type === 'text')
+        .map((event) => event.text)
+        .join('');
+      expect(streamed).toBe(parser.getResult()?.response);
+    });
+
+    it('still parses the result when no progress listener is attached', () => {
+      const parser = createAntigravityStreamJsonParser();
+      parser.write(`${JSON.stringify({
+        event: 'step_update',
+        step_update: { state: 'ACTIVE', step_type: 'agent_response', text_delta: 'ignored' },
+      })}\n`);
+      parser.write(`${JSON.stringify({
+        event: 'result',
+        result: { response: 'ignored', status: 'SUCCESS' },
+      })}\n`);
+
+      expect(parser.getResult()?.response).toBe('ignored');
+    });
+
+    it('survives a listener that throws so one bad frame cannot abort the run', () => {
+      const parser = createAntigravityStreamJsonParser({
+        onEvent: () => {
+          throw new Error('listener exploded');
+        },
+      });
+
+      expect(() => parser.write(`${JSON.stringify({
+        event: 'step_update',
+        step_update: { state: 'ACTIVE', step_type: 'agent_response', text_delta: 'boom' },
+      })}\n`)).not.toThrow();
+      parser.write(`${JSON.stringify({
+        event: 'result',
+        result: { response: 'boom', status: 'SUCCESS' },
+      })}\n`);
+      expect(parser.getResult()?.response).toBe('boom');
     });
   });
 

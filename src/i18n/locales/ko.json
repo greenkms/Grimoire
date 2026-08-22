@@ -552,7 +552,8 @@
         "orphaned": "연결 끊김",
         "inProgress": "진행 중",
         "errorUpper": "오류",
-        "doneUpper": "완료"
+        "doneUpper": "완료",
+        "antigravityWorking": "Antigravity 작업 중 — {seconds}초"
       },
       "subagent": {
         "task": "하위 에이전트 작업",
