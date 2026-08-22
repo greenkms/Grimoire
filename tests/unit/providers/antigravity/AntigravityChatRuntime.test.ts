@@ -976,7 +976,7 @@ describe('AntigravityChatRuntime', () => {
         status: 'ERROR',
       });
 
-      jest.advanceTimersByTime(5 * 60 * 1000);
+      jest.advanceTimersByTime(10 * 60 * 1000);
       await expect(result).resolves.toContain('Everything else completed.');
     } finally {
       jest.useRealTimers();
@@ -999,15 +999,15 @@ describe('AntigravityChatRuntime', () => {
         runtimeEnv: process.env,
       });
 
-      jest.advanceTimersByTime(4 * 60 * 1000);
+      jest.advanceTimersByTime(9 * 60 * 1000);
       proc.stderr.write('log progress\n');
-      jest.advanceTimersByTime(4 * 60 * 1000);
+      jest.advanceTimersByTime(9 * 60 * 1000);
       expect(proc.kill).not.toHaveBeenCalled();
 
-      jest.advanceTimersByTime(5 * 60 * 1000);
+      jest.advanceTimersByTime(10 * 60 * 1000);
       expect(proc.kill).toHaveBeenCalledWith('SIGTERM');
 
-      await expect(result).rejects.toThrow('timed out after 5 minutes without CLI output');
+      await expect(result).rejects.toThrow('timed out after 10 minutes without CLI output or log activity');
     } finally {
       jest.useRealTimers();
     }
@@ -1210,7 +1210,7 @@ describe('AntigravityChatRuntime', () => {
       await fs.writeFile(logFilePath, 'simulated agy log\n');
       writeStreamJsonResult(proc, { response: 'Salvaged answer', status: 'SUCCESS' });
 
-      jest.advanceTimersByTime(5 * 60 * 1000);
+      jest.advanceTimersByTime(10 * 60 * 1000);
       await expect(result).resolves.toBe('Salvaged answer');
 
       // The turn produced an answer, so its log file is removed.
@@ -1240,21 +1240,68 @@ describe('AntigravityChatRuntime', () => {
         runtimeEnv: process.env,
       });
 
-      // Each frame refreshes the five-minute inactivity timer, so a healthy
+      // Each frame refreshes the ten-minute inactivity timer, so a healthy
       // multi-step run survives far past the old absolute limit.
-      for (let minute = 0; minute < 6; minute += 1) {
+      for (let minute = 0; minute < 2; minute += 1) {
         jest.advanceTimersByTime(4 * 60 * 1000);
         proc.stdout.write('working\n');
       }
       expect(proc.kill).not.toHaveBeenCalled();
 
-      jest.advanceTimersByTime(5 * 60 * 1000);
+      jest.advanceTimersByTime(10 * 60 * 1000);
       expect(proc.kill).toHaveBeenCalledWith('SIGTERM');
       jest.advanceTimersByTime(2_000);
       expect(proc.kill).toHaveBeenCalledWith('SIGKILL');
 
-      await expect(result).rejects.toThrow('timed out after 5 minutes without CLI output');
+      await expect(result).rejects.toThrow('timed out after 10 minutes without CLI output or log activity');
     } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('treats --log-file growth as liveness during a silent tool call', async () => {
+    jest.useFakeTimers();
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const proc = createMockChildProcess({ stdin: true });
+    mockedSpawn.mockReturnValue(proc);
+    // Real fs.stat cannot settle inside fake timers (its completion needs an
+    // event-loop I/O turn that advanced timers never yield), so the log size
+    // is served from a synchronous mock and flushed on microtasks.
+    let logSize = 0;
+    const statMock = jest.spyOn(fs, 'stat').mockImplementation(async () => ({ size: logSize }) as never);
+    const flushMicrotasks = async (): Promise<void> => {
+      for (let tick = 0; tick < 5; tick += 1) {
+        await Promise.resolve();
+      }
+    };
+    try {
+      const result = (runtime as any).runPrint({
+        cliCapabilities: STREAM_JSON_CAPABILITIES,
+        command: 'agy',
+        cwd: '/tmp/grimoire-antigravity-test-vault',
+        model: null,
+        permissionMode: 'full_access',
+        prompt: 'Silent long tool call',
+        runtimeEnv: process.env,
+      });
+
+      // The pipes stay silent, but agy keeps appending to its log file; every
+      // poll that observes growth refreshes the ten-minute inactivity timer.
+      for (let cycle = 0; cycle < 2; cycle += 1) {
+        logSize += 1_024;
+        jest.advanceTimersByTime(15_000);
+        await flushMicrotasks();
+        jest.advanceTimersByTime(9 * 60 * 1000);
+        expect(proc.kill).not.toHaveBeenCalled();
+      }
+
+      // Once the log stops growing too, the silent run is finally cut.
+      jest.advanceTimersByTime(10 * 60 * 1000);
+      expect(proc.kill).toHaveBeenCalledWith('SIGTERM');
+
+      await expect(result).rejects.toThrow('timed out after 10 minutes without CLI output or log activity');
+    } finally {
+      statMock.mockRestore();
       jest.useRealTimers();
     }
   });
