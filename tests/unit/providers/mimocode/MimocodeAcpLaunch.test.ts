@@ -86,4 +86,19 @@ describe('MiMoCode ACP launch', () => {
       mcpServers: [],
     });
   });
+
+  it('passes the managed config as MIMOCODE_CONFIG_CONTENT and never MIMOCODE_CONFIG', async () => {
+    const plugin = createAcpLaunchMockPlugin({
+      cliPath: 'C:\\Tools\\mimo.exe',
+      providerId: 'mimocode',
+    });
+    plugin.settings.providerConfigs.mimocode.environmentVariables = 'MIMOCODE_CONFIG=C:\\tmp\\user-mimocode.json';
+
+    const runtime = new MimocodeChatRuntime(plugin);
+    await expect(runtime.ensureReady()).resolves.toBe(true);
+
+    const launchEnv: NodeJS.ProcessEnv = MockAcpSubprocess.mock.calls[0][0].env;
+    expect(launchEnv.MIMOCODE_CONFIG_CONTENT).toBe('{}\n');
+    expect(launchEnv.MIMOCODE_CONFIG).toBeUndefined();
+  });
 });
