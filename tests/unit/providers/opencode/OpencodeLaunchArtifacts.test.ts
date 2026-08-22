@@ -176,7 +176,7 @@ describe('prepareOpencodeLaunchArtifacts', () => {
     expect(result.configPath).toBe(path.join(tmpRoot, '.grimoire', 'opencode', 'config.json'));
     expect(result.systemPromptPath).toBe(path.join(tmpRoot, '.grimoire', 'opencode', 'system.md'));
     expect(result.configContent).not.toContain('{file:');
-    const generatedConfig = JSON.parse(await fs.readFile(result.configPath, 'utf8'));
+    const generatedConfig = JSON.parse(result.configContent);
     expect(generatedConfig).toMatchObject({
       default_agent: 'build',
       providers: {

@@ -177,6 +177,23 @@ describe('MimocodeAuxQueryRunner', () => {
     expect(onTextChunk).toHaveBeenNthCalledWith(2, 'Fix title now');
   });
 
+  it('passes the managed config as MIMOCODE_CONFIG_CONTENT and never MIMOCODE_CONFIG', async () => {
+    const plugin = createMockPlugin();
+    plugin.settings.providerConfigs.mimocode.environmentVariables = 'MIMOCODE_CONFIG=C:/tmp/user-mimocode.json';
+    const runner = new MimocodeAuxQueryRunner(plugin, {
+      agentProfile: 'passive',
+      artifactPurpose: 'title-gen',
+    });
+
+    await expect(runner.query({
+      systemPrompt: 'Use this custom system prompt.',
+    }, 'Generate a title')).resolves.toBe('Fix title now');
+
+    const launchEnv: NodeJS.ProcessEnv = MockAcpSubprocess.mock.calls[0][0].env;
+    expect(launchEnv.MIMOCODE_CONFIG_CONTENT).toBe('{"default_agent":"grimoire-aux-passive"}\n');
+    expect(launchEnv.MIMOCODE_CONFIG).toBeUndefined();
+  });
+
   it('falls back to mimo from PATH when no CLI path is configured', async () => {
     const plugin = createMockPlugin();
     plugin.getResolvedProviderCliPath.mockReturnValue(null);

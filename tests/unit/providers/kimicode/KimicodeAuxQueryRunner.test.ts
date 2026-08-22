@@ -181,6 +181,23 @@ describe('KimicodeAuxQueryRunner', () => {
     expect(onTextChunk).toHaveBeenNthCalledWith(2, 'Fix title now');
   });
 
+  it('passes the managed config as KIMICODE_CONFIG_CONTENT and never KIMICODE_CONFIG', async () => {
+    const plugin = createMockPlugin();
+    plugin.settings.providerConfigs.kimicode.environmentVariables = 'KIMICODE_CONFIG=C:/tmp/user-kimicode.json';
+    const runner = new KimicodeAuxQueryRunner(plugin, {
+      agentProfile: 'passive',
+      artifactPurpose: 'title-gen',
+    });
+
+    await expect(runner.query({
+      systemPrompt: 'Use this custom system prompt.',
+    }, 'Generate a title')).resolves.toBe('Fix title now');
+
+    const launchEnv: NodeJS.ProcessEnv = MockAcpSubprocess.mock.calls[0][0].env;
+    expect(launchEnv.KIMICODE_CONFIG_CONTENT).toBe('{"default_agent":"grimoire-aux-passive"}\n');
+    expect(launchEnv.KIMICODE_CONFIG).toBeUndefined();
+  });
+
   it('falls back to kimi from PATH when no CLI path is configured', async () => {
     const plugin = createMockPlugin();
     plugin.getResolvedProviderCliPath.mockReturnValue(null);
