@@ -6,6 +6,7 @@ import {
   probeAntigravityCliCapabilities,
   resetAntigravityCliCapabilitiesCache,
 } from '@/providers/antigravity/runtime/AntigravityCliCapabilities';
+import { buildAntigravityProcessLaunch } from '@/providers/antigravity/runtime/AntigravityProcessLaunch';
 
 jest.mock('node:child_process', () => ({
   spawn: jest.fn(),
@@ -52,8 +53,9 @@ describe('probeAntigravityCliCapabilities', () => {
   it('detects every capability in agy --help output', async () => {
     const proc = createMockChildProcess();
     mockedSpawn.mockReturnValue(proc);
+    const runtimeEnv = { SHELL: '/bin/zsh' };
 
-    const promise = probeAntigravityCliCapabilities('/usr/local/bin/agy', { SHELL: '/bin/zsh' });
+    const promise = probeAntigravityCliCapabilities('/usr/local/bin/agy', runtimeEnv);
     emitHelpAndExit(proc, [
       'Usage: agy [flags]',
       '  --add-dir <dir>          Add a workspace directory',
@@ -68,10 +70,15 @@ describe('probeAntigravityCliCapabilities', () => {
       printTimeout: true,
       streamJson: true,
     });
+    // The launch shape (POSIX login shell, Windows cmd.exe wrapper, or a
+    // direct exec) is buildAntigravityProcessLaunch's decision, not this
+    // probe's; asserting through it keeps the expectation correct on every
+    // platform the suite runs on instead of hardcoding the POSIX shape.
+    const launch = buildAntigravityProcessLaunch('/usr/local/bin/agy', ['--help'], runtimeEnv);
     expect(mockedSpawn).toHaveBeenCalledWith(
-      '/bin/zsh',
-      ['-lc', 'exec "$0" "$@"', '/usr/local/bin/agy', '--help'],
-      expect.objectContaining({ shell: false }),
+      launch.command,
+      launch.args,
+      expect.objectContaining({ shell: launch.shell }),
     );
   });
 

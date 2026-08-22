@@ -114,10 +114,70 @@ function writeStreamJsonResult(
   writeStreamJsonFrame(proc, { event: 'result', result });
 }
 
+/**
+ * Undo the quoting `buildWindowsShellCommandLine` applies, so assertions can
+ * read the agy flags out of a `cmd.exe /d /s /c "<line>"` launch the same way
+ * they read them out of a POSIX one. Doubled trailing backslashes are left as
+ * written; no fixture path ends in one.
+ */
+function parseWindowsShellCommandLine(line: string): string[] {
+  const parsed: string[] = [];
+  let current = '';
+  let quoted = false;
+  let started = false;
+  for (let index = 0; index < line.length; index += 1) {
+    const char = line[index];
+    if (char === '"') {
+      if (quoted && line[index + 1] === '"') {
+        current += '"';
+        index += 1;
+      } else {
+        quoted = !quoted;
+        started = true;
+      }
+      continue;
+    }
+    if (char === ' ' && !quoted) {
+      if (started) {
+        parsed.push(current);
+        current = '';
+        started = false;
+      }
+      continue;
+    }
+    current += char;
+    started = true;
+  }
+  if (started) {
+    parsed.push(current);
+  }
+  return parsed;
+}
+
+/**
+ * Normalizes every launch shape `buildAntigravityProcessLaunch` can produce
+ * (POSIX login shell, Windows cmd.exe wrapper, direct exec) back to the agy
+ * arguments themselves, so the fixtures assert behavior instead of the host
+ * platform's process-launch convention.
+ */
+function toAgyArgs(spawnArgs: string[]): string[] {
+  if (spawnArgs[0] === '-lc' && spawnArgs[1] === 'exec "$0" "$@"') {
+    return spawnArgs.slice(3);
+  }
+  if (spawnArgs[0] === '/d' && spawnArgs[1] === '/s' && spawnArgs[2] === '/c') {
+    return parseWindowsShellCommandLine(spawnArgs[3] ?? '').slice(1);
+  }
+  return spawnArgs;
+}
+
+function isHelpProbeArgs(spawnArgs: string[]): boolean {
+  return toAgyArgs(spawnArgs).includes('--help');
+}
+
 function getSpawnedAgyArgs(): string[] {
   const printCall = mockedSpawn.mock.calls
     .map(([, args]: [string, string[]]) => {
-      const flagArgs = args[0] === '-lc' && args[1] === 'exec "$0" "$@"' ? args.slice(3) : args;
+      const flagArgs = toAgyArgs(args);
       const isPrint = flagArgs.includes('--print') || flagArgs.includes('--input-format');
       return { args: flagArgs, isPrint };
     })
@@ -127,7 +187,8 @@ function getSpawnedAgyArgs(): string[] {
 
 function getPrintLogFilePath(): string {
   const [, args] = mockedSpawn.mock.calls[mockedSpawn.mock.calls.length - 1] as [string, string[]];
-  return args[args.indexOf('--log-file') + 1];
+  const agyArgs = toAgyArgs(args);
+  return agyArgs[agyArgs.indexOf('--log-file') + 1];
 }
 
 // FIFOs exist on POSIX only; the drain-race test parks transcript recovery
@@ -491,7 +552,7 @@ describe('AntigravityChatRuntime', () => {
         prompt: 'Hello from transcript',
         runtimeEnv: process.env,
       });
-      const spawnArgs = mockedSpawn.mock.calls[0][1] as string[];
+      const spawnArgs = toAgyArgs(mockedSpawn.mock.calls[0][1] as string[]);
       const logFileArgIndex = spawnArgs.indexOf('--log-file');
       expect(logFileArgIndex).toBeGreaterThanOrEqual(0);
       const logFilePath = spawnArgs[logFileArgIndex + 1];
@@ -584,7 +645,7 @@ describe('AntigravityChatRuntime', () => {
     const probeProc = createMockChildProcess();
     const printProc = createMockChildProcess();
     mockedSpawn.mockImplementation((command: string, args: string[]) => {
-      if (args.includes('--help')) return probeProc;
+      if (isHelpProbeArgs(args)) return probeProc;
       return printProc;
     });
 
@@ -614,7 +675,7 @@ describe('AntigravityChatRuntime', () => {
     const probeProc = createMockChildProcess();
     const printProc = createMockChildProcess();
     mockedSpawn.mockImplementation((command: string, args: string[]) => {
-      if (args.includes('--help')) return probeProc;
+      if (isHelpProbeArgs(args)) return probeProc;
       return printProc;
     });
 
@@ -637,7 +698,7 @@ describe('AntigravityChatRuntime', () => {
     const printProc = createMockChildProcess({ stdin: true });
     const stdin = trackStdin(printProc);
     mockedSpawn.mockImplementation((command: string, args: string[]) => {
-      if (args.includes('--help')) return probeProc;
+      if (isHelpProbeArgs(args)) return probeProc;
       return printProc;
     });
 
@@ -654,7 +715,7 @@ describe('AntigravityChatRuntime', () => {
     await new Promise((resolve) => setImmediate(resolve));
 
     const spawnOptions = mockedSpawn.mock.calls
-      .filter(([, args]: [string, string[]]) => !args.includes('--help'))
+      .filter(([, args]: [string, string[]]) => !isHelpProbeArgs(args))
       .map(([, , options]: [string, string[], Record<string, unknown>]) => options)[0];
     expect(spawnOptions).toEqual(expect.objectContaining({
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -695,7 +756,7 @@ describe('AntigravityChatRuntime', () => {
     const probeProc = createMockChildProcess();
     const printProc = createMockChildProcess({ stdin: true });
     mockedSpawn.mockImplementation((command: string, args: string[]) => {
-      if (args.includes('--help')) return probeProc;
+      if (isHelpProbeArgs(args)) return probeProc;
       return printProc;
     });
 
@@ -724,7 +785,7 @@ describe('AntigravityChatRuntime', () => {
     const probeProc = createMockChildProcess();
     const printProc = createMockChildProcess({ stdin: true });
     mockedSpawn.mockImplementation((command: string, args: string[]) => {
-      if (args.includes('--help')) return probeProc;
+      if (isHelpProbeArgs(args)) return probeProc;
       return printProc;
     });
 
@@ -794,7 +855,7 @@ describe('AntigravityChatRuntime', () => {
         prompt: 'Hello from transcript',
         runtimeEnv: process.env,
       });
-      const spawnArgs = mockedSpawn.mock.calls[0][1] as string[];
+      const spawnArgs = toAgyArgs(mockedSpawn.mock.calls[0][1] as string[]);
       const logFilePath = spawnArgs[spawnArgs.indexOf('--log-file') + 1];
       await fs.mkdir(transcriptDir, { recursive: true });
       await fs.writeFile(logFilePath, [
@@ -1020,7 +1081,7 @@ describe('AntigravityChatRuntime', () => {
       const probeProc = createMockChildProcess();
       const printProc = createMockChildProcess({ stdin: true });
       mockedSpawn.mockImplementation((command: string, args: string[]) => {
-        if (args.includes('--help')) return probeProc;
+        if (isHelpProbeArgs(args)) return probeProc;
         return printProc;
       });
 
@@ -1052,7 +1113,7 @@ describe('AntigravityChatRuntime', () => {
     const printProc = createMockChildProcess({ stdin: true });
     const helpProbes = [firstProbeProc, secondProbeProc];
     mockedSpawn.mockImplementation((command: string, args: string[]) => {
-      if (args.includes('--help')) return helpProbes.shift();
+      if (isHelpProbeArgs(args)) return helpProbes.shift();
       return printProc;
     });
 
@@ -1088,7 +1149,7 @@ describe('AntigravityChatRuntime', () => {
     const secondProc = createMockChildProcess();
     const printProcs = [firstProc, secondProc];
     mockedSpawn.mockImplementation((command: string, args: string[]) => {
-      if (args.includes('--help')) return probeProc;
+      if (isHelpProbeArgs(args)) return probeProc;
       return printProcs.shift();
     });
 
@@ -1143,7 +1204,7 @@ describe('AntigravityChatRuntime', () => {
     const probeProc = createMockChildProcess();
     const printProc = createMockChildProcess();
     mockedSpawn.mockImplementation((command: string, args: string[]) => {
-      if (args.includes('--help')) return probeProc;
+      if (isHelpProbeArgs(args)) return probeProc;
       return printProc;
     });
 
@@ -1386,7 +1447,7 @@ describe('AntigravityChatRuntime', () => {
     const probeProc = createMockChildProcess();
     const printProc = createMockChildProcess();
     mockedSpawn.mockImplementation((command: string, args: string[]) => {
-      if (args.includes('--help')) return probeProc;
+      if (isHelpProbeArgs(args)) return probeProc;
       return printProc;
     });
 
@@ -1408,7 +1469,7 @@ describe('AntigravityChatRuntime', () => {
     const probeProc = createMockChildProcess();
     const printProc = createMockChildProcess();
     mockedSpawn.mockImplementation((command: string, args: string[]) => {
-      if (args.includes('--help')) return probeProc;
+      if (isHelpProbeArgs(args)) return probeProc;
       return printProc;
     });
 
