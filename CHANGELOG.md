@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.9 - 2026-08-22
+
+### Fixed
+
+- Fixed Antigravity turns failing with `spawn ENAMETOOLONG` on Windows once the conversation grew past roughly 32k characters: when `agy` supports it, the prompt now travels over stdin as stream-json instead of one oversized command-line argument (#69).
+- Stopped Antigravity from killing healthy turns at the five-minute mark: the print run now follows a 10-minute inactivity timer refreshed by CLI output and `agy` log-file growth, with a 30-minute absolute ceiling and `--print-timeout 29m` so the CLI self-terminates with a structured result first (#70).
+- Kept a fully streamed Antigravity answer even when `agy` flags a run-level error after the agent has already responded — refused tool arguments, stale task kills, scheduler conflicts, and cancellations now surface as a trailing warning note instead of discarding the reply.
+- Fixed OpenCode, MiMoCode, and Kimi Code being fully broken on Windows (empty model list, no chat turns): a file-based `OPENCODE_CONFIG`-style env var makes the CLIs' ACP mode hang or crash, so the managed config now travels as config content only and the system prompt is inlined into the config.
+
 ## 1.1.8 - 2026-08-20
 
 ### Fixed
