@@ -17,6 +17,10 @@ import {
   expandAntigravityVaultSkillInvocation,
 } from '@/providers/antigravity/runtime/AntigravityChatRuntime';
 import { resetAntigravityCliCapabilitiesCache } from '@/providers/antigravity/runtime/AntigravityCliCapabilities';
+import {
+  buildAntigravityProcessLaunch,
+  buildWindowsShellCommandLine,
+} from '@/providers/antigravity/runtime/AntigravityProcessLaunch';
 import { updateAntigravityProviderSettings } from '@/providers/antigravity/settings';
 
 jest.mock('node:child_process', () => ({
@@ -114,10 +118,86 @@ function writeStreamJsonResult(
   writeStreamJsonFrame(proc, { event: 'result', result });
 }
 
+/**
+ * Invert the quoting `buildWindowsShellCommandLine` applies, so assertions can
+ * read the agy flags out of a `cmd.exe /d /s /c "<line>"` launch the same way
+ * they read them out of a POSIX one. Kept lossless for every argument shape
+ * the launch builder can emit; `launch-shape normalization helpers` pins that
+ * against the producer.
+ */
+function parseWindowsShellCommandLine(line: string): string[] {
+  const parsed: string[] = [];
+  let current = '';
+  let quoted = false;
+  let started = false;
+  let index = 0;
+  while (index < line.length) {
+    const char = line[index];
+    if (char === '\\') {
+      let backslashes = 0;
+      while (line[index] === '\\') {
+        backslashes += 1;
+        index += 1;
+      }
+      // quoteWindowsArgument doubles the run that precedes a quote or the
+      // closing quote; every other run reaches the child verbatim.
+      const wasDoubled = line[index] === '"';
+      current += '\\'.repeat(wasDoubled ? Math.floor(backslashes / 2) : backslashes);
+      started = true;
+      continue;
+    }
+    index += 1;
+    if (char === '"') {
+      if (quoted && line[index] === '"') {
+        current += '"';
+        index += 1;
+      } else {
+        quoted = !quoted;
+      }
+      started = true;
+      continue;
+    }
+    if (char === ' ' && !quoted) {
+      if (started) {
+        parsed.push(current);
+        current = '';
+        started = false;
+      }
+      continue;
+    }
+    current += char;
+    started = true;
+  }
+  if (started) {
+    parsed.push(current);
+  }
+  return parsed;
+}
+
+/**
+ * Normalizes every launch shape `buildAntigravityProcessLaunch` can produce
+ * (POSIX login shell, Windows cmd.exe wrapper, direct exec) back to the agy
+ * arguments themselves, so the fixtures assert behavior instead of the host
+ * platform's process-launch convention.
+ */
+function toAgyArgs(spawnArgs: string[]): string[] {
+  if (spawnArgs[0] === '-lc' && spawnArgs[1] === 'exec "$0" "$@"') {
+    return spawnArgs.slice(3);
+  }
+  if (spawnArgs[0] === '/d' && spawnArgs[1] === '/s' && spawnArgs[2] === '/c') {
+    return parseWindowsShellCommandLine(spawnArgs[3] ?? '').slice(1);
+  }
+  return spawnArgs;
+}
+
+function isHelpProbeArgs(spawnArgs: string[]): boolean {
+  return toAgyArgs(spawnArgs).includes('--help');
+}
+
 function getSpawnedAgyArgs(): string[] {
   const printCall = mockedSpawn.mock.calls
     .map(([, args]: [string, string[]]) => {
-      const flagArgs = args[0] === '-lc' && args[1] === 'exec "$0" "$@"' ? args.slice(3) : args;
+      const flagArgs = toAgyArgs(args);
       const isPrint = flagArgs.includes('--print') || flagArgs.includes('--input-format');
       return { args: flagArgs, isPrint };
     })
@@ -127,7 +207,8 @@ function getSpawnedAgyArgs(): string[] {
 
 function getPrintLogFilePath(): string {
   const [, args] = mockedSpawn.mock.calls[mockedSpawn.mock.calls.length - 1] as [string, string[]];
-  return args[args.indexOf('--log-file') + 1];
+  const agyArgs = toAgyArgs(args);
+  return agyArgs[agyArgs.indexOf('--log-file') + 1];
 }
 
 // FIFOs exist on POSIX only; the drain-race test parks transcript recovery
@@ -491,7 +572,7 @@ describe('AntigravityChatRuntime', () => {
         prompt: 'Hello from transcript',
         runtimeEnv: process.env,
       });
-      const spawnArgs = mockedSpawn.mock.calls[0][1] as string[];
+      const spawnArgs = toAgyArgs(mockedSpawn.mock.calls[0][1] as string[]);
       const logFileArgIndex = spawnArgs.indexOf('--log-file');
       expect(logFileArgIndex).toBeGreaterThanOrEqual(0);
       const logFilePath = spawnArgs[logFileArgIndex + 1];
@@ -584,7 +665,7 @@ describe('AntigravityChatRuntime', () => {
     const probeProc = createMockChildProcess();
     const printProc = createMockChildProcess();
     mockedSpawn.mockImplementation((command: string, args: string[]) => {
-      if (args.includes('--help')) return probeProc;
+      if (isHelpProbeArgs(args)) return probeProc;
       return printProc;
     });
 
@@ -614,7 +695,7 @@ describe('AntigravityChatRuntime', () => {
     const probeProc = createMockChildProcess();
     const printProc = createMockChildProcess();
     mockedSpawn.mockImplementation((command: string, args: string[]) => {
-      if (args.includes('--help')) return probeProc;
+      if (isHelpProbeArgs(args)) return probeProc;
       return printProc;
     });
 
@@ -637,7 +718,7 @@ describe('AntigravityChatRuntime', () => {
     const printProc = createMockChildProcess({ stdin: true });
     const stdin = trackStdin(printProc);
     mockedSpawn.mockImplementation((command: string, args: string[]) => {
-      if (args.includes('--help')) return probeProc;
+      if (isHelpProbeArgs(args)) return probeProc;
       return printProc;
     });
 
@@ -654,7 +735,7 @@ describe('AntigravityChatRuntime', () => {
     await new Promise((resolve) => setImmediate(resolve));
 
     const spawnOptions = mockedSpawn.mock.calls
-      .filter(([, args]: [string, string[]]) => !args.includes('--help'))
+      .filter(([, args]: [string, string[]]) => !isHelpProbeArgs(args))
       .map(([, , options]: [string, string[], Record<string, unknown>]) => options)[0];
     expect(spawnOptions).toEqual(expect.objectContaining({
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -695,7 +776,7 @@ describe('AntigravityChatRuntime', () => {
     const probeProc = createMockChildProcess();
     const printProc = createMockChildProcess({ stdin: true });
     mockedSpawn.mockImplementation((command: string, args: string[]) => {
-      if (args.includes('--help')) return probeProc;
+      if (isHelpProbeArgs(args)) return probeProc;
       return printProc;
     });
 
@@ -724,7 +805,7 @@ describe('AntigravityChatRuntime', () => {
     const probeProc = createMockChildProcess();
     const printProc = createMockChildProcess({ stdin: true });
     mockedSpawn.mockImplementation((command: string, args: string[]) => {
-      if (args.includes('--help')) return probeProc;
+      if (isHelpProbeArgs(args)) return probeProc;
       return printProc;
     });
 
@@ -794,7 +875,7 @@ describe('AntigravityChatRuntime', () => {
         prompt: 'Hello from transcript',
         runtimeEnv: process.env,
       });
-      const spawnArgs = mockedSpawn.mock.calls[0][1] as string[];
+      const spawnArgs = toAgyArgs(mockedSpawn.mock.calls[0][1] as string[]);
       const logFilePath = spawnArgs[spawnArgs.indexOf('--log-file') + 1];
       await fs.mkdir(transcriptDir, { recursive: true });
       await fs.writeFile(logFilePath, [
@@ -1020,7 +1101,7 @@ describe('AntigravityChatRuntime', () => {
       const probeProc = createMockChildProcess();
       const printProc = createMockChildProcess({ stdin: true });
       mockedSpawn.mockImplementation((command: string, args: string[]) => {
-        if (args.includes('--help')) return probeProc;
+        if (isHelpProbeArgs(args)) return probeProc;
         return printProc;
       });
 
@@ -1052,7 +1133,7 @@ describe('AntigravityChatRuntime', () => {
     const printProc = createMockChildProcess({ stdin: true });
     const helpProbes = [firstProbeProc, secondProbeProc];
     mockedSpawn.mockImplementation((command: string, args: string[]) => {
-      if (args.includes('--help')) return helpProbes.shift();
+      if (isHelpProbeArgs(args)) return helpProbes.shift();
       return printProc;
     });
 
@@ -1088,7 +1169,7 @@ describe('AntigravityChatRuntime', () => {
     const secondProc = createMockChildProcess();
     const printProcs = [firstProc, secondProc];
     mockedSpawn.mockImplementation((command: string, args: string[]) => {
-      if (args.includes('--help')) return probeProc;
+      if (isHelpProbeArgs(args)) return probeProc;
       return printProcs.shift();
     });
 
@@ -1143,7 +1224,7 @@ describe('AntigravityChatRuntime', () => {
     const probeProc = createMockChildProcess();
     const printProc = createMockChildProcess();
     mockedSpawn.mockImplementation((command: string, args: string[]) => {
-      if (args.includes('--help')) return probeProc;
+      if (isHelpProbeArgs(args)) return probeProc;
       return printProc;
     });
 
@@ -1386,7 +1467,7 @@ describe('AntigravityChatRuntime', () => {
     const probeProc = createMockChildProcess();
     const printProc = createMockChildProcess();
     mockedSpawn.mockImplementation((command: string, args: string[]) => {
-      if (args.includes('--help')) return probeProc;
+      if (isHelpProbeArgs(args)) return probeProc;
       return printProc;
     });
 
@@ -1408,7 +1489,7 @@ describe('AntigravityChatRuntime', () => {
     const probeProc = createMockChildProcess();
     const printProc = createMockChildProcess();
     mockedSpawn.mockImplementation((command: string, args: string[]) => {
-      if (args.includes('--help')) return probeProc;
+      if (isHelpProbeArgs(args)) return probeProc;
       return printProc;
     });
 
@@ -1428,5 +1509,105 @@ describe('AntigravityChatRuntime', () => {
     expect(spawnLog?.data?.argsSummary).not.toContain('/tmp/grimoire-antigravity-test-vault');
     expect(spawnLog?.data?.argsSummary).toContain('--log-file <log-path>');
     expect(spawnLog?.data?.argsSummary).not.toMatch(/grimoire-antigravity-print-/);
+  });
+});
+
+describe('launch-shape normalization helpers', () => {
+  // Every argument shape buildAntigravityProcessLaunch can hand to cmd.exe,
+  // including the quoting edge cases quoteWindowsArgument exists for. Without
+  // this, a fixture that grew a path ending in a backslash would read back a
+  // different value on Windows only, and fail for a reason unrelated to it.
+  const LAUNCH_CASES: Array<{ args: string[]; command: string; name: string }> = [
+    {
+      args: ['--print', '--output-format', 'stream-json'],
+      command: 'agy',
+      name: 'plain flags',
+    },
+    {
+      args: ['--help'],
+      command: 'agy',
+      name: 'the capability probe',
+    },
+    {
+      args: ['--log-file', 'C:\\Users\\test\\AppData\\Local\\Temp\\grimoire-print\\agy.jsonl'],
+      command: 'C:\\Users\\test\\AppData\\agy.cmd',
+      name: 'a Windows log-file path',
+    },
+    {
+      args: ['--add-dir', 'C:\\Users\\test\\My Vault\\notes'],
+      command: 'C:\\Program Files\\agy\\agy.cmd',
+      name: 'paths containing spaces',
+    },
+    {
+      args: ['--print', 'a & b | c < d > e ^ f'],
+      command: 'agy.cmd',
+      name: 'cmd.exe metacharacters',
+    },
+    {
+      args: ['--print', 'привет 世界 🌍'],
+      command: 'agy.cmd',
+      name: 'multibyte prompt content',
+    },
+    {
+      args: ['--print', 'say "hi" now'],
+      command: 'agy.cmd',
+      name: 'quoted prompt content',
+    },
+    {
+      args: ['--add-dir', 'C:\\Users\\test\\vault\\'],
+      command: 'agy.cmd',
+      name: 'a trailing backslash',
+    },
+    {
+      args: ['--print', 'before\\"after'],
+      command: 'agy.cmd',
+      name: 'a backslash before a quote',
+    },
+    {
+      args: ['--print', ''],
+      command: 'agy.cmd',
+      name: 'an empty argument',
+    },
+  ];
+
+  it.each(LAUNCH_CASES)('parses $name back out of the cmd.exe command line', ({ args, command }) => {
+    expect(parseWindowsShellCommandLine(buildWindowsShellCommandLine(command, args)))
+      .toEqual([command, ...args]);
+  });
+
+  it.each(LAUNCH_CASES)('recovers $name from a Windows cmd.exe launch', ({ args, command }) => {
+    const launch = buildAntigravityProcessLaunch(command, args, {}, 'win32');
+
+    expect(launch.launchMode).toBe('cmdShell');
+    expect(toAgyArgs(launch.args)).toEqual(args);
+  });
+
+  it.each(LAUNCH_CASES)('recovers $name from a POSIX login-shell launch', ({ args, command }) => {
+    const launch = buildAntigravityProcessLaunch(command, args, { SHELL: '/bin/zsh' }, 'darwin');
+
+    expect(launch.launchMode).toBe('shellLogin');
+    expect(toAgyArgs(launch.args)).toEqual(args);
+  });
+
+  it('recovers arguments from a direct agy.exe launch', () => {
+    const launch = buildAntigravityProcessLaunch(
+      'C:\\Users\\test\\agy\\agy.exe',
+      ['--print', 'hello'],
+      {},
+      'win32',
+    );
+
+    expect(launch.launchMode).toBe('direct');
+    expect(toAgyArgs(launch.args)).toEqual(['--print', 'hello']);
+  });
+
+  it('detects the capability probe through every launch shape', () => {
+    const cmdShell = buildAntigravityProcessLaunch('agy', ['--help'], {}, 'win32');
+    const loginShell = buildAntigravityProcessLaunch('agy', ['--help'], { SHELL: '/bin/zsh' }, 'darwin');
+    const printLaunch = buildAntigravityProcessLaunch('agy', ['--print', 'hello'], {}, 'win32');
+
+    expect(isHelpProbeArgs(cmdShell.args)).toBe(true);
+    expect(isHelpProbeArgs(loginShell.args)).toBe(true);
+    expect(isHelpProbeArgs(printLaunch.args)).toBe(false);
   });
 });
