@@ -12,8 +12,8 @@ import {
   wireAcpMocks,
 } from '@test/helpers/acpLaunchMocks';
 
-import { OpencodeChatRuntime } from '@/providers/opencode/runtime/OpencodeChatRuntime';
-import { prepareOpencodeLaunchArtifacts } from '@/providers/opencode/runtime/OpencodeLaunchArtifacts';
+import { KimicodeChatRuntime } from '@/providers/kimicode/runtime/KimicodeChatRuntime';
+import { prepareKimicodeLaunchArtifacts } from '@/providers/kimicode/runtime/KimicodeLaunchArtifacts';
 
 import { AcpClientConnection, AcpJsonRpcTransport, AcpSubprocess } from '../../../../src/providers/acp';
 
@@ -27,20 +27,20 @@ jest.mock('../../../../src/providers/acp', () => {
   };
 });
 
-jest.mock('@/providers/opencode/runtime/OpencodeLaunchArtifacts', () => {
-  const actual = jest.requireActual('@/providers/opencode/runtime/OpencodeLaunchArtifacts');
+jest.mock('@/providers/kimicode/runtime/KimicodeLaunchArtifacts', () => {
+  const actual = jest.requireActual('@/providers/kimicode/runtime/KimicodeLaunchArtifacts');
   return {
     ...actual,
-    prepareOpencodeLaunchArtifacts: jest.fn(),
+    prepareKimicodeLaunchArtifacts: jest.fn(),
   };
 });
 
 const MockAcpClientConnection = AcpClientConnection as jest.MockedClass<typeof AcpClientConnection>;
 const MockAcpJsonRpcTransport = AcpJsonRpcTransport as jest.MockedClass<typeof AcpJsonRpcTransport>;
 const MockAcpSubprocess = AcpSubprocess as jest.MockedClass<typeof AcpSubprocess>;
-const mockPrepareOpencodeLaunchArtifacts = prepareOpencodeLaunchArtifacts as jest.MockedFunction<typeof prepareOpencodeLaunchArtifacts>;
+const mockPrepareKimicodeLaunchArtifacts = prepareKimicodeLaunchArtifacts as jest.MockedFunction<typeof prepareKimicodeLaunchArtifacts>;
 
-describe('OpenCode ACP launch', () => {
+describe('Kimi Code ACP launch', () => {
   let mockConnection: AcpLaunchMockConnection;
   let mockProcess: AcpLaunchMockProcess;
   let mockTransport: AcpLaunchMockTransport;
@@ -59,26 +59,26 @@ describe('OpenCode ACP launch', () => {
       transport: mockTransport,
       transportCtor: MockAcpJsonRpcTransport,
     });
-    mockPrepareOpencodeLaunchArtifacts.mockResolvedValue({
-      configPath: 'C:\\tmp\\grimoire-opencode\\config.json',
+    mockPrepareKimicodeLaunchArtifacts.mockResolvedValue({
+      configPath: 'C:\\tmp\\grimoire-kimicode\\config.json',
       configContent: '{}\n',
       databasePath: null,
       launchKey: 'launch-key',
-      systemPromptPath: 'C:\\tmp\\grimoire-opencode\\system.md',
+      systemPromptPath: 'C:\\tmp\\grimoire-kimicode\\system.md',
     });
   });
 
-  it('does not pass the workspace path through OpenCode CLI arguments', async () => {
-    const runtime = new OpencodeChatRuntime(createAcpLaunchMockPlugin({
-      cliPath: 'C:\\Tools\\opencode.exe',
-      providerId: 'opencode',
+  it('does not pass the workspace path through Kimi Code CLI arguments', async () => {
+    const runtime = new KimicodeChatRuntime(createAcpLaunchMockPlugin({
+      cliPath: 'C:\\Tools\\kimi.exe',
+      providerId: 'kimicode',
     }));
 
     await expect(runtime.ensureReady()).resolves.toBe(true);
 
     expect(MockAcpSubprocess).toHaveBeenCalledWith(expect.objectContaining({
       args: ['acp'],
-      command: 'C:\\Tools\\opencode.exe',
+      command: 'C:\\Tools\\kimi.exe',
       cwd: WINDOWS_UNICODE_VAULT,
     }));
     expect(mockConnection.newSession).toHaveBeenCalledWith({
@@ -87,18 +87,18 @@ describe('OpenCode ACP launch', () => {
     });
   });
 
-  it('passes the managed config as OPENCODE_CONFIG_CONTENT and never OPENCODE_CONFIG', async () => {
+  it('passes the managed config as KIMICODE_CONFIG_CONTENT and never KIMICODE_CONFIG', async () => {
     const plugin = createAcpLaunchMockPlugin({
-      cliPath: 'C:\\Tools\\opencode.exe',
-      providerId: 'opencode',
+      cliPath: 'C:\\Tools\\kimi.exe',
+      providerId: 'kimicode',
     });
-    plugin.settings.providerConfigs.opencode.environmentVariables = 'OPENCODE_CONFIG=C:\\tmp\\user-opencode.json';
+    plugin.settings.providerConfigs.kimicode.environmentVariables = 'KIMICODE_CONFIG=C:\\tmp\\user-kimicode.json';
 
-    const runtime = new OpencodeChatRuntime(plugin);
+    const runtime = new KimicodeChatRuntime(plugin);
     await expect(runtime.ensureReady()).resolves.toBe(true);
 
     const launchEnv: NodeJS.ProcessEnv = MockAcpSubprocess.mock.calls[0][0].env;
-    expect(launchEnv.OPENCODE_CONFIG_CONTENT).toBe('{}\n');
-    expect(launchEnv.OPENCODE_CONFIG).toBeUndefined();
+    expect(launchEnv.KIMICODE_CONFIG_CONTENT).toBe('{}\n');
+    expect(launchEnv.KIMICODE_CONFIG).toBeUndefined();
   });
 });

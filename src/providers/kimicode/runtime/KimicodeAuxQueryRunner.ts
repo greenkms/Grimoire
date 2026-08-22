@@ -203,7 +203,6 @@ export class KimicodeAuxQueryRunner implements AuxQueryRunner {
     this.reset();
     await this.startProcess({
       command: resolvedCliPath,
-      configPath: artifacts.configPath,
       configContent: artifacts.configContent,
       cwd,
       runtimeEnv,
@@ -241,7 +240,6 @@ export class KimicodeAuxQueryRunner implements AuxQueryRunner {
 
   private async startProcess(params: {
     command: string;
-    configPath: string;
     configContent: string;
     cwd: string;
     runtimeEnv: NodeJS.ProcessEnv;
@@ -249,10 +247,14 @@ export class KimicodeAuxQueryRunner implements AuxQueryRunner {
     const processEnv: NodeJS.ProcessEnv = {
       ...process.env,
       ...params.runtimeEnv,
-      KIMICODE_CONFIG: params.configPath,
       KIMICODE_CONFIG_CONTENT: params.configContent,
       PATH: params.runtimeEnv.PATH,
     };
+    // A file-based KIMICODE_CONFIG makes the acp mode hang or crash outright
+    // on Windows (Kimi Code mirrors the OpenCode CLI); the merged config must
+    // only travel as KIMICODE_CONFIG_CONTENT. Delete it explicitly so a
+    // user-configured value cannot leak through.
+    delete processEnv.KIMICODE_CONFIG;
 
     this.process = new AcpSubprocess({
       args: ['acp'],

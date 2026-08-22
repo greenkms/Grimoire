@@ -354,7 +354,7 @@ export class MimocodeChatRuntime implements ChatRuntime {
       }
       await this.startProcess({
         command: resolvedCliPath,
-        configPath: artifacts.configPath,
+        configContent: artifacts.configContent,
         cwd,
         runtimeEnv,
       });
@@ -704,19 +704,24 @@ export class MimocodeChatRuntime implements ChatRuntime {
 
   private async startProcess(params: {
     command: string;
-    configPath: string;
+    configContent: string;
     cwd: string;
     runtimeEnv: NodeJS.ProcessEnv;
   }): Promise<void> {
     const processEnv: NodeJS.ProcessEnv = {
       ...process.env,
       ...params.runtimeEnv,
-      MIMOCODE_CONFIG: params.configPath,
+      MIMOCODE_CONFIG_CONTENT: params.configContent,
       PATH: getEnhancedPath(
         params.runtimeEnv.PATH,
         path.isAbsolute(params.command) ? params.command : undefined,
       ),
     };
+    // A file-based MIMOCODE_CONFIG makes the acp mode hang or crash outright on
+    // Windows (MiMoCode mirrors the OpenCode CLI); the merged config must only
+    // travel as MIMOCODE_CONFIG_CONTENT. Delete it explicitly so a
+    // user-configured value cannot leak through.
+    delete processEnv.MIMOCODE_CONFIG;
 
     this.process = new AcpSubprocess({
       args: ['acp'],

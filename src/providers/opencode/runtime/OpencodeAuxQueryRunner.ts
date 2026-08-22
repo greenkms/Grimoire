@@ -203,7 +203,6 @@ export class OpencodeAuxQueryRunner implements AuxQueryRunner {
     this.reset();
     await this.startProcess({
       command: resolvedCliPath,
-      configPath: artifacts.configPath,
       configContent: artifacts.configContent,
       cwd,
       runtimeEnv,
@@ -241,7 +240,6 @@ export class OpencodeAuxQueryRunner implements AuxQueryRunner {
 
   private async startProcess(params: {
     command: string;
-    configPath: string;
     configContent: string;
     cwd: string;
     runtimeEnv: NodeJS.ProcessEnv;
@@ -249,10 +247,13 @@ export class OpencodeAuxQueryRunner implements AuxQueryRunner {
     const processEnv: NodeJS.ProcessEnv = {
       ...process.env,
       ...params.runtimeEnv,
-      OPENCODE_CONFIG: params.configPath,
       OPENCODE_CONFIG_CONTENT: params.configContent,
       PATH: params.runtimeEnv.PATH,
     };
+    // A file-based OPENCODE_CONFIG makes `opencode acp` hang or crash outright
+    // on Windows; the merged config must only travel as OPENCODE_CONFIG_CONTENT.
+    // Delete it explicitly so a user-configured value cannot leak through.
+    delete processEnv.OPENCODE_CONFIG;
 
     this.process = new AcpSubprocess({
       args: ['acp'],

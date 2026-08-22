@@ -349,7 +349,7 @@ export class OpencodeChatRuntime implements ChatRuntime {
       }
       await this.startProcess({
         command: resolvedCliPath,
-        configPath: artifacts.configPath,
+        configContent: artifacts.configContent,
         cwd,
         runtimeEnv,
       });
@@ -674,19 +674,23 @@ export class OpencodeChatRuntime implements ChatRuntime {
 
   private async startProcess(params: {
     command: string;
-    configPath: string;
+    configContent: string;
     cwd: string;
     runtimeEnv: NodeJS.ProcessEnv;
   }): Promise<void> {
     const processEnv: NodeJS.ProcessEnv = {
       ...process.env,
       ...params.runtimeEnv,
-      OPENCODE_CONFIG: params.configPath,
+      OPENCODE_CONFIG_CONTENT: params.configContent,
       PATH: getEnhancedPath(
         params.runtimeEnv.PATH,
         path.isAbsolute(params.command) ? params.command : undefined,
       ),
     };
+    // A file-based OPENCODE_CONFIG makes `opencode acp` hang or crash outright
+    // on Windows; the merged config must only travel as OPENCODE_CONFIG_CONTENT.
+    // Delete it explicitly so a user-configured value cannot leak through.
+    delete processEnv.OPENCODE_CONFIG;
 
     this.process = new AcpSubprocess({
       args: ['acp'],

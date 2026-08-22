@@ -38,7 +38,7 @@ export type AcpLaunchMockTransport = {
 
 export interface AcpLaunchMockPluginParams {
   cliPath: string;
-  providerId: 'opencode' | 'mimocode';
+  providerId: 'opencode' | 'mimocode' | 'kimicode';
   vaultPath?: string;
 }
 
