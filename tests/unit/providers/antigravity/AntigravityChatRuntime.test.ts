@@ -17,6 +17,10 @@ import {
   expandAntigravityVaultSkillInvocation,
 } from '@/providers/antigravity/runtime/AntigravityChatRuntime';
 import { resetAntigravityCliCapabilitiesCache } from '@/providers/antigravity/runtime/AntigravityCliCapabilities';
+import {
+  buildAntigravityProcessLaunch,
+  buildWindowsShellCommandLine,
+} from '@/providers/antigravity/runtime/AntigravityProcessLaunch';
 import { updateAntigravityProviderSettings } from '@/providers/antigravity/settings';
 
 jest.mock('node:child_process', () => ({
@@ -115,26 +119,42 @@ function writeStreamJsonResult(
 }
 
 /**
- * Undo the quoting `buildWindowsShellCommandLine` applies, so assertions can
+ * Invert the quoting `buildWindowsShellCommandLine` applies, so assertions can
  * read the agy flags out of a `cmd.exe /d /s /c "<line>"` launch the same way
- * they read them out of a POSIX one. Doubled trailing backslashes are left as
- * written; no fixture path ends in one.
+ * they read them out of a POSIX one. Kept lossless for every argument shape
+ * the launch builder can emit; `launch-shape normalization helpers` pins that
+ * against the producer.
  */
 function parseWindowsShellCommandLine(line: string): string[] {
   const parsed: string[] = [];
   let current = '';
   let quoted = false;
   let started = false;
-  for (let index = 0; index < line.length; index += 1) {
+  let index = 0;
+  while (index < line.length) {
     const char = line[index];
+    if (char === '\\') {
+      let backslashes = 0;
+      while (line[index] === '\\') {
+        backslashes += 1;
+        index += 1;
+      }
+      // quoteWindowsArgument doubles the run that precedes a quote or the
+      // closing quote; every other run reaches the child verbatim.
+      const wasDoubled = line[index] === '"';
+      current += '\\'.repeat(wasDoubled ? Math.floor(backslashes / 2) : backslashes);
+      started = true;
+      continue;
+    }
+    index += 1;
     if (char === '"') {
-      if (quoted && line[index + 1] === '"') {
+      if (quoted && line[index] === '"') {
         current += '"';
         index += 1;
       } else {
         quoted = !quoted;
-        started = true;
       }
+      started = true;
       continue;
     }
     if (char === ' ' && !quoted) {
@@ -1489,5 +1509,105 @@ describe('AntigravityChatRuntime', () => {
     expect(spawnLog?.data?.argsSummary).not.toContain('/tmp/grimoire-antigravity-test-vault');
     expect(spawnLog?.data?.argsSummary).toContain('--log-file <log-path>');
     expect(spawnLog?.data?.argsSummary).not.toMatch(/grimoire-antigravity-print-/);
+  });
+});
+
+describe('launch-shape normalization helpers', () => {
+  // Every argument shape buildAntigravityProcessLaunch can hand to cmd.exe,
+  // including the quoting edge cases quoteWindowsArgument exists for. Without
+  // this, a fixture that grew a path ending in a backslash would read back a
+  // different value on Windows only, and fail for a reason unrelated to it.
+  const LAUNCH_CASES: Array<{ args: string[]; command: string; name: string }> = [
+    {
+      args: ['--print', '--output-format', 'stream-json'],
+      command: 'agy',
+      name: 'plain flags',
+    },
+    {
+      args: ['--help'],
+      command: 'agy',
+      name: 'the capability probe',
+    },
+    {
+      args: ['--log-file', 'C:\\Users\\test\\AppData\\Local\\Temp\\grimoire-print\\agy.jsonl'],
+      command: 'C:\\Users\\test\\AppData\\agy.cmd',
+      name: 'a Windows log-file path',
+    },
+    {
+      args: ['--add-dir', 'C:\\Users\\test\\My Vault\\notes'],
+      command: 'C:\\Program Files\\agy\\agy.cmd',
+      name: 'paths containing spaces',
+    },
+    {
+      args: ['--print', 'a & b | c < d > e ^ f'],
+      command: 'agy.cmd',
+      name: 'cmd.exe metacharacters',
+    },
+    {
+      args: ['--print', 'привет 世界 🌍'],
+      command: 'agy.cmd',
+      name: 'multibyte prompt content',
+    },
+    {
+      args: ['--print', 'say "hi" now'],
+      command: 'agy.cmd',
+      name: 'quoted prompt content',
+    },
+    {
+      args: ['--add-dir', 'C:\\Users\\test\\vault\\'],
+      command: 'agy.cmd',
+      name: 'a trailing backslash',
+    },
+    {
+      args: ['--print', 'before\\"after'],
+      command: 'agy.cmd',
+      name: 'a backslash before a quote',
+    },
+    {
+      args: ['--print', ''],
+      command: 'agy.cmd',
+      name: 'an empty argument',
+    },
+  ];
+
+  it.each(LAUNCH_CASES)('parses $name back out of the cmd.exe command line', ({ args, command }) => {
+    expect(parseWindowsShellCommandLine(buildWindowsShellCommandLine(command, args)))
+      .toEqual([command, ...args]);
+  });
+
+  it.each(LAUNCH_CASES)('recovers $name from a Windows cmd.exe launch', ({ args, command }) => {
+    const launch = buildAntigravityProcessLaunch(command, args, {}, 'win32');
+
+    expect(launch.launchMode).toBe('cmdShell');
+    expect(toAgyArgs(launch.args)).toEqual(args);
+  });
+
+  it.each(LAUNCH_CASES)('recovers $name from a POSIX login-shell launch', ({ args, command }) => {
+    const launch = buildAntigravityProcessLaunch(command, args, { SHELL: '/bin/zsh' }, 'darwin');
+
+    expect(launch.launchMode).toBe('shellLogin');
+    expect(toAgyArgs(launch.args)).toEqual(args);
+  });
+
+  it('recovers arguments from a direct agy.exe launch', () => {
+    const launch = buildAntigravityProcessLaunch(
+      'C:\\Users\\test\\agy\\agy.exe',
+      ['--print', 'hello'],
+      {},
+      'win32',
+    );
+
+    expect(launch.launchMode).toBe('direct');
+    expect(toAgyArgs(launch.args)).toEqual(['--print', 'hello']);
+  });
+
+  it('detects the capability probe through every launch shape', () => {
+    const cmdShell = buildAntigravityProcessLaunch('agy', ['--help'], {}, 'win32');
+    const loginShell = buildAntigravityProcessLaunch('agy', ['--help'], { SHELL: '/bin/zsh' }, 'darwin');
+    const printLaunch = buildAntigravityProcessLaunch('agy', ['--print', 'hello'], {}, 'win32');
+
+    expect(isHelpProbeArgs(cmdShell.args)).toBe(true);
+    expect(isHelpProbeArgs(loginShell.args)).toBe(true);
+    expect(isHelpProbeArgs(printLaunch.args)).toBe(false);
   });
 });
