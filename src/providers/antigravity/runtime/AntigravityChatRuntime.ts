@@ -62,9 +62,13 @@ import {
 } from './AntigravityStreamJson';
 
 const OUTPUT_BUFFER_LIMIT = 64_000;
-// A healthy agy run emits a frame at every step transition, so pipe activity
-// refreshes the inactivity timer while a silent hang is still cut quickly.
-const PRINT_INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000;
+// agy emits stream-json frames on step transitions, not continuously: a single
+// long tool call can legitimately keep the pipes silent for many minutes (a
+// healthy ~5-minute `run_command` measured in the wild), so pipe silence only
+// implies a hang on this timescale. Log-file growth counts as liveness too,
+// and the 30-minute absolute ceiling stays the real backstop.
+const PRINT_INACTIVITY_TIMEOUT_MS = 10 * 60 * 1000;
+const PRINT_LOG_LIVENESS_POLL_MS = 15_000;
 // Absolute ceiling for one request, independent of how active the run stays.
 const PRINT_ABSOLUTE_TIMEOUT_MS = 30 * 60 * 1000;
 // How long `close` may lag `exit` while buffered stdio drains before the
@@ -460,6 +464,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
       let inactivityTimer: number | undefined;
       let absoluteTimer: number | undefined;
       let drainGraceTimer: number | undefined;
+      let logLivenessPoll: number | undefined;
       const settle = (callback: () => void): void => {
         if (settled) {
           return;
@@ -468,6 +473,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
         window.clearTimeout(inactivityTimer);
         window.clearTimeout(absoluteTimer);
         window.clearTimeout(drainGraceTimer);
+        window.clearInterval(logLivenessPoll);
         callback();
       };
       const expire = (reason: 'absolute' | 'inactivity'): void => {
@@ -542,7 +548,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
           return;
         }
         const message = reason === 'inactivity'
-          ? `Antigravity request timed out after ${PRINT_INACTIVITY_TIMEOUT_MS / 60_000} minutes without CLI output.`
+          ? `Antigravity request timed out after ${PRINT_INACTIVITY_TIMEOUT_MS / 60_000} minutes without CLI output or log activity.`
           : `Antigravity request exceeded the ${PRINT_ABSOLUTE_TIMEOUT_MS / 60_000}-minute limit.`;
         settle(() => reject(new Error(message)));
       };
@@ -555,6 +561,33 @@ export class AntigravityChatRuntime implements ChatRuntime {
       };
       absoluteTimer = window.setTimeout(() => expire('absolute'), PRINT_ABSOLUTE_TIMEOUT_MS);
       armInactivityTimer();
+      // agy keeps appending to its own log during a long silent tool call, so
+      // the log growing proves the run is alive even when no stream frames
+      // arrive on the pipes.
+      let lastLogSize = 0;
+      logLivenessPoll = window.setInterval(() => {
+        if (settled) {
+          return;
+        }
+        void fs.stat(printLogFilePath)
+          .then((stats) => {
+            if (settled || stats.size <= lastLogSize) {
+              return;
+            }
+            lastLogSize = stats.size;
+            this.plugin.recordDebugLog?.({
+              data: {
+                logBytes: stats.size,
+                providerId: this.providerId,
+              },
+              event: 'print.logLiveness',
+              level: 'debug',
+              scope: 'provider.antigravity',
+            });
+            armInactivityTimer();
+          })
+          .catch(() => undefined);
+      }, PRINT_LOG_LIVENESS_POLL_MS);
 
       proc.stdout?.on('data', (chunk: Buffer | string) => {
         armInactivityTimer();
