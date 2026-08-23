@@ -1,0 +1,7 @@
+# Git for Windows ships core.autocrlf=true in its system config, so a default
+# Windows clone materializes every tracked text file with CRLF while the index
+# stores LF. Multi-line template literals in src/ carry those bytes straight
+# into the minified bundle, so `npm run build:release` on Windows produces a
+# main.js that differs from the release CI builds on ubuntu-latest even with an
+# identical commit and toolchain. Pin the working tree to LF for everyone.
+* text=auto eol=lf
