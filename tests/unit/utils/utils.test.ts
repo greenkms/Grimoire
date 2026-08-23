@@ -481,6 +481,12 @@ describe('utils.ts', () => {
     // Windows runner: path.join would still produce `\`-separated candidates
     // that the POSIX fixtures below can never match. Skipped rather than
     // early-returned so the run reports them as skipped instead of passed.
+    //
+    // The whole block is skipped, not just the four cases that fail on
+    // Windows. The other two pass there only vacuously: both assert a null
+    // result, and on Windows this POSIX branch is unreachable, so they would
+    // return null no matter what the resolver did. Keeping them running would
+    // add two green lights that cannot measure a regression.
     describeOnPosix('on Unix/macOS', () => {
       beforeEach(() => {
         Object.defineProperty(process, 'platform', { value: 'darwin' });
@@ -501,6 +507,7 @@ describe('utils.ts', () => {
         expect(findClaudeCLIPath()).toBe('/home/test/.local/bin/claude');
       });
 
+      // Vacuous on Windows — see the note on describeOnPosix above.
       it('should return null when Claude CLI is not found', () => {
         jest.spyOn(os, 'homedir').mockReturnValue('/home/test');
         jest.spyOn(fs, 'existsSync').mockReturnValue(false);
@@ -530,6 +537,7 @@ describe('utils.ts', () => {
         expect(findClaudeCLIPath(customPath)).toBe('/home/test/bin/claude');
       });
 
+      // Vacuous on Windows — see the note on describeOnPosix above.
       it('should not return a directory path even if it exists', () => {
         jest.spyOn(os, 'homedir').mockReturnValue('/home/test');
         const dirPath = path.join('/home/test', '.local', 'bin', 'claude');
