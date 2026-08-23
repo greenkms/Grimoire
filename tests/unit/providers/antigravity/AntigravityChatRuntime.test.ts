@@ -7,6 +7,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { PassThrough } from 'node:stream';
 
+import { parseWindowsShellCommandLine, toAgyArgs } from '@test/helpers/antigravityLaunchShape';
+
 import { ProviderWorkspaceRegistry } from '@/core/providers/ProviderWorkspaceRegistry';
 import type { StreamChunk } from '@/core/types';
 import { setLocale } from '@/i18n/i18n';
@@ -118,78 +120,6 @@ function writeStreamJsonResult(
   writeStreamJsonFrame(proc, { event: 'result', result });
 }
 
-/**
- * Invert the quoting `buildWindowsShellCommandLine` applies, so assertions can
- * read the agy flags out of a `cmd.exe /d /s /c "<line>"` launch the same way
- * they read them out of a POSIX one. Kept lossless for every argument shape
- * the launch builder can emit; `launch-shape normalization helpers` pins that
- * against the producer.
- */
-function parseWindowsShellCommandLine(line: string): string[] {
-  const parsed: string[] = [];
-  let current = '';
-  let quoted = false;
-  let started = false;
-  let index = 0;
-  while (index < line.length) {
-    const char = line[index];
-    if (char === '\\') {
-      let backslashes = 0;
-      while (line[index] === '\\') {
-        backslashes += 1;
-        index += 1;
-      }
-      // quoteWindowsArgument doubles the run that precedes a quote or the
-      // closing quote; every other run reaches the child verbatim.
-      const wasDoubled = line[index] === '"';
-      current += '\\'.repeat(wasDoubled ? Math.floor(backslashes / 2) : backslashes);
-      started = true;
-      continue;
-    }
-    index += 1;
-    if (char === '"') {
-      if (quoted && line[index] === '"') {
-        current += '"';
-        index += 1;
-      } else {
-        quoted = !quoted;
-      }
-      started = true;
-      continue;
-    }
-    if (char === ' ' && !quoted) {
-      if (started) {
-        parsed.push(current);
-        current = '';
-        started = false;
-      }
-      continue;
-    }
-    current += char;
-    started = true;
-  }
-  if (started) {
-    parsed.push(current);
-  }
-  return parsed;
-}
-
-/**
- * Normalizes every launch shape `buildAntigravityProcessLaunch` can produce
- * (POSIX login shell, Windows cmd.exe wrapper, direct exec) back to the agy
- * arguments themselves, so the fixtures assert behavior instead of the host
- * platform's process-launch convention.
- */
-function toAgyArgs(spawnArgs: string[]): string[] {
-  if (spawnArgs[0] === '-lc' && spawnArgs[1] === 'exec "$0" "$@"') {
-    return spawnArgs.slice(3);
-  }
-  if (spawnArgs[0] === '/d' && spawnArgs[1] === '/s' && spawnArgs[2] === '/c') {
-    return parseWindowsShellCommandLine(spawnArgs[3] ?? '').slice(1);
-  }
-  return spawnArgs;
-}
-
 function isHelpProbeArgs(spawnArgs: string[]): boolean {
   return toAgyArgs(spawnArgs).includes('--help');
 }
@@ -209,6 +139,25 @@ function getPrintLogFilePath(): string {
   const [, args] = mockedSpawn.mock.calls[mockedSpawn.mock.calls.length - 1] as [string, string[]];
   const agyArgs = toAgyArgs(args);
   return agyArgs[agyArgs.indexOf('--log-file') + 1];
+}
+
+/**
+ * `runPrint` resolves the turn from inside its `try` and unlinks the agy log in
+ * the `finally` that follows, so cleanup is still in flight when the awaited
+ * promise settles. The number of hops between the two is not fixed - the
+ * `fs.promises` call lands on the threadpool - so a single `setImmediate` is an
+ * arbitrary barrier that passes or fails with the scheduling of whatever else
+ * shares the worker. Wait for the condition instead of for a tick count.
+ */
+async function waitForRemovedFile(filePath: string): Promise<void> {
+  for (let attempt = 0; attempt < 1_000; attempt += 1) {
+    const exists = await fs.access(filePath).then(() => true, () => false);
+    if (!exists) {
+      return;
+    }
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+  throw new Error(`Timed out waiting for ${filePath} to be removed`);
 }
 
 // FIFOs exist on POSIX only; the drain-race test parks transcript recovery
@@ -1296,8 +1245,7 @@ describe('AntigravityChatRuntime', () => {
 
       // The turn produced an answer, so its log file is removed.
       jest.useRealTimers();
-      await new Promise((resolve) => setImmediate(resolve));
-      await expect(fs.access(logFilePath)).rejects.toThrow();
+      await waitForRemovedFile(logFilePath);
       logFilePath = '';
     } finally {
       jest.useRealTimers();
@@ -1454,8 +1402,7 @@ describe('AntigravityChatRuntime', () => {
       succeedingProc.stdout.write('Hi\n');
       emitProcessExit(succeedingProc, 0, null);
       await expect(succeedingResult).resolves.toBe('Hi\n');
-      await new Promise((resolve) => setImmediate(resolve));
-      await expect(fs.access(succeedingLogPath)).rejects.toThrow();
+      await waitForRemovedFile(succeedingLogPath);
     } finally {
       await fs.rm(failingLogPath, { force: true });
       await fs.rm(succeedingLogPath, { force: true });
