@@ -206,7 +206,8 @@ describe('utils.ts', () => {
       process.env[envKey] = '/tmp/grimoire-test';
 
       try {
-        expect(normalizePathForFilesystem(`$${envKey}/notes/file.md`)).toBe('/tmp/grimoire-test/notes/file.md');
+        expect(normalizePathForFilesystem(`$${envKey}/notes/file.md`))
+          .toBe(path.normalize('/tmp/grimoire-test/notes/file.md'));
       } finally {
         if (originalValue === undefined) {
           delete process.env[envKey];
@@ -232,9 +233,10 @@ describe('utils.ts', () => {
     });
 
     it('handles non-existent environment variables', () => {
-      // Non-existent env vars should be left as-is
-      expect(normalizePathForFilesystem('$NONEXISTENT/path')).toBe('$NONEXISTENT/path');
-      expect(normalizePathForFilesystem('%NONEXISTENT%/path')).toBe('%NONEXISTENT%/path');
+      // Non-existent env vars are left as-is; only the separators are
+      // normalized for the host platform.
+      expect(normalizePathForFilesystem('$NONEXISTENT/path')).toBe(path.normalize('$NONEXISTENT/path'));
+      expect(normalizePathForFilesystem('%NONEXISTENT%/path')).toBe(path.normalize('%NONEXISTENT%/path'));
     });
 
     it('handles mixed path separators', () => {
@@ -457,6 +459,8 @@ describe('utils.ts', () => {
     });
   });
 
+  const describeOnPosix = process.platform === 'win32' ? describe.skip : describe;
+
   describe('findClaudeCLIPath', () => {
     const originalPlatform = process.platform;
     let originalEnv: NodeJS.ProcessEnv;
@@ -472,7 +476,12 @@ describe('utils.ts', () => {
       process.env = originalEnv;
     });
 
-    describe('on Unix/macOS', () => {
+    // Overriding process.platform does not redirect the `path` module, which
+    // stays bound to the host, so POSIX resolution cannot be exercised from a
+    // Windows runner: path.join would still produce `\`-separated candidates
+    // that the POSIX fixtures below can never match. Skipped rather than
+    // early-returned so the run reports them as skipped instead of passed.
+    describeOnPosix('on Unix/macOS', () => {
       beforeEach(() => {
         Object.defineProperty(process, 'platform', { value: 'darwin' });
       });
