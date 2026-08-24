@@ -105,6 +105,27 @@ export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelC
   const refreshAttemptsByKey = new Map<string, number>();
   const refreshesByKey = new Map<string, Promise<boolean>>();
 
+  // The attempt log only lives in memory, so every plugin load would otherwise
+  // probe again on the first picker that is built - and probing starts a full
+  // Claude Code session, which bills against the plan window.
+  //
+  // Only an already SDK-sourced catalog is seeded. A persisted `api` catalog
+  // (or a partial one) still gets its single per-load probe, because that probe
+  // exists to upgrade the cheap API listing to the authenticated SDK list.
+  const initialSettings = getClaudeProviderSettings(plugin.settings ?? {});
+  if (
+    initialSettings.discoveredModels.length > 0
+    && initialSettings.discoveredModels.every(model => model.source === 'sdk')
+  ) {
+    refreshAttemptsByKey.set(
+      buildClaudeModelCatalogCacheKey(
+        initialSettings,
+        plugin.getResolvedProviderCliPath?.('claude') ?? '',
+      ),
+      Date.now(),
+    );
+  }
+
   return {
     isAvailable(settings) {
       return getClaudeProviderSettings(settings).enabled;

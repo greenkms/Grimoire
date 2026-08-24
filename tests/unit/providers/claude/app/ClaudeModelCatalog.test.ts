@@ -61,8 +61,42 @@ describe('ClaudeModelCatalog', () => {
     const catalog = createClaudeModelCatalog(plugin);
 
     await expect(catalog.refreshModels({ plugin, settings })).resolves.toBe(false);
+    expect(mockedProbe).toHaveBeenCalledTimes(1);
     expect(getClaudeProviderSettings(settings).discoveredModels).toEqual([
       { id: 'legacy', displayName: 'Legacy', source: 'api' },
     ]);
+  });
+
+  it('does not probe again after a reload when a catalog is already persisted', async () => {
+    const settings: Record<string, unknown> = {};
+    updateClaudeProviderSettings(settings, {
+      enabled: true,
+      discoveredModels: [{ id: 'opus', displayName: 'Opus', source: 'sdk' }],
+    });
+    mockedProbe.mockResolvedValue([{ id: 'opus', displayName: 'Opus', source: 'sdk' }]);
+    const plugin = createPlugin(settings);
+
+    // A fresh catalog stands in for a plugin reload: the in-memory attempt log
+    // starts empty, but the persisted models must still suppress the probe.
+    const catalog = createClaudeModelCatalog(plugin);
+    await expect(catalog.refreshModels({ plugin, settings })).resolves.toBe(false);
+
+    expect(mockedProbe).not.toHaveBeenCalled();
+  });
+
+  it('still probes after a reload when the resolved CLI path changed', async () => {
+    const settings: Record<string, unknown> = {};
+    updateClaudeProviderSettings(settings, {
+      enabled: true,
+      discoveredModels: [{ id: 'opus', displayName: 'Opus', source: 'sdk' }],
+    });
+    mockedProbe.mockResolvedValue([{ id: 'sonnet', displayName: 'Sonnet', source: 'sdk' }]);
+    const plugin = createPlugin(settings);
+    const catalog = createClaudeModelCatalog(plugin);
+    plugin.getResolvedProviderCliPath.mockReturnValue('/opt/claude');
+
+    await catalog.refreshModels({ plugin, settings });
+
+    expect(mockedProbe).toHaveBeenCalledTimes(1);
   });
 });

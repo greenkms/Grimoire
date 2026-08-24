@@ -1,5 +1,6 @@
 import { McpServerManager } from '../../../core/mcp/McpServerManager';
 import type { ProviderCommandCatalog } from '../../../core/providers/commands/ProviderCommandCatalog';
+import { ProviderModelCatalogRefreshCache } from '../../../core/providers/ProviderModelCatalogRefreshCache';
 import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
 import type {
   ProviderCliResolver,
@@ -38,21 +39,67 @@ const qwenTabWarmupPolicy: ProviderTabWarmupPolicy = {
   },
 };
 
+const MODEL_CATALOG_CACHE_TTL_MS = 10 * 60 * 1000;
+
+function buildQwenModelCatalogFingerprint(
+  plugin: GrimoirePlugin,
+  settings: ReturnType<typeof getQwenProviderSettings>,
+): string {
+  return JSON.stringify({
+    cliPath: plugin.getResolvedProviderCliPath?.('qwen') ?? settings.cliPath,
+    cliPathsByHost: settings.cliPathsByHost,
+    environmentVariables: plugin.getActiveEnvironmentVariables?.('qwen')
+      ?? settings.environmentVariables,
+  });
+}
+
 function createQwenModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
+  const initialSettings = getQwenProviderSettings(plugin.settings ?? {});
+  const refreshCache = new ProviderModelCatalogRefreshCache(MODEL_CATALOG_CACHE_TTL_MS);
+  if (initialSettings.discoveredModels.length > 0) {
+    refreshCache.seed(buildQwenModelCatalogFingerprint(plugin, initialSettings));
+  }
+
   return {
     isAvailable(settings) {
       return getQwenProviderSettings(settings).enabled;
     },
     async refreshModels({ settings }) {
-      const before = JSON.stringify(getQwenProviderSettings(settings).discoveredModels);
-      const runtime = new QwenChatRuntime(plugin);
-      try {
-        const loaded = await runtime.ensureReady({ allowSessionCreation: true });
-        const after = JSON.stringify(getQwenProviderSettings(settings).discoveredModels);
-        return loaded && before !== after;
-      } finally {
-        runtime.cleanup();
+      // Discovery boots the real CLI over ACP and creates a session, so it must
+      // not run again for every model dropdown that opens.
+      const currentSettings = getQwenProviderSettings(settings);
+      const fingerprint = buildQwenModelCatalogFingerprint(plugin, currentSettings);
+      const hasCachedModels = currentSettings.discoveredModels.length > 0;
+      if (refreshCache.isFresh(fingerprint, hasCachedModels)) {
+        plugin.recordDebugLog?.({
+          data: {
+            modelCount: currentSettings.discoveredModels.length,
+            providerId: 'qwen',
+            reason: 'cache_fresh',
+            ttlMs: MODEL_CATALOG_CACHE_TTL_MS,
+          },
+          event: 'modelCatalog.refresh.skipped',
+          level: 'debug',
+          scope: 'provider.qwen',
+        });
+        return false;
       }
+
+      return refreshCache.refresh({
+        fingerprint,
+        hasCachedModels,
+        load: async () => {
+          const before = JSON.stringify(getQwenProviderSettings(settings).discoveredModels);
+          const runtime = new QwenChatRuntime(plugin);
+          try {
+            const loaded = await runtime.ensureReady({ allowSessionCreation: true });
+            const after = JSON.stringify(getQwenProviderSettings(settings).discoveredModels);
+            return loaded && before !== after;
+          } finally {
+            runtime.cleanup();
+          }
+        },
+      });
     },
   };
 }
