@@ -49,6 +49,9 @@ function emitToolResult(parentToolUseId: string | null, fields: ToolResultFields
  * only emits incremental task calls. Reusing one id keeps this a single
  * updating entry rather than a new card per task call. Subagent plans are left
  * out: the panel tracks the main agent's plan.
+ *
+ * The result has to follow the call: a synthesized tool use that never
+ * completes leaves the plan entry running forever.
  */
 function* emitTaskPlan(
   parentToolUseId: string | null,
@@ -56,6 +59,7 @@ function* emitTaskPlan(
 ): Generator<StreamChunk> {
   if (parentToolUseId !== null || !todos) return;
   yield { type: 'tool_use', id: CLAUDE_TASK_PLAN_TOOL_ID, name: TOOL_TODO_WRITE, input: { todos } };
+  yield { type: 'tool_result', id: CLAUDE_TASK_PLAN_TOOL_ID, content: 'Plan updated', isError: false };
 }
 
 function normalizeTaskNotificationStatus(status: unknown): AsyncSubagentResultStatus {

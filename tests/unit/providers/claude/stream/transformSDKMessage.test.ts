@@ -49,6 +49,14 @@ describe('transformSDKMessage', () => {
         name: 'TodoWrite',
         input: { todos: [{ content: 'Run tests', activeForm: 'Running tests', status: 'pending' }] },
       });
+
+      // Without a result the plan entry renders as running forever.
+      expect(resultChunks).toContainEqual({
+        type: 'tool_result',
+        id: 'claude-task-plan',
+        content: 'Plan updated',
+        isError: false,
+      });
     });
 
     it('leaves the plan alone without a task plan state', () => {
