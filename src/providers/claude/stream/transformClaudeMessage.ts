@@ -1,10 +1,18 @@
 import type { SDKMessage, SDKResultError } from '@anthropic-ai/claude-agent-sdk';
 
+import type { TodoItem } from '../../../core/tools/todo';
+import { TOOL_TODO_WRITE } from '../../../core/tools/toolNames';
 import type { SDKToolUseResult, StreamChunk, UsageInfo } from '../../../core/types';
 import { isBlockedMessage } from '../sdk/messages';
 import { extractToolResultContent } from '../sdk/toolResultContent';
 import type { TransformEvent } from '../sdk/types';
 import { getContextWindowSize, isDefaultClaudeModel } from '../types/models';
+import {
+  CLAUDE_TASK_PLAN_TOOL_ID,
+  type ClaudeTaskPlanState,
+  recordTaskToolResult,
+  recordTaskToolUse,
+} from './claudeTaskPlanState';
 import { createTransformStreamState, type TransformStreamState } from './toolInputStreamState';
 
 type ToolUseFields = { id: string; name: string; input: Record<string, unknown> };
@@ -32,6 +40,22 @@ function emitToolResult(parentToolUseId: string | null, fields: ToolResultFields
     return { type: 'tool_result', ...fields };
   }
   return { type: 'subagent_tool_result', subagentId: parentToolUseId, ...fields };
+}
+
+/**
+ * Replays the accumulated task plan as TodoWrite input.
+ *
+ * The plan panel is fed by whole-list TodoWrite chunks, and Claude Code 2.1.233
+ * only emits incremental task calls. Reusing one id keeps this a single
+ * updating entry rather than a new card per task call. Subagent plans are left
+ * out: the panel tracks the main agent's plan.
+ */
+function* emitTaskPlan(
+  parentToolUseId: string | null,
+  todos: TodoItem[] | null,
+): Generator<StreamChunk> {
+  if (parentToolUseId !== null || !todos) return;
+  yield { type: 'tool_use', id: CLAUDE_TASK_PLAN_TOOL_ID, name: TOOL_TODO_WRITE, input: { todos } };
 }
 
 function normalizeTaskNotificationStatus(status: unknown): AsyncSubagentResultStatus {
@@ -76,6 +100,8 @@ export interface TransformOptions {
   streamState?: TransformStreamState;
   /** Tracks prompt-token usage across Anthropic-compatible stream events. */
   usageState?: TransformUsageState;
+  /** Accumulates Claude's incremental task calls into a whole-plan snapshot. */
+  taskPlanState?: ClaudeTaskPlanState;
 }
 
 export interface MessageUsage {
@@ -417,11 +443,17 @@ export function* transformSDKMessage(
               yield { type: 'text', content: block.text };
             }
           } else if (block.type === 'tool_use') {
-            yield emitToolUse(parentToolUseId, {
-              id: block.id || `tool-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
-              name: block.name || 'unknown',
-              input: getToolInput(block.input),
-            });
+            const toolUseId = block.id
+              || `tool-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+            const toolName = block.name || 'unknown';
+            const toolInput = getToolInput(block.input);
+            yield emitToolUse(parentToolUseId, { id: toolUseId, name: toolName, input: toolInput });
+            if (options?.taskPlanState) {
+              yield* emitTaskPlan(
+                parentToolUseId,
+                recordTaskToolUse(options.taskPlanState, toolUseId, toolName, toolInput),
+              );
+            }
           }
         }
       }
@@ -466,6 +498,16 @@ export function* transformSDKMessage(
           isError: false,
           ...(toolUseResult !== undefined ? { toolUseResult } : {}),
         });
+      }
+      const resultContent = message.message?.content;
+      if (options?.taskPlanState && message.tool_use_result !== undefined && Array.isArray(resultContent)) {
+        for (const block of resultContent) {
+          if (typeof block === 'string' || block.type !== 'tool_result' || !block.tool_use_id) continue;
+          yield* emitTaskPlan(
+            parentToolUseId,
+            recordTaskToolResult(options.taskPlanState, block.tool_use_id, message.tool_use_result),
+          );
+        }
       }
       // Also check message.message.content for tool_result blocks
       if (message.message?.content && Array.isArray(message.message.content)) {
