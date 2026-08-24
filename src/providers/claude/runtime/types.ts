@@ -5,6 +5,7 @@ import type {
 } from '@anthropic-ai/claude-agent-sdk';
 
 import type { ChatRuntimeEnsureReadyOptions } from '../../../core/runtime/types';
+import { TOOL_TODO_WRITE } from '../../../core/tools/toolNames';
 import type { ImageAttachment, StreamChunk } from '../../../core/types';
 import type { PermissionMode } from '../../../core/types/settings';
 import type { ClaudeModel, EffortLevel } from '../types/models';
@@ -123,6 +124,18 @@ export interface SessionState {
 }
 
 export const UNSUPPORTED_SDK_TOOLS = [] as const;
+
+/**
+ * Built-in tools the sdk stopped offering by default. Since 0.3.233 the todo
+ * tools are out of the default surface on Opus 4.8, Sonnet 5, Fable 5 and
+ * newer, so a run that does not name them never emits TodoWrite and the plan
+ * panel stays empty. Naming them in `allowedTools` keeps them available
+ * without replacing the rest of the default surface, which is what setting
+ * `tools` would do.
+ */
+export const OPT_IN_BUILTIN_TOOLS = [
+  TOOL_TODO_WRITE,
+] as const;
 
 /** Built-in subagents that don't apply to Obsidian context. */
 export const DISABLED_BUILTIN_SUBAGENTS = [
