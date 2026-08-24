@@ -1,6 +1,10 @@
 import { spawn } from 'node:child_process';
 import { EventEmitter } from 'node:events';
 import { PassThrough } from 'node:stream';
+// Bound through the module, not the global: jest.useRealTimers() does not put
+// the lazily defined global setImmediate back on newer Node, so one suite that
+// fakes timers would otherwise strand every later test in the file without it.
+import { setImmediate } from 'node:timers';
 
 import {
   probeAntigravityCliCapabilities,
