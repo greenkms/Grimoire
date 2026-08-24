@@ -330,6 +330,22 @@ describe('QueryOptionsBuilder', () => {
   });
 
   describe('buildPersistentQueryOptions', () => {
+    it('names the todo tools so the plan panel survives the sdk default surface', () => {
+      // The sdk dropped the todo tools from its default surface in 0.3.233, so
+      // a run that names nothing never emits TodoWrite. allowedTools re-adds
+      // them without replacing the rest of the default tools.
+      const ctx = {
+        ...createMockContext(),
+        abortController: new AbortController(),
+        hooks: {},
+      };
+
+      const options = QueryOptionsBuilder.buildPersistentQueryOptions(ctx);
+
+      expect(options.allowedTools).toContain('TodoWrite');
+      expect(options.tools).toBeUndefined();
+    });
+
     it('maps full_access to bypassPermissions', () => {
       const ctx = {
         ...createMockContext({
@@ -637,6 +653,39 @@ describe('QueryOptionsBuilder', () => {
   });
 
   describe('buildColdStartQueryOptions', () => {
+    it('names the todo tools on a cold start too', () => {
+      const ctx = {
+        ...createMockContext(),
+        abortController: new AbortController(),
+        hooks: {},
+        mcpMentions: new Set<string>(),
+        hasEditorContext: false,
+      };
+
+      const options = QueryOptionsBuilder.buildColdStartQueryOptions(ctx);
+
+      expect(options.allowedTools).toContain('TodoWrite');
+    });
+
+    it('keeps naming the todo tools when a slash command restricts the tool set', () => {
+      // A restricting command replaces the base surface through the tools
+      // option, so the todo opt-in has to stay on allowedTools rather than
+      // ride on the default surface.
+      const ctx = {
+        ...createMockContext(),
+        abortController: new AbortController(),
+        hooks: {},
+        mcpMentions: new Set<string>(),
+        hasEditorContext: false,
+        allowedTools: ['Read', 'Grep'],
+      };
+
+      const options = QueryOptionsBuilder.buildColdStartQueryOptions(ctx);
+
+      expect(options.tools).toEqual(expect.arrayContaining(['Read', 'Grep']));
+      expect(options.allowedTools).toContain('TodoWrite');
+    });
+
     it('includes MCP servers when available', () => {
       const mcpManager = createMockMcpManager();
       mcpManager.getActiveServers.mockReturnValue({
