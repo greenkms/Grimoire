@@ -6,6 +6,10 @@ import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { PassThrough } from 'node:stream';
+// Bound through the module, not the global: jest.useRealTimers() does not put
+// the lazily defined global setImmediate back on newer Node, so one suite that
+// fakes timers would otherwise strand every later test in the file without it.
+import { setImmediate } from 'node:timers';
 
 import { parseWindowsShellCommandLine, toAgyArgs } from '@test/helpers/antigravityLaunchShape';
 
