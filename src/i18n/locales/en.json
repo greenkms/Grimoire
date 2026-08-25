@@ -628,6 +628,31 @@
     }
   },
   "settings": {
+    "autoPing": {
+      "heading": "Prompt cache keep-alive",
+      "enabled": {
+        "name": "Auto-ping to keep the prompt cache warm",
+        "desc": "Periodically sends a minimal message so the cached prompt is refreshed at the cheap read rate instead of being rewritten in full on your next real message. Each ping is a real, billed request. Off by default."
+      },
+      "interval": {
+        "name": "Ping after inactivity (minutes)",
+        "desc": "Minutes since the last completed turn before a ping is sent. Only useful below the cache TTL, which is one hour on a healthy plan and five minutes once the plan enters overage."
+      },
+      "maxConsecutive": {
+        "name": "Max consecutive pings",
+        "desc": "Stop pinging a tab after this many pings in a row with no reply from you. 6 covers a five-hour window. Set to 0 for no limit."
+      },
+      "scope": {
+        "name": "Which tabs to ping",
+        "desc": "Limit keep-alives to the tab you are looking at, or apply them to every Claude tab.",
+        "active": "Active tab only",
+        "all": "All Claude tabs"
+      },
+      "utilizationGuard": {
+        "name": "Skip pings above plan usage (%)",
+        "desc": "Never ping while the five-hour plan window is at or above this percentage, and never ping during overage. Set to 0 to disable this check (overage is still always respected)."
+      }
+    },
     "title": "Grimoire Settings",
     "tabs": {
       "general": "General",

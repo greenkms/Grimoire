@@ -628,6 +628,31 @@
     }
   },
   "settings": {
+    "autoPing": {
+      "heading": "Prompt-Cache warmhalten",
+      "enabled": {
+        "name": "Auto-Ping zum Warmhalten des Prompt-Caches",
+        "desc": "Sendet regelmäßig eine minimale Nachricht, damit der zwischengespeicherte Prompt zum günstigen Lesetarif aufgefrischt wird, statt bei Ihrer nächsten echten Nachricht komplett neu geschrieben zu werden. Jeder Ping ist eine echte, kostenpflichtige Anfrage. Standardmäßig aus."
+      },
+      "interval": {
+        "name": "Ping nach Inaktivität (Minuten)",
+        "desc": "Minuten seit dem letzten abgeschlossenen Zug, bevor ein Ping gesendet wird. Nur sinnvoll unterhalb der Cache-TTL: eine Stunde bei intaktem Plan, fünf Minuten im Overage-Modus."
+      },
+      "maxConsecutive": {
+        "name": "Maximale Pings in Folge",
+        "desc": "Pings für einen Tab nach so vielen Malen in Folge ohne Ihre Antwort einstellen. 6 deckt ein Fünf-Stunden-Fenster ab. 0 bedeutet kein Limit."
+      },
+      "scope": {
+        "name": "Welche Tabs pingen",
+        "desc": "Keep-alives auf den aktiven Tab beschränken oder auf alle Claude-Tabs anwenden.",
+        "active": "Nur aktiver Tab",
+        "all": "Alle Claude-Tabs"
+      },
+      "utilizationGuard": {
+        "name": "Pings ab Plannutzung überspringen (%)",
+        "desc": "Niemals pingen, wenn das Fünf-Stunden-Fenster diesen Prozentsatz erreicht, und niemals im Overage-Modus. 0 deaktiviert die Prozentprüfung (Overage wird immer beachtet)."
+      }
+    },
     "title": "Grimoire Einstellungen",
     "tabs": {
       "general": "Allgemein",

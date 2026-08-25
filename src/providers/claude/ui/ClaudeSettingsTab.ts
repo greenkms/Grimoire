@@ -12,6 +12,7 @@ import { getClaudeWorkspaceServices } from '../app/ClaudeWorkspaceServices';
 import { getCurrentModelFromEnvironment } from '../env/claudeModelEnv';
 import { resolveClaudeModelSelection } from '../modelOptions';
 import {
+  DEFAULT_CLAUDE_PROVIDER_SETTINGS,
   getClaudeEffectiveEnvironmentVariables,
   getClaudeProviderSettings,
   updateClaudeProviderSettings,
@@ -399,5 +400,89 @@ export const claudeSettingsTabRenderer: ProviderSettingsTabRenderer = {
     const bangBashValidationEl = advancedContainer.createDiv({
       cls: 'grimoire-bang-bash-validation grimoire-setting-validation grimoire-setting-validation-error grimoire-hidden',
     });
+
+    // --- Prompt cache keep-alive ---
+
+    new Setting(advancedContainer).setName(t('settings.autoPing.heading')).setHeading();
+
+    new Setting(advancedContainer)
+      .setName(t('settings.autoPing.enabled.name'))
+      .setDesc(t('settings.autoPing.enabled.desc'))
+      .addToggle((toggle) =>
+        toggle
+          .setValue(claudeSettings.autoPingEnabled)
+          .onChange(async (value) => {
+            updateClaudeProviderSettings(settingsBag, { autoPingEnabled: value });
+            autoPingIntervalSetting.settingEl.toggleClass('grimoire-hidden', !value);
+            autoPingMaxConsecutiveSetting.settingEl.toggleClass('grimoire-hidden', !value);
+            autoPingScopeSetting.settingEl.toggleClass('grimoire-hidden', !value);
+            autoPingGuardSetting.settingEl.toggleClass('grimoire-hidden', !value);
+            await context.plugin.saveSettings();
+          })
+      );
+
+    const autoPingIntervalSetting = new Setting(advancedContainer)
+      .setName(t('settings.autoPing.interval.name'))
+      .setDesc(t('settings.autoPing.interval.desc'))
+      .addText((text) =>
+        text
+          .setValue(String(claudeSettings.autoPingIntervalMinutes))
+          .onChange(async (value) => {
+            const parsed = Number.parseInt(value, 10);
+            const normalized = Number.isFinite(parsed) && parsed > 0
+              ? parsed
+              : DEFAULT_CLAUDE_PROVIDER_SETTINGS.autoPingIntervalMinutes;
+            updateClaudeProviderSettings(settingsBag, { autoPingIntervalMinutes: normalized });
+            await context.plugin.saveSettings();
+          })
+      );
+    autoPingIntervalSetting.settingEl.toggleClass('grimoire-hidden', !claudeSettings.autoPingEnabled);
+
+    const autoPingMaxConsecutiveSetting = new Setting(advancedContainer)
+      .setName(t('settings.autoPing.maxConsecutive.name'))
+      .setDesc(t('settings.autoPing.maxConsecutive.desc'))
+      .addText((text) =>
+        text
+          .setValue(String(claudeSettings.autoPingMaxConsecutive))
+          .onChange(async (value) => {
+            const parsed = Number.parseInt(value, 10);
+            const normalized = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+            updateClaudeProviderSettings(settingsBag, { autoPingMaxConsecutive: normalized });
+            await context.plugin.saveSettings();
+          })
+      );
+    autoPingMaxConsecutiveSetting.settingEl.toggleClass('grimoire-hidden', !claudeSettings.autoPingEnabled);
+
+    const autoPingScopeSetting = new Setting(advancedContainer)
+      .setName(t('settings.autoPing.scope.name'))
+      .setDesc(t('settings.autoPing.scope.desc'))
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption('active', t('settings.autoPing.scope.active'))
+          .addOption('all', t('settings.autoPing.scope.all'))
+          .setValue(claudeSettings.autoPingScope)
+          .onChange(async (value) => {
+            updateClaudeProviderSettings(settingsBag, { autoPingScope: value as 'active' | 'all' });
+            await context.plugin.saveSettings();
+          })
+      );
+    autoPingScopeSetting.settingEl.toggleClass('grimoire-hidden', !claudeSettings.autoPingEnabled);
+
+    const autoPingGuardSetting = new Setting(advancedContainer)
+      .setName(t('settings.autoPing.utilizationGuard.name'))
+      .setDesc(t('settings.autoPing.utilizationGuard.desc'))
+      .addText((text) =>
+        text
+          .setValue(String(claudeSettings.autoPingSkipAboveUtilizationPct))
+          .onChange(async (value) => {
+            const parsed = Number.parseInt(value, 10);
+            const normalized = Number.isFinite(parsed) && parsed >= 0 && parsed <= 100
+              ? parsed
+              : DEFAULT_CLAUDE_PROVIDER_SETTINGS.autoPingSkipAboveUtilizationPct;
+            updateClaudeProviderSettings(settingsBag, { autoPingSkipAboveUtilizationPct: normalized });
+            await context.plugin.saveSettings();
+          })
+      );
+    autoPingGuardSetting.settingEl.toggleClass('grimoire-hidden', !claudeSettings.autoPingEnabled);
   },
 };

@@ -628,6 +628,31 @@
     }
   },
   "settings": {
+    "autoPing": {
+      "heading": "保持提示缓存",
+      "enabled": {
+        "name": "自动 ping 以保持提示缓存",
+        "desc": "定期发送一条极简消息，使缓存的提示以低价读取费率刷新，而不是在你下一条真实消息时被整体重写。每次 ping 都是真实计费的请求。默认关闭。"
+      },
+      "interval": {
+        "name": "空闲多久后 ping（分钟）",
+        "desc": "距上一次完成的对话轮次多少分钟后发送 ping。只有小于缓存 TTL 才有意义：正常套餐为一小时，进入 overage 后为五分钟。"
+      },
+      "maxConsecutive": {
+        "name": "连续 ping 上限",
+        "desc": "在你没有回复的情况下连续 ping 这么多次后，停止对该标签页的 ping。6 可覆盖五小时窗口。0 表示不限。"
+      },
+      "scope": {
+        "name": "对哪些标签页 ping",
+        "desc": "将 keep-alive 限制在当前活动标签页，或应用于所有 Claude 标签页。",
+        "active": "仅活动标签页",
+        "all": "所有 Claude 标签页"
+      },
+      "utilizationGuard": {
+        "name": "套餐用量超过此值时跳过 ping（%）",
+        "desc": "当五小时窗口达到该百分比时，以及处于 overage 期间，一律不 ping。设为 0 可关闭百分比检查（overage 始终生效）。"
+      }
+    },
     "title": "Grimoire 设置",
     "tabs": {
       "general": "通用",

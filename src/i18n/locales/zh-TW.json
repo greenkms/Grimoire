@@ -628,6 +628,31 @@
     }
   },
   "settings": {
+    "autoPing": {
+      "heading": "維持提示快取",
+      "enabled": {
+        "name": "自動 ping 以維持提示快取",
+        "desc": "定期傳送一則極簡訊息，讓快取的提示以低價讀取費率更新，而不是在你下一則真實訊息時被整份重寫。每次 ping 都是實際計費的請求。預設關閉。"
+      },
+      "interval": {
+        "name": "閒置多久後 ping（分鐘）",
+        "desc": "距上一次完成的對話輪次多少分鐘後傳送 ping。只有小於快取 TTL 才有意義：正常方案為一小時，進入 overage 後為五分鐘。"
+      },
+      "maxConsecutive": {
+        "name": "連續 ping 上限",
+        "desc": "在你未回覆的情況下連續 ping 這麼多次後，停止對該分頁的 ping。6 可涵蓋五小時視窗。0 表示不限。"
+      },
+      "scope": {
+        "name": "對哪些分頁 ping",
+        "desc": "將 keep-alive 限制在目前作用中的分頁，或套用至所有 Claude 分頁。",
+        "active": "僅作用中分頁",
+        "all": "所有 Claude 分頁"
+      },
+      "utilizationGuard": {
+        "name": "方案用量超過此值時略過 ping（%）",
+        "desc": "當五小時視窗達到該百分比時，以及處於 overage 期間，一律不 ping。設為 0 可關閉百分比檢查（overage 一律生效）。"
+      }
+    },
     "title": "Grimoire 設定",
     "tabs": {
       "general": "一般",

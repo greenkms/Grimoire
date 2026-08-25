@@ -628,6 +628,31 @@
     }
   },
   "settings": {
+    "autoPing": {
+      "heading": "Maintien du cache de prompt",
+      "enabled": {
+        "name": "Ping automatique pour garder le cache de prompt actif",
+        "desc": "Envoie régulièrement un message minimal pour que le prompt mis en cache soit rafraîchi au tarif de lecture, au lieu d’être réécrit intégralement lors de votre prochain vrai message. Chaque ping est une requête réelle et facturée. Désactivé par défaut."
+      },
+      "interval": {
+        "name": "Ping après inactivité (minutes)",
+        "desc": "Minutes écoulées depuis le dernier tour terminé avant l’envoi d’un ping. Utile uniquement en dessous du TTL du cache : une heure sur un forfait sain, cinq minutes en overage."
+      },
+      "maxConsecutive": {
+        "name": "Pings consécutifs maximum",
+        "desc": "Arrêter de pinguer un onglet après ce nombre de pings d’affilée sans réponse de votre part. 6 couvre une fenêtre de cinq heures. 0 signifie aucune limite."
+      },
+      "scope": {
+        "name": "Onglets à pinguer",
+        "desc": "Limiter les keep-alives à l’onglet actif ou les appliquer à tous les onglets Claude.",
+        "active": "Onglet actif uniquement",
+        "all": "Tous les onglets Claude"
+      },
+      "utilizationGuard": {
+        "name": "Ignorer les pings au-dessus de l’usage du forfait (%)",
+        "desc": "Ne jamais pinguer lorsque la fenêtre de cinq heures atteint ce pourcentage, ni pendant l’overage. 0 désactive cette vérification (l’overage reste toujours respecté)."
+      }
+    },
     "title": "Paramètres Grimoire",
     "tabs": {
       "general": "Général",

@@ -628,6 +628,31 @@
     }
   },
   "settings": {
+    "autoPing": {
+      "heading": "Mantener activa la caché del prompt",
+      "enabled": {
+        "name": "Ping automático para mantener la caché del prompt",
+        "desc": "Envía periódicamente un mensaje mínimo para que la caché del prompt se refresque a la tarifa barata de lectura en lugar de reescribirse por completo en tu siguiente mensaje real. Cada ping es una solicitud real y facturable. Desactivado por defecto."
+      },
+      "interval": {
+        "name": "Ping tras inactividad (minutos)",
+        "desc": "Minutos desde el último turno completado antes de enviar un ping. Solo es útil por debajo del TTL de la caché: una hora con un plan sano y cinco minutos en overage."
+      },
+      "maxConsecutive": {
+        "name": "Máximo de pings consecutivos",
+        "desc": "Dejar de hacer ping a una pestaña tras esta cantidad de pings seguidos sin respuesta tuya. 6 cubre una ventana de cinco horas. 0 significa sin límite."
+      },
+      "scope": {
+        "name": "Qué pestañas recibir ping",
+        "desc": "Limitar los keep-alives a la pestaña activa o aplicarlos a todas las pestañas de Claude.",
+        "active": "Solo la pestaña activa",
+        "all": "Todas las pestañas de Claude"
+      },
+      "utilizationGuard": {
+        "name": "Omitir pings por encima del uso del plan (%)",
+        "desc": "No hacer ping cuando la ventana de cinco horas alcance este porcentaje, ni nunca durante overage. 0 desactiva esta comprobación (overage siempre se respeta)."
+      }
+    },
     "title": "Configuración de Grimoire",
     "tabs": {
       "general": "General",
