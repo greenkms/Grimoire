@@ -2,6 +2,7 @@ import { requestUrl } from 'obsidian';
 
 import type { ProviderModelCatalog } from '../../../core/providers/types';
 import type GrimoirePlugin from '../../../main';
+import { getClaudeCliBinaryFingerprint } from '../cli/claudeCliBinaryFingerprint';
 import { probeRuntimeModels } from '../commands/probeRuntimeModels';
 import {
   type ClaudeDiscoveredModel,
@@ -15,6 +16,9 @@ const ANTHROPIC_DEFAULT_BASE_URL = 'https://api.anthropic.com';
 const ANTHROPIC_API_VERSION = '2023-06-01';
 const MODEL_CATALOG_LIMIT = 1000;
 const MODEL_CATALOG_MAX_PAGES = 10;
+// Only paces retries after an attempt that found nothing. A catalog that holds
+// models is rediscovered solely on a cache-key change or an explicit request.
+const EMPTY_ATTEMPT_RETRY_MS = 10 * 60 * 1000;
 
 interface ClaudeModelsApiResponse {
   data?: unknown;
@@ -91,6 +95,7 @@ function buildClaudeModelCatalogCacheKey(
   cliPath: string,
 ): string {
   return JSON.stringify({
+    cliBinary: getClaudeCliBinaryFingerprint(cliPath),
     cliPath,
     enableChrome: settings.enableChrome,
     environmentHash: settings.environmentHash,
@@ -142,7 +147,7 @@ export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelC
     isAvailable(settings) {
       return getClaudeProviderSettings(settings).enabled;
     },
-    async refreshModels({ settings }) {
+    async refreshModels({ force, settings }) {
       const currentSettings = getClaudeProviderSettings(settings);
       const cacheKey = buildClaudeModelCatalogCacheKey(
         currentSettings,
@@ -159,7 +164,7 @@ export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelC
           initialSettings,
           plugin.getResolvedProviderCliPath?.('claude') ?? '',
         );
-        if (seededCacheKey === cacheKey && currentSettings.discoveredModels.length > 0) {
+        if (!force && seededCacheKey === cacheKey && currentSettings.discoveredModels.length > 0) {
           refreshAttemptsByKey.set(cacheKey, Date.now());
           plugin.recordDebugLog?.({
             data: {
@@ -177,7 +182,8 @@ export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelC
 
       const lastAttemptAt = refreshAttemptsByKey.get(cacheKey) ?? 0;
       const cacheAgeMs = lastAttemptAt > 0 ? Date.now() - lastAttemptAt : Number.POSITIVE_INFINITY;
-      if (cacheAgeMs < 10 * 60 * 1000) {
+      const hasCachedModels = currentSettings.discoveredModels.length > 0;
+      if (!force && lastAttemptAt > 0 && (hasCachedModels || cacheAgeMs < EMPTY_ATTEMPT_RETRY_MS)) {
         plugin.recordDebugLog?.({
           data: {
             ageMs: cacheAgeMs,

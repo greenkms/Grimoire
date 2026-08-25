@@ -1,5 +1,6 @@
 export interface ProviderModelCatalogRefreshRequest {
   fingerprint: string;
+  force?: boolean;
   hasCachedModels: boolean;
   load: () => Promise<boolean>;
 }
@@ -10,8 +11,15 @@ interface PendingRefresh {
 }
 
 /**
- * Keeps provider model catalogs stale-while-revalidate without repeating an
- * expensive CLI warmup. A fingerprint change bypasses the TTL immediately.
+ * Keeps provider model catalogs from repeating an expensive CLI warmup.
+ *
+ * A catalog that already holds models is settled: it is rediscovered only when
+ * its fingerprint (CLI path, environment) changes or a caller forces it. Model
+ * lists do not change on a timer, but the picker that triggers refreshes opens
+ * all the time, and every rediscovery boots a CLI - for some providers a
+ * billable session. The TTL only paces retries after an attempt that found
+ * nothing, so a missing or unauthenticated CLI is not re-spawned on every
+ * dropdown open either.
  */
 export class ProviderModelCatalogRefreshCache {
   private freshFingerprint: string | null = null;
@@ -69,14 +77,15 @@ export class ProviderModelCatalogRefreshCache {
   }
 
   isFresh(fingerprint: string, hasCachedModels: boolean): boolean {
-    return hasCachedModels
-      && fingerprint === this.freshFingerprint
-      && this.lastSuccessfulRefreshAt > 0
-      && this.now() - this.lastSuccessfulRefreshAt < this.ttlMs;
+    if (fingerprint !== this.freshFingerprint || this.lastSuccessfulRefreshAt === 0) {
+      return false;
+    }
+
+    return hasCachedModels || this.now() - this.lastSuccessfulRefreshAt < this.ttlMs;
   }
 
   refresh(request: ProviderModelCatalogRefreshRequest): Promise<boolean> {
-    if (this.isFresh(request.fingerprint, request.hasCachedModels)) {
+    if (!request.force && this.isFresh(request.fingerprint, request.hasCachedModels)) {
       return Promise.resolve(false);
     }
     if (this.pending?.fingerprint === request.fingerprint) {

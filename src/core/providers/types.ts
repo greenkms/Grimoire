@@ -366,6 +366,12 @@ export interface ProviderRuntimeCommandLoader {
 }
 
 export interface ProviderModelCatalogRefreshContext {
+  /**
+   * Re-run discovery even when the catalog is settled. Set by explicit user
+   * actions (enabling a provider, a refresh button); background refreshes from
+   * model pickers leave it unset so they never start a CLI on their own.
+   */
+  force?: boolean;
   plugin: GrimoirePlugin;
   settings: Record<string, unknown>;
 }

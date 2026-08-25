@@ -92,13 +92,13 @@ function createGeminiModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog 
     isAvailable(settings) {
       return getGeminiProviderSettings(settings).enabled;
     },
-    async refreshModels({ settings }) {
+    async refreshModels({ force, settings }) {
       // Discovery boots the real CLI over ACP and creates a session, so it must
       // not run again for every model dropdown that opens.
       const currentSettings = getGeminiProviderSettings(settings);
       const fingerprint = resolveGeminiModelCatalogFingerprint(plugin, currentSettings);
       const hasCachedModels = currentSettings.discoveredModels.length > 0;
-      if (refreshCache.applyDeferredSeed(fingerprint, hasCachedModels)) {
+      if (refreshCache.applyDeferredSeed(fingerprint, hasCachedModels) && !force) {
         plugin.recordDebugLog?.({
           data: {
             modelCount: currentSettings.discoveredModels.length,
@@ -113,7 +113,7 @@ function createGeminiModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog 
         return false;
       }
 
-      if (refreshCache.isFresh(fingerprint, hasCachedModels)) {
+      if (!force && refreshCache.isFresh(fingerprint, hasCachedModels)) {
         plugin.recordDebugLog?.({
           data: {
             modelCount: currentSettings.discoveredModels.length,
@@ -130,6 +130,7 @@ function createGeminiModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog 
 
       return refreshCache.refresh({
         fingerprint,
+        force,
         hasCachedModels,
         load: async () => {
           const before = JSON.stringify(getGeminiProviderSettings(settings).discoveredModels);

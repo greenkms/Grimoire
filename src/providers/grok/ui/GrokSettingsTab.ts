@@ -555,6 +555,7 @@ export const grokSettingsTabRenderer: ProviderSettingsTabRenderer = {
         const catalog = maybeGetGrokWorkspaceServices()?.modelCatalog;
         if (catalog) {
           await catalog.refreshModels({
+            force: true,
             plugin: context.plugin,
             settings: settingsBag,
           });

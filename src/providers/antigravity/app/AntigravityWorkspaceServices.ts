@@ -33,8 +33,6 @@ const antigravityTabWarmupPolicy: ProviderTabWarmupPolicy = {
   },
 };
 
-const MODEL_CATALOG_CACHE_TTL_MS = 10 * 60 * 1000;
-
 function createAntigravityModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
   const initialSettings = getAntigravityProviderSettings(plugin.settings ?? {});
   let lastRefreshAt = initialSettings.discoveredModels.length > 0 ? Date.now() : 0;
@@ -44,18 +42,22 @@ function createAntigravityModelCatalog(plugin: GrimoirePlugin): ProviderModelCat
     isAvailable(settings) {
       return getAntigravityProviderSettings(settings).enabled;
     },
-    async refreshModels({ settings }) {
+    async refreshModels({ force, settings }) {
       const currentSettings = getAntigravityProviderSettings(settings);
       const cacheKey = buildAntigravityModelCatalogCacheKey(currentSettings);
       if (currentSettings.discoveredModels.length > 0 && lastRefreshAt === 0) {
         lastRefreshAt = Date.now();
         lastRefreshCacheKey = cacheKey;
       }
+      // A settled catalog is rediscovered only when its key changes or the
+      // caller asks; the picker that triggers background refreshes must not
+      // spawn agy on a timer.
       const cacheAgeMs = lastRefreshAt > 0 ? Date.now() - lastRefreshAt : Number.POSITIVE_INFINITY;
       if (
-        currentSettings.discoveredModels.length > 0
+        !force
+        && currentSettings.discoveredModels.length > 0
         && cacheKey === lastRefreshCacheKey
-        && cacheAgeMs < MODEL_CATALOG_CACHE_TTL_MS
+        && lastRefreshAt > 0
       ) {
         plugin.recordDebugLog?.({
           data: {
@@ -63,7 +65,6 @@ function createAntigravityModelCatalog(plugin: GrimoirePlugin): ProviderModelCat
             modelCount: currentSettings.discoveredModels.length,
             providerId: 'antigravity',
             reason: 'cache_fresh',
-            ttlMs: MODEL_CATALOG_CACHE_TTL_MS,
           },
           event: 'modelCatalog.refresh.skipped',
           level: 'debug',

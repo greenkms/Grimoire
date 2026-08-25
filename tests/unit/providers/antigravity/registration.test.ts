@@ -183,6 +183,40 @@ describe('Antigravity provider registration', () => {
     }));
   });
 
+  it('never spawns agy again for a settled catalog on a timer, only when forced', async () => {
+    jest.useFakeTimers();
+    try {
+      (discoverAntigravityModels as jest.Mock).mockResolvedValue([
+        { label: 'Gemini 3.5 Pro (High)', rawId: 'Gemini 3.5 Pro (High)' },
+      ]);
+      const settings: Record<string, unknown> = {};
+      updateAntigravityProviderSettings(settings, {
+        discoveredModels: [
+          { label: 'Gemini 3.5 Flash (Medium)', rawId: 'Gemini 3.5 Flash (Medium)' },
+        ],
+        enabled: true,
+        visibleModels: ['Gemini 3.5 Flash (Medium)'],
+      });
+      const services = await antigravityWorkspaceRegistration.initialize({
+        homeAdapter: {} as any,
+        plugin: { recordDebugLog: jest.fn() } as any,
+        storage: {} as any,
+        vaultAdapter: {} as any,
+      });
+      const plugin = { recordDebugLog: jest.fn(), saveSettings: jest.fn() } as any;
+
+      // Past the former ten-minute window, with no reload in between.
+      jest.advanceTimersByTime(60 * 60 * 1000);
+      await expect(services.modelCatalog.refreshModels({ plugin, settings })).resolves.toBe(false);
+      expect(discoverAntigravityModels).not.toHaveBeenCalled();
+
+      await expect(services.modelCatalog.refreshModels({ force: true, plugin, settings })).resolves.toBe(true);
+      expect(discoverAntigravityModels).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('keeps the previous Antigravity model catalog when agy models returns empty output', async () => {
     (discoverAntigravityModels as jest.Mock).mockResolvedValue([]);
     const recordDebugLog = jest.fn();

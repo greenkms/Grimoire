@@ -113,4 +113,46 @@ describe('ProviderModelCatalogRefreshCache', () => {
     expect(cache.applyDeferredSeed('cli-a:env-a', false)).toBe(false);
     expect(cache.applyDeferredSeed('cli-a:env-a', true)).toBe(false);
   });
+
+  it('keeps a settled catalog fresh past the TTL until its fingerprint changes', async () => {
+    let now = 100;
+    const load = jest.fn().mockResolvedValue(true);
+    const cache = new ProviderModelCatalogRefreshCache(1_000, () => now);
+    cache.seed('cli-a:env-a');
+
+    now += 10_000;
+    await expect(cache.refresh({ fingerprint: 'cli-a:env-a', hasCachedModels: true, load }))
+      .resolves.toBe(false);
+    expect(load).not.toHaveBeenCalled();
+
+    await expect(cache.refresh({ fingerprint: 'cli-b:env-a', hasCachedModels: true, load }))
+      .resolves.toBe(true);
+    expect(load).toHaveBeenCalledTimes(1);
+  });
+
+  it('paces retries of an empty attempt by the TTL instead of retrying on every open', async () => {
+    let now = 100;
+    const load = jest.fn().mockResolvedValue(false);
+    const cache = new ProviderModelCatalogRefreshCache(1_000, () => now);
+    const request = { fingerprint: 'cli-a:env-a', hasCachedModels: false, load };
+
+    await cache.refresh(request);
+    now += 500;
+    await cache.refresh(request);
+    expect(load).toHaveBeenCalledTimes(1);
+
+    now += 600;
+    await cache.refresh(request);
+    expect(load).toHaveBeenCalledTimes(2);
+  });
+
+  it('reloads a settled catalog when the caller forces it', async () => {
+    const load = jest.fn().mockResolvedValue(true);
+    const cache = new ProviderModelCatalogRefreshCache(1_000, () => 100);
+    cache.seed('cli-a:env-a');
+
+    await expect(cache.refresh({ fingerprint: 'cli-a:env-a', force: true, hasCachedModels: true, load }))
+      .resolves.toBe(true);
+    expect(load).toHaveBeenCalledTimes(1);
+  });
 });
