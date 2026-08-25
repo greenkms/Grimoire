@@ -413,15 +413,18 @@ export const claudeSettingsTabRenderer: ProviderSettingsTabRenderer = {
           .setValue(claudeSettings.autoPingEnabled)
           .onChange(async (value) => {
             updateClaudeProviderSettings(settingsBag, { autoPingEnabled: value });
-            autoPingIntervalSetting.settingEl.toggleClass('grimoire-hidden', !value);
-            autoPingMaxConsecutiveSetting.settingEl.toggleClass('grimoire-hidden', !value);
-            autoPingScopeSetting.settingEl.toggleClass('grimoire-hidden', !value);
-            autoPingGuardSetting.settingEl.toggleClass('grimoire-hidden', !value);
+            autoPingFieldsEl.toggleClass('grimoire-hidden', !value);
             await context.plugin.saveSettings();
           })
       );
 
-    const autoPingIntervalSetting = new Setting(advancedContainer)
+    // The dependent fields share one container so the toggle shows or hides them
+    // with a single class change.
+    const autoPingFieldsEl = advancedContainer.createDiv({
+      cls: claudeSettings.autoPingEnabled ? '' : 'grimoire-hidden',
+    });
+
+    new Setting(autoPingFieldsEl)
       .setName(t('settings.autoPing.interval.name'))
       .setDesc(t('settings.autoPing.interval.desc'))
       .addText((text) =>
@@ -436,9 +439,8 @@ export const claudeSettingsTabRenderer: ProviderSettingsTabRenderer = {
             await context.plugin.saveSettings();
           })
       );
-    autoPingIntervalSetting.settingEl.toggleClass('grimoire-hidden', !claudeSettings.autoPingEnabled);
 
-    const autoPingMaxConsecutiveSetting = new Setting(advancedContainer)
+    new Setting(autoPingFieldsEl)
       .setName(t('settings.autoPing.maxConsecutive.name'))
       .setDesc(t('settings.autoPing.maxConsecutive.desc'))
       .addText((text) =>
@@ -451,9 +453,8 @@ export const claudeSettingsTabRenderer: ProviderSettingsTabRenderer = {
             await context.plugin.saveSettings();
           })
       );
-    autoPingMaxConsecutiveSetting.settingEl.toggleClass('grimoire-hidden', !claudeSettings.autoPingEnabled);
 
-    const autoPingScopeSetting = new Setting(advancedContainer)
+    new Setting(autoPingFieldsEl)
       .setName(t('settings.autoPing.scope.name'))
       .setDesc(t('settings.autoPing.scope.desc'))
       .addDropdown((dropdown) =>
@@ -466,9 +467,8 @@ export const claudeSettingsTabRenderer: ProviderSettingsTabRenderer = {
             await context.plugin.saveSettings();
           })
       );
-    autoPingScopeSetting.settingEl.toggleClass('grimoire-hidden', !claudeSettings.autoPingEnabled);
 
-    const autoPingGuardSetting = new Setting(advancedContainer)
+    new Setting(autoPingFieldsEl)
       .setName(t('settings.autoPing.utilizationGuard.name'))
       .setDesc(t('settings.autoPing.utilizationGuard.desc'))
       .addText((text) =>
@@ -483,6 +483,5 @@ export const claudeSettingsTabRenderer: ProviderSettingsTabRenderer = {
             await context.plugin.saveSettings();
           })
       );
-    autoPingGuardSetting.settingEl.toggleClass('grimoire-hidden', !claudeSettings.autoPingEnabled);
   },
 };
