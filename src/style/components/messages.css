@@ -573,3 +573,26 @@
   min-width: 0;
   width: 100%;
 }
+
+/* Prompt-cache keep-alive pings: machine traffic, collapsed to one muted row */
+.grimoire-autoping-row {
+  align-self: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: var(--text-faint);
+  font-family: var(--font-monospace);
+  font-size: var(--font-smallest);
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.grimoire-autoping-row:hover {
+  background-color: var(--background-modifier-hover);
+  opacity: 1;
+}
+
+.grimoire-autoping-row.grimoire-autoping-expanded {
+  align-self: stretch;
+  cursor: default;
+  opacity: 1;
+}

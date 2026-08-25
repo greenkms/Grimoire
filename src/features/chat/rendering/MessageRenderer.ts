@@ -224,6 +224,10 @@ export class MessageRenderer {
    * Returns the message element for content updates.
    */
   addMessage(msg: ChatMessage): HTMLElement {
+    if (msg.isAutoPing) {
+      return this.renderCollapsedAutoPingRow(msg);
+    }
+
     // Render images above message bubble for user messages
     if (msg.role === 'user' && msg.images && msg.images.length > 0) {
       this.renderMessageImages(this.messagesEl, msg.images);
@@ -354,6 +358,13 @@ export class MessageRenderer {
     // Skip rebuilt context messages (history sent to SDK on session reset)
     // These are internal context for the AI, not actual user messages to display
     if (msg.isRebuiltContext) {
+      return;
+    }
+
+    // Keep-alive pings are machine traffic, not conversation: collapse the pair
+    // into one muted row instead of two full bubbles.
+    if (msg.isAutoPing) {
+      this.renderCollapsedAutoPingRow(msg);
       return;
     }
 
@@ -1094,6 +1105,31 @@ export class MessageRenderer {
     }
 
     this.ensureUserCompletionTime(msgEl, completedAt);
+  }
+
+  /**
+   * Renders a keep-alive ping as one muted, clickable row. Clicking expands it
+   * to the raw text so the traffic stays auditable rather than hidden outright.
+   */
+  private renderCollapsedAutoPingRow(msg: ChatMessage): HTMLElement {
+    const existing = this.messagesEl.querySelector<HTMLElement>(`[data-message-id="${msg.id}"]`);
+    if (existing) return existing;
+
+    const row = this.messagesEl.createDiv({
+      cls: 'grimoire-autoping-row',
+      attr: {
+        'data-message-id': msg.id,
+        'data-role': msg.role,
+      },
+    });
+    const label = row.createSpan({ cls: 'grimoire-autoping-label' });
+    label.setText(msg.role === 'user' ? 'keep-alive ping' : 'keep-alive reply');
+    row.addEventListener('click', () => {
+      row.empty();
+      row.toggleClass('grimoire-autoping-expanded', true);
+      row.setText(msg.content || (msg.role === 'user' ? 'reply with just OK' : 'OK'));
+    });
+    return row;
   }
 
   private applyAssistantCompletionTime(msgEl: HTMLElement, completedAt: number): void {

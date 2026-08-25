@@ -390,6 +390,63 @@ describe('MessageRenderer', () => {
     expect(messagesEl.children.length).toBe(0);
   });
 
+  it('renders an auto-ping message as a single collapsed row', () => {
+    const messagesEl = createMockEl();
+    const { renderer } = createRenderer(messagesEl);
+
+    const msg: ChatMessage = {
+      id: 'autoping-1',
+      role: 'user',
+      content: 'reply with just OK',
+      timestamp: Date.now(),
+      isAutoPing: true,
+    };
+
+    renderer.renderStoredMessage(msg);
+
+    expect(messagesEl.children.length).toBe(1);
+    const rowEl = messagesEl.children[0];
+    expect(rowEl.hasClass('grimoire-autoping-row')).toBe(true);
+    expect(rowEl.hasClass('grimoire-message-user')).toBe(false);
+  });
+
+  it('collapses an auto-ping message added live, too', () => {
+    const messagesEl = createMockEl();
+    const { renderer } = createRenderer(messagesEl);
+
+    const msg: ChatMessage = {
+      id: 'autoping-2',
+      role: 'assistant',
+      content: 'OK',
+      timestamp: Date.now(),
+      isAutoPing: true,
+    };
+
+    const returned = renderer.addMessage(msg);
+
+    expect(messagesEl.children.length).toBe(1);
+    expect(returned.hasClass('grimoire-autoping-row')).toBe(true);
+  });
+
+  it('does not collapse a normal message that happens to contain the ping text', () => {
+    const messagesEl = createMockEl();
+    const { renderer } = createRenderer(messagesEl);
+    jest.spyOn(renderer, 'renderContent').mockResolvedValue(undefined);
+
+    const msg: ChatMessage = {
+      id: 'u-normal-1',
+      role: 'user',
+      content: 'reply with just OK',
+      timestamp: Date.now(),
+    };
+
+    renderer.renderStoredMessage(msg);
+
+    const msgEl = messagesEl.children[0];
+    expect(msgEl.hasClass('grimoire-message-user')).toBe(true);
+    expect(msgEl.hasClass('grimoire-autoping-row')).toBe(false);
+  });
+
   it('renders user message with text content', () => {
     const messagesEl = createMockEl();
     const { renderer } = createRenderer(messagesEl);
