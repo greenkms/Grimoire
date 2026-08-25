@@ -75,6 +75,7 @@ import { encodeClaudeTurn } from '../prompt/ClaudeTurnEncoder';
 import { isContextWindowEvent, isSessionInitEvent, isStreamChunk } from '../sdk/typeGuards';
 import type { TransformEvent } from '../sdk/types';
 import { getClaudeProviderSettings } from '../settings';
+import { createClaudeTaskPlanState } from '../stream/claudeTaskPlanState';
 import {
   createTransformStreamState,
   createTransformUsageState,
@@ -270,6 +271,7 @@ export class ClaudeChatRuntime implements ChatRuntime {
   private turnMetadata: ChatTurnMetadata = {};
   private bufferedUsageChunk: StreamChunk & { type: 'usage' } | null = null;
   private streamTransformState = createTransformStreamState();
+  private taskPlanState = createClaudeTaskPlanState();
   private usageTransformState = createTransformUsageState();
 
   private getLegacyPluginDeps(): GrimoirePlugin & {
@@ -935,6 +937,7 @@ export class ClaudeChatRuntime implements ChatRuntime {
       ),
       streamState,
       usageState,
+      taskPlanState: this.taskPlanState,
     };
   }
 
