@@ -1005,6 +1005,32 @@ describe('InputController - Message Queue', () => {
       expect(deps.state.isStreaming).toBe(false);
     });
 
+    it('should tag both sides of an auto-ping as isAutoPing', async () => {
+      (deps as any).mockAgentService.query = jest.fn().mockImplementation(() => createMockStream([{ type: 'done' }]));
+
+      await controller.sendMessage({
+        content: 'reply with just OK',
+        isAutoPing: true,
+        skipBuiltInCommandDetection: true,
+      });
+
+      expect(deps.state.messages).toHaveLength(2);
+      expect(deps.state.messages[0].role).toBe('user');
+      expect(deps.state.messages[0].isAutoPing).toBe(true);
+      expect(deps.state.messages[1].role).toBe('assistant');
+      expect(deps.state.messages[1].isAutoPing).toBe(true);
+    });
+
+    it('does not tag a normal user-typed message as isAutoPing', async () => {
+      (deps as any).mockAgentService.query = jest.fn().mockImplementation(() => createMockStream([{ type: 'done' }]));
+      inputEl.value = 'hello';
+
+      await controller.sendMessage();
+
+      expect(deps.state.messages[0].isAutoPing).toBeUndefined();
+      expect(deps.state.messages[1].isAutoPing).toBeUndefined();
+    });
+
     it('should send long chat input without truncating it', async () => {
       deps = createSendableDeps();
       const longMessage = 'long-chat-input '.repeat(1500);

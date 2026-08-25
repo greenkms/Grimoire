@@ -83,6 +83,8 @@ export interface ChatMessage {
   isInterrupt?: boolean;
   /** True if this message is rebuilt context sent to SDK on session reset (should be hidden). */
   isRebuiltContext?: boolean;
+  /** True if this message (and its paired reply) was sent automatically to keep the prompt cache warm. */
+  isAutoPing?: boolean;
   /** Duration in seconds from user send to response completion. */
   durationSeconds?: number;
   /** Flavor word used for duration display (e.g., "Baked", "Cooked"). */

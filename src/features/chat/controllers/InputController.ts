@@ -284,6 +284,7 @@ export class InputController {
     images?: ChatMessage['images'];
     skipBuiltInCommandDetection?: boolean;
     turnRequestOverride?: ChatTurnRequest;
+    isAutoPing?: boolean;
   }): Promise<void> {
     const {
       plugin,
@@ -477,6 +478,7 @@ export class InputController {
       completedAt: userCompletedAt,
       images: imagesForMessage,
       vaultSearchContext: turnRequest.vaultSearchContext,
+      isAutoPing: options?.isAutoPing,
     };
     state.addMessage(userMsg);
     state.hasPendingConversationSave = true;
@@ -484,7 +486,7 @@ export class InputController {
 
     await this.triggerTitleGeneration();
 
-    const assistantMsg = this.createAssistantMessage(queryOptions);
+    const assistantMsg = this.createAssistantMessage(queryOptions, options?.isAutoPing);
     state.addMessage(assistantMsg);
     this.activeStreamingAssistantMessage = assistantMsg;
     this.activateStreamingAssistantMessage(assistantMsg);
@@ -1340,7 +1342,10 @@ export class InputController {
     state.currentThinkingState = null;
   }
 
-  private createAssistantMessage(queryOptions?: ChatRuntimeQueryOptions): ChatMessage {
+  private createAssistantMessage(
+    queryOptions?: ChatRuntimeQueryOptions,
+    isAutoPing?: boolean,
+  ): ChatMessage {
     const settings = this.deps.getActiveProviderSettings?.()
       ?? this.deps.plugin.settings;
     return {
@@ -1355,6 +1360,7 @@ export class InputController {
         settings,
         { model: queryOptions?.model },
       ),
+      isAutoPing,
     };
   }
 
