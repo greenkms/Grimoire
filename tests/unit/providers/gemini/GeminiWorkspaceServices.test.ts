@@ -128,4 +128,31 @@ describe('createGeminiWorkspaceServices', () => {
 
     expect(ensureReady).toHaveBeenCalledTimes(1);
   });
+
+  it('rediscovers a settled catalog only when the caller forces it', async () => {
+    const ensureReady = jest
+      .spyOn(GeminiChatRuntime.prototype, 'ensureReady')
+      .mockResolvedValue(true);
+    jest.spyOn(GeminiChatRuntime.prototype, 'cleanup').mockImplementation(() => {});
+    const settings = {
+      providerConfigs: {
+        gemini: {
+          discoveredModels: [{ label: 'Gemini 2.5 Pro', rawId: 'gemini-2.5-pro' }],
+          enabled: true,
+        },
+      },
+    };
+    const plugin = {
+      getResolvedProviderCliPath: () => '/usr/local/bin/gemini',
+      settings,
+    };
+
+    const services = await createGeminiWorkspaceServices(plugin as any, {} as any);
+    await services.modelCatalog?.refreshModels({ plugin: plugin as any, settings: settings });
+    expect(ensureReady).not.toHaveBeenCalled();
+
+    await services.modelCatalog?.refreshModels({ force: true, plugin: plugin as any, settings: settings });
+
+    expect(ensureReady).toHaveBeenCalledTimes(1);
+  });
 });

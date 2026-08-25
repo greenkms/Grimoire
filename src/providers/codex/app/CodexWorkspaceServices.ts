@@ -72,10 +72,10 @@ function createCodexModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
     isAvailable(settings) {
       return getCodexProviderSettings(settings).enabled;
     },
-    async refreshModels({ settings }) {
+    async refreshModels({ force, settings }) {
       const currentSettings = getCodexProviderSettings(settings);
       const fingerprint = resolveCodexModelCatalogFingerprint(plugin, currentSettings);
-      if (refreshCache.applyDeferredSeed(fingerprint, currentSettings.discoveredModels.length > 0)) {
+      if (refreshCache.applyDeferredSeed(fingerprint, currentSettings.discoveredModels.length > 0) && !force) {
         plugin.recordDebugLog?.({
           data: {
             modelCount: currentSettings.discoveredModels.length,
@@ -90,7 +90,7 @@ function createCodexModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
         return false;
       }
 
-      if (refreshCache.isFresh(fingerprint, currentSettings.discoveredModels.length > 0)) {
+      if (!force && refreshCache.isFresh(fingerprint, currentSettings.discoveredModels.length > 0)) {
         plugin.recordDebugLog?.({
           data: {
             modelCount: currentSettings.discoveredModels.length,
@@ -107,6 +107,7 @@ function createCodexModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
 
       return refreshCache.refresh({
         fingerprint,
+        force,
         hasCachedModels: currentSettings.discoveredModels.length > 0,
         load: async () => {
       plugin.recordDebugLog?.({

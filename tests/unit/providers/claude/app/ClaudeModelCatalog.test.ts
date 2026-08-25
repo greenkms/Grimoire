@@ -1,10 +1,15 @@
 import { createClaudeModelCatalog } from '@/providers/claude/app/ClaudeModelCatalog';
+import { getClaudeCliBinaryFingerprint } from '@/providers/claude/cli/claudeCliBinaryFingerprint';
 import { probeRuntimeModels } from '@/providers/claude/commands/probeRuntimeModels';
 import { getClaudeProviderSettings, updateClaudeProviderSettings } from '@/providers/claude/settings';
 
 jest.mock('@/providers/claude/commands/probeRuntimeModels', () => ({ probeRuntimeModels: jest.fn() }));
+jest.mock('@/providers/claude/cli/claudeCliBinaryFingerprint', () => ({
+  getClaudeCliBinaryFingerprint: jest.fn().mockReturnValue(''),
+}));
 
 const mockedProbe = jest.mocked(probeRuntimeModels);
+const mockedBinaryFingerprint = jest.mocked(getClaudeCliBinaryFingerprint);
 
 function createPlugin(settings: Record<string, unknown>, saveSettings = jest.fn().mockResolvedValue(undefined)) {
   return {
@@ -16,7 +21,12 @@ function createPlugin(settings: Record<string, unknown>, saveSettings = jest.fn(
 }
 
 describe('ClaudeModelCatalog', () => {
-  beforeEach(() => mockedProbe.mockReset());
+  beforeEach(() => {
+    mockedProbe.mockReset();
+    mockedBinaryFingerprint.mockReset().mockReturnValue('');
+  });
+
+  afterEach(() => jest.useRealTimers());
 
   it('does not commit a completed probe after its cache key becomes stale', async () => {
     const settings: Record<string, unknown> = {};
@@ -142,6 +152,83 @@ describe('ClaudeModelCatalog', () => {
 
     await catalog.refreshModels({ plugin, settings });
 
+    expect(mockedProbe).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries an empty discovery attempt once ten minutes have passed', async () => {
+    jest.useFakeTimers();
+    const settings: Record<string, unknown> = {};
+    updateClaudeProviderSettings(settings, { enabled: true });
+    mockedProbe.mockResolvedValue([]);
+    const plugin = createPlugin(settings);
+    const catalog = createClaudeModelCatalog(plugin);
+
+    await catalog.refreshModels({ plugin, settings });
+    jest.advanceTimersByTime(10 * 60 * 1000 + 1);
+    await catalog.refreshModels({ plugin, settings });
+
+    expect(mockedProbe).toHaveBeenCalledTimes(2);
+  });
+
+  it('never re-probes a settled catalog on a timer', async () => {
+    jest.useFakeTimers();
+    const settings: Record<string, unknown> = {};
+    updateClaudeProviderSettings(settings, {
+      enabled: true,
+      discoveredModels: [{ id: 'opus', displayName: 'Opus', source: 'sdk' }],
+    });
+    mockedProbe.mockResolvedValue([{ id: 'opus', displayName: 'Opus', source: 'sdk' }]);
+    const plugin = createPlugin(settings);
+    const catalog = createClaudeModelCatalog(plugin);
+
+    await catalog.refreshModels({ plugin, settings });
+    // Well past the former ten-minute window: a picker opened an hour into a
+    // session used to start a full SDK session here.
+    jest.advanceTimersByTime(60 * 60 * 1000);
+    await catalog.refreshModels({ plugin, settings });
+
+    expect(mockedProbe).not.toHaveBeenCalled();
+  });
+
+  it('re-probes a settled catalog when the caller forces it', async () => {
+    const settings: Record<string, unknown> = {};
+    updateClaudeProviderSettings(settings, {
+      enabled: true,
+      discoveredModels: [{ id: 'opus', displayName: 'Opus', source: 'sdk' }],
+    });
+    mockedProbe.mockResolvedValue([{ id: 'sonnet', displayName: 'Sonnet', source: 'sdk' }]);
+    const plugin = createPlugin(settings);
+    const catalog = createClaudeModelCatalog(plugin);
+
+    await expect(catalog.refreshModels({ plugin, settings })).resolves.toBe(false);
+    expect(mockedProbe).not.toHaveBeenCalled();
+
+    await expect(catalog.refreshModels({ force: true, plugin, settings })).resolves.toBe(true);
+    expect(mockedProbe).toHaveBeenCalledTimes(1);
+    expect(getClaudeProviderSettings(settings).discoveredModels).toEqual([
+      { id: 'sonnet', displayName: 'Sonnet', source: 'sdk' },
+    ]);
+  });
+
+  it('re-probes when the CLI binary changes behind an unchanged path', async () => {
+    const settings: Record<string, unknown> = {};
+    updateClaudeProviderSettings(settings, {
+      enabled: true,
+      discoveredModels: [{ id: 'opus', displayName: 'Opus', source: 'sdk' }],
+    });
+    mockedProbe.mockResolvedValue([{ id: 'sonnet', displayName: 'Sonnet', source: 'sdk' }]);
+    mockedBinaryFingerprint.mockReturnValue('100:1');
+    const plugin = createPlugin(settings);
+    const catalog = createClaudeModelCatalog(plugin);
+
+    await catalog.refreshModels({ plugin, settings });
+    expect(mockedProbe).not.toHaveBeenCalled();
+
+    // `npm install -g` over the same path: the file changes, the path does not.
+    mockedBinaryFingerprint.mockReturnValue('120:2');
+    await catalog.refreshModels({ plugin, settings });
+
+    expect(mockedBinaryFingerprint).toHaveBeenCalledWith('/claude');
     expect(mockedProbe).toHaveBeenCalledTimes(1);
   });
 });

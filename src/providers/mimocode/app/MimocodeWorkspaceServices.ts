@@ -51,10 +51,10 @@ function createMimocodeModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalo
     isAvailable(settings) {
       return getMimocodeProviderSettings(settings).enabled;
     },
-    async refreshModels({ settings }) {
+    async refreshModels({ force, settings }) {
       const currentSettings = getMimocodeProviderSettings(settings);
       const cacheKey = buildMimocodeModelCatalogCacheKey(currentSettings);
-      if (refreshCache.isFresh(cacheKey, currentSettings.discoveredModels.length > 0)) {
+      if (!force && refreshCache.isFresh(cacheKey, currentSettings.discoveredModels.length > 0)) {
         plugin.recordDebugLog?.({
           data: {
             modelCount: currentSettings.discoveredModels.length,
@@ -71,6 +71,7 @@ function createMimocodeModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalo
 
       return refreshCache.refresh({
         fingerprint: cacheKey,
+        force,
         hasCachedModels: currentSettings.discoveredModels.length > 0,
         load: async () => {
           const before = JSON.stringify(currentSettings.discoveredModels);

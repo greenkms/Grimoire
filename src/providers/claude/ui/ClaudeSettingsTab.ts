@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { Setting } from 'obsidian';
+import { Notice, Setting } from 'obsidian';
 
 import { ProviderSettingsCoordinator } from '../../../core/providers/ProviderSettingsCoordinator';
 import type { ProviderSettingsTabRenderer } from '../../../core/providers/types';
@@ -165,6 +165,43 @@ export const claudeSettingsTabRenderer: ProviderSettingsTabRenderer = {
     // --- Models ---
 
     new Setting(container).setName(t('settings.models')).setHeading();
+
+    // Background picker refreshes never re-probe a settled catalog, so this is
+    // the one place a user can ask for the SDK's current list on demand - for
+    // example after a CLI upgrade that Grimoire's binary fingerprint missed.
+    new Setting(container)
+      .setName(t('settings.refreshModels.name'))
+      .setDesc(t('settings.refreshModels.desc'))
+      .addButton((button) => {
+        button
+          .setButtonText(t('settings.refreshModels.button'))
+          .onClick(async () => {
+            const catalog = claudeWorkspace?.modelCatalog;
+            if (!catalog) {
+              return;
+            }
+
+            button.setDisabled(true);
+            try {
+              await catalog.refreshModels({
+                force: true,
+                plugin: context.plugin,
+                settings: settingsBag,
+              });
+              const modelCount = getClaudeProviderSettings(settingsBag).discoveredModels.length;
+              if (modelCount === 0) {
+                new Notice(t('settings.provider.loadModelsFailed'));
+                return;
+              }
+              context.refreshModelSelectors();
+              new Notice(t('settings.refreshModels.done', { count: modelCount }));
+            } catch {
+              new Notice(t('settings.provider.loadModelsFailed'));
+            } finally {
+              button.setDisabled(false);
+            }
+          });
+      });
 
     new Setting(container)
       .setName(t('settings.customModels.name'))

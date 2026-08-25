@@ -830,6 +830,12 @@
       "desc": "Ajoutez des ID de modèles Claude au sélecteur, un par ligne. Les substitutions de modèle de l'environnement remplacent toujours le sélecteur.",
       "placeholder": "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
     },
+    "refreshModels": {
+      "name": "Actualiser les modèles",
+      "desc": "Demande à Claude Code sa liste de modèles actuelle. Sinon, Grimoire ne revérifie que lorsque la CLI ou son environnement change.",
+      "button": "Actualiser",
+      "done": "Liste des modèles actualisée : {count} modèles."
+    },
     "respectProjectSettings": {
       "name": "Respecter les paramètres de Claude Code",
       "desc": "Utilisez le modèle et l'environnement des paramètres utilisateur et projet de Claude Code. Cela active les modèles personnalisés de MiniMax, Z.ai et d'autres passerelles compatibles Anthropic. Les choix explicites de Grimoire restent prioritaires."

@@ -2224,6 +2224,7 @@ export class GrimoireSettingTab extends PluginSettingTab {
     }
 
     await catalog.refreshModels({
+      force: true,
       plugin: this.plugin,
       settings: this.plugin.settings,
     });

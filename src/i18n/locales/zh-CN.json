@@ -830,6 +830,12 @@
       "desc": "每行向选择器添加一个 Claude 模型 ID。环境变量中的模型覆盖仍会替换选择器内容。",
       "placeholder": "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
     },
+    "refreshModels": {
+      "name": "刷新模型",
+      "desc": "向 Claude Code 请求当前模型列表。否则 Grimoire 仅在 CLI 或其环境变化时重新检查。",
+      "button": "刷新",
+      "done": "模型列表已刷新：共 {count} 个模型。"
+    },
     "respectProjectSettings": {
       "name": "遵循 Claude Code 设置",
       "desc": "使用 Claude Code 用户与项目设置中的模型和环境变量。这样可使用 MiniMax、Z.ai 及其他 Anthropic 兼容网关提供的自定义模型；Grimoire 中的显式设置仍具有更高优先级。"

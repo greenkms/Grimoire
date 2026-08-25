@@ -830,6 +830,12 @@
       "desc": "每行將一個額外的 Claude 模型 ID 加入選擇器。環境中的模型覆寫仍會取代選擇器。",
       "placeholder": "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
     },
+    "refreshModels": {
+      "name": "重新整理模型",
+      "desc": "向 Claude Code 請求目前的模型清單。否則 Grimoire 僅在 CLI 或其環境變更時重新檢查。",
+      "button": "重新整理",
+      "done": "模型清單已重新整理：共 {count} 個模型。"
+    },
     "respectProjectSettings": {
       "name": "遵循 Claude Code 設定",
       "desc": "使用 Claude Code 使用者與專案設定中的模型和環境變數。這可啟用 MiniMax、Z.ai 及其他 Anthropic 相容閘道提供的自訂模型；Grimoire 的明確選擇仍優先。"
