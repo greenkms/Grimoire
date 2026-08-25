@@ -113,17 +113,29 @@ export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelC
   // (or a partial one) still gets its single per-load probe, because that probe
   // exists to upgrade the cheap API listing to the authenticated SDK list.
   const initialSettings = getClaudeProviderSettings(plugin.settings ?? {});
-  if (
-    initialSettings.discoveredModels.length > 0
-    && initialSettings.discoveredModels.every(model => model.source === 'sdk')
-  ) {
-    refreshAttemptsByKey.set(
-      buildClaudeModelCatalogCacheKey(
-        initialSettings,
-        plugin.getResolvedProviderCliPath?.('claude') ?? '',
-      ),
-      Date.now(),
-    );
+  const catalogIsFullySdkSourced = initialSettings.discoveredModels.length > 0
+    && initialSettings.discoveredModels.every(model => model.source === 'sdk');
+
+  // The CLI path is part of the cache key, but it cannot always be resolved
+  // here: this catalog is constructed inside createClaudeWorkspaceServices,
+  // which runs inside ProviderWorkspaceRegistry.initialize(), and the registry
+  // only assigns this.services[providerId] *after* initialize() resolves. Until
+  // then getCliResolver('claude') is null, so getResolvedProviderCliPath returns
+  // null and an eager seed would be filed under cliPath '' while every later
+  // refresh looks it up under the real path - the keys never match and the probe
+  // runs on every plugin load anyway, which is exactly what the seed exists to
+  // prevent. When the path is unavailable, seed on first use instead.
+  const initialCliPath = plugin.getResolvedProviderCliPath?.('claude') ?? null;
+  let seedOnFirstRefresh = false;
+  if (catalogIsFullySdkSourced) {
+    if (initialCliPath === null) {
+      seedOnFirstRefresh = true;
+    } else {
+      refreshAttemptsByKey.set(
+        buildClaudeModelCatalogCacheKey(initialSettings, initialCliPath),
+        Date.now(),
+      );
+    }
   }
 
   return {
@@ -136,6 +148,22 @@ export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelC
         currentSettings,
         plugin.getResolvedProviderCliPath?.('claude') ?? '',
       );
+      if (seedOnFirstRefresh) {
+        seedOnFirstRefresh = false;
+        refreshAttemptsByKey.set(cacheKey, Date.now());
+        plugin.recordDebugLog?.({
+          data: {
+            modelCount: currentSettings.discoveredModels.length,
+            providerId: 'claude',
+            reason: 'seeded_on_first_use',
+          },
+          event: 'modelCatalog.refresh.skipped',
+          level: 'debug',
+          scope: 'provider.claude',
+        });
+        return false;
+      }
+
       const lastAttemptAt = refreshAttemptsByKey.get(cacheKey) ?? 0;
       const cacheAgeMs = lastAttemptAt > 0 ? Date.now() - lastAttemptAt : Number.POSITIVE_INFINITY;
       if (cacheAgeMs < 10 * 60 * 1000) {

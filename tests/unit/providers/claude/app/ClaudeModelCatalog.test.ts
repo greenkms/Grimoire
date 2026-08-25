@@ -99,4 +99,26 @@ describe('ClaudeModelCatalog', () => {
 
     expect(mockedProbe).toHaveBeenCalledTimes(1);
   });
+  it('suppresses the reload probe even when the CLI resolver is not reachable yet at construction', async () => {
+    const settings: Record<string, unknown> = {};
+    updateClaudeProviderSettings(settings, {
+      enabled: true,
+      discoveredModels: [{ id: 'opus', displayName: 'Opus', source: 'sdk' }],
+    });
+    mockedProbe.mockResolvedValue([{ id: 'opus', displayName: 'Opus', source: 'sdk' }]);
+    const plugin = createPlugin(settings);
+
+    // Production ordering: the catalog is built inside createClaudeWorkspaceServices,
+    // which runs *inside* ProviderWorkspaceRegistry.initialize(). The registry only
+    // assigns this.services[providerId] after initialize() resolves, so
+    // getCliResolver -> getResolvedProviderCliPath returns null while the catalog
+    // is being constructed, and the real path only afterwards.
+    plugin.getResolvedProviderCliPath.mockReturnValue(null);
+    const catalog = createClaudeModelCatalog(plugin);
+    plugin.getResolvedProviderCliPath.mockReturnValue('/claude');
+
+    await expect(catalog.refreshModels({ plugin, settings })).resolves.toBe(false);
+
+    expect(mockedProbe).not.toHaveBeenCalled();
+  });
 });
