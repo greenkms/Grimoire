@@ -53,6 +53,15 @@ export class ClaudePlanUsageStore extends ProviderSpendUsageStore {
     this.windows.clear();
   }
 
+  /**
+   * Latest observed window for a rate-limit key (`five_hour`, `overage`, ...),
+   * or null if the SDK has not reported one yet. Read-only accessor used by the
+   * auto-ping scheduler to avoid spending against an exhausted plan window.
+   */
+  getWindow(key: string): ProviderPlanUsageWindow | null {
+    return this.windows.get(key) ?? null;
+  }
+
   getCachedUsage(context: ProviderPlanUsageContext): ProviderPlanUsage | null {
     const spendUsage = super.getCachedUsage(context);
     if (this.windows.size > 0) {

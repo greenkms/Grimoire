@@ -1,6 +1,7 @@
 import type { DebugLogEvent } from '../../../core/debug/DebugLogService';
 import type { ChatMessage } from '../../../core/types/chat';
 import { getClaudeProviderSettings } from '../settings';
+import { claudePlanUsageStore } from './ClaudePlanUsageStore';
 
 const PING_TEXT = 'reply with just OK';
 const TICK_INTERVAL_MS = 60_000;
@@ -142,6 +143,45 @@ export interface ClaudeAutoPingSchedulerHandle {
   stop(): void;
 }
 
+export interface PlanUsageWindowLike {
+  label: string;
+  pct: number;
+  pctKnown?: boolean;
+  reset: string;
+}
+
+export interface ClaudeAutoPingSchedulerDeps {
+  /** Latest plan-usage window for a rate-limit key, or null if none observed. */
+  getPlanUsageWindow?: (key: string) => PlanUsageWindowLike | null;
+}
+
+/**
+ * Decides whether the plan's own limits make an auto-ping a bad idea.
+ *
+ * Two distinct reasons to stay quiet:
+ *   - an active `overage` window means further requests bill at API rates, and
+ *     in that mode the prompt cache also falls back to a 5-minute TTL, so a
+ *     40-minute keep-alive would pay a full cache *write* every single time -
+ *     strictly worse than doing nothing;
+ *   - a five-hour window at or above the threshold means the remaining quota
+ *     should be reserved for real work, not keep-alives.
+ *
+ * A withheld percentage (`pctKnown: false`) is treated as unknown, not as a
+ * block: the consecutive-ping cap remains the backstop in that case. A
+ * threshold of 0 disables the utilization half of the guard, but never the
+ * overage half.
+ */
+export function shouldSkipForPlanLimits(
+  overage: PlanUsageWindowLike | null,
+  fiveHour: PlanUsageWindowLike | null,
+  thresholdPct: number,
+): boolean {
+  if (overage) return true;
+  if (thresholdPct <= 0) return false;
+  if (!fiveHour || fiveHour.pctKnown === false) return false;
+  return fiveHour.pct >= thresholdPct;
+}
+
 function findTabById(plugin: MinimalPlugin, tabId: string): MinimalTab | null {
   for (const view of plugin.getAllViews()) {
     const tabManager = view.getTabManager();
@@ -155,12 +195,24 @@ function findTabById(plugin: MinimalPlugin, tabId: string): MinimalTab | null {
  * Starts the plugin-wide auto-ping tick. Caller owns stopping it via the
  * returned handle. Inert unless the user explicitly enables the feature.
  */
-export function createClaudeAutoPingScheduler(plugin: MinimalPlugin): ClaudeAutoPingSchedulerHandle {
+export function createClaudeAutoPingScheduler(
+  plugin: MinimalPlugin,
+  deps: ClaudeAutoPingSchedulerDeps = {},
+): ClaudeAutoPingSchedulerHandle {
   let activityByTab = new Map<string, TabPingActivity>();
+  const getPlanUsageWindow = deps.getPlanUsageWindow
+    ?? ((key: string) => claudePlanUsageStore.getWindow(key));
 
   const tick = (): void => {
     const claudeSettings = getClaudeProviderSettings(plugin.settings);
     if (!claudeSettings.autoPingEnabled) return;
+
+    const blocked = shouldSkipForPlanLimits(
+      getPlanUsageWindow('overage'),
+      getPlanUsageWindow('five_hour'),
+      claudeSettings.autoPingSkipAboveUtilizationPct,
+    );
+    if (blocked) return;
 
     const candidateTabs: TabPingSnapshot[] = [];
     for (const view of plugin.getAllViews()) {

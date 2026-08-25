@@ -1,7 +1,9 @@
 import type { ChatMessage } from '@/core/types/chat';
 import {
   createClaudeAutoPingScheduler,
+  type PlanUsageWindowLike,
   selectTabsDueForPing,
+  shouldSkipForPlanLimits,
   type TabPingActivity,
   type TabPingSnapshot,
 } from '@/providers/claude/app/ClaudeAutoPingScheduler';
@@ -375,5 +377,98 @@ describe('createClaudeAutoPingScheduler', () => {
     scheduler.stop();
     jest.advanceTimersByTime(24 * 60 * 60_000);
     expect(t.controllers.inputController.sendMessage).not.toHaveBeenCalled();
+  });
+});
+
+describe('shouldSkipForPlanLimits', () => {
+  it('blocks while an overage window is active, whatever the threshold', () => {
+    expect(shouldSkipForPlanLimits({ label: 'Overage', pct: 0, reset: '5p' }, null, 80)).toBe(true);
+    expect(shouldSkipForPlanLimits({ label: 'Overage', pct: 0, reset: '5p' }, null, 0)).toBe(true);
+  });
+
+  it('blocks once the five-hour window reaches the threshold', () => {
+    expect(shouldSkipForPlanLimits(null, { label: '5-hr', pct: 80, reset: '5p' }, 80)).toBe(true);
+    expect(shouldSkipForPlanLimits(null, { label: '5-hr', pct: 95, reset: '5p' }, 80)).toBe(true);
+  });
+
+  it('allows pinging below the threshold', () => {
+    expect(shouldSkipForPlanLimits(null, { label: '5-hr', pct: 79, reset: '5p' }, 80)).toBe(false);
+  });
+
+  it('treats a withheld percentage as unknown rather than as a block', () => {
+    expect(
+      shouldSkipForPlanLimits(null, { label: '5-hr', pct: 0, pctKnown: false, reset: '5p' }, 80),
+    ).toBe(false);
+  });
+
+  it('treats a threshold of 0 as "guard disabled"', () => {
+    expect(shouldSkipForPlanLimits(null, { label: '5-hr', pct: 99, reset: '5p' }, 0)).toBe(false);
+  });
+
+  it('allows pinging when no usage window has been observed yet', () => {
+    expect(shouldSkipForPlanLimits(null, null, 80)).toBe(false);
+  });
+});
+
+describe('createClaudeAutoPingScheduler plan-limit guard', () => {
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => jest.useRealTimers());
+
+  function runDueScenario(getPlanUsageWindow: (key: string) => PlanUsageWindowLike | null) {
+    const now = Date.now();
+    const sendMessage = jest.fn().mockResolvedValue(undefined);
+    const t = {
+      id: 't1',
+      providerId: 'claude',
+      state: { isStreaming: false, messages: [userMsg('m1', now)] as ChatMessage[] },
+      controllers: { inputController: { sendMessage } },
+    };
+    const tabManager = { getAllTabs: () => [t], getActiveTabId: () => 't1' };
+    const plugin = {
+      settings: {
+        providerConfigs: {
+          claude: {
+            autoPingEnabled: true,
+            autoPingIntervalMinutes: 40,
+            autoPingMaxConsecutive: 0,
+            autoPingScope: 'active',
+            autoPingSkipAboveUtilizationPct: 80,
+          },
+        },
+      },
+      getAllViews: () => [{ getTabManager: () => tabManager }],
+    } as never;
+
+    const scheduler = createClaudeAutoPingScheduler(plugin, { getPlanUsageWindow });
+    jest.advanceTimersByTime(60_000);
+
+    const repliedAt = now + 1_000;
+    jest.setSystemTime(repliedAt);
+    t.state.messages.push(assistantMsg('a1', repliedAt));
+    jest.advanceTimersByTime(60_000);
+
+    jest.setSystemTime(repliedAt + 41 * 60_000);
+    jest.advanceTimersByTime(60_000);
+    scheduler.stop();
+
+    return sendMessage;
+  }
+
+  it('suppresses an otherwise-due ping while the plan is in overage', () => {
+    const sendMessage = runDueScenario((key) =>
+      key === 'overage' ? { label: 'Overage', pct: 0, reset: '5p' } : null);
+    expect(sendMessage).not.toHaveBeenCalled();
+  });
+
+  it('suppresses an otherwise-due ping above the utilization threshold', () => {
+    const sendMessage = runDueScenario((key) =>
+      key === 'five_hour' ? { label: '5-hr', pct: 91, reset: '5p' } : null);
+    expect(sendMessage).not.toHaveBeenCalled();
+  });
+
+  it('still pings when usage is comfortably below the threshold', () => {
+    const sendMessage = runDueScenario((key) =>
+      key === 'five_hour' ? { label: '5-hr', pct: 12, reset: '5p' } : null);
+    expect(sendMessage).toHaveBeenCalledTimes(1);
   });
 });
