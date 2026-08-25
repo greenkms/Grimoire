@@ -830,6 +830,12 @@
       "desc": "Append additional Claude model IDs to the picker, one per line. Environment model overrides still replace the picker.",
       "placeholder": "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
     },
+    "refreshModels": {
+      "name": "Refresh models",
+      "desc": "Ask Claude Code for its current model list. Grimoire otherwise re-checks only when the CLI or its environment changes.",
+      "button": "Refresh",
+      "done": "Model list refreshed: {count} models."
+    },
     "respectProjectSettings": {
       "name": "Respect Claude Code settings",
       "desc": "Use model and env from Claude Code user and project settings. This enables custom models from providers such as MiniMax, Z.ai, and other Anthropic-compatible gateways. Grimoire settings still override explicit choices."

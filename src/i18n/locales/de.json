@@ -830,6 +830,12 @@
       "desc": "Zusätzliche Claude-Modell-IDs zur Auswahl hinzufügen, eine pro Zeile. Modellüberschreibungen aus der Umgebung ersetzen die Auswahl weiterhin.",
       "placeholder": "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
     },
+    "refreshModels": {
+      "name": "Modelle aktualisieren",
+      "desc": "Fragt Claude Code nach der aktuellen Modellliste. Sonst prüft Grimoire nur erneut, wenn sich die CLI oder ihre Umgebung ändert.",
+      "button": "Aktualisieren",
+      "done": "Modellliste aktualisiert: {count} Modelle."
+    },
     "respectProjectSettings": {
       "name": "Claude-Code-Einstellungen berücksichtigen",
       "desc": "Modell und Umgebung aus den Benutzer- und Projekteinstellungen von Claude Code verwenden. Dadurch werden benutzerdefinierte Modelle von Anbietern wie MiniMax, Z.ai und anderen Anthropic-kompatiblen Gateways ermöglicht. Grimoire-Einstellungen überschreiben weiterhin explizite Auswahlmöglichkeiten."

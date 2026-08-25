@@ -830,6 +830,12 @@
       "desc": "追加の Claude モデル ID を1行に1つずつ選択肢へ追加します。環境のモデル上書きは引き続き選択肢を置き換えます。",
       "placeholder": "claude-opus-4-6\nclaude-opus-4-6[1m]\nclaude-opus-4-5-20251101"
     },
+    "refreshModels": {
+      "name": "モデルを更新",
+      "desc": "Claude Code に現在のモデル一覧を問い合わせます。通常、Grimoire は CLI やその環境が変わったときにのみ再確認します。",
+      "button": "更新",
+      "done": "モデル一覧を更新しました：{count} 件のモデル。"
+    },
     "respectProjectSettings": {
       "name": "Claude Code の設定を尊重",
       "desc": "Claude Code のユーザーおよびプロジェクト設定からモデルと環境を使用します。MiniMax、Z.ai、その他の Anthropic 互換ゲートウェイのカスタムモデルを有効にします。Grimoire の明示的な設定は引き続き優先されます。"

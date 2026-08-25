@@ -32,6 +32,7 @@ jest.mock('obsidian', () => {
     public textAreaComponents: MockTextAreaComponent[] = [];
     public dropdownComponents: MockDropdownComponent[] = [];
     public toggleComponents: MockToggleComponent[] = [];
+    public buttonComponents: MockButtonComponent[] = [];
 
     constructor(_container: unknown) {
       createdSettings.push(this);
@@ -73,6 +74,13 @@ jest.mock('obsidian', () => {
       return this;
     }
 
+    addButton(callback: (button: MockButtonComponent) => void) {
+      const component = createButtonComponent();
+      this.buttonComponents.push(component);
+      callback(component);
+      return this;
+    }
+
     addToggle(callback: (toggle: MockToggleComponent) => void) {
       const component = createToggleComponent();
       this.toggleComponents.push(component);
@@ -82,6 +90,7 @@ jest.mock('obsidian', () => {
   }
 
   return {
+    Notice: jest.fn(),
     Setting: MockSetting,
   };
 });
@@ -94,12 +103,17 @@ jest.mock('@/features/settings/ui/McpSettingsManager', () => ({
   McpSettingsManager: jest.fn(),
 }));
 
+const mockRefreshModels = jest.fn().mockResolvedValue(true);
+
 jest.mock('@/providers/claude/app/ClaudeWorkspaceServices', () => ({
   getClaudeWorkspaceServices: jest.fn(() => ({
     cliResolver: {
       reset: jest.fn(),
     },
     commandCatalog: {},
+    modelCatalog: {
+      refreshModels: (...args: unknown[]) => mockRefreshModels(...args),
+    },
     agentManager: {},
     agentStorage: {},
     mcpStorage: {},
@@ -116,7 +130,8 @@ jest.mock('@/providers/claude/ui/SlashCommandSettings', () => ({
 }));
 
 jest.mock('@/i18n/i18n', () => ({
-  t: (key: string) => key,
+  t: (key: string, params?: Record<string, string | number>) =>
+    params ? `${key}:${JSON.stringify(params)}` : key,
 }));
 
 jest.mock('@/utils/env', () => {
@@ -161,6 +176,15 @@ interface MockDropdownComponent {
   onChange: jest.MockedFunction<(callback: (value: string) => Promise<void> | void) => MockDropdownComponent>;
 }
 
+interface MockButtonComponent {
+  disabled: boolean;
+  text: string;
+  onClickCallback: (() => Promise<void> | void) | null;
+  setButtonText: jest.MockedFunction<(value: string) => MockButtonComponent>;
+  setDisabled: jest.MockedFunction<(value: boolean) => MockButtonComponent>;
+  onClick: jest.MockedFunction<(callback: () => Promise<void> | void) => MockButtonComponent>;
+}
+
 interface MockToggleComponent {
   value: boolean;
   onChangeCallback: ((value: boolean) => Promise<void> | void) | null;
@@ -176,6 +200,7 @@ const createdSettings: Array<{
   textAreaComponents: MockTextAreaComponent[];
   dropdownComponents: MockDropdownComponent[];
   toggleComponents: MockToggleComponent[];
+  buttonComponents: MockButtonComponent[];
 }> = [];
 
 function createInputEl(): MockInputEl & { _listeners: Map<string, Array<() => void>> } {
@@ -247,6 +272,27 @@ function createDropdownComponent(): MockDropdownComponent {
   });
   component.onChange = jest.fn((callback: (value: string) => Promise<void> | void) => {
     component.onChangeCallback = callback;
+    return component;
+  });
+
+  return component;
+}
+
+function createButtonComponent(): MockButtonComponent {
+  const component = {} as MockButtonComponent;
+  component.disabled = false;
+  component.text = '';
+  component.onClickCallback = null;
+  component.setButtonText = jest.fn((value: string) => {
+    component.text = value;
+    return component;
+  });
+  component.setDisabled = jest.fn((value: boolean) => {
+    component.disabled = value;
+    return component;
+  });
+  component.onClick = jest.fn((callback: () => Promise<void> | void) => {
+    component.onClickCallback = callback;
     return component;
   });
 
@@ -493,5 +539,55 @@ describe('ClaudeSettingsTab', () => {
     expect(plugin.settings.titleGenerationModel).toBe('');
     expect(mockSaveSettings).toHaveBeenCalledTimes(1);
     expect(context.refreshModelSelectors).toHaveBeenCalledTimes(1);
+  });
+
+  it('forces SDK model discovery from the refresh button and reports the result', async () => {
+    const { Notice } = await import('obsidian');
+    const plugin = createPlugin({
+      providerConfigs: {
+        claude: {
+          ...DEFAULT_CLAUDE_PROVIDER_SETTINGS,
+          discoveredModels: [
+            { id: 'opus', displayName: 'Opus', source: 'sdk' },
+            { id: 'sonnet', displayName: 'Sonnet', source: 'sdk' },
+          ],
+        },
+      },
+    });
+    const context = createContext(plugin);
+
+    claudeSettingsTabRenderer.render(createContainer(), context);
+
+    const refreshSetting = findSetting('settings.refreshModels.name');
+    const button = refreshSetting.buttonComponents[0];
+    expect(button.text).toBe('settings.refreshModels.button');
+
+    await button.onClickCallback?.();
+
+    // Background picker refreshes never force; this button is the one explicit path.
+    expect(mockRefreshModels).toHaveBeenCalledWith({
+      force: true,
+      plugin,
+      settings: plugin.settings,
+    });
+    expect(context.refreshModelSelectors).toHaveBeenCalledTimes(1);
+    expect(Notice).toHaveBeenCalledWith('settings.refreshModels.done:{"count":2}');
+    expect(button.setDisabled).toHaveBeenLastCalledWith(false);
+  });
+
+  it('reports a failed refresh instead of leaving the button stuck', async () => {
+    const { Notice } = await import('obsidian');
+    mockRefreshModels.mockRejectedValueOnce(new Error('spawn failed'));
+    const plugin = createPlugin();
+    const context = createContext(plugin);
+
+    claudeSettingsTabRenderer.render(createContainer(), context);
+
+    const button = findSetting('settings.refreshModels.name').buttonComponents[0];
+    await button.onClickCallback?.();
+
+    expect(context.refreshModelSelectors).not.toHaveBeenCalled();
+    expect(Notice).toHaveBeenCalledWith('settings.provider.loadModelsFailed');
+    expect(button.setDisabled).toHaveBeenLastCalledWith(false);
   });
 });
