@@ -18,6 +18,7 @@ export class ProviderModelCatalogRefreshCache {
   private lastSuccessfulRefreshAt = 0;
   private pending: PendingRefresh | null = null;
   private refreshGeneration = 0;
+  private deferredSeed: (() => string) | null = null;
 
   constructor(
     private readonly ttlMs: number,
@@ -28,6 +29,43 @@ export class ProviderModelCatalogRefreshCache {
     this.refreshGeneration += 1;
     this.freshFingerprint = fingerprint;
     this.lastSuccessfulRefreshAt = this.now();
+  }
+
+  /**
+   * Holds a seed back until the first refresh, for a catalog whose fingerprint
+   * cannot be computed yet.
+   *
+   * Provider workspace services are built *inside*
+   * `ProviderWorkspaceRegistry.initialize()`, and the registry only assigns
+   * `this.services[providerId]` after that promise resolves, so a catalog under
+   * construction still sees `getCliResolver` as null and
+   * `getResolvedProviderCliPath` returns null. Seeding under that unresolved
+   * path files the seed under a key no later lookup ever uses, and the CLI
+   * warmup the seed exists to prevent runs on every plugin load regardless.
+   */
+  seedOnFirstRefresh(buildSeedFingerprint: () => string): void {
+    this.deferredSeed = buildSeedFingerprint;
+  }
+
+  /**
+   * Consumes a held-back seed, applying it only when nothing but the resolved
+   * CLI path changed since construction. A real configuration change in that
+   * window must still reach discovery, so the seed is dropped instead of being
+   * filed under the new fingerprint.
+   */
+  applyDeferredSeed(fingerprint: string, hasCachedModels: boolean): boolean {
+    const buildSeedFingerprint = this.deferredSeed;
+    if (!buildSeedFingerprint) {
+      return false;
+    }
+
+    this.deferredSeed = null;
+    if (!hasCachedModels || buildSeedFingerprint() !== fingerprint) {
+      return false;
+    }
+
+    this.seed(fingerprint);
+    return true;
   }
 
   isFresh(fingerprint: string, hasCachedModels: boolean): boolean {

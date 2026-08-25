@@ -65,4 +65,67 @@ describe('createGeminiWorkspaceServices', () => {
 
     expect(ensureReady).toHaveBeenCalledTimes(1);
   });
+
+  it('suppresses the reload warmup when the CLI resolver is not reachable yet at construction', async () => {
+    const ensureReady = jest
+      .spyOn(GeminiChatRuntime.prototype, 'ensureReady')
+      .mockResolvedValue(true);
+    jest.spyOn(GeminiChatRuntime.prototype, 'cleanup').mockImplementation(() => {});
+    const settings = {
+      providerConfigs: {
+        gemini: {
+          discoveredModels: [{ label: 'Gemini 2.5 Pro', rawId: 'gemini-2.5-pro' }],
+          enabled: true,
+        },
+      },
+    };
+    // Production ordering: the catalog is built inside createGeminiWorkspaceServices,
+    // which runs *inside* ProviderWorkspaceRegistry.initialize(). The registry only
+    // assigns this.services[providerId] after initialize() resolves, so the CLI
+    // resolver - and with it the resolved path - appears only afterwards.
+    let resolvedCliPath: string | null = null;
+    const plugin = {
+      getResolvedProviderCliPath: () => resolvedCliPath,
+      settings,
+    };
+
+    const services = await createGeminiWorkspaceServices(plugin as any, {} as any);
+    resolvedCliPath = '/usr/local/bin/gemini';
+    const changed = await services.modelCatalog?.refreshModels({
+      plugin: plugin as any,
+      settings: settings,
+    });
+
+    expect(changed).toBe(false);
+    expect(ensureReady).not.toHaveBeenCalled();
+  });
+
+  it('still rediscovers when the environment changed before the first refresh', async () => {
+    const ensureReady = jest
+      .spyOn(GeminiChatRuntime.prototype, 'ensureReady')
+      .mockResolvedValue(true);
+    jest.spyOn(GeminiChatRuntime.prototype, 'cleanup').mockImplementation(() => {});
+    const settings = {
+      providerConfigs: {
+        gemini: {
+          discoveredModels: [{ label: 'Gemini 2.5 Pro', rawId: 'gemini-2.5-pro' }],
+          enabled: true,
+        },
+      },
+    };
+    let activeEnvironment = 'GEMINI_API_KEY=old';
+    let resolvedCliPath: string | null = null;
+    const plugin = {
+      getActiveEnvironmentVariables: () => activeEnvironment,
+      getResolvedProviderCliPath: () => resolvedCliPath,
+      settings,
+    };
+
+    const services = await createGeminiWorkspaceServices(plugin as any, {} as any);
+    resolvedCliPath = '/usr/local/bin/gemini';
+    activeEnvironment = 'GEMINI_API_KEY=new';
+    await services.modelCatalog?.refreshModels({ plugin: plugin as any, settings: settings });
+
+    expect(ensureReady).toHaveBeenCalledTimes(1);
+  });
 });

@@ -3,6 +3,17 @@ import { getCodexModelDiscoveryState } from '@/providers/codex/modelDiscoverySta
 import { CodexModelListingService } from '@/providers/codex/runtime/CodexModelListingService';
 import { codexChatUIConfig } from '@/providers/codex/ui/CodexChatUIConfig';
 
+function createStubAdapter() {
+  return {
+    delete: jest.fn(),
+    ensureFolder: jest.fn(),
+    exists: jest.fn().mockResolvedValue(false),
+    listFiles: jest.fn().mockResolvedValue([]),
+    read: jest.fn(),
+    write: jest.fn(),
+  };
+}
+
 describe('createCodexWorkspaceServices', () => {
   afterEach(() => {
     jest.restoreAllMocks();
@@ -135,5 +146,76 @@ describe('createCodexWorkspaceServices', () => {
     expect(codexChatUIConfig.getModelOptions(reloadedSettings)).toEqual([
       { value: 'gpt-5.6-sol', label: 'GPT-5.6-Sol', description: undefined },
     ]);
+  });
+
+  it('suppresses the reload listing when the CLI resolver is not reachable yet at construction', async () => {
+    const listModelsSpy = jest
+      .spyOn(CodexModelListingService.prototype, 'listModels')
+      .mockResolvedValue([{ id: 'gpt-5.6', label: 'GPT-5.6' }]);
+    const settings = {
+      providerConfigs: {
+        codex: {
+          discoveredModels: [{ id: 'gpt-5.5', label: 'GPT-5.5' }],
+          enabled: true,
+        },
+      },
+    };
+    // Production ordering: the catalog is built inside createCodexWorkspaceServices,
+    // which runs *inside* ProviderWorkspaceRegistry.initialize(). The registry only
+    // assigns this.services[providerId] after initialize() resolves, so the CLI
+    // resolver - and with it the resolved path - appears only afterwards.
+    let resolvedCliPath: string | null = null;
+    const plugin = {
+      app: { vault: { adapter: { basePath: '/repo' } } },
+      getResolvedProviderCliPath: () => resolvedCliPath,
+      settings,
+    };
+
+    const services = await createCodexWorkspaceServices(
+      plugin as any,
+      createStubAdapter() as any,
+      createStubAdapter() as any,
+    );
+    resolvedCliPath = '/usr/local/bin/codex';
+    const changed = await services.modelCatalog?.refreshModels({
+      plugin: plugin as any,
+      settings: settings,
+    });
+
+    expect(changed).toBe(false);
+    expect(listModelsSpy).not.toHaveBeenCalled();
+  });
+
+  it('still relists models when the environment changed before the first refresh', async () => {
+    const listModelsSpy = jest
+      .spyOn(CodexModelListingService.prototype, 'listModels')
+      .mockResolvedValue([{ id: 'gpt-5.6', label: 'GPT-5.6' }]);
+    const settings = {
+      providerConfigs: {
+        codex: {
+          discoveredModels: [{ id: 'gpt-5.5', label: 'GPT-5.5' }],
+          enabled: true,
+        },
+      },
+    };
+    let activeEnvironment = 'OPENAI_API_KEY=old';
+    let resolvedCliPath: string | null = null;
+    const plugin = {
+      app: { vault: { adapter: { basePath: '/repo' } } },
+      getActiveEnvironmentVariables: () => activeEnvironment,
+      getResolvedProviderCliPath: () => resolvedCliPath,
+      settings,
+    };
+
+    const services = await createCodexWorkspaceServices(
+      plugin as any,
+      createStubAdapter() as any,
+      createStubAdapter() as any,
+    );
+    resolvedCliPath = '/usr/local/bin/codex';
+    activeEnvironment = 'OPENAI_API_KEY=new';
+    await services.modelCatalog?.refreshModels({ plugin: plugin as any, settings: settings });
+
+    expect(listModelsSpy).toHaveBeenCalledTimes(1);
   });
 });

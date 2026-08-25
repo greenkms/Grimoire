@@ -42,22 +42,50 @@ const qwenTabWarmupPolicy: ProviderTabWarmupPolicy = {
 const MODEL_CATALOG_CACHE_TTL_MS = 10 * 60 * 1000;
 
 function buildQwenModelCatalogFingerprint(
+  settings: ReturnType<typeof getQwenProviderSettings>,
+  cliPath: string,
+  environmentVariables: string,
+): string {
+  return JSON.stringify({
+    cliPath,
+    cliPathsByHost: settings.cliPathsByHost,
+    environmentVariables,
+  });
+}
+
+function resolveQwenModelCatalogFingerprint(
   plugin: GrimoirePlugin,
   settings: ReturnType<typeof getQwenProviderSettings>,
 ): string {
-  return JSON.stringify({
-    cliPath: plugin.getResolvedProviderCliPath?.('qwen') ?? settings.cliPath,
-    cliPathsByHost: settings.cliPathsByHost,
-    environmentVariables: plugin.getActiveEnvironmentVariables?.('qwen')
-      ?? settings.environmentVariables,
-  });
+  return buildQwenModelCatalogFingerprint(
+    settings,
+    plugin.getResolvedProviderCliPath?.('qwen') ?? settings.cliPath,
+    plugin.getActiveEnvironmentVariables?.('qwen') ?? settings.environmentVariables,
+  );
 }
 
 function createQwenModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
   const initialSettings = getQwenProviderSettings(plugin.settings ?? {});
   const refreshCache = new ProviderModelCatalogRefreshCache(MODEL_CATALOG_CACHE_TTL_MS);
   if (initialSettings.discoveredModels.length > 0) {
-    refreshCache.seed(buildQwenModelCatalogFingerprint(plugin, initialSettings));
+    // The resolved CLI path is part of the fingerprint but is not available
+    // here: this catalog is built inside createQwenWorkspaceServices, which runs
+    // inside ProviderWorkspaceRegistry.initialize(), and the registry assigns
+    // this.services[providerId] only after that resolves - until then
+    // getResolvedProviderCliPath returns null and an eager seed would be filed
+    // under settings.cliPath while every later refresh looks it up under the
+    // resolved path. Hold the seed back until the path is known.
+    const initialEnvironmentVariables = plugin.getActiveEnvironmentVariables?.('qwen')
+      ?? initialSettings.environmentVariables;
+    if (plugin.getResolvedProviderCliPath?.('qwen') == null) {
+      refreshCache.seedOnFirstRefresh(() => buildQwenModelCatalogFingerprint(
+        initialSettings,
+        plugin.getResolvedProviderCliPath?.('qwen') ?? initialSettings.cliPath,
+        initialEnvironmentVariables,
+      ));
+    } else {
+      refreshCache.seed(resolveQwenModelCatalogFingerprint(plugin, initialSettings));
+    }
   }
 
   return {
@@ -68,8 +96,23 @@ function createQwenModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
       // Discovery boots the real CLI over ACP and creates a session, so it must
       // not run again for every model dropdown that opens.
       const currentSettings = getQwenProviderSettings(settings);
-      const fingerprint = buildQwenModelCatalogFingerprint(plugin, currentSettings);
+      const fingerprint = resolveQwenModelCatalogFingerprint(plugin, currentSettings);
       const hasCachedModels = currentSettings.discoveredModels.length > 0;
+      if (refreshCache.applyDeferredSeed(fingerprint, hasCachedModels)) {
+        plugin.recordDebugLog?.({
+          data: {
+            modelCount: currentSettings.discoveredModels.length,
+            providerId: 'qwen',
+            reason: 'seeded_on_first_use',
+            ttlMs: MODEL_CATALOG_CACHE_TTL_MS,
+          },
+          event: 'modelCatalog.refresh.skipped',
+          level: 'debug',
+          scope: 'provider.qwen',
+        });
+        return false;
+      }
+
       if (refreshCache.isFresh(fingerprint, hasCachedModels)) {
         plugin.recordDebugLog?.({
           data: {
