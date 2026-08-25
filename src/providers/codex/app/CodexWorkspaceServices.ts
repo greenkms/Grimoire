@@ -49,7 +49,24 @@ function createCodexModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
   const initialSettings = getCodexProviderSettings(plugin.settings ?? {});
   const refreshCache = new ProviderModelCatalogRefreshCache(MODEL_CATALOG_CACHE_TTL_MS);
   if (initialSettings.discoveredModels.length > 0) {
-    refreshCache.seed(buildCodexModelCatalogFingerprint(plugin, initialSettings));
+    // The resolved CLI path is part of the fingerprint but is not available
+    // here: this catalog is built inside createCodexWorkspaceServices, which runs
+    // inside ProviderWorkspaceRegistry.initialize(), and the registry assigns
+    // this.services[providerId] only after that resolves - until then
+    // getResolvedProviderCliPath returns null and an eager seed would be filed
+    // under settings.cliPath while every later refresh looks it up under the
+    // resolved path. Hold the seed back until the path is known.
+    const initialEnvironmentVariables = plugin.getActiveEnvironmentVariables?.('codex')
+      ?? initialSettings.environmentVariables;
+    if (plugin.getResolvedProviderCliPath?.('codex') == null) {
+      refreshCache.seedOnFirstRefresh(() => buildCodexModelCatalogFingerprint(
+        initialSettings,
+        plugin.getResolvedProviderCliPath?.('codex') ?? initialSettings.cliPath,
+        initialEnvironmentVariables,
+      ));
+    } else {
+      refreshCache.seed(resolveCodexModelCatalogFingerprint(plugin, initialSettings));
+    }
   }
   return {
     isAvailable(settings) {
@@ -57,7 +74,22 @@ function createCodexModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
     },
     async refreshModels({ settings }) {
       const currentSettings = getCodexProviderSettings(settings);
-      const fingerprint = buildCodexModelCatalogFingerprint(plugin, currentSettings);
+      const fingerprint = resolveCodexModelCatalogFingerprint(plugin, currentSettings);
+      if (refreshCache.applyDeferredSeed(fingerprint, currentSettings.discoveredModels.length > 0)) {
+        plugin.recordDebugLog?.({
+          data: {
+            modelCount: currentSettings.discoveredModels.length,
+            providerId: 'codex',
+            reason: 'seeded_on_first_use',
+            ttlMs: MODEL_CATALOG_CACHE_TTL_MS,
+          },
+          event: 'modelCatalog.refresh.skipped',
+          level: 'debug',
+          scope: 'provider.codex',
+        });
+        return false;
+      }
+
       if (refreshCache.isFresh(fingerprint, currentSettings.discoveredModels.length > 0)) {
         plugin.recordDebugLog?.({
           data: {
@@ -132,16 +164,27 @@ function createCodexModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
 }
 
 function buildCodexModelCatalogFingerprint(
+  settings: ReturnType<typeof getCodexProviderSettings>,
+  cliPath: string,
+  environmentVariables: string,
+): string {
+  return JSON.stringify({
+    cliPath,
+    cliPathsByHost: settings.cliPathsByHost,
+    environmentHash: settings.environmentHash,
+    environmentVariables,
+  });
+}
+
+function resolveCodexModelCatalogFingerprint(
   plugin: GrimoirePlugin,
   settings: ReturnType<typeof getCodexProviderSettings>,
 ): string {
-  return JSON.stringify({
-    cliPath: plugin.getResolvedProviderCliPath?.('codex') ?? settings.cliPath,
-    cliPathsByHost: settings.cliPathsByHost,
-    environmentHash: settings.environmentHash,
-    environmentVariables: plugin.getActiveEnvironmentVariables?.('codex')
-      ?? settings.environmentVariables,
-  });
+  return buildCodexModelCatalogFingerprint(
+    settings,
+    plugin.getResolvedProviderCliPath?.('codex') ?? settings.cliPath,
+    plugin.getActiveEnvironmentVariables?.('codex') ?? settings.environmentVariables,
+  );
 }
 
 export async function createCodexWorkspaceServices(

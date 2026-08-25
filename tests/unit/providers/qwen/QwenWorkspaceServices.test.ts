@@ -65,4 +65,67 @@ describe('createQwenWorkspaceServices', () => {
 
     expect(ensureReady).toHaveBeenCalledTimes(1);
   });
+
+  it('suppresses the reload warmup when the CLI resolver is not reachable yet at construction', async () => {
+    const ensureReady = jest
+      .spyOn(QwenChatRuntime.prototype, 'ensureReady')
+      .mockResolvedValue(true);
+    jest.spyOn(QwenChatRuntime.prototype, 'cleanup').mockImplementation(() => {});
+    const settings = {
+      providerConfigs: {
+        qwen: {
+          discoveredModels: [{ label: 'Qwen3 Coder', rawId: 'qwen3-coder-plus' }],
+          enabled: true,
+        },
+      },
+    };
+    // Production ordering: the catalog is built inside createQwenWorkspaceServices,
+    // which runs *inside* ProviderWorkspaceRegistry.initialize(). The registry only
+    // assigns this.services[providerId] after initialize() resolves, so the CLI
+    // resolver - and with it the resolved path - appears only afterwards.
+    let resolvedCliPath: string | null = null;
+    const plugin = {
+      getResolvedProviderCliPath: () => resolvedCliPath,
+      settings,
+    };
+
+    const services = await createQwenWorkspaceServices(plugin as any, {} as any);
+    resolvedCliPath = '/usr/local/bin/qwen';
+    const changed = await services.modelCatalog?.refreshModels({
+      plugin: plugin as any,
+      settings: settings,
+    });
+
+    expect(changed).toBe(false);
+    expect(ensureReady).not.toHaveBeenCalled();
+  });
+
+  it('still rediscovers when the environment changed before the first refresh', async () => {
+    const ensureReady = jest
+      .spyOn(QwenChatRuntime.prototype, 'ensureReady')
+      .mockResolvedValue(true);
+    jest.spyOn(QwenChatRuntime.prototype, 'cleanup').mockImplementation(() => {});
+    const settings = {
+      providerConfigs: {
+        qwen: {
+          discoveredModels: [{ label: 'Qwen3 Coder', rawId: 'qwen3-coder-plus' }],
+          enabled: true,
+        },
+      },
+    };
+    let activeEnvironment = 'QWEN_API_KEY=old';
+    let resolvedCliPath: string | null = null;
+    const plugin = {
+      getActiveEnvironmentVariables: () => activeEnvironment,
+      getResolvedProviderCliPath: () => resolvedCliPath,
+      settings,
+    };
+
+    const services = await createQwenWorkspaceServices(plugin as any, {} as any);
+    resolvedCliPath = '/usr/local/bin/qwen';
+    activeEnvironment = 'QWEN_API_KEY=new';
+    await services.modelCatalog?.refreshModels({ plugin: plugin as any, settings: settings });
+
+    expect(ensureReady).toHaveBeenCalledTimes(1);
+  });
 });

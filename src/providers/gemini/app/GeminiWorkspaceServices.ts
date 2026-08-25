@@ -42,22 +42,50 @@ const geminiTabWarmupPolicy: ProviderTabWarmupPolicy = {
 const MODEL_CATALOG_CACHE_TTL_MS = 10 * 60 * 1000;
 
 function buildGeminiModelCatalogFingerprint(
+  settings: ReturnType<typeof getGeminiProviderSettings>,
+  cliPath: string,
+  environmentVariables: string,
+): string {
+  return JSON.stringify({
+    cliPath,
+    cliPathsByHost: settings.cliPathsByHost,
+    environmentVariables,
+  });
+}
+
+function resolveGeminiModelCatalogFingerprint(
   plugin: GrimoirePlugin,
   settings: ReturnType<typeof getGeminiProviderSettings>,
 ): string {
-  return JSON.stringify({
-    cliPath: plugin.getResolvedProviderCliPath?.('gemini') ?? settings.cliPath,
-    cliPathsByHost: settings.cliPathsByHost,
-    environmentVariables: plugin.getActiveEnvironmentVariables?.('gemini')
-      ?? settings.environmentVariables,
-  });
+  return buildGeminiModelCatalogFingerprint(
+    settings,
+    plugin.getResolvedProviderCliPath?.('gemini') ?? settings.cliPath,
+    plugin.getActiveEnvironmentVariables?.('gemini') ?? settings.environmentVariables,
+  );
 }
 
 function createGeminiModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
   const initialSettings = getGeminiProviderSettings(plugin.settings ?? {});
   const refreshCache = new ProviderModelCatalogRefreshCache(MODEL_CATALOG_CACHE_TTL_MS);
   if (initialSettings.discoveredModels.length > 0) {
-    refreshCache.seed(buildGeminiModelCatalogFingerprint(plugin, initialSettings));
+    // The resolved CLI path is part of the fingerprint but is not available
+    // here: this catalog is built inside createGeminiWorkspaceServices, which runs
+    // inside ProviderWorkspaceRegistry.initialize(), and the registry assigns
+    // this.services[providerId] only after that resolves - until then
+    // getResolvedProviderCliPath returns null and an eager seed would be filed
+    // under settings.cliPath while every later refresh looks it up under the
+    // resolved path. Hold the seed back until the path is known.
+    const initialEnvironmentVariables = plugin.getActiveEnvironmentVariables?.('gemini')
+      ?? initialSettings.environmentVariables;
+    if (plugin.getResolvedProviderCliPath?.('gemini') == null) {
+      refreshCache.seedOnFirstRefresh(() => buildGeminiModelCatalogFingerprint(
+        initialSettings,
+        plugin.getResolvedProviderCliPath?.('gemini') ?? initialSettings.cliPath,
+        initialEnvironmentVariables,
+      ));
+    } else {
+      refreshCache.seed(resolveGeminiModelCatalogFingerprint(plugin, initialSettings));
+    }
   }
 
   return {
@@ -68,8 +96,23 @@ function createGeminiModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog 
       // Discovery boots the real CLI over ACP and creates a session, so it must
       // not run again for every model dropdown that opens.
       const currentSettings = getGeminiProviderSettings(settings);
-      const fingerprint = buildGeminiModelCatalogFingerprint(plugin, currentSettings);
+      const fingerprint = resolveGeminiModelCatalogFingerprint(plugin, currentSettings);
       const hasCachedModels = currentSettings.discoveredModels.length > 0;
+      if (refreshCache.applyDeferredSeed(fingerprint, hasCachedModels)) {
+        plugin.recordDebugLog?.({
+          data: {
+            modelCount: currentSettings.discoveredModels.length,
+            providerId: 'gemini',
+            reason: 'seeded_on_first_use',
+            ttlMs: MODEL_CATALOG_CACHE_TTL_MS,
+          },
+          event: 'modelCatalog.refresh.skipped',
+          level: 'debug',
+          scope: 'provider.gemini',
+        });
+        return false;
+      }
+
       if (refreshCache.isFresh(fingerprint, hasCachedModels)) {
         plugin.recordDebugLog?.({
           data: {

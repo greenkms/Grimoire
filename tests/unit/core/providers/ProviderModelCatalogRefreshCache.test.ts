@@ -77,4 +77,40 @@ describe('ProviderModelCatalogRefreshCache', () => {
     await cache.refresh({ fingerprint: 'old-env', hasCachedModels: true, load: reloadOld });
     expect(reloadOld).toHaveBeenCalledTimes(1);
   });
+
+  it('applies a deferred seed once the resolved CLI path is known', async () => {
+    const load = jest.fn().mockResolvedValue(true);
+    const cache = new ProviderModelCatalogRefreshCache(1_000, () => 100);
+    cache.seedOnFirstRefresh(() => 'cli-a:env-a');
+
+    expect(cache.applyDeferredSeed('cli-a:env-a', true)).toBe(true);
+    await expect(cache.refresh({
+      fingerprint: 'cli-a:env-a',
+      hasCachedModels: true,
+      load,
+    })).resolves.toBe(false);
+    expect(load).not.toHaveBeenCalled();
+  });
+
+  it('drops a deferred seed when more than the CLI path changed since construction', async () => {
+    const load = jest.fn().mockResolvedValue(true);
+    const cache = new ProviderModelCatalogRefreshCache(1_000, () => 100);
+    cache.seedOnFirstRefresh(() => 'cli-a:env-a');
+
+    expect(cache.applyDeferredSeed('cli-a:env-b', true)).toBe(false);
+    await expect(cache.refresh({
+      fingerprint: 'cli-a:env-b',
+      hasCachedModels: true,
+      load,
+    })).resolves.toBe(true);
+    expect(load).toHaveBeenCalledTimes(1);
+  });
+
+  it('consumes a deferred seed even when the cached catalog is gone', () => {
+    const cache = new ProviderModelCatalogRefreshCache(1_000, () => 100);
+    cache.seedOnFirstRefresh(() => 'cli-a:env-a');
+
+    expect(cache.applyDeferredSeed('cli-a:env-a', false)).toBe(false);
+    expect(cache.applyDeferredSeed('cli-a:env-a', true)).toBe(false);
+  });
 });
