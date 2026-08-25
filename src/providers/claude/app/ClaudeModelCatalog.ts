@@ -150,18 +150,29 @@ export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelC
       );
       if (seedOnFirstRefresh) {
         seedOnFirstRefresh = false;
-        refreshAttemptsByKey.set(cacheKey, Date.now());
-        plugin.recordDebugLog?.({
-          data: {
-            modelCount: currentSettings.discoveredModels.length,
-            providerId: 'claude',
-            reason: 'seeded_on_first_use',
-          },
-          event: 'modelCatalog.refresh.skipped',
-          level: 'debug',
-          scope: 'provider.claude',
-        });
-        return false;
+        // Only the CLI path was unknown at construction. Anything else the key
+        // covers - environment, settings sources, Chrome - may have changed
+        // since the plugin loaded, and such a change is exactly what must reach
+        // the probe, so the seed applies only while the rest of the key still
+        // matches the catalog that was persisted.
+        const seededCacheKey = buildClaudeModelCatalogCacheKey(
+          initialSettings,
+          plugin.getResolvedProviderCliPath?.('claude') ?? '',
+        );
+        if (seededCacheKey === cacheKey && currentSettings.discoveredModels.length > 0) {
+          refreshAttemptsByKey.set(cacheKey, Date.now());
+          plugin.recordDebugLog?.({
+            data: {
+              modelCount: currentSettings.discoveredModels.length,
+              providerId: 'claude',
+              reason: 'seeded_on_first_use',
+            },
+            event: 'modelCatalog.refresh.skipped',
+            level: 'debug',
+            scope: 'provider.claude',
+          });
+          return false;
+        }
       }
 
       const lastAttemptAt = refreshAttemptsByKey.get(cacheKey) ?? 0;
