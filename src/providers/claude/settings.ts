@@ -22,6 +22,16 @@ export interface ClaudeProviderSettings {
   loadUserSettings: boolean;
   enableChrome: boolean;
   enableBangBash: boolean;
+  /** Whether to auto-send a minimal keep-alive message before the prompt cache TTL lapses. */
+  autoPingEnabled: boolean;
+  /** Minutes since the last live turn completion before an auto-ping fires. */
+  autoPingIntervalMinutes: number;
+  /** Max consecutive auto-pings with no live human reply before pausing for this tab. 0 = unlimited. */
+  autoPingMaxConsecutive: number;
+  /** Which tabs are eligible for auto-ping. */
+  autoPingScope: 'active' | 'all';
+  /** Skip auto-pings while the 5-hour plan window is at or above this utilization percentage. */
+  autoPingSkipAboveUtilizationPct: number;
   customModels: string;
   lastModel: string;
   environmentVariables: string;
@@ -60,6 +70,11 @@ export const DEFAULT_CLAUDE_PROVIDER_SETTINGS: Readonly<ClaudeProviderSettings> 
   loadUserSettings: true,
   enableChrome: false,
   enableBangBash: false,
+  autoPingEnabled: false,
+  autoPingIntervalMinutes: 40,
+  autoPingMaxConsecutive: 6,
+  autoPingScope: 'active',
+  autoPingSkipAboveUtilizationPct: 80,
   customModels: '',
   lastModel: 'haiku',
   environmentVariables: '',
@@ -249,6 +264,16 @@ export function getClaudeProviderSettings(
     enableBangBash: (config.enableBangBash as boolean | undefined)
       ?? (settings.enableBangBash as boolean | undefined)
       ?? DEFAULT_CLAUDE_PROVIDER_SETTINGS.enableBangBash,
+    autoPingEnabled: (config.autoPingEnabled as boolean | undefined)
+      ?? DEFAULT_CLAUDE_PROVIDER_SETTINGS.autoPingEnabled,
+    autoPingIntervalMinutes: (config.autoPingIntervalMinutes as number | undefined)
+      ?? DEFAULT_CLAUDE_PROVIDER_SETTINGS.autoPingIntervalMinutes,
+    autoPingMaxConsecutive: (config.autoPingMaxConsecutive as number | undefined)
+      ?? DEFAULT_CLAUDE_PROVIDER_SETTINGS.autoPingMaxConsecutive,
+    autoPingScope: (config.autoPingScope as 'active' | 'all' | undefined)
+      ?? DEFAULT_CLAUDE_PROVIDER_SETTINGS.autoPingScope,
+    autoPingSkipAboveUtilizationPct: (config.autoPingSkipAboveUtilizationPct as number | undefined)
+      ?? DEFAULT_CLAUDE_PROVIDER_SETTINGS.autoPingSkipAboveUtilizationPct,
     customModels: (config.customModels as string | undefined)
       ?? DEFAULT_CLAUDE_PROVIDER_SETTINGS.customModels,
     lastModel: (config.lastModel as string | undefined)
