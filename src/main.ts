@@ -53,6 +53,10 @@ import { GrimoireSettingTab } from './features/settings/GrimoireSettings';
 import { setLocale, t } from './i18n/i18n';
 import type { Locale } from './i18n/types';
 import {
+  type ClaudeAutoPingSchedulerHandle,
+  createClaudeAutoPingScheduler,
+} from './providers/claude/app/ClaudeAutoPingScheduler';
+import {
   getClaudeProviderSettings,
   getClaudeRuntimeEnvironmentText,
   snapshotClaudeCodeSettings,
@@ -89,6 +93,7 @@ function formatHistoryModelFallbackLabel(model: string): string {
 export default class GrimoirePlugin extends Plugin {
   settings!: GrimoireSettings;
   storage!: SharedAppStorage;
+  private claudeAutoPingScheduler: ClaudeAutoPingSchedulerHandle | null = null;
   private conversations: Conversation[] = [];
   private debugLogService: DebugLogService | null = null;
   private lastKnownTabManagerState: AppTabManagerState | null = null;
@@ -278,6 +283,13 @@ export default class GrimoirePlugin extends Plugin {
         level: 'info',
         scope: 'plugin.onload',
       });
+      this.claudeAutoPingScheduler = createClaudeAutoPingScheduler(this);
+      await this.writeDebugLog({
+        event: 'auto-ping-scheduler.started',
+        level: 'info',
+        scope: 'plugin.onload',
+      });
+
       await this.maybeShowWhatsNew();
     } catch (error) {
       await this.writeDebugLog({
@@ -318,6 +330,8 @@ export default class GrimoirePlugin extends Plugin {
   }
 
   onunload(): void {
+    this.claudeAutoPingScheduler?.stop();
+    this.claudeAutoPingScheduler = null;
     this.recordDebugLog({
       event: 'unload',
       level: 'info',

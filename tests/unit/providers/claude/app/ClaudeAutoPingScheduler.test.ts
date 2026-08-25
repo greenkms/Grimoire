@@ -1,5 +1,6 @@
 import type { ChatMessage } from '@/core/types/chat';
 import {
+  createClaudeAutoPingScheduler,
   selectTabsDueForPing,
   type TabPingActivity,
   type TabPingSnapshot,
@@ -205,5 +206,174 @@ describe('selectTabsDueForPing', () => {
     const t = tab('t1', [userMsg('m1', t0)]);
     selectTabsDueForPing([t], activity, settings, t0);
     expect(activity.size).toBe(0);
+  });
+});
+
+describe('createClaudeAutoPingScheduler', () => {
+  function makeTab(id: string, opts: { isStreaming?: boolean; messages: ChatMessage[] }) {
+    const sendMessage = jest.fn().mockResolvedValue(undefined);
+    return {
+      id,
+      providerId: 'claude',
+      state: { isStreaming: opts.isStreaming ?? false, messages: opts.messages },
+      controllers: { inputController: { sendMessage } },
+    };
+  }
+
+  function makePlugin(
+    tabs: ReturnType<typeof makeTab>[],
+    activeTabId: string | null,
+    settingsBag: Record<string, unknown>,
+  ) {
+    const tabManager = {
+      getAllTabs: () => tabs,
+      getActiveTabId: () => activeTabId,
+    };
+    const view = { getTabManager: () => tabManager };
+    return {
+      settings: settingsBag,
+      getAllViews: () => [view],
+    } as never;
+  }
+
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => jest.useRealTimers());
+
+  it('does nothing when autoPingEnabled is false', () => {
+    const now = Date.now();
+    const t = makeTab('t1', { messages: [userMsg('m1', now)] });
+    const plugin = makePlugin([t], 't1', { providerConfigs: { claude: { autoPingEnabled: false } } });
+
+    const scheduler = createClaudeAutoPingScheduler(plugin);
+    jest.advanceTimersByTime(41 * 60_000);
+    scheduler.stop();
+
+    expect(t.controllers.inputController.sendMessage).not.toHaveBeenCalled();
+  });
+
+  it('sends a tagged ping to the active tab once the interval elapses since the last completed turn', () => {
+    const now = Date.now();
+    const t = makeTab('t1', { messages: [userMsg('m1', now)] });
+    const plugin = makePlugin([t], 't1', {
+      providerConfigs: {
+        claude: {
+          autoPingEnabled: true,
+          autoPingIntervalMinutes: 40,
+          autoPingMaxConsecutive: 0,
+          autoPingScope: 'active',
+        },
+      },
+    });
+
+    const scheduler = createClaudeAutoPingScheduler(plugin);
+    jest.advanceTimersByTime(60_000); // baseline tick, captures m1
+
+    const repliedAt = now + 1_000;
+    jest.setSystemTime(repliedAt);
+    t.state.messages.push(userMsg('m2', repliedAt));
+    t.state.messages.push(assistantMsg('a2', repliedAt + 200));
+    jest.advanceTimersByTime(60_000); // observes the completed a2 turn as live activity
+
+    jest.setSystemTime(repliedAt + 200 + 40 * 60_000);
+    jest.advanceTimersByTime(60_000); // interval elapsed since completion
+    scheduler.stop();
+
+    expect(t.controllers.inputController.sendMessage).toHaveBeenCalledWith({
+      content: 'reply with just OK',
+      isAutoPing: true,
+      skipBuiltInCommandDetection: true,
+    });
+  });
+
+  it('does not fire immediately when a turn longer than the interval just finished', () => {
+    const sentAt = Date.now();
+    const t = makeTab('t1', { messages: [userMsg('u1', sentAt)] });
+    const plugin = makePlugin([t], 't1', {
+      providerConfigs: {
+        claude: {
+          autoPingEnabled: true,
+          autoPingIntervalMinutes: 40,
+          autoPingMaxConsecutive: 0,
+          autoPingScope: 'active',
+        },
+      },
+    });
+
+    const scheduler = createClaudeAutoPingScheduler(plugin);
+    jest.advanceTimersByTime(60_000); // baseline tick, captures u1
+
+    t.state.isStreaming = true;
+    jest.advanceTimersByTime(44 * 60_000); // long turn in progress, past the interval
+    expect(t.controllers.inputController.sendMessage).not.toHaveBeenCalled();
+
+    const completedAt = sentAt + 45 * 60_000;
+    jest.setSystemTime(completedAt);
+    t.state.isStreaming = false;
+    t.state.messages.push(assistantMsg('a1', completedAt));
+    jest.advanceTimersByTime(60_000); // first tick after completion - must stay silent
+
+    scheduler.stop();
+    expect(t.controllers.inputController.sendMessage).not.toHaveBeenCalled();
+  });
+
+  it('skips non-active tabs when the scope is active, and includes them when it is all', () => {
+    const now = Date.now();
+    const active = makeTab('t1', { messages: [userMsg('m1', now)] });
+    const background = makeTab('t2', { messages: [userMsg('n1', now)] });
+    const config = {
+      autoPingEnabled: true,
+      autoPingIntervalMinutes: 40,
+      autoPingMaxConsecutive: 0,
+      autoPingScope: 'active',
+    };
+    const plugin = makePlugin([active, background], 't1', { providerConfigs: { claude: config } });
+
+    const scheduler = createClaudeAutoPingScheduler(plugin);
+    jest.advanceTimersByTime(60_000);
+
+    const repliedAt = now + 1_000;
+    jest.setSystemTime(repliedAt);
+    active.state.messages.push(assistantMsg('a1', repliedAt));
+    background.state.messages.push(assistantMsg('b1', repliedAt));
+    jest.advanceTimersByTime(60_000);
+
+    jest.setSystemTime(repliedAt + 40 * 60_000 + 1_000);
+    jest.advanceTimersByTime(60_000);
+    scheduler.stop();
+
+    expect(active.controllers.inputController.sendMessage).toHaveBeenCalledTimes(1);
+    expect(background.controllers.inputController.sendMessage).not.toHaveBeenCalled();
+  });
+
+  it('ignores tabs belonging to another provider', () => {
+    const now = Date.now();
+    const t = makeTab('t1', { messages: [userMsg('m1', now)] });
+    t.providerId = 'gemini';
+    const plugin = makePlugin([t], 't1', {
+      providerConfigs: {
+        claude: { autoPingEnabled: true, autoPingIntervalMinutes: 40, autoPingScope: 'all' },
+      },
+    });
+
+    const scheduler = createClaudeAutoPingScheduler(plugin);
+    jest.advanceTimersByTime(60_000);
+    const repliedAt = now + 1_000;
+    jest.setSystemTime(repliedAt);
+    t.state.messages.push(assistantMsg('a1', repliedAt));
+    jest.advanceTimersByTime(60_000);
+    jest.setSystemTime(repliedAt + 41 * 60_000);
+    jest.advanceTimersByTime(60_000);
+    scheduler.stop();
+
+    expect(t.controllers.inputController.sendMessage).not.toHaveBeenCalled();
+  });
+
+  it('stop() clears the interval so no further ticks fire', () => {
+    const t = makeTab('t1', { messages: [] });
+    const plugin = makePlugin([t], 't1', { providerConfigs: { claude: { autoPingEnabled: true } } });
+    const scheduler = createClaudeAutoPingScheduler(plugin);
+    scheduler.stop();
+    jest.advanceTimersByTime(24 * 60 * 60_000);
+    expect(t.controllers.inputController.sendMessage).not.toHaveBeenCalled();
   });
 });

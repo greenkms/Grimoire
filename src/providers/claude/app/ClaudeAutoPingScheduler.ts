@@ -1,4 +1,9 @@
+import type { DebugLogEvent } from '../../../core/debug/DebugLogService';
 import type { ChatMessage } from '../../../core/types/chat';
+import { getClaudeProviderSettings } from '../settings';
+
+const PING_TEXT = 'reply with just OK';
+const TICK_INTERVAL_MS = 60_000;
 
 export interface TabPingActivity {
   /**
@@ -111,4 +116,104 @@ export function selectTabsDueForPing(
   }
 
   return { dueTabIds, nextActivity };
+}
+
+interface MinimalTab {
+  id: string;
+  providerId: string;
+  state: { isStreaming: boolean; messages: ChatMessage[] };
+  controllers: {
+    inputController: { sendMessage(options: Record<string, unknown>): Promise<void> } | null;
+  };
+}
+
+interface MinimalTabManager {
+  getAllTabs(): MinimalTab[];
+  getActiveTabId(): string | null;
+}
+
+interface MinimalPlugin {
+  settings: Record<string, unknown>;
+  getAllViews(): Array<{ getTabManager(): MinimalTabManager | null }>;
+  recordDebugLog?: (event: DebugLogEvent) => void;
+}
+
+export interface ClaudeAutoPingSchedulerHandle {
+  stop(): void;
+}
+
+function findTabById(plugin: MinimalPlugin, tabId: string): MinimalTab | null {
+  for (const view of plugin.getAllViews()) {
+    const tabManager = view.getTabManager();
+    const found = tabManager?.getAllTabs().find(candidate => candidate.id === tabId);
+    if (found) return found;
+  }
+  return null;
+}
+
+/**
+ * Starts the plugin-wide auto-ping tick. Caller owns stopping it via the
+ * returned handle. Inert unless the user explicitly enables the feature.
+ */
+export function createClaudeAutoPingScheduler(plugin: MinimalPlugin): ClaudeAutoPingSchedulerHandle {
+  let activityByTab = new Map<string, TabPingActivity>();
+
+  const tick = (): void => {
+    const claudeSettings = getClaudeProviderSettings(plugin.settings);
+    if (!claudeSettings.autoPingEnabled) return;
+
+    const candidateTabs: TabPingSnapshot[] = [];
+    for (const view of plugin.getAllViews()) {
+      const tabManager = view.getTabManager();
+      if (!tabManager) continue;
+      const activeTabId = tabManager.getActiveTabId();
+      for (const tab of tabManager.getAllTabs()) {
+        if (tab.providerId !== 'claude') continue;
+        const isActive = tab.id === activeTabId;
+        if (claudeSettings.autoPingScope === 'active' && !isActive) continue;
+        candidateTabs.push({
+          tabId: tab.id,
+          providerId: tab.providerId,
+          isActive,
+          isStreaming: tab.state.isStreaming,
+          messages: tab.state.messages,
+        });
+      }
+    }
+
+    const result = selectTabsDueForPing(
+      candidateTabs,
+      activityByTab,
+      {
+        intervalMinutes: claudeSettings.autoPingIntervalMinutes,
+        maxConsecutive: claudeSettings.autoPingMaxConsecutive,
+      },
+      Date.now(),
+    );
+    activityByTab = result.nextActivity;
+
+    for (const tabId of result.dueTabIds) {
+      const tab = findTabById(plugin, tabId);
+      const pending = tab?.controllers.inputController?.sendMessage({
+        content: PING_TEXT,
+        isAutoPing: true,
+        skipBuiltInCommandDetection: true,
+      });
+      pending?.catch((error: unknown) => {
+        plugin.recordDebugLog?.({
+          data: { message: error instanceof Error ? error.message : String(error), tabId },
+          event: 'autoPing.failed',
+          level: 'warn',
+          scope: 'provider.claude',
+        });
+      });
+    }
+  };
+
+  const intervalId = window.setInterval(tick, TICK_INTERVAL_MS);
+  return {
+    stop(): void {
+      window.clearInterval(intervalId);
+    },
+  };
 }
