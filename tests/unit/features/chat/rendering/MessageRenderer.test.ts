@@ -1693,6 +1693,24 @@ describe('MessageRenderer', () => {
     );
   });
 
+  it('renderContent rewrites latex math delimiters into the dollar form Obsidian renders', async () => {
+    const { MarkdownRenderer } = await import('obsidian');
+    const { renderer } = createRenderer();
+    const el = createMockEl();
+
+    await renderer.renderContent(
+      el,
+      'Since \\((x,y)\\neq(0,0)\\):\n\\[\nd^2 = 3 - 2\\sqrt2\n\\]'
+    );
+
+    expect(MarkdownRenderer.renderMarkdown).toHaveBeenCalledWith(
+      'Since $(x,y)\\neq(0,0)$:\n$$\nd^2 = 3 - 2\\sqrt2\n$$',
+      el,
+      '',
+      expect.anything()
+    );
+  });
+
   it('renderContent separates prose from following pipe tables before markdown rendering', async () => {
     const { MarkdownRenderer } = await import('obsidian');
     const { renderer } = createRenderer();

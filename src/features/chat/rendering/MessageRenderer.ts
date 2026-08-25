@@ -17,7 +17,10 @@ import { scheduleAnimationFrame } from '../../../utils/animationFrame';
 import { formatDurationMmSs } from '../../../utils/date';
 import { hasProcessableWikilink, processFileLinks, registerFileLinkHandler } from '../../../utils/fileLink';
 import { replaceImageEmbedsWithHtml } from '../../../utils/imageEmbed';
-import { escapeMathDelimitersForStreaming } from '../../../utils/markdownMath';
+import {
+  escapeMathDelimitersForStreaming,
+  normalizeLatexDelimiters,
+} from '../../../utils/markdownMath';
 import { findRewindContext } from '../rewind';
 import { renderVaultSearchSources } from '../ui/VaultSearchSources';
 import { getAssistantResponseProviderLabel } from '../utils/assistantResponseMetadata';
@@ -944,10 +947,11 @@ export class MessageRenderer {
     el.empty();
 
     try {
+      const normalizedMarkdown = normalizeLatexDelimiters(markdown);
       const renderMarkdown = normalizePipeTablesForMarkdown(
         options?.deferMath
-          ? escapeMathDelimitersForStreaming(markdown)
-          : markdown
+          ? escapeMathDelimitersForStreaming(normalizedMarkdown)
+          : normalizedMarkdown
       );
       // Normalize embeds before MarkdownRenderer consumes them.
       const processedMarkdown = replaceImageEmbedsWithHtml(
