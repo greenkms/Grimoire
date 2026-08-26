@@ -629,5 +629,63 @@ Body`,
       expect(probe).not.toHaveBeenCalled();
       expect(entries.map(entry => entry.name)).toEqual(['commit']);
     });
+    it('does not repeat an empty probe within the retry window', async () => {
+      const adapter = createMockAdapter({});
+      const cache = createCacheStore(null);
+      const probe = jest.fn(async (): Promise<SlashCommand[]> => []);
+      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(1_000_000);
+      const catalog = new ClaudeCommandCatalog(
+        new SlashCommandStorage(adapter),
+        new SkillStorage(adapter),
+        probe,
+        { cache },
+      );
+
+      await catalog.listDropdownEntries({ includeBuiltIns: false });
+      nowSpy.mockReturnValue(1_000_000 + 9 * 60 * 1000);
+      await catalog.listDropdownEntries({ includeBuiltIns: false });
+
+      expect(probe).toHaveBeenCalledTimes(1);
+      nowSpy.mockRestore();
+    });
+
+    it('probes again once the retry window has passed', async () => {
+      const adapter = createMockAdapter({});
+      const cache = createCacheStore(null);
+      const probe = jest.fn(async (): Promise<SlashCommand[]> => []);
+      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(1_000_000);
+      const catalog = new ClaudeCommandCatalog(
+        new SlashCommandStorage(adapter),
+        new SkillStorage(adapter),
+        probe,
+        { cache },
+      );
+
+      await catalog.listDropdownEntries({ includeBuiltIns: false });
+      nowSpy.mockReturnValue(1_000_000 + 10 * 60 * 1000 + 1);
+      await catalog.listDropdownEntries({ includeBuiltIns: false });
+
+      expect(probe).toHaveBeenCalledTimes(2);
+      nowSpy.mockRestore();
+    });
+
+    it('throttles after a probe that threw, not only after an empty one', async () => {
+      const adapter = createMockAdapter({});
+      const cache = createCacheStore(null);
+      const probe = jest.fn(async (): Promise<SlashCommand[]> => { throw new Error('no cli'); });
+      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(1_000_000);
+      const catalog = new ClaudeCommandCatalog(
+        new SlashCommandStorage(adapter),
+        new SkillStorage(adapter),
+        probe,
+        { cache },
+      );
+
+      await catalog.listDropdownEntries({ includeBuiltIns: false });
+      await catalog.listDropdownEntries({ includeBuiltIns: false });
+
+      expect(probe).toHaveBeenCalledTimes(1);
+      nowSpy.mockRestore();
+    });
   });
 });

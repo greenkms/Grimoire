@@ -61,6 +61,11 @@ const BUILTIN_HIDDEN_COMMANDS = new Set([
   'insights', 'loop', 'schedule', 'security-review', 'simplify', 'update-config',
 ]);
 
+// Paces retries after a probe that found nothing - no CLI, or a session that is
+// not authenticated. Without it the dropdown probes on every single open, and a
+// probe starts a full Claude Code session. Matches the model catalog's window.
+const EMPTY_PROBE_RETRY_MS = 10 * 60 * 1000;
+
 export type CommandProbe = () => Promise<SlashCommand[]>;
 
 export interface RuntimeCommandCatalogDeps {
@@ -75,6 +80,10 @@ export class ClaudeCommandCatalog implements ProviderCommandCatalog {
   // since it was written, so it is merged with the vault before display. A list
   // from a live session is authoritative and is shown as-is.
   private sdkCommandsFromCache = false;
+  // In memory on purpose: a probe that found nothing must be retried after the
+  // user installs or logs into the CLI, and persisting the attempt would keep
+  // the dropdown empty across a restart that was meant to fix it.
+  private emptyProbeAtByFingerprint = new Map<string, number>();
 
   constructor(
     private commandStorage: SlashCommandStorage,
@@ -177,10 +186,24 @@ export class ClaudeCommandCatalog implements ProviderCommandCatalog {
   /** Probe the SDK for commands. Deduplicates concurrent calls. */
   private async ensureProbed(): Promise<void> {
     if (!this.probe) return;
+    const fingerprint = this.safeFingerprint();
+    if (fingerprint !== null) {
+      const lastEmptyAt = this.emptyProbeAtByFingerprint.get(fingerprint);
+      if (lastEmptyAt !== undefined && Date.now() - lastEmptyAt < EMPTY_PROBE_RETRY_MS) {
+        this.record('commandCatalog.probe.skipped', 'debug', {
+          ageMs: Date.now() - lastEmptyAt,
+          reason: 'empty_attempt_throttled',
+        });
+        return;
+      }
+    }
     if (!this.probePromise) {
       this.record('commandCatalog.probe.started', 'debug', {});
       this.probePromise = this.probe().then(async (commands) => {
         if (commands.length === 0) {
+          if (fingerprint !== null) {
+            this.emptyProbeAtByFingerprint.set(fingerprint, Date.now());
+          }
           this.record('commandCatalog.probe.empty', 'debug', {});
           return;
         }
@@ -198,7 +221,12 @@ export class ClaudeCommandCatalog implements ProviderCommandCatalog {
           await this.writeCache(commands);
         }
       }).catch((error) => {
-        // Probe is best-effort
+        // Probe is best-effort. A throw is treated like an empty result: the
+        // cause is usually a missing or broken CLI, and retrying it on every
+        // dropdown open is exactly the behaviour this window exists to stop.
+        if (fingerprint !== null) {
+          this.emptyProbeAtByFingerprint.set(fingerprint, Date.now());
+        }
         this.record('commandCatalog.probe.failed', 'warn', {
           message: error instanceof Error ? error.message : String(error),
         });
