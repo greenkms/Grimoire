@@ -106,7 +106,10 @@ export class ClaudeCommandCatalog implements ProviderCommandCatalog {
     if (runtimeEntries.length === 0) {
       return this.listVaultEntries();
     }
-    return runtimeEntries;
+    if (!this.sdkCommandsFromCache) {
+      return runtimeEntries;
+    }
+    return this.mergeWithVaultEntries(runtimeEntries);
   }
 
   /** Restores a list persisted under the current configuration. Never probes. */
@@ -197,6 +200,39 @@ export class ClaudeCommandCatalog implements ProviderCommandCatalog {
       });
     }
     await this.probePromise;
+  }
+
+  /**
+   * A cached list is a snapshot of what the SDK reported earlier, while the vault
+   * folders it was built from keep changing. Reading them costs nothing, so the
+   * snapshot is topped up with what is on disk right now. The vault version wins
+   * a name collision: it is a real, editable file the user owns, whereas the
+   * cached entry is only a description of it.
+   */
+  private async mergeWithVaultEntries(
+    runtimeEntries: ProviderCommandEntry[],
+  ): Promise<ProviderCommandEntry[]> {
+    const vaultEntries = await this.listVaultEntries();
+    const vaultByName = new Map(
+      vaultEntries.map(entry => [entry.name.toLowerCase(), entry] as const),
+    );
+    const merged: ProviderCommandEntry[] = [];
+    const taken = new Set<string>();
+
+    for (const entry of runtimeEntries) {
+      const key = entry.name.toLowerCase();
+      if (taken.has(key)) continue;
+      taken.add(key);
+      merged.push(vaultByName.get(key) ?? entry);
+    }
+    for (const entry of vaultEntries) {
+      const key = entry.name.toLowerCase();
+      if (taken.has(key)) continue;
+      taken.add(key);
+      merged.push(entry);
+    }
+
+    return merged;
   }
 
   async listVaultEntries(): Promise<ProviderCommandEntry[]> {

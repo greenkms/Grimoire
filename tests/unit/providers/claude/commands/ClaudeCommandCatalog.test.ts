@@ -526,5 +526,70 @@ Deploy`,
       expect(probe).toHaveBeenCalledTimes(1);
       expect(entries.map(entry => entry.name)).toEqual(['review']);
     });
+    it('adds vault skills that the cached list has never seen', async () => {
+      const adapter = createMockAdapter({
+        '.claude/skills/fresh-skill/SKILL.md': `---
+description: Made today
+---
+Body`,
+      });
+      const cache = createCacheStore({ commands: CACHED_COMMANDS, fingerprint: 'fp-current' });
+      const probe = jest.fn(async () => CACHED_COMMANDS);
+      const catalog = new ClaudeCommandCatalog(
+        new SlashCommandStorage(adapter),
+        new SkillStorage(adapter),
+        probe,
+        { cache },
+      );
+
+      const entries = await catalog.listDropdownEntries({ includeBuiltIns: false });
+
+      expect(probe).not.toHaveBeenCalled();
+      expect(entries.map(entry => entry.name).sort()).toEqual(['commit', 'fresh-skill']);
+    });
+
+    it('lets the vault version win a name collision with the cached list', async () => {
+      const adapter = createMockAdapter({
+        '.claude/commands/commit.md': `---
+description: Vault version
+---
+Vault body`,
+      });
+      const cache = createCacheStore({ commands: CACHED_COMMANDS, fingerprint: 'fp-current' });
+      const catalog = new ClaudeCommandCatalog(
+        new SlashCommandStorage(adapter),
+        new SkillStorage(adapter),
+        jest.fn(async () => CACHED_COMMANDS),
+        { cache },
+      );
+
+      const entries = await catalog.listDropdownEntries({ includeBuiltIns: false });
+
+      expect(entries).toHaveLength(1);
+      expect(entries[0].name).toBe('commit');
+      expect(entries[0].isEditable).toBe(true);
+      expect(entries[0].scope).toBe('vault');
+    });
+
+    it('does not merge a list that came from a live session', async () => {
+      const adapter = createMockAdapter({
+        '.claude/skills/fresh-skill/SKILL.md': `---
+description: Made today
+---
+Body`,
+      });
+      const cache = createCacheStore(null);
+      const catalog = new ClaudeCommandCatalog(
+        new SlashCommandStorage(adapter),
+        new SkillStorage(adapter),
+        jest.fn(async () => CACHED_COMMANDS),
+        { cache },
+      );
+
+      catalog.setRuntimeCommands(CACHED_COMMANDS);
+      const entries = await catalog.listDropdownEntries({ includeBuiltIns: false });
+
+      expect(entries.map(entry => entry.name)).toEqual(['commit']);
+    });
   });
 });
