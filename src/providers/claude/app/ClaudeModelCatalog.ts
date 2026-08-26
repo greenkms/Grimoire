@@ -2,7 +2,11 @@ import { requestUrl } from 'obsidian';
 
 import type { ProviderModelCatalog } from '../../../core/providers/types';
 import type GrimoirePlugin from '../../../main';
-import { getClaudeCliBinaryFingerprint } from '../cli/claudeCliBinaryFingerprint';
+import {
+  buildClaudeCatalogCacheKey,
+  CLAUDE_EMPTY_DISCOVERY_RETRY_MS,
+  hashClaudeCatalogCacheKey,
+} from '../cli/claudeCatalogCache';
 import { probeRuntimeModels } from '../commands/probeRuntimeModels';
 import {
   type ClaudeDiscoveredModel,
@@ -18,7 +22,6 @@ const MODEL_CATALOG_LIMIT = 1000;
 const MODEL_CATALOG_MAX_PAGES = 10;
 // Only paces retries after an attempt that found nothing. A catalog that holds
 // models is rediscovered solely on a cache-key change or an explicit request.
-const EMPTY_ATTEMPT_RETRY_MS = 10 * 60 * 1000;
 
 interface ClaudeModelsApiResponse {
   data?: unknown;
@@ -90,35 +93,6 @@ async function fetchClaudeModelsFromAnthropicApi(
   return models;
 }
 
-function buildClaudeModelCatalogCacheKey(
-  settings: ReturnType<typeof getClaudeProviderSettings>,
-  cliPath: string,
-): string {
-  return JSON.stringify({
-    cliBinary: getClaudeCliBinaryFingerprint(cliPath),
-    cliPath,
-    enableChrome: settings.enableChrome,
-    environmentHash: settings.environmentHash,
-    environmentVariables: settings.environmentVariables,
-    loadUserSettings: settings.loadUserSettings,
-    projectSettingsEnvHash: settings.projectSettingsSnapshot.hash,
-    respectProjectSettings: settings.respectProjectSettings,
-  });
-}
-
-/**
- * FNV-1a over the cache key. The key embeds the raw environment variables, which
- * can hold an API key, so only the digest is ever persisted.
- */
-function hashClaudeModelCatalogCacheKey(cacheKey: string): string {
-  let hash = 0x811c9dc5;
-  for (let index = 0; index < cacheKey.length; index += 1) {
-    hash ^= cacheKey.charCodeAt(index);
-    hash = Math.imul(hash, 0x01000193) >>> 0;
-  }
-  return hash.toString(16).padStart(8, '0');
-}
-
 /**
  * A catalog persisted before the fingerprint existed carries no record of the key
  * it came from, so the seed keeps extending it the same trust it always did. Once
@@ -126,7 +100,7 @@ function hashClaudeModelCatalogCacheKey(cacheKey: string): string {
  */
 function seedFingerprintMatches(persistedFingerprint: string, cacheKey: string): boolean {
   return persistedFingerprint === ''
-    || persistedFingerprint === hashClaudeModelCatalogCacheKey(cacheKey);
+    || persistedFingerprint === hashClaudeCatalogCacheKey(cacheKey);
 }
 
 export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
@@ -166,7 +140,7 @@ export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelC
       // A recorded fingerprint turns the guess into a check. An unrecorded one
       // (a catalog persisted before this field existed) keeps the old behaviour
       // rather than spending a probe to migrate.
-      const initialCacheKey = buildClaudeModelCatalogCacheKey(initialSettings, initialCliPath);
+      const initialCacheKey = buildClaudeCatalogCacheKey(initialSettings, initialCliPath);
       if (seedFingerprintMatches(initialSettings.discoveredModelsFingerprint, initialCacheKey)) {
         refreshAttemptsByKey.set(initialCacheKey, Date.now());
       }
@@ -179,7 +153,7 @@ export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelC
     },
     async refreshModels({ force, settings }) {
       const currentSettings = getClaudeProviderSettings(settings);
-      const cacheKey = buildClaudeModelCatalogCacheKey(
+      const cacheKey = buildClaudeCatalogCacheKey(
         currentSettings,
         plugin.getResolvedProviderCliPath?.('claude') ?? '',
       );
@@ -190,7 +164,7 @@ export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelC
         // since the plugin loaded, and such a change is exactly what must reach
         // the probe, so the seed applies only while the rest of the key still
         // matches the catalog that was persisted.
-        const seededCacheKey = buildClaudeModelCatalogCacheKey(
+        const seededCacheKey = buildClaudeCatalogCacheKey(
           initialSettings,
           plugin.getResolvedProviderCliPath?.('claude') ?? '',
         );
@@ -216,7 +190,7 @@ export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelC
       const lastAttemptAt = refreshAttemptsByKey.get(cacheKey) ?? 0;
       const cacheAgeMs = lastAttemptAt > 0 ? Date.now() - lastAttemptAt : Number.POSITIVE_INFINITY;
       const hasCachedModels = currentSettings.discoveredModels.length > 0;
-      if (!force && lastAttemptAt > 0 && (hasCachedModels || cacheAgeMs < EMPTY_ATTEMPT_RETRY_MS)) {
+      if (!force && lastAttemptAt > 0 && (hasCachedModels || cacheAgeMs < CLAUDE_EMPTY_DISCOVERY_RETRY_MS)) {
         plugin.recordDebugLog?.({
           data: {
             ageMs: cacheAgeMs,
@@ -249,7 +223,7 @@ export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelC
           }
 
           const latestSettings = getClaudeProviderSettings(settings);
-          const latestCacheKey = buildClaudeModelCatalogCacheKey(
+          const latestCacheKey = buildClaudeCatalogCacheKey(
             latestSettings,
             plugin.getResolvedProviderCliPath?.('claude') ?? '',
           );
@@ -261,7 +235,7 @@ export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelC
           // "discovered under this exact configuration" from "assumed".
           updateClaudeProviderSettings(settings, {
             discoveredModels,
-            discoveredModelsFingerprint: hashClaudeModelCatalogCacheKey(cacheKey),
+            discoveredModelsFingerprint: hashClaudeCatalogCacheKey(cacheKey),
           });
           try {
             await plugin.saveSettings?.();

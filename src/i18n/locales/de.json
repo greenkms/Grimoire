@@ -837,6 +837,12 @@
       "button": "Aktualisieren",
       "done": "Modellliste aktualisiert: {count} Modelle."
     },
+    "refreshCommands": {
+      "name": "Befehle aktualisieren",
+      "desc": "Claude Code nach seiner aktuellen Befehls- und Skill-Liste fragen. Andernfalls verwendet Grimoire die vorhandene Liste weiter, bis sich die CLI oder ihre Umgebung ändert.",
+      "button": "Aktualisieren",
+      "done": "Befehlsliste aktualisiert: {count} Befehle."
+    },
     "respectProjectSettings": {
       "name": "Claude-Code-Einstellungen berücksichtigen",
       "desc": "Modell und Umgebung aus den Benutzer- und Projekteinstellungen von Claude Code verwenden. Dadurch werden benutzerdefinierte Modelle von Anbietern wie MiniMax, Z.ai und anderen Anthropic-kompatiblen Gateways ermöglicht. Grimoire-Einstellungen überschreiben weiterhin explizite Auswahlmöglichkeiten."
@@ -1063,6 +1069,7 @@
       "disabledDesc": "Aktiviere diesen Anbieter oben, um diese Einstellungen zu verwenden und seine Modelle in der Modellauswahl anzuzeigen.",
       "fallbackDesc": "{provider}-Anbieter.",
       "loadModelsFailed": "Anbietermodelle konnten nicht geladen werden.",
+      "loadCommandsFailed": "Anbieterbefehle konnten nicht geladen werden.",
       "contextWindowLabel": "Kontextfenster für {model}"
     },
     "providerModelPicker": {

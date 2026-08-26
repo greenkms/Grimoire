@@ -837,6 +837,12 @@
       "button": "更新",
       "done": "モデル一覧を更新しました：{count} 件のモデル。"
     },
+    "refreshCommands": {
+      "name": "コマンドを更新",
+      "desc": "Claude Code に現在のコマンドとスキルの一覧を問い合わせます。通常 Grimoire は、CLI やその環境が変わるまで既存の一覧を再利用します。",
+      "button": "更新",
+      "done": "コマンド一覧を更新しました: {count} 件。"
+    },
     "respectProjectSettings": {
       "name": "Claude Code の設定を尊重",
       "desc": "Claude Code のユーザーおよびプロジェクト設定からモデルと環境を使用します。MiniMax、Z.ai、その他の Anthropic 互換ゲートウェイのカスタムモデルを有効にします。Grimoire の明示的な設定は引き続き優先されます。"
@@ -1063,6 +1069,7 @@
       "disabledDesc": "上でこのプロバイダーを有効にすると、これらの設定とモデル選択を使用できます。",
       "fallbackDesc": "{provider}プロバイダー。",
       "loadModelsFailed": "プロバイダーモデルを読み込めませんでした。",
+      "loadCommandsFailed": "プロバイダーコマンドを読み込めませんでした。",
       "contextWindowLabel": "{model}のコンテキストウィンドウ"
     },
     "providerModelPicker": {

@@ -50,6 +50,73 @@ describe('Claude provider settings', () => {
       expect(snapshot.env).toEqual({});
     });
   });
+  describe('discoveredCommands', () => {
+    it('defaults to an empty list and an empty fingerprint', () => {
+      const settings: Record<string, unknown> = {};
+
+      expect(getClaudeProviderSettings(settings).discoveredCommands).toEqual([]);
+      expect(getClaudeProviderSettings(settings).discoveredCommandsFingerprint).toBe('');
+    });
+
+    it('round-trips commands and the fingerprint they came from', () => {
+      const settings: Record<string, unknown> = {};
+
+      updateClaudeProviderSettings(settings, {
+        discoveredCommands: [
+          { id: 'sdk:commit', name: 'commit', description: 'Create git commit', content: '', source: 'sdk' },
+        ],
+        discoveredCommandsFingerprint: 'a1b2c3d4',
+      });
+
+      expect(getClaudeProviderSettings(settings).discoveredCommands).toEqual([
+        { id: 'sdk:commit', name: 'commit', description: 'Create git commit', content: '', source: 'sdk' },
+      ]);
+      expect(getClaudeProviderSettings(settings).discoveredCommandsFingerprint).toBe('a1b2c3d4');
+    });
+
+    it('drops malformed persisted entries instead of trusting them', () => {
+      const settings: Record<string, unknown> = {
+        providerConfigs: {
+          claude: {
+            discoveredCommands: [
+              { id: 'sdk:ok', name: 'ok', content: '' },
+              { id: 'sdk:no-name', content: '' },
+              'not-an-object',
+              null,
+            ],
+            discoveredCommandsFingerprint: 42,
+          },
+        },
+      };
+
+      expect(getClaudeProviderSettings(settings).discoveredCommands).toEqual([
+        { id: 'sdk:ok', name: 'ok', content: '', source: 'sdk' },
+      ]);
+      expect(getClaudeProviderSettings(settings).discoveredCommandsFingerprint).toBe('');
+    });
+  });
+
+  describe('discovered command normalization', () => {
+    it('trims names and drops a repeated id', () => {
+      const settings: Record<string, unknown> = {
+        providerConfigs: {
+          claude: {
+            discoveredCommands: [
+              { id: ' sdk:commit ', name: ' commit ', content: '' },
+              { id: 'sdk:commit', name: 'commit-again', content: '' },
+            ],
+            discoveredCommandsFingerprint: 'fp',
+          },
+        },
+      };
+
+      // An untrimmed name inserts as `/ commit `, and a repeated id shows as
+      // two identical dropdown rows.
+      expect(getClaudeProviderSettings(settings).discoveredCommands).toEqual([
+        { id: 'sdk:commit', name: 'commit', content: '', source: 'sdk' },
+      ]);
+    });
+  });
 
   describe('discovered models fingerprint', () => {
     it('defaults to an empty string and keeps a persisted one', () => {

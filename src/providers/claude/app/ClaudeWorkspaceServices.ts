@@ -17,6 +17,7 @@ import { parseEnvironmentVariables } from '../../../utils/env';
 import { getVaultPath } from '../../../utils/path';
 import { AgentManager } from '../agents/AgentManager';
 import { ClaudeCommandCatalog } from '../commands/ClaudeCommandCatalog';
+import { createClaudeRuntimeCommandCacheStore } from '../commands/ClaudeRuntimeCommandCacheStore';
 import { probeRuntimeCommands } from '../commands/probeRuntimeCommands';
 import { resolveClaudeConfigDir } from '../config/ClaudeConfigDir';
 import { PluginManager } from '../plugins/PluginManager';
@@ -72,6 +73,10 @@ export async function createClaudeWorkspaceServices(
     claudeStorage.commands,
     claudeStorage.skills,
     () => probeRuntimeCommands(plugin),
+    {
+      cache: createClaudeRuntimeCommandCacheStore(plugin),
+      recordEvent: event => plugin.recordDebugLog?.(event),
+    },
   );
 
   return {
