@@ -86,12 +86,28 @@ function getMcpOperationName(name: string): string {
   return operation.replace(/^obsidian_/, '');
 }
 
-function getDefaultToolSummary(input: Record<string, unknown>): string {
-  const preferredKeys = ['query', 'pattern', 'dirpath', 'filepath', 'file_path', 'path', 'url', 'command'];
-  for (const key of preferredKeys) {
+const PREFERRED_SUMMARY_KEYS = [
+  'query', 'pattern', 'dirpath', 'filepath', 'file_path', 'path', 'url', 'command',
+  // Antigravity (agy) names its tool parameters in PascalCase.
+  'CommandLine', 'AbsolutePath', 'TargetFile', 'SearchPath', 'SearchDirectory', 'DirectoryPath',
+];
+
+/**
+ * Summary drawn only from parameter names we recognise. Tools that deliberately
+ * render no summary (AskUserQuestion and friends) must keep getting '' here, so
+ * this never falls back to dumping an arbitrary value.
+ */
+function getPreferredToolSummary(input: Record<string, unknown>): string {
+  for (const key of PREFERRED_SUMMARY_KEYS) {
     const value = getInputText(input, key);
     if (value) return truncateText(value, 60);
   }
+  return '';
+}
+
+function getDefaultToolSummary(input: Record<string, unknown>): string {
+  const preferred = getPreferredToolSummary(input);
+  if (preferred) return preferred;
 
   const firstValue = Object.values(input).find(value => stringifyToolValue(value));
   return firstValue ? truncateText(stringifyToolValue(firstValue), 60) : '';
@@ -203,7 +219,7 @@ export function getToolSummary(name: string, input: Record<string, unknown>): st
       if (isAgentLifecycleTool(name)) {
         return getAgentLifecycleSummary(name, input);
       }
-      return '';
+      return getPreferredToolSummary(input);
   }
 }
 
@@ -261,12 +277,14 @@ export function getToolLabel(name: string, input: Record<string, unknown>): stri
       const summary = getWriteStdinSummary(input);
       return summary ? `write_stdin: ${summary}` : 'write_stdin';
     }
-    default:
+    default: {
       if (isAgentLifecycleTool(name)) {
         const summary = getAgentLifecycleSummary(name, input);
         return summary ? `${name}: ${summary}` : name;
       }
-      return name;
+      const defaultSummary = getPreferredToolSummary(input);
+      return defaultSummary ? `${name}: ${defaultSummary}` : name;
+    }
   }
 }
 
