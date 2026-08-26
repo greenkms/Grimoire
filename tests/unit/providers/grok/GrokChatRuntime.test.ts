@@ -1522,6 +1522,143 @@ describe('GrokChatRuntime', () => {
     expect(refreshModelSelector).toHaveBeenCalledTimes(1);
   });
 
+  it('records the reasoning levels each available model reports, not only the active one', async () => {
+    const plugin = createMockPlugin({
+      settings: {
+        model: 'grok:grok-4.6',
+        providerConfigs: {
+          grok: {
+            discoveredModels: [],
+            preferredThinkingByModel: {},
+            visibleModels: [],
+          },
+        },
+        settingsProvider: 'grok',
+      },
+    });
+    const runtime = new GrokChatRuntime(plugin);
+    jest.spyOn(ProviderRegistry, 'resolveSettingsProviderId').mockReturnValue('grok');
+
+    // Shape taken from a live session/new response: the agent states the levels
+    // for every model it offers, so one session settles the whole picker.
+    await (runtime as any).syncSessionModelState({
+      models: {
+        availableModels: [
+          { modelId: 'grok-4.6', name: 'Grok 4.6' },
+          { modelId: 'grok-4.5', name: 'Grok 4.5' },
+        ],
+        currentModelId: 'grok-4.6',
+      },
+      modelThinkingOptions: {
+        'grok-4.5': [
+          { label: 'High Effort', value: 'high' },
+          { label: 'Medium Effort', value: 'medium' },
+          { label: 'Low Effort', value: 'low' },
+        ],
+        'grok-4.6': [
+          { label: 'Extra High Effort', value: 'xhigh' },
+          { label: 'High Effort', value: 'high' },
+          { label: 'Medium Effort', value: 'medium' },
+          { label: 'Low Effort', value: 'low' },
+        ],
+      },
+    });
+
+    const thinkingOptions = getGrokProviderSettings(plugin.settings).thinkingOptionsByModel;
+    expect(thinkingOptions['grok-4.6'].map((variant) => variant.value)).toEqual([
+      'low',
+      'medium',
+      'high',
+      'xhigh',
+    ]);
+    // grok-4.5 was never the active model, and it must still not be offered a
+    // level Grok Build refuses for it.
+    expect(thinkingOptions['grok-4.5'].map((variant) => variant.value)).toEqual([
+      'low',
+      'medium',
+      'high',
+    ]);
+  });
+
+  it('lets the live thought-level option override the reported levels for the active model', async () => {
+    const plugin = createMockPlugin({
+      settings: {
+        model: 'grok:grok-4.6',
+        providerConfigs: {
+          grok: {
+            discoveredModels: [],
+            preferredThinkingByModel: {},
+            visibleModels: [],
+          },
+        },
+        settingsProvider: 'grok',
+      },
+    });
+    const runtime = new GrokChatRuntime(plugin);
+    jest.spyOn(ProviderRegistry, 'resolveSettingsProviderId').mockReturnValue('grok');
+
+    await (runtime as any).syncSessionModelState({
+      configOptions: [
+        {
+          category: 'thought_level',
+          currentValue: 'high',
+          id: 'effort',
+          name: 'Effort',
+          options: [
+            { name: 'High', value: 'high' },
+            { name: 'Low', value: 'low' },
+          ],
+          type: 'select',
+        },
+      ],
+      models: {
+        availableModels: [{ modelId: 'grok-4.6', name: 'Grok 4.6' }],
+        currentModelId: 'grok-4.6',
+      },
+      modelThinkingOptions: {
+        'grok-4.6': [
+          { label: 'Extra High Effort', value: 'xhigh' },
+          { label: 'High Effort', value: 'high' },
+        ],
+      },
+    });
+
+    // The option describes this session as it is now, the report describes the
+    // catalog, so the session wins where they disagree.
+    expect(getGrokProviderSettings(plugin.settings).thinkingOptionsByModel['grok-4.6']
+      .map((variant) => variant.value)).toEqual(['low', 'high']);
+  });
+
+  it('still forgets a stale level list when nothing in the session describes the model', async () => {
+    const plugin = createMockPlugin({
+      settings: {
+        model: 'grok:grok-4.6',
+        providerConfigs: {
+          grok: {
+            discoveredModels: [{ label: 'Grok 4.6', rawId: 'grok-4.6' }],
+            preferredThinkingByModel: {},
+            thinkingOptionsByModel: {
+              'grok-4.6': [{ label: 'Extra high', value: 'xhigh' }],
+            },
+            visibleModels: ['grok-4.6'],
+          },
+        },
+        settingsProvider: 'grok',
+      },
+    });
+    const runtime = new GrokChatRuntime(plugin);
+    jest.spyOn(ProviderRegistry, 'resolveSettingsProviderId').mockReturnValue('grok');
+
+    await (runtime as any).syncSessionModelState({
+      models: {
+        availableModels: [{ modelId: 'grok-4.6', name: 'Grok 4.6' }],
+        currentModelId: 'grok-4.6',
+      },
+    });
+
+    expect(getGrokProviderSettings(plugin.settings).thinkingOptionsByModel['grok-4.6']).toBeUndefined();
+  });
+
   it('warms selected model metadata through Grok session/set_model', async () => {
     const plugin = createMockPlugin({
       settings: {

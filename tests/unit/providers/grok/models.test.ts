@@ -319,6 +319,43 @@ describe('grokChatUIConfig', () => {
     )).toBe('high');
   });
 
+  it('drops xhigh for a catalog model once Grok Build reports its own levels', () => {
+    const settings = {
+      model: 'grok:grok-4.5',
+      providerConfigs: {
+        grok: {
+          discoveredModels: [
+            { label: 'Grok 4.6', rawId: 'grok-4.6' },
+            { label: 'Grok 4.5', rawId: 'grok-4.5' },
+          ],
+          visibleModels: ['grok-4.6', 'grok-4.5'],
+          // What a live session/new reports: grok-4.5 has no xhigh, grok-4.6 does.
+          thinkingOptionsByModel: {
+            'grok-4.5': [
+              { label: 'Low', value: 'low' },
+              { label: 'Medium', value: 'medium' },
+              { label: 'High', value: 'high' },
+            ],
+            'grok-4.6': [
+              { label: 'Low', value: 'low' },
+              { label: 'Medium', value: 'medium' },
+              { label: 'High', value: 'high' },
+              { label: 'Extra high', value: 'xhigh' },
+            ],
+          },
+        },
+      },
+    };
+
+    // The reported list wins over the static one the picker falls back to
+    // before any session has run.
+    expect(grokChatUIConfig.getReasoningOptions('grok:grok-4.5', settings)
+      .map((option) => option.value)).toEqual(['low', 'medium', 'high']);
+    expect(grokChatUIConfig.getReasoningOptions('grok:grok-4.6', settings)
+      .map((option) => option.value)).toEqual(['low', 'medium', 'high', 'xhigh']);
+    expect(grokChatUIConfig.getDefaultReasoningValue('grok:grok-4.5', settings)).toBe('high');
+  });
+
   it('keeps at least three Grok Build effort choices before thought-level discovery finishes', () => {
     const settings = {
       model: 'grok:minimax-token-plan/minimax-m2',

@@ -95,9 +95,11 @@ import {
   GROK_DEFAULT_THINKING_LEVEL,
   GROK_SYNTHETIC_MODEL_ID,
   type GrokDiscoveredModel,
+  type GrokThinkingOptionsByModel,
   isGrokModelSelectionId,
   normalizeGrokDiscoveredModels,
   normalizeGrokModelVariants,
+  normalizeGrokThinkingOptionsByModel,
   resolveGrokBaseModelRawId,
 } from '../models';
 import {
@@ -144,7 +146,10 @@ import {
   isSupportedAcpSessionUpdate,
   parseGrokSessionNotification,
 } from './GrokSessionNotifications';
-import { normalizeGrokAcpSessionModels } from './normalizeGrokAcpSessionState';
+import {
+  normalizeGrokAcpSessionModels,
+  readGrokAcpModelThinkingOptions,
+} from './normalizeGrokAcpSessionState';
 
 /** Upper bound for an answer read back from Grok's own session log. */
 const GROK_RECOVERED_ANSWER_LIMIT_BYTES = 1_000_000;
@@ -1215,12 +1220,13 @@ export class GrokChatRuntime implements ChatRuntime {
   private async syncSessionModelState(params: {
     configOptions?: AcpSessionConfigOption[] | null;
     models?: AcpSessionModelState | null;
+    modelThinkingOptions?: GrokThinkingOptionsByModel | null;
   }, options: {
     currentRawModelId?: string | null;
     seedActiveSelection?: boolean;
   } = {}): Promise<void> {
     const acpState = extractAcpSessionModelState({
-      ...params,
+      configOptions: params.configOptions,
       models: normalizeGrokAcpSessionModels(params.models),
     });
     const forcedCurrentRawModelId = typeof options.currentRawModelId === 'string'
@@ -1264,11 +1270,25 @@ export class GrokChatRuntime implements ChatRuntime {
       : null;
     this.currentSessionEffortValues = new Set(currentThinkingOptions.map((option) => option.value));
 
-    const nextThinkingOptionsByModel = { ...currentSettings.thinkingOptionsByModel };
+    // The agent reports the levels for every available model, so one session
+    // makes the picker exact for models the user has not opened yet. The
+    // `thought_level` option below still wins for the active model: it is the
+    // live state of this session rather than a description of the catalog.
+    const acpModelThinkingOptions = normalizeGrokThinkingOptionsByModel(
+      params.modelThinkingOptions ?? {},
+      discoveredModels,
+    );
+    const nextThinkingOptionsByModel = {
+      ...currentSettings.thinkingOptionsByModel,
+      ...acpModelThinkingOptions,
+    };
     if (currentBaseRawModelId) {
       if (currentThinkingOptions.length > 0) {
         nextThinkingOptionsByModel[currentBaseRawModelId] = currentThinkingOptions;
-      } else {
+      } else if (!acpModelThinkingOptions[currentBaseRawModelId]) {
+        // Dropping a stale list stays the behaviour when nothing describes this
+        // model, but session/new carries the per-model levels without any
+        // thought_level option, so a report must not be deleted as if absent.
         delete nextThinkingOptionsByModel[currentBaseRawModelId];
       }
     }
@@ -1542,6 +1562,7 @@ export class GrokChatRuntime implements ChatRuntime {
       this.updateSessionPaths(response.sessionId, cwd);
       await this.syncSessionModelState({
         configOptions: response.configOptions ?? null,
+        modelThinkingOptions: readGrokAcpModelThinkingOptions(response.models ?? null),
         models: normalizeGrokAcpSessionModels(response.models ?? null),
       });
       await this.syncSessionModeState({
@@ -1586,6 +1607,7 @@ export class GrokChatRuntime implements ChatRuntime {
       this.updateSessionPaths(response.sessionId, cwd);
       await this.syncSessionModelState({
         configOptions: response.configOptions ?? null,
+        modelThinkingOptions: readGrokAcpModelThinkingOptions(response.models ?? null),
         models: normalizeGrokAcpSessionModels(response.models ?? null),
       });
       await this.syncSessionModeState({
