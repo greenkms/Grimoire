@@ -303,7 +303,25 @@ export class ClaudeCommandCatalog implements ProviderCommandCatalog {
     };
   }
 
+  /**
+   * The escape hatch behind the refresh button in provider settings. This is the
+   * one place that deliberately spends a probe: it drops the cache, forgets a
+   * throttled empty window and rediscovers the list from the SDK.
+   */
   async refresh(): Promise<void> {
-    // Claude revalidation happens externally via setRuntimeCommands
+    this.sdkCommands = [];
+    this.sdkCommandsFromCache = false;
+    this.emptyProbeAtByFingerprint.clear();
+    const cache = this.deps.cache;
+    if (cache) {
+      try {
+        await cache.clear();
+      } catch (error) {
+        this.record('commandCatalog.cache.writeFailed', 'warn', {
+          message: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+    await this.ensureProbed();
   }
 }

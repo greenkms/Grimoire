@@ -687,5 +687,44 @@ Body`,
       expect(probe).toHaveBeenCalledTimes(1);
       nowSpy.mockRestore();
     });
+    it('clears the cache and forces exactly one probe on refresh', async () => {
+      const adapter = createMockAdapter({});
+      const cache = createCacheStore({ commands: CACHED_COMMANDS, fingerprint: 'fp-current' });
+      const probe = jest.fn(async (): Promise<SlashCommand[]> => [
+        { id: 'sdk:review', name: 'review', description: 'Review code', content: '', source: 'sdk' },
+      ]);
+      const catalog = new ClaudeCommandCatalog(
+        new SlashCommandStorage(adapter),
+        new SkillStorage(adapter),
+        probe,
+        { cache },
+      );
+
+      await catalog.refresh();
+
+      expect(cache.clear).toHaveBeenCalledTimes(1);
+      expect(probe).toHaveBeenCalledTimes(1);
+      const entries = await catalog.listDropdownEntries({ includeBuiltIns: false });
+      expect(entries.map(entry => entry.name)).toEqual(['review']);
+    });
+
+    it('refreshes through a throttled empty window', async () => {
+      const adapter = createMockAdapter({});
+      const cache = createCacheStore(null);
+      const probe = jest.fn(async (): Promise<SlashCommand[]> => []);
+      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(1_000_000);
+      const catalog = new ClaudeCommandCatalog(
+        new SlashCommandStorage(adapter),
+        new SkillStorage(adapter),
+        probe,
+        { cache },
+      );
+
+      await catalog.listDropdownEntries({ includeBuiltIns: false });
+      await catalog.refresh();
+
+      expect(probe).toHaveBeenCalledTimes(2);
+      nowSpy.mockRestore();
+    });
   });
 });
