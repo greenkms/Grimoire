@@ -799,6 +799,203 @@ describe('AntigravityChatRuntime', () => {
     expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
   });
 
+  it('closes a tool card that the run ended before finishing', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const probeProc = createMockChildProcess();
+    const printProc = createMockChildProcess({ stdin: true });
+    mockStreamJsonSpawn(probeProc, printProc);
+
+    const { chunks, done } = pumpChunks(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
+    await settleStreamJsonProbe(probeProc);
+
+    writeStreamJsonFrame(printProc, {
+      event: 'step_update',
+      step_update: {
+        state: 'ACTIVE',
+        step_index: 1,
+        step_type: 'tool',
+        tool_info: { parameters: { CommandLine: 'sleep 600' } },
+        tool_name: 'run_command',
+      },
+    });
+    await flushStreamedChunks();
+
+    // Cancelled, timed out, or ERROR mid-tool: the DONE half never arrives.
+    writeStreamJsonResult(printProc, { response: 'Stopped early.', status: 'SUCCESS' });
+    emitProcessExit(printProc, 0, null);
+    await done;
+
+    // Nothing downstream marks a tool call terminal, so a card left running is
+    // persisted spinning forever.
+    expect(chunks).toContainEqual({ content: '', id: 'antigravity-step-1', type: 'tool_result' });
+  });
+
+  it('opens a card for a completion whose start never arrived', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const probeProc = createMockChildProcess();
+    const printProc = createMockChildProcess({ stdin: true });
+    mockStreamJsonSpawn(probeProc, printProc);
+
+    const { chunks, done } = pumpChunks(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
+    await settleStreamJsonProbe(probeProc);
+
+    writeStreamJsonFrame(printProc, {
+      event: 'step_update',
+      step_update: {
+        state: 'DONE',
+        step_index: 4,
+        step_type: 'tool',
+        tool_info: { output: 'only-the-done-half\n' },
+        tool_name: 'run_command',
+      },
+    });
+    writeStreamJsonResult(printProc, { response: 'Done.', status: 'SUCCESS' });
+    emitProcessExit(printProc, 0, null);
+    await done;
+
+    // The frame names its tool and carries its output, so dropping it would
+    // lose the call and everything it printed.
+    expect(chunks).toContainEqual({
+      id: 'antigravity-step-4',
+      input: {},
+      name: 'Bash',
+      type: 'tool_use',
+    });
+    expect(chunks).toContainEqual({
+      content: 'only-the-done-half\n',
+      id: 'antigravity-step-4',
+      type: 'tool_result',
+    });
+  });
+
+  it('appends only the untold part when the result diverges from the deltas', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const probeProc = createMockChildProcess();
+    const printProc = createMockChildProcess({ stdin: true });
+    mockStreamJsonSpawn(probeProc, printProc);
+
+    const { chunks, done } = pumpChunks(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
+    await settleStreamJsonProbe(probeProc);
+
+    writeStreamJsonFrame(printProc, {
+      event: 'step_update',
+      step_update: { state: 'ACTIVE', step_type: 'agent_response', text_delta: 'Hello wor' },
+    });
+    await flushStreamedChunks();
+    writeStreamJsonResult(printProc, { response: 'Hello world', status: 'SUCCESS' });
+    emitProcessExit(printProc, 0, null);
+    await done;
+
+    const streamed = chunks
+      .filter((chunk): chunk is Extract<StreamChunk, { type: 'text' }> => chunk.type === 'text')
+      .map((chunk) => chunk.content)
+      .join('');
+    // Repeating an answer the user already watched arrive reads as a bug, and
+    // nothing is lost: the appended part is exactly what was never shown.
+    expect(streamed).toBe('Hello world');
+  });
+
+  it('does not stream text that rode in on a tool step', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const probeProc = createMockChildProcess();
+    const printProc = createMockChildProcess({ stdin: true });
+    mockStreamJsonSpawn(probeProc, printProc);
+
+    const { chunks, done } = pumpChunks(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
+    await settleStreamJsonProbe(probeProc);
+
+    writeStreamJsonFrame(printProc, {
+      event: 'step_update',
+      step_update: {
+        state: 'ACTIVE',
+        step_index: 0,
+        step_type: 'tool',
+        text_delta: 'narration the answer never contains',
+        tool_info: { parameters: {} },
+        tool_name: 'run_command',
+      },
+    });
+    await flushStreamedChunks();
+    writeStreamJsonResult(printProc, { response: 'The answer.', status: 'SUCCESS' });
+    emitProcessExit(printProc, 0, null);
+    await done;
+
+    const streamed = chunks
+      .filter((chunk): chunk is Extract<StreamChunk, { type: 'text' }> => chunk.type === 'text')
+      .map((chunk) => chunk.content)
+      .join('');
+    // Text that result.response never contains would break the prefix the tail
+    // logic depends on.
+    expect(streamed).toBe('The answer.');
+  });
+
+  it('strips the blank lines agy puts before the answer', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const probeProc = createMockChildProcess();
+    const printProc = createMockChildProcess({ stdin: true });
+    mockStreamJsonSpawn(probeProc, printProc);
+
+    const { chunks, done } = pumpChunks(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
+    await settleStreamJsonProbe(probeProc);
+
+    writeStreamJsonFrame(printProc, {
+      event: 'step_update',
+      step_update: { state: 'DONE', step_type: 'agent_response', text_delta: '\n\nAn answer' },
+    });
+    writeStreamJsonResult(printProc, { response: '\n\nAn answer', status: 'SUCCESS' });
+    emitProcessExit(printProc, 0, null);
+    await done;
+
+    const streamed = chunks
+      .filter((chunk): chunk is Extract<StreamChunk, { type: 'text' }> => chunk.type === 'text')
+      .map((chunk) => chunk.content)
+      .join('');
+    // The whole-answer path trimmed before yielding; arriving in pieces must
+    // not open the bubble - or the saved message - with blank lines.
+    expect(streamed).toBe('An answer');
+  });
+
+  it('still parses a trailing frame that never got its newline', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const probeProc = createMockChildProcess();
+    const printProc = createMockChildProcess({ stdin: true });
+    mockStreamJsonSpawn(probeProc, printProc);
+
+    const { chunks, done } = pumpChunks(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
+    await settleStreamJsonProbe(probeProc);
+
+    writeStreamJsonFrame(printProc, {
+      event: 'step_update',
+      step_update: {
+        state: 'ACTIVE',
+        step_index: 7,
+        step_type: 'tool',
+        tool_info: { parameters: { CommandLine: 'echo hi' } },
+        tool_name: 'run_command',
+      },
+    });
+    writeStreamJsonResult(printProc, { response: 'Done.', status: 'SUCCESS' });
+    // No terminating newline: only the flush on settle parses this one.
+    printProc.stdout.write(JSON.stringify({
+      event: 'step_update',
+      step_update: {
+        state: 'DONE',
+        step_index: 7,
+        step_type: 'tool',
+        tool_info: { output: 'hi\n' },
+        tool_name: 'run_command',
+      },
+    }));
+    emitProcessExit(printProc, 0, null);
+    await done;
+
+    expect(chunks).toContainEqual({
+      content: 'hi\n',
+      id: 'antigravity-step-7',
+      type: 'tool_result',
+    });
+  });
+
   it('renders agy tool steps as tool cards while the run is open', async () => {
     const runtime = new AntigravityChatRuntime(createMockPlugin());
     const probeProc = createMockChildProcess();
@@ -819,10 +1016,13 @@ describe('AntigravityChatRuntime', () => {
       },
     });
     await flushStreamedChunks();
+    // Mapped onto the neutral tool so the card gets the same icon, header and
+    // rendering as any other provider's shell call; agy's own argument name is
+    // kept beside the neutral one so the card still lines up with its logs.
     expect(chunks).toContainEqual({
       id: 'antigravity-step-3',
-      input: { CommandLine: 'echo hi' },
-      name: 'run_command',
+      input: { CommandLine: 'echo hi', command: 'echo hi' },
+      name: 'Bash',
       type: 'tool_use',
     });
 
@@ -963,6 +1163,17 @@ describe('AntigravityChatRuntime', () => {
         tool_name: 'view_file',
       },
     });
+    // Without this the card may never render before the run settles, and the
+    // test's own premise - an error *after* cards were rendered - goes
+    // unverified while its assertion still passes.
+    await flushStreamedChunks();
+    expect(chunks).toContainEqual({
+      id: 'antigravity-step-1',
+      input: {},
+      name: 'Read',
+      type: 'tool_use',
+    });
+
     writeStreamJsonResult(printProc, { response: '', status: 'SUCCESS' });
     emitProcessExit(printProc, 0, null);
     await done;

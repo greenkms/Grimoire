@@ -46,6 +46,10 @@ import { getVaultPath } from '../../../utils/path';
 import { createUtf8ChunkDecoder, type Utf8ChunkDecoder } from '../../../utils/utf8Stream';
 import { ANTIGRAVITY_PROVIDER_CAPABILITIES } from '../capabilities';
 import { decodeAntigravityModelId } from '../models';
+import {
+  normalizeAntigravityToolInput,
+  normalizeAntigravityToolName,
+} from '../normalization/antigravityToolNormalization';
 import { getAntigravityProviderSettings } from '../settings';
 import {
   type AntigravityCliCapabilities,
@@ -89,6 +93,22 @@ const ANTIGRAVITY_PRINT_TIMEOUT_FLAG = '29m';
 type AntigravityProgressEvent =
   | AntigravityStreamEvent
   | { elapsedMs: number; type: 'log_activity' };
+
+/**
+ * How much of the final answer the user has already watched arrive. Normally
+ * this is all of `streamed`, because the deltas sum to `result.response`; when
+ * they diverge it is the part they still agree on, which is what keeps the
+ * remainder from repeating text that is already on screen.
+ */
+function sharedPrefixLength(streamed: string, output: string): number {
+  const limit = Math.min(streamed.length, output.length);
+  let index = 0;
+  while (index < limit && streamed[index] === output[index]) {
+    index += 1;
+  }
+
+  return index;
+}
 
 interface AntigravityPrintSpec {
   addDirPath: string | null;
@@ -267,8 +287,14 @@ export class AntigravityChatRuntime implements ChatRuntime {
         while (pending.length > 0) {
           const event = pending.shift() as AntigravityProgressEvent;
           if (event.type === 'text') {
+            // The whole-answer path trimmed before yielding; streaming must not
+            // open the bubble - or the saved message - with agy's leading
+            // blank lines just because the answer now arrives in pieces.
+            const text = streamedText ? event.text : event.text.replace(/^\s+/, '');
             streamedText += event.text;
-            yield { content: event.text, type: 'text' };
+            if (text) {
+              yield { content: text, type: 'text' };
+            }
             continue;
           }
           if (event.type === 'log_activity') {
@@ -280,19 +306,33 @@ export class AntigravityChatRuntime implements ChatRuntime {
             };
             continue;
           }
-          const toolId = `antigravity-step-${event.stepIndex}`;
+          const toolId = `antigravity-${event.stepId}`;
           if (event.type === 'tool_start') {
             openToolIds.add(toolId);
-            yield { id: toolId, input: event.input, name: event.toolName, type: 'tool_use' };
+            yield {
+              id: toolId,
+              input: normalizeAntigravityToolInput(event.toolName, event.input),
+              name: normalizeAntigravityToolName(event.toolName),
+              type: 'tool_use',
+            };
             continue;
+          }
+          // A completion whose ACTIVE half never arrived still names its tool
+          // and carries what it printed, so the card is opened here rather than
+          // dropping the call and its output from the transcript entirely.
+          if (!openToolIds.delete(toolId)) {
+            yield {
+              id: toolId,
+              input: {},
+              name: normalizeAntigravityToolName(event.toolName),
+              type: 'tool_use',
+            };
           }
           // agy reports what the tool printed on the DONE frame, so the card is
           // closed with the real output. A tool that printed nothing yields an
           // empty string, which renders as "no result" rather than as invented
           // metadata such as the step duration.
-          if (openToolIds.delete(toolId)) {
-            yield { content: event.output, id: toolId, type: 'tool_result' };
-          }
+          yield { content: event.output, id: toolId, type: 'tool_result' };
         }
         if (finished) {
           break;
@@ -301,6 +341,14 @@ export class AntigravityChatRuntime implements ChatRuntime {
           wake = resolve;
         });
       }
+      // A run that ends between ACTIVE and DONE - cancelled, timed out, or
+      // ERROR mid-tool - leaves its card spinning, and nothing downstream
+      // reconciles a tool call left running: it is persisted that way.
+      for (const openToolId of openToolIds) {
+        yield { content: '', id: openToolId, type: 'tool_result' };
+      }
+      openToolIds.clear();
+
       await printSettled;
       // Rethrows whatever runPrint rejected with, preserving non-Error values
       // for the localized fallback in the catch clause.
@@ -311,11 +359,17 @@ export class AntigravityChatRuntime implements ChatRuntime {
       // trailing warning agy appends after an ERROR-flagged success. That
       // remainder keeps its leading blank line, which is what separates the
       // warning from the answer it follows.
-      const tail = streamedText && output.startsWith(streamedText)
-        ? output.slice(streamedText.length).trimEnd()
-        // Either nothing was streamed (transcript recovery, legacy --print) or
-        // the final answer diverged from the deltas; showing it whole can
-        // duplicate text but never drops an answer the user is waiting for.
+      // Normally the deltas sum to result.response exactly and the remainder is
+      // empty, or is the trailing warning agy appends after an ERROR-flagged
+      // success - that remainder keeps its leading blank line, which is what
+      // separates the warning from the answer it follows. When the two diverge,
+      // only the part past their common prefix is appended: repeating an answer
+      // the user already watched stream in reads as a bug, and nothing is lost
+      // because the divergent text is exactly what was never shown.
+      const shared = sharedPrefixLength(streamedText, output);
+      const tail = streamedText
+        ? output.slice(shared).trimEnd()
+        // Nothing was streamed at all (transcript recovery, legacy --print).
         : output.trim();
       if (tail) {
         yield { content: tail, type: 'text' };
@@ -551,10 +605,12 @@ export class AntigravityChatRuntime implements ChatRuntime {
       // the parser is only considered complete after the decoder hands back
       // any held-back partial character and the trailing newline-less line is
       // flushed.
+      let flushedStreamParser = false;
       const flushStreamParser = (): void => {
-        if (!streamParser) {
+        if (!streamParser || flushedStreamParser) {
           return;
         }
+        flushedStreamParser = true;
         streamParser.write(stdoutDecoder.end());
         streamParser.end();
       };
@@ -570,6 +626,10 @@ export class AntigravityChatRuntime implements ChatRuntime {
         if (settled) {
           return;
         }
+        // Before `settled` closes the progress channel, not after: the trailing
+        // newline-less line is only parsed by this flush, and a tool DONE
+        // sitting there would otherwise be dropped and leave its card open.
+        flushStreamParser();
         settled = true;
         window.clearTimeout(inactivityTimer);
         window.clearTimeout(absoluteTimer);

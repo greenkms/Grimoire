@@ -21,17 +21,15 @@ export interface AntigravityResultFrame {
  * identifies the start and the completion of one call. The `ACTIVE` half
  * carries the call's arguments in `tool_info.parameters` and the `DONE` half
  * carries what the tool printed in `tool_info.output`.
+ *
+ * `stepId` rather than the raw index: a frame that omits `step_index` gets a
+ * counted id from a separate namespace, so a synthesized id can never land on
+ * a real index and merge two different calls onto one card.
  */
 export type AntigravityStreamEvent =
   | { text: string; type: 'text' }
-  | { input: Record<string, unknown>; stepIndex: number; toolName: string; type: 'tool_start' }
-  | {
-    durationSeconds: number | null;
-    output: string;
-    stepIndex: number;
-    toolName: string;
-    type: 'tool_end';
-  };
+  | { input: Record<string, unknown>; stepId: string; toolName: string; type: 'tool_start' }
+  | { output: string; stepId: string; toolName: string; type: 'tool_end' };
 
 export interface AntigravityStreamJsonParserOptions {
   /**
@@ -80,25 +78,31 @@ export function createAntigravityStreamJsonParser(
   };
 
   const consumeStepUpdate = (step: Record<string, unknown>): void => {
-    const textDelta = step.text_delta;
-    if (typeof textDelta === 'string' && textDelta) {
-      emit({ text: textDelta, type: 'text' });
-    }
     if (step.step_type !== 'tool') {
+      // Only a non-tool step narrates the answer. Streaming a delta that rode
+      // in on a tool step would put text into the answer that `result.response`
+      // never contains, and the runtime relies on the streamed text being a
+      // prefix of that response to know what is still untold.
+      const textDelta = step.text_delta;
+      if (typeof textDelta === 'string' && textDelta) {
+        emit({ text: textDelta, type: 'text' });
+      }
       return;
     }
     const state = step.state;
     if (state !== 'ACTIVE' && state !== 'DONE') {
       return;
     }
-    const stepIndex = typeof step.step_index === 'number' ? step.step_index : fallbackToolIndex;
+    const stepId = typeof step.step_index === 'number'
+      ? `step-${step.step_index}`
+      : `unindexed-${fallbackToolIndex}`;
     if (typeof step.step_index !== 'number' && state === 'DONE') {
       fallbackToolIndex += 1;
     }
     const toolName = typeof step.tool_name === 'string' && step.tool_name ? step.tool_name : 'tool';
     if (state === 'ACTIVE') {
       const parameters = asRecord(asRecord(step.tool_info)?.parameters);
-      emit({ input: parameters ?? {}, stepIndex, toolName, type: 'tool_start' });
+      emit({ input: parameters ?? {}, stepId, toolName, type: 'tool_start' });
       return;
     }
     // The DONE frame carries the tool's output in `tool_info.output` (verified
@@ -108,9 +112,8 @@ export function createAntigravityStreamJsonParser(
     const completedToolInfo = asRecord(step.tool_info);
     const output = completedToolInfo?.output;
     emit({
-      durationSeconds: typeof step.duration_seconds === 'number' ? step.duration_seconds : null,
       output: typeof output === 'string' ? output : '',
-      stepIndex,
+      stepId,
       toolName,
       type: 'tool_end',
     });

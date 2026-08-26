@@ -190,14 +190,13 @@ describe('AntigravityStreamJson', () => {
       expect(events).toEqual([
         {
           input: { CommandLine: 'echo hi' },
-          stepIndex: 3,
+          stepId: 'step-3',
           toolName: 'run_command',
           type: 'tool_start',
         },
         {
-          durationSeconds: 0.4038462,
           output: '',
-          stepIndex: 3,
+          stepId: 'step-3',
           toolName: 'run_command',
           type: 'tool_end',
         },
@@ -227,9 +226,8 @@ describe('AntigravityStreamJson', () => {
 
       expect(events).toEqual([
         {
-          durationSeconds: 0.3985843,
           output: 'grimoire-capture-test\r\n',
-          stepIndex: 2,
+          stepId: 'step-2',
           toolName: 'run_command',
           type: 'tool_end',
         },
@@ -252,13 +250,54 @@ describe('AntigravityStreamJson', () => {
 
       expect(events).toEqual([
         {
-          durationSeconds: null,
           output: '',
-          stepIndex: 1,
+          stepId: 'step-1',
           toolName: 'run_command',
           type: 'tool_end',
         },
       ]);
+    });
+
+    it('keeps a counted id out of the indexed namespace', () => {
+      const { events, onEvent } = collect();
+      const parser = createAntigravityStreamJsonParser({ onEvent });
+      for (const state of ['ACTIVE', 'DONE']) {
+        parser.write(`${JSON.stringify({
+          event: 'step_update',
+          step_update: { state, step_index: 0, step_type: 'tool', tool_name: 'view_file' },
+        })}\n`);
+      }
+      for (const state of ['ACTIVE', 'DONE']) {
+        parser.write(`${JSON.stringify({
+          event: 'step_update',
+          step_update: { state, step_type: 'tool', tool_name: 'run_command' },
+        })}\n`);
+      }
+
+      // A counted id that collided with a real index would merge two different
+      // calls onto one card.
+      const ids = events.map((event) => (event.type === 'text' ? null : event.stepId));
+      expect(ids).toEqual(['step-0', 'step-0', 'unindexed-0', 'unindexed-0']);
+      expect(new Set(ids).size).toBe(2);
+    });
+
+    it('does not report a text delta that rode in on a tool step', () => {
+      const { events, onEvent } = collect();
+      const parser = createAntigravityStreamJsonParser({ onEvent });
+      parser.write(`${JSON.stringify({
+        event: 'step_update',
+        step_update: {
+          state: 'ACTIVE',
+          step_index: 0,
+          step_type: 'tool',
+          text_delta: 'narration',
+          tool_name: 'run_command',
+        },
+      })}\n`);
+
+      // result.response never contains it, and the runtime relies on the
+      // streamed text being a prefix of that response.
+      expect(events.filter((event) => event.type === 'text')).toEqual([]);
     });
 
     it('keeps sequential tools apart when agy omits the step index', () => {
@@ -277,8 +316,8 @@ describe('AntigravityStreamJson', () => {
         })}\n`);
       }
 
-      const indices = events.map((event) => (event.type === 'text' ? null : event.stepIndex));
-      expect(indices).toEqual([0, 0, 1, 1]);
+      const ids = events.map((event) => (event.type === 'text' ? null : event.stepId));
+      expect(ids).toEqual(['unindexed-0', 'unindexed-0', 'unindexed-1', 'unindexed-1']);
     });
 
     it('ignores lifecycle frames that carry no user-visible progress', () => {

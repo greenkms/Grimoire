@@ -521,18 +521,6 @@ describe('ToolCallRenderer', () => {
     it('should return empty for unknown tools', () => {
       expect(getToolSummary('CustomTool', {})).toBe('');
     });
-
-    it('returns the command line for an antigravity run_command step', () => {
-      expect(getToolSummary('run_command', { CommandLine: 'npm run build' })).toBe('npm run build');
-    });
-
-    it('returns the target path for antigravity file tools', () => {
-      expect(getToolSummary('view_file', { AbsolutePath: 'D:/repo/src/main.ts' })).toBe('D:/repo/src/main.ts');
-    });
-
-    it('does not invent a summary from an unrecognised parameter name', () => {
-      expect(getToolSummary('run_command', { SomethingElse: 'not a command' })).toBe('');
-    });
   });
 
   describe('getToolSummary - Codex native tools', () => {
