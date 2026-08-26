@@ -1,6 +1,7 @@
 import type { VaultFileAdapter } from '@/core/storage/VaultFileAdapter';
 import type { SlashCommand } from '@/core/types';
 import { ClaudeCommandCatalog } from '@/providers/claude/commands/ClaudeCommandCatalog';
+import type { RuntimeCommandCacheRecord } from '@/providers/claude/commands/ClaudeRuntimeCommandCacheStore';
 import { SkillStorage } from '@/providers/claude/storage/SkillStorage';
 import { SlashCommandStorage } from '@/providers/claude/storage/SlashCommandStorage';
 
@@ -39,6 +40,20 @@ function createMockAdapter(files: Record<string, string> = {}): VaultFileAdapter
     deleteFolder: jest.fn(),
   } as unknown as VaultFileAdapter;
 }
+
+function createCacheStore(record: RuntimeCommandCacheRecord | null, fingerprint = 'fp-current') {
+  let current = record;
+  return {
+    clear: jest.fn(async () => { current = null; }),
+    currentFingerprint: jest.fn(() => fingerprint),
+    read: jest.fn(() => current),
+    write: jest.fn(async (value: RuntimeCommandCacheRecord) => { current = value; }),
+  };
+}
+
+const CACHED_COMMANDS: SlashCommand[] = [
+  { id: 'sdk:commit', name: 'commit', description: 'Create git commit', content: '', source: 'sdk' },
+];
 
 describe('ClaudeCommandCatalog', () => {
   describe('listDropdownEntries', () => {
@@ -391,6 +406,125 @@ Deploy`,
       expect(config.builtInPrefix).toBe('/');
       expect(config.skillPrefix).toBe('/');
       expect(config.commandPrefix).toBe('/');
+    });
+  });
+  describe('runtime command cache', () => {
+    it('serves a cached list without probing when the fingerprint matches', async () => {
+      const adapter = createMockAdapter({});
+      const cache = createCacheStore({ commands: CACHED_COMMANDS, fingerprint: 'fp-current' });
+      const probe = jest.fn(async () => CACHED_COMMANDS);
+      const catalog = new ClaudeCommandCatalog(
+        new SlashCommandStorage(adapter),
+        new SkillStorage(adapter),
+        probe,
+        { cache },
+      );
+
+      const entries = await catalog.listDropdownEntries({ includeBuiltIns: false });
+
+      expect(probe).not.toHaveBeenCalled();
+      expect(entries.map(entry => entry.name)).toEqual(['commit']);
+    });
+
+    it('probes when the cached fingerprint no longer matches', async () => {
+      const adapter = createMockAdapter({});
+      const cache = createCacheStore({ commands: CACHED_COMMANDS, fingerprint: 'fp-stale' });
+      const probe = jest.fn(async (): Promise<SlashCommand[]> => [
+        { id: 'sdk:review', name: 'review', description: 'Review code', content: '', source: 'sdk' },
+      ]);
+      const catalog = new ClaudeCommandCatalog(
+        new SlashCommandStorage(adapter),
+        new SkillStorage(adapter),
+        probe,
+        { cache },
+      );
+
+      const entries = await catalog.listDropdownEntries({ includeBuiltIns: false });
+
+      expect(probe).toHaveBeenCalledTimes(1);
+      expect(entries.map(entry => entry.name)).toEqual(['review']);
+      expect(cache.write).toHaveBeenCalledWith({
+        commands: [
+          { id: 'sdk:review', name: 'review', description: 'Review code', content: '', source: 'sdk' },
+        ],
+        fingerprint: 'fp-current',
+      });
+    });
+
+    it('probes exactly once on a cold start with no cache', async () => {
+      const adapter = createMockAdapter({});
+      const cache = createCacheStore(null);
+      const probe = jest.fn(async () => CACHED_COMMANDS);
+      const catalog = new ClaudeCommandCatalog(
+        new SlashCommandStorage(adapter),
+        new SkillStorage(adapter),
+        probe,
+        { cache },
+      );
+
+      await catalog.listDropdownEntries({ includeBuiltIns: false });
+      await catalog.listDropdownEntries({ includeBuiltIns: false });
+
+      expect(probe).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps working when the cache write is rejected', async () => {
+      const adapter = createMockAdapter({});
+      const cache = createCacheStore(null);
+      cache.write.mockRejectedValue(new Error('disk full'));
+      const probe = jest.fn(async () => CACHED_COMMANDS);
+      const recordEvent = jest.fn();
+      const catalog = new ClaudeCommandCatalog(
+        new SlashCommandStorage(adapter),
+        new SkillStorage(adapter),
+        probe,
+        { cache, recordEvent },
+      );
+
+      const entries = await catalog.listDropdownEntries({ includeBuiltIns: false });
+
+      expect(entries.map(entry => entry.name)).toEqual(['commit']);
+      expect(recordEvent).toHaveBeenCalledWith(expect.objectContaining({
+        event: 'commandCatalog.cache.writeFailed',
+        level: 'warn',
+      }));
+    });
+
+    it('behaves exactly as before when no deps are supplied', async () => {
+      const adapter = createMockAdapter({});
+      const probe = jest.fn(async () => CACHED_COMMANDS);
+      const catalog = new ClaudeCommandCatalog(
+        new SlashCommandStorage(adapter),
+        new SkillStorage(adapter),
+        probe,
+      );
+
+      const first = await catalog.listDropdownEntries({ includeBuiltIns: false });
+      const second = await catalog.listDropdownEntries({ includeBuiltIns: false });
+
+      expect(probe).toHaveBeenCalledTimes(1);
+      expect(first.map(entry => entry.name)).toEqual(['commit']);
+      expect(second.map(entry => entry.name)).toEqual(['commit']);
+    });
+
+    it('falls back to today behaviour when the fingerprint cannot be computed', async () => {
+      const adapter = createMockAdapter({});
+      const cache = createCacheStore({ commands: CACHED_COMMANDS, fingerprint: 'fp-current' });
+      cache.currentFingerprint.mockImplementation(() => { throw new Error('binary is gone'); });
+      const probe = jest.fn(async (): Promise<SlashCommand[]> => [
+        { id: 'sdk:review', name: 'review', description: 'Review code', content: '', source: 'sdk' },
+      ]);
+      const catalog = new ClaudeCommandCatalog(
+        new SlashCommandStorage(adapter),
+        new SkillStorage(adapter),
+        probe,
+        { cache },
+      );
+
+      const entries = await catalog.listDropdownEntries({ includeBuiltIns: false });
+
+      expect(probe).toHaveBeenCalledTimes(1);
+      expect(entries.map(entry => entry.name)).toEqual(['review']);
     });
   });
 });

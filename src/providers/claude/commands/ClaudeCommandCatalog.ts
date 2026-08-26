@@ -1,3 +1,4 @@
+import type { DebugLogEvent } from '../../../core/debug/DebugLogService';
 import type {
   ProviderCommandCatalog,
   ProviderCommandDropdownConfig,
@@ -7,6 +8,7 @@ import type { SlashCommand } from '../../../core/types';
 import { isSkill } from '../../../utils/slashCommand';
 import type { SkillStorage } from '../storage/SkillStorage';
 import type { SlashCommandStorage } from '../storage/SlashCommandStorage';
+import type { RuntimeCommandCacheStore } from './ClaudeRuntimeCommandCacheStore';
 
 function slashCommandToEntry(cmd: SlashCommand): ProviderCommandEntry {
   const skill = isSkill(cmd);
@@ -61,14 +63,24 @@ const BUILTIN_HIDDEN_COMMANDS = new Set([
 
 export type CommandProbe = () => Promise<SlashCommand[]>;
 
+export interface RuntimeCommandCatalogDeps {
+  cache?: RuntimeCommandCacheStore;
+  recordEvent?: (event: DebugLogEvent) => void;
+}
+
 export class ClaudeCommandCatalog implements ProviderCommandCatalog {
   private sdkCommands: SlashCommand[] = [];
   private probePromise: Promise<void> | null = null;
+  // A list restored from the cache is a snapshot: it can miss a skill created
+  // since it was written, so it is merged with the vault before display. A list
+  // from a live session is authoritative and is shown as-is.
+  private sdkCommandsFromCache = false;
 
   constructor(
     private commandStorage: SlashCommandStorage,
     private skillStorage: SkillStorage,
     private probe?: CommandProbe,
+    private deps: RuntimeCommandCatalogDeps = {},
   ) {}
 
   setRuntimeCommands(commands: SlashCommand[]): void {
@@ -79,30 +91,107 @@ export class ClaudeCommandCatalog implements ProviderCommandCatalog {
     void context;
     // SDK commands already include vault commands/skills (the SDK scans
     // .claude/commands/ and .claude/skills/ internally). No file scan needed.
-    // When the cache is empty (cold start, no active runtime), probe the SDK.
+    // A probe starts a full Claude Code session and bills against the plan
+    // window, so a list persisted under the same configuration is reused first
+    // and the probe only runs when there is nothing to reuse.
+    if (this.sdkCommands.length === 0) {
+      this.hydrateFromCache();
+    }
     if (this.sdkCommands.length === 0 && this.probe) {
       await this.ensureProbed();
     }
     const runtimeEntries = this.sdkCommands
       .filter(cmd => !BUILTIN_HIDDEN_COMMANDS.has(cmd.name.toLowerCase()))
       .map(slashCommandToEntry);
-    if (runtimeEntries.length > 0) {
-      return runtimeEntries;
+    if (runtimeEntries.length === 0) {
+      return this.listVaultEntries();
     }
-    return this.listVaultEntries();
+    return runtimeEntries;
+  }
+
+  /** Restores a list persisted under the current configuration. Never probes. */
+  private hydrateFromCache(): void {
+    const cache = this.deps.cache;
+    if (!cache) return;
+    try {
+      const record = cache.read();
+      if (!record || record.commands.length === 0) return;
+      if (record.fingerprint !== cache.currentFingerprint()) return;
+      this.sdkCommands = record.commands;
+      this.sdkCommandsFromCache = true;
+      this.record('commandCatalog.probe.skipped', 'debug', {
+        commandCount: record.commands.length,
+        reason: 'cache_fresh',
+      });
+    } catch {
+      // A cache that cannot be read or keyed leaves today's behaviour intact.
+    }
+  }
+
+  /** The digest of the current configuration, or null when it cannot be computed. */
+  private safeFingerprint(): string | null {
+    const cache = this.deps.cache;
+    if (!cache) return null;
+    try {
+      return cache.currentFingerprint();
+    } catch {
+      return null;
+    }
+  }
+
+  private async writeCache(commands: SlashCommand[]): Promise<void> {
+    const cache = this.deps.cache;
+    if (!cache) return;
+    try {
+      await cache.write({ commands, fingerprint: cache.currentFingerprint() });
+    } catch (error) {
+      this.record('commandCatalog.cache.writeFailed', 'warn', {
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  private record(
+    event: string,
+    level: DebugLogEvent['level'],
+    data: Record<string, unknown>,
+  ): void {
+    this.deps.recordEvent?.({
+      data: { providerId: 'claude', ...data },
+      event,
+      level,
+      scope: 'provider.claude',
+    });
   }
 
   /** Probe the SDK for commands. Deduplicates concurrent calls. */
   private async ensureProbed(): Promise<void> {
     if (!this.probe) return;
     if (!this.probePromise) {
-      this.probePromise = this.probe().then((commands) => {
-        // Only apply probe results if the runtime hasn't provided fresher data
-        if (this.sdkCommands.length === 0 && commands.length > 0) {
-          this.sdkCommands = commands;
+      this.record('commandCatalog.probe.started', 'debug', {});
+      this.probePromise = this.probe().then(async (commands) => {
+        if (commands.length === 0) {
+          this.record('commandCatalog.probe.empty', 'debug', {});
+          return;
         }
-      }).catch(() => {
+        // Only apply probe results if the runtime hasn't provided fresher data
+        const applied = this.sdkCommands.length === 0;
+        if (applied) {
+          this.sdkCommands = commands;
+          this.sdkCommandsFromCache = false;
+        }
+        this.record('commandCatalog.probe.succeeded', 'info', {
+          applied,
+          commandCount: commands.length,
+        });
+        if (applied) {
+          await this.writeCache(commands);
+        }
+      }).catch((error) => {
         // Probe is best-effort
+        this.record('commandCatalog.probe.failed', 'warn', {
+          message: error instanceof Error ? error.message : String(error),
+        });
       }).finally(() => {
         this.probePromise = null;
       });
