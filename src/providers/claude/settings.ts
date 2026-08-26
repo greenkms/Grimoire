@@ -29,6 +29,7 @@ export interface ClaudeProviderSettings {
   respectProjectSettings: boolean;
   projectSettingsSnapshot: ClaudeCodeProjectSettingsSnapshot;
   discoveredModels: ClaudeDiscoveredModel[];
+  discoveredModelsFingerprint: string;
 }
 
 export interface ClaudeDiscoveredModel {
@@ -67,6 +68,7 @@ export const DEFAULT_CLAUDE_PROVIDER_SETTINGS: Readonly<ClaudeProviderSettings> 
   respectProjectSettings: true,
   projectSettingsSnapshot: DEFAULT_CLAUDE_CODE_PROJECT_SETTINGS_SNAPSHOT,
   discoveredModels: [],
+  discoveredModelsFingerprint: '',
 });
 
 function normalizeHostnameCliPaths(value: unknown): HostnameCliPaths {
@@ -266,6 +268,9 @@ export function getClaudeProviderSettings(
       config.projectSettingsSnapshot,
     ),
     discoveredModels: normalizeClaudeDiscoveredModels(config.discoveredModels),
+    discoveredModelsFingerprint: typeof config.discoveredModelsFingerprint === 'string'
+      ? config.discoveredModelsFingerprint
+      : DEFAULT_CLAUDE_PROVIDER_SETTINGS.discoveredModelsFingerprint,
   };
 }
 

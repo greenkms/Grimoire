@@ -106,6 +106,29 @@ function buildClaudeModelCatalogCacheKey(
   });
 }
 
+/**
+ * FNV-1a over the cache key. The key embeds the raw environment variables, which
+ * can hold an API key, so only the digest is ever persisted.
+ */
+function hashClaudeModelCatalogCacheKey(cacheKey: string): string {
+  let hash = 0x811c9dc5;
+  for (let index = 0; index < cacheKey.length; index += 1) {
+    hash ^= cacheKey.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(16).padStart(8, '0');
+}
+
+/**
+ * A catalog persisted before the fingerprint existed carries no record of the key
+ * it came from, so the seed keeps extending it the same trust it always did. Once
+ * a fingerprint is recorded, the seed only applies while it still matches.
+ */
+function seedFingerprintMatches(persistedFingerprint: string, cacheKey: string): boolean {
+  return persistedFingerprint === ''
+    || persistedFingerprint === hashClaudeModelCatalogCacheKey(cacheKey);
+}
+
 export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
   const refreshAttemptsByKey = new Map<string, number>();
   const refreshesByKey = new Map<string, Promise<boolean>>();
@@ -136,10 +159,17 @@ export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelC
     if (initialCliPath === null) {
       seedOnFirstRefresh = true;
     } else {
-      refreshAttemptsByKey.set(
-        buildClaudeModelCatalogCacheKey(initialSettings, initialCliPath),
-        Date.now(),
-      );
+      // The seed speaks for a catalog it did not watch being discovered. While a
+      // timer existed that guess self-healed within ten minutes; now it does not
+      // expire, so a CLI swapped while the plugin was not running is adopted by
+      // the seed instead of detected, pinning the previous CLI's models for good.
+      // A recorded fingerprint turns the guess into a check. An unrecorded one
+      // (a catalog persisted before this field existed) keeps the old behaviour
+      // rather than spending a probe to migrate.
+      const initialCacheKey = buildClaudeModelCatalogCacheKey(initialSettings, initialCliPath);
+      if (seedFingerprintMatches(initialSettings.discoveredModelsFingerprint, initialCacheKey)) {
+        refreshAttemptsByKey.set(initialCacheKey, Date.now());
+      }
     }
   }
 
@@ -164,7 +194,10 @@ export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelC
           initialSettings,
           plugin.getResolvedProviderCliPath?.('claude') ?? '',
         );
-        if (!force && seededCacheKey === cacheKey && currentSettings.discoveredModels.length > 0) {
+        if (!force
+          && seededCacheKey === cacheKey
+          && currentSettings.discoveredModels.length > 0
+          && seedFingerprintMatches(currentSettings.discoveredModelsFingerprint, cacheKey)) {
           refreshAttemptsByKey.set(cacheKey, Date.now());
           plugin.recordDebugLog?.({
             data: {
@@ -204,6 +237,7 @@ export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelC
       const refresh = (async () => {
         const envVars = getClaudeEffectiveEnvironmentVariables(settings);
         const previousDiscoveredModels = currentSettings.discoveredModels;
+        const previousFingerprint = currentSettings.discoveredModelsFingerprint;
         const before = JSON.stringify(previousDiscoveredModels);
         try {
           let discoveredModels = await probeRuntimeModels(plugin);
@@ -223,11 +257,19 @@ export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelC
             return false;
           }
 
-          updateClaudeProviderSettings(settings, { discoveredModels });
+          // Record which key produced this list, so a later load can tell
+          // "discovered under this exact configuration" from "assumed".
+          updateClaudeProviderSettings(settings, {
+            discoveredModels,
+            discoveredModelsFingerprint: hashClaudeModelCatalogCacheKey(cacheKey),
+          });
           try {
             await plugin.saveSettings?.();
           } catch (error) {
-            updateClaudeProviderSettings(settings, { discoveredModels: previousDiscoveredModels });
+            updateClaudeProviderSettings(settings, {
+              discoveredModels: previousDiscoveredModels,
+              discoveredModelsFingerprint: previousFingerprint,
+            });
             throw error;
           }
 

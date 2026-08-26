@@ -98,6 +98,7 @@ import {
   isGrokModelSelectionId,
   normalizeGrokDiscoveredModels,
   normalizeGrokModelVariants,
+  normalizeGrokThinkingOptionsByModel,
   resolveGrokBaseModelRawId,
 } from '../models';
 import {
@@ -144,7 +145,10 @@ import {
   isSupportedAcpSessionUpdate,
   parseGrokSessionNotification,
 } from './GrokSessionNotifications';
-import { normalizeGrokAcpSessionModels } from './normalizeGrokAcpSessionState';
+import {
+  normalizeGrokAcpSessionModels,
+  readGrokAcpModelThinkingOptions,
+} from './normalizeGrokAcpSessionState';
 
 /** Upper bound for an answer read back from Grok's own session log. */
 const GROK_RECOVERED_ANSWER_LIMIT_BYTES = 1_000_000;
@@ -387,6 +391,9 @@ export class GrokChatRuntime implements ChatRuntime {
     );
     const grokAuthPath = resolveGrokProviderAuthPath(this.plugin.settings, runtimeEnv);
 
+    // Already clamped to the selected model's levels: the settings snapshot
+    // runs effortLevel through getReasoningOptions for this model, which now
+    // reflects what the agent reported for it.
     const reasoningEffort = typeof providerSettings.effortLevel === 'string'
       ? providerSettings.effortLevel
       : null;
@@ -1214,14 +1221,20 @@ export class GrokChatRuntime implements ChatRuntime {
 
   private async syncSessionModelState(params: {
     configOptions?: AcpSessionConfigOption[] | null;
+    /**
+     * The agent's own `models` payload, not a normalized one: the per-model
+     * reasoning levels live in each entry's `_meta`, which normalizing strips.
+     * Both derivations happen here so no caller has to remember the second.
+     */
     models?: AcpSessionModelState | null;
   }, options: {
     currentRawModelId?: string | null;
     seedActiveSelection?: boolean;
   } = {}): Promise<void> {
+    const rawModels = params.models ?? null;
     const acpState = extractAcpSessionModelState({
-      ...params,
-      models: normalizeGrokAcpSessionModels(params.models),
+      configOptions: params.configOptions,
+      models: normalizeGrokAcpSessionModels(rawModels),
     });
     const forcedCurrentRawModelId = typeof options.currentRawModelId === 'string'
       ? options.currentRawModelId.trim()
@@ -1256,21 +1269,52 @@ export class GrokChatRuntime implements ChatRuntime {
       })),
     );
     const currentThinkingLevel = thoughtLevelState.currentLevel;
-    this.currentSessionEffortConfigId = currentThinkingOptions.length > 0
-      ? thoughtLevelState.configId
-      : null;
-    this.currentSessionEffortValue = currentThinkingOptions.length > 0
-      ? currentThinkingLevel
-      : null;
-    this.currentSessionEffortValues = new Set(currentThinkingOptions.map((option) => option.value));
+    // Forgetting what the session said is only meaningful when this call
+    // carried something that speaks about levels. A plain model switch calls
+    // in with nothing at all.
+    const describesSession = params.configOptions !== undefined || params.models !== undefined;
+    if (currentThinkingOptions.length > 0) {
+      this.currentSessionEffortConfigId = thoughtLevelState.configId;
+      this.currentSessionEffortValue = currentThinkingLevel;
+      this.currentSessionEffortValues = new Set(currentThinkingOptions.map((option) => option.value));
+    } else if (describesSession) {
+      this.currentSessionEffortConfigId = null;
+      this.currentSessionEffortValue = null;
+      this.currentSessionEffortValues = new Set();
+    }
 
-    const nextThinkingOptionsByModel = { ...currentSettings.thinkingOptionsByModel };
+    // The agent reports the levels for every available model, so one session
+    // makes the picker exact for models the user has not opened yet. The
+    // `thought_level` option below still wins for the active model: it is the
+    // live state of this session rather than a description of the catalog.
+    const acpModelThinkingOptions = normalizeGrokThinkingOptionsByModel(
+      readGrokAcpModelThinkingOptions(rawModels),
+      discoveredModels,
+    );
+    const nextThinkingOptionsByModel = {
+      ...currentSettings.thinkingOptionsByModel,
+      ...acpModelThinkingOptions,
+    };
     if (currentBaseRawModelId) {
       if (currentThinkingOptions.length > 0) {
         nextThinkingOptionsByModel[currentBaseRawModelId] = currentThinkingOptions;
-      } else {
+      } else if (describesSession && !acpModelThinkingOptions[currentBaseRawModelId]) {
+        // Deleting on a call that said nothing would throw away what
+        // session/new reported the moment the user picks another model.
         delete nextThinkingOptionsByModel[currentBaseRawModelId];
       }
+    }
+
+    if (currentThinkingOptions.length === 0 && !describesSession && currentBaseRawModelId) {
+      // A model switch keeps the same session, so its thought-level option id
+      // still stands - clearing it would leave applySelectedEffort with nothing
+      // to call and the turn would silently run at the agent's default. Only
+      // the accepted values change with the model, and the effort has to be
+      // re-applied because the agent reverted to that model's own default.
+      this.currentSessionEffortValue = null;
+      this.currentSessionEffortValues = new Set(
+        (nextThinkingOptionsByModel[currentBaseRawModelId] ?? []).map((option) => option.value),
+      );
     }
 
     const discoveredBaseModelIds = buildGrokBaseModels(discoveredModels)
@@ -1374,6 +1418,7 @@ export class GrokChatRuntime implements ChatRuntime {
       await this.plugin.saveSettings();
     }
     this.refreshModelSelectors();
+  
   }
 
   private hydrateNativeModelCatalog(): void {
@@ -1542,7 +1587,7 @@ export class GrokChatRuntime implements ChatRuntime {
       this.updateSessionPaths(response.sessionId, cwd);
       await this.syncSessionModelState({
         configOptions: response.configOptions ?? null,
-        models: normalizeGrokAcpSessionModels(response.models ?? null),
+        models: response.models ?? null,
       });
       await this.syncSessionModeState({
         configOptions: response.configOptions ?? null,
@@ -1586,7 +1631,7 @@ export class GrokChatRuntime implements ChatRuntime {
       this.updateSessionPaths(response.sessionId, cwd);
       await this.syncSessionModelState({
         configOptions: response.configOptions ?? null,
-        models: normalizeGrokAcpSessionModels(response.models ?? null),
+        models: response.models ?? null,
       });
       await this.syncSessionModeState({
         configOptions: response.configOptions ?? null,
