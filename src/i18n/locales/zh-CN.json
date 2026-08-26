@@ -552,7 +552,8 @@
         "orphaned": "已失联",
         "inProgress": "进行中",
         "errorUpper": "错误",
-        "doneUpper": "完成"
+        "doneUpper": "完成",
+        "antigravityWorking": "Antigravity 正在处理 — {seconds} 秒"
       },
       "subagent": {
         "task": "子代理任务",

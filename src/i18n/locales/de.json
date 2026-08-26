@@ -552,7 +552,8 @@
         "orphaned": "Verwaist",
         "inProgress": "in Bearbeitung",
         "errorUpper": "FEHLER",
-        "doneUpper": "FERTIG"
+        "doneUpper": "FERTIG",
+        "antigravityWorking": "Antigravity arbeitet – {seconds} s"
       },
       "subagent": {
         "task": "Subagent-Aufgabe",
