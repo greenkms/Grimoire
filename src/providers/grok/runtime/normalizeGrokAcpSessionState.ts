@@ -64,17 +64,46 @@ export function readGrokAcpModelThinkingOptions(
   for (const model of rawModels) {
     const rawId = readNonEmptyString(model.id) ?? readNonEmptyString(model.modelId);
     const meta = model._meta;
-    if (!rawId || !meta || typeof meta !== 'object' || Array.isArray(meta)) {
+    // Model ids come from the agent, so they are untrusted keys: one named
+    // `__proto__` would set this object's prototype instead of adding an entry.
+    if (!rawId || UNSAFE_MODEL_KEYS.has(rawId) || !meta || typeof meta !== 'object' || Array.isArray(meta)) {
       continue;
     }
 
-    const variants = normalizeGrokModelVariants((meta as Record<string, unknown>).reasoningEfforts);
+    const variants = normalizeGrokModelVariants(
+      readReasoningEffortEntries((meta as Record<string, unknown>).reasoningEfforts),
+    );
     if (variants.length > 0) {
       optionsByModel[rawId] = variants;
     }
   }
 
   return optionsByModel;
+}
+
+const UNSAFE_MODEL_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
+/**
+ * The captured frames carry each level as both `id` and `value`. Only `value`
+ * is read downstream, and the `thought_level` config option names the same
+ * field `id`, so a build that settles on `id` alone must not silently read as
+ * "this model reports no levels".
+ */
+function readReasoningEffortEntries(value: unknown): unknown[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return (value as unknown[]).map((entry): unknown => {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      return entry;
+    }
+
+    const record = entry as Record<string, unknown>;
+    return typeof record.value === 'string' && record.value.trim()
+      ? record
+      : { ...record, value: record.id };
+  });
 }
 
 function readNonEmptyString(value: unknown): string | null {

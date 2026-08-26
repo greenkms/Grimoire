@@ -1282,13 +1282,17 @@ export class GrokChatRuntime implements ChatRuntime {
       ...currentSettings.thinkingOptionsByModel,
       ...acpModelThinkingOptions,
     };
+    // Forgetting a stale list is only meaningful when this call carried
+    // something that speaks about levels. A plain model switch calls in with
+    // nothing at all, and deleting on that would throw away what session/new
+    // reported the moment the user picks another model.
+    const describesSession = params.configOptions !== undefined
+      || params.models !== undefined
+      || params.modelThinkingOptions !== undefined;
     if (currentBaseRawModelId) {
       if (currentThinkingOptions.length > 0) {
         nextThinkingOptionsByModel[currentBaseRawModelId] = currentThinkingOptions;
-      } else if (!acpModelThinkingOptions[currentBaseRawModelId]) {
-        // Dropping a stale list stays the behaviour when nothing describes this
-        // model, but session/new carries the per-model levels without any
-        // thought_level option, so a report must not be deleted as if absent.
+      } else if (describesSession && !acpModelThinkingOptions[currentBaseRawModelId]) {
         delete nextThinkingOptionsByModel[currentBaseRawModelId];
       }
     }

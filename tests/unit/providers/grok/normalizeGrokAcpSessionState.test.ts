@@ -120,4 +120,39 @@ describe('readGrokAcpModelThinkingOptions', () => {
     expect(readGrokAcpModelThinkingOptions(null)).toEqual({});
     expect(readGrokAcpModelThinkingOptions(undefined)).toEqual({});
   });
+
+  it('reads a level that names itself only through id', () => {
+    expect(readGrokAcpModelThinkingOptions({
+      availableModels: [
+        {
+          modelId: 'grok-4.6',
+          name: 'Grok 4.6',
+          _meta: {
+            reasoningEfforts: [
+              { id: 'high', label: 'High Effort' },
+              { id: 'low', label: 'Low Effort' },
+            ],
+          },
+        },
+      ],
+      currentModelId: 'grok-4.6',
+    } as never)['grok-4.6'].map((variant) => variant.value)).toEqual(['low', 'high']);
+  });
+
+  it('refuses a model id that would reach through the prototype', () => {
+    const options = readGrokAcpModelThinkingOptions({
+      availableModels: [
+        {
+          modelId: '__proto__',
+          name: 'Hostile',
+          _meta: { reasoningEfforts: [{ id: 'high', value: 'high', label: 'High' }] },
+        },
+      ],
+      currentModelId: 'grok-4.6',
+    } as never);
+
+    expect(Object.keys(options)).toEqual([]);
+    expect(Object.getPrototypeOf(options)).toBe(Object.prototype);
+    expect(({} as Record<string, unknown>).high).toBeUndefined();
+  });
 });

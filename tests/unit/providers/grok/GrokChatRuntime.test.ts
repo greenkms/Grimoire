@@ -1659,6 +1659,52 @@ describe('GrokChatRuntime', () => {
     expect(getGrokProviderSettings(plugin.settings).thinkingOptionsByModel['grok-4.6']).toBeUndefined();
   });
 
+  it('keeps the reported levels when the user switches to another model', async () => {
+    const plugin = createMockPlugin({
+      settings: {
+        model: 'grok:grok-4.6',
+        providerConfigs: {
+          grok: {
+            discoveredModels: [],
+            preferredThinkingByModel: {},
+            visibleModels: [],
+          },
+        },
+        settingsProvider: 'grok',
+      },
+    });
+    const runtime = new GrokChatRuntime(plugin);
+    jest.spyOn(ProviderRegistry, 'resolveSettingsProviderId').mockReturnValue('grok');
+
+    await (runtime as any).syncSessionModelState({
+      models: {
+        availableModels: [
+          { modelId: 'grok-4.6', name: 'Grok 4.6' },
+          { modelId: 'grok-4.5', name: 'Grok 4.5' },
+        ],
+        currentModelId: 'grok-4.6',
+      },
+      modelThinkingOptions: {
+        'grok-4.5': [
+          { label: 'High Effort', value: 'high' },
+          { label: 'Low Effort', value: 'low' },
+        ],
+        'grok-4.6': [
+          { label: 'Extra High Effort', value: 'xhigh' },
+          { label: 'Low Effort', value: 'low' },
+        ],
+      },
+    });
+
+    // Switching models calls in with nothing to say about levels, which must
+    // not be read as "this model has none".
+    await (runtime as any).syncSessionModelState({}, { currentRawModelId: 'grok-4.5' });
+
+    const thinkingOptions = getGrokProviderSettings(plugin.settings).thinkingOptionsByModel;
+    expect(thinkingOptions['grok-4.5'].map((variant) => variant.value)).toEqual(['low', 'high']);
+    expect(thinkingOptions['grok-4.6'].map((variant) => variant.value)).toEqual(['low', 'xhigh']);
+  });
+
   it('warms selected model metadata through Grok session/set_model', async () => {
     const plugin = createMockPlugin({
       settings: {
