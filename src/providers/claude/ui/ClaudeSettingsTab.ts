@@ -280,6 +280,34 @@ export const claudeSettingsTabRenderer: ProviderSettingsTabRenderer = {
       claudeWorkspace.commandCatalog,
     );
 
+    // The dropdown reuses a persisted list and never re-probes on its own, so
+    // this is the one place a user can ask the SDK for the current one - after
+    // installing a plugin's commands, or once a CLI upgrade the binary
+    // fingerprint missed has changed what the SDK can see.
+    new Setting(slashCommandsSection)
+      .setName(t('settings.refreshCommands.name'))
+      .setDesc(t('settings.refreshCommands.desc'))
+      .addButton((button) => {
+        button
+          .setButtonText(t('settings.refreshCommands.button'))
+          .onClick(async () => {
+            button.setDisabled(true);
+            try {
+              await claudeWorkspace.commandCatalog.refresh();
+              const commandCount = getClaudeProviderSettings(settingsBag).discoveredCommands.length;
+              if (commandCount === 0) {
+                new Notice(t('settings.provider.loadCommandsFailed'));
+                return;
+              }
+              new Notice(t('settings.refreshCommands.done', { count: commandCount }));
+            } catch {
+              new Notice(t('settings.provider.loadCommandsFailed'));
+            } finally {
+              button.setDisabled(false);
+            }
+          });
+      });
+
     context.renderHiddenProviderCommandSetting(slashCommandsSection, 'claude', {
       name: t('settings.hiddenSlashCommands.name'),
       desc: t('settings.hiddenSlashCommands.desc'),

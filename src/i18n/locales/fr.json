@@ -837,6 +837,12 @@
       "button": "Actualiser",
       "done": "Liste des modèles actualisée : {count} modèles."
     },
+    "refreshCommands": {
+      "name": "Actualiser les commandes",
+      "desc": "Demander à Claude Code sa liste actuelle de commandes et de compétences. Sinon, Grimoire réutilise la liste dont il dispose jusqu'à ce que la CLI ou son environnement change.",
+      "button": "Actualiser",
+      "done": "Liste des commandes actualisée : {count} commandes."
+    },
     "respectProjectSettings": {
       "name": "Respecter les paramètres de Claude Code",
       "desc": "Utilisez le modèle et l'environnement des paramètres utilisateur et projet de Claude Code. Cela active les modèles personnalisés de MiniMax, Z.ai et d'autres passerelles compatibles Anthropic. Les choix explicites de Grimoire restent prioritaires."
@@ -1063,6 +1069,7 @@
       "disabledDesc": "Activez ce fournisseur ci-dessus pour utiliser ces paramètres et afficher ses modèles dans le sélecteur.",
       "fallbackDesc": "Fournisseur {provider}.",
       "loadModelsFailed": "Impossible de charger les modèles du fournisseur.",
+      "loadCommandsFailed": "Impossible de charger les commandes du fournisseur.",
       "contextWindowLabel": "Fenêtre de contexte pour {model}"
     },
     "providerModelPicker": {

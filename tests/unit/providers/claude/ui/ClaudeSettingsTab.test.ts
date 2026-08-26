@@ -104,13 +104,16 @@ jest.mock('@/features/settings/ui/McpSettingsManager', () => ({
 }));
 
 const mockRefreshModels = jest.fn().mockResolvedValue(true);
+const mockRefreshCommands = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('@/providers/claude/app/ClaudeWorkspaceServices', () => ({
   getClaudeWorkspaceServices: jest.fn(() => ({
     cliResolver: {
       reset: jest.fn(),
     },
-    commandCatalog: {},
+    commandCatalog: {
+      refresh: (...args: unknown[]) => mockRefreshCommands(...args),
+    },
     modelCatalog: {
       refreshModels: (...args: unknown[]) => mockRefreshModels(...args),
     },
@@ -572,6 +575,49 @@ describe('ClaudeSettingsTab', () => {
     });
     expect(context.refreshModelSelectors).toHaveBeenCalledTimes(1);
     expect(Notice).toHaveBeenCalledWith('settings.refreshModels.done:{"count":2}');
+    expect(button.setDisabled).toHaveBeenLastCalledWith(false);
+  });
+
+  it('lets the user ask the SDK for its current command list', async () => {
+    const { Notice } = await import('obsidian');
+    const plugin = createPlugin({
+      providerConfigs: {
+        claude: {
+          discoveredCommands: [
+            { id: 'sdk:commit', name: 'commit', content: '', source: 'sdk' },
+            { id: 'sdk:review', name: 'review', content: '', source: 'sdk' },
+          ],
+        },
+      },
+    });
+    const context = createContext(plugin);
+
+    claudeSettingsTabRenderer.render(createContainer(), context);
+
+    // The dropdown reuses a persisted list and never re-probes on its own, so
+    // without this button nothing can ask for a fresh one.
+    const button = findSetting('settings.refreshCommands.name').buttonComponents[0];
+    expect(button.text).toBe('settings.refreshCommands.button');
+
+    await button.onClickCallback?.();
+
+    expect(mockRefreshCommands).toHaveBeenCalledTimes(1);
+    expect(Notice).toHaveBeenCalledWith('settings.refreshCommands.done:{"count":2}');
+    expect(button.setDisabled).toHaveBeenLastCalledWith(false);
+  });
+
+  it('reports a failed command refresh instead of leaving the button stuck', async () => {
+    const { Notice } = await import('obsidian');
+    mockRefreshCommands.mockRejectedValueOnce(new Error('probe failed'));
+    const plugin = createPlugin();
+    const context = createContext(plugin);
+
+    claudeSettingsTabRenderer.render(createContainer(), context);
+
+    const button = findSetting('settings.refreshCommands.name').buttonComponents[0];
+    await button.onClickCallback?.();
+
+    expect(Notice).toHaveBeenCalledWith('settings.provider.loadCommandsFailed');
     expect(button.setDisabled).toHaveBeenLastCalledWith(false);
   });
 

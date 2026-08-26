@@ -837,6 +837,12 @@
       "button": "Refresh",
       "done": "Model list refreshed: {count} models."
     },
+    "refreshCommands": {
+      "name": "Refresh commands",
+      "desc": "Ask Claude Code for its current command and skill list. Grimoire otherwise reuses the list it already has until the CLI or its environment changes.",
+      "button": "Refresh",
+      "done": "Command list refreshed: {count} commands."
+    },
     "respectProjectSettings": {
       "name": "Respect Claude Code settings",
       "desc": "Use model and env from Claude Code user and project settings. This enables custom models from providers such as MiniMax, Z.ai, and other Anthropic-compatible gateways. Grimoire settings still override explicit choices."
@@ -1063,6 +1069,7 @@
       "disabledDesc": "Enable this provider above to use these settings and show its models in the model selector.",
       "fallbackDesc": "{provider} provider.",
       "loadModelsFailed": "Could not load provider models.",
+      "loadCommandsFailed": "Could not load provider commands.",
       "contextWindowLabel": "Context window for {model}"
     },
     "providerModelPicker": {

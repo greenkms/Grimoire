@@ -837,6 +837,12 @@
       "button": "刷新",
       "done": "模型列表已刷新：共 {count} 个模型。"
     },
+    "refreshCommands": {
+      "name": "刷新命令",
+      "desc": "向 Claude Code 请求当前的命令和技能列表。否则 Grimoire 会一直复用已有列表，直到 CLI 或其环境发生变化。",
+      "button": "刷新",
+      "done": "命令列表已刷新：{count} 条命令。"
+    },
     "respectProjectSettings": {
       "name": "遵循 Claude Code 设置",
       "desc": "使用 Claude Code 用户与项目设置中的模型和环境变量。这样可使用 MiniMax、Z.ai 及其他 Anthropic 兼容网关提供的自定义模型；Grimoire 中的显式设置仍具有更高优先级。"
@@ -1063,6 +1069,7 @@
       "disabledDesc": "请在上方启用此供应商，以使用这些设置并在模型选择器中显示其模型。",
       "fallbackDesc": "{provider} 供应商。",
       "loadModelsFailed": "无法加载供应商模型。",
+      "loadCommandsFailed": "无法加载供应商命令。",
       "contextWindowLabel": "{model} 的上下文窗口"
     },
     "providerModelPicker": {

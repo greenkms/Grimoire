@@ -48,6 +48,40 @@ describe('createClaudeRuntimeCommandCacheStore', () => {
     });
   });
 
+  it('does not write when the record already on disk is identical', async () => {
+    const { plugin, saveSettings } = createPlugin();
+    const store = createClaudeRuntimeCommandCacheStore(plugin);
+    const record = { commands: SDK_COMMANDS, fingerprint: store.currentFingerprint() };
+
+    await store.write(record);
+    expect(saveSettings).toHaveBeenCalledTimes(1);
+
+    // A live session hands the same list over on every dropdown open, and each
+    // write is a file the user's vault sync sees.
+    await store.write(record);
+    await store.write(record);
+
+    expect(saveSettings).toHaveBeenCalledTimes(1);
+  });
+
+  it('writes again once the list actually changes', async () => {
+    const { plugin, saveSettings } = createPlugin();
+    const store = createClaudeRuntimeCommandCacheStore(plugin);
+    const fingerprint = store.currentFingerprint();
+
+    await store.write({ commands: SDK_COMMANDS, fingerprint });
+    await store.write({
+      commands: [
+        ...SDK_COMMANDS,
+        { id: 'sdk:review', name: 'review', content: '', source: 'sdk' },
+      ],
+      fingerprint,
+    });
+
+    expect(saveSettings).toHaveBeenCalledTimes(2);
+    expect(getClaudeProviderSettings(plugin.settings).discoveredCommands).toHaveLength(2);
+  });
+
   it('changes the fingerprint when the CLI path changes', () => {
     const { plugin } = createPlugin();
     const store = createClaudeRuntimeCommandCacheStore(plugin);

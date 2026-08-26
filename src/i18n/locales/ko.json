@@ -837,6 +837,12 @@
       "button": "새로 고침",
       "done": "모델 목록을 새로 고쳤습니다: 모델 {count}개."
     },
+    "refreshCommands": {
+      "name": "명령 새로 고침",
+      "desc": "Claude Code에 현재 명령 및 스킬 목록을 요청합니다. 그렇지 않으면 Grimoire는 CLI나 그 환경이 바뀔 때까지 기존 목록을 재사용합니다.",
+      "button": "새로 고침",
+      "done": "명령 목록을 새로 고쳤습니다: {count}개."
+    },
     "respectProjectSettings": {
       "name": "Claude Code 설정 준수",
       "desc": "Claude Code 사용자 및 프로젝트 설정의 모델과 환경을 사용합니다. MiniMax, Z.ai 및 다른 Anthropic 호환 게이트웨이의 사용자 지정 모델을 사용할 수 있습니다. Grimoire의 명시적 선택은 계속 우선합니다."
@@ -1063,6 +1069,7 @@
       "disabledDesc": "이 설정을 사용하고 모델 선택기에 해당 모델을 표시하려면 위에서 이 제공업체를 활성화하세요.",
       "fallbackDesc": "{provider} 제공업체입니다.",
       "loadModelsFailed": "제공업체 모델을 로드할 수 없습니다.",
+      "loadCommandsFailed": "제공업체 명령을 로드할 수 없습니다.",
       "contextWindowLabel": "{model}의 컨텍스트 창"
     },
     "providerModelPicker": {

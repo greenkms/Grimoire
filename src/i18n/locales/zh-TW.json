@@ -837,6 +837,12 @@
       "button": "重新整理",
       "done": "模型清單已重新整理：共 {count} 個模型。"
     },
+    "refreshCommands": {
+      "name": "重新整理命令",
+      "desc": "向 Claude Code 要求目前的命令與技能清單。否則 Grimoire 會沿用既有清單，直到 CLI 或其環境變更為止。",
+      "button": "重新整理",
+      "done": "命令清單已更新：{count} 條命令。"
+    },
     "respectProjectSettings": {
       "name": "遵循 Claude Code 設定",
       "desc": "使用 Claude Code 使用者與專案設定中的模型和環境變數。這可啟用 MiniMax、Z.ai 及其他 Anthropic 相容閘道提供的自訂模型；Grimoire 的明確選擇仍優先。"
@@ -1063,6 +1069,7 @@
       "disabledDesc": "在上方啟用此提供者，以使用這些設定並在模型選擇器顯示其模型。",
       "fallbackDesc": "{provider} 提供者。",
       "loadModelsFailed": "無法載入提供者模型。",
+      "loadCommandsFailed": "無法載入提供者命令。",
       "contextWindowLabel": "{model} 的脈絡視窗"
     },
     "providerModelPicker": {

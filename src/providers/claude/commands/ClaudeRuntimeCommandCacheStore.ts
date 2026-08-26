@@ -1,6 +1,9 @@
 import type { SlashCommand } from '../../../core/types';
 import type GrimoirePlugin from '../../../main';
-import { getClaudeCliBinaryFingerprint } from '../cli/claudeCliBinaryFingerprint';
+import {
+  buildClaudeCatalogCacheKey,
+  hashClaudeCatalogCacheKey,
+} from '../cli/claudeCatalogCacheKey';
 import {
   type ClaudeProviderSettings,
   getClaudeProviderSettings,
@@ -25,42 +28,6 @@ export interface RuntimeCommandCacheStore {
   clear(): Promise<void>;
 }
 
-/**
- * The inputs that decide which commands the SDK can see at all. Deliberately the
- * same shape as the model catalog's key: a CLI swap, an environment change or a
- * settings-source change all alter the answer. Vault folders are absent on
- * purpose - their freshness comes from merging, not from invalidation, so that
- * editing a skill never costs a probe.
- */
-function buildCommandCatalogCacheKey(
-  settings: ClaudeProviderSettings,
-  cliPath: string,
-): string {
-  return JSON.stringify({
-    cliBinary: getClaudeCliBinaryFingerprint(cliPath),
-    cliPath,
-    enableChrome: settings.enableChrome,
-    environmentHash: settings.environmentHash,
-    environmentVariables: settings.environmentVariables,
-    loadUserSettings: settings.loadUserSettings,
-    projectSettingsEnvHash: settings.projectSettingsSnapshot.hash,
-    respectProjectSettings: settings.respectProjectSettings,
-  });
-}
-
-/**
- * FNV-1a over the cache key. The key embeds the raw environment variables, which
- * can hold an API key, so only the digest is ever persisted.
- */
-function hashCommandCatalogCacheKey(cacheKey: string): string {
-  let hash = 0x811c9dc5;
-  for (let index = 0; index < cacheKey.length; index += 1) {
-    hash ^= cacheKey.charCodeAt(index);
-    hash = Math.imul(hash, 0x01000193) >>> 0;
-  }
-  return hash.toString(16).padStart(8, '0');
-}
-
 export function createClaudeRuntimeCommandCacheStore(
   plugin: GrimoirePlugin,
 ): RuntimeCommandCacheStore {
@@ -77,7 +44,7 @@ export function createClaudeRuntimeCommandCacheStore(
     },
     currentFingerprint() {
       const cliPath = plugin.getResolvedProviderCliPath?.('claude') ?? '';
-      return hashCommandCatalogCacheKey(buildCommandCatalogCacheKey(readSettings(), cliPath));
+      return hashClaudeCatalogCacheKey(buildClaudeCatalogCacheKey(readSettings(), cliPath));
     },
     read() {
       const settings = readSettings();
@@ -93,8 +60,20 @@ export function createClaudeRuntimeCommandCacheStore(
       };
     },
     async write(value) {
+      const commands = normalizeClaudeDiscoveredCommands(value.commands);
+      const settings = readSettings();
+      // A live session hands the same list over on every dropdown open, and a
+      // settings write is a file write the user's vault sync sees. Nothing
+      // changed means nothing to save.
+      if (
+        settings.discoveredCommandsFingerprint === value.fingerprint
+        && JSON.stringify(settings.discoveredCommands) === JSON.stringify(commands)
+      ) {
+        return;
+      }
+
       updateClaudeProviderSettings(plugin.settings, {
-        discoveredCommands: normalizeClaudeDiscoveredCommands(value.commands),
+        discoveredCommands: commands,
         discoveredCommandsFingerprint: value.fingerprint,
       });
       await plugin.saveSettings?.();
