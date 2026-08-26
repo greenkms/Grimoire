@@ -76,9 +76,7 @@ describe('createClaudeRuntimeCommandCacheStore', () => {
 
     await store.write({ commands: SDK_COMMANDS, fingerprint: store.currentFingerprint() });
 
-    const persisted = getClaudeProviderSettings(
-      plugin.settings as unknown as Record<string, unknown>,
-    );
+    const persisted = getClaudeProviderSettings(plugin.settings);
     expect(persisted.discoveredCommandsFingerprint).toMatch(/^[0-9a-f]{8}$/);
     expect(JSON.stringify(persisted.discoveredCommands)).not.toContain('example-key');
     expect(persisted.discoveredCommandsFingerprint).not.toContain('example-key');
