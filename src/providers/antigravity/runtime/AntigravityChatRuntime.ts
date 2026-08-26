@@ -286,10 +286,12 @@ export class AntigravityChatRuntime implements ChatRuntime {
             yield { id: toolId, input: event.input, name: event.toolName, type: 'tool_use' };
             continue;
           }
-          // agy never streams tool output, only that the step ended, so the
-          // card is closed with an empty result rather than an invented one.
+          // agy reports what the tool printed on the DONE frame, so the card is
+          // closed with the real output. A tool that printed nothing yields an
+          // empty string, which renders as "no result" rather than as invented
+          // metadata such as the step duration.
           if (openToolIds.delete(toolId)) {
-            yield { content: '', id: toolId, type: 'tool_result' };
+            yield { content: event.output, id: toolId, type: 'tool_result' };
           }
         }
         if (finished) {

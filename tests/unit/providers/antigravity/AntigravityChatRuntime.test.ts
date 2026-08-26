@@ -849,6 +849,56 @@ describe('AntigravityChatRuntime', () => {
     expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
   });
 
+  it('closes a tool card with the output agy reported for the step', async () => {
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const probeProc = createMockChildProcess();
+    const printProc = createMockChildProcess({ stdin: true });
+    mockStreamJsonSpawn(probeProc, printProc);
+
+    const { chunks, done } = pumpChunks(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
+    await settleStreamJsonProbe(probeProc);
+
+    writeStreamJsonFrame(printProc, {
+      event: 'step_update',
+      step_update: {
+        state: 'ACTIVE',
+        step_index: 2,
+        step_type: 'tool',
+        tool_info: { name: 'run_command', parameters: { CommandLine: 'echo grimoire-capture-test' } },
+        tool_name: 'run_command',
+      },
+    });
+    await flushStreamedChunks();
+
+    // Frame shape taken verbatim from a live agy stream-json capture.
+    writeStreamJsonFrame(printProc, {
+      event: 'step_update',
+      step_update: {
+        duration_seconds: 0.3985843,
+        state: 'DONE',
+        step_index: 2,
+        step_type: 'tool',
+        tool_info: {
+          name: 'run_command',
+          output: 'grimoire-capture-test\r\n',
+          parameters: { CommandLine: 'echo grimoire-capture-test' },
+        },
+        tool_name: 'run_command',
+      },
+    });
+    await flushStreamedChunks();
+    expect(chunks).toContainEqual({
+      content: 'grimoire-capture-test\r\n',
+      id: 'antigravity-step-2',
+      type: 'tool_result',
+    });
+
+    writeStreamJsonResult(printProc, { response: 'done', status: 'SUCCESS' });
+    emitProcessExit(printProc, 0, null);
+    await done;
+    expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
+  });
+
   it('appends only the untold tail when the result adds a warning to a streamed answer', async () => {
     const runtime = new AntigravityChatRuntime(createMockPlugin());
     const probeProc = createMockChildProcess();

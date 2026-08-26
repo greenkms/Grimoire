@@ -18,12 +18,20 @@ export interface AntigravityResultFrame {
  * still open. agy streams the answer as `text_delta` pieces whose
  * concatenation equals `result.response` exactly, and brackets every tool call
  * with an `ACTIVE`/`DONE` pair sharing one `step_index`, so the same index
- * identifies the start and the completion of one call.
+ * identifies the start and the completion of one call. The `ACTIVE` half
+ * carries the call's arguments in `tool_info.parameters` and the `DONE` half
+ * carries what the tool printed in `tool_info.output`.
  */
 export type AntigravityStreamEvent =
   | { text: string; type: 'text' }
   | { input: Record<string, unknown>; stepIndex: number; toolName: string; type: 'tool_start' }
-  | { durationSeconds: number | null; stepIndex: number; toolName: string; type: 'tool_end' };
+  | {
+    durationSeconds: number | null;
+    output: string;
+    stepIndex: number;
+    toolName: string;
+    type: 'tool_end';
+  };
 
 export interface AntigravityStreamJsonParserOptions {
   /**
@@ -93,8 +101,15 @@ export function createAntigravityStreamJsonParser(
       emit({ input: parameters ?? {}, stepIndex, toolName, type: 'tool_start' });
       return;
     }
+    // The DONE frame carries the tool's output in `tool_info.output` (verified
+    // against a live `agy --output-format stream-json` capture), so the card is
+    // closed with what the tool actually printed. Older frames may omit it, and
+    // a tool that printed nothing legitimately reports an empty string.
+    const completedToolInfo = asRecord(step.tool_info);
+    const output = completedToolInfo?.output;
     emit({
       durationSeconds: typeof step.duration_seconds === 'number' ? step.duration_seconds : null,
+      output: typeof output === 'string' ? output : '',
       stepIndex,
       toolName,
       type: 'tool_end',

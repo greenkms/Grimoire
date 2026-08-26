@@ -196,7 +196,65 @@ describe('AntigravityStreamJson', () => {
         },
         {
           durationSeconds: 0.4038462,
+          output: '',
           stepIndex: 3,
+          toolName: 'run_command',
+          type: 'tool_end',
+        },
+      ]);
+    });
+
+    it('reports what the tool printed from the completion frame', () => {
+      const { events, onEvent } = collect();
+      const parser = createAntigravityStreamJsonParser({ onEvent });
+      // Shape taken verbatim from a live `agy --output-format stream-json` run.
+      parser.write(`${JSON.stringify({
+        event: 'step_update',
+        step_update: {
+          conversation_id: 'f16ace5b-1f6a-44e1-81f5-94cd67fdba49',
+          duration_seconds: 0.3985843,
+          state: 'DONE',
+          step_index: 2,
+          step_type: 'tool',
+          tool_info: {
+            name: 'run_command',
+            output: 'grimoire-capture-test\r\n',
+            parameters: { CommandLine: 'echo grimoire-capture-test' },
+          },
+          tool_name: 'run_command',
+        },
+      })}\n`);
+
+      expect(events).toEqual([
+        {
+          durationSeconds: 0.3985843,
+          output: 'grimoire-capture-test\r\n',
+          stepIndex: 2,
+          toolName: 'run_command',
+          type: 'tool_end',
+        },
+      ]);
+    });
+
+    it('treats a non-string output as no output rather than rendering it', () => {
+      const { events, onEvent } = collect();
+      const parser = createAntigravityStreamJsonParser({ onEvent });
+      parser.write(`${JSON.stringify({
+        event: 'step_update',
+        step_update: {
+          state: 'DONE',
+          step_index: 1,
+          step_type: 'tool',
+          tool_info: { name: 'run_command', output: { unexpected: true } },
+          tool_name: 'run_command',
+        },
+      })}\n`);
+
+      expect(events).toEqual([
+        {
+          durationSeconds: null,
+          output: '',
+          stepIndex: 1,
           toolName: 'run_command',
           type: 'tool_end',
         },
