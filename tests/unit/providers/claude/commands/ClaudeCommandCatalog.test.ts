@@ -591,5 +591,43 @@ Body`,
 
       expect(entries.map(entry => entry.name)).toEqual(['commit']);
     });
+    it('persists a list handed over by a live session', async () => {
+      const adapter = createMockAdapter({});
+      const cache = createCacheStore(null);
+      const catalog = new ClaudeCommandCatalog(
+        new SlashCommandStorage(adapter),
+        new SkillStorage(adapter),
+        jest.fn(),
+        { cache },
+      );
+
+      catalog.setRuntimeCommands(CACHED_COMMANDS);
+      await Promise.resolve();
+
+      expect(cache.write).toHaveBeenCalledWith({
+        commands: CACHED_COMMANDS,
+        fingerprint: 'fp-current',
+      });
+    });
+
+    it('does not drop the cache when the runtime list is reset to empty', async () => {
+      const adapter = createMockAdapter({});
+      const cache = createCacheStore({ commands: CACHED_COMMANDS, fingerprint: 'fp-current' });
+      const probe = jest.fn(async () => CACHED_COMMANDS);
+      const catalog = new ClaudeCommandCatalog(
+        new SlashCommandStorage(adapter),
+        new SkillStorage(adapter),
+        probe,
+        { cache },
+      );
+
+      // TabManager clears the list on a blank tab that skips warmup.
+      catalog.setRuntimeCommands([]);
+      const entries = await catalog.listDropdownEntries({ includeBuiltIns: false });
+
+      expect(cache.clear).not.toHaveBeenCalled();
+      expect(probe).not.toHaveBeenCalled();
+      expect(entries.map(entry => entry.name)).toEqual(['commit']);
+    });
   });
 });

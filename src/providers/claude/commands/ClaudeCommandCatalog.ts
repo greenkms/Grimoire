@@ -85,6 +85,13 @@ export class ClaudeCommandCatalog implements ProviderCommandCatalog {
 
   setRuntimeCommands(commands: SlashCommand[]): void {
     this.sdkCommands = commands;
+    this.sdkCommandsFromCache = false;
+    // An empty list is a reset, not a discovery: TabManager clears the catalog
+    // for a blank tab that skips warmup. Keeping the cache means the next
+    // dropdown open is served from it instead of paying for a probe.
+    if (commands.length > 0) {
+      void this.writeCache(commands);
+    }
   }
 
   async listDropdownEntries(context: { includeBuiltIns: boolean }): Promise<ProviderCommandEntry[]> {
