@@ -89,16 +89,21 @@ export async function probeRuntimeCommands(plugin: GrimoirePlugin): Promise<Slas
 
     for await (const event of conversation) {
       if (event.type === 'system' && event.subtype === 'init') {
-        try {
-          const sdkCommands: SDKSlashCommand[] = await conversation.supportedCommands();
-          commands = mapSdkCommands(sdkCommands);
-        } catch { /* best-effort */ }
+        const sdkCommands: SDKSlashCommand[] = await conversation.supportedCommands();
+        commands = mapSdkCommands(sdkCommands);
         abortController.abort();
         break;
       }
     }
-  } catch {
-    // Probe is best-effort; swallow abort errors.
+  } catch (error) {
+    // The abort above is how this probe ends on success, so its rejection is
+    // not a failure. Anything else - an absent CLI, a session that is not
+    // authenticated - is the very condition that paces later attempts, and
+    // reporting it as "found nothing" is what left it indistinguishable in the
+    // logs from a CLI that genuinely has no commands.
+    if (!abortController.signal.aborted) {
+      throw error;
+    }
   }
 
   return commands;

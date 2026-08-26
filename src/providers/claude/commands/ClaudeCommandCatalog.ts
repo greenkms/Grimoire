@@ -6,6 +6,7 @@ import type {
 import type { ProviderCommandEntry } from '../../../core/providers/commands/ProviderCommandEntry';
 import type { SlashCommand } from '../../../core/types';
 import { isSkill } from '../../../utils/slashCommand';
+import { CLAUDE_EMPTY_DISCOVERY_RETRY_MS } from '../cli/claudeCatalogCache';
 import type { SkillStorage } from '../storage/SkillStorage';
 import type { SlashCommandStorage } from '../storage/SlashCommandStorage';
 import type { RuntimeCommandCacheStore } from './ClaudeRuntimeCommandCacheStore';
@@ -61,10 +62,6 @@ const BUILTIN_HIDDEN_COMMANDS = new Set([
   'insights', 'loop', 'schedule', 'security-review', 'simplify', 'update-config',
 ]);
 
-// Paces retries after a probe that found nothing - no CLI, or a session that is
-// not authenticated. Without it the dropdown probes on every single open, and a
-// probe starts a full Claude Code session. Matches the model catalog's window.
-const EMPTY_PROBE_RETRY_MS = 10 * 60 * 1000;
 
 export type CommandProbe = () => Promise<SlashCommand[]>;
 
@@ -99,7 +96,7 @@ export class ClaudeCommandCatalog implements ProviderCommandCatalog {
     // for a blank tab that skips warmup. Keeping the cache means the next
     // dropdown open is served from it instead of paying for a probe.
     if (commands.length > 0) {
-      void this.writeCache(commands);
+      void this.writeCache(commands, this.safeFingerprint());
     }
   }
 
@@ -110,11 +107,15 @@ export class ClaudeCommandCatalog implements ProviderCommandCatalog {
     // A probe starts a full Claude Code session and bills against the plan
     // window, so a list persisted under the same configuration is reused first
     // and the probe only runs when there is nothing to reuse.
+    // One digest for the whole call: computing it stats the CLI binary and
+    // re-normalizes the persisted settings, and this runs on every keystroke
+    // that reopens the dropdown.
+    const fingerprint = this.sdkCommands.length === 0 ? this.safeFingerprint() : '';
     if (this.sdkCommands.length === 0) {
-      this.hydrateFromCache();
+      this.hydrateFromCache(fingerprint);
     }
     if (this.sdkCommands.length === 0 && this.probe) {
-      await this.ensureProbed();
+      await this.ensureProbed(fingerprint);
     }
     const runtimeEntries = this.sdkCommands
       .filter(cmd => !BUILTIN_HIDDEN_COMMANDS.has(cmd.name.toLowerCase()))
@@ -129,13 +130,13 @@ export class ClaudeCommandCatalog implements ProviderCommandCatalog {
   }
 
   /** Restores a list persisted under the current configuration. Never probes. */
-  private hydrateFromCache(): void {
+  private hydrateFromCache(fingerprint: string): void {
     const cache = this.deps.cache;
     if (!cache) return;
     try {
       const record = cache.read();
       if (!record || record.commands.length === 0) return;
-      if (record.fingerprint !== cache.currentFingerprint()) return;
+      if (record.fingerprint !== fingerprint) return;
       this.sdkCommands = record.commands;
       this.sdkCommandsFromCache = true;
       this.record('commandCatalog.probe.skipped', 'debug', {
@@ -147,22 +148,39 @@ export class ClaudeCommandCatalog implements ProviderCommandCatalog {
     }
   }
 
-  /** The digest of the current configuration, or null when it cannot be computed. */
-  private safeFingerprint(): string | null {
+  /**
+   * The digest of the current configuration. A digest that cannot be computed
+   * collapses to one shared bucket rather than disabling the pacing: without a
+   * key nothing would ever be recorded and nothing skipped, which is the
+   * probe-per-keystroke this class exists to stop.
+   */
+  private safeFingerprint(): string {
     const cache = this.deps.cache;
-    if (!cache) return null;
+    if (!cache) return '';
     try {
       return cache.currentFingerprint();
     } catch {
-      return null;
+      return '';
     }
   }
 
-  private async writeCache(commands: SlashCommand[]): Promise<void> {
+  /**
+   * Files a list under the configuration it actually came from. Reading the
+   * digest here instead would stamp a list discovered under one configuration
+   * with another's key when the two straddle a settings edit or a CLI upgrade -
+   * and with no expiry, that mislabelling never heals.
+   */
+  private async writeCache(commands: SlashCommand[], fingerprint: string): Promise<void> {
     const cache = this.deps.cache;
     if (!cache) return;
     try {
-      await cache.write({ commands, fingerprint: cache.currentFingerprint() });
+      if (cache.currentFingerprint() !== fingerprint) {
+        this.record('commandCatalog.cache.skipped', 'debug', {
+          reason: 'configuration_changed',
+        });
+        return;
+      }
+      await cache.write({ commands, fingerprint });
     } catch (error) {
       this.record('commandCatalog.cache.writeFailed', 'warn', {
         message: error instanceof Error ? error.message : String(error),
@@ -184,31 +202,39 @@ export class ClaudeCommandCatalog implements ProviderCommandCatalog {
   }
 
   /** Probe the SDK for commands. Deduplicates concurrent calls. */
-  private async ensureProbed(): Promise<void> {
+  private async ensureProbed(fingerprint: string, options: { force?: boolean } = {}): Promise<void> {
     if (!this.probe) return;
-    const fingerprint = this.safeFingerprint();
-    if (fingerprint !== null) {
+    if (!options.force) {
       const lastEmptyAt = this.emptyProbeAtByFingerprint.get(fingerprint);
-      if (lastEmptyAt !== undefined && Date.now() - lastEmptyAt < EMPTY_PROBE_RETRY_MS) {
+      if (lastEmptyAt !== undefined && Date.now() - lastEmptyAt < CLAUDE_EMPTY_DISCOVERY_RETRY_MS) {
         this.record('commandCatalog.probe.skipped', 'debug', {
           ageMs: Date.now() - lastEmptyAt,
           reason: 'empty_attempt_throttled',
         });
         return;
       }
+    } else if (this.probePromise) {
+      // A probe already running is itself a fresh discovery, so a forced
+      // refresh waits for it rather than starting a second billed session
+      // beside it. Only if it produced nothing does the force spend one.
+      await this.probePromise;
+      if (this.sdkCommands.length > 0) {
+        return;
+      }
     }
     if (!this.probePromise) {
-      this.record('commandCatalog.probe.started', 'debug', {});
+      this.record('commandCatalog.probe.started', 'debug', { forced: options.force === true });
       this.probePromise = this.probe().then(async (commands) => {
         if (commands.length === 0) {
-          if (fingerprint !== null) {
-            this.emptyProbeAtByFingerprint.set(fingerprint, Date.now());
-          }
+          this.emptyProbeAtByFingerprint.set(fingerprint, Date.now());
           this.record('commandCatalog.probe.empty', 'debug', {});
           return;
         }
-        // Only apply probe results if the runtime hasn't provided fresher data
-        const applied = this.sdkCommands.length === 0;
+        // A probe the user asked for is the freshest thing there is, so it
+        // wins even against a list a session handed over while it ran -
+        // otherwise the billed session is spent and thrown away while the
+        // settings tab reports success.
+        const applied = options.force === true || this.sdkCommands.length === 0;
         if (applied) {
           this.sdkCommands = commands;
           this.sdkCommandsFromCache = false;
@@ -218,15 +244,13 @@ export class ClaudeCommandCatalog implements ProviderCommandCatalog {
           commandCount: commands.length,
         });
         if (applied) {
-          await this.writeCache(commands);
+          await this.writeCache(commands, fingerprint);
         }
       }).catch((error) => {
         // Probe is best-effort. A throw is treated like an empty result: the
         // cause is usually a missing or broken CLI, and retrying it on every
         // dropdown open is exactly the behaviour this window exists to stop.
-        if (fingerprint !== null) {
-          this.emptyProbeAtByFingerprint.set(fingerprint, Date.now());
-        }
+        this.emptyProbeAtByFingerprint.set(fingerprint, Date.now());
         this.record('commandCatalog.probe.failed', 'warn', {
           message: error instanceof Error ? error.message : String(error),
         });
@@ -252,18 +276,28 @@ export class ClaudeCommandCatalog implements ProviderCommandCatalog {
       vaultEntries.map(entry => [entry.name.toLowerCase(), entry] as const),
     );
     const merged: ProviderCommandEntry[] = [];
-    const taken = new Set<string>();
+    const takenRuntimeNames = new Set<string>();
+    // A command and a skill may legally share a name on disk, and both are
+    // separately editable from settings. Keying vault entries by kind as well
+    // keeps them apart: collapsing them would drop one of two files that
+    // listVaultEntries - the branch taken when there is no runtime list -
+    // returns in full.
+    const takenVaultKeys = new Set<string>();
 
     for (const entry of runtimeEntries) {
-      const key = entry.name.toLowerCase();
-      if (taken.has(key)) continue;
-      taken.add(key);
-      merged.push(vaultByName.get(key) ?? entry);
+      const name = entry.name.toLowerCase();
+      if (takenRuntimeNames.has(name)) continue;
+      takenRuntimeNames.add(name);
+      const vaultEntry = vaultByName.get(name);
+      if (vaultEntry) {
+        takenVaultKeys.add(`${vaultEntry.kind}:${name}`);
+      }
+      merged.push(vaultEntry ?? entry);
     }
     for (const entry of vaultEntries) {
-      const key = entry.name.toLowerCase();
-      if (taken.has(key)) continue;
-      taken.add(key);
+      const key = `${entry.kind}:${entry.name.toLowerCase()}`;
+      if (takenVaultKeys.has(key)) continue;
+      takenVaultKeys.add(key);
       merged.push(entry);
     }
 
@@ -309,19 +343,21 @@ export class ClaudeCommandCatalog implements ProviderCommandCatalog {
    * throttled empty window and rediscovers the list from the SDK.
    */
   async refresh(): Promise<void> {
+    this.emptyProbeAtByFingerprint.clear();
+    // The old list is kept until a probe actually returns one. Dropping it
+    // first would mean a refresh attempted against a broken or logged-out CLI
+    // destroys a working list, leaves the dropdown with vault entries only, and
+    // then throttles every retry for ten minutes.
+    const previousCommands = this.sdkCommands;
+    const previousFromCache = this.sdkCommandsFromCache;
     this.sdkCommands = [];
     this.sdkCommandsFromCache = false;
-    this.emptyProbeAtByFingerprint.clear();
-    const cache = this.deps.cache;
-    if (cache) {
-      try {
-        await cache.clear();
-      } catch (error) {
-        this.record('commandCatalog.cache.writeFailed', 'warn', {
-          message: error instanceof Error ? error.message : String(error),
-        });
-      }
+
+    await this.ensureProbed(this.safeFingerprint(), { force: true });
+
+    if (this.sdkCommands.length === 0) {
+      this.sdkCommands = previousCommands;
+      this.sdkCommandsFromCache = previousFromCache;
     }
-    await this.ensureProbed();
   }
 }

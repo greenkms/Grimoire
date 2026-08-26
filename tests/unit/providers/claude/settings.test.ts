@@ -96,6 +96,28 @@ describe('Claude provider settings', () => {
     });
   });
 
+  describe('discovered command normalization', () => {
+    it('trims names and drops a repeated id', () => {
+      const settings: Record<string, unknown> = {
+        providerConfigs: {
+          claude: {
+            discoveredCommands: [
+              { id: ' sdk:commit ', name: ' commit ', content: '' },
+              { id: 'sdk:commit', name: 'commit-again', content: '' },
+            ],
+            discoveredCommandsFingerprint: 'fp',
+          },
+        },
+      };
+
+      // An untrimmed name inserts as `/ commit `, and a repeated id shows as
+      // two identical dropdown rows.
+      expect(getClaudeProviderSettings(settings).discoveredCommands).toEqual([
+        { id: 'sdk:commit', name: 'commit', content: '', source: 'sdk' },
+      ]);
+    });
+  });
+
   describe('discovered models fingerprint', () => {
     it('defaults to an empty string and keeps a persisted one', () => {
       const settings: Record<string, unknown> = {};

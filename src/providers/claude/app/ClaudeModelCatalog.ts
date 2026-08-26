@@ -4,8 +4,9 @@ import type { ProviderModelCatalog } from '../../../core/providers/types';
 import type GrimoirePlugin from '../../../main';
 import {
   buildClaudeCatalogCacheKey,
+  CLAUDE_EMPTY_DISCOVERY_RETRY_MS,
   hashClaudeCatalogCacheKey,
-} from '../cli/claudeCatalogCacheKey';
+} from '../cli/claudeCatalogCache';
 import { probeRuntimeModels } from '../commands/probeRuntimeModels';
 import {
   type ClaudeDiscoveredModel,
@@ -21,7 +22,6 @@ const MODEL_CATALOG_LIMIT = 1000;
 const MODEL_CATALOG_MAX_PAGES = 10;
 // Only paces retries after an attempt that found nothing. A catalog that holds
 // models is rediscovered solely on a cache-key change or an explicit request.
-const EMPTY_ATTEMPT_RETRY_MS = 10 * 60 * 1000;
 
 interface ClaudeModelsApiResponse {
   data?: unknown;
@@ -190,7 +190,7 @@ export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelC
       const lastAttemptAt = refreshAttemptsByKey.get(cacheKey) ?? 0;
       const cacheAgeMs = lastAttemptAt > 0 ? Date.now() - lastAttemptAt : Number.POSITIVE_INFINITY;
       const hasCachedModels = currentSettings.discoveredModels.length > 0;
-      if (!force && lastAttemptAt > 0 && (hasCachedModels || cacheAgeMs < EMPTY_ATTEMPT_RETRY_MS)) {
+      if (!force && lastAttemptAt > 0 && (hasCachedModels || cacheAgeMs < CLAUDE_EMPTY_DISCOVERY_RETRY_MS)) {
         plugin.recordDebugLog?.({
           data: {
             ageMs: cacheAgeMs,

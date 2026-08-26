@@ -121,17 +121,23 @@ export function normalizeClaudeDiscoveredCommands(value: unknown): SlashCommand[
   }
 
   const commands: SlashCommand[] = [];
+  const seen = new Set<string>();
   for (const entry of value) {
     if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
       continue;
     }
 
     const candidate = entry as Record<string, unknown>;
-    const id = typeof candidate.id === 'string' ? candidate.id : '';
-    const name = typeof candidate.name === 'string' ? candidate.name : '';
-    if (!id || !name) {
+    // Trimmed and deduplicated like the discovered models below: a hand-edited
+    // or sync-merged settings file can carry `" commit "`, which would insert
+    // as `/ commit `, or the same id twice, which would show as two identical
+    // dropdown rows.
+    const id = typeof candidate.id === 'string' ? candidate.id.trim() : '';
+    const name = typeof candidate.name === 'string' ? candidate.name.trim() : '';
+    if (!id || !name || seen.has(id)) {
       continue;
     }
+    seen.add(id);
 
     commands.push({
       content: typeof candidate.content === 'string' ? candidate.content : '',

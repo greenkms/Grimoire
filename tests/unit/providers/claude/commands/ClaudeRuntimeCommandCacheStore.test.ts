@@ -116,6 +116,31 @@ describe('createClaudeRuntimeCommandCacheStore', () => {
     expect(persisted.discoveredCommandsFingerprint).not.toContain('example-key');
   });
 
+  it('rolls back when the settings save is rejected', async () => {
+    const { plugin, saveSettings } = createPlugin();
+    const store = createClaudeRuntimeCommandCacheStore(plugin);
+    saveSettings.mockRejectedValueOnce(new Error('vault is read-only'));
+
+    await expect(store.write({ commands: SDK_COMMANDS, fingerprint: 'fp' })).rejects.toThrow();
+
+    // Memory must not claim a record that disk never took: the next unrelated
+    // save from anywhere in the plugin would quietly persist it.
+    expect(getClaudeProviderSettings(plugin.settings).discoveredCommands).toEqual([]);
+    expect(store.read()).toBeNull();
+  });
+
+  it('keeps the persisted list when clearing cannot be saved', async () => {
+    const { plugin, saveSettings } = createPlugin();
+    const store = createClaudeRuntimeCommandCacheStore(plugin);
+    await store.write({ commands: SDK_COMMANDS, fingerprint: store.currentFingerprint() });
+    saveSettings.mockRejectedValueOnce(new Error('vault is read-only'));
+
+    await expect(store.clear()).rejects.toThrow();
+
+    // Memory cleared while disk kept the list would resurrect it on restart.
+    expect(store.read()?.commands).toEqual(SDK_COMMANDS);
+  });
+
   it('clears both the list and the fingerprint', async () => {
     const { plugin } = createPlugin();
     const store = createClaudeRuntimeCommandCacheStore(plugin);

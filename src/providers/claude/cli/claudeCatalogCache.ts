@@ -2,6 +2,17 @@ import type { ClaudeProviderSettings } from '../settings';
 import { getClaudeCliBinaryFingerprint } from './claudeCliBinaryFingerprint';
 
 /**
+ * How long a discovery that found nothing is left alone before it is tried
+ * again. Both catalogs pace themselves with it, so it lives here rather than
+ * as two literals whose comments each claim to match the other.
+ *
+ * In memory on purpose: a probe that found nothing must be retried after the
+ * user installs or logs into the CLI, and persisting the attempt would keep the
+ * result empty across the very restart meant to fix it.
+ */
+export const CLAUDE_EMPTY_DISCOVERY_RETRY_MS = 10 * 60 * 1000;
+
+/**
  * The inputs that decide what the Claude Code SDK can see at all: which binary
  * runs, where it runs from, and which settings sources and environment it reads.
  * Both catalogs that persist a discovery - models and commands - are keyed on

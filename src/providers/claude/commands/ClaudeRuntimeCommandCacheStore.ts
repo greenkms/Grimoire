@@ -3,7 +3,7 @@ import type GrimoirePlugin from '../../../main';
 import {
   buildClaudeCatalogCacheKey,
   hashClaudeCatalogCacheKey,
-} from '../cli/claudeCatalogCacheKey';
+} from '../cli/claudeCatalogCache';
 import {
   type ClaudeProviderSettings,
   getClaudeProviderSettings,
@@ -36,11 +36,24 @@ export function createClaudeRuntimeCommandCacheStore(
 
   return {
     async clear() {
+      const settings = readSettings();
+      const previousCommands = settings.discoveredCommands;
+      const previousFingerprint = settings.discoveredCommandsFingerprint;
       updateClaudeProviderSettings(plugin.settings, {
         discoveredCommands: [],
         discoveredCommandsFingerprint: '',
       });
-      await plugin.saveSettings?.();
+      try {
+        await plugin.saveSettings?.();
+      } catch (error) {
+        // Memory said cleared while disk kept the list, so a restart would
+        // resurrect exactly what this was meant to drop.
+        updateClaudeProviderSettings(plugin.settings, {
+          discoveredCommands: previousCommands,
+          discoveredCommandsFingerprint: previousFingerprint,
+        });
+        throw error;
+      }
     },
     currentFingerprint() {
       const cliPath = plugin.getResolvedProviderCliPath?.('claude') ?? '';
@@ -72,11 +85,24 @@ export function createClaudeRuntimeCommandCacheStore(
         return;
       }
 
+      const previousCommands = settings.discoveredCommands;
+      const previousFingerprint = settings.discoveredCommandsFingerprint;
       updateClaudeProviderSettings(plugin.settings, {
         discoveredCommands: commands,
         discoveredCommandsFingerprint: value.fingerprint,
       });
-      await plugin.saveSettings?.();
+      try {
+        await plugin.saveSettings?.();
+      } catch (error) {
+        // Otherwise memory claims the list is filed under this configuration
+        // while disk has nothing, and the next unrelated save from anywhere in
+        // the plugin quietly persists a record that was never verified.
+        updateClaudeProviderSettings(plugin.settings, {
+          discoveredCommands: previousCommands,
+          discoveredCommandsFingerprint: previousFingerprint,
+        });
+        throw error;
+      }
     },
   };
 }
