@@ -1544,23 +1544,33 @@ describe('GrokChatRuntime', () => {
     await (runtime as any).syncSessionModelState({
       models: {
         availableModels: [
-          { modelId: 'grok-4.6', name: 'Grok 4.6' },
-          { modelId: 'grok-4.5', name: 'Grok 4.5' },
+          {
+            modelId: 'grok-4.6',
+            name: 'Grok 4.6',
+            _meta: {
+              supportsReasoningEffort: true,
+              reasoningEfforts: [
+                { id: 'xhigh', value: 'xhigh', label: 'Extra High Effort' },
+                { id: 'high', value: 'high', label: 'High Effort' },
+                { id: 'medium', value: 'medium', label: 'Medium Effort' },
+                { id: 'low', value: 'low', label: 'Low Effort' },
+              ],
+            },
+          },
+          {
+            modelId: 'grok-4.5',
+            name: 'Grok 4.5',
+            _meta: {
+              supportsReasoningEffort: true,
+              reasoningEfforts: [
+                { id: 'high', value: 'high', label: 'High Effort' },
+                { id: 'medium', value: 'medium', label: 'Medium Effort' },
+                { id: 'low', value: 'low', label: 'Low Effort' },
+              ],
+            },
+          },
         ],
         currentModelId: 'grok-4.6',
-      },
-      modelThinkingOptions: {
-        'grok-4.5': [
-          { label: 'High Effort', value: 'high' },
-          { label: 'Medium Effort', value: 'medium' },
-          { label: 'Low Effort', value: 'low' },
-        ],
-        'grok-4.6': [
-          { label: 'Extra High Effort', value: 'xhigh' },
-          { label: 'High Effort', value: 'high' },
-          { label: 'Medium Effort', value: 'medium' },
-          { label: 'Low Effort', value: 'low' },
-        ],
       },
     });
 
@@ -1612,14 +1622,19 @@ describe('GrokChatRuntime', () => {
         },
       ],
       models: {
-        availableModels: [{ modelId: 'grok-4.6', name: 'Grok 4.6' }],
-        currentModelId: 'grok-4.6',
-      },
-      modelThinkingOptions: {
-        'grok-4.6': [
-          { label: 'Extra High Effort', value: 'xhigh' },
-          { label: 'High Effort', value: 'high' },
+        availableModels: [
+          {
+            modelId: 'grok-4.6',
+            name: 'Grok 4.6',
+            _meta: {
+              reasoningEfforts: [
+                { id: 'xhigh', value: 'xhigh', label: 'Extra High Effort' },
+                { id: 'high', value: 'high', label: 'High Effort' },
+              ],
+            },
+          },
         ],
+        currentModelId: 'grok-4.6',
       },
     });
 
@@ -1659,6 +1674,100 @@ describe('GrokChatRuntime', () => {
     expect(getGrokProviderSettings(plugin.settings).thinkingOptionsByModel['grok-4.6']).toBeUndefined();
   });
 
+  it('keeps the thought-level option alive across a model switch', async () => {
+    const plugin = createMockPlugin({
+      settings: {
+        effortLevel: 'high',
+        model: 'grok:grok-4.6',
+        providerConfigs: {
+          grok: { discoveredModels: [], preferredThinkingByModel: {}, visibleModels: [] },
+        },
+        settingsProvider: 'grok',
+      },
+    });
+    const runtime = new GrokChatRuntime(plugin);
+    jest.spyOn(ProviderRegistry, 'resolveSettingsProviderId').mockReturnValue('grok');
+
+    await (runtime as any).syncSessionModelState({
+      configOptions: [
+        {
+          category: 'thought_level',
+          currentValue: 'xhigh',
+          id: 'effort',
+          name: 'Effort',
+          options: [{ name: 'High', value: 'high' }, { name: 'Extra high', value: 'xhigh' }],
+          type: 'select',
+        },
+      ],
+      models: {
+        availableModels: [
+          { modelId: 'grok-4.6', name: 'Grok 4.6' },
+          {
+            modelId: 'grok-4.5',
+            name: 'Grok 4.5',
+            _meta: {
+              reasoningEfforts: [
+                { id: 'high', value: 'high', label: 'High Effort' },
+                { id: 'low', value: 'low', label: 'Low Effort' },
+              ],
+            },
+          },
+        ],
+        currentModelId: 'grok-4.6',
+      },
+    });
+    expect((runtime as any).currentSessionEffortConfigId).toBe('effort');
+
+    await (runtime as any).syncSessionModelState({}, { currentRawModelId: 'grok-4.5' });
+
+    // Same session, so the option id still stands - dropping it would leave
+    // applySelectedEffort with nothing to call.
+    expect((runtime as any).currentSessionEffortConfigId).toBe('effort');
+    // The accepted values follow the new model, and the effort must be applied
+    // again because the agent reverted to that model's default.
+    expect([...(runtime as any).currentSessionEffortValues]).toEqual(['low', 'high']);
+    expect((runtime as any).currentSessionEffortValue).toBeNull();
+  });
+
+  it('never launches with a level the selected model does not report', () => {
+    const plugin = createMockPlugin({
+      settings: {
+        effortLevel: 'xhigh',
+        model: 'grok:grok-4.5',
+        providerConfigs: {
+          grok: {
+            discoveredModels: [
+              { label: 'Grok 4.6', rawId: 'grok-4.6' },
+              { label: 'Grok 4.5', rawId: 'grok-4.5' },
+            ],
+            thinkingOptionsByModel: {
+              'grok-4.5': [
+                { label: 'Low', value: 'low' },
+                { label: 'High', value: 'high' },
+              ],
+              'grok-4.6': [
+                { label: 'High', value: 'high' },
+                { label: 'Extra high', value: 'xhigh' },
+              ],
+            },
+            visibleModels: ['grok-4.6', 'grok-4.5'],
+          },
+        },
+        settingsProvider: 'grok',
+      },
+    });
+    const runtime = new GrokChatRuntime(plugin);
+    jest.spyOn(ProviderRegistry, 'resolveSettingsProviderId').mockReturnValue('grok');
+
+    // The settings snapshot that feeds the launch args runs effortLevel through
+    // getReasoningOptions for the selected model, so a stored xhigh cannot
+    // reach `--reasoning-effort` for a model that never reported it.
+    expect((runtime as any).getProviderSettings().effortLevel).toBe('high');
+
+    plugin.settings.model = 'grok:grok-4.6';
+    expect((runtime as any).getProviderSettings().effortLevel).toBe('xhigh');
+  });
+
   it('keeps the reported levels when the user switches to another model', async () => {
     const plugin = createMockPlugin({
       settings: {
@@ -1679,20 +1788,28 @@ describe('GrokChatRuntime', () => {
     await (runtime as any).syncSessionModelState({
       models: {
         availableModels: [
-          { modelId: 'grok-4.6', name: 'Grok 4.6' },
-          { modelId: 'grok-4.5', name: 'Grok 4.5' },
+          {
+            modelId: 'grok-4.6',
+            name: 'Grok 4.6',
+            _meta: {
+              reasoningEfforts: [
+                { id: 'xhigh', value: 'xhigh', label: 'Extra High Effort' },
+                { id: 'low', value: 'low', label: 'Low Effort' },
+              ],
+            },
+          },
+          {
+            modelId: 'grok-4.5',
+            name: 'Grok 4.5',
+            _meta: {
+              reasoningEfforts: [
+                { id: 'high', value: 'high', label: 'High Effort' },
+                { id: 'low', value: 'low', label: 'Low Effort' },
+              ],
+            },
+          },
         ],
         currentModelId: 'grok-4.6',
-      },
-      modelThinkingOptions: {
-        'grok-4.5': [
-          { label: 'High Effort', value: 'high' },
-          { label: 'Low Effort', value: 'low' },
-        ],
-        'grok-4.6': [
-          { label: 'Extra High Effort', value: 'xhigh' },
-          { label: 'Low Effort', value: 'low' },
-        ],
       },
     });
 

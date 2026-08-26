@@ -33,6 +33,18 @@ const GROK_FALLBACK_THINKING_OPTIONS: ProviderReasoningOption[] = [
   { value: 'high', label: 'High' },
 ];
 const GROK_FALLBACK_THINKING_DEFAULT = 'high';
+
+/**
+ * The bare `grok` option carries no `grok:` prefix, so decoding it yields
+ * nothing and the effort picker fell through to the three-level fallback - on a
+ * fresh vault that entry is the only model shown, which is exactly when the
+ * fallback matters most. It stands for Grok Build itself, so it resolves to the
+ * native id.
+ */
+function decodeGrokModelIdOrSynthetic(model: string): string | null {
+  return decodeGrokModelId(model)
+    ?? (model.trim() === GROK_SYNTHETIC_MODEL_ID ? GROK_SYNTHETIC_MODEL_ID : null);
+}
 const DEFAULT_CONTEXT_WINDOW = 200_000;
 
 const GROK_PERMISSION_MODE_TOGGLE: ProviderPermissionModeToggleConfig = {
@@ -138,7 +150,7 @@ export const grokChatUIConfig: ProviderChatUIConfig = {
   },
 
   getDefaultReasoningValue(model: string, settings: Record<string, unknown>): string {
-    const rawModelId = decodeGrokModelId(model);
+    const rawModelId = decodeGrokModelIdOrSynthetic(model);
     if (!rawModelId) {
       return GROK_FALLBACK_THINKING_DEFAULT;
     }
@@ -290,19 +302,16 @@ function getDefaultThinkingLevelForModel(
     return preferred;
   }
 
-  if (isGrokNativeModelId(baseRawId)) {
-    return (preferred && supportedValues.has(preferred)
-      ? preferred
-      : (supportedValues.has(GROK_NATIVE_THINKING_DEFAULT)
-        ? GROK_NATIVE_THINKING_DEFAULT
-        : options[0]?.value))
-      ?? GROK_NATIVE_THINKING_DEFAULT;
-  }
+  // A preferred level that the model supports already returned above, so both
+  // branches reduce to "the model's own default, else its lowest level".
+  const [fallbackDefault, lastResort] = isGrokNativeModelId(baseRawId)
+    ? [GROK_NATIVE_THINKING_DEFAULT, GROK_NATIVE_THINKING_DEFAULT]
+    : [GROK_FALLBACK_THINKING_DEFAULT, GROK_DEFAULT_THINKING_LEVEL];
 
-  return (supportedValues.has(GROK_FALLBACK_THINKING_DEFAULT)
-    ? GROK_FALLBACK_THINKING_DEFAULT
+  return (supportedValues.has(fallbackDefault)
+    ? fallbackDefault
     : options[0]?.value)
-    ?? GROK_DEFAULT_THINKING_LEVEL;
+    ?? lastResort;
 }
 
 function getSupportedThinkingOptionsForModel(
@@ -330,7 +339,7 @@ function getGrokThinkingOptions(
     return [];
   }
 
-  const rawModelId = decodeGrokModelId(model);
+  const rawModelId = decodeGrokModelIdOrSynthetic(model);
   if (!rawModelId) {
     return GROK_FALLBACK_THINKING_OPTIONS;
   }

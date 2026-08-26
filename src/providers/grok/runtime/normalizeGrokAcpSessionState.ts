@@ -70,6 +70,13 @@ export function readGrokAcpModelThinkingOptions(
       continue;
     }
 
+    // A model can carry a vestigial level list while stating it takes no
+    // reasoning effort at all. Honouring the flag keeps the composer from
+    // showing effort controls that the model would only reject.
+    if ((meta as Record<string, unknown>).supportsReasoningEffort === false) {
+      continue;
+    }
+
     const variants = normalizeGrokModelVariants(
       readReasoningEffortEntries((meta as Record<string, unknown>).reasoningEfforts),
     );

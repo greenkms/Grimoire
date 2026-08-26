@@ -9,7 +9,6 @@ import {
   GROK_SYNTHETIC_MODEL_ID,
   groupGrokDiscoveredModels,
   isGrokModelSelectionId,
-  isGrokNativeBuildModelId,
   isGrokNativeModelId,
   resolveGrokBaseModelRawId,
   splitGrokModelLabel,
@@ -32,8 +31,13 @@ describe('Grok Build model identity', () => {
     expect(isGrokNativeModelId('grok-composer-2.5-fast')).toBe(true);
     expect(isGrokNativeModelId('anthropic/claude-sonnet-4')).toBe(false);
     expect(isGrokNativeModelId('minimax-token-plan/minimax-m2')).toBe(false);
-    expect(isGrokNativeBuildModelId('grok-4.6')).toBe(false);
-    expect(isGrokNativeBuildModelId('grok-build')).toBe(true);
+  });
+
+  it('recognises a native id whatever case the catalog reports it in', () => {
+    expect(isGrokNativeModelId('Grok-4.6')).toBe(true);
+    expect(isGrokNativeModelId('GROK-4.6')).toBe(true);
+    expect(isGrokNativeModelId('Grok')).toBe(true);
+    expect(isGrokNativeModelId('Anthropic/Claude-Sonnet-4')).toBe(false);
   });
 });
 
@@ -317,6 +321,16 @@ describe('grokChatUIConfig', () => {
       'grok:grok-4.6',
       settings,
     )).toBe('high');
+  });
+
+  it('offers the native levels for the bare Grok Build entry on a fresh vault', () => {
+    // Nothing discovered yet, so the model picker shows only the synthetic
+    // `grok` option - the state where a static list is all there is.
+    const settings = { model: 'grok', providerConfigs: { grok: {} } };
+
+    expect(grokChatUIConfig.getReasoningOptions('grok', settings)
+      .map((option) => option.value)).toEqual(['low', 'medium', 'high', 'xhigh']);
+    expect(grokChatUIConfig.getDefaultReasoningValue('grok', settings)).toBe('high');
   });
 
   it('drops xhigh for a catalog model once Grok Build reports its own levels', () => {

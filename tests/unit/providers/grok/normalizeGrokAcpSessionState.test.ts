@@ -139,6 +139,22 @@ describe('readGrokAcpModelThinkingOptions', () => {
     } as never)['grok-4.6'].map((variant) => variant.value)).toEqual(['low', 'high']);
   });
 
+  it('ignores a level list from a model that says it takes no reasoning effort', () => {
+    expect(readGrokAcpModelThinkingOptions({
+      availableModels: [
+        {
+          modelId: 'grok-code-fast-1',
+          name: 'Grok Code Fast 1',
+          _meta: {
+            supportsReasoningEffort: false,
+            reasoningEfforts: [{ id: 'high', value: 'high', label: 'High Effort' }],
+          },
+        },
+      ],
+      currentModelId: 'grok-code-fast-1',
+    } as never)).toEqual({});
+  });
+
   it('refuses a model id that would reach through the prototype', () => {
     const options = readGrokAcpModelThinkingOptions({
       availableModels: [
