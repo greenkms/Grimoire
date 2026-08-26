@@ -9,6 +9,8 @@ import {
   GROK_SYNTHETIC_MODEL_ID,
   groupGrokDiscoveredModels,
   isGrokModelSelectionId,
+  isGrokNativeBuildModelId,
+  isGrokNativeModelId,
   resolveGrokBaseModelRawId,
   splitGrokModelLabel,
 } from '../../../../src/providers/grok/models';
@@ -21,6 +23,17 @@ describe('Grok Build model identity', () => {
     expect(decodeGrokModelId(GROK_SYNTHETIC_MODEL_ID)).toBeNull();
     expect(isGrokModelSelectionId('grok:anthropic/claude-sonnet-4')).toBe(true);
     expect(isGrokModelSelectionId('claude-sonnet-4')).toBe(false);
+  });
+
+  it('treats catalog Grok models as native xAI ids', () => {
+    expect(isGrokNativeModelId('grok-4.6')).toBe(true);
+    expect(isGrokNativeModelId('grok-4.5')).toBe(true);
+    expect(isGrokNativeModelId('grok-build')).toBe(true);
+    expect(isGrokNativeModelId('grok-composer-2.5-fast')).toBe(true);
+    expect(isGrokNativeModelId('anthropic/claude-sonnet-4')).toBe(false);
+    expect(isGrokNativeModelId('minimax-token-plan/minimax-m2')).toBe(false);
+    expect(isGrokNativeBuildModelId('grok-4.6')).toBe(false);
+    expect(isGrokNativeBuildModelId('grok-build')).toBe(true);
   });
 });
 
@@ -263,6 +276,45 @@ describe('grokChatUIConfig', () => {
     ]);
     expect(grokChatUIConfig.getDefaultReasoningValue(
       'grok:grok-build',
+      settings,
+    )).toBe('high');
+  });
+
+  it('exposes xhigh effort for catalog Grok models such as grok-4.6', () => {
+    const settings = {
+      model: 'grok:grok-4.6',
+      providerConfigs: {
+        grok: {
+          discoveredModels: [
+            { label: 'Grok 4.6', rawId: 'grok-4.6' },
+            { label: 'Grok 4.5', rawId: 'grok-4.5' },
+          ],
+          visibleModels: ['grok-4.6', 'grok-4.5'],
+          thinkingOptionsByModel: {},
+        },
+      },
+    };
+
+    expect(grokChatUIConfig.getReasoningOptions(
+      'grok:grok-4.6',
+      settings,
+    )).toEqual([
+      { label: 'Low', value: 'low' },
+      { label: 'Medium', value: 'medium' },
+      { label: 'High', value: 'high' },
+      { label: 'Extra high', value: 'xhigh' },
+    ]);
+    expect(grokChatUIConfig.getReasoningOptions(
+      'grok:grok-4.5',
+      settings,
+    )).toEqual([
+      { label: 'Low', value: 'low' },
+      { label: 'Medium', value: 'medium' },
+      { label: 'High', value: 'high' },
+      { label: 'Extra high', value: 'xhigh' },
+    ]);
+    expect(grokChatUIConfig.getDefaultReasoningValue(
+      'grok:grok-4.6',
       settings,
     )).toBe('high');
   });

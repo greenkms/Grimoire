@@ -85,6 +85,16 @@ export function isGrokNativeBuildModelId(rawModelId: string): boolean {
   return normalized === 'grok-build' || normalized.startsWith('grok-composer-');
 }
 
+/** Native xAI model ids, as opposed to third-party catalog ids such as `anthropic/...`. */
+export function isGrokNativeModelId(rawModelId: string): boolean {
+  const normalized = rawModelId.trim();
+  if (!normalized || normalized.includes('/')) {
+    return false;
+  }
+
+  return normalized === 'grok' || normalized.startsWith('grok-');
+}
+
 export function encodeGrokModelId(rawModelId: string): string {
   const normalized = rawModelId.trim();
   return normalized ? `${GROK_MODEL_PREFIX}${normalized}` : GROK_SYNTHETIC_MODEL_ID;

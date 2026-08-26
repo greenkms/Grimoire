@@ -14,7 +14,7 @@ import {
   GROK_NATIVE_THINKING_OPTIONS,
   GROK_SYNTHETIC_MODEL_ID,
   isGrokModelSelectionId,
-  isGrokNativeBuildModelId,
+  isGrokNativeModelId,
   resolveGrokBaseModelRawId,
 } from '../models';
 import {
@@ -290,7 +290,7 @@ function getDefaultThinkingLevelForModel(
     return preferred;
   }
 
-  if (isGrokNativeBuildModelId(baseRawId)) {
+  if (isGrokNativeModelId(baseRawId)) {
     return (preferred && supportedValues.has(preferred)
       ? preferred
       : (supportedValues.has(GROK_NATIVE_THINKING_DEFAULT)
@@ -315,7 +315,7 @@ function getSupportedThinkingOptionsForModel(
     return discoveredOptions;
   }
 
-  if (isGrokNativeBuildModelId(baseRawId)) {
+  if (isGrokNativeModelId(baseRawId)) {
     return GROK_NATIVE_THINKING_OPTIONS;
   }
 
