@@ -25,16 +25,36 @@ function mapSdkCommands(sdkCommands: SDKSlashCommand[]): SlashCommand[] {
 /**
  * Probes the Claude SDK locally to discover available commands and skills.
  *
- * Fires a throwaway query with an empty prompt — the SDK emits a system/init
- * event from local config parsing alone (no API call, no cost). The probe
- * captures that event, calls supportedCommands() for full metadata, then aborts.
+ * Fires a throwaway query with an empty prompt, waits for the system/init event,
+ * calls supportedCommands() for full metadata, then aborts.
+ *
+ * This is not free. A measurement on 2026-08-26 isolated a one percentage point
+ * step of the five-hour plan window to the first dropdown open after a plugin
+ * load, with a clean baseline before it. Treat every call as billed: the caller
+ * is expected to reuse a cached list and to pace retries.
  */
 export async function probeRuntimeCommands(plugin: GrimoirePlugin): Promise<SlashCommand[]> {
   const vaultPath = getVaultPath(plugin.app);
-  if (!vaultPath) return [];
+  if (!vaultPath) {
+    plugin.recordDebugLog?.({
+      data: { providerId: 'claude', reason: 'no_vault_path' },
+      event: 'commandCatalog.probe.skipped',
+      level: 'debug',
+      scope: 'provider.claude',
+    });
+    return [];
+  }
 
   const cliPath = plugin.getResolvedProviderCliPath('claude');
-  if (!cliPath) return [];
+  if (!cliPath) {
+    plugin.recordDebugLog?.({
+      data: { providerId: 'claude', reason: 'no_cli_path' },
+      event: 'commandCatalog.probe.skipped',
+      level: 'debug',
+      scope: 'provider.claude',
+    });
+    return [];
+  }
 
   const customEnv = parseEnvironmentVariables(
     plugin.getActiveEnvironmentVariables('claude')
