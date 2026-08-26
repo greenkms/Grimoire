@@ -31,6 +31,7 @@ export interface ClaudeProviderSettings {
   discoveredModels: ClaudeDiscoveredModel[];
   discoveredCommands: SlashCommand[];
   discoveredCommandsFingerprint: string;
+  discoveredModelsFingerprint: string;
 }
 
 export interface ClaudeDiscoveredModel {
@@ -71,6 +72,7 @@ export const DEFAULT_CLAUDE_PROVIDER_SETTINGS: Readonly<ClaudeProviderSettings> 
   discoveredModels: [],
   discoveredCommands: [],
   discoveredCommandsFingerprint: '',
+  discoveredModelsFingerprint: '',
 });
 
 function normalizeHostnameCliPaths(value: unknown): HostnameCliPaths {
@@ -311,6 +313,9 @@ export function getClaudeProviderSettings(
     discoveredCommandsFingerprint: typeof config.discoveredCommandsFingerprint === 'string'
       ? config.discoveredCommandsFingerprint
       : DEFAULT_CLAUDE_PROVIDER_SETTINGS.discoveredCommandsFingerprint,
+    discoveredModelsFingerprint: typeof config.discoveredModelsFingerprint === 'string'
+      ? config.discoveredModelsFingerprint
+      : DEFAULT_CLAUDE_PROVIDER_SETTINGS.discoveredModelsFingerprint,
   };
 }
 

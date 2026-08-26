@@ -46,6 +46,10 @@ import { getVaultPath } from '../../../utils/path';
 import { createUtf8ChunkDecoder, type Utf8ChunkDecoder } from '../../../utils/utf8Stream';
 import { ANTIGRAVITY_PROVIDER_CAPABILITIES } from '../capabilities';
 import { decodeAntigravityModelId } from '../models';
+import {
+  normalizeAntigravityToolInput,
+  normalizeAntigravityToolName,
+} from '../normalization/antigravityToolNormalization';
 import { getAntigravityProviderSettings } from '../settings';
 import {
   type AntigravityCliCapabilities,
@@ -56,6 +60,7 @@ import { buildAntigravityProcessLaunch } from './AntigravityProcessLaunch';
 import { buildAntigravityRuntimeEnv } from './AntigravityRuntimeEnvironment';
 import {
   type AntigravityResultFrame,
+  type AntigravityStreamEvent,
   type AntigravityStreamJsonParser,
   createAntigravityStreamJsonParser,
   formatAntigravityUserEvent,
@@ -80,12 +85,38 @@ const PRINT_DRAIN_GRACE_MS = 2_000;
 // from outside (#70).
 const ANTIGRAVITY_PRINT_TIMEOUT_FLAG = '29m';
 
+/**
+ * Progress handed to the chat while the run is open. The parser contributes
+ * answer text and tool steps; the runtime adds `log_activity`, which is the
+ * only sign of life a long pipe-silent tool call produces.
+ */
+type AntigravityProgressEvent =
+  | AntigravityStreamEvent
+  | { elapsedMs: number; type: 'log_activity' };
+
+/**
+ * How much of the final answer the user has already watched arrive. Normally
+ * this is all of `streamed`, because the deltas sum to `result.response`; when
+ * they diverge it is the part they still agree on, which is what keeps the
+ * remainder from repeating text that is already on screen.
+ */
+function sharedPrefixLength(streamed: string, output: string): number {
+  const limit = Math.min(streamed.length, output.length);
+  let index = 0;
+  while (index < limit && streamed[index] === output[index]) {
+    index += 1;
+  }
+
+  return index;
+}
+
 interface AntigravityPrintSpec {
   addDirPath: string | null;
   cliCapabilities?: AntigravityCliCapabilities;
   command: string;
   cwd: string;
   model: string | null;
+  onProgress?: (event: AntigravityProgressEvent) => void;
   permissionMode: string;
   prompt: string;
   runtimeEnv: NodeJS.ProcessEnv;
@@ -215,20 +246,134 @@ export class AntigravityChatRuntime implements ChatRuntime {
         level: 'debug',
         scope: 'provider.antigravity',
       });
-      const output = await this.runPrint({
+      // agy reports progress through callbacks while runPrint stays pending,
+      // so the turn is driven by a queue the callbacks fill and this generator
+      // drains. Yielding straight from a callback is impossible, and waiting
+      // for runPrint to resolve is what used to hide the whole run until the
+      // process exited.
+      const pending: AntigravityProgressEvent[] = [];
+      let wake: (() => void) | null = null;
+      let finished = false;
+      const notify = (): void => {
+        const resume = wake;
+        wake = null;
+        resume?.();
+      };
+      const printRun = this.runPrint({
         addDirPath: cliCapabilities.addDir ? vaultPath : null,
         cliCapabilities,
         command,
         cwd,
         model: this.getSelectedRawModel(queryOptions),
+        onProgress: (event) => {
+          pending.push(event);
+          notify();
+        },
         permissionMode,
         prompt,
         runtimeEnv,
       });
-      const trimmed = output.trim();
-      if (trimmed) {
-        yield { content: trimmed, type: 'text' };
-      } else {
+      // Handling the rejection here keeps a failure that lands while this
+      // generator is parked from surfacing as an unhandled rejection; the
+      // original error is re-awaited below so the catch clause still sees it.
+      const printSettled = printRun.catch(() => undefined).finally(() => {
+        finished = true;
+        notify();
+      });
+
+      let streamedText = '';
+      const openToolIds = new Set<string>();
+      for (;;) {
+        while (pending.length > 0) {
+          const event = pending.shift() as AntigravityProgressEvent;
+          if (event.type === 'text') {
+            // The whole-answer path trimmed before yielding; streaming must not
+            // open the bubble - or the saved message - with agy's leading
+            // blank lines just because the answer now arrives in pieces.
+            const text = streamedText ? event.text : event.text.replace(/^\s+/, '');
+            streamedText += event.text;
+            if (text) {
+              yield { content: text, type: 'text' };
+            }
+            continue;
+          }
+          if (event.type === 'log_activity') {
+            yield {
+              content: t('chat.ui.status.antigravityWorking', {
+                seconds: Math.round(event.elapsedMs / 1_000),
+              }),
+              type: 'status',
+            };
+            continue;
+          }
+          const toolId = `antigravity-${event.stepId}`;
+          if (event.type === 'tool_start') {
+            openToolIds.add(toolId);
+            yield {
+              id: toolId,
+              input: normalizeAntigravityToolInput(event.toolName, event.input),
+              name: normalizeAntigravityToolName(event.toolName),
+              type: 'tool_use',
+            };
+            continue;
+          }
+          // A completion whose ACTIVE half never arrived still names its tool
+          // and carries what it printed, so the card is opened here rather than
+          // dropping the call and its output from the transcript entirely.
+          if (!openToolIds.delete(toolId)) {
+            yield {
+              id: toolId,
+              input: {},
+              name: normalizeAntigravityToolName(event.toolName),
+              type: 'tool_use',
+            };
+          }
+          // agy reports what the tool printed on the DONE frame, so the card is
+          // closed with the real output. A tool that printed nothing yields an
+          // empty string, which renders as "no result" rather than as invented
+          // metadata such as the step duration.
+          yield { content: event.output, id: toolId, type: 'tool_result' };
+        }
+        if (finished) {
+          break;
+        }
+        await new Promise<void>((resolve) => {
+          wake = resolve;
+        });
+      }
+      // A run that ends between ACTIVE and DONE - cancelled, timed out, or
+      // ERROR mid-tool - leaves its card spinning, and nothing downstream
+      // reconciles a tool call left running: it is persisted that way.
+      for (const openToolId of openToolIds) {
+        yield { content: '', id: openToolId, type: 'tool_result' };
+      }
+      openToolIds.clear();
+
+      await printSettled;
+      // Rethrows whatever runPrint rejected with, preserving non-Error values
+      // for the localized fallback in the catch clause.
+      const output = await printRun;
+
+      // The deltas already sum to result.response, so only what the final
+      // answer adds on top of them is still untold — normally nothing, or the
+      // trailing warning agy appends after an ERROR-flagged success. That
+      // remainder keeps its leading blank line, which is what separates the
+      // warning from the answer it follows.
+      // Normally the deltas sum to result.response exactly and the remainder is
+      // empty, or is the trailing warning agy appends after an ERROR-flagged
+      // success - that remainder keeps its leading blank line, which is what
+      // separates the warning from the answer it follows. When the two diverge,
+      // only the part past their common prefix is appended: repeating an answer
+      // the user already watched stream in reads as a bug, and nothing is lost
+      // because the divergent text is exactly what was never shown.
+      const shared = sharedPrefixLength(streamedText, output);
+      const tail = streamedText
+        ? output.slice(shared).trimEnd()
+        // Nothing was streamed at all (transcript recovery, legacy --print).
+        : output.trim();
+      if (tail) {
+        yield { content: tail, type: 'text' };
+      } else if (!streamedText.trim()) {
         yield {
           type: 'error',
           content: t('chat.ui.errors.provider.antigravityEmptyOutput'),
@@ -430,6 +575,7 @@ export class AntigravityChatRuntime implements ChatRuntime {
 
       let stdout = '';
       let stderr = '';
+      let settled = false;
       // The accumulators stay empty in stream-json mode (stdout) and are
       // tail-capped (stderr), so byte counts for debug logs come from these
       // counters instead of the retained strings.
@@ -443,20 +589,31 @@ export class AntigravityChatRuntime implements ChatRuntime {
       // longer than any fixed buffer cap still parses; the capped accumulator
       // remains only for the legacy free-text `--print` transport.
       const streamParser: AntigravityStreamJsonParser | null = streamJson
-        ? createAntigravityStreamJsonParser()
+        ? createAntigravityStreamJsonParser({
+          onEvent: (event) => {
+            // Frames that arrive after the run settled belong to a turn the
+            // consumer already finished; delivering them would append to a
+            // closed message.
+            if (settled) {
+              return;
+            }
+            spec.onProgress?.(event);
+          },
+        })
         : null;
       // `exit` can fire before the final stdout chunks drain from the pipe, so
       // the parser is only considered complete after the decoder hands back
       // any held-back partial character and the trailing newline-less line is
       // flushed.
+      let flushedStreamParser = false;
       const flushStreamParser = (): void => {
-        if (!streamParser) {
+        if (!streamParser || flushedStreamParser) {
           return;
         }
+        flushedStreamParser = true;
         streamParser.write(stdoutDecoder.end());
         streamParser.end();
       };
-      let settled = false;
       let sawClose = false;
       let sawStdout = false;
       let sawStderr = false;
@@ -469,6 +626,10 @@ export class AntigravityChatRuntime implements ChatRuntime {
         if (settled) {
           return;
         }
+        // Before `settled` closes the progress channel, not after: the trailing
+        // newline-less line is only parsed by this flush, and a tool DONE
+        // sitting there would otherwise be dropped and leave its card open.
+        flushStreamParser();
         settled = true;
         window.clearTimeout(inactivityTimer);
         window.clearTimeout(absoluteTimer);
@@ -584,6 +745,10 @@ export class AntigravityChatRuntime implements ChatRuntime {
               level: 'debug',
               scope: 'provider.antigravity',
             });
+            // The same growth that proves the run is alive is also the only
+            // thing the chat can show during a pipe-silent tool call, so the
+            // heartbeat rides this poll instead of adding a second timer.
+            spec.onProgress?.({ elapsedMs: Date.now() - startedAt, type: 'log_activity' });
             armInactivityTimer();
           })
           .catch(() => undefined);

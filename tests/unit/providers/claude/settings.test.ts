@@ -95,4 +95,24 @@ describe('Claude provider settings', () => {
       expect(getClaudeProviderSettings(settings).discoveredCommandsFingerprint).toBe('');
     });
   });
+
+  describe('discovered models fingerprint', () => {
+    it('defaults to an empty string and keeps a persisted one', () => {
+      const settings: Record<string, unknown> = {};
+
+      expect(getClaudeProviderSettings(settings).discoveredModelsFingerprint).toBe('');
+
+      updateClaudeProviderSettings(settings, { discoveredModelsFingerprint: 'a1b2c3d4' });
+
+      expect(getClaudeProviderSettings(settings).discoveredModelsFingerprint).toBe('a1b2c3d4');
+    });
+
+    it('ignores a non-string persisted fingerprint', () => {
+      const settings: Record<string, unknown> = {
+        providerConfigs: { claude: { discoveredModelsFingerprint: 42 } },
+      };
+
+      expect(getClaudeProviderSettings(settings).discoveredModelsFingerprint).toBe('');
+    });
+  });
 });

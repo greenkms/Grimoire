@@ -231,4 +231,66 @@ describe('ClaudeModelCatalog', () => {
     expect(mockedBinaryFingerprint).toHaveBeenCalledWith('/claude');
     expect(mockedProbe).toHaveBeenCalledTimes(1);
   });
+
+  it('re-probes when the CLI binary changed while the plugin was not running', async () => {
+    const settings: Record<string, unknown> = {};
+    updateClaudeProviderSettings(settings, { enabled: true });
+    mockedProbe.mockResolvedValue([{ id: 'opus', displayName: 'Opus', source: 'sdk' }]);
+    mockedBinaryFingerprint.mockReturnValue('100:1');
+    const plugin = createPlugin(settings);
+
+    // First session: discovery runs and records which key produced the catalog.
+    await createClaudeModelCatalog(plugin).refreshModels({ plugin, settings });
+    expect(mockedProbe).toHaveBeenCalledTimes(1);
+    expect(getClaudeProviderSettings(settings).discoveredModelsFingerprint).not.toBe('');
+
+    // Obsidian was closed, the user ran `npm install -g`, and reopened it. The
+    // new binary is already in place while the catalog is constructed, so both
+    // the seed and the lookup compute '120:2' - the in-memory key comparison
+    // cannot see the change, and with no timer left it would never self-heal.
+    mockedBinaryFingerprint.mockReturnValue('120:2');
+    mockedProbe.mockResolvedValue([{ id: 'sonnet', displayName: 'Sonnet', source: 'sdk' }]);
+    await createClaudeModelCatalog(plugin).refreshModels({ plugin, settings });
+
+    expect(mockedProbe).toHaveBeenCalledTimes(2);
+    expect(getClaudeProviderSettings(settings).discoveredModels).toEqual([
+      { id: 'sonnet', displayName: 'Sonnet', source: 'sdk' },
+    ]);
+  });
+
+  it('re-probes when the CLI path changed while the plugin was not running', async () => {
+    const settings: Record<string, unknown> = {};
+    updateClaudeProviderSettings(settings, { enabled: true });
+    mockedProbe.mockResolvedValue([{ id: 'opus', displayName: 'Opus', source: 'sdk' }]);
+    const plugin = createPlugin(settings);
+
+    await createClaudeModelCatalog(plugin).refreshModels({ plugin, settings });
+    expect(mockedProbe).toHaveBeenCalledTimes(1);
+
+    // The user switched install channel between sessions, so the path already
+    // resolves to the new location when the catalog is constructed.
+    plugin.getResolvedProviderCliPath.mockReturnValue('/opt/claude');
+    await createClaudeModelCatalog(plugin).refreshModels({ plugin, settings });
+
+    expect(mockedProbe).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps trusting a catalog persisted before the fingerprint existed', async () => {
+    const settings: Record<string, unknown> = {};
+    updateClaudeProviderSettings(settings, {
+      enabled: true,
+      discoveredModels: [{ id: 'opus', displayName: 'Opus', source: 'sdk' }],
+    });
+    mockedProbe.mockResolvedValue([{ id: 'sonnet', displayName: 'Sonnet', source: 'sdk' }]);
+    const plugin = createPlugin(settings);
+
+    // No fingerprint on disk: migrating must not cost a probe, and must not
+    // force a settings write either, so the catalog is trusted exactly as
+    // before. It gains a recorded baseline at its next real discovery.
+    const catalog = createClaudeModelCatalog(plugin);
+    await expect(catalog.refreshModels({ plugin, settings })).resolves.toBe(false);
+
+    expect(mockedProbe).not.toHaveBeenCalled();
+    expect(plugin.saveSettings).not.toHaveBeenCalled();
+  });
 });
