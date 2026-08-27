@@ -259,8 +259,16 @@ export class GeminiChatRuntime implements ChatRuntime {
   ): AsyncGenerator<StreamChunk> {
     const previousMessages = conversationHistory ?? [];
     const expectedSessionId = this.sessionId;
+    // A session that was dropped must not replay the whole transcript into its
+    // replacement: that silently spends the conversation the user already paid
+    // for, without asking. `sessionInvalidated` is the difference between "we
+    // had a session and lost it" and "there was never one", and it is the only
+    // form of that answer which survives a drop that happened before query()
+    // ran - ensureReady() is also reached from warmup, so a null session id by
+    // itself does not mean a cold resume.
     let shouldBootstrapHistory = previousMessages.length > 0
-      && (!expectedSessionId || this.sessionInvalidated);
+      && !expectedSessionId
+      && !this.sessionInvalidated;
 
     if (!(await this.ensureReady())) {
       yield { type: 'error', content: t('chat.ui.errors.provider.startFailed', { provider: ProviderRegistry.getProviderDisplayNameOrId('gemini') }) };
@@ -275,9 +283,9 @@ export class GeminiChatRuntime implements ChatRuntime {
     }
 
     const cwd = getVaultPath(this.plugin.app) ?? process.cwd();
-    if (expectedSessionId && !this.sessionId) {
-      shouldBootstrapHistory = previousMessages.length > 0;
-    }
+    // Intentionally no history bootstrap here: if readiness dropped the session
+    // (session/load failure, forced restart), the new session starts clean and
+    // recovering the earlier context is the user's to do.
 
     if (!this.sessionId) {
       const sessionId = await this.createSession(cwd);
