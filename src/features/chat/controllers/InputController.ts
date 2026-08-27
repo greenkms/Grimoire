@@ -389,6 +389,12 @@ export class InputController {
       return;
     }
 
+    // The turn ended while a queued message sat in the composer, so it is going
+    // out as its own turn now. The slot it was holding no longer means anything,
+    // and leaving it set would put the next follow-up in that position instead
+    // of at the back of the queue.
+    this.pendingEditIndex = null;
+
     if (shouldUseInput) {
       inputEl.value = '';
       this.deps.resetInputHeight();
@@ -828,9 +834,12 @@ export class InputController {
 
   withdrawQueuedMessageToComposer(index = 0): void {
     const { state } = this.deps;
-    this.pendingEditIndex = index;
     const queuedMessage = state.queue.remove(index);
+    // Hold the slot only for a row that was really there: an index that matched
+    // nothing must not redirect the next follow-up somewhere it was not asked
+    // to go.
     if (!queuedMessage) return;
+    this.pendingEditIndex = index;
 
     this.restoreMessageToInput(queuedMessage, { mergeWithComposer: true });
     this.updateQueueIndicator();

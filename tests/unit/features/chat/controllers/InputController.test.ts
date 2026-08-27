@@ -304,6 +304,42 @@ describe('InputController - Message Queue', () => {
       expect(deps.state.queue.items[1].content).toBe('second message');
     });
 
+    it('should stop holding the edited slot once that message is sent as its own turn', async () => {
+      deps.state.isStreaming = true;
+      inputEl.value = 'first message';
+      await controller.sendMessage();
+      inputEl.value = 'second message';
+      await controller.sendMessage();
+
+      // Edit the second row, then let the turn finish before it is re-sent: the
+      // message goes out on its own and the slot it held stops existing.
+      controller.withdrawQueuedMessageToComposer(1);
+      deps.state.isStreaming = false;
+      inputEl.value = 'second message edited';
+      await controller.sendMessage();
+
+      deps.state.isStreaming = true;
+      inputEl.value = 'third message';
+      await controller.sendMessage();
+
+      expect(deps.state.queue.items.map(message => message.content))
+        .toEqual(['first message', 'third message']);
+    });
+
+    it('should ignore an edit request for a row that is not in the queue', async () => {
+      deps.state.isStreaming = true;
+      inputEl.value = 'first message';
+      await controller.sendMessage();
+
+      controller.withdrawQueuedMessageToComposer(7);
+
+      inputEl.value = 'second message';
+      await controller.sendMessage();
+
+      expect(deps.state.queue.items.map(message => message.content))
+        .toEqual(['first message', 'second message']);
+    });
+
     it('should keep images with the message they were attached to', async () => {
       deps.state.isStreaming = true;
       const imageContextManager = deps.getImageContextManager()!;
