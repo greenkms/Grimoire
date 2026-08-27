@@ -389,6 +389,152 @@ describe('KimicodeChatRuntime', () => {
     expect(runtime.consumeSessionInvalidation()).toBe(false);
   });
 
+  it('does not replay the transcript when readiness drops the session', async () => {
+    const runtime = new KimicodeChatRuntime(createMockPlugin());
+    runtime.syncConversationState({ sessionId: 'session-1' });
+    const prompt = jest.fn().mockResolvedValue({});
+
+    // Readiness hits a session/load failure and soft-fails, exactly as
+    // handleSessionLoadFailure leaves things.
+    jest.spyOn(runtime, 'ensureReady').mockImplementation(async () => {
+      (runtime as any).sessionId = null;
+      (runtime as any).loadedSessionId = null;
+      (runtime as any).sessionInvalidated = true;
+      return true;
+    });
+    (runtime as any).createSession = jest.fn().mockImplementation(async () => {
+      (runtime as any).sessionId = 'session-2';
+      return 'session-2';
+    });
+    (runtime as any).connection = { prompt };
+    (runtime as any).applySelectedMode = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedModel = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedEffort = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).getActiveDisplayModel = jest.fn().mockReturnValue('kimicode:test-model');
+
+    const history = [
+      { id: 'user-previous', role: 'user' as const, content: 'Keep the language rich.', timestamp: 1 },
+      { id: 'assistant-previous', role: 'assistant' as const, content: 'I will preserve the prose voice.', timestamp: 2 },
+    ];
+    const chunks: unknown[] = [];
+    for await (const chunk of runtime.query(runtime.prepareTurn({ text: 'Continue the edit.' }), history)) {
+      chunks.push(chunk);
+    }
+    expect(chunks).toEqual([{ type: 'done' }]);
+
+    expect(prompt).toHaveBeenCalledTimes(1);
+    const promptText = prompt.mock.calls[0][0].prompt
+      .map((block: { text?: string }) => block.text ?? '').join('\n');
+    expect(promptText).toContain('Continue the edit.');
+    expect(promptText).not.toContain('Keep the language rich.');
+  });
+
+  it('still withholds the transcript after the drop has survived a reload', async () => {
+    const runtime = new KimicodeChatRuntime(createMockPlugin());
+    const prompt = jest.fn().mockResolvedValue({});
+
+    // A fresh process: the drop happened last time and only the conversation
+    // remembers it. Without that memory this reads as a first-ever send.
+    runtime.syncConversationState({
+      providerState: { sessionDropped: true },
+      sessionId: null,
+    });
+
+    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+    (runtime as any).createSession = jest.fn().mockImplementation(async () => {
+      (runtime as any).sessionId = 'session-2';
+      return 'session-2';
+    });
+    (runtime as any).connection = { prompt };
+    (runtime as any).applySelectedMode = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedModel = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedEffort = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).getActiveDisplayModel = jest.fn().mockReturnValue('kimicode:test-model');
+
+    const history = [
+      { id: 'user-previous', role: 'user' as const, content: 'Keep the language rich.', timestamp: 1 },
+    ];
+    const chunks: unknown[] = [];
+    for await (const chunk of runtime.query(runtime.prepareTurn({ text: 'Continue the edit.' }), history)) {
+      chunks.push(chunk);
+    }
+    expect(chunks).toEqual([{ type: 'done' }]);
+
+    expect(prompt).toHaveBeenCalledTimes(1);
+    const promptText = prompt.mock.calls[0][0].prompt
+      .map((block: { text?: string }) => block.text ?? '').join('\n');
+    expect(promptText).not.toContain('Keep the language rich.');
+  });
+
+  it('still replays the transcript for a genuine cold resume', async () => {
+    const runtime = new KimicodeChatRuntime(createMockPlugin());
+    const prompt = jest.fn().mockResolvedValue({});
+
+    runtime.syncConversationState({ sessionId: null });
+    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+    (runtime as any).createSession = jest.fn().mockImplementation(async () => {
+      (runtime as any).sessionId = 'session-2';
+      return 'session-2';
+    });
+    (runtime as any).connection = { prompt };
+    (runtime as any).applySelectedMode = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedModel = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedEffort = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).getActiveDisplayModel = jest.fn().mockReturnValue('kimicode:test-model');
+
+    const history = [
+      { id: 'user-previous', role: 'user' as const, content: 'Keep the language rich.', timestamp: 1 },
+    ];
+    const chunks: unknown[] = [];
+    for await (const chunk of runtime.query(runtime.prepareTurn({ text: 'Continue the edit.' }), history)) {
+      chunks.push(chunk);
+    }
+    expect(chunks).toEqual([{ type: 'done' }]);
+
+    const promptText = prompt.mock.calls[0][0].prompt
+      .map((block: { text?: string }) => block.text ?? '').join('\n');
+    expect(promptText).toContain('Keep the language rich.');
+  });
+
+  it('keeps the binding when the agent still lists the session it failed to load', async () => {
+    const runtime = new KimicodeChatRuntime(createMockPlugin());
+    runtime.syncConversationState({ sessionId: 'session-1' });
+    const error = new JsonRpcErrorResponse('session/load', -32603, 'Internal error', {});
+    (runtime as any).connection = {
+      listSessions: jest.fn().mockResolvedValue({ sessions: [{ sessionId: 'session-1' }] }),
+      loadSession: jest.fn().mockRejectedValue(error),
+    };
+
+    await expect((runtime as any).loadSession('session-1', '/vault')).rejects.toBe(error);
+
+    expect(runtime.getSessionId()).toBe('session-1');
+    expect(runtime.consumeSessionInvalidation()).toBe(false);
+  });
+
+  it('soft-fails a session the agent no longer lists, whatever the error said', async () => {
+    const runtime = new KimicodeChatRuntime(createMockPlugin());
+    runtime.syncConversationState({ sessionId: 'session-1' });
+    (runtime as any).connection = {
+      listSessions: jest.fn().mockResolvedValue({ sessions: [{ sessionId: 'session-9' }] }),
+      loadSession: jest.fn().mockRejectedValue(
+        new JsonRpcErrorResponse('session/load', -32603, 'Internal error', {}),
+      ),
+    };
+
+    await expect((runtime as any).loadSession('session-1', '/vault')).resolves.toBe(false);
+  });
+
+  it('restores a dropped session from the conversation so a reload does not replay the transcript', () => {
+    const runtime = new KimicodeChatRuntime(createMockPlugin());
+
+    runtime.syncConversationState({
+      providerState: { sessionDropped: true },
+      sessionId: null,
+    });
+
+    expect(runtime.consumeSessionInvalidation()).toBe(true);
+  });
+
   it('preserves the saved session binding when session/load fails transiently', async () => {
     const runtime = new KimicodeChatRuntime(createMockPlugin());
     runtime.syncConversationState({ sessionId: 'session-1' });
