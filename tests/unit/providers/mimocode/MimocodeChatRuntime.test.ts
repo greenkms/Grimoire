@@ -487,7 +487,7 @@ describe('MimocodeChatRuntime', () => {
     expect(runtime.consumeSessionInvalidation()).toBe(false);
   });
 
-  it('preserves the saved session binding when session/load fails transiently', async () => {
+  it('clears the session binding when session/load fails with any RPC error', async () => {
     const runtime = new MimocodeChatRuntime(createMockPlugin());
     runtime.syncConversationState({ sessionId: 'session-1' });
     const error = new JsonRpcErrorResponse('session/load', -32000, 'Authentication failed');
@@ -495,10 +495,14 @@ describe('MimocodeChatRuntime', () => {
       loadSession: jest.fn().mockRejectedValue(error),
     };
 
-    await expect((runtime as any).loadSession('session-1', '/vault')).rejects.toBe(error);
+    const result = await (runtime as any).loadSession('session-1', '/vault');
+    expect(result).toBe(false);
 
-    expect(runtime.getSessionId()).toBe('session-1');
-    expect(runtime.consumeSessionInvalidation()).toBe(false);
+    // Any session/load RPC error means the persisted binding is unusable —
+    // clear it so the next query creates a fresh session instead of retrying
+    // the stale id and burning context tokens on history bootstrap.
+    expect(runtime.getSessionId()).toBeNull();
+    expect(runtime.consumeSessionInvalidation()).toBe(true);
   });
 
   it('clears a stale database path when switching to a saved session without persisted provider state', async () => {

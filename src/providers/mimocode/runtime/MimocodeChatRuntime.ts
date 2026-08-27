@@ -71,8 +71,8 @@ import {
   extractAcpSessionModelState,
   extractAcpSessionModeState,
   extractAcpSessionThoughtLevelState,
-  isAcpMissingSessionError,
   isAcpRetryableTransportClose,
+  JsonRpcErrorResponse,
   planAcpEnsureReadySessionPhase,
   resolveWorkspacePath,
   runAcpEnsureReadyForQuery,
@@ -1275,10 +1275,17 @@ export class MimocodeChatRuntime implements ChatRuntime {
       });
       return true;
     } catch (error) {
-      if (!isAcpMissingSessionError(error)) {
+      // Any session/load RPC failure means the persisted session is unusable.
+      // Clear the stale binding immediately so callers that invoke loadSession
+      // directly (not only through ensureReady) also get a clean state.
+      // Transport-level errors (closed pipe, spawn failure) are NOT
+      // JsonRpcErrorResponse and still propagate.
+      if (!(error instanceof JsonRpcErrorResponse)) {
         throw error;
       }
       this.lastSessionLoadError = error;
+      this.sessionInvalidated = true;
+      this.clearActiveSession({ preserveDatabasePath: true });
       return false;
     }
   }
