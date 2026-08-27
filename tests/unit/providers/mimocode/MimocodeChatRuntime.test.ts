@@ -273,6 +273,77 @@ describe('MimocodeChatRuntime', () => {
     expect(promptText).not.toContain('I will preserve the prose voice.');
   });
 
+  it('does not replay conversation history when warmup dropped the session before the turn', async () => {
+    const runtime = new MimocodeChatRuntime(createMockPlugin());
+    const prompt = jest.fn().mockResolvedValue({});
+
+    // Tab warmup ran first: the runtime command loader called ensureReady() on
+    // the bound runtime, session/load failed and loadSession()'s catch cleared
+    // the binding. query() therefore starts with no session id at all.
+    runtime.syncConversationState({ sessionId: 'session-1' });
+    (runtime as any).sessionId = null;
+    (runtime as any).loadedSessionId = null;
+    (runtime as any).sessionInvalidated = true;
+
+    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+    (runtime as any).createSession = jest.fn().mockImplementation(async () => {
+      (runtime as any).sessionId = 'session-2';
+      return 'session-2';
+    });
+    (runtime as any).connection = { prompt };
+    (runtime as any).applySelectedMode = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedModel = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedEffort = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).getActiveDisplayModel = jest.fn().mockReturnValue('mimocode:test-model');
+
+    const history = [
+      { id: 'user-previous', role: 'user' as const, content: 'Keep the language rich.', timestamp: 1 },
+      { id: 'assistant-previous', role: 'assistant' as const, content: 'I will preserve the prose voice.', timestamp: 2 },
+    ];
+    for await (const chunk of runtime.query(runtime.prepareTurn({ text: 'Continue the edit.' }), history)) {
+      void chunk;
+    }
+
+    expect(prompt).toHaveBeenCalledTimes(1);
+    const promptText = prompt.mock.calls[0][0].prompt.map((block: { text?: string }) => block.text ?? '').join('\n');
+    expect(promptText).toContain('Continue the edit.');
+    expect(promptText).not.toContain('Keep the language rich.');
+    expect(promptText).not.toContain('I will preserve the prose voice.');
+  });
+
+  it('still bootstraps history on a genuine cold resume that never held a session', async () => {
+    const runtime = new MimocodeChatRuntime(createMockPlugin());
+    const prompt = jest.fn().mockResolvedValue({});
+
+    // A conversation restored from disk with messages but no session id: nothing
+    // was lost here, so the transcript is the only context the agent can get.
+    runtime.syncConversationState({ sessionId: null });
+
+    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+    (runtime as any).createSession = jest.fn().mockImplementation(async () => {
+      (runtime as any).sessionId = 'session-1';
+      return 'session-1';
+    });
+    (runtime as any).connection = { prompt };
+    (runtime as any).applySelectedMode = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedModel = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedEffort = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).getActiveDisplayModel = jest.fn().mockReturnValue('mimocode:test-model');
+
+    const history = [
+      { id: 'user-previous', role: 'user' as const, content: 'Keep the language rich.', timestamp: 1 },
+      { id: 'assistant-previous', role: 'assistant' as const, content: 'I will preserve the prose voice.', timestamp: 2 },
+    ];
+    for await (const chunk of runtime.query(runtime.prepareTurn({ text: 'Continue the edit.' }), history)) {
+      void chunk;
+    }
+
+    expect(prompt).toHaveBeenCalledTimes(1);
+    const promptText = prompt.mock.calls[0][0].prompt.map((block: { text?: string }) => block.text ?? '').join('\n');
+    expect(promptText).toContain('Continue the edit.');
+    expect(promptText).toContain('Keep the language rich.');
+  });
+
   it('recovers when the ACP transport closes during initial readiness', async () => {
     const runtime = new MimocodeChatRuntime(createMockPlugin());
     const prompt = jest.fn().mockResolvedValue({});

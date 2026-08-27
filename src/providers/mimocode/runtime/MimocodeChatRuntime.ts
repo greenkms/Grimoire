@@ -398,7 +398,17 @@ export class MimocodeChatRuntime implements ChatRuntime {
     // whole transcript (observed: ~8.4M plan-usage tokens on the first message
     // after an Obsidian restart, vs ~71k steady state). History bootstrap stays
     // reserved for a genuine cold resume where we never held a session id.
-    let shouldBootstrapHistory = previousMessages.length > 0 && !expectedSessionId;
+    //
+    // `sessionInvalidated` is what tells the two apart, because the session can
+    // be dropped before query() ever runs: tab warmup goes through the runtime
+    // command loader, which calls ensureReady() on the bound runtime, and a
+    // session/load RPC failure there clears sessionId and raises the flag.
+    // Without this guard query() would see a null session id, read it as a cold
+    // resume and replay the transcript anyway - which is the whole cost this is
+    // meant to remove, on the single path most likely to hit it.
+    let shouldBootstrapHistory = previousMessages.length > 0
+      && !expectedSessionId
+      && !this.sessionInvalidated;
 
     const lifecycleGeneration = this.lifecycleGeneration;
     if (!(await this.ensureReadyForQuery(lifecycleGeneration))) {
