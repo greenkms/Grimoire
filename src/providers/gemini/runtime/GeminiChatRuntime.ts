@@ -2,6 +2,7 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
 import { applyOrchestratorModeInstructions } from '../../../core/prompt/mainAgent';
+import { hashCatalogFingerprint } from '../../../core/providers/catalogFingerprint';
 import { ProviderRegistry } from '../../../core/providers/ProviderRegistry';
 import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
 import type { ProviderCapabilities } from '../../../core/providers/types';
@@ -65,6 +66,7 @@ import {
 import { toAcpMcpServers } from '../../acp/mcp/toAcpMcpServers';
 import { geminiPlanUsageStore } from '../app/GeminiPlanUsageStore';
 import { GEMINI_PROVIDER_CAPABILITIES } from '../capabilities';
+import { resolveGeminiModelCatalogFingerprint } from '../modelCatalogFingerprint';
 import {
   decodeGeminiModelId,
   encodeGeminiModelId,
@@ -652,6 +654,16 @@ export class GeminiChatRuntime implements ChatRuntime {
         label: model.name || model.id,
         rawId: model.id,
       }));
+      // Records which configuration produced this list. The model catalog seeds
+      // its refresh cache from the persisted list on the next plugin load, and
+      // without this digest that seed would adopt a CLI swapped while Grimoire
+      // was not running instead of rediscovering under it.
+      updates.discoveredModelsFingerprint = hashCatalogFingerprint(
+        resolveGeminiModelCatalogFingerprint(
+          this.plugin,
+          getGeminiProviderSettings(this.plugin.settings),
+        ),
+      );
       updates.visibleModels = discoveredRawIds;
     }
 

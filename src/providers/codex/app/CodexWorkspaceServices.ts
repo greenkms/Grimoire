@@ -1,3 +1,4 @@
+import { hashCatalogFingerprint } from '../../../core/providers/catalogFingerprint';
 import type { ProviderCommandCatalog } from '../../../core/providers/commands/ProviderCommandCatalog';
 import { ProviderModelCatalogRefreshCache } from '../../../core/providers/ProviderModelCatalogRefreshCache';
 import { ProviderWorkspaceRegistry } from '../../../core/providers/ProviderWorkspaceRegistry';
@@ -14,6 +15,10 @@ import type GrimoirePlugin from '../../../main';
 import { getVaultPath } from '../../../utils/path';
 import { CodexAgentMentionProvider } from '../agents/CodexAgentMentionProvider';
 import { CodexSkillCatalog } from '../commands/CodexSkillCatalog';
+import {
+  buildCodexModelCatalogFingerprint,
+  resolveCodexModelCatalogFingerprint,
+} from '../modelCatalogFingerprint';
 import { updateCodexModelDiscoveryState } from '../modelDiscoveryState';
 import { CodexCliResolver } from '../runtime/CodexCliResolver';
 import { CodexModelListingService } from '../runtime/CodexModelListingService';
@@ -65,7 +70,10 @@ function createCodexModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
         initialEnvironmentVariables,
       ));
     } else {
-      refreshCache.seed(resolveCodexModelCatalogFingerprint(plugin, initialSettings));
+      refreshCache.seed(
+        resolveCodexModelCatalogFingerprint(plugin, initialSettings),
+        initialSettings.discoveredModelsFingerprint,
+      );
     }
   }
   return {
@@ -75,7 +83,12 @@ function createCodexModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
     async refreshModels({ force, settings }) {
       const currentSettings = getCodexProviderSettings(settings);
       const fingerprint = resolveCodexModelCatalogFingerprint(plugin, currentSettings);
-      if (refreshCache.applyDeferredSeed(fingerprint, currentSettings.discoveredModels.length > 0) && !force) {
+      const appliedDeferredSeed = refreshCache.applyDeferredSeed(
+        fingerprint,
+        currentSettings.discoveredModels.length > 0,
+        currentSettings.discoveredModelsFingerprint,
+      );
+      if (appliedDeferredSeed && !force) {
         plugin.recordDebugLog?.({
           data: {
             modelCount: currentSettings.discoveredModels.length,
@@ -130,7 +143,10 @@ function createCodexModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
           return false;
         }
 
-        const changed = updateCodexModelDiscoveryState(settings, { discoveredModels: models });
+        const changed = updateCodexModelDiscoveryState(settings, {
+          discoveredModels: models,
+          discoveredModelsFingerprint: hashCatalogFingerprint(fingerprint),
+        });
         if (changed) {
           await plugin.saveSettings?.();
         }
@@ -162,30 +178,6 @@ function createCodexModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
       });
     },
   };
-}
-
-function buildCodexModelCatalogFingerprint(
-  settings: ReturnType<typeof getCodexProviderSettings>,
-  cliPath: string,
-  environmentVariables: string,
-): string {
-  return JSON.stringify({
-    cliPath,
-    cliPathsByHost: settings.cliPathsByHost,
-    environmentHash: settings.environmentHash,
-    environmentVariables,
-  });
-}
-
-function resolveCodexModelCatalogFingerprint(
-  plugin: GrimoirePlugin,
-  settings: ReturnType<typeof getCodexProviderSettings>,
-): string {
-  return buildCodexModelCatalogFingerprint(
-    settings,
-    plugin.getResolvedProviderCliPath?.('codex') ?? settings.cliPath,
-    plugin.getActiveEnvironmentVariables?.('codex') ?? settings.environmentVariables,
-  );
 }
 
 export async function createCodexWorkspaceServices(

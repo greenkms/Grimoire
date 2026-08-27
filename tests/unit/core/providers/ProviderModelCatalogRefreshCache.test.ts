@@ -1,3 +1,4 @@
+import { hashCatalogFingerprint } from '@/core/providers/catalogFingerprint';
 import { ProviderModelCatalogRefreshCache } from '@/core/providers/ProviderModelCatalogRefreshCache';
 
 describe('ProviderModelCatalogRefreshCache', () => {
@@ -112,6 +113,77 @@ describe('ProviderModelCatalogRefreshCache', () => {
 
     expect(cache.applyDeferredSeed('cli-a:env-a', false)).toBe(false);
     expect(cache.applyDeferredSeed('cli-a:env-a', true)).toBe(false);
+  });
+
+  it('seeds while the recorded fingerprint still describes the current key', async () => {
+    const load = jest.fn().mockResolvedValue(true);
+    const cache = new ProviderModelCatalogRefreshCache(1_000, () => 100);
+
+    expect(cache.seed('cli-a:env-a', hashCatalogFingerprint('cli-a:env-a'))).toBe(true);
+    await expect(cache.refresh({
+      fingerprint: 'cli-a:env-a',
+      hasCachedModels: true,
+      load,
+    })).resolves.toBe(false);
+    expect(load).not.toHaveBeenCalled();
+  });
+
+  it('drops a seed whose recorded fingerprint belongs to a different key', async () => {
+    const load = jest.fn().mockResolvedValue(true);
+    const cache = new ProviderModelCatalogRefreshCache(1_000, () => 100);
+
+    expect(cache.seed('cli-b:env-a', hashCatalogFingerprint('cli-a:env-a'))).toBe(false);
+    await expect(cache.refresh({
+      fingerprint: 'cli-b:env-a',
+      hasCachedModels: true,
+      load,
+    })).resolves.toBe(true);
+    expect(load).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps trusting a seed recorded before the fingerprint existed', async () => {
+    const load = jest.fn().mockResolvedValue(true);
+    const cache = new ProviderModelCatalogRefreshCache(1_000, () => 100);
+
+    expect(cache.seed('cli-a:env-a', '')).toBe(true);
+    await expect(cache.refresh({
+      fingerprint: 'cli-a:env-a',
+      hasCachedModels: true,
+      load,
+    })).resolves.toBe(false);
+    expect(load).not.toHaveBeenCalled();
+  });
+
+  it('applies a deferred seed whose recorded fingerprint matches', async () => {
+    const load = jest.fn().mockResolvedValue(true);
+    const cache = new ProviderModelCatalogRefreshCache(1_000, () => 100);
+    cache.seedOnFirstRefresh(() => 'cli-a:env-a');
+
+    expect(cache.applyDeferredSeed('cli-a:env-a', true, hashCatalogFingerprint('cli-a:env-a')))
+      .toBe(true);
+    await expect(cache.refresh({
+      fingerprint: 'cli-a:env-a',
+      hasCachedModels: true,
+      load,
+    })).resolves.toBe(false);
+    expect(load).not.toHaveBeenCalled();
+  });
+
+  it('drops a deferred seed whose recorded fingerprint belongs to a different key', async () => {
+    const load = jest.fn().mockResolvedValue(true);
+    const cache = new ProviderModelCatalogRefreshCache(1_000, () => 100);
+    cache.seedOnFirstRefresh(() => 'cli-a:env-a');
+
+    expect(cache.applyDeferredSeed('cli-a:env-a', true, hashCatalogFingerprint('cli-a:env-b')))
+      .toBe(false);
+    expect(cache.applyDeferredSeed('cli-a:env-a', true, hashCatalogFingerprint('cli-a:env-a')))
+      .toBe(false);
+    await expect(cache.refresh({
+      fingerprint: 'cli-a:env-a',
+      hasCachedModels: true,
+      load,
+    })).resolves.toBe(true);
+    expect(load).toHaveBeenCalledTimes(1);
   });
 
   it('keeps a settled catalog fresh past the TTL until its fingerprint changes', async () => {
