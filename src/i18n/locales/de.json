@@ -523,7 +523,14 @@
       "queue": {
         "steering": "Wird gesteuert ...",
         "steerNow": "Jetzt steuern",
-        "steerFailed": "Die wartende Codex-Nachricht konnte nicht gesteuert werden. Sie ist weiterhin verfügbar."
+        "steerFailed": "Die wartende Codex-Nachricht konnte nicht gesteuert werden. Sie ist weiterhin verfügbar.",
+        "count": "In Warteschlange: {count}",
+        "resume": "Fortsetzen",
+        "clearAll": "Alle löschen",
+        "editItem": "Nachricht in der Warteschlange bearbeiten",
+        "removeItem": "Nachricht aus der Warteschlange entfernen",
+        "pausedFailed": "Warteschlange angehalten: Der Zug endete mit einem Fehler",
+        "pausedCancelled": "Warteschlange angehalten: Der Zug wurde gestoppt"
       },
       "instructions": {
         "added": "Anweisung zum benutzerdefinierten Systemprompt hinzugefügt",

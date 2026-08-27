@@ -523,7 +523,14 @@
       "queue": {
         "steering": "Direcionando...",
         "steerNow": "Direcionar agora",
-        "steerFailed": "Não foi possível direcionar a mensagem Codex na fila. Ela ainda está disponível."
+        "steerFailed": "Não foi possível direcionar a mensagem Codex na fila. Ela ainda está disponível.",
+        "count": "Na fila: {count}",
+        "resume": "Retomar",
+        "clearAll": "Limpar tudo",
+        "editItem": "Editar mensagem na fila",
+        "removeItem": "Descartar mensagem na fila",
+        "pausedFailed": "Fila retida: o turno terminou com um erro",
+        "pausedCancelled": "Fila retida: o turno foi interrompido"
       },
       "instructions": {
         "added": "Instrução adicionada ao prompt de sistema personalizado",

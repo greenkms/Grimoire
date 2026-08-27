@@ -523,7 +523,14 @@
       "queue": {
         "steering": "Redirigiendo...",
         "steerNow": "Redirigir ahora",
-        "steerFailed": "No se pudo redirigir el mensaje de Codex en cola. Sigue disponible."
+        "steerFailed": "No se pudo redirigir el mensaje de Codex en cola. Sigue disponible.",
+        "count": "En cola: {count}",
+        "resume": "Reanudar",
+        "clearAll": "Borrar todo",
+        "editItem": "Editar mensaje en cola",
+        "removeItem": "Descartar mensaje en cola",
+        "pausedFailed": "Cola detenida: el turno terminó con un error",
+        "pausedCancelled": "Cola detenida: el turno fue interrumpido"
       },
       "instructions": {
         "added": "Instrucción añadida al prompt de sistema personalizado",

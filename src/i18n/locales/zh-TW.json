@@ -523,7 +523,14 @@
       "queue": {
         "steering": "正在引導…",
         "steerNow": "立即引導",
-        "steerFailed": "無法引導佇列中的 Codex 訊息，該訊息仍可使用。"
+        "steerFailed": "無法引導佇列中的 Codex 訊息，該訊息仍可使用。",
+        "count": "佇列中：{count}",
+        "resume": "繼續",
+        "clearAll": "全部清除",
+        "editItem": "編輯佇列中的訊息",
+        "removeItem": "捨棄佇列中的訊息",
+        "pausedFailed": "佇列已暫停：本回合以錯誤結束",
+        "pausedCancelled": "佇列已暫停：本回合已被停止"
       },
       "instructions": {
         "added": "已將指示加入自訂系統提示",

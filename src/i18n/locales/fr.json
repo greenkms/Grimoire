@@ -523,7 +523,14 @@
       "queue": {
         "steering": "Orientation…",
         "steerNow": "Orienter maintenant",
-        "steerFailed": "Impossible d’orienter le message Codex en attente. Il reste disponible."
+        "steerFailed": "Impossible d’orienter le message Codex en attente. Il reste disponible.",
+        "count": "En file d'attente : {count}",
+        "resume": "Reprendre",
+        "clearAll": "Tout effacer",
+        "editItem": "Modifier le message en file d'attente",
+        "removeItem": "Supprimer le message en file d'attente",
+        "pausedFailed": "File d'attente suspendue : le tour s'est terminé par une erreur",
+        "pausedCancelled": "File d'attente suspendue : le tour a été interrompu"
       },
       "instructions": {
         "added": "Instruction ajoutée à l’invite système personnalisée",

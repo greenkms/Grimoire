@@ -1,4 +1,4 @@
-import { Notice, setIcon } from 'obsidian';
+import { Notice } from 'obsidian';
 
 import {
   type BuiltInCommand,
@@ -63,6 +63,7 @@ import type { FileContextManager } from '../ui/FileContext';
 import type { ImageContextManager } from '../ui/ImageContext';
 import type { AddExternalContextResult, McpServerSelector } from '../ui/InputToolbar';
 import type { InstructionModeManager } from '../ui/InstructionModeManager';
+import { renderQueueIndicator } from '../ui/QueueIndicator';
 import type { StatusPanel } from '../ui/StatusPanel';
 import { buildAssistantResponseMetadata } from '../utils/assistantResponseMetadata';
 import type { BrowserSelectionController } from './BrowserSelectionController';
@@ -757,63 +758,31 @@ export class InputController {
     const indicatorEl = state.queueIndicatorEl;
     if (!indicatorEl) return;
 
-    indicatorEl.empty();
+    renderQueueIndicator({
+      containerEl: indicatorEl,
+      queue: state.queue,
+      pendingSteerMessage: this.pendingSteerMessage,
+      canSteer: this.canSteerQueuedMessage(),
+      steerInFlight: this.steerInFlight,
+      callbacks: {
+        onSteerHead: () => void this.steerQueuedMessage(),
+        onEdit: (index) => this.withdrawQueuedMessageToComposer(index),
+        onRemove: (index) => this.removeQueuedMessage(index),
+        onResume: () => this.resumeQueue(),
+        onClearAll: () => this.clearQueuedMessage(),
+      },
+    });
+  }
 
-    const visibleQueuedMessage = state.queue.items[0] ?? this.pendingSteerMessage;
-    if (visibleQueuedMessage) {
-      const isPendingSteerOnly = state.queue.size === 0 && !!this.pendingSteerMessage;
-      indicatorEl.createSpan({
-        cls: 'grimoire-queue-indicator-text',
-        text: `${isPendingSteerOnly ? '⌙ Steering: ' : '⌙ Queued: '}${this.getQueuedMessageDisplay(visibleQueuedMessage)}`,
-      });
+  private removeQueuedMessage(index: number): void {
+    this.deps.state.queue.remove(index);
+    this.updateQueueIndicator();
+  }
 
-      if (state.queue.size > 0) {
-        const actionsEl = indicatorEl.createDiv({ cls: 'grimoire-queue-indicator-actions' });
-
-        if (this.canSteerQueuedMessage()) {
-          const steerButton = actionsEl.createEl('button', {
-            cls: 'grimoire-queue-indicator-action',
-            text: this.steerInFlight ? t('chat.ui.queue.steering') : t('chat.ui.queue.steerNow'),
-          });
-          steerButton.setAttribute('type', 'button');
-          if (this.steerInFlight) {
-            steerButton.setAttribute('disabled', 'true');
-          } else {
-            steerButton.addEventListener('click', (event) => {
-              event.stopPropagation();
-              void this.steerQueuedMessage();
-            });
-          }
-        }
-
-        const editButton = this.createQueueIconButton(
-          actionsEl,
-          'pencil',
-          'Edit queued message',
-        );
-        editButton.addEventListener('click', (event) => {
-          event.stopPropagation();
-          this.withdrawQueuedMessageToComposer();
-        });
-
-        const discardButton = this.createQueueIconButton(
-          actionsEl,
-          'trash-2',
-          'Discard queued message',
-        );
-        discardButton.addEventListener('click', (event) => {
-          event.stopPropagation();
-          this.clearQueuedMessage();
-        });
-      }
-
-      indicatorEl.addClass('grimoire-visible-flex');
-      indicatorEl.removeClass('grimoire-hidden');
-      return;
-    }
-
-    indicatorEl.removeClass('grimoire-visible-flex');
-    indicatorEl.addClass('grimoire-hidden');
+  private resumeQueue(): void {
+    this.deps.state.queue.resume();
+    this.updateQueueIndicator();
+    this.processQueuedMessage();
   }
 
   /** Discard: the user asked for this text to go away, so it goes away. */
@@ -844,9 +813,9 @@ export class InputController {
     this.updateQueueIndicator();
   }
 
-  withdrawQueuedMessageToComposer(): void {
+  withdrawQueuedMessageToComposer(index = 0): void {
     const { state } = this.deps;
-    const queuedMessage = state.queue.remove(0);
+    const queuedMessage = state.queue.remove(index);
     if (!queuedMessage) return;
 
     this.restoreMessageToInput(queuedMessage, { mergeWithComposer: true });
@@ -1148,41 +1117,6 @@ export class InputController {
     }
 
     return requestedModel ? { model: requestedModel } : undefined;
-  }
-
-  private getQueuedMessageDisplay(message: QueuedMessage | null): string {
-    if (!message) {
-      return '';
-    }
-
-    const rawContent = message.content.trim();
-    const preview = rawContent.length > 40
-      ? rawContent.slice(0, 40) + '...'
-      : rawContent;
-    const hasImages = (message.images?.length ?? 0) > 0;
-
-    if (hasImages) {
-      return preview ? `${preview} [images]` : '[images]';
-    }
-
-    return preview;
-  }
-
-  private createQueueIconButton(
-    parentEl: HTMLElement,
-    icon: string,
-    label: string,
-  ): HTMLElement {
-    const button = parentEl.createEl('button', {
-      cls: 'grimoire-queue-indicator-icon-action',
-      attr: {
-        'aria-label': label,
-        title: label,
-        type: 'button',
-      },
-    });
-    setIcon(button, icon);
-    return button;
   }
 
   private canSteerQueuedMessage(): boolean {
