@@ -61,6 +61,24 @@ describe('MessageQueue ordering', () => {
     expect(queue.remove(-1)).toBeNull();
   });
 
+  it('inserts at a specific position, shifting later entries', () => {
+    const queue = new MessageQueue();
+    queue.enqueue(createMessage('a'));
+    queue.enqueue(createMessage('b'));
+    queue.enqueue(createMessage('c'));
+
+    queue.insertAt(1, createMessage('X'));
+    expect(queue.items.map(item => item.content)).toEqual(['a', 'X', 'b', 'c']);
+
+    // insertAt at the end is equivalent to enqueue
+    queue.insertAt(99, createMessage('Z'));
+    expect(queue.items.map(item => item.content)).toEqual(['a', 'X', 'b', 'c', 'Z']);
+
+    // insertAt at 0 prepends
+    queue.insertAt(0, createMessage('W'));
+    expect(queue.items.map(item => item.content)).toEqual(['W', 'a', 'X', 'b', 'c', 'Z']);
+  });
+
   it('empties itself through takeAll', () => {
     const queue = new MessageQueue();
     queue.enqueue(createMessage('a'));

@@ -56,6 +56,15 @@ export class MessageQueue {
     return message ?? null;
   }
 
+  /**
+   * Insert a message at a specific position, shifting subsequent entries.
+   * Clamps to valid range: 0..length (append if index >= length).
+   */
+  insertAt(index: number, message: QueuedMessage): void {
+    const clamped = Math.max(0, Math.min(index, this.messages.length));
+    this.messages.splice(clamped, 0, message);
+  }
+
   takeAll(): QueuedMessage[] {
     const messages = this.messages;
     this.messages = [];

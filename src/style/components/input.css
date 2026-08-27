@@ -498,6 +498,12 @@ body.grimoire-dragging-ns {
   padding: 0;
 }
 
+/* Thin separator line between the queue list and the composer input */
+.grimoire-input-queue-row.grimoire-visible-flex + .grimoire-input-wrapper {
+  border-top: 1px solid var(--grimoire-line-2);
+  padding-top: 8px;
+}
+
 .grimoire-container--chat-window .grimoire-input-nav-row {
   padding: 0 0 6px;
 }

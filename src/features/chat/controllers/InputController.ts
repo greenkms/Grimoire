@@ -208,6 +208,8 @@ export class InputController {
   private inputContainerHideDepth = 0;
   private steerInFlight = false;
   private pendingSteerMessage: QueuedMessage | null = null;
+  /** Index at which to re-insert a message being edited, or null if not editing. */
+  private pendingEditIndex: number | null = null;
   private activeStreamingAssistantMessage: ChatMessage | null = null;
   private pendingProviderUserMessages: Array<{
     displayContent: string;
@@ -359,9 +361,13 @@ export class InputController {
       const { displayContent, turnRequest } = queuedTurnSubmission instanceof Promise
         ? await queuedTurnSubmission
         : queuedTurnSubmission;
-      state.queue.enqueue(
-        this.createQueuedMessage(displayContent, turnRequest),
-      );
+      const newMessage = this.createQueuedMessage(displayContent, turnRequest);
+      if (this.pendingEditIndex !== null) {
+        state.queue.insertAt(this.pendingEditIndex, newMessage);
+        this.pendingEditIndex = null;
+      } else {
+        state.queue.enqueue(newMessage);
+      }
       plugin.recordDebugLog?.({
         data: {
           hasImages,
@@ -776,6 +782,11 @@ export class InputController {
 
   private removeQueuedMessage(index: number): void {
     this.deps.state.queue.remove(index);
+    if (this.pendingEditIndex === index) {
+      this.pendingEditIndex = null;
+    } else if (this.pendingEditIndex !== null && index < this.pendingEditIndex) {
+      this.pendingEditIndex--;
+    }
     this.updateQueueIndicator();
   }
 
@@ -789,6 +800,7 @@ export class InputController {
   clearQueuedMessage(): void {
     const { state } = this.deps;
     state.queue.takeAll();
+    this.pendingEditIndex = null;
     this.updateQueueIndicator();
   }
 
@@ -801,6 +813,7 @@ export class InputController {
   drainQueueToComposer(): void {
     const { state } = this.deps;
     const remaining = state.queue.takeAll();
+    this.pendingEditIndex = null;
     if (remaining.length > 0) {
       const merged = remaining
         .map(message => this.toQueuedChatTurn(message))
@@ -815,6 +828,7 @@ export class InputController {
 
   withdrawQueuedMessageToComposer(index = 0): void {
     const { state } = this.deps;
+    this.pendingEditIndex = index;
     const queuedMessage = state.queue.remove(index);
     if (!queuedMessage) return;
 
