@@ -48,6 +48,7 @@ import { splitContextPaths } from '../../../utils/externalContext';
 import { appendMarkdownSnippet } from '../../../utils/markdown';
 import { COMPLETION_FLAVOR_WORDS } from '../constants';
 import { buildImageGenerationPrompt } from '../imageGeneration';
+import type { QueuePauseReason } from '../queue/MessageQueue';
 import { InlineAskUserQuestion } from '../rendering/InlineAskUserQuestion';
 import { InlineExitPlanMode } from '../rendering/InlineExitPlanMode';
 import { InlinePermissionRequest } from '../rendering/InlinePermissionRequest';
@@ -357,8 +358,7 @@ export class InputController {
       const { displayContent, turnRequest } = queuedTurnSubmission instanceof Promise
         ? await queuedTurnSubmission
         : queuedTurnSubmission;
-      state.queuedMessage = this.mergeQueuedMessages(
-        state.queuedMessage,
+      state.queue.enqueue(
         this.createQueuedMessage(displayContent, turnRequest),
       );
       plugin.recordDebugLog?.({
@@ -505,6 +505,7 @@ export class InputController {
 
     let wasInterrupted = false;
     let wasInvalidated = false;
+    let turnFailed = false;
     let didEnqueueToSdk = false;
     let planCompleted = false;
 
@@ -594,6 +595,7 @@ export class InputController {
         level: 'warn',
         scope: 'chat',
       });
+      turnFailed = true;
       const rawErrorMessage = error instanceof Error ? error.message : 'Unknown error';
       const providerId = this.getActiveProviderId();
       const errorMsg = normalizeProviderError(
@@ -637,6 +639,13 @@ export class InputController {
       // Skip remaining cleanup if stream was invalidated (tab closed or conversation switched)
       if (!wasInvalidated && state.streamGeneration === streamGeneration) {
         const didCancelThisTurn = wasInterrupted || state.cancelRequested;
+        // A turn that died takes the queue off the rails with it: the follow-ups
+        // were written for a conversation that did not happen. Holding them is
+        // what stops an expired login or a dead CLI from spending the whole
+        // queue against nothing.
+        if (turnFailed || didCancelThisTurn) {
+          this.pauseQueue(turnFailed ? 'failed' : 'cancelled');
+        }
         if (didCancelThisTurn) {
           await streamController.appendText('\n\n<span class="grimoire-interrupted">Interrupted</span> <span class="grimoire-interrupted-hint">· What should Grimoire do instead?</span>');
         }
@@ -750,15 +759,15 @@ export class InputController {
 
     indicatorEl.empty();
 
-    const visibleQueuedMessage = state.queuedMessage ?? this.pendingSteerMessage;
+    const visibleQueuedMessage = state.queue.items[0] ?? this.pendingSteerMessage;
     if (visibleQueuedMessage) {
-      const isPendingSteerOnly = !state.queuedMessage && !!this.pendingSteerMessage;
+      const isPendingSteerOnly = state.queue.size === 0 && !!this.pendingSteerMessage;
       indicatorEl.createSpan({
         cls: 'grimoire-queue-indicator-text',
         text: `${isPendingSteerOnly ? '⌙ Steering: ' : '⌙ Queued: '}${this.getQueuedMessageDisplay(visibleQueuedMessage)}`,
       });
 
-      if (state.queuedMessage) {
+      if (state.queue.size > 0) {
         const actionsEl = indicatorEl.createDiv({ cls: 'grimoire-queue-indicator-actions' });
 
         if (this.canSteerQueuedMessage()) {
@@ -807,18 +816,39 @@ export class InputController {
     indicatorEl.addClass('grimoire-hidden');
   }
 
+  /** Discard: the user asked for this text to go away, so it goes away. */
   clearQueuedMessage(): void {
     const { state } = this.deps;
-    state.queuedMessage = null;
+    state.queue.takeAll();
+    this.updateQueueIndicator();
+  }
+
+  /**
+   * Hand the queue back to the composer. Leaving a conversation empties the
+   * queue, but the text in it was typed by hand and is not the plugin's to
+   * throw away. Merging is the right shape here and only here: the composer is
+   * one field, so one field is what the leftovers have to fit into.
+   */
+  drainQueueToComposer(): void {
+    const { state } = this.deps;
+    const remaining = state.queue.takeAll();
+    if (remaining.length > 0) {
+      const merged = remaining
+        .map(message => this.toQueuedChatTurn(message))
+        .reduce((left, right) => mergeQueuedChatTurns(left, right));
+      this.restoreMessageToInput(
+        this.createQueuedMessage(merged.displayContent, merged.request),
+        { mergeWithComposer: true },
+      );
+    }
     this.updateQueueIndicator();
   }
 
   withdrawQueuedMessageToComposer(): void {
     const { state } = this.deps;
-    if (!state.queuedMessage) return;
+    const queuedMessage = state.queue.remove(0);
+    if (!queuedMessage) return;
 
-    const queuedMessage = this.cloneQueuedMessage(state.queuedMessage);
-    state.queuedMessage = null;
     this.restoreMessageToInput(queuedMessage, { mergeWithComposer: true });
     this.updateQueueIndicator();
   }
@@ -848,24 +878,29 @@ export class InputController {
     inputEl.focus();
   }
 
-  private restorePendingMessagesToInput(): void {
-    const { state } = this.deps;
-    const combinedMessage = this.mergePendingMessages(
-      this.pendingSteerMessage,
-      state.queuedMessage,
-    );
-    this.restoreMessageToInput(combinedMessage, { mergeWithComposer: true });
-    state.queuedMessage = null;
-    this.clearPendingSteerState();
-    this.updateQueueIndicator();
+  private pauseQueue(reason: QueuePauseReason): void {
+    const { plugin, state } = this.deps;
+    if (state.queue.size === 0) return;
+
+    state.queue.pause(reason);
+    plugin.recordDebugLog?.({
+      data: {
+        providerId: this.getActiveProviderId(),
+        queueSize: state.queue.size,
+        reason,
+      },
+      event: 'chat.queue.paused',
+      level: 'debug',
+      scope: 'chat',
+    });
   }
 
   private processQueuedMessage(): void {
     const { state } = this.deps;
-    if (!state.queuedMessage) return;
+    if (state.queue.isPaused || state.queue.size === 0) return;
 
-    const queuedMessage = this.cloneQueuedMessage(state.queuedMessage);
-    state.queuedMessage = null;
+    const queuedMessage = state.queue.dequeue();
+    if (!queuedMessage) return;
     this.updateQueueIndicator();
     const streamGeneration = state.streamGeneration;
 
@@ -1199,25 +1234,6 @@ export class InputController {
     };
   }
 
-  private mergePendingMessages(
-    first: QueuedMessage | null,
-    second: QueuedMessage | null,
-  ): QueuedMessage | null {
-    if (first && second) {
-      return this.mergeQueuedMessages(first, second);
-    }
-
-    if (first) {
-      return this.cloneQueuedMessage(first);
-    }
-
-    if (second) {
-      return this.cloneQueuedMessage(second);
-    }
-
-    return null;
-  }
-
   private clearPendingSteerState(): void {
     this.pendingSteerMessage = null;
     this.steerInFlight = false;
@@ -1231,25 +1247,10 @@ export class InputController {
     const { state } = this.deps;
     const pendingSteerMessage = this.cloneQueuedMessage(this.pendingSteerMessage);
     this.clearPendingSteerState();
-    state.queuedMessage = state.queuedMessage
-      ? this.mergeQueuedMessages(pendingSteerMessage, state.queuedMessage)
-      : pendingSteerMessage;
+    // Back to the head, not merged into whatever is next: a steer that did not
+    // land is still its own message and still has its own note behind it.
+    state.queue.unshift(pendingSteerMessage);
     this.updateQueueIndicator();
-  }
-
-  private mergeQueuedMessages(
-    existing: QueuedMessage | null,
-    incoming: QueuedMessage,
-  ): QueuedMessage {
-    if (!existing) {
-      return this.cloneQueuedMessage(incoming);
-    }
-
-    const mergedTurn = mergeQueuedChatTurns(
-      this.toQueuedChatTurn(existing),
-      this.toQueuedChatTurn(incoming),
-    );
-    return this.createQueuedMessage(mergedTurn.displayContent, mergedTurn.request);
   }
 
   private async steerQueuedMessage(): Promise<void> {
@@ -1259,12 +1260,12 @@ export class InputController {
 
     const { state } = this.deps;
     const agentService = this.getAgentService();
-    if (!state.queuedMessage || !this.canSteerQueuedMessage() || !agentService?.steer) {
+    if (state.queue.size === 0 || !this.canSteerQueuedMessage() || !agentService?.steer) {
       return;
     }
 
-    const queuedMessage = this.cloneQueuedMessage(state.queuedMessage);
-    state.queuedMessage = null;
+    const queuedMessage = state.queue.dequeue();
+    if (!queuedMessage) return;
     this.pendingSteerMessage = queuedMessage;
     this.steerInFlight = true;
     this.updateQueueIndicator();
@@ -1310,9 +1311,7 @@ export class InputController {
     }
 
     if (state.isStreaming) {
-      state.queuedMessage = state.queuedMessage
-        ? this.mergeQueuedMessages(message, state.queuedMessage)
-        : message;
+      state.queue.unshift(message);
       this.updateQueueIndicator();
       return;
     }
@@ -1567,8 +1566,14 @@ export class InputController {
     const { state, streamController } = this.deps;
     if (!state.isStreaming) return;
     state.cancelRequested = true;
-    // Restore queued message to input instead of discarding
-    this.restorePendingMessagesToInput();
+    // The queue survives a cancel: the user stopped this turn, not the work
+    // they lined up behind it. Pausing is what keeps the rest from firing
+    // against whatever state the interruption left behind, and a steer that
+    // was handed over but never landed belongs back at the head with its own
+    // snapshot intact.
+    this.restorePendingSteerMessageToQueue();
+    this.pauseQueue('cancelled');
+    this.updateQueueIndicator();
     this.getAgentService()?.cancel();
     streamController.hideThinkingIndicator();
     streamController.stopTurnSilenceIndicator();
