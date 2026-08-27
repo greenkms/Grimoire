@@ -1,7 +1,9 @@
 import * as fs from 'node:fs/promises';
 
+import { hashCatalogFingerprint } from '@/core/providers/catalogFingerprint';
 import type { StreamChunk } from '@/core/types';
 import type { AcpContentBlock } from '@/providers/acp';
+import { resolveGeminiModelCatalogFingerprint } from '@/providers/gemini/modelCatalogFingerprint';
 import { GeminiChatRuntime } from '@/providers/gemini/runtime/GeminiChatRuntime';
 import { getGeminiProviderSettings, updateGeminiProviderSettings } from '@/providers/gemini/settings';
 
@@ -86,6 +88,24 @@ describe('GeminiChatRuntime', () => {
       'gemini-2.5-pro',
       'gemini-2.5-flash',
     ]);
+  });
+
+  it('records the fingerprint of the discovery that produced the model list', () => {
+    const plugin = createMockPlugin();
+    const runtime = new GeminiChatRuntime(plugin);
+
+    (runtime as any).syncSessionDiscovery({
+      models: {
+        availableModels: [{ id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' }],
+        currentModelId: 'gemini-2.5-pro',
+      },
+    });
+
+    expect(getGeminiProviderSettings(plugin.settings).discoveredModelsFingerprint).toBe(
+      hashCatalogFingerprint(
+        resolveGeminiModelCatalogFingerprint(plugin, getGeminiProviderSettings(plugin.settings)),
+      ),
+    );
   });
 
   it('replaces a stale visible model cache with the latest ACP catalog', () => {

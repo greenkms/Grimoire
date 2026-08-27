@@ -53,20 +53,84 @@ describe('createKimicodeWorkspaceServices', () => {
     ]);
   });
 
-  it('uses cached Kimi Code discovered models without warming the runtime again', async () => {
+  it('boots the runtime once and then reuses the discovered models for the rest of the process', async () => {
     const settings: Record<string, unknown> = {};
-    updateKimicodeProviderSettings(settings, {
-      discoveredModels: [{ label: 'OpenAI/GPT-5.6', rawId: 'openai/gpt-5.6' }],
-      enabled: true,
-      visibleModels: ['openai/gpt-5.6'],
-    });
+    updateKimicodeProviderSettings(settings, { enabled: true });
     const plugin = {
       recordDebugLog: jest.fn(),
       settings,
       saveSettings: jest.fn().mockResolvedValue(undefined),
     };
-    const ensureReadySpy = jest.spyOn(KimicodeChatRuntime.prototype, 'ensureReady');
-    const cleanupSpy = jest.spyOn(KimicodeChatRuntime.prototype, 'cleanup');
+    const ensureReadySpy = jest
+      .spyOn(KimicodeChatRuntime.prototype, 'ensureReady')
+      .mockImplementation(async function ensureReady(this: KimicodeChatRuntime) {
+        updateKimicodeProviderSettings((this as any).plugin.settings, {
+          discoveredModels: [{ label: 'OpenAI/GPT-5.6', rawId: 'openai/gpt-5.6' }],
+          visibleModels: ['openai/gpt-5.6'],
+        });
+        return true;
+      });
+    const cleanupSpy = jest.spyOn(KimicodeChatRuntime.prototype, 'cleanup').mockImplementation(() => undefined);
+    const vaultAdapter = {
+      delete: jest.fn(),
+      ensureFolder: jest.fn(),
+      exists: jest.fn().mockResolvedValue(false),
+      listFiles: jest.fn().mockResolvedValue([]),
+      read: jest.fn(),
+      write: jest.fn(),
+    };
+
+    const services = await createKimicodeWorkspaceServices(plugin as any, vaultAdapter as any);
+    const discovered = await services.modelCatalog?.refreshModels({
+      plugin: plugin as any,
+      settings,
+    });
+    const reused = await services.modelCatalog?.refreshModels({
+      plugin: plugin as any,
+      settings,
+    });
+
+    expect(discovered).toBe(true);
+    expect(reused).toBe(false);
+    expect(ensureReadySpy).toHaveBeenCalledTimes(1);
+    expect(cleanupSpy).toHaveBeenCalledTimes(1);
+    expect(plugin.recordDebugLog).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        modelCount: 1,
+        providerId: 'kimicode',
+        reason: 'cache_fresh',
+      }),
+      event: 'modelCatalog.refresh.skipped',
+      level: 'debug',
+      scope: 'provider.kimicode',
+    }));
+  });
+
+  it('rediscovers a list carried over from a legacy persisted field instead of pinning it', async () => {
+    const settings: Record<string, unknown> = {
+      providerConfigs: {
+        kimicode: {
+          discoveredModels: [{ label: 'OpenAI/GPT-5.5', rawId: 'openai/gpt-5.5' }],
+          enabled: true,
+          visibleModels: ['openai/gpt-5.5'],
+        },
+      },
+    };
+    const plugin = {
+      recordDebugLog: jest.fn(),
+      settings,
+      saveSettings: jest.fn().mockResolvedValue(undefined),
+    };
+    const ensureReadySpy = jest
+      .spyOn(KimicodeChatRuntime.prototype, 'ensureReady')
+      .mockImplementation(async function ensureReady(this: KimicodeChatRuntime) {
+        updateKimicodeProviderSettings((this as any).plugin.settings, {
+          discoveredModels: [{ label: 'OpenAI/GPT-5.6', rawId: 'openai/gpt-5.6' }],
+          visibleModels: ['openai/gpt-5.6'],
+        });
+        return true;
+      });
+    jest.spyOn(KimicodeChatRuntime.prototype, 'cleanup').mockImplementation(() => undefined);
     const vaultAdapter = {
       delete: jest.fn(),
       ensureFolder: jest.fn(),
@@ -82,18 +146,10 @@ describe('createKimicodeWorkspaceServices', () => {
       settings,
     });
 
-    expect(changed).toBe(false);
-    expect(ensureReadySpy).not.toHaveBeenCalled();
-    expect(cleanupSpy).not.toHaveBeenCalled();
-    expect(plugin.recordDebugLog).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({
-        modelCount: 1,
-        providerId: 'kimicode',
-        reason: 'cache_fresh',
-      }),
-      event: 'modelCatalog.refresh.skipped',
-      level: 'debug',
-      scope: 'provider.kimicode',
-    }));
+    expect(changed).toBe(true);
+    expect(ensureReadySpy).toHaveBeenCalledTimes(1);
+    expect(getKimicodeProviderSettings(settings).discoveredModels).toEqual([
+      { label: 'OpenAI/GPT-5.6', rawId: 'openai/gpt-5.6' },
+    ]);
   });
 });

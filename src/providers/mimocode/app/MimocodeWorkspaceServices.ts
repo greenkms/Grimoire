@@ -41,11 +41,12 @@ const mimocodeTabWarmupPolicy: ProviderTabWarmupPolicy = {
 const MODEL_CATALOG_CACHE_TTL_MS = 10 * 60 * 1000;
 
 function createMimocodeModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
-  const initialSettings = getMimocodeProviderSettings(plugin.settings ?? {});
+  // Not seeded from the persisted settings. The discovered list lives in memory
+  // only, so anything present at construction came from a legacy persisted field
+  // or an earlier runtime in this process - neither discovered under a key this
+  // cache watched, and a seed would pin it for the rest of the process. The
+  // first refresh boots the runtime once and every later one reuses it.
   const refreshCache = new ProviderModelCatalogRefreshCache(MODEL_CATALOG_CACHE_TTL_MS);
-  if (initialSettings.discoveredModels.length > 0) {
-    refreshCache.seed(buildMimocodeModelCatalogCacheKey(initialSettings));
-  }
 
   return {
     isAvailable(settings) {

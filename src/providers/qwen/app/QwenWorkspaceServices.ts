@@ -13,6 +13,10 @@ import type { VaultFileAdapter } from '../../../core/storage/VaultFileAdapter';
 import type GrimoirePlugin from '../../../main';
 import { AcpMcpStorage } from '../../acp/mcp/AcpMcpStorage';
 import { QwenCommandCatalog } from '../commands/QwenCommandCatalog';
+import {
+  buildQwenModelCatalogFingerprint,
+  resolveQwenModelCatalogFingerprint,
+} from '../modelCatalogFingerprint';
 import { QwenChatRuntime } from '../runtime/QwenChatRuntime';
 import { QwenCliResolver } from '../runtime/QwenCliResolver';
 import { getQwenProviderSettings } from '../settings';
@@ -41,29 +45,6 @@ const qwenTabWarmupPolicy: ProviderTabWarmupPolicy = {
 
 const MODEL_CATALOG_CACHE_TTL_MS = 10 * 60 * 1000;
 
-function buildQwenModelCatalogFingerprint(
-  settings: ReturnType<typeof getQwenProviderSettings>,
-  cliPath: string,
-  environmentVariables: string,
-): string {
-  return JSON.stringify({
-    cliPath,
-    cliPathsByHost: settings.cliPathsByHost,
-    environmentVariables,
-  });
-}
-
-function resolveQwenModelCatalogFingerprint(
-  plugin: GrimoirePlugin,
-  settings: ReturnType<typeof getQwenProviderSettings>,
-): string {
-  return buildQwenModelCatalogFingerprint(
-    settings,
-    plugin.getResolvedProviderCliPath?.('qwen') ?? settings.cliPath,
-    plugin.getActiveEnvironmentVariables?.('qwen') ?? settings.environmentVariables,
-  );
-}
-
 function createQwenModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
   const initialSettings = getQwenProviderSettings(plugin.settings ?? {});
   const refreshCache = new ProviderModelCatalogRefreshCache(MODEL_CATALOG_CACHE_TTL_MS);
@@ -84,7 +65,10 @@ function createQwenModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
         initialEnvironmentVariables,
       ));
     } else {
-      refreshCache.seed(resolveQwenModelCatalogFingerprint(plugin, initialSettings));
+      refreshCache.seed(
+        resolveQwenModelCatalogFingerprint(plugin, initialSettings),
+        initialSettings.discoveredModelsFingerprint,
+      );
     }
   }
 
@@ -98,7 +82,12 @@ function createQwenModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
       const currentSettings = getQwenProviderSettings(settings);
       const fingerprint = resolveQwenModelCatalogFingerprint(plugin, currentSettings);
       const hasCachedModels = currentSettings.discoveredModels.length > 0;
-      if (refreshCache.applyDeferredSeed(fingerprint, hasCachedModels) && !force) {
+      const appliedDeferredSeed = refreshCache.applyDeferredSeed(
+        fingerprint,
+        hasCachedModels,
+        currentSettings.discoveredModelsFingerprint,
+      );
+      if (appliedDeferredSeed && !force) {
         plugin.recordDebugLog?.({
           data: {
             modelCount: currentSettings.discoveredModels.length,

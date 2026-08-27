@@ -1,9 +1,7 @@
+import { hashCatalogFingerprint } from '../../../core/providers/catalogFingerprint';
 import type { SlashCommand } from '../../../core/types';
 import type GrimoirePlugin from '../../../main';
-import {
-  buildClaudeCatalogCacheKey,
-  hashClaudeCatalogCacheKey,
-} from '../cli/claudeCatalogCache';
+import { buildClaudeCatalogCacheKey } from '../cli/claudeCatalogCache';
 import {
   type ClaudeProviderSettings,
   getClaudeProviderSettings,
@@ -57,7 +55,7 @@ export function createClaudeRuntimeCommandCacheStore(
     },
     currentFingerprint() {
       const cliPath = plugin.getResolvedProviderCliPath?.('claude') ?? '';
-      return hashClaudeCatalogCacheKey(buildClaudeCatalogCacheKey(readSettings(), cliPath));
+      return hashCatalogFingerprint(buildClaudeCatalogCacheKey(readSettings(), cliPath));
     },
     read() {
       const settings = readSettings();

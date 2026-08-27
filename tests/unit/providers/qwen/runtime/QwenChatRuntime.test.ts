@@ -1,8 +1,10 @@
 import * as fs from 'node:fs/promises';
 
+import { hashCatalogFingerprint } from '@/core/providers/catalogFingerprint';
 import { ProviderWorkspaceRegistry } from '@/core/providers/ProviderWorkspaceRegistry';
 import type { StreamChunk } from '@/core/types';
 import type { AcpContentBlock } from '@/providers/acp';
+import { resolveQwenModelCatalogFingerprint } from '@/providers/qwen/modelCatalogFingerprint';
 import { QwenChatRuntime } from '@/providers/qwen/runtime/QwenChatRuntime';
 import { getQwenProviderSettings, updateQwenProviderSettings } from '@/providers/qwen/settings';
 
@@ -96,6 +98,24 @@ describe('QwenChatRuntime', () => {
       'qwen-2.5-pro',
       'qwen-2.5-flash',
     ]);
+  });
+
+  it('records the fingerprint of the discovery that produced the model list', () => {
+    const plugin = createMockPlugin();
+    const runtime = new QwenChatRuntime(plugin);
+
+    (runtime as any).syncSessionDiscovery({
+      models: {
+        availableModels: [{ id: 'qwen-2.5-pro', name: 'Qwen 2.5 Pro' }],
+        currentModelId: 'qwen-2.5-pro',
+      },
+    });
+
+    expect(getQwenProviderSettings(plugin.settings).discoveredModelsFingerprint).toBe(
+      hashCatalogFingerprint(
+        resolveQwenModelCatalogFingerprint(plugin, getQwenProviderSettings(plugin.settings)),
+      ),
+    );
   });
 
   it('replaces a stale visible model cache with the latest ACP catalog', () => {

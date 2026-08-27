@@ -1,3 +1,5 @@
+import { seedFingerprintMatches } from './catalogFingerprint';
+
 export interface ProviderModelCatalogRefreshRequest {
   fingerprint: string;
   force?: boolean;
@@ -20,6 +22,15 @@ interface PendingRefresh {
  * billable session. The TTL only paces retries after an attempt that found
  * nothing, so a missing or unauthenticated CLI is not re-spawned on every
  * dropdown open either.
+ *
+ * A seed speaks for a catalog this cache did not watch being discovered. Since
+ * a settled catalog never expires, a CLI or environment swapped while the
+ * plugin was not running would be adopted by the seed rather than detected,
+ * pinning the previous configuration's models for good. Callers that persist a
+ * digest of the key their list was discovered under pass it to `seed` and
+ * `applyDeferredSeed`, which turns that assumption into a check. Callers that
+ * record nothing keep the old behaviour rather than paying a CLI spawn to
+ * migrate.
  */
 export class ProviderModelCatalogRefreshCache {
   private freshFingerprint: string | null = null;
@@ -33,10 +44,22 @@ export class ProviderModelCatalogRefreshCache {
     private readonly now: () => number = () => Date.now(),
   ) {}
 
-  seed(fingerprint: string): void {
+  /**
+   * Marks a persisted catalog fresh under `fingerprint`.
+   *
+   * `recordedFingerprint` is the digest the catalog was discovered under, when
+   * the caller persists one. A digest that no longer describes `fingerprint`
+   * leaves the cache untouched and the catalog is rediscovered.
+   */
+  seed(fingerprint: string, recordedFingerprint?: string): boolean {
+    if (!seedFingerprintMatches(recordedFingerprint, fingerprint)) {
+      return false;
+    }
+
     this.refreshGeneration += 1;
     this.freshFingerprint = fingerprint;
     this.lastSuccessfulRefreshAt = this.now();
+    return true;
   }
 
   /**
@@ -61,7 +84,11 @@ export class ProviderModelCatalogRefreshCache {
    * window must still reach discovery, so the seed is dropped instead of being
    * filed under the new fingerprint.
    */
-  applyDeferredSeed(fingerprint: string, hasCachedModels: boolean): boolean {
+  applyDeferredSeed(
+    fingerprint: string,
+    hasCachedModels: boolean,
+    recordedFingerprint?: string,
+  ): boolean {
     const buildSeedFingerprint = this.deferredSeed;
     if (!buildSeedFingerprint) {
       return false;
@@ -72,8 +99,7 @@ export class ProviderModelCatalogRefreshCache {
       return false;
     }
 
-    this.seed(fingerprint);
-    return true;
+    return this.seed(fingerprint, recordedFingerprint);
   }
 
   isFresh(fingerprint: string, hasCachedModels: boolean): boolean {

@@ -4,8 +4,11 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
+import { hashCatalogFingerprint } from '@/core/providers/catalogFingerprint';
 import type { PreparedChatTurn } from '@/core/runtime/types';
 import type { StreamChunk } from '@/core/types/chat';
+import { resolveCodexModelCatalogFingerprint } from '@/providers/codex/modelCatalogFingerprint';
+import { getCodexProviderSettings } from '@/providers/codex/settings';
 import { CODEX_SPARK_MODEL, DEFAULT_CODEX_PRIMARY_MODEL } from '@/providers/codex/types/models';
 import { codexChatUIConfig } from '@/providers/codex/ui/CodexChatUIConfig';
 
@@ -538,6 +541,157 @@ describe('CodexChatRuntime', () => {
         'gpt-5.4',
       ]);
       expect(refreshModelSelector).toHaveBeenCalledTimes(1);
+    });
+
+    it('records the fingerprint of the discovery that produced the model list', async () => {
+      const plugin = createMockPlugin();
+      plugin.getAllViews = jest.fn().mockReturnValue([]);
+      runtime = new CodexChatRuntime(plugin);
+      mockTransportRequest.mockImplementation(buildRequestHandler({
+        'model/list': () => ({
+          data: [
+            {
+              id: 'gpt-5.5',
+              model: 'gpt-5.5',
+              displayName: 'GPT-5.5',
+              description: 'Frontier model.',
+              hidden: false,
+              isDefault: true,
+              supportedReasoningEfforts: [],
+              defaultReasoningEffort: 'medium',
+              inputModalities: [],
+              supportsPersonality: false,
+              additionalSpeedTiers: [],
+              serviceTiers: [],
+              defaultServiceTier: null,
+              upgrade: null,
+              upgradeInfo: null,
+              availabilityNux: null,
+            },
+          ],
+          nextCursor: null,
+        }),
+      }));
+
+      await runtime.ensureReady();
+
+      expect(plugin.settings.providerConfigs.codex.discoveredModelsFingerprint).toBe(
+        hashCatalogFingerprint(
+          resolveCodexModelCatalogFingerprint(plugin, getCodexProviderSettings(plugin.settings)),
+        ),
+      );
+    });
+
+    it('refreshes only the fingerprint when the CLI changed but the list did not', async () => {
+      const plugin = createMockPlugin({
+        providerConfigs: {
+          codex: {
+            discoveredModels: [
+              { id: 'gpt-5.5', label: 'GPT-5.5', description: 'Frontier model.', isDefault: true },
+            ],
+            discoveredModelsFingerprint: 'deadbeef',
+          },
+        },
+      });
+      plugin.getAllViews = jest.fn().mockReturnValue([]);
+      runtime = new CodexChatRuntime(plugin);
+      mockTransportRequest.mockImplementation(buildRequestHandler({
+        'model/list': () => ({
+          data: [
+            {
+              id: 'gpt-5.5',
+              model: 'gpt-5.5',
+              displayName: 'GPT-5.5',
+              description: 'Frontier model.',
+              hidden: false,
+              isDefault: true,
+              supportedReasoningEfforts: [],
+              defaultReasoningEffort: 'medium',
+              inputModalities: [],
+              supportsPersonality: false,
+              additionalSpeedTiers: [],
+              serviceTiers: [],
+              defaultServiceTier: null,
+              upgrade: null,
+              upgradeInfo: null,
+              availabilityNux: null,
+            },
+          ],
+          nextCursor: null,
+        }),
+      }));
+
+      await runtime.ensureReady();
+
+      expect(plugin.saveSettings).toHaveBeenCalledTimes(1);
+      expect(plugin.settings.providerConfigs.codex.discoveredModelsFingerprint).toBe(
+        hashCatalogFingerprint(
+          resolveCodexModelCatalogFingerprint(plugin, getCodexProviderSettings(plugin.settings)),
+        ),
+      );
+    });
+
+    it('does not save when the list and its fingerprint are unchanged', async () => {
+      const settingsForFingerprint = {
+        providerConfigs: {
+          codex: {
+            cliPath: '',
+          },
+        },
+      };
+      const recordedFingerprint = hashCatalogFingerprint(
+        resolveCodexModelCatalogFingerprint(
+          {
+            getActiveEnvironmentVariables: () =>
+              'OPENAI_API_KEY=test-key\nOPENAI_BASE_URL=https://example.test/v1',
+            getResolvedProviderCliPath: () => '/usr/local/bin/codex',
+          } as any,
+          getCodexProviderSettings(settingsForFingerprint),
+        ),
+      );
+      const refreshModelSelector = jest.fn();
+      const plugin = createMockPlugin({
+        providerConfigs: {
+          codex: {
+            discoveredModels: [
+              { id: 'gpt-5.5', label: 'GPT-5.5', description: 'Frontier model.', isDefault: true },
+            ],
+            discoveredModelsFingerprint: recordedFingerprint,
+          },
+        },
+      });
+      plugin.getAllViews = jest.fn().mockReturnValue([{ refreshModelSelector }]);
+      runtime = new CodexChatRuntime(plugin);
+      mockTransportRequest.mockImplementation(buildRequestHandler({
+        'model/list': () => ({
+          data: [
+            {
+              id: 'gpt-5.5',
+              model: 'gpt-5.5',
+              displayName: 'GPT-5.5',
+              description: 'Frontier model.',
+              hidden: false,
+              isDefault: true,
+              supportedReasoningEfforts: [],
+              defaultReasoningEffort: 'medium',
+              inputModalities: [],
+              supportsPersonality: false,
+              additionalSpeedTiers: [],
+              serviceTiers: [],
+              defaultServiceTier: null,
+              upgrade: null,
+              upgradeInfo: null,
+              availabilityNux: null,
+            },
+          ],
+          nextCursor: null,
+        }),
+      }));
+
+      await runtime.ensureReady();
+
+      expect(plugin.saveSettings).not.toHaveBeenCalled();
+      expect(refreshModelSelector).not.toHaveBeenCalled();
     });
 
     it('does not rebuild when config has not changed', async () => {

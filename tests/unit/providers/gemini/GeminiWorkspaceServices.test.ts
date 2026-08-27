@@ -1,5 +1,17 @@
+import { hashCatalogFingerprint } from '@/core/providers/catalogFingerprint';
 import { createGeminiWorkspaceServices } from '@/providers/gemini/app/GeminiWorkspaceServices';
+import { resolveGeminiModelCatalogFingerprint } from '@/providers/gemini/modelCatalogFingerprint';
 import { GeminiChatRuntime } from '@/providers/gemini/runtime/GeminiChatRuntime';
+import { getGeminiProviderSettings } from '@/providers/gemini/settings';
+
+function recordedFingerprintFor(cliPath: string): string {
+  return hashCatalogFingerprint(
+    resolveGeminiModelCatalogFingerprint(
+      { getResolvedProviderCliPath: () => cliPath } as any,
+      getGeminiProviderSettings({ providerConfigs: { gemini: { enabled: true } } }),
+    ),
+  );
+}
 
 describe('createGeminiWorkspaceServices', () => {
   afterEach(() => {
@@ -13,7 +25,7 @@ describe('createGeminiWorkspaceServices', () => {
     expect(services.usageProvider).toBeDefined();
   });
 
-  it('skips discovery while a seeded catalog stays fresh so opening the model dropdown does not boot the CLI', async () => {
+  it('keeps trusting a catalog persisted before the fingerprint existed', async () => {
     const ensureReady = jest.spyOn(GeminiChatRuntime.prototype, 'ensureReady');
     const cleanup = jest.spyOn(GeminiChatRuntime.prototype, 'cleanup').mockImplementation(() => {});
     const settings = {
@@ -152,6 +164,84 @@ describe('createGeminiWorkspaceServices', () => {
     expect(ensureReady).not.toHaveBeenCalled();
 
     await services.modelCatalog?.refreshModels({ force: true, plugin: plugin as any, settings: settings });
+
+    expect(ensureReady).toHaveBeenCalledTimes(1);
+  });
+  it('seeds a catalog whose recorded fingerprint still matches the resolved CLI', async () => {
+    const ensureReady = jest.spyOn(GeminiChatRuntime.prototype, 'ensureReady');
+    jest.spyOn(GeminiChatRuntime.prototype, 'cleanup').mockImplementation(() => {});
+    const settings = {
+      providerConfigs: {
+        gemini: {
+          discoveredModels: [{ label: 'Gemini 2.5 Pro', rawId: 'gemini-2.5-pro' }],
+          discoveredModelsFingerprint: recordedFingerprintFor('/usr/local/bin/gemini'),
+          enabled: true,
+        },
+      },
+    };
+    const plugin = {
+      getResolvedProviderCliPath: () => '/usr/local/bin/gemini',
+      settings,
+    };
+
+    const services = await createGeminiWorkspaceServices(plugin as any, {} as any);
+    const changed = await services.modelCatalog?.refreshModels({
+      plugin: plugin as any,
+      settings: settings,
+    });
+
+    expect(changed).toBe(false);
+    expect(ensureReady).not.toHaveBeenCalled();
+  });
+
+  it('rediscovers when the CLI path changed while the plugin was not running', async () => {
+    const ensureReady = jest
+      .spyOn(GeminiChatRuntime.prototype, 'ensureReady')
+      .mockResolvedValue(true);
+    jest.spyOn(GeminiChatRuntime.prototype, 'cleanup').mockImplementation(() => {});
+    const settings = {
+      providerConfigs: {
+        gemini: {
+          discoveredModels: [{ label: 'Gemini 2.5 Pro', rawId: 'gemini-2.5-pro' }],
+          discoveredModelsFingerprint: recordedFingerprintFor('/usr/local/bin/gemini'),
+          enabled: true,
+        },
+      },
+    };
+    const plugin = {
+      getResolvedProviderCliPath: () => '/opt/homebrew/bin/gemini',
+      settings,
+    };
+
+    const services = await createGeminiWorkspaceServices(plugin as any, {} as any);
+    await services.modelCatalog?.refreshModels({ plugin: plugin as any, settings: settings });
+
+    expect(ensureReady).toHaveBeenCalledTimes(1);
+  });
+
+  it('rediscovers a changed CLI even when the resolver only arrives after construction', async () => {
+    const ensureReady = jest
+      .spyOn(GeminiChatRuntime.prototype, 'ensureReady')
+      .mockResolvedValue(true);
+    jest.spyOn(GeminiChatRuntime.prototype, 'cleanup').mockImplementation(() => {});
+    const settings = {
+      providerConfigs: {
+        gemini: {
+          discoveredModels: [{ label: 'Gemini 2.5 Pro', rawId: 'gemini-2.5-pro' }],
+          discoveredModelsFingerprint: recordedFingerprintFor('/usr/local/bin/gemini'),
+          enabled: true,
+        },
+      },
+    };
+    let resolvedCliPath: string | null = null;
+    const plugin = {
+      getResolvedProviderCliPath: () => resolvedCliPath,
+      settings,
+    };
+
+    const services = await createGeminiWorkspaceServices(plugin as any, {} as any);
+    resolvedCliPath = '/opt/homebrew/bin/gemini';
+    await services.modelCatalog?.refreshModels({ plugin: plugin as any, settings: settings });
 
     expect(ensureReady).toHaveBeenCalledTimes(1);
   });
