@@ -500,7 +500,7 @@ body.grimoire-dragging-ns {
 
 /* Thin separator line between the queue list and the composer input */
 .grimoire-input-queue-row.grimoire-visible-flex + .grimoire-input-wrapper {
-  border-top: 1px solid var(--grimoire-line-2);
+  border-top: 1px solid var(--grimoire-line-2, var(--background-modifier-border-hover, rgba(128, 128, 128, 0.3)));
   padding-top: 8px;
 }
 
