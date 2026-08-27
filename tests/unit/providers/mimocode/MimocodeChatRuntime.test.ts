@@ -232,6 +232,47 @@ describe('MimocodeChatRuntime', () => {
     expect(chunks).toEqual([{ type: 'done' }]);
   });
 
+  it('does not replay conversation history when readiness drops the session', async () => {
+    const runtime = new MimocodeChatRuntime(createMockPlugin());
+    runtime.syncConversationState({ sessionId: 'session-1' });
+    const prompt = jest.fn().mockResolvedValue({});
+
+    // Simulate a session/load RPC failure during readiness: the stale binding is
+    // cleared exactly like loadSession()'s catch does.
+    jest.spyOn(runtime, 'ensureReady').mockImplementation(async () => {
+      (runtime as any).sessionId = null;
+      (runtime as any).loadedSessionId = null;
+      (runtime as any).sessionInvalidated = true;
+      return true;
+    });
+    (runtime as any).createSession = jest.fn().mockImplementation(async () => {
+      (runtime as any).sessionId = 'session-2';
+      return 'session-2';
+    });
+    (runtime as any).connection = { prompt };
+    (runtime as any).applySelectedMode = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedModel = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).applySelectedEffort = jest.fn().mockResolvedValue(undefined);
+    (runtime as any).getActiveDisplayModel = jest.fn().mockReturnValue('mimocode:test-model');
+
+    const history = [
+      { id: 'user-previous', role: 'user' as const, content: 'Keep the language rich.', timestamp: 1 },
+      { id: 'assistant-previous', role: 'assistant' as const, content: 'I will preserve the prose voice.', timestamp: 2 },
+    ];
+    const chunks: unknown[] = [];
+    for await (const chunk of runtime.query(runtime.prepareTurn({ text: 'Continue the edit.' }), history)) {
+      chunks.push(chunk);
+    }
+    expect(chunks).toEqual([{ type: 'done' }]);
+
+    expect((runtime as any).createSession).toHaveBeenCalledTimes(1);
+    expect(prompt).toHaveBeenCalledTimes(1);
+    const promptText = prompt.mock.calls[0][0].prompt.map((block: { text?: string }) => block.text ?? '').join('\n');
+    expect(promptText).toContain('Continue the edit.');
+    expect(promptText).not.toContain('Keep the language rich.');
+    expect(promptText).not.toContain('I will preserve the prose voice.');
+  });
+
   it('recovers when the ACP transport closes during initial readiness', async () => {
     const runtime = new MimocodeChatRuntime(createMockPlugin());
     const prompt = jest.fn().mockResolvedValue({});

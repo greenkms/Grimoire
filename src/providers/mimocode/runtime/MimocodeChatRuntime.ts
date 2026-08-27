@@ -393,8 +393,12 @@ export class MimocodeChatRuntime implements ChatRuntime {
   ): AsyncGenerator<StreamChunk> {
     const previousMessages = conversationHistory ?? [];
     const expectedSessionId = this.sessionId;
-    let shouldBootstrapHistory = previousMessages.length > 0
-      && (!expectedSessionId || this.sessionInvalidated);
+    // Owner decision: a lost or invalidated session must NOT auto-replay the
+    // conversation history into a fresh session. Doing so silently spends the
+    // whole transcript (observed: ~8.4M plan-usage tokens on the first message
+    // after an Obsidian restart, vs ~71k steady state). History bootstrap stays
+    // reserved for a genuine cold resume where we never held a session id.
+    let shouldBootstrapHistory = previousMessages.length > 0 && !expectedSessionId;
 
     const lifecycleGeneration = this.lifecycleGeneration;
     if (!(await this.ensureReadyForQuery(lifecycleGeneration))) {
@@ -410,9 +414,10 @@ export class MimocodeChatRuntime implements ChatRuntime {
     }
 
     const cwd = getVaultPath(this.plugin.app) ?? process.cwd();
-    if (expectedSessionId && !this.sessionId) {
-      shouldBootstrapHistory = previousMessages.length > 0;
-    }
+    // Intentionally NO history bootstrap here: if readiness dropped the session
+    // (session/load RPC failure, forced restart), the new session starts clean.
+    // The prior behaviour re-sent the entire transcript and burned the context
+    // window without the user asking. Recovery of prior context is manual.
 
     if (!this.sessionId) {
       const sessionId = await this.createSession(cwd);
