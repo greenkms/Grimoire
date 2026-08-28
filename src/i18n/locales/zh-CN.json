@@ -523,7 +523,14 @@
       "queue": {
         "steering": "正在调整……",
         "steerNow": "立即调整",
-        "steerFailed": "调整排队中的 Codex 消息失败，消息仍可继续使用。"
+        "steerFailed": "调整排队中的 Codex 消息失败，消息仍可继续使用。",
+        "count": "队列中：{count}",
+        "resume": "继续",
+        "clearAll": "全部清除",
+        "editItem": "编辑队列中的消息",
+        "removeItem": "丢弃队列中的消息",
+        "pausedFailed": "队列已暂停：本轮以错误结束",
+        "pausedCancelled": "队列已暂停：本轮已被停止"
       },
       "instructions": {
         "added": "指令已添加到自定义系统提示词",

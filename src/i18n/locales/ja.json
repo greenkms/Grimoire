@@ -523,7 +523,14 @@
       "queue": {
         "steering": "操作中...",
         "steerNow": "今すぐ操作",
-        "steerFailed": "キュー内のCodexメッセージを操作できませんでした。メッセージは引き続き利用できます。"
+        "steerFailed": "キュー内のCodexメッセージを操作できませんでした。メッセージは引き続き利用できます。",
+        "count": "キュー内: {count}",
+        "resume": "再開",
+        "clearAll": "すべてクリア",
+        "editItem": "キュー内のメッセージを編集",
+        "removeItem": "キュー内のメッセージを破棄",
+        "pausedFailed": "キューを保留中: ターンがエラーで終了しました",
+        "pausedCancelled": "キューを保留中: ターンが停止されました"
       },
       "instructions": {
         "added": "カスタムシステムプロンプトに指示を追加しました",

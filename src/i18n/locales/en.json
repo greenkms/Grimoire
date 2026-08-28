@@ -523,7 +523,14 @@
       "queue": {
         "steering": "Steering...",
         "steerNow": "Steer Now",
-        "steerFailed": "Failed to steer the queued Codex message. It is still available."
+        "steerFailed": "Failed to steer the queued Codex message. It is still available.",
+        "count": "Queued: {count}",
+        "resume": "Resume",
+        "clearAll": "Clear all",
+        "editItem": "Edit queued message",
+        "removeItem": "Discard queued message",
+        "pausedFailed": "Queue held: the turn ended with an error",
+        "pausedCancelled": "Queue held: the turn was stopped"
       },
       "instructions": {
         "added": "Instruction added to custom system prompt",
