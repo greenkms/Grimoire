@@ -1277,7 +1277,7 @@ export function initializeTabControllers(
       getImageContextManager: () => ui.imageContextManager,
       getMcpServerSelector: () => ui.mcpServerSelector,
       getExternalContextSelector: () => ui.externalContextSelector,
-      clearQueuedMessage: () => tab.controllers.inputController?.drainQueueToComposer(),
+      clearQueuedMessage: () => tab.controllers.inputController?.clearQueuedMessage(),
       getTitleGenerationService: () => services.titleGenerationService,
       getStatusPanel: () => ui.statusPanel,
       getAgentService: () => tab.service, // Use tab's service instead of plugin's

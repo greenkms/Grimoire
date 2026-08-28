@@ -134,6 +134,15 @@ export function renderQueueIndicator(options: QueueIndicatorOptions): void {
   // should not pay for the rare one.
   const needsHeader = queue.size > 1 || queue.isPaused;
 
+  // A steer handed off while other messages still wait: say so once, above the
+  // list, rather than pinning the label to a row that is not the steered one.
+  if (pendingSteerMessage) {
+    containerEl.createSpan({
+      cls: 'grimoire-queue-indicator-text',
+      text: `⌙ Steering: ${getQueuedMessageDisplay(pendingSteerMessage)}`,
+    });
+  }
+
   if (needsHeader) {
     const headerEl = containerEl.createDiv({ cls: 'grimoire-queue-indicator-header' });
     headerEl.createSpan({
@@ -170,12 +179,17 @@ export function renderQueueIndicator(options: QueueIndicatorOptions): void {
     // Steer takes the head and only the head, so the button belongs to the head
     // and nowhere else. Showing it on every row would offer an order the queue
     // does not honour.
-    if (index === 0 && canSteer) {
+    //
+    // A steer already in flight has left the queue, so row 0 is the message
+    // behind it, not the one being steered. Labelling that row "Steering" reads
+    // as a state its own text is not in - it only gets the disabled button, and
+    // the steer in flight is announced above the list instead.
+    if (index === 0 && canSteer && !steerInFlight) {
       createTextButton(
         actionsEl,
-        steerInFlight ? t('chat.ui.queue.steering') : t('chat.ui.queue.steerNow'),
+        t('chat.ui.queue.steerNow'),
         callbacks.onSteerHead,
-        steerInFlight,
+        false,
       );
     }
 

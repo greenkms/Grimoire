@@ -72,6 +72,29 @@ describe('QueueIndicator', () => {
     expect(rows[1].querySelector('.grimoire-queue-indicator-action')).toBeNull();
   });
 
+  it('announces a steer in flight above the list, not on the row behind it', () => {
+    const queue = new MessageQueue();
+    queue.enqueue(createMessage('the message behind the steer'));
+
+    const { containerEl } = render(queue, {
+      canSteer: true,
+      pendingSteerMessage: createMessage('the steered one'),
+      steerInFlight: true,
+    });
+
+    // The steered message has already left the queue, so row 0 is a different
+    // message and must not wear its label.
+    const texts = Array.from(containerEl.querySelectorAll('.grimoire-queue-indicator-text'))
+      .map((el: any) => el.textContent as string);
+    expect(texts.some(text => text.includes('Steering: the steered one'))).toBe(true);
+
+    const rows = containerEl.querySelectorAll('.grimoire-queue-indicator-item');
+    expect(rows[0].querySelector('.grimoire-queue-indicator-text')?.textContent)
+      .toContain('the message behind the steer');
+    // The steer button belongs to a head that is no longer the steered message.
+    expect(rows[0].querySelector('.grimoire-queue-indicator-action')).toBeNull();
+  });
+
   it('removes the row the user pointed at, not the head', () => {
     const queue = new MessageQueue();
     queue.enqueue(createMessage('first'));

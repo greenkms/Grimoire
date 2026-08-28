@@ -24,7 +24,6 @@ import type { ChatRuntime } from '../../../core/runtime/ChatRuntime';
 import { normalizeProviderError } from '../../../core/runtime/providerError';
 import {
   cloneChatTurnRequest,
-  mergeQueuedChatTurns,
   type QueuedChatTurn,
 } from '../../../core/runtime/QueuedTurn';
 import type {
@@ -393,7 +392,13 @@ export class InputController {
     // out as its own turn now. The slot it was holding no longer means anything,
     // and leaving it set would put the next follow-up in that position instead
     // of at the back of the queue.
-    this.pendingEditIndex = null;
+    //
+    // Only for a send that came from the composer, though. A drained message
+    // sends through here too, and that send is not the held one leaving - it
+    // would release someone else's slot and drop the edited row to the back.
+    if (shouldUseInput) {
+      this.pendingEditIndex = null;
+    }
 
     if (shouldUseInput) {
       inputEl.value = '';
@@ -656,6 +661,11 @@ export class InputController {
         // were written for a conversation that did not happen. Holding them is
         // what stops an expired login or a dead CLI from spending the whole
         // queue against nothing.
+        // The steer goes back first. It is a queued message that did not land,
+        // and `pause()` deliberately no-ops on an empty queue - so pausing
+        // before it returns leaves the queue unpaused and fires the steer
+        // straight back at the session that just died.
+        this.restorePendingSteerMessageToQueue();
         if (turnFailed || didCancelThisTurn) {
           this.pauseQueue(turnFailed ? 'failed' : 'cancelled');
         }
@@ -665,7 +675,6 @@ export class InputController {
         streamController.hideThinkingIndicator();
         state.isStreaming = false;
         state.cancelRequested = false;
-        this.restorePendingSteerMessageToQueue();
 
         // Capture response duration before resetting state (skip for interrupted responses and compaction)
         const hasCompactBoundary = finalAssistantMsg.contentBlocks?.some(b => b.type === 'context_compacted');
@@ -802,33 +811,19 @@ export class InputController {
     this.processQueuedMessage();
   }
 
-  /** Discard: the user asked for this text to go away, so it goes away. */
+  /**
+   * Discard: the user asked for this text to go away, so it goes away.
+   *
+   * Also what leaving a conversation does. Handing the leftovers to the
+   * composer instead would put one conversation's follow-ups, and their
+   * images, into the next one - after that conversation deliberately cleared
+   * both. The composer's own text is already discarded on a switch; the queue
+   * belongs to the same conversation and goes the same way.
+   */
   clearQueuedMessage(): void {
     const { state } = this.deps;
     state.queue.takeAll();
     this.pendingEditIndex = null;
-    this.updateQueueIndicator();
-  }
-
-  /**
-   * Hand the queue back to the composer. Leaving a conversation empties the
-   * queue, but the text in it was typed by hand and is not the plugin's to
-   * throw away. Merging is the right shape here and only here: the composer is
-   * one field, so one field is what the leftovers have to fit into.
-   */
-  drainQueueToComposer(): void {
-    const { state } = this.deps;
-    const remaining = state.queue.takeAll();
-    this.pendingEditIndex = null;
-    if (remaining.length > 0) {
-      const merged = remaining
-        .map(message => this.toQueuedChatTurn(message))
-        .reduce((left, right) => mergeQueuedChatTurns(left, right));
-      this.restoreMessageToInput(
-        this.createQueuedMessage(merged.displayContent, merged.request),
-        { mergeWithComposer: true },
-      );
-    }
     this.updateQueueIndicator();
   }
 
@@ -839,7 +834,17 @@ export class InputController {
     // nothing must not redirect the next follow-up somewhere it was not asked
     // to go.
     if (!queuedMessage) return;
-    this.pendingEditIndex = index;
+    // Withdrawing a second row shifts an already-held slot exactly as removing
+    // one does. Both texts are now merged in one composer, so the merged result
+    // goes back at the earlier of the two positions.
+    if (this.pendingEditIndex === null) {
+      this.pendingEditIndex = index;
+    } else {
+      const heldAfterRemoval = index < this.pendingEditIndex
+        ? this.pendingEditIndex - 1
+        : this.pendingEditIndex;
+      this.pendingEditIndex = Math.min(index, heldAfterRemoval);
+    }
 
     this.restoreMessageToInput(queuedMessage, { mergeWithComposer: true });
     this.updateQueueIndicator();
@@ -875,6 +880,10 @@ export class InputController {
     if (state.queue.size === 0) return;
 
     state.queue.pause(reason);
+    // Resume is the only way out of a hold, so the hold has to be on screen.
+    // Every caller would otherwise have to remember this, and the failed-turn
+    // path did not.
+    this.updateQueueIndicator();
     plugin.recordDebugLog?.({
       data: {
         providerId: this.getActiveProviderId(),
@@ -891,21 +900,39 @@ export class InputController {
     const { state } = this.deps;
     if (state.queue.isPaused || state.queue.size === 0) return;
 
-    const queuedMessage = state.queue.dequeue();
+    const queuedMessage = state.queue.peek();
     if (!queuedMessage) return;
-    this.updateQueueIndicator();
     const streamGeneration = state.streamGeneration;
 
     window.setTimeout(
       () => {
+        // Checked here rather than before the deferral, because the window
+        // between the two is real: cancelStreaming() renders the Resume button
+        // while `isStreaming` is still true, so the user can start this while
+        // the previous turn is still winding down. Taking the message out of the
+        // queue first would drop it on the floor when this guard fires.
         if (
           state.streamGeneration !== streamGeneration
           || state.isCreatingConversation
           || state.isSwitchingConversation
           || state.isStreaming
+          || state.queue.isPaused
         ) {
           return;
         }
+        // Compare before removing, never after: if the head moved while this
+        // was deferred, dequeuing here would take a message this call never
+        // agreed to send and drop it.
+        if (state.queue.peek() !== queuedMessage) {
+          return;
+        }
+        state.queue.dequeue();
+        // The head leaving shifts every later position down by one, and a slot
+        // held for an edited row is one of them.
+        if (this.pendingEditIndex !== null && this.pendingEditIndex > 0) {
+          this.pendingEditIndex--;
+        }
+        this.updateQueueIndicator();
         void this.sendMessage({
           content: queuedMessage.content,
           images: queuedMessage.images,

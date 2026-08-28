@@ -989,7 +989,7 @@ describe('InputController - Message Queue', () => {
       expect(deps.state.queue.size).toBe(1);
     });
 
-    it('should drain only the head and leave the rest queued', () => {
+    it('should drain only the head and leave the rest queued', async () => {
       deps.state.queue.enqueue({
         content: 'first',
         images: undefined,
@@ -1006,6 +1006,9 @@ describe('InputController - Message Queue', () => {
       });
 
       (controller as any).processQueuedMessage();
+      // The head leaves when the deferred send actually commits, not before:
+      // the guard in between can still abort it.
+      await new Promise(resolve => setTimeout(resolve, 0));
 
       expect(deps.state.queue.size).toBe(1);
       expect(deps.state.queue.items[0].content).toBe('second');
@@ -1031,6 +1034,112 @@ describe('InputController - Message Queue', () => {
           data: expect.objectContaining({ reason: 'cancelled' }),
         }),
       );
+    });
+  });
+
+  describe('Queue hold', () => {
+    const queued = (content: string) => ({
+      content,
+      images: undefined,
+      editorContext: null,
+      browserContext: null,
+      canvasContext: null,
+    });
+
+    it('shows the hold as soon as the queue is paused', () => {
+      deps.state.queue.enqueue(queued('held back'));
+
+      (controller as any).pauseQueue('failed');
+
+      // Resume is the only way out of a hold, so it has to be on screen - and
+      // the failed-turn path had no render of its own after pausing.
+      const queueIndicatorEl = deps.state.queueIndicatorEl as any;
+      expect(queueIndicatorEl.style.display).toBe('flex');
+      expect(queueIndicatorEl.querySelector('.grimoire-queue-indicator-header')).not.toBeNull();
+    });
+
+    it('holds a steer that comes back to an otherwise empty queue', () => {
+      // pause() no-ops on an empty queue, so a steer returned after the pause
+      // would land unheld and fire at the session that just failed.
+      (controller as any).pendingSteerMessage = queued('steered');
+
+      (controller as any).restorePendingSteerMessageToQueue();
+      (controller as any).pauseQueue('failed');
+
+      expect(deps.state.queue.size).toBe(1);
+      expect(deps.state.queue.isPaused).toBe(true);
+    });
+
+    it('does not lose the head when a resume is aborted by the guard', async () => {
+      deps.state.queue.enqueue(queued('first'));
+      // The window cancelStreaming() opens: Resume is live while the previous
+      // turn is still winding down.
+      deps.state.isStreaming = true;
+
+      (controller as any).processQueuedMessage();
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(deps.state.queue.size).toBe(1);
+      expect(deps.state.queue.items[0].content).toBe('first');
+    });
+  });
+
+  describe('Edited queue rows', () => {
+    const queued = (content: string) => ({
+      content,
+      images: undefined,
+      editorContext: null,
+      browserContext: null,
+      canvasContext: null,
+    });
+
+    it('keeps an edited row in its place when another message drains first', async () => {
+      deps.state.queue.enqueue(queued('A'));
+      deps.state.queue.enqueue(queued('B'));
+      deps.state.queue.enqueue(queued('C'));
+
+      // The user pulls row 1 out to edit it; the slot is held for its return.
+      controller.withdrawQueuedMessageToComposer(1);
+      expect(deps.state.queue.items.map(m => m.content)).toEqual(['A', 'C']);
+
+      // The turn ends and A drains. That send is not the edited one leaving.
+      (controller as any).processQueuedMessage();
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      deps.state.isStreaming = true;
+      inputEl.value = 'B';
+      await controller.sendMessage();
+
+      expect(deps.state.queue.items.map(m => m.content)).toEqual(['B', 'C']);
+    });
+
+    it('holds the earlier slot when a second row is withdrawn', () => {
+      deps.state.queue.enqueue(queued('A'));
+      deps.state.queue.enqueue(queued('B'));
+      deps.state.queue.enqueue(queued('C'));
+
+      controller.withdrawQueuedMessageToComposer(2);
+      controller.withdrawQueuedMessageToComposer(0);
+
+      expect((controller as any).pendingEditIndex).toBe(0);
+    });
+  });
+
+  describe('Leaving a conversation', () => {
+    it('discards the queue instead of handing it to the next conversation', () => {
+      deps.state.queue.enqueue({
+        content: 'follow-up for the old conversation',
+        images: undefined,
+        editorContext: null,
+        browserContext: null,
+        canvasContext: null,
+      });
+      inputEl.value = '';
+
+      controller.clearQueuedMessage();
+
+      expect(deps.state.queue.size).toBe(0);
+      expect(inputEl.value).toBe('');
     });
   });
 

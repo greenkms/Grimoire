@@ -36,6 +36,15 @@ export class MessageQueue {
     this.messages.push(message);
   }
 
+  /**
+   * The head, left in place. Lets a caller decide on a message before it is
+   * committed to sending it, so a deferred send that turns out to be stale can
+   * abort without the message already being gone.
+   */
+  peek(): QueuedMessage | null {
+    return this.messages[0] ?? null;
+  }
+
   dequeue(): QueuedMessage | null {
     const message = this.messages.shift() ?? null;
     this.syncPause();
