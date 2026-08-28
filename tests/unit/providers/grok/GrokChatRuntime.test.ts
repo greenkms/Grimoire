@@ -40,6 +40,13 @@ function createMockPlugin(overrides: Record<string, unknown> = {}): any {
   };
 }
 
+function allPromptText(prompt: jest.Mock): string {
+  return prompt.mock.calls
+    .flatMap((call: any[]) => (call[0]?.prompt ?? []) as Array<{ text?: string }>)
+    .map(block => block.text ?? '')
+    .join('\n');
+}
+
 describe('GrokChatRuntime', () => {
   beforeEach(() => {
     grokPlanUsageStore.reset();
@@ -60,6 +67,153 @@ describe('GrokChatRuntime', () => {
     }
     return chunks;
   }
+
+  it('does not replay the transcript when readiness drops the session', async () => {
+    const runtime = new GrokChatRuntime(createMockPlugin());
+    runtime.syncConversationState({ sessionId: 'session-1' });
+    const prompt = jest.fn().mockResolvedValue({});
+
+    jest.spyOn(runtime, 'ensureReady').mockImplementation(async () => {
+      (runtime as any).sessionId = null;
+      (runtime as any).loadedSessionId = null;
+      (runtime as any).sessionInvalidated = true;
+      return true;
+    });
+    (runtime as any).createSession = jest.fn().mockImplementation(async () => {
+      (runtime as any).sessionId = 'session-2';
+      return 'session-2';
+    });
+    (runtime as any).connection = { prompt };
+
+    const history = [
+      { id: 'user-previous', role: 'user' as const, content: 'Keep the language rich.', timestamp: 1 },
+    ];
+    for await (const chunk of runtime.query(runtime.prepareTurn({ text: 'Continue the edit.' }), history)) {
+      void chunk;
+    }
+
+    // Some runtimes send a settings command of their own before the turn, so
+    // the assertion is about everything that reached the agent.
+    const promptText = allPromptText(prompt);
+    expect(promptText).toContain('Continue the edit.');
+    expect(promptText).not.toContain('Keep the language rich.');
+  });
+
+  it('still withholds the transcript after the drop has survived a reload', async () => {
+    const runtime = new GrokChatRuntime(createMockPlugin());
+    const prompt = jest.fn().mockResolvedValue({});
+
+    runtime.syncConversationState({
+      providerState: { sessionDropped: true },
+      sessionId: null,
+    });
+
+    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+    (runtime as any).createSession = jest.fn().mockImplementation(async () => {
+      (runtime as any).sessionId = 'session-2';
+      return 'session-2';
+    });
+    (runtime as any).connection = { prompt };
+
+    const history = [
+      { id: 'user-previous', role: 'user' as const, content: 'Keep the language rich.', timestamp: 1 },
+    ];
+    for await (const chunk of runtime.query(runtime.prepareTurn({ text: 'Continue the edit.' }), history)) {
+      void chunk;
+    }
+
+    expect(allPromptText(prompt)).not.toContain('Keep the language rich.');
+  });
+
+  it('still replays the transcript for a genuine cold resume', async () => {
+    const runtime = new GrokChatRuntime(createMockPlugin());
+    const prompt = jest.fn().mockResolvedValue({});
+
+    runtime.syncConversationState({ sessionId: null });
+    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+    (runtime as any).createSession = jest.fn().mockImplementation(async () => {
+      (runtime as any).sessionId = 'session-2';
+      return 'session-2';
+    });
+    (runtime as any).connection = { prompt };
+
+    const history = [
+      { id: 'user-previous', role: 'user' as const, content: 'Keep the language rich.', timestamp: 1 },
+    ];
+    for await (const chunk of runtime.query(runtime.prepareTurn({ text: 'Continue the edit.' }), history)) {
+      void chunk;
+    }
+
+    expect(allPromptText(prompt)).toContain('Keep the language rich.');
+  });
+
+  it('records a dropped session on the conversation so a reload can tell it from a cold start', () => {
+    const runtime = new GrokChatRuntime(createMockPlugin());
+    runtime.syncConversationState({ sessionId: 'session-1' });
+    (runtime as any).sessionId = null;
+    (runtime as any).sessionInvalidated = true;
+
+    const updates = runtime.buildSessionUpdates({
+      conversation: {
+        id: 'conv-1',
+        providerId: 'grok',
+        providerState: {},
+        sessionId: 'session-1',
+      } as any,
+      sessionInvalidated: true,
+    });
+
+    expect(updates.updates.sessionId).toBeNull();
+    expect((updates.updates.providerState as any)?.sessionDropped).toBe(true);
+  });
+
+  it('keeps the dropped marker across a save that no longer carries the flag', () => {
+    const runtime = new GrokChatRuntime(createMockPlugin());
+    (runtime as any).sessionId = null;
+
+    // consumeSessionInvalidation() already took the in-memory answer, so this
+    // save reports false; only the conversation still knows.
+    const updates = runtime.buildSessionUpdates({
+      conversation: {
+        id: 'conv-1',
+        providerId: 'grok',
+        providerState: { sessionDropped: true },
+        sessionId: null,
+      } as any,
+      sessionInvalidated: false,
+    });
+
+    expect((updates.updates.providerState as any)?.sessionDropped).toBe(true);
+  });
+
+  it('clears the dropped marker once a replacement session is persisted', () => {
+    const runtime = new GrokChatRuntime(createMockPlugin());
+    (runtime as any).sessionId = 'session-2';
+
+    const updates = runtime.buildSessionUpdates({
+      conversation: {
+        id: 'conv-1',
+        providerId: 'grok',
+        providerState: { sessionDropped: true },
+        sessionId: null,
+      } as any,
+      sessionInvalidated: false,
+    });
+
+    expect(updates.updates.sessionId).toBe('session-2');
+    expect((updates.updates.providerState as any)?.sessionDropped).toBeUndefined();
+  });
+
+  it('restores a dropped session from the conversation on load', () => {
+    const runtime = new GrokChatRuntime(createMockPlugin());
+
+    runtime.syncConversationState({
+      providerState: { sessionDropped: true },
+      sessionId: null,
+    });
+
+    expect(runtime.consumeSessionInvalidation()).toBe(true);
+  });
 
   it('persists the user question so a failed turn is not wiped on hydrate', () => {
     const runtime = new GrokChatRuntime(createMockPlugin());

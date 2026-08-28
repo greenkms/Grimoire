@@ -61,6 +61,7 @@ import {
   buildAcpUsageInfo,
   extractAcpSessionModelState,
   extractAcpSessionModeState,
+  isAcpSessionGone,
   resolveWorkspacePath,
 } from '../../acp';
 import { toAcpMcpServers } from '../../acp/mcp/toAcpMcpServers';
@@ -79,6 +80,7 @@ import {
   type QwenMode,
   updateQwenProviderSettings,
 } from '../settings';
+import { getQwenState } from '../types';
 import { buildQwenRuntimeEnv } from './QwenRuntimeEnvironment';
 
 interface ActiveTurn {
@@ -210,6 +212,9 @@ export class QwenChatRuntime implements ChatRuntime {
       this.supportedCommands = [];
     }
     this.sessionId = nextSessionId;
+    if (!nextSessionId && getQwenState(conversation?.providerState).sessionDropped) {
+      this.sessionInvalidated = true;
+    }
   }
 
   async reloadMcpServers(): Promise<void> {
@@ -284,8 +289,15 @@ export class QwenChatRuntime implements ChatRuntime {
   ): AsyncGenerator<StreamChunk> {
     const previousMessages = conversationHistory ?? [];
     const expectedSessionId = this.sessionId;
+    // A session that was dropped must not have the transcript replayed into its
+    // replacement: that silently re-buys the whole conversation, once per failed
+    // resume, without anyone asking. Bootstrap is for a genuine cold resume -
+    // one where no session was ever held. `sessionInvalidated` is what tells the
+    // two apart, and it is restored from the conversation, because the drop
+    // usually happens during warmup, before query() runs at all.
     let shouldBootstrapHistory = previousMessages.length > 0
-      && (!expectedSessionId || this.sessionInvalidated);
+      && !expectedSessionId
+      && !this.sessionInvalidated;
 
     if (!(await this.ensureReady())) {
       yield { type: 'error', content: t('chat.ui.errors.provider.startFailed', { provider: ProviderRegistry.getProviderDisplayNameOrId('qwen') }) };
@@ -300,9 +312,9 @@ export class QwenChatRuntime implements ChatRuntime {
     }
 
     const cwd = getVaultPath(this.plugin.app) ?? process.cwd();
-    if (expectedSessionId && !this.sessionId) {
-      shouldBootstrapHistory = previousMessages.length > 0;
-    }
+    // Deliberately no bootstrap here: if readiness dropped the session, the
+    // replacement starts clean and recovering the earlier context is the user's
+    // call, not a purchase we make for them.
 
     if (!this.sessionId) {
       const sessionId = await this.createSession(cwd);
@@ -466,14 +478,23 @@ export class QwenChatRuntime implements ChatRuntime {
     conversation: Conversation | null;
     sessionInvalidated: boolean;
   }): SessionUpdateResult {
+    const existingState = getQwenState(params.conversation?.providerState);
     const updates: Partial<Conversation> = {
       providerState: params.conversation?.providerState,
       sessionId: this.sessionId,
     };
 
-    if (params.sessionInvalidated && !this.sessionId) {
-      updates.providerState = undefined;
+    // "We had a session and lost it" has to outlive the runtime that learned it:
+    // the in-memory flag is consumed by the first save, and saves happen on tab
+    // close and on quit. Without this the next launch reads a dropped session as
+    // a conversation that never had one and replays the whole transcript into a
+    // fresh one. It clears itself once a real session id is persisted again.
+    if (!this.sessionId && (params.sessionInvalidated || existingState.sessionDropped === true)) {
+      updates.providerState = { sessionDropped: true };
       updates.sessionId = null;
+    } else if (this.sessionId && existingState.sessionDropped === true) {
+      const { sessionDropped: _dropped, ...rest } = existingState;
+      updates.providerState = rest;
     }
 
     return { updates };
@@ -580,12 +601,13 @@ export class QwenChatRuntime implements ChatRuntime {
   }
 
   private async loadSession(sessionId: string, cwd: string): Promise<boolean> {
-    if (!this.connection) {
+    const connection = this.connection;
+    if (!connection) {
       return false;
     }
 
     try {
-      const response = await this.connection.loadSession({
+      const response = await connection.loadSession({
         cwd,
         mcpServers: this.getMcpServers(),
         sessionId,
@@ -602,7 +624,17 @@ export class QwenChatRuntime implements ChatRuntime {
         modes: response.modes ?? null,
       });
       return true;
-    } catch {
+    } catch (error) {
+      // Ask the agent whether the session still exists instead of treating any
+      // failure as proof it is gone - an expired token looks identical from
+      // here, and swallowing it drops the conversation's context with no signal.
+      if (!(await isAcpSessionGone({
+        error,
+        listSessions: () => connection.listSessions(),
+        sessionId,
+      }))) {
+        throw error;
+      }
       return false;
     }
   }

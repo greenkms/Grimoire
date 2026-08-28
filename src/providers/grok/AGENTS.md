@@ -20,3 +20,8 @@
 - When changing launch artifacts or command loading, verify against current Grok Build runtime output rather than inferred schemas.
 - Refresh the Grok model catalog from live `grok models` whenever the chat picker or settings catalog asks. Do not TTL-skip that path; join an in-flight CLI refresh instead.
 - Plan indicators prefer the Grok-native `x.ai/billing` ACP extension and its unified weekly or monthly usage window. The authenticated billing endpoint and legacy credits protobuf remain compatibility fallbacks. `GrokPlanUsageStore` still aggregates ACP/session/API-key spend for the current month when cost data exists.
+
+## Session resume
+
+- `loadSession` still treats every failure as a lost session. That is deliberate, not an oversight: the Grok CLI would not answer an ACP handshake off a bare probe, so what it reports for a session it no longer has is unobserved, and narrowing this blind would turn a silent recovery into a user-visible error on every stale resume. Move it onto `isAcpSessionGone` once the wire behaviour can be captured.
+- A dropped session is recorded in `providerState.sessionDropped` and read back on load, because the in-memory flag is consumed by the first save. Never replay the transcript into a replacement session: history bootstrap is for a cold resume that never held a session id.
