@@ -3,6 +3,7 @@ import * as fs from 'node:fs/promises';
 import { hashCatalogFingerprint } from '@/core/providers/catalogFingerprint';
 import type { StreamChunk } from '@/core/types';
 import type { AcpContentBlock } from '@/providers/acp';
+import { JsonRpcErrorResponse } from '@/providers/acp/AcpJsonRpcTransport';
 import { resolveGeminiModelCatalogFingerprint } from '@/providers/gemini/modelCatalogFingerprint';
 import { GeminiChatRuntime } from '@/providers/gemini/runtime/GeminiChatRuntime';
 import { getGeminiProviderSettings, updateGeminiProviderSettings } from '@/providers/gemini/settings';
@@ -33,6 +34,13 @@ async function collect(generator: AsyncGenerator<StreamChunk>): Promise<StreamCh
     chunks.push(chunk);
   }
   return chunks;
+}
+
+function allPromptText(prompt: jest.Mock): string {
+  return prompt.mock.calls
+    .flatMap((call: any[]) => (call[0]?.prompt ?? []) as Array<{ text?: string }>)
+    .map(block => block.text ?? '')
+    .join('\n');
 }
 
 describe('GeminiChatRuntime', () => {
@@ -129,6 +137,176 @@ describe('GeminiChatRuntime', () => {
       'gemini-2.5-pro',
       'gemini-3-pro',
     ]);
+  });
+
+  it('soft-fails a session the agent reports it no longer has', async () => {
+    const runtime = new GeminiChatRuntime(createMockPlugin());
+    // Captured from gemini by loading a session id it has never had.
+    const missingSessionError = new JsonRpcErrorResponse(
+      'session/load',
+      -32603,
+      'Internal error',
+      { details: 'No previous sessions found for this project.' },
+    );
+    (runtime as any).connection = {
+      loadSession: jest.fn().mockRejectedValue(missingSessionError),
+    };
+
+    await expect((runtime as any).loadSession('session-1', '/vault')).resolves.toBe(false);
+  });
+
+  it('keeps the binding when the load failed for a reason other than a missing session', async () => {
+    const runtime = new GeminiChatRuntime(createMockPlugin());
+    runtime.syncConversationState({ sessionId: 'session-1' });
+    const error = new JsonRpcErrorResponse('session/load', -32000, 'Authentication failed');
+    (runtime as any).connection = {
+      listSessions: jest.fn().mockResolvedValue({ sessions: [{ sessionId: 'session-1' }] }),
+      loadSession: jest.fn().mockRejectedValue(error),
+    };
+
+    await expect((runtime as any).loadSession('session-1', '/vault')).rejects.toBe(error);
+    expect(runtime.getSessionId()).toBe('session-1');
+  });
+
+  it('does not replay the transcript when readiness drops the session', async () => {
+    const runtime = new GeminiChatRuntime(createMockPlugin());
+    runtime.syncConversationState({ sessionId: 'session-1' });
+    const prompt = jest.fn().mockResolvedValue({});
+
+    jest.spyOn(runtime, 'ensureReady').mockImplementation(async () => {
+      (runtime as any).sessionId = null;
+      (runtime as any).loadedSessionId = null;
+      (runtime as any).sessionInvalidated = true;
+      return true;
+    });
+    (runtime as any).createSession = jest.fn().mockImplementation(async () => {
+      (runtime as any).sessionId = 'session-2';
+      return 'session-2';
+    });
+    (runtime as any).connection = { prompt };
+
+    const history = [
+      { id: 'user-previous', role: 'user' as const, content: 'Keep the language rich.', timestamp: 1 },
+    ];
+    await collect(runtime.query(runtime.prepareTurn({ text: 'Continue the edit.' }), history));
+
+    // Some runtimes send a settings command of their own before the turn, so
+    // the assertion is about everything that reached the agent.
+    const promptText = allPromptText(prompt);
+    expect(promptText).toContain('Continue the edit.');
+    expect(promptText).not.toContain('Keep the language rich.');
+  });
+
+  it('still withholds the transcript after the drop has survived a reload', async () => {
+    const runtime = new GeminiChatRuntime(createMockPlugin());
+    const prompt = jest.fn().mockResolvedValue({});
+
+    runtime.syncConversationState({
+      providerState: { sessionDropped: true },
+      sessionId: null,
+    });
+
+    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+    (runtime as any).createSession = jest.fn().mockImplementation(async () => {
+      (runtime as any).sessionId = 'session-2';
+      return 'session-2';
+    });
+    (runtime as any).connection = { prompt };
+
+    const history = [
+      { id: 'user-previous', role: 'user' as const, content: 'Keep the language rich.', timestamp: 1 },
+    ];
+    await collect(runtime.query(runtime.prepareTurn({ text: 'Continue the edit.' }), history));
+
+    expect(allPromptText(prompt)).not.toContain('Keep the language rich.');
+  });
+
+  it('still replays the transcript for a genuine cold resume', async () => {
+    const runtime = new GeminiChatRuntime(createMockPlugin());
+    const prompt = jest.fn().mockResolvedValue({});
+
+    runtime.syncConversationState({ sessionId: null });
+    jest.spyOn(runtime, 'ensureReady').mockResolvedValue(true);
+    (runtime as any).createSession = jest.fn().mockImplementation(async () => {
+      (runtime as any).sessionId = 'session-2';
+      return 'session-2';
+    });
+    (runtime as any).connection = { prompt };
+
+    const history = [
+      { id: 'user-previous', role: 'user' as const, content: 'Keep the language rich.', timestamp: 1 },
+    ];
+    await collect(runtime.query(runtime.prepareTurn({ text: 'Continue the edit.' }), history));
+
+    expect(allPromptText(prompt)).toContain('Keep the language rich.');
+  });
+
+  it('records a dropped session on the conversation so a reload can tell it from a cold start', () => {
+    const runtime = new GeminiChatRuntime(createMockPlugin());
+    runtime.syncConversationState({ sessionId: 'session-1' });
+    (runtime as any).sessionId = null;
+    (runtime as any).sessionInvalidated = true;
+
+    const updates = runtime.buildSessionUpdates({
+      conversation: {
+        id: 'conv-1',
+        providerId: 'gemini',
+        providerState: {},
+        sessionId: 'session-1',
+      } as any,
+      sessionInvalidated: true,
+    });
+
+    expect(updates.updates.sessionId).toBeNull();
+    expect((updates.updates.providerState as any)?.sessionDropped).toBe(true);
+  });
+
+  it('keeps the dropped marker across a save that no longer carries the flag', () => {
+    const runtime = new GeminiChatRuntime(createMockPlugin());
+    (runtime as any).sessionId = null;
+
+    // consumeSessionInvalidation() already took the in-memory answer, so this
+    // save reports false; only the conversation still knows.
+    const updates = runtime.buildSessionUpdates({
+      conversation: {
+        id: 'conv-1',
+        providerId: 'gemini',
+        providerState: { sessionDropped: true },
+        sessionId: null,
+      } as any,
+      sessionInvalidated: false,
+    });
+
+    expect((updates.updates.providerState as any)?.sessionDropped).toBe(true);
+  });
+
+  it('clears the dropped marker once a replacement session is persisted', () => {
+    const runtime = new GeminiChatRuntime(createMockPlugin());
+    (runtime as any).sessionId = 'session-2';
+
+    const updates = runtime.buildSessionUpdates({
+      conversation: {
+        id: 'conv-1',
+        providerId: 'gemini',
+        providerState: { sessionDropped: true },
+        sessionId: null,
+      } as any,
+      sessionInvalidated: false,
+    });
+
+    expect(updates.updates.sessionId).toBe('session-2');
+    expect((updates.updates.providerState as any)?.sessionDropped).toBeUndefined();
+  });
+
+  it('restores a dropped session from the conversation on load', () => {
+    const runtime = new GeminiChatRuntime(createMockPlugin());
+
+    runtime.syncConversationState({
+      providerState: { sessionDropped: true },
+      sessionId: null,
+    });
+
+    expect(runtime.consumeSessionInvalidation()).toBe(true);
   });
 
   it('streams ACP assistant chunks and done', async () => {
