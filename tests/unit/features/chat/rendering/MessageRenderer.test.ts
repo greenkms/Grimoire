@@ -2567,42 +2567,31 @@ describe('MessageRenderer', () => {
   // ============================================
 
   describe('session restart notice', () => {
-    // createMockEl's remove() does not detach, so removal is asserted on the
-    // element the renderer actually reaches for rather than on the tree.
-    function findNotice(messagesEl: any) {
-      return messagesEl.children.find(
-        (child: any) => child.hasClass('grimoire-session-restart-notice'),
-      );
-    }
-
     it('marks the end of the thread with the label and what it means', () => {
       const { renderer, messagesEl } = createRenderer();
 
       renderer.renderSessionRestartNotice();
 
-      const noticeEl = findNotice(messagesEl);
-      expect(noticeEl).toBeDefined();
+      const noticeEl = messagesEl.querySelector('.grimoire-session-restart-notice');
+      expect(noticeEl).not.toBeNull();
       expect(noticeEl.querySelector('.grimoire-compact-boundary-label').textContent)
         .toBe('New session');
       expect(noticeEl.querySelector('.grimoire-session-restart-notice-hint').textContent)
         .toContain('not in its context');
     });
 
-    it('takes the previous notice down before drawing another', () => {
+    it('shows a single notice however often the check re-runs', () => {
       const { renderer, messagesEl } = createRenderer();
-      renderer.renderSessionRestartNotice();
-      const firstEl = findNotice(messagesEl);
-      const removeSpy = jest.spyOn(firstEl, 'remove');
 
       renderer.renderSessionRestartNotice();
+      renderer.renderSessionRestartNotice();
 
-      expect(removeSpy).toHaveBeenCalledTimes(1);
+      expect(messagesEl.querySelectorAll('.grimoire-session-restart-notice')).toHaveLength(1);
     });
 
     it('takes the notice down once a turn answers it', () => {
       const { renderer, messagesEl } = createRenderer();
       renderer.renderSessionRestartNotice();
-      const removeSpy = jest.spyOn(findNotice(messagesEl), 'remove');
 
       renderer.addMessage({
         id: 'm1',
@@ -2611,29 +2600,30 @@ describe('MessageRenderer', () => {
         timestamp: Date.now(),
       });
 
-      expect(removeSpy).toHaveBeenCalledTimes(1);
+      expect(messagesEl.querySelector('.grimoire-session-restart-notice')).toBeNull();
     });
 
     it('clears on request, and stays cleared', () => {
       const { renderer, messagesEl } = createRenderer();
       renderer.renderSessionRestartNotice();
-      const removeSpy = jest.spyOn(findNotice(messagesEl), 'remove');
 
       renderer.clearSessionRestartNotice();
       renderer.clearSessionRestartNotice();
 
-      expect(removeSpy).toHaveBeenCalledTimes(1);
+      expect(messagesEl.querySelector('.grimoire-session-restart-notice')).toBeNull();
     });
 
     it('does not reach for a notice the thread re-render already dropped', () => {
       const { renderer, messagesEl } = createRenderer();
       renderer.renderSessionRestartNotice();
-      const removeSpy = jest.spyOn(findNotice(messagesEl), 'remove');
+      const staleEl = messagesEl.querySelector('.grimoire-session-restart-notice');
+      const removeSpy = jest.spyOn(staleEl, 'remove');
 
       renderer.renderMessages([], () => 'hi');
-      renderer.clearSessionRestartNotice();
+      renderer.renderSessionRestartNotice();
 
       expect(removeSpy).not.toHaveBeenCalled();
+      expect(messagesEl.querySelectorAll('.grimoire-session-restart-notice')).toHaveLength(1);
     });
   });
 });
