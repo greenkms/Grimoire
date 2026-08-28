@@ -2561,4 +2561,79 @@ describe('MessageRenderer', () => {
       );
     });
   });
+
+  // ============================================
+  // Session restart notice
+  // ============================================
+
+  describe('session restart notice', () => {
+    // createMockEl's remove() does not detach, so removal is asserted on the
+    // element the renderer actually reaches for rather than on the tree.
+    function findNotice(messagesEl: any) {
+      return messagesEl.children.find(
+        (child: any) => child.hasClass('grimoire-session-restart-notice'),
+      );
+    }
+
+    it('marks the end of the thread with the label and what it means', () => {
+      const { renderer, messagesEl } = createRenderer();
+
+      renderer.renderSessionRestartNotice();
+
+      const noticeEl = findNotice(messagesEl);
+      expect(noticeEl).toBeDefined();
+      expect(noticeEl.querySelector('.grimoire-compact-boundary-label').textContent)
+        .toBe('New session');
+      expect(noticeEl.querySelector('.grimoire-session-restart-notice-hint').textContent)
+        .toContain('not in its context');
+    });
+
+    it('takes the previous notice down before drawing another', () => {
+      const { renderer, messagesEl } = createRenderer();
+      renderer.renderSessionRestartNotice();
+      const firstEl = findNotice(messagesEl);
+      const removeSpy = jest.spyOn(firstEl, 'remove');
+
+      renderer.renderSessionRestartNotice();
+
+      expect(removeSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('takes the notice down once a turn answers it', () => {
+      const { renderer, messagesEl } = createRenderer();
+      renderer.renderSessionRestartNotice();
+      const removeSpy = jest.spyOn(findNotice(messagesEl), 'remove');
+
+      renderer.addMessage({
+        id: 'm1',
+        role: 'user',
+        content: 'carry on',
+        timestamp: Date.now(),
+      });
+
+      expect(removeSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('clears on request, and stays cleared', () => {
+      const { renderer, messagesEl } = createRenderer();
+      renderer.renderSessionRestartNotice();
+      const removeSpy = jest.spyOn(findNotice(messagesEl), 'remove');
+
+      renderer.clearSessionRestartNotice();
+      renderer.clearSessionRestartNotice();
+
+      expect(removeSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not reach for a notice the thread re-render already dropped', () => {
+      const { renderer, messagesEl } = createRenderer();
+      renderer.renderSessionRestartNotice();
+      const removeSpy = jest.spyOn(findNotice(messagesEl), 'remove');
+
+      renderer.renderMessages([], () => 'hi');
+      renderer.clearSessionRestartNotice();
+
+      expect(removeSpy).not.toHaveBeenCalled();
+    });
+  });
 });

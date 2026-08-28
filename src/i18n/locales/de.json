@@ -395,6 +395,8 @@
         "interrupted": "Unterbrochen",
         "interruptedHint": "· Was soll Grimoire stattdessen tun?",
         "conversationCompacted": "Unterhaltung komprimiert",
+        "sessionRestarted": "Neue Sitzung",
+        "sessionRestartedHint": "Der Agent konnte die vorherige Sitzung nicht wiederherstellen, daher wird diese Unterhaltung in einer neuen fortgesetzt. Die Nachrichten oben sind nicht in ihrem Kontext - wiederhole, was weiterhin gebraucht wird, oder beginne neu in einem neuen Tab.",
         "completed": "Fertig",
         "duration": "* {flavor} für {duration}",
         "copied": "Kopiert!",

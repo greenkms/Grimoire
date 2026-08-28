@@ -309,6 +309,20 @@ describe('GeminiChatRuntime', () => {
     expect(runtime.consumeSessionInvalidation()).toBe(true);
   });
 
+  it('reports a dropped session without consuming the flag persistence needs', () => {
+    const runtime = new GeminiChatRuntime(createMockPlugin());
+
+    runtime.syncConversationState({
+      providerState: { sessionDropped: true },
+      sessionId: null,
+    });
+
+    expect(runtime.isSessionDropped()).toBe(true);
+    expect(runtime.isSessionDropped()).toBe(true);
+    expect(runtime.consumeSessionInvalidation()).toBe(true);
+    expect(runtime.isSessionDropped()).toBe(false);
+  });
+
   it('streams ACP assistant chunks and done', async () => {
     const runtime = new GeminiChatRuntime(createMockPlugin());
     const turn = runtime.prepareTurn({ text: 'Hello' });

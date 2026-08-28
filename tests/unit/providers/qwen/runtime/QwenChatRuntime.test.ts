@@ -220,6 +220,20 @@ describe('QwenChatRuntime', () => {
     expect(runtime.consumeSessionInvalidation()).toBe(true);
   });
 
+  it('reports a dropped session without consuming the flag persistence needs', () => {
+    const runtime = new QwenChatRuntime(createMockPlugin());
+
+    runtime.syncConversationState({
+      providerState: { sessionDropped: true },
+      sessionId: null,
+    });
+
+    expect(runtime.isSessionDropped()).toBe(true);
+    expect(runtime.isSessionDropped()).toBe(true);
+    expect(runtime.consumeSessionInvalidation()).toBe(true);
+    expect(runtime.isSessionDropped()).toBe(false);
+  });
+
   it('does not start when the provider is disabled', async () => {
     const settings: Record<string, unknown> = {};
     updateQwenProviderSettings(settings, { enabled: false });

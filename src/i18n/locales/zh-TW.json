@@ -395,6 +395,8 @@
         "interrupted": "已中斷",
         "interruptedHint": "· Grimoire 應改做什麼？",
         "conversationCompacted": "對話已壓縮",
+        "sessionRestarted": "新工作階段",
+        "sessionRestartedHint": "代理無法還原先前的工作階段，因此這段對話會在新的工作階段中繼續。上方的訊息不在它的脈絡中——請重述仍然需要的內容，或在新分頁中重新開始。",
         "completed": "已完成",
         "duration": "* {flavor}，持續 {duration}",
         "copied": "已複製！",

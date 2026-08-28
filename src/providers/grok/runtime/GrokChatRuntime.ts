@@ -72,6 +72,7 @@ import {
   extractAcpSessionModeState,
   extractAcpSessionThoughtLevelState,
   isAcpRetryableTransportClose,
+  isAcpSessionGone,
   JsonRpcErrorResponse,
   resolveWorkspacePath,
 } from '../../acp';
@@ -726,6 +727,10 @@ export class GrokChatRuntime implements ChatRuntime {
     const invalidated = this.sessionInvalidated;
     this.sessionInvalidated = false;
     return invalidated;
+  }
+
+  isSessionDropped(): boolean {
+    return this.sessionInvalidated;
   }
 
   isReady(): boolean {
@@ -1673,11 +1678,20 @@ export class GrokChatRuntime implements ChatRuntime {
         error,
         level: 'warn',
       });
-      // Deliberately still swallows every failure. Grok's CLI would not answer
-      // an ACP handshake here, so what it reports for a session it no longer
-      // has is unknown - and narrowing this blind would turn a silent recovery
-      // into a user-visible error on every stale resume. Left as it was until
-      // the wire behaviour can be observed.
+      // Ask the agent whether the session still exists instead of treating any
+      // failure as proof it is gone. Grok reports a missing session as a bare
+      // `-32603 Path not found`, which no error-text rule can tell apart from
+      // an auth or configuration failure - but it advertises
+      // `sessionCapabilities.list` and answers `session/list`, so the listing
+      // is the reliable answer. An agent that cannot be asked keeps the
+      // binding and lets the original error surface.
+      if (!(await isAcpSessionGone({
+        error,
+        listSessions: () => connection.listSessions(),
+        sessionId,
+      }))) {
+        throw error;
+      }
       return false;
     }
   }

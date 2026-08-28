@@ -395,6 +395,8 @@
         "interrupted": "Interrompido",
         "interruptedHint": "· O que o Grimoire deve fazer em vez disso?",
         "conversationCompacted": "Conversa compactada",
+        "sessionRestarted": "Nova sessão",
+        "sessionRestartedHint": "O agente não conseguiu restaurar a sessão anterior, portanto esta conversa continua em uma nova. As mensagens acima não estão no contexto dela - repita o que ainda for necessário ou comece do zero em uma nova aba.",
         "completed": "Concluído",
         "duration": "* {flavor} por {duration}",
         "copied": "Copiado!",
