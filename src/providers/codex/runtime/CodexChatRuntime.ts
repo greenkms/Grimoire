@@ -8,6 +8,7 @@ import {
   getOrchestratorModeInstructions,
   type SystemPromptSettings,
 } from '../../../core/prompt/mainAgent';
+import { hashCatalogFingerprint } from '../../../core/providers/catalogFingerprint';
 import { ProviderSettingsCoordinator } from '../../../core/providers/ProviderSettingsCoordinator';
 import type { ProviderCapabilities, ProviderId } from '../../../core/providers/types';
 import type { ChatRuntime } from '../../../core/runtime/ChatRuntime';
@@ -38,9 +39,11 @@ import {
   deriveCodexSessionsRootFromSessionPath,
   findCodexSessionFile,
 } from '../history/CodexHistoryStore';
+import { resolveCodexModelCatalogFingerprint } from '../modelCatalogFingerprint';
 import { updateCodexModelDiscoveryState } from '../modelDiscoveryState';
 import { encodeCodexTurn } from '../prompt/encodeCodexTurn';
 import {
+  getCodexProviderSettings,
   getEffectiveCodexReasoningSummary,
 } from '../settings';
 import {
@@ -856,10 +859,20 @@ export class CodexChatRuntime implements ChatRuntime {
         return;
       }
 
-      const changed = updateCodexModelDiscoveryState(
-        this.plugin.settings,
-        { discoveredModels: models },
-      );
+      // Records which configuration produced this list, so a later load can
+      // tell a list discovered under the current CLI from one merely assumed to
+      // match it. A run that finds the same models under a new CLI therefore
+      // still persists, and re-renders selectors once - identical options, but
+      // only when the CLI or environment actually changed.
+      const changed = updateCodexModelDiscoveryState(this.plugin.settings, {
+        discoveredModels: models,
+        discoveredModelsFingerprint: hashCatalogFingerprint(
+          resolveCodexModelCatalogFingerprint(
+            this.plugin,
+            getCodexProviderSettings(this.plugin.settings),
+          ),
+        ),
+      });
       if (changed) {
         await this.plugin.saveSettings();
         this.refreshModelSelectors();

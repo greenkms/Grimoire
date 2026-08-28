@@ -37,16 +37,3 @@ export function buildClaudeCatalogCacheKey(
     respectProjectSettings: settings.respectProjectSettings,
   });
 }
-
-/**
- * FNV-1a over the cache key. The key embeds the raw environment variables,
- * which can hold an API key, so only the digest is ever persisted.
- */
-export function hashClaudeCatalogCacheKey(cacheKey: string): string {
-  let hash = 0x811c9dc5;
-  for (let index = 0; index < cacheKey.length; index += 1) {
-    hash ^= cacheKey.charCodeAt(index);
-    hash = Math.imul(hash, 0x01000193) >>> 0;
-  }
-  return hash.toString(16).padStart(8, '0');
-}

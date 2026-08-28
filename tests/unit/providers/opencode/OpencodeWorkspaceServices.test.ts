@@ -53,20 +53,84 @@ describe('createOpencodeWorkspaceServices', () => {
     ]);
   });
 
-  it('uses cached OpenCode discovered models without warming the runtime again', async () => {
+  it('boots the runtime once and then reuses the discovered models for the rest of the process', async () => {
     const settings: Record<string, unknown> = {};
-    updateOpencodeProviderSettings(settings, {
-      discoveredModels: [{ label: 'OpenAI/GPT-5.6', rawId: 'openai/gpt-5.6' }],
-      enabled: true,
-      visibleModels: ['openai/gpt-5.6'],
-    });
+    updateOpencodeProviderSettings(settings, { enabled: true });
     const plugin = {
       recordDebugLog: jest.fn(),
       settings,
       saveSettings: jest.fn().mockResolvedValue(undefined),
     };
-    const ensureReadySpy = jest.spyOn(OpencodeChatRuntime.prototype, 'ensureReady');
-    const cleanupSpy = jest.spyOn(OpencodeChatRuntime.prototype, 'cleanup');
+    const ensureReadySpy = jest
+      .spyOn(OpencodeChatRuntime.prototype, 'ensureReady')
+      .mockImplementation(async function ensureReady(this: OpencodeChatRuntime) {
+        updateOpencodeProviderSettings((this as any).plugin.settings, {
+          discoveredModels: [{ label: 'OpenAI/GPT-5.6', rawId: 'openai/gpt-5.6' }],
+          visibleModels: ['openai/gpt-5.6'],
+        });
+        return true;
+      });
+    const cleanupSpy = jest.spyOn(OpencodeChatRuntime.prototype, 'cleanup').mockImplementation(() => undefined);
+    const vaultAdapter = {
+      delete: jest.fn(),
+      ensureFolder: jest.fn(),
+      exists: jest.fn().mockResolvedValue(false),
+      listFiles: jest.fn().mockResolvedValue([]),
+      read: jest.fn(),
+      write: jest.fn(),
+    };
+
+    const services = await createOpencodeWorkspaceServices(plugin as any, vaultAdapter as any);
+    const discovered = await services.modelCatalog?.refreshModels({
+      plugin: plugin as any,
+      settings,
+    });
+    const reused = await services.modelCatalog?.refreshModels({
+      plugin: plugin as any,
+      settings,
+    });
+
+    expect(discovered).toBe(true);
+    expect(reused).toBe(false);
+    expect(ensureReadySpy).toHaveBeenCalledTimes(1);
+    expect(cleanupSpy).toHaveBeenCalledTimes(1);
+    expect(plugin.recordDebugLog).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        modelCount: 1,
+        providerId: 'opencode',
+        reason: 'cache_fresh',
+      }),
+      event: 'modelCatalog.refresh.skipped',
+      level: 'debug',
+      scope: 'provider.opencode',
+    }));
+  });
+
+  it('rediscovers a list carried over from a legacy persisted field instead of pinning it', async () => {
+    const settings: Record<string, unknown> = {
+      providerConfigs: {
+        opencode: {
+          discoveredModels: [{ label: 'OpenAI/GPT-5.5', rawId: 'openai/gpt-5.5' }],
+          enabled: true,
+          visibleModels: ['openai/gpt-5.5'],
+        },
+      },
+    };
+    const plugin = {
+      recordDebugLog: jest.fn(),
+      settings,
+      saveSettings: jest.fn().mockResolvedValue(undefined),
+    };
+    const ensureReadySpy = jest
+      .spyOn(OpencodeChatRuntime.prototype, 'ensureReady')
+      .mockImplementation(async function ensureReady(this: OpencodeChatRuntime) {
+        updateOpencodeProviderSettings((this as any).plugin.settings, {
+          discoveredModels: [{ label: 'OpenAI/GPT-5.6', rawId: 'openai/gpt-5.6' }],
+          visibleModels: ['openai/gpt-5.6'],
+        });
+        return true;
+      });
+    jest.spyOn(OpencodeChatRuntime.prototype, 'cleanup').mockImplementation(() => undefined);
     const vaultAdapter = {
       delete: jest.fn(),
       ensureFolder: jest.fn(),
@@ -82,18 +146,10 @@ describe('createOpencodeWorkspaceServices', () => {
       settings,
     });
 
-    expect(changed).toBe(false);
-    expect(ensureReadySpy).not.toHaveBeenCalled();
-    expect(cleanupSpy).not.toHaveBeenCalled();
-    expect(plugin.recordDebugLog).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({
-        modelCount: 1,
-        providerId: 'opencode',
-        reason: 'cache_fresh',
-      }),
-      event: 'modelCatalog.refresh.skipped',
-      level: 'debug',
-      scope: 'provider.opencode',
-    }));
+    expect(changed).toBe(true);
+    expect(ensureReadySpy).toHaveBeenCalledTimes(1);
+    expect(getOpencodeProviderSettings(settings).discoveredModels).toEqual([
+      { label: 'OpenAI/GPT-5.6', rawId: 'openai/gpt-5.6' },
+    ]);
   });
 });

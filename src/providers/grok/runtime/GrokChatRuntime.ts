@@ -288,6 +288,9 @@ export class GrokChatRuntime implements ChatRuntime {
     }
     this.sessionId = nextSessionId;
     const state = getGrokState(conversation?.providerState);
+    if (!nextSessionId && state.sessionDropped) {
+      this.sessionInvalidated = true;
+    }
     if (state.sessionDirPath) {
       this.currentSessionDirPath = state.sessionDirPath;
     }
@@ -518,8 +521,15 @@ export class GrokChatRuntime implements ChatRuntime {
   ): AsyncGenerator<StreamChunk> {
     const previousMessages = conversationHistory ?? [];
     const expectedSessionId = this.sessionId;
+    // A session that was dropped must not have the transcript replayed into its
+    // replacement: that silently re-buys the whole conversation, once per failed
+    // resume, without anyone asking. Bootstrap is for a genuine cold resume -
+    // one where no session was ever held. `sessionInvalidated` is what tells the
+    // two apart, and it is restored from the conversation, because the drop
+    // usually happens during warmup, before query() runs at all.
     let shouldBootstrapHistory = previousMessages.length > 0
-      && (!expectedSessionId || this.sessionInvalidated);
+      && !expectedSessionId
+      && !this.sessionInvalidated;
 
     if (!(await this.ensureReady())) {
       logGrokDebug(this.plugin, 'query.ensureReady.failed', {
@@ -538,9 +548,9 @@ export class GrokChatRuntime implements ChatRuntime {
     }
 
     const cwd = getVaultPath(this.plugin.app) ?? process.cwd();
-    if (expectedSessionId && !this.sessionId) {
-      shouldBootstrapHistory = previousMessages.length > 0;
-    }
+    // Deliberately no bootstrap here: if readiness dropped the session, the
+    // replacement starts clean and recovering the earlier context is the user's
+    // call, not a purchase we make for them.
 
     if (!this.sessionId) {
       const sessionId = await this.createSession(cwd);
@@ -797,20 +807,30 @@ export class GrokChatRuntime implements ChatRuntime {
       : null;
     const sessionDirPath = this.currentSessionDirPath ?? existingState?.sessionDirPath;
     const workspacePath = this.currentWorkspacePath ?? existingState?.workspacePath;
-    const providerState: GrokProviderState = {
-      ...(sessionDirPath ? { sessionDirPath } : {}),
-      ...(workspacePath ? { workspacePath } : {}),
-    };
-
     // On invalidation without a replacement session, clear sessionId so the
     // next send creates a fresh ACP session, but keep native path metadata.
     const sessionId = params.sessionInvalidated && !this.sessionId
       ? null
       : this.sessionId;
+    // "We had a session and lost it" has to outlive the runtime that learned
+    // it: the in-memory flag is consumed by the first save, and saves happen on
+    // tab close and on quit. Without this the next launch reads a dropped
+    // session as a conversation that never had one and replays the whole
+    // transcript into a fresh one. It clears once a real session id is back.
+    const sessionDropped = !sessionId
+      && (params.sessionInvalidated || existingState?.sessionDropped === true);
+    const providerState: GrokProviderState = {
+      ...(sessionDropped ? { sessionDropped: true } : {}),
+      ...(sessionDirPath ? { sessionDirPath } : {}),
+      ...(workspacePath ? { workspacePath } : {}),
+    };
 
+    // An empty object would leave the stored state untouched, so a marker that
+    // has just cleared still has to be written out.
+    const mustClearMarker = existingState?.sessionDropped === true && !sessionDropped;
     return {
       updates: {
-        providerState: Object.keys(providerState).length > 0
+        providerState: Object.keys(providerState).length > 0 || mustClearMarker
           ? providerState as Record<string, unknown>
           : undefined,
         sessionId,
@@ -1613,13 +1633,14 @@ export class GrokChatRuntime implements ChatRuntime {
   }
 
   private async loadSession(sessionId: string, cwd: string): Promise<boolean> {
-    if (!this.connection) {
+    const connection = this.connection;
+    if (!connection) {
       return false;
     }
 
     try {
       this.setSupportedCommands([]);
-      const response = await this.connection.loadSession({
+      const response = await connection.loadSession({
         cwd,
         mcpServers: this.getMcpServers(),
         sessionId,
@@ -1652,6 +1673,11 @@ export class GrokChatRuntime implements ChatRuntime {
         error,
         level: 'warn',
       });
+      // Deliberately still swallows every failure. Grok's CLI would not answer
+      // an ACP handshake here, so what it reports for a session it no longer
+      // has is unknown - and narrowing this blind would turn a silent recovery
+      // into a user-visible error on every stale resume. Left as it was until
+      // the wire behaviour can be observed.
       return false;
     }
   }

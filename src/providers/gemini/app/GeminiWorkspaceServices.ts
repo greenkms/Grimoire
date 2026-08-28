@@ -13,6 +13,10 @@ import type { VaultFileAdapter } from '../../../core/storage/VaultFileAdapter';
 import type GrimoirePlugin from '../../../main';
 import { AcpMcpStorage } from '../../acp/mcp/AcpMcpStorage';
 import { GeminiCommandCatalog } from '../commands/GeminiCommandCatalog';
+import {
+  buildGeminiModelCatalogFingerprint,
+  resolveGeminiModelCatalogFingerprint,
+} from '../modelCatalogFingerprint';
 import { GeminiChatRuntime } from '../runtime/GeminiChatRuntime';
 import { GeminiCliResolver } from '../runtime/GeminiCliResolver';
 import { getGeminiProviderSettings } from '../settings';
@@ -41,29 +45,6 @@ const geminiTabWarmupPolicy: ProviderTabWarmupPolicy = {
 
 const MODEL_CATALOG_CACHE_TTL_MS = 10 * 60 * 1000;
 
-function buildGeminiModelCatalogFingerprint(
-  settings: ReturnType<typeof getGeminiProviderSettings>,
-  cliPath: string,
-  environmentVariables: string,
-): string {
-  return JSON.stringify({
-    cliPath,
-    cliPathsByHost: settings.cliPathsByHost,
-    environmentVariables,
-  });
-}
-
-function resolveGeminiModelCatalogFingerprint(
-  plugin: GrimoirePlugin,
-  settings: ReturnType<typeof getGeminiProviderSettings>,
-): string {
-  return buildGeminiModelCatalogFingerprint(
-    settings,
-    plugin.getResolvedProviderCliPath?.('gemini') ?? settings.cliPath,
-    plugin.getActiveEnvironmentVariables?.('gemini') ?? settings.environmentVariables,
-  );
-}
-
 function createGeminiModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
   const initialSettings = getGeminiProviderSettings(plugin.settings ?? {});
   const refreshCache = new ProviderModelCatalogRefreshCache(MODEL_CATALOG_CACHE_TTL_MS);
@@ -84,7 +65,10 @@ function createGeminiModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog 
         initialEnvironmentVariables,
       ));
     } else {
-      refreshCache.seed(resolveGeminiModelCatalogFingerprint(plugin, initialSettings));
+      refreshCache.seed(
+        resolveGeminiModelCatalogFingerprint(plugin, initialSettings),
+        initialSettings.discoveredModelsFingerprint,
+      );
     }
   }
 
@@ -98,7 +82,12 @@ function createGeminiModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog 
       const currentSettings = getGeminiProviderSettings(settings);
       const fingerprint = resolveGeminiModelCatalogFingerprint(plugin, currentSettings);
       const hasCachedModels = currentSettings.discoveredModels.length > 0;
-      if (refreshCache.applyDeferredSeed(fingerprint, hasCachedModels) && !force) {
+      const appliedDeferredSeed = refreshCache.applyDeferredSeed(
+        fingerprint,
+        hasCachedModels,
+        currentSettings.discoveredModelsFingerprint,
+      );
+      if (appliedDeferredSeed && !force) {
         plugin.recordDebugLog?.({
           data: {
             modelCount: currentSettings.discoveredModels.length,

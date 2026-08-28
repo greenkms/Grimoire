@@ -71,8 +71,8 @@ import {
   extractAcpSessionModelState,
   extractAcpSessionModeState,
   extractAcpSessionThoughtLevelState,
-  isAcpMissingSessionError,
   isAcpRetryableTransportClose,
+  isAcpSessionGone,
   planAcpEnsureReadySessionPhase,
   resolveWorkspacePath,
   runAcpEnsureReadyForQuery,
@@ -244,6 +244,9 @@ export class KimicodeChatRuntime implements ChatRuntime {
     }
     this.sessionId = nextSessionId;
     const state = getKimicodeState(conversation?.providerState);
+    if (!nextSessionId && state.sessionDropped) {
+      this.sessionInvalidated = true;
+    }
     if (state.databasePath) {
       this.currentDatabasePath = state.databasePath;
       return;
@@ -388,8 +391,15 @@ export class KimicodeChatRuntime implements ChatRuntime {
   ): AsyncGenerator<StreamChunk> {
     const previousMessages = conversationHistory ?? [];
     const expectedSessionId = this.sessionId;
+    // A session that was dropped must not have the transcript replayed into its
+    // replacement: that silently re-buys the whole conversation, once per failed
+    // resume, without anyone asking. Bootstrap is for a genuine cold resume -
+    // one where no session was ever held. `sessionInvalidated` is what tells the
+    // two apart, and it is restored from the conversation, because the drop
+    // usually happens during warmup, before query() runs at all.
     let shouldBootstrapHistory = previousMessages.length > 0
-      && (!expectedSessionId || this.sessionInvalidated);
+      && !expectedSessionId
+      && !this.sessionInvalidated;
 
     const lifecycleGeneration = this.lifecycleGeneration;
     if (!(await this.ensureReadyForQuery(lifecycleGeneration))) {
@@ -405,9 +415,9 @@ export class KimicodeChatRuntime implements ChatRuntime {
     }
 
     const cwd = getVaultPath(this.plugin.app) ?? process.cwd();
-    if (expectedSessionId && !this.sessionId) {
-      shouldBootstrapHistory = previousMessages.length > 0;
-    }
+    // Deliberately no bootstrap here: if readiness dropped the session, the
+    // replacement starts clean and recovering the earlier context is the user's
+    // call, not a purchase we make for them.
 
     if (!this.sessionId) {
       const sessionId = await this.createSession(cwd);
@@ -643,16 +653,21 @@ export class KimicodeChatRuntime implements ChatRuntime {
       : null;
     const fields = buildAcpPersistedSessionFields({
       conversationDatabasePath: existingState?.databasePath,
+      conversationSessionDropped: existingState?.sessionDropped,
       currentDatabasePath: this.currentDatabasePath,
       sessionId: this.sessionId,
       sessionInvalidated: params.sessionInvalidated,
     });
     const providerState: KimicodeProviderState = {
       ...(fields.databasePath ? { databasePath: fields.databasePath } : {}),
+      ...(fields.sessionDropped ? { sessionDropped: true } : {}),
     };
+    // An empty object would leave the stored state untouched, so a marker that
+    // has just cleared still has to be written out.
+    const mustClearMarker = existingState?.sessionDropped === true && !fields.sessionDropped;
     return {
       updates: {
-        providerState: Object.keys(providerState).length > 0
+        providerState: Object.keys(providerState).length > 0 || mustClearMarker
           ? providerState as Record<string, unknown>
           : undefined,
         sessionId: fields.sessionId,
@@ -1219,13 +1234,14 @@ export class KimicodeChatRuntime implements ChatRuntime {
   }
 
   private async loadSession(sessionId: string, cwd: string): Promise<boolean> {
-    if (!this.connection) {
+    const connection = this.connection;
+    if (!connection) {
       return false;
     }
 
     try {
       this.setSupportedCommands([]);
-      const response = await this.connection.loadSession({
+      const response = await connection.loadSession({
         cwd,
         mcpServers: this.getMcpServers(),
         sessionId,
@@ -1245,7 +1261,16 @@ export class KimicodeChatRuntime implements ChatRuntime {
       });
       return true;
     } catch (error) {
-      if (!isAcpMissingSessionError(error)) {
+      // Ask the agent whether the session still exists instead of reading the
+      // answer out of the error text - none of the managed CLIs put it there.
+      // A session that is genuinely gone is soft-failed into a fresh one; an
+      // auth or configuration failure keeps the binding and surfaces.
+      const sessionGone = await isAcpSessionGone({
+        error,
+        listSessions: () => connection.listSessions(),
+        sessionId,
+      });
+      if (!sessionGone) {
         throw error;
       }
       this.lastSessionLoadError = error;

@@ -1,11 +1,14 @@
 import { requestUrl } from 'obsidian';
 
+import {
+  hashCatalogFingerprint,
+  seedFingerprintMatches,
+} from '../../../core/providers/catalogFingerprint';
 import type { ProviderModelCatalog } from '../../../core/providers/types';
 import type GrimoirePlugin from '../../../main';
 import {
   buildClaudeCatalogCacheKey,
   CLAUDE_EMPTY_DISCOVERY_RETRY_MS,
-  hashClaudeCatalogCacheKey,
 } from '../cli/claudeCatalogCache';
 import { probeRuntimeModels } from '../commands/probeRuntimeModels';
 import {
@@ -91,16 +94,6 @@ async function fetchClaudeModelsFromAnthropicApi(
   }
 
   return models;
-}
-
-/**
- * A catalog persisted before the fingerprint existed carries no record of the key
- * it came from, so the seed keeps extending it the same trust it always did. Once
- * a fingerprint is recorded, the seed only applies while it still matches.
- */
-function seedFingerprintMatches(persistedFingerprint: string, cacheKey: string): boolean {
-  return persistedFingerprint === ''
-    || persistedFingerprint === hashClaudeCatalogCacheKey(cacheKey);
 }
 
 export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelCatalog {
@@ -235,7 +228,7 @@ export function createClaudeModelCatalog(plugin: GrimoirePlugin): ProviderModelC
           // "discovered under this exact configuration" from "assumed".
           updateClaudeProviderSettings(settings, {
             discoveredModels,
-            discoveredModelsFingerprint: hashClaudeCatalogCacheKey(cacheKey),
+            discoveredModelsFingerprint: hashCatalogFingerprint(cacheKey),
           });
           try {
             await plugin.saveSettings?.();
