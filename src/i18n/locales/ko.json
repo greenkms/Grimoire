@@ -395,6 +395,8 @@
         "interrupted": "중단됨",
         "interruptedHint": "· 대신 Grimoire가 무엇을 해야 하나요?",
         "conversationCompacted": "대화 압축됨",
+        "sessionRestarted": "새 세션",
+        "sessionRestartedHint": "에이전트가 이전 세션을 복원하지 못해 이 대화는 새 세션에서 계속됩니다. 위의 메시지는 해당 컨텍스트에 없습니다. 여전히 필요한 내용은 다시 알려주거나 새 탭에서 시작하세요.",
         "completed": "완료됨",
         "duration": "* {flavor} · {duration}",
         "copied": "복사됨!",

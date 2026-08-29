@@ -395,6 +395,8 @@
         "interrupted": "中断されました",
         "interruptedHint": "· 代わりにGrimoireに何をさせますか？",
         "conversationCompacted": "会話を圧縮しました",
+        "sessionRestarted": "新しいセッション",
+        "sessionRestartedHint": "エージェントが前のセッションを復元できなかったため、この会話は新しいセッションで続きます。上のメッセージはそのコンテキストに含まれていません。必要な内容は伝え直すか、新しいタブで始めてください。",
         "completed": "完了",
         "duration": "* {flavor}、{duration}",
         "copied": "コピーしました！",

@@ -215,6 +215,68 @@ describe('GrokChatRuntime', () => {
     expect(runtime.consumeSessionInvalidation()).toBe(true);
   });
 
+  it('keeps the binding when the agent still lists the session it failed to load', async () => {
+    const runtime = new GrokChatRuntime(createMockPlugin());
+    runtime.syncConversationState({ sessionId: 'session-1' });
+    const error = new JsonRpcErrorResponse('session/load', -32603, 'Path not found.', {
+      code: 'FS_NOT_FOUND',
+    });
+    (runtime as any).connection = {
+      listSessions: jest.fn().mockResolvedValue({ sessions: [{ sessionId: 'session-1' }] }),
+      loadSession: jest.fn().mockRejectedValue(error),
+    };
+
+    await expect((runtime as any).loadSession('session-1', '/vault')).rejects.toBe(error);
+
+    expect(runtime.getSessionId()).toBe('session-1');
+    expect(runtime.consumeSessionInvalidation()).toBe(false);
+  });
+
+  it('soft-fails a session the agent no longer lists, whatever the error said', async () => {
+    const runtime = new GrokChatRuntime(createMockPlugin());
+    runtime.syncConversationState({ sessionId: 'session-1' });
+    (runtime as any).connection = {
+      listSessions: jest.fn().mockResolvedValue({ sessions: [{ sessionId: 'session-9' }] }),
+      loadSession: jest.fn().mockRejectedValue(
+        // What Grok Build actually answers for a session it no longer has.
+        new JsonRpcErrorResponse('session/load', -32603, 'Path not found.', {
+          code: 'FS_NOT_FOUND',
+        }),
+      ),
+    };
+
+    await expect((runtime as any).loadSession('session-1', '/vault')).resolves.toBe(false);
+  });
+
+  it('preserves the saved session binding when the agent cannot be asked', async () => {
+    const runtime = new GrokChatRuntime(createMockPlugin());
+    runtime.syncConversationState({ sessionId: 'session-1' });
+    const error = new JsonRpcErrorResponse('session/load', -32000, 'Authentication failed');
+    (runtime as any).connection = {
+      listSessions: jest.fn().mockRejectedValue(new Error('session/list unsupported')),
+      loadSession: jest.fn().mockRejectedValue(error),
+    };
+
+    await expect((runtime as any).loadSession('session-1', '/vault')).rejects.toBe(error);
+
+    expect(runtime.getSessionId()).toBe('session-1');
+    expect(runtime.consumeSessionInvalidation()).toBe(false);
+  });
+
+  it('reports a dropped session without consuming the flag persistence needs', () => {
+    const runtime = new GrokChatRuntime(createMockPlugin());
+
+    runtime.syncConversationState({
+      providerState: { sessionDropped: true },
+      sessionId: null,
+    });
+
+    expect(runtime.isSessionDropped()).toBe(true);
+    expect(runtime.isSessionDropped()).toBe(true);
+    expect(runtime.consumeSessionInvalidation()).toBe(true);
+    expect(runtime.isSessionDropped()).toBe(false);
+  });
+
   it('persists the user question so a failed turn is not wiped on hydrate', () => {
     const runtime = new GrokChatRuntime(createMockPlugin());
 

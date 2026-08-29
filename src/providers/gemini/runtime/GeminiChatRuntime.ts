@@ -396,6 +396,10 @@ export class GeminiChatRuntime implements ChatRuntime {
     return invalidated;
   }
 
+  isSessionDropped(): boolean {
+    return this.sessionInvalidated;
+  }
+
   isReady(): boolean {
     return this.ready;
   }

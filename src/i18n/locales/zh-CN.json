@@ -395,6 +395,8 @@
         "interrupted": "已中断",
         "interruptedHint": "· 希望 Grimoire 改做什么？",
         "conversationCompacted": "对话已压缩",
+        "sessionRestarted": "新会话",
+        "sessionRestartedHint": "智能体无法恢复上一个会话，因此本对话将在新会话中继续。上面的消息不在它的上下文中——请重述仍然需要的内容，或在新标签页中重新开始。",
         "completed": "完成",
         "duration": "* {flavor}，用时 {duration}",
         "copied": "已复制！",

@@ -41,6 +41,15 @@ export interface ChatRuntime {
   resetSession(): void;
   getSessionId(): string | null;
   consumeSessionInvalidation(): boolean;
+  /**
+   * Whether the conversation's saved session could not be resumed, so the next
+   * turn opens a fresh one that has never seen the messages above.
+   *
+   * Unlike `consumeSessionInvalidation()` this does not clear the flag: that
+   * one is spent on persistence, and the UI has to be able to ask the same
+   * question again on every render. Providers that always resume return false.
+   */
+  isSessionDropped?(): boolean;
   isReady(): boolean;
   getSupportedCommands(): Promise<SlashCommand[]>;
   getAuxiliaryModel?(): string | null;

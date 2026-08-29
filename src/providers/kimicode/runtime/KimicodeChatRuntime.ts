@@ -570,6 +570,10 @@ export class KimicodeChatRuntime implements ChatRuntime {
     return invalidated;
   }
 
+  isSessionDropped(): boolean {
+    return this.sessionInvalidated;
+  }
+
   isReady(): boolean {
     return this.ready;
   }

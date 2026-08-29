@@ -395,6 +395,8 @@
         "interrupted": "Interrupted",
         "interruptedHint": "· What should Grimoire do instead?",
         "conversationCompacted": "Conversation compacted",
+        "sessionRestarted": "New session",
+        "sessionRestartedHint": "The agent could not restore the previous session, so this conversation continues in a new one. The messages above are not in its context - repeat anything it still needs, or start fresh in a new tab.",
         "completed": "Baked",
         "duration": "* {flavor} for {duration}",
         "copied": "Copied!",
