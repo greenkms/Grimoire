@@ -644,6 +644,134 @@ describe('ClaudeChatRuntime', () => {
         expect(result.behavior).toBe('allow');
         expect(callback).toHaveBeenCalled();
       });
+
+      it('injects the CLI free-text option before rendering AskUserQuestion', async () => {
+        const callback = jest.fn().mockResolvedValue({ 'Choose a theme': 'Dark' });
+        service.setAskUserQuestionCallback(callback);
+
+        const question = { options: [{ label: 'Light' }], question: 'Choose a theme' };
+        const canUseTool = (service as any).createApprovalCallback();
+        const result = await canUseTool(
+          'AskUserQuestion',
+          { questions: [question] },
+          canUseToolOptions,
+        );
+
+        expect(callback).toHaveBeenCalledWith(
+          { questions: [{ ...question, isOther: true }] },
+          canUseToolOptions.signal,
+        );
+        expect(result).toEqual({
+          behavior: 'allow',
+          updatedInput: {
+            answers: { 'Choose a theme': 'Dark' },
+            questions: [{ ...question, isOther: true }],
+          },
+        });
+      });
+    });
+  });
+
+  describe('AskUserQuestion dialog flow', () => {
+    const dialogOptions = { signal: new AbortController().signal };
+    const questions = [{
+      multiSelect: false,
+      options: [{ label: 'Light' }, { label: 'Dark' }],
+      question: 'Choose a theme',
+    }];
+    const preparedQuestions = [{ ...questions[0], isOther: true }];
+
+    function requestDialog(payload: Record<string, unknown>, dialogKind = 'permission_ask_user_question') {
+      const onUserDialog = (service as any).createUserDialogCallback();
+      return onUserDialog({ dialogKind, payload }, dialogOptions);
+    }
+
+    it('routes permission_ask_user_question through the shared callback', async () => {
+      const callback = jest.fn().mockResolvedValue({ 'Choose a theme': 'Dark' });
+      service.setAskUserQuestionCallback(callback);
+
+      const result = await requestDialog({
+        permissionResult: {
+          behavior: 'allow',
+          updatedInput: { metadata: { source: 'cli' }, questions },
+        },
+        questions,
+      });
+
+      // Only `questions` travels in the dialog payload, so the rest of the
+      // tool input has to come back from the permission result.
+      expect(callback).toHaveBeenCalledWith(
+        { metadata: { source: 'cli' }, questions: preparedQuestions },
+        dialogOptions.signal,
+      );
+      expect(result).toEqual({
+        behavior: 'completed',
+        result: {
+          behavior: 'allow',
+          updatedInput: {
+            answers: { 'Choose a theme': 'Dark' },
+            metadata: { source: 'cli' },
+            questions: preparedQuestions,
+          },
+        },
+      });
+    });
+
+    it('keeps a denied permission decision instead of upgrading it to allow', async () => {
+      const callback = jest.fn();
+      service.setAskUserQuestionCallback(callback);
+
+      const result = await requestDialog({
+        permissionResult: { behavior: 'deny', message: 'Blocked by a deny rule.' },
+        questions,
+      });
+
+      expect(callback).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        behavior: 'completed',
+        result: { behavior: 'deny', feedback: 'Blocked by a deny rule.' },
+      });
+    });
+
+    it('denies with feedback when the user dismisses the question', async () => {
+      const callback = jest.fn().mockResolvedValue(null);
+      service.setAskUserQuestionCallback(callback);
+
+      const result = await requestDialog({ questions });
+
+      expect(result).toEqual({
+        behavior: 'completed',
+        result: { behavior: 'deny', feedback: 'User declined to answer.' },
+      });
+    });
+
+    it('denies with the failure reason when the question UI throws', async () => {
+      const callback = jest.fn().mockRejectedValue(new Error('render failed'));
+      service.setAskUserQuestionCallback(callback);
+
+      const result = await requestDialog({ questions });
+
+      expect(result).toEqual({
+        behavior: 'completed',
+        result: { behavior: 'deny', feedback: 'Failed to get user answers: render failed' },
+      });
+    });
+
+    it('cancels dialogs that carry no questions', async () => {
+      const callback = jest.fn();
+      service.setAskUserQuestionCallback(callback);
+
+      await expect(requestDialog({ questions: [] })).resolves.toEqual({ behavior: 'cancelled' });
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('cancels unsupported dialogs without opening the question UI', async () => {
+      const callback = jest.fn();
+      service.setAskUserQuestionCallback(callback);
+
+      await expect(requestDialog({ questions }, 'unknown_dialog'))
+        .resolves.toEqual({ behavior: 'cancelled' });
+      expect(callback).not.toHaveBeenCalled();
     });
   });
 

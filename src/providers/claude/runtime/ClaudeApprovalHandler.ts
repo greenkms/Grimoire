@@ -22,6 +22,7 @@ import type {
 } from '../../../core/types';
 import type { PermissionMode } from '../../../core/types/settings';
 import { buildPermissionUpdates } from '../security/ClaudePermissionUpdates';
+import { prepareAskUserQuestionInput } from './claudeAskUserQuestion';
 
 export interface ClaudeApprovalHandlerDeps {
   getAllowedTools: () => string[] | null;
@@ -83,23 +84,15 @@ export function createClaudeApprovalCallback(
     const askUserQuestionCallback = deps.getAskUserQuestionCallback();
     if (toolName === TOOL_ASK_USER_QUESTION && askUserQuestionCallback) {
       try {
-        // The SDK's JSDoc says "Other will be provided automatically" but
-        // the SDK doesn't inject isOther into the canUseTool input. Grimoire
-        // intercepts at canUseTool and renders its own UI, so we must inject
-        // isOther here to match the Claude Code CLI's built-in behavior.
-        const questions = (input).questions;
-        if (Array.isArray(questions)) {
-          for (const q of questions) {
-            if (q && typeof q === 'object' && !('isOther' in q)) {
-              (q as Record<string, unknown>).isOther = true;
-            }
-          }
-        }
-        const answers = await askUserQuestionCallback(input, options.signal);
+        // The SDK's JSDoc says "Other will be provided automatically" but the
+        // SDK doesn't inject isOther into the canUseTool input, so Grimoire
+        // adds it before rendering its own UI.
+        const preparedInput = prepareAskUserQuestionInput(input);
+        const answers = await askUserQuestionCallback(preparedInput, options.signal);
         if (answers === null) {
           return { behavior: 'deny', message: 'User declined to answer.', interrupt: true };
         }
-        return { behavior: 'allow', updatedInput: { ...input, answers } };
+        return { behavior: 'allow', updatedInput: { ...preparedInput, answers } };
       } catch (error) {
         return {
           behavior: 'deny',
