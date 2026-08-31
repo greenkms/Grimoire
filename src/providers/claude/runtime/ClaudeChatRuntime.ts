@@ -1973,6 +1973,19 @@ export class ClaudeChatRuntime implements ChatRuntime {
   }
 
   /**
+   * A dialog Grimoire deliberately leaves unanswered parks until the CLI's
+   * deadline, so the reason is recorded rather than showing up as a stall.
+   */
+  private recordUnansweredUserDialog(dialogKind: string, reason: string): void {
+    this.plugin.recordDebugLog?.({
+      data: { dialogKind, providerId: this.providerId, reason },
+      event: 'user_dialog.unanswered',
+      level: 'warn',
+      scope: 'claude.dialog',
+    });
+  }
+
+  /**
    * Dialog results use the CLI's own shape - `behavior` plus `updatedInput`,
    * `permissionUpdates`, `feedback` and `contentBlocks` - not the SDK's
    * `PermissionResult`, so the answer is built explicitly rather than by
@@ -1980,15 +1993,19 @@ export class ClaudeChatRuntime implements ChatRuntime {
    */
   private createUserDialogCallback(): NonNullable<Options['onUserDialog']> {
     return async (request, { signal }) => {
-      // A kind Grimoire never declared belongs to some other attached client
-      // on a multi-client session. Returning null suppresses the response so
-      // that client can answer it; `cancelled` is a real settlement and would
-      // close their dialog as if the user had dismissed it.
+      // The CLI only emits a kind some attached client declared, so a kind
+      // Grimoire never declared belongs to another client on a multi-client
+      // session. `SDKControlRequestUserDialogRequest.dialog_kind` requires the
+      // host to leave that request unanswered - `cancelled` is a real
+      // settlement and would close the other client's dialog as if the user
+      // had dismissed it. Returning null skips the SDK's transport write, and
+      // the parked dialog is logged so it cannot stall unexplained.
       if (request.dialogKind !== CLAUDE_ASK_USER_QUESTION_DIALOG_KIND) {
+        this.recordUnansweredUserDialog(request.dialogKind, 'undeclared-kind');
         return null;
       }
 
-      const payload = request.payload;
+      const payload = isRecord(request.payload) ? request.payload : {};
       const permissionResult = isRecord(payload.permissionResult) ? payload.permissionResult : {};
 
       // The CLI resolves permission before it asks the host to render, so a
@@ -2003,10 +2020,23 @@ export class ClaudeChatRuntime implements ChatRuntime {
 
       // Only `questions` travels in the payload; the rest of the tool input
       // lives on the permission result and has to be carried back untouched.
+      // The payload's copy is rebuilt per prompt and comes back empty when the
+      // CLI could not parse the tool input, so an empty array falls through to
+      // the permission result rather than cancelling a question it still has.
       const baseInput = isRecord(permissionResult.updatedInput) ? permissionResult.updatedInput : {};
-      const questions = Array.isArray(payload.questions) ? payload.questions : baseInput.questions;
-      if (!Array.isArray(questions) || questions.length === 0 || !this.askUserQuestionCallback) {
+      const payloadQuestions = Array.isArray(payload.questions) ? payload.questions : null;
+      const questions = payloadQuestions?.length ? payloadQuestions : baseInput.questions;
+      if (!Array.isArray(questions) || questions.length === 0) {
         return { behavior: 'cancelled' };
+      }
+
+      // Declared but unrenderable: the question UI is bound to a chat tab, so
+      // it can be missing while a tab is being torn down or set up. Settling
+      // here would report a dismissal the user never made, so the dialog is
+      // left to a client that can render it or to the CLI's own deadline.
+      if (!this.askUserQuestionCallback) {
+        this.recordUnansweredUserDialog(request.dialogKind, 'no-question-ui');
+        return null;
       }
 
       const input = prepareAskUserQuestionInput({ ...baseInput, questions });
@@ -2030,7 +2060,7 @@ export class ClaudeChatRuntime implements ChatRuntime {
         }
 
         this.plugin.recordDebugLog?.({
-          data: { providerId: this.providerId, mode: request.dialogKind },
+          data: { dialogKind: request.dialogKind, providerId: this.providerId },
           error,
           event: 'user_dialog.failed',
           level: 'warn',
