@@ -1,6 +1,28 @@
 import { buildCodexLaunchSpec } from '@/providers/codex/runtime/CodexLaunchSpecBuilder';
 
 describe('buildCodexLaunchSpec', () => {
+  it('enables the default-mode question feature through a config override', () => {
+    const spec = buildCodexLaunchSpec({
+      settings: {},
+      resolvedCliCommand: 'codex',
+      hostVaultPath: '/vault',
+      env: {},
+      hostPlatform: 'darwin',
+    });
+
+    // `--enable <feature>` aborts the app-server on a Codex build that does
+    // not know the feature, which would take down the whole provider; the
+    // config override it expands to is ignored there instead.
+    expect(spec.args).toEqual([
+      'app-server',
+      '-c',
+      'features.default_mode_request_user_input=true',
+      '--listen',
+      'stdio://',
+    ]);
+    expect(spec.args).not.toContain('--enable');
+  });
+
   it('builds a native Windows launch spec with a direct codex executable', () => {
     const spec = buildCodexLaunchSpec({
       settings: {
@@ -19,8 +41,8 @@ describe('buildCodexLaunchSpec', () => {
     expect(spec.command).toBe('C:\\Users\\user\\AppData\\Roaming\\npm\\codex.exe');
     expect(spec.args).toEqual([
       'app-server',
-      '--enable',
-      'default_mode_request_user_input',
+      '-c',
+      'features.default_mode_request_user_input=true',
       '--listen',
       'stdio://',
     ]);
@@ -57,8 +79,8 @@ describe('buildCodexLaunchSpec', () => {
       '/mnt/c/repo',
       'codex',
       'app-server',
-      '--enable',
-      'default_mode_request_user_input',
+      '-c',
+      'features.default_mode_request_user_input=true',
       '--listen',
       'stdio://',
     ]);
@@ -94,8 +116,8 @@ describe('buildCodexLaunchSpec', () => {
       '/mnt/c/repo',
       'codex',
       'app-server',
-      '--enable',
-      'default_mode_request_user_input',
+      '-c',
+      'features.default_mode_request_user_input=true',
       '--listen',
       'stdio://',
     ]);

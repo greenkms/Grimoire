@@ -14,12 +14,17 @@ export interface BuildCodexLaunchSpecOptions {
   resolveDefaultWslDistro?: () => string | undefined;
 }
 
-// Keep Grimoire's structured AskUserQuestion UI available while Codex is in
-// its normal/default collaboration mode (the toolbar's Safe and Auto modes).
+// Codex keeps request_user_input behind an experimental feature flag in its
+// default collaboration mode (the toolbar's Safe and Auto modes), so without
+// this the agent is told the tool is unavailable and answers by guessing.
+// `--enable <feature>` is the documented spelling, but it aborts the whole
+// app-server on a feature name the installed Codex does not know; the config
+// override it expands to is ignored instead, which keeps every other Codex
+// feature working if the flag is ever renamed or graduated upstream.
 const CODEX_APP_SERVER_ARGS = Object.freeze([
   'app-server',
-  '--enable',
-  'default_mode_request_user_input',
+  '-c',
+  'features.default_mode_request_user_input=true',
   '--listen',
   'stdio://',
 ]);
