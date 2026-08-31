@@ -14,7 +14,15 @@ export interface BuildCodexLaunchSpecOptions {
   resolveDefaultWslDistro?: () => string | undefined;
 }
 
-const CODEX_APP_SERVER_ARGS = Object.freeze(['app-server', '--listen', 'stdio://']);
+// Keep Grimoire's structured AskUserQuestion UI available while Codex is in
+// its normal/default collaboration mode (the toolbar's Safe and Auto modes).
+const CODEX_APP_SERVER_ARGS = Object.freeze([
+  'app-server',
+  '--enable',
+  'default_mode_request_user_input',
+  '--listen',
+  'stdio://',
+]);
 
 export function buildCodexLaunchSpec(
   options: BuildCodexLaunchSpecOptions,
