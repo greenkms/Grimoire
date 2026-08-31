@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.1 - 2026-08-31
+
+### Fixed
+
+- Restored Codex's ability to ask you a question outside Plan mode. Codex keeps its `request_user_input` tool behind an experimental feature flag in its default collaboration mode, so a question the agent tried to ask in Safe or Auto mode was refused with `request_user_input is unavailable in Default mode` and the turn carried on with a guess instead. Grimoire now starts the Codex app-server with that feature enabled, using the configuration override rather than the `--enable` flag so that a Codex build which does not know the feature still starts instead of failing to launch at all (#110).
+- Taught Grimoire to render an AskUserQuestion that Claude Code hands over as a user dialog. Newer Claude Code builds can route the question to the host as a `request_user_dialog` control request instead of the permission callback, and Grimoire never advertised that it could display one, so the question degraded to the CLI's no-dialog behavior. It now opens in the same question UI as before: a permission the CLI already denied stays denied, and a dismissed question is reported back as a decline with its reason rather than a silent cancel (#109).
+
 ## 1.3.0 - 2026-08-29
 
 ### Added
