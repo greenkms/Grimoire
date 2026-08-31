@@ -647,6 +647,53 @@ describe('ClaudeChatRuntime', () => {
     });
   });
 
+  describe('AskUserQuestion dialog flow', () => {
+    const dialogOptions = { signal: new AbortController().signal };
+    const questions = [{
+      multiSelect: false,
+      options: [{ label: 'Light' }, { label: 'Dark' }],
+      question: 'Choose a theme',
+    }];
+
+    it('routes permission_ask_user_question through the shared callback', async () => {
+      const callback = jest.fn().mockResolvedValue({ 'Choose a theme': 'Dark' });
+      service.setAskUserQuestionCallback(callback);
+
+      const onUserDialog = (service as any).createUserDialogCallback();
+      const result = await onUserDialog({
+        dialogKind: 'permission_ask_user_question',
+        payload: {
+          permissionResult: { behavior: 'allow', updatedInput: { questions } },
+          questions,
+        },
+      }, dialogOptions);
+
+      expect(callback).toHaveBeenCalledWith({ questions }, dialogOptions.signal);
+      expect(result).toEqual({
+        behavior: 'completed',
+        result: {
+          behavior: 'allow',
+          updatedInput: {
+            answers: { 'Choose a theme': 'Dark' },
+            questions,
+          },
+        },
+      });
+    });
+
+    it('cancels unsupported dialogs without opening the question UI', async () => {
+      const callback = jest.fn();
+      service.setAskUserQuestionCallback(callback);
+
+      const onUserDialog = (service as any).createUserDialogCallback();
+      await expect(onUserDialog({
+        dialogKind: 'unknown_dialog',
+        payload: { questions },
+      }, dialogOptions)).resolves.toEqual({ behavior: 'cancelled' });
+      expect(callback).not.toHaveBeenCalled();
+    });
+  });
+
   describe('Session Restoration', () => {
     it('should restore session with custom model', () => {
       const customModel = 'claude-3-opus';

@@ -388,6 +388,20 @@ describe('QueryOptionsBuilder', () => {
       expect(options.canUseTool).toBe(canUseTool);
     });
 
+    it('registers the AskUserQuestion dialog handler in persistent queries', () => {
+      const onUserDialog = jest.fn();
+      const ctx = {
+        ...createMockContext({ onUserDialog }),
+        abortController: new AbortController(),
+        hooks: {},
+      };
+
+      const options = QueryOptionsBuilder.buildPersistentQueryOptions(ctx);
+
+      expect(options.onUserDialog).toBe(onUserDialog);
+      expect(options.supportedDialogKinds).toEqual(['permission_ask_user_question']);
+    });
+
     it('sets normal safe mode options to ask before edits', () => {
       const canUseTool = jest.fn();
       const ctx = {

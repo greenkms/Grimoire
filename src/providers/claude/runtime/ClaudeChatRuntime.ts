@@ -805,6 +805,7 @@ export class ClaudeChatRuntime implements ChatRuntime {
         ? { sessionId: resumeSessionId, sessionAt: resumeAtMessageId, fork: this.pendingForkSession || undefined }
         : undefined,
       canUseTool: this.createApprovalCallback(),
+      onUserDialog: this.createUserDialogCallback(),
       hooks,
       externalContextPaths,
       orchestratorMode,
@@ -1658,6 +1659,7 @@ export class ClaudeChatRuntime implements ChatRuntime {
       sessionId: this.sessionManager.getSessionId() ?? undefined,
       modelOverride: queryOptions?.model,
       canUseTool: this.createApprovalCallback(),
+      onUserDialog: this.createUserDialogCallback(),
       hooks,
       mcpMentions: queryOptions?.mcpMentions,
       enabledMcpServers: queryOptions?.enabledMcpServers,
@@ -1964,6 +1966,45 @@ export class ClaudeChatRuntime implements ChatRuntime {
         }
       },
     });
+  }
+
+  private createUserDialogCallback(): NonNullable<Options['onUserDialog']> {
+    return async (request, { signal }) => {
+      if (request.dialogKind !== 'permission_ask_user_question') {
+        return { behavior: 'cancelled' };
+      }
+
+      const payload = request.payload;
+      const questions = payload.questions;
+      if (!Array.isArray(questions) || questions.length === 0 || !this.askUserQuestionCallback) {
+        return { behavior: 'cancelled' };
+      }
+
+      try {
+        const answers = await this.askUserQuestionCallback({ questions }, signal);
+        if (answers === null) {
+          return { behavior: 'cancelled' };
+        }
+
+        const permissionResult = isRecord(payload.permissionResult)
+          ? payload.permissionResult
+          : { behavior: 'allow' };
+        const existingInput = isRecord(permissionResult.updatedInput)
+          ? permissionResult.updatedInput
+          : { questions };
+
+        return {
+          behavior: 'completed',
+          result: {
+            ...permissionResult,
+            behavior: 'allow',
+            updatedInput: { ...existingInput, questions, answers },
+          },
+        };
+      } catch {
+        return { behavior: 'cancelled' };
+      }
+    };
   }
 
   private resolveSDKPermissionMode(mode: PermissionMode): SDKPermissionMode {

@@ -36,6 +36,7 @@ export interface QueryOptionsContext {
   enhancedPath: string;
   mcpManager: McpServerManager;
   pluginManager: AppPluginManager;
+  onUserDialog?: Options['onUserDialog'];
 }
 
 export interface PersistentQueryContext extends QueryOptionsContext {
@@ -157,6 +158,7 @@ export class QueryOptionsBuilder {
       ctx.settings.permissionMode,
       ctx.canUseTool,
     );
+    QueryOptionsBuilder.applyUserDialogHandler(options, ctx.onUserDialog);
     QueryOptionsBuilder.applyThinking(options, ctx.settings, ctx.settings.model);
     options.hooks = ctx.hooks;
 
@@ -210,6 +212,7 @@ export class QueryOptionsBuilder {
       ctx.settings.permissionMode,
       ctx.canUseTool,
     );
+    QueryOptionsBuilder.applyUserDialogHandler(options, ctx.onUserDialog);
     options.hooks = ctx.hooks;
     QueryOptionsBuilder.applyThinking(options, ctx.settings, ctx.modelOverride ?? ctx.settings.model);
 
@@ -248,6 +251,19 @@ export class QueryOptionsBuilder {
     }
 
     options.permissionMode = QueryOptionsBuilder.resolveClaudeSdkPermissionMode(permissionMode);
+  }
+
+  /**
+   * AskUserQuestion uses request_user_dialog in auto/bypass modes in newer
+   * Claude Code versions, so it does not reliably pass through canUseTool.
+   */
+  private static applyUserDialogHandler(
+    options: Options,
+    onUserDialog?: Options['onUserDialog'],
+  ): void {
+    if (!onUserDialog) return;
+    options.onUserDialog = onUserDialog;
+    options.supportedDialogKinds = ['permission_ask_user_question'];
   }
 
   private static buildBaseOptions(
