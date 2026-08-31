@@ -765,12 +765,13 @@ describe('ClaudeChatRuntime', () => {
       expect(callback).not.toHaveBeenCalled();
     });
 
-    it('cancels unsupported dialogs without opening the question UI', async () => {
+    it('stays silent on a dialog kind it never declared', async () => {
       const callback = jest.fn();
       service.setAskUserQuestionCallback(callback);
 
-      await expect(requestDialog({ questions }, 'unknown_dialog'))
-        .resolves.toEqual({ behavior: 'cancelled' });
+      // Null suppresses the control response; answering `cancelled` would
+      // settle a dialog another attached client is rendering.
+      await expect(requestDialog({ questions }, 'unknown_dialog')).resolves.toBeNull();
       expect(callback).not.toHaveBeenCalled();
     });
   });

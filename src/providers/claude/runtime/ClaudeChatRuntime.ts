@@ -1980,8 +1980,12 @@ export class ClaudeChatRuntime implements ChatRuntime {
    */
   private createUserDialogCallback(): NonNullable<Options['onUserDialog']> {
     return async (request, { signal }) => {
+      // A kind Grimoire never declared belongs to some other attached client
+      // on a multi-client session. Returning null suppresses the response so
+      // that client can answer it; `cancelled` is a real settlement and would
+      // close their dialog as if the user had dismissed it.
       if (request.dialogKind !== CLAUDE_ASK_USER_QUESTION_DIALOG_KIND) {
-        return { behavior: 'cancelled' };
+        return null;
       }
 
       const payload = request.payload;
