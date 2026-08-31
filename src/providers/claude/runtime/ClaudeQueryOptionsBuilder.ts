@@ -20,6 +20,7 @@ import {
 import {
   resolveEffortLevel,
 } from '../types/models';
+import { CLAUDE_ASK_USER_QUESTION_DIALOG_KIND } from './claudeAskUserQuestion';
 import { createCustomSpawnFunction } from './customSpawn';
 import {
   DISABLED_BUILTIN_SUBAGENTS,
@@ -254,8 +255,10 @@ export class QueryOptionsBuilder {
   }
 
   /**
-   * AskUserQuestion uses request_user_dialog in auto/bypass modes in newer
-   * Claude Code versions, so it does not reliably pass through canUseTool.
+   * Newer Claude Code versions can hand AskUserQuestion to the host through a
+   * request_user_dialog control request instead of canUseTool. The CLI fails
+   * closed on undeclared kinds, so the handler only ever runs when the kind is
+   * advertised here.
    */
   private static applyUserDialogHandler(
     options: Options,
@@ -263,7 +266,7 @@ export class QueryOptionsBuilder {
   ): void {
     if (!onUserDialog) return;
     options.onUserDialog = onUserDialog;
-    options.supportedDialogKinds = ['permission_ask_user_question'];
+    options.supportedDialogKinds = [CLAUDE_ASK_USER_QUESTION_DIALOG_KIND];
   }
 
   private static buildBaseOptions(

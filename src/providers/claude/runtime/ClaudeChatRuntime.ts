@@ -84,6 +84,10 @@ import {
 import { resolveClaudeContextWindowSize } from '../types/models';
 import { type ClaudeProviderState, getClaudeState } from '../types/providerState';
 import { createClaudeApprovalCallback } from './ClaudeApprovalHandler';
+import {
+  CLAUDE_ASK_USER_QUESTION_DIALOG_KIND,
+  prepareAskUserQuestionInput,
+} from './claudeAskUserQuestion';
 import { applyClaudeDynamicUpdates } from './ClaudeDynamicUpdates';
 import { MessageChannel } from './ClaudeMessageChannel';
 import {
@@ -1968,41 +1972,74 @@ export class ClaudeChatRuntime implements ChatRuntime {
     });
   }
 
+  /**
+   * Dialog results use the CLI's own shape - `behavior` plus `updatedInput`,
+   * `permissionUpdates`, `feedback` and `contentBlocks` - not the SDK's
+   * `PermissionResult`, so the answer is built explicitly rather than by
+   * reusing the payload's permission result.
+   */
   private createUserDialogCallback(): NonNullable<Options['onUserDialog']> {
     return async (request, { signal }) => {
-      if (request.dialogKind !== 'permission_ask_user_question') {
+      if (request.dialogKind !== CLAUDE_ASK_USER_QUESTION_DIALOG_KIND) {
         return { behavior: 'cancelled' };
       }
 
       const payload = request.payload;
-      const questions = payload.questions;
+      const permissionResult = isRecord(payload.permissionResult) ? payload.permissionResult : {};
+
+      // The CLI resolves permission before it asks the host to render, so a
+      // denial stays denied - answering the question would upgrade it.
+      if (permissionResult.behavior === 'deny') {
+        const message = typeof permissionResult.message === 'string' ? permissionResult.message : undefined;
+        return {
+          behavior: 'completed',
+          result: { behavior: 'deny', ...(message ? { feedback: message } : {}) },
+        };
+      }
+
+      // Only `questions` travels in the payload; the rest of the tool input
+      // lives on the permission result and has to be carried back untouched.
+      const baseInput = isRecord(permissionResult.updatedInput) ? permissionResult.updatedInput : {};
+      const questions = Array.isArray(payload.questions) ? payload.questions : baseInput.questions;
       if (!Array.isArray(questions) || questions.length === 0 || !this.askUserQuestionCallback) {
         return { behavior: 'cancelled' };
       }
 
+      const input = prepareAskUserQuestionInput({ ...baseInput, questions });
+
       try {
-        const answers = await this.askUserQuestionCallback({ questions }, signal);
+        const answers = await this.askUserQuestionCallback(input, signal);
         if (answers === null) {
+          return {
+            behavior: 'completed',
+            result: { behavior: 'deny', feedback: 'User declined to answer.' },
+          };
+        }
+
+        return {
+          behavior: 'completed',
+          result: { behavior: 'allow', updatedInput: { ...input, answers } },
+        };
+      } catch (error) {
+        if (signal.aborted) {
           return { behavior: 'cancelled' };
         }
 
-        const permissionResult = isRecord(payload.permissionResult)
-          ? payload.permissionResult
-          : { behavior: 'allow' };
-        const existingInput = isRecord(permissionResult.updatedInput)
-          ? permissionResult.updatedInput
-          : { questions };
+        this.plugin.recordDebugLog?.({
+          data: { providerId: this.providerId, mode: request.dialogKind },
+          error,
+          event: 'user_dialog.failed',
+          level: 'warn',
+          scope: 'claude.dialog',
+        });
 
         return {
           behavior: 'completed',
           result: {
-            ...permissionResult,
-            behavior: 'allow',
-            updatedInput: { ...existingInput, questions, answers },
+            behavior: 'deny',
+            feedback: `Failed to get user answers: ${error instanceof Error ? error.message : 'Unknown error'}`,
           },
         };
-      } catch {
-        return { behavior: 'cancelled' };
       }
     };
   }

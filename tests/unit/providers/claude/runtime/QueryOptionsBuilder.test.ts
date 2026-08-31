@@ -669,6 +669,22 @@ describe('QueryOptionsBuilder', () => {
   });
 
   describe('buildColdStartQueryOptions', () => {
+    it('registers the AskUserQuestion dialog handler on a cold start too', () => {
+      const onUserDialog = jest.fn();
+      const ctx = {
+        ...createMockContext({ onUserDialog }),
+        abortController: new AbortController(),
+        hooks: {},
+        mcpMentions: new Set<string>(),
+        hasEditorContext: false,
+      };
+
+      const options = QueryOptionsBuilder.buildColdStartQueryOptions(ctx);
+
+      expect(options.onUserDialog).toBe(onUserDialog);
+      expect(options.supportedDialogKinds).toEqual(['permission_ask_user_question']);
+    });
+
     it('names the task tools on a cold start too', () => {
       const ctx = {
         ...createMockContext(),
