@@ -32,18 +32,104 @@ export interface AntigravityImageAttachmentBundle {
 }
 
 /**
- * A file name safe to join onto the temp directory. A pasted attachment name
- * is user input: separators and `..` in it would otherwise write outside the
- * directory that `cleanup()` deletes.
+ * Characters that must not survive into a file name at all: control
+ * characters, which are unprintable, and the zero-width and bidirectional
+ * overrides, which disguise what a name says - U+202E renders
+ * `photo<RLO>gnp.exe` as `photo.exe`-looking text. They are dropped rather
+ * than replaced, because padding underscores would only add noise to a name
+ * the agent reads back.
+ */
+function isRemovedCharacter(codePoint: number): boolean {
+  return codePoint <= 0x1f
+    || codePoint === 0x7f
+    || (codePoint >= 0x200b && codePoint <= 0x200f)
+    || (codePoint >= 0x202a && codePoint <= 0x202e)
+    || (codePoint >= 0x2066 && codePoint <= 0x2069)
+    || codePoint === 0xfeff;
+}
+
+function removeDisguisingCharacters(value: string): string {
+  return Array.from(value)
+    .filter((character) => !isRemovedCharacter(character.codePointAt(0) ?? 0))
+    .join('');
+}
+
+/**
+ * Characters no host accepts in a file name, plus the ones only Windows
+ * rejects. The union is applied everywhere so one attachment produces the same
+ * file name on every OS: a name that silently differs per platform turns a
+ * user's bug report into a platform question.
+ */
+const UNSAFE_CHARACTERS = /[<>:"/\\|?*]/g;
+
+/** Windows device names, which are not openable as files even with a suffix. */
+const WINDOWS_DEVICE_NAMES = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])$/i;
+
+/**
+ * Byte budget for the name. NAME_MAX is 255 bytes on ext4 and APFS, and the
+ * limit counts bytes, not characters: 300 Cyrillic letters are 600 bytes. The
+ * budget stays well under it because the positional prefix and the temp
+ * directory share the same path.
+ */
+const MAX_FILENAME_BYTES = 160;
+
+function truncateToBytes(value: string, limit: number): string {
+  if (Buffer.byteLength(value, 'utf8') <= limit) {
+    return value;
+  }
+  let result = '';
+  let used = 0;
+  // Iterating by code point rather than slicing the buffer keeps a multi-byte
+  // character from being cut in half into a replacement character.
+  for (const character of value) {
+    const size = Buffer.byteLength(character, 'utf8');
+    if (used + size > limit) {
+      break;
+    }
+    result += character;
+    used += size;
+  }
+  return result;
+}
+
+/**
+ * A file name safe to join onto the temp directory, on any host.
+ *
+ * A pasted attachment name is user input: separators and `..` in it would
+ * otherwise write outside the directory that `cleanup()` deletes. Everything
+ * else is preserved, including non-ASCII letters - the basename is the only
+ * label the attachment carries, because agy receives a path rather than an
+ * attachment and reads the name back from it.
  */
 export function toAntigravityAttachmentFilename(image: ImageAttachment, index: number): string {
-  const base = (image.name ?? '').trim().replace(/[^A-Za-z0-9._-]/g, '_') || `image-${index + 1}`;
-  if (base.includes('.')) {
-    return base;
-  }
+  const fallback = `image-${index + 1}`;
   const subtype = image.mediaType.split('/')[1] ?? 'img';
   const extension = subtype === 'jpeg' ? 'jpg' : subtype;
-  return `${base}.${extension}`;
+
+  let base = removeDisguisingCharacters(image.name ?? '')
+    .replace(UNSAFE_CHARACTERS, '_')
+    .trim()
+    // Windows drops trailing dots and spaces itself, which would make the
+    // written path differ from the path handed to agy.
+    .replace(/[. ]+$/, '');
+
+  // `.` and `..` name directories, not files.
+  if (!base || /^\.+$/.test(base)) {
+    base = fallback;
+  }
+
+  const lastDot = base.lastIndexOf('.');
+  const hasExtension = lastDot > 0;
+  const stem = hasExtension ? base.slice(0, lastDot) : base;
+  const suffix = hasExtension ? base.slice(lastDot) : `.${extension}`;
+
+  const safeStem = WINDOWS_DEVICE_NAMES.test(stem) ? `_${stem}` : stem;
+  const truncatedStem = truncateToBytes(
+    safeStem,
+    Math.max(1, MAX_FILENAME_BYTES - Buffer.byteLength(suffix, 'utf8')),
+  ) || fallback;
+
+  return `${truncatedStem}${suffix}`;
 }
 
 function buildAttachmentPromptSection(prompt: string, paths: string[]): string {

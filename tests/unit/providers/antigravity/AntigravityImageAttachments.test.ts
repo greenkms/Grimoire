@@ -147,6 +147,70 @@ describe('toAntigravityAttachmentFilename', () => {
     expect(toAntigravityAttachmentFilename(createImage({ name: 'defect-01.png' }), 0)).toBe('defect-01.png');
   });
 
+  // The name is the only label the attachment carries: agy is handed a path,
+  // not an attachment, and it reads the basename back (measured 2026-09-03,
+  // agy answered with `дефект-слой-1.png` verbatim). Transliterating a
+  // non-ASCII name to underscores throws that context away.
+  it('keeps letters outside ASCII', () => {
+    expect(toAntigravityAttachmentFilename(createImage({ name: 'дефект-слой-1.png' }), 0))
+      .toBe('дефект-слой-1.png');
+    expect(toAntigravityAttachmentFilename(createImage({ name: '層間剥離.png' }), 0))
+      .toBe('層間剥離.png');
+  });
+
+  it('replaces both path separators regardless of host os', () => {
+    // The same attachment must land on the same file name on Windows and
+    // POSIX, so both separators go even where only one is special.
+    expect(toAntigravityAttachmentFilename(createImage({ name: 'a/b.png' }), 0)).toBe('a_b.png');
+    expect(toAntigravityAttachmentFilename(createImage({ name: 'a\\b.png' }), 0)).toBe('a_b.png');
+  });
+
+  it('replaces characters Windows refuses in a file name', () => {
+    expect(toAntigravityAttachmentFilename(createImage({ name: 'a<b>c:d"e|f?g*h.png' }), 0))
+      .toBe('a_b_c_d_e_f_g_h.png');
+  });
+
+  it('drops control characters instead of turning them into padding', () => {
+    expect(toAntigravityAttachmentFilename(createImage({ name: 'de\u0007fe\u0000ct.png' }), 0))
+      .toBe('defect.png');
+  });
+
+  it('drops direction overrides that can disguise the extension', () => {
+    // U+202E would render `photo<RLO>gnp.exe` as `photo.exe...`; the bytes on
+    // disk must match what the user and the agent read.
+    expect(toAntigravityAttachmentFilename(createImage({ name: 'photo\u202egnp.png' }), 0))
+      .toBe('photognp.png');
+  });
+
+  it('strips trailing dots and spaces that Windows would drop anyway', () => {
+    expect(toAntigravityAttachmentFilename(createImage({ name: 'defect.png. ' }), 0)).toBe('defect.png');
+  });
+
+  it('escapes reserved Windows device names', () => {
+    // `CON.png` is a device, not a file: opening it on Windows never reaches
+    // the attachment.
+    expect(toAntigravityAttachmentFilename(createImage({ name: 'CON.png' }), 0)).toBe('_CON.png');
+    expect(toAntigravityAttachmentFilename(createImage({ name: 'lpt9.png' }), 0)).toBe('_lpt9.png');
+    expect(toAntigravityAttachmentFilename(createImage({ name: 'console.png' }), 0)).toBe('console.png');
+  });
+
+  it('falls back when the name is nothing but dots', () => {
+    expect(toAntigravityAttachmentFilename(createImage({ name: '..' }), 0)).toBe('image-1.png');
+    expect(toAntigravityAttachmentFilename(createImage({ name: '.' }), 1)).toBe('image-2.png');
+  });
+
+  it('truncates a long name by bytes without splitting a character', () => {
+    const name = `${'д'.repeat(300)}.png`;
+
+    const result = toAntigravityAttachmentFilename(createImage({ name }), 0);
+
+    // NAME_MAX is 255 bytes on ext4, and Cyrillic costs two bytes per letter,
+    // so a name that looks short in characters can still be unwritable.
+    expect(Buffer.byteLength(result, 'utf8')).toBeLessThanOrEqual(160);
+    expect(result.endsWith('.png')).toBe(true);
+    expect(result).not.toContain('�');
+  });
+
   it('replaces characters that are unsafe in a file name', () => {
     // A pasted name can carry separators; joining it raw would escape the
     // temp directory the cleanup deletes.
