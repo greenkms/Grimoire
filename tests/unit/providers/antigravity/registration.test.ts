@@ -38,6 +38,17 @@ describe('Antigravity provider registration', () => {
     expect(runtime.providerId).toBe('antigravity');
   });
 
+  it('advertises image attachments so the chat input accepts pasted images', () => {
+    const runtime = ProviderRegistry.createChatRuntime({
+      plugin: {} as any,
+      providerId: 'antigravity',
+    });
+
+    // This flag is what gates ImageContextManager: with it false, paste and
+    // drop are refused before the runtime is ever asked.
+    expect(runtime.getCapabilities().supportsImageAttachments).toBe(true);
+  });
+
   it('creates Antigravity workspace services', async () => {
     const services = await antigravityWorkspaceRegistration.initialize({
       homeAdapter: {} as any,

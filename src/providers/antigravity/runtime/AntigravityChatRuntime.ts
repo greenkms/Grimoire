@@ -56,6 +56,7 @@ import {
   NO_ANTIGRAVITY_CLI_CAPABILITIES,
   probeAntigravityCliCapabilities,
 } from './AntigravityCliCapabilities';
+import { attachAntigravityImages } from './AntigravityImageAttachments';
 import { buildAntigravityProcessLaunch } from './AntigravityProcessLaunch';
 import { buildAntigravityRuntimeEnv } from './AntigravityRuntimeEnvironment';
 import {
@@ -217,10 +218,30 @@ export class AntigravityChatRuntime implements ChatRuntime {
     // never invalidates the guarded cleanup of a turn that is still draining.
     const runToken = ++this.runSequence;
 
-    const prompt = buildAntigravityPrintPrompt(
-      await expandAntigravityVaultSkillInvocation(turn.prompt),
-      conversationHistory,
+    // agy takes no image flag and its stream-json user event carries `content`
+    // as a plain string, so attachments ride along as temp files named in the
+    // prompt. Measured 2026-09-03: agy opens an absolute path from the prompt
+    // even outside the workspace and without `--add-dir`.
+    const attachments = attachAntigravityImages(
+      buildAntigravityPrintPrompt(
+        await expandAntigravityVaultSkillInvocation(turn.prompt),
+        conversationHistory,
+      ),
+      turn.request.images,
+      (image, error) => {
+        this.plugin.recordDebugLog?.({
+          data: {
+            error: error instanceof Error ? error.message : String(error),
+            mediaType: image.mediaType,
+            providerId: this.providerId,
+          },
+          event: 'print.imageAttachmentFailed',
+          level: 'warn',
+          scope: 'provider.antigravity',
+        });
+      },
     );
+    const prompt = attachments.prompt;
 
     try {
       yield { content: 'Starting Antigravity...', type: 'status' };
@@ -391,6 +412,10 @@ export class AntigravityChatRuntime implements ChatRuntime {
       };
       yield { type: 'done' };
     } finally {
+      // Unlike the agy log, which is kept on failure for diagnosis, the
+      // attachment copies hold user data and carry nothing diagnostic, so
+      // they go on every exit: success, failure and cancel alike.
+      attachments.cleanup();
       // A newer turn that already spawned must keep its handles; clearing
       // them here would make that turn un-cancellable.
       if (runToken === this.runSequence) {

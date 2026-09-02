@@ -2,7 +2,7 @@ import '@/providers';
 
 import { execSync, spawn } from 'node:child_process';
 import { EventEmitter } from 'node:events';
-import { promises as fs } from 'node:fs';
+import nodeFs, { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { PassThrough } from 'node:stream';
@@ -722,6 +722,113 @@ describe('AntigravityChatRuntime', () => {
     const chunks = await chunksPromise;
     expect(chunks).toContainEqual({ content: 'Streamed answer', type: 'text' });
     expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
+  });
+
+  // agy has no image flag and its user event carries `content` as a plain
+  // string, so a written file referenced by absolute path is the only channel
+  // an attachment has.
+  async function runTurnWithImageAttachment(): Promise<{
+    attachmentPath: string;
+    chunksPromise: Promise<StreamChunk[]>;
+    printProc: any;
+  }> {
+    const probeProc = createMockChildProcess();
+    const printProc = createMockChildProcess({ stdin: true });
+    const stdin = trackStdin(printProc);
+    mockedSpawn.mockImplementation((command: string, args: string[]) => {
+      if (isHelpProbeArgs(args)) return probeProc;
+      return printProc;
+    });
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+
+    const chunksPromise = collect(runtime.query(runtime.prepareTurn({
+      images: [{
+        data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+        id: 'img-1',
+        mediaType: 'image/png',
+        name: 'defect.png',
+        size: 70,
+        source: 'paste',
+      }],
+      text: 'What is wrong here?',
+    })));
+    await new Promise((resolve) => setImmediate(resolve));
+    probeProc.stdout.write([
+      'Usage: agy [flags]',
+      '  --add-dir <dir>',
+      '  --input-format <format>',
+      '  --output-format <format>',
+      '  --print-timeout <dur>',
+    ].join('\n'));
+    probeProc.emit('close', 0, null);
+    await new Promise((resolve) => setImmediate(resolve));
+
+    const sent = JSON.parse(stdin.chunks[0]) as { message: { content: string } };
+    const attachmentPath = (sent.message.content.match(/^- (.+defect\.png)$/m) ?? [])[1];
+
+    return { attachmentPath, chunksPromise, printProc };
+  }
+
+  it('writes an attached image to a temp file and gives agy its absolute path', async () => {
+    const { attachmentPath, chunksPromise, printProc } = await runTurnWithImageAttachment();
+
+    expect(attachmentPath).toBeDefined();
+    expect(path.isAbsolute(attachmentPath)).toBe(true);
+    // The file has to exist while agy is running, not merely be named.
+    const written = await fs.readFile(attachmentPath);
+    expect(written.subarray(0, 4)).toEqual(Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+
+    writeStreamJsonResult(printProc, { response: 'A cracked layer.\n', status: 'SUCCESS' });
+    emitProcessExit(printProc, 0, null);
+    await chunksPromise;
+  });
+
+  it('deletes the attachment temp directory once the turn ends', async () => {
+    const { attachmentPath, chunksPromise, printProc } = await runTurnWithImageAttachment();
+    // Without this the wait below would pass on a path that was never written.
+    expect(attachmentPath).toBeDefined();
+
+    writeStreamJsonResult(printProc, { response: 'A cracked layer.\n', status: 'SUCCESS' });
+    emitProcessExit(printProc, 0, null);
+    await chunksPromise;
+
+    // User data must not outlive the turn that produced it.
+    await waitForRemovedFile(attachmentPath);
+  });
+
+  it('deletes the attachment temp directory when the turn fails', async () => {
+    const { attachmentPath, chunksPromise, printProc } = await runTurnWithImageAttachment();
+    expect(attachmentPath).toBeDefined();
+
+    printProc.stderr.write('agy: boom\n');
+    emitProcessExit(printProc, 1, null);
+    await chunksPromise;
+
+    await waitForRemovedFile(attachmentPath);
+  });
+
+  it('does not write attachment files for a turn without images', async () => {
+    const mkdtemp = jest.spyOn(nodeFs, 'mkdtempSync');
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+    const probeProc = createMockChildProcess();
+    const printProc = createMockChildProcess({ stdin: true });
+    mockedSpawn.mockImplementation((command: string, args: string[]) => {
+      if (isHelpProbeArgs(args)) return probeProc;
+      return printProc;
+    });
+
+    const chunksPromise = collect(runtime.query(runtime.prepareTurn({ text: 'Hello' })));
+    await new Promise((resolve) => setImmediate(resolve));
+    probeProc.stdout.write('Usage: agy [flags]\n  --input-format <format>\n  --output-format <format>');
+    probeProc.emit('close', 0, null);
+    await new Promise((resolve) => setImmediate(resolve));
+    writeStreamJsonResult(printProc, { response: 'Hi\n', status: 'SUCCESS' });
+    emitProcessExit(printProc, 0, null);
+    await chunksPromise;
+
+    const imageDirCalls = mkdtemp.mock.calls
+      .filter(([prefix]) => String(prefix).includes('grimoire-antigravity-images-'));
+    expect(imageDirCalls).toHaveLength(0);
   });
 
   // A frame travels stdout -> decoder -> parser -> queue -> generator -> the
