@@ -78,4 +78,32 @@ describe('prepareGrokLaunchArtifacts', () => {
     expect(first.grokHomePath).toBe(second.grokHomePath);
     expect(first.launchKey).toBe(second.launchKey);
   });
+
+  it('copies the vault Grok config into an auxiliary home and keys restarts to it', async () => {
+    const tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'grimoire-grok-artifacts-'));
+    const sourceConfigPath = path.join(tmpRoot, '.grimoire', 'grok', 'config.toml');
+    await fs.mkdir(path.dirname(sourceConfigPath), { recursive: true });
+    await fs.writeFile(sourceConfigPath, '[model.grok-local]\nmodel = "local"\n', 'utf8');
+
+    const baseParams = {
+      artifactsSubdir: 'grok/auxiliary/title-gen',
+      permissionMode: 'plan' as const,
+      settings: {
+        customPrompt: '',
+        mediaFolder: '',
+        userName: '',
+        vaultPath: tmpRoot,
+      },
+      workspaceRoot: tmpRoot,
+    };
+    const first = await prepareGrokLaunchArtifacts(baseParams);
+    const copiedConfigPath = path.join(tmpRoot, '.grimoire', 'grok', 'auxiliary', 'title-gen', 'config.toml');
+
+    await expect(fs.readFile(copiedConfigPath, 'utf8')).resolves.toContain('[model.grok-local]');
+    await fs.writeFile(sourceConfigPath, '[model.grok-local]\nmodel = "changed"\n', 'utf8');
+    const second = await prepareGrokLaunchArtifacts(baseParams);
+
+    expect(second.launchKey).not.toBe(first.launchKey);
+    await expect(fs.readFile(copiedConfigPath, 'utf8')).resolves.toContain('model = "changed"');
+  });
 });

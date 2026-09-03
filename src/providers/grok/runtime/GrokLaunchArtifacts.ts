@@ -51,16 +51,59 @@ export async function prepareGrokLaunchArtifacts(
   });
 
   await fs.mkdir(grokHomePath, { recursive: true });
+  const userConfigContent = await syncUserConfigToManagedHome({
+    artifactsSubdir: params.artifactsSubdir,
+    grokHomePath,
+    workspaceRoot: params.workspaceRoot,
+  });
   await writeIfChanged(systemPromptPath, systemPrompt);
   await writeIfChanged(managedConfigPath, configContent);
 
   return {
     configContent,
     grokHomePath,
-    launchKey: [promptKey, configContent, grokHomePath].join('::'),
+    launchKey: [promptKey, configContent, userConfigContent, grokHomePath].join('::'),
     managedConfigPath,
     systemPromptPath,
   };
+}
+
+/**
+ * Auxiliary Grok processes use their own GROK_HOME so that their sessions and
+ * prompts stay isolated from the interactive chat.  Grok Build reads custom
+ * model definitions from config.toml, however, so copy the vault-level user
+ * config into each derived home.  managed_config.toml remains plugin-owned.
+ */
+async function syncUserConfigToManagedHome(params: {
+  artifactsSubdir?: string;
+  grokHomePath: string;
+  workspaceRoot: string;
+}): Promise<string> {
+  if (!params.artifactsSubdir) {
+    return '';
+  }
+
+  const sourcePath = path.join(
+    params.workspaceRoot,
+    GRIMOIRE_STORAGE_PATH,
+    GROK_ARTIFACTS_SUBDIR,
+    'config.toml',
+  );
+  const destinationPath = path.join(params.grokHomePath, 'config.toml');
+  if (path.resolve(sourcePath) === path.resolve(destinationPath)) {
+    return '';
+  }
+
+  try {
+    const content = await fs.readFile(sourcePath, 'utf-8');
+    await writeIfChanged(destinationPath, content);
+    return content;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return '';
+    }
+    throw error;
+  }
 }
 
 interface BuildGrokManagedConfigTomlParams {
