@@ -724,6 +724,10 @@ describe('AntigravityChatRuntime', () => {
     expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
   });
 
+  // A 1x1 PNG: small enough to inline, real enough that the decoded bytes carry
+  // a signature a truncated or double-encoded write would not reproduce.
+  const PNG_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+
   // agy has no image flag and its user event carries `content` as a plain
   // string, so a written file referenced by absolute path is the only channel
   // an attachment has.
@@ -743,7 +747,7 @@ describe('AntigravityChatRuntime', () => {
 
     const chunksPromise = collect(runtime.query(runtime.prepareTurn({
       images: [{
-        data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+        data: PNG_BASE64,
         id: 'img-1',
         mediaType: 'image/png',
         name: 'defect.png',
@@ -805,6 +809,70 @@ describe('AntigravityChatRuntime', () => {
     await chunksPromise;
 
     await waitForRemovedFile(attachmentPath);
+  });
+
+  it('tells the user which attachments agy never received', async () => {
+    // Debug logging is off by default, so a silently dropped attachment leaves
+    // the user watching agy answer about an image it was never given.
+    const realWriteFileSync = nodeFs.writeFileSync;
+    const failing = jest.spyOn(nodeFs, 'writeFileSync').mockImplementation(((file: any, ...rest: any[]) => {
+      if (String(file).includes('grimoire-antigravity-images-')) {
+        throw new Error('EACCES');
+      }
+      return (realWriteFileSync as any)(file, ...rest);
+    }) as any);
+    const probeProc = createMockChildProcess();
+    const printProc = createMockChildProcess({ stdin: true });
+    mockedSpawn.mockImplementation((command: string, args: string[]) => {
+      if (isHelpProbeArgs(args)) return probeProc;
+      return printProc;
+    });
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+
+    const chunksPromise = collect(runtime.query(runtime.prepareTurn({
+      images: [{
+        data: PNG_BASE64,
+        id: 'img-1',
+        mediaType: 'image/png',
+        name: 'defect.png',
+        size: 70,
+        source: 'paste',
+      }],
+      text: 'What is wrong here?',
+    })));
+    await new Promise((resolve) => setImmediate(resolve));
+    probeProc.stdout.write('Usage: agy [flags]\n  --input-format <format>\n  --output-format <format>');
+    probeProc.emit('close', 0, null);
+    await new Promise((resolve) => setImmediate(resolve));
+    writeStreamJsonResult(printProc, { response: 'I see no image.\n', status: 'SUCCESS' });
+    emitProcessExit(printProc, 0, null);
+    const chunks = await chunksPromise;
+
+    expect(chunks).toContainEqual({
+      content: 'These images could not be attached and were left out of this turn: defect.png',
+      type: 'notice',
+    });
+    failing.mockRestore();
+  });
+
+  it('reports a malformed attachment as a turn error instead of throwing out of the generator', async () => {
+    const probeProc = createMockChildProcess();
+    const printProc = createMockChildProcess({ stdin: true });
+    mockedSpawn.mockImplementation((command: string, args: string[]) => {
+      if (isHelpProbeArgs(args)) return probeProc;
+      return printProc;
+    });
+    const runtime = new AntigravityChatRuntime(createMockPlugin());
+
+    // Building the attachments used to sit outside the try, so a throw here
+    // escaped query() instead of reaching the catch clause.
+    const chunks = await collect(runtime.query(runtime.prepareTurn({
+      images: [{ data: PNG_BASE64, id: 'img-1', mediaType: undefined, name: 'defect.png', size: 70, source: 'paste' } as any],
+      text: 'What is wrong here?',
+    })));
+
+    expect(chunks.some((chunk) => chunk.type === 'error')).toBe(true);
+    expect(chunks[chunks.length - 1]).toEqual({ type: 'done' });
   });
 
   it('does not write attachment files for a turn without images', async () => {
