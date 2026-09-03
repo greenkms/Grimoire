@@ -502,6 +502,13 @@ export interface ProviderConversationHistoryService {
   ): Promise<void>;
   resolveSessionIdForConversation(conversation: Conversation | null): string | null;
   isPendingForkConversation(conversation: Conversation): boolean;
+  /**
+   * True when `hydrateConversationHistory` restores `ImageAttachment.data`
+   * from the provider's own transcript, which lets the app release those bytes
+   * from memory after a save. Absent means the bytes are kept: a provider that
+   * receives attachments as anything but data cannot put them back.
+   */
+  restoresImageAttachmentData?: boolean;
   /** Builds opaque provider state for a forked conversation. */
   buildForkProviderState(
     sourceSessionId: string,

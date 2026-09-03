@@ -329,6 +329,13 @@ function sanitizeProviderState(
 }
 
 export class ClaudeConversationHistoryService implements ProviderConversationHistoryService {
+  /**
+   * The SDK transcript keeps user attachments as base64 `image` blocks, and
+   * `extractImages` reads them back on hydration, so the app may release the
+   * in-memory copy after a save.
+   */
+  readonly restoresImageAttachmentData = true;
+
   private hydratedConversationIds = new Set<string>();
 
   isPendingForkConversation(conversation: Conversation): boolean {

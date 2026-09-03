@@ -13,6 +13,7 @@ import { readBundledChangelog } from './app/changelog/source';
 import type { ChangelogRelease } from './app/changelog/types';
 import { DEFAULT_GRIMOIRE_SETTINGS } from './app/settings/defaultSettings';
 import { SharedStorageService } from './app/storage/SharedStorageService';
+import { releaseRestorableImageData } from './core/bootstrap/imageAttachmentLifetime';
 import {
   applyAssistantResponseMetadataToMessages,
   applyVaultSearchContextsToMessages,
@@ -949,17 +950,10 @@ export default class GrimoirePlugin extends Plugin {
       this.storage.sessions.toSessionMetadata(conversation)
     );
 
-    // Clear image data from memory after save (data is persisted by SDK).
-    // Skip for pending forks: their deep-cloned images aren't in SDK storage yet.
-    if (!ProviderRegistry.getConversationHistoryService(conversation.providerId).isPendingForkConversation(conversation)) {
-      for (const msg of conversation.messages) {
-        if (msg.images) {
-          for (const img of msg.images) {
-            img.data = '';
-          }
-        }
-      }
-    }
+    releaseRestorableImageData(
+      conversation,
+      ProviderRegistry.getConversationHistoryService(conversation.providerId),
+    );
   }
 
   async getConversationById(id: string): Promise<Conversation | null> {
