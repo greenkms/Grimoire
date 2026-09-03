@@ -1504,7 +1504,13 @@ export class CodexChatRuntime implements ChatRuntime {
 interface ImageAttachment {
   data: string;
   mediaType: string;
-  filename?: string;
+  /**
+   * Matches `ImageAttachment.name` in `src/core/types`. It used to be declared
+   * as `filename`, which this structural interface let TypeScript accept while
+   * the field was undefined at runtime, so every attachment reached Codex as
+   * `image-<n>` with the user's file name thrown away.
+   */
+  name?: string;
 }
 
 interface CodexInputBundle {
@@ -1513,7 +1519,7 @@ interface CodexInputBundle {
 }
 
 function toAttachmentFilename(attachment: ImageAttachment, index: number): string {
-  const base = (attachment.filename ?? '').trim().replace(/[^A-Za-z0-9._-]/g, '_') || `image-${index + 1}`;
+  const base = (attachment.name ?? '').trim().replace(/[^A-Za-z0-9._-]/g, '_') || `image-${index + 1}`;
   if (base.includes('.')) return base;
   const subtype = attachment.mediaType.split('/')[1] ?? 'img';
   const extension = subtype === 'jpeg' ? 'jpg' : subtype;

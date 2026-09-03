@@ -77,7 +77,7 @@ jest.mock('@/providers/codex/runtime/codexAppServerSupport', () => {
 // ---------------------------------------------------------------------------
 import { codexPlanUsageStore } from '@/providers/codex/app/CodexPlanUsageStore';
 import { CodexAppServerProcess as MockedProcessClass } from '@/providers/codex/runtime/CodexAppServerProcess';
-import { CodexChatRuntime } from '@/providers/codex/runtime/CodexChatRuntime';
+import { _toAttachmentFilename,CodexChatRuntime } from '@/providers/codex/runtime/CodexChatRuntime';
 
 type CapturedServerRequestHandler = (requestId: string | number, params: unknown) => Promise<unknown>;
 
@@ -2792,5 +2792,29 @@ describe('CodexChatRuntime', () => {
       expect(chunks).toContainEqual({ type: 'text', content: 'Buffered text' });
       expect(chunks).toContainEqual({ type: 'done' });
     });
+  });
+});
+
+describe('_toAttachmentFilename', () => {
+  // The helper read `filename`, which no attachment carries: `ImageAttachment`
+  // in src/core/types names the field `name`. The local structural interface
+  // hid that from TypeScript, so every attachment was written as `image-<n>`
+  // and the user's own file name never reached Codex.
+  it('names the file after the attachment the user picked', () => {
+    expect(_toAttachmentFilename(
+      { data: '', mediaType: 'image/png', name: 'defect-01.png' },
+      0,
+    )).toBe('defect-01.png');
+  });
+
+  it('falls back to a positional name when the attachment has none', () => {
+    expect(_toAttachmentFilename({ data: '', mediaType: 'image/png' }, 1)).toBe('image-2.png');
+  });
+
+  it('derives the extension from the media type when the name has none', () => {
+    expect(_toAttachmentFilename(
+      { data: '', mediaType: 'image/jpeg', name: 'scan' },
+      0,
+    )).toBe('scan.jpg');
   });
 });
