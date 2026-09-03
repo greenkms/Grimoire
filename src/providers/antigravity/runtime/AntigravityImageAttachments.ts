@@ -62,16 +62,21 @@ function removeDisguisingCharacters(value: string): string {
  */
 const UNSAFE_CHARACTERS = /[<>:"/\\|?*]/g;
 
-/** Windows device names, which are not openable as files even with a suffix. */
-const WINDOWS_DEVICE_NAMES = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])$/i;
-
 /**
- * Byte budget for the name. NAME_MAX is 255 bytes on ext4 and APFS, and the
- * limit counts bytes, not characters: 300 Cyrillic letters are 600 bytes. The
- * budget stays well under it because the positional prefix and the temp
- * directory share the same path.
+ * Byte budget for the whole file name, positional prefix included. NAME_MAX is
+ * 255 bytes on ext4 and APFS, and the limit counts bytes, not characters: 300
+ * Cyrillic letters are 600 of them. The budget stays well under NAME_MAX
+ * because the name shares its path with the temp directory.
  */
 const MAX_FILENAME_BYTES = 160;
+
+/**
+ * Longest tail still treated as an extension. A name whose last dot sits near
+ * its end - `photo.<200 chars>` - has no extension, it has a dot: spending the
+ * byte budget on that tail would leave the stem nothing and make the write
+ * fail with ENAMETOOLONG.
+ */
+const MAX_SUFFIX_BYTES = 24;
 
 function truncateToBytes(value: string, limit: number): string {
   if (Buffer.byteLength(value, 'utf8') <= limit) {
@@ -93,7 +98,8 @@ function truncateToBytes(value: string, limit: number): string {
 }
 
 /**
- * A file name safe to join onto the temp directory, on any host.
+ * The complete file name for one attachment, safe to join onto the temp
+ * directory on any host and bounded by `MAX_FILENAME_BYTES`.
  *
  * A pasted attachment name is user input: separators and `..` in it would
  * otherwise write outside the directory that `cleanup()` deletes. Everything
@@ -102,6 +108,10 @@ function truncateToBytes(value: string, limit: number): string {
  * attachment and reads the name back from it.
  */
 export function toAntigravityAttachmentFilename(image: ImageAttachment, index: number): string {
+  // The positional prefix keeps two attachments sharing one name apart. It
+  // also puts a digit in front of every stem, which is what makes a Windows
+  // device name harmless: `CON.png` is a device, `1-CON.png` is a file.
+  const prefix = `${index + 1}-`;
   const fallback = `image-${index + 1}`;
   const subtype = image.mediaType.split('/')[1] ?? 'img';
   const extension = subtype === 'jpeg' ? 'jpg' : subtype;
@@ -119,17 +129,19 @@ export function toAntigravityAttachmentFilename(image: ImageAttachment, index: n
   }
 
   const lastDot = base.lastIndexOf('.');
-  const hasExtension = lastDot > 0;
+  const hasExtension = lastDot > 0
+    && Buffer.byteLength(base.slice(lastDot), 'utf8') <= MAX_SUFFIX_BYTES;
   const stem = hasExtension ? base.slice(0, lastDot) : base;
   const suffix = hasExtension ? base.slice(lastDot) : `.${extension}`;
 
-  const safeStem = WINDOWS_DEVICE_NAMES.test(stem) ? `_${stem}` : stem;
+  // Bounding the stem by what the prefix and suffix leave keeps the whole name
+  // inside the budget, not just the part the user typed.
   const truncatedStem = truncateToBytes(
-    safeStem,
-    Math.max(1, MAX_FILENAME_BYTES - Buffer.byteLength(suffix, 'utf8')),
+    stem,
+    Math.max(1, MAX_FILENAME_BYTES - Buffer.byteLength(`${prefix}${suffix}`, 'utf8')),
   ) || fallback;
 
-  return `${truncatedStem}${suffix}`;
+  return `${prefix}${truncatedStem}${suffix}`;
 }
 
 function buildAttachmentPromptSection(prompt: string, paths: string[]): string {
@@ -194,8 +206,7 @@ export function attachAntigravityImages(
   const paths: string[] = [];
   for (let index = 0; index < usable.length; index += 1) {
     const image = usable[index];
-    // The positional prefix keeps two attachments sharing one name apart.
-    const filePath = path.join(directory, `${index + 1}-${toAntigravityAttachmentFilename(image, index)}`);
+    const filePath = path.join(directory, toAntigravityAttachmentFilename(image, index));
     try {
       fs.writeFileSync(filePath, Buffer.from(image.data, 'base64'));
       paths.push(filePath);
