@@ -1,5 +1,6 @@
 import '@/providers';
 
+import type { Options } from '@anthropic-ai/claude-agent-sdk';
 import * as sdkModule from '@anthropic-ai/claude-agent-sdk';
 import { Notice } from 'obsidian';
 
@@ -673,7 +674,7 @@ describe('ClaudeChatRuntime', () => {
   });
 
   describe('AskUserQuestion dialog flow', () => {
-    const dialogOptions = { signal: new AbortController().signal };
+    const dialogOptions = { requestId: 'req-1', signal: new AbortController().signal };
     const questions = [{
       multiSelect: false,
       options: [{ label: 'Light' }, { label: 'Dark' }],
@@ -682,7 +683,8 @@ describe('ClaudeChatRuntime', () => {
     const preparedQuestions = [{ ...questions[0], isOther: true }];
 
     function requestDialog(payload: Record<string, unknown>, dialogKind = 'permission_ask_user_question') {
-      const onUserDialog = (service as any).createUserDialogCallback();
+      const onUserDialog: NonNullable<Options['onUserDialog']> =
+        (service as any).createUserDialogCallback();
       return onUserDialog({ dialogKind, payload }, dialogOptions);
     }
 
@@ -757,7 +759,7 @@ describe('ClaudeChatRuntime', () => {
       });
     });
 
-    it('cancels dialogs that carry no questions', async () => {
+    it('cancels dialogs that carry no questions anywhere', async () => {
       const callback = jest.fn();
       service.setAskUserQuestionCallback(callback);
 
@@ -765,12 +767,39 @@ describe('ClaudeChatRuntime', () => {
       expect(callback).not.toHaveBeenCalled();
     });
 
-    it('cancels unsupported dialogs without opening the question UI', async () => {
+    it('falls back to the permission result when the payload questions are empty', async () => {
+      const callback = jest.fn().mockResolvedValue({ 'Choose a theme': 'Dark' });
+      service.setAskUserQuestionCallback(callback);
+
+      const result = await requestDialog({
+        permissionResult: { behavior: 'ask', updatedInput: { questions } },
+        questions: [],
+      });
+
+      expect(callback).toHaveBeenCalledWith({ questions: preparedQuestions }, dialogOptions.signal);
+      expect(result).toEqual({
+        behavior: 'completed',
+        result: {
+          behavior: 'allow',
+          updatedInput: { answers: { 'Choose a theme': 'Dark' }, questions: preparedQuestions },
+        },
+      });
+    });
+
+    it('stays silent when no question UI is bound', async () => {
+      service.setAskUserQuestionCallback(null);
+
+      // Settling here would report a dismissal the user never made.
+      await expect(requestDialog({ questions })).resolves.toBeNull();
+    });
+
+    it('stays silent on a dialog kind it never declared', async () => {
       const callback = jest.fn();
       service.setAskUserQuestionCallback(callback);
 
-      await expect(requestDialog({ questions }, 'unknown_dialog'))
-        .resolves.toEqual({ behavior: 'cancelled' });
+      // Null suppresses the control response; answering `cancelled` would
+      // settle a dialog another attached client is rendering.
+      await expect(requestDialog({ questions }, 'unknown_dialog')).resolves.toBeNull();
       expect(callback).not.toHaveBeenCalled();
     });
   });
