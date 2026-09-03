@@ -40,6 +40,7 @@
     { "package": "jose", "version": "6.2.8", "reason": "Pre-existing audited lockfile transition.", "expiresAt": "2026-08-10T12:01:12.001Z" },
     { "package": "js-yaml", "version": "4.3.1", "reason": "Pre-existing audited lockfile transition.", "expiresAt": "2026-08-07T17:39:51.183Z" },
     { "package": "node-releases", "version": "2.0.52", "reason": "Pre-existing audited lockfile transition.", "expiresAt": "2026-08-11T05:59:28.009Z" },
+    { "package": "qs", "version": "6.16.0", "reason": "Security fix for GHSA-4mjr-xmp4-gh2g and GHSA-x5fp-wj9c-mxmx; qs 6.15.3 is the last vulnerable release and 6.16.0 is the first fixed one. Expires at its natural eligibility.", "expiresAt": "2026-09-05T23:50:15.803Z" },
     { "package": "tsx", "version": "4.23.5", "reason": "Pre-existing audited lockfile transition.", "expiresAt": "2026-08-09T23:18:23.595Z" },
     { "package": "typescript-eslint", "version": "8.66.0", "reason": "Pre-existing audited lockfile transition.", "expiresAt": "2026-08-10T17:36:21.323Z" },
     { "package": "ws", "version": "8.21.2", "reason": "Pre-existing audited lockfile transition.", "expiresAt": "2026-08-10T20:37:45.880Z" }
