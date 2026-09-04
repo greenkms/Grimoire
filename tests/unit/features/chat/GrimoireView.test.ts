@@ -732,7 +732,7 @@ describe('GrimoireView tab context menu auto-rename', () => {
     };
 
     MockMenu.instances.length = 0;
-    view.showTabContextMenu('tab-1', {} as MouseEvent);
+    view.showTabContextMenu('tab-1', {});
 
     const menu = MockMenu.instances[MockMenu.instances.length - 1];
     const item = menu.items.find((entry: any) => entry.title === 'Auto-rename');

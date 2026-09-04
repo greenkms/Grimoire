@@ -18,10 +18,10 @@ function createController(options: {
   };
 }
 
-function openModal(controller: any | null, currentTitle = 'New Chat') {
+function openModal(controller: any, currentTitle = 'New Chat') {
   const resolveResult = jest.fn();
   const autoSource = controller ? { controller, conversationId: 'conv-1' } : null;
-  const modal = new RenameTabModal({} as any, currentTitle, autoSource as any, resolveResult);
+  const modal = new RenameTabModal({} as any, currentTitle, autoSource, resolveResult);
   const contentEl = createMockEl();
 
   (modal as any).contentEl = contentEl;
