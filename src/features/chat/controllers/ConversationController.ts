@@ -1216,8 +1216,7 @@ export class ConversationController {
   /** Titles already in use, so a new conversation does not duplicate one of them. */
   private collectExistingTitles(): string[] {
     try {
-      return this.deps.plugin.getConversationList()
-        .map((conversation) => conversation.title)
+      return this.deps.plugin.getConversationTitles()
         .filter((title): title is string => typeof title === 'string');
     } catch {
       return [];

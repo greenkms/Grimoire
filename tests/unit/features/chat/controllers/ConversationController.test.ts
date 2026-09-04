@@ -50,6 +50,7 @@ function createMockDeps(overrides: Partial<ConversationControllerDeps> = {}): Co
       getConversationById: jest.fn().mockResolvedValue(null),
       getConversationSync: jest.fn().mockReturnValue(null),
       getConversationList: jest.fn().mockReturnValue([]),
+      getConversationTitles: jest.fn().mockReturnValue([]),
       findEmptyConversation: jest.fn().mockResolvedValue(null),
       updateConversation: jest.fn().mockResolvedValue(undefined),
       renameConversation: jest.fn().mockResolvedValue(undefined),
@@ -385,11 +386,9 @@ describe('ConversationController', () => {
     });
 
     it('disambiguates against titles already present in the history', () => {
-      (deps.plugin.getConversationList as jest.Mock).mockReturnValue([
-        { id: 'a', title: 'check the build log', updatedAt: Date.now() },
-      ]);
+      (deps.plugin.getConversationTitles as jest.Mock).mockReturnValue(['check the build log']);
 
-      expect(controller.generateFallbackTitle('check the build log')).toBe('check the build log (2)');
+      expect(controller.generateFallbackTitle('check the build log')).toBe('check the build log 2');
     });
 
     it('uses the generic conversation label when the message is only context', () => {
@@ -399,16 +398,14 @@ describe('ConversationController', () => {
     });
 
     it('disambiguates the generic label as well', () => {
-      (deps.plugin.getConversationList as jest.Mock).mockReturnValue([
-        { id: 'a', title: t('chat.ui.view.conversation'), updatedAt: Date.now() },
-      ]);
+      (deps.plugin.getConversationTitles as jest.Mock).mockReturnValue([t('chat.ui.view.conversation')]);
 
       expect(controller.generateFallbackTitle('<git_status>\nx\n</git_status>'))
-        .toBe(`${t('chat.ui.view.conversation')} (2)`);
+        .toBe(`${t('chat.ui.view.conversation')} 2`);
     });
 
     it('keeps working when the history is unavailable', () => {
-      (deps.plugin.getConversationList as jest.Mock).mockImplementation(() => {
+      (deps.plugin.getConversationTitles as jest.Mock).mockImplementation(() => {
         throw new Error('storage offline');
       });
 
