@@ -76,6 +76,14 @@ type SaveOptions = {
 
 export type HistoryConversationOpenState = 'closed' | 'open' | 'current';
 
+export type TitleSuggestion =
+  | { ok: true; title: string }
+  | { ok: false; reason: 'disabled' | 'no-messages' | 'no-service' | 'failed' };
+
+type TitleSuggestionSource =
+  | { ok: true; userContent: string; service: TitleGenerationService }
+  | { ok: false; reason: 'disabled' | 'no-messages' | 'no-service' };
+
 type HistoryRenderOptions = {
   onSelectConversation: (id: string) => Promise<void>;
   onOpenConversationInNewTab?: (id: string, activate?: boolean) => Promise<void>;
@@ -1221,6 +1229,74 @@ export class ConversationController {
     } catch {
       return [];
     }
+  }
+
+  /** True when the user has auto title generation switched on. */
+  isAutoTitleEnabled(): boolean {
+    return !!this.deps.plugin.settings.enableAutoTitleGeneration;
+  }
+
+  /**
+   * Synchronous gate for auto-rename controls. Reads the in-memory conversation, because
+   * context menus are built synchronously and cannot await.
+   */
+  canSuggestTitle(conversationId: string | null): boolean {
+    if (!conversationId) return false;
+    return this.resolveTitleSource(this.deps.plugin.getConversationSync(conversationId)).ok;
+  }
+
+  /** Forwards cancellation to the active provider's title service. */
+  cancelTitleSuggestion(): void {
+    this.deps.getTitleGenerationService()?.cancel();
+  }
+
+  /**
+   * Generates a title for a conversation and returns it. Never writes to the conversation
+   * and never rejects: every failure is reported as a reason.
+   */
+  async suggestTitle(conversationId: string): Promise<TitleSuggestion> {
+    const conversation = await this.deps.plugin.getConversationById(conversationId);
+    const source = this.resolveTitleSource(conversation);
+    if (!source.ok) return source;
+
+    return new Promise<TitleSuggestion>((resolve) => {
+      let settled = false;
+      const settle = (suggestion: TitleSuggestion): void => {
+        if (settled) return;
+        settled = true;
+        resolve(suggestion);
+      };
+
+      void source.service.generateTitle(
+        conversationId,
+        source.userContent,
+        async (_convId, result) => {
+          settle(result.success
+            ? { ok: true, title: result.title }
+            : { ok: false, reason: 'failed' });
+        },
+      ).then(
+        () => settle({ ok: false, reason: 'failed' }),
+        () => settle({ ok: false, reason: 'failed' }),
+      );
+    });
+  }
+
+  /** Shared gates for both the synchronous check and the actual generation. */
+  private resolveTitleSource(conversation: Conversation | null): TitleSuggestionSource {
+    if (!this.isAutoTitleEnabled()) return { ok: false, reason: 'disabled' };
+
+    const firstUserMsg = conversation?.messages.find(m => m.role === 'user');
+    if (!conversation || !firstUserMsg) return { ok: false, reason: 'no-messages' };
+
+    const service = this.deps.getTitleGenerationService();
+    if (!service) return { ok: false, reason: 'no-service' };
+
+    return {
+      ok: true,
+      userContent: firstUserMsg.displayContent || firstUserMsg.content,
+      service,
+    };
   }
 
   /** Regenerates AI title for a conversation. */
