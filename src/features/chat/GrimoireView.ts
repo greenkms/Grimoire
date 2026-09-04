@@ -602,7 +602,13 @@ export class GrimoireView extends ItemView {
     const manager = this.tabManager;
     const tab = manager?.getTab(tabId);
     if (!manager || !tab) return;
-    const title = await requestTabRename(this.app, getTabTitle(tab, this.plugin));
+    const controller = tab.controllers.conversationController;
+    const conversationId = tab.conversationId;
+    const title = await requestTabRename(
+      this.app,
+      getTabTitle(tab, this.plugin),
+      controller && conversationId ? { controller, conversationId } : null,
+    );
     if (title === null) return;
     await manager.renameTab(tabId, title);
   }
