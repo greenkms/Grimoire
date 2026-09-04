@@ -1,4 +1,4 @@
-import { TITLE_GENERATION_SYSTEM_PROMPT } from '../../../core/prompt/titleGeneration';
+import { buildTitleGenerationSystemPrompt } from '../../../core/prompt/titleGeneration';
 import type {
   TitleGenerationCallback,
   TitleGenerationResult,
@@ -38,7 +38,7 @@ export class TitleGenerationService {
     try {
       const result = await runColdStartQuery({
         plugin: this.plugin,
-        systemPrompt: TITLE_GENERATION_SYSTEM_PROMPT,
+        systemPrompt: buildTitleGenerationSystemPrompt(),
         tools: [],
         model: this.resolveTitleModel(),
         thinking: { disabled: true },
