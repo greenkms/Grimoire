@@ -1,4 +1,5 @@
 import { TITLE_GENERATION_SYSTEM_PROMPT } from '../../../core/prompt/titleGeneration';
+import { MAX_TITLE_LENGTH, truncateTitleOnWordBoundary } from '../../../core/prompt/titleLength';
 import type {
   TitleGenerationCallback,
   TitleGenerationResult,
@@ -107,9 +108,7 @@ export class TitleGenerationService {
 
     title = title.replace(/[.!?:;,]+$/, '');
 
-    if (title.length > 50) {
-      title = title.substring(0, 47) + '...';
-    }
+    title = truncateTitleOnWordBoundary(title, MAX_TITLE_LENGTH);
 
     return title || null;
   }
