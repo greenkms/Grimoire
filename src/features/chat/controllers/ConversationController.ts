@@ -1299,56 +1299,37 @@ export class ConversationController {
     };
   }
 
-  /** Regenerates AI title for a conversation. */
+  /** Regenerates and saves the AI title for a conversation. */
   async regenerateTitle(conversationId: string): Promise<void> {
     const { plugin } = this.deps;
-    if (!plugin.settings.enableAutoTitleGeneration) return;
+    const conversation = await plugin.getConversationById(conversationId);
+    if (!conversation) return;
+    // Gate on the conversation we just loaded rather than the sync accessor: same object in
+    // production, and it keeps this path independent of which accessor a caller warmed up.
+    if (!this.resolveTitleSource(conversation).ok) return;
 
-    // Title generation is delegated to the active provider service
-    const fullConv = await plugin.getConversationById(conversationId);
-    if (!fullConv || fullConv.messages.length < 1) return;
+    // Remember the title so a manual rename during generation wins over the model.
+    const expectedTitle = conversation.title;
 
-    const titleService = this.deps.getTitleGenerationService();
-    if (!titleService) return;
-
-    // Find first user message by role (not by index)
-    const firstUserMsg = fullConv.messages.find(m => m.role === 'user');
-    if (!firstUserMsg) return;
-
-    const userContent = firstUserMsg.displayContent || firstUserMsg.content;
-
-    // Store current title to check if user renames during generation
-    const expectedTitle = fullConv.title;
-
-    // Set pending status before starting generation
     await plugin.updateConversation(conversationId, { titleGenerationStatus: 'pending' });
     this.updateHistoryDropdown();
 
-    // Fire async AI title generation
-    await titleService.generateTitle(
-      conversationId,
-      userContent,
-      async (convId, result) => {
-        // Check if conversation still exists and user hasn't manually renamed
-        const currentConv = await plugin.getConversationById(convId);
-        if (!currentConv) return;
+    const suggestion = await this.suggestTitle(conversationId);
 
-        // Only apply AI title if user hasn't manually renamed (title still matches expected)
-        const userManuallyRenamed = currentConv.title !== expectedTitle;
+    const currentConv = await plugin.getConversationById(conversationId);
+    if (!currentConv) return;
 
-        if (result.success && !userManuallyRenamed) {
-          await plugin.renameConversation(convId, result.title);
-          await plugin.updateConversation(convId, { titleGenerationStatus: 'success' });
-        } else if (!userManuallyRenamed) {
-          // Keep existing title, mark as failed (only if user hasn't renamed)
-          await plugin.updateConversation(convId, { titleGenerationStatus: 'failed' });
-        } else {
-          // User manually renamed, clear the status (user's choice takes precedence)
-          await plugin.updateConversation(convId, { titleGenerationStatus: undefined });
-        }
-        this.updateHistoryDropdown();
-      }
-    );
+    if (currentConv.title !== expectedTitle) {
+      // User renamed it manually while we were generating: their choice wins.
+      await plugin.updateConversation(conversationId, { titleGenerationStatus: undefined });
+    } else if (suggestion.ok) {
+      await plugin.renameConversation(conversationId, suggestion.title);
+      await plugin.updateConversation(conversationId, { titleGenerationStatus: 'success' });
+    } else {
+      await plugin.updateConversation(conversationId, { titleGenerationStatus: 'failed' });
+    }
+
+    this.updateHistoryDropdown();
   }
 
   /** Formats a timestamp for display. */

@@ -3078,3 +3078,72 @@ describe('ConversationController title suggestion', () => {
     expect(() => controller.cancelTitleSuggestion()).not.toThrow();
   });
 });
+
+describe('ConversationController.regenerateTitle', () => {
+  function createRegenerateHarness(options: {
+    result?: any;
+    titleDuringGeneration?: string;
+    enabled?: boolean;
+  } = {}) {
+    const conversation = {
+      id: 'conv-1',
+      title: 'New Chat',
+      messages: [{ id: 'm1', role: 'user', content: 'how do I dry PETG?', timestamp: 1 }],
+      sessionId: null,
+      createdAt: 1,
+      updatedAt: 1,
+    };
+    const service = {
+      generateTitle: jest.fn(async (_id: string, _msg: string, cb: any) => {
+        if (options.titleDuringGeneration !== undefined) {
+          conversation.title = options.titleDuringGeneration;
+        }
+        await cb('conv-1', options.result ?? { success: true, title: 'Drying PETG' });
+      }),
+      cancel: jest.fn(),
+    };
+    const deps = createMockDeps({ getTitleGenerationService: () => service });
+    deps.plugin.settings.enableAutoTitleGeneration = options.enabled ?? true;
+    (deps.plugin.getConversationById as jest.Mock).mockResolvedValue(conversation);
+    (deps.plugin.getConversationSync as jest.Mock).mockReturnValue(conversation);
+    const controller = new ConversationController(deps);
+    return { controller, deps, conversation };
+  }
+
+  it('saves the generated title and marks the generation successful', async () => {
+    const { controller, deps } = createRegenerateHarness();
+
+    await controller.regenerateTitle('conv-1');
+
+    expect(deps.plugin.updateConversation).toHaveBeenCalledWith('conv-1', { titleGenerationStatus: 'pending' });
+    expect(deps.plugin.renameConversation).toHaveBeenCalledWith('conv-1', 'Drying PETG');
+    expect(deps.plugin.updateConversation).toHaveBeenCalledWith('conv-1', { titleGenerationStatus: 'success' });
+  });
+
+  it('marks a failed generation without renaming', async () => {
+    const { controller, deps } = createRegenerateHarness({ result: { success: false, error: 'boom' } });
+
+    await controller.regenerateTitle('conv-1');
+
+    expect(deps.plugin.renameConversation).not.toHaveBeenCalled();
+    expect(deps.plugin.updateConversation).toHaveBeenCalledWith('conv-1', { titleGenerationStatus: 'failed' });
+  });
+
+  it('keeps a title the user changed during generation', async () => {
+    const { controller, deps } = createRegenerateHarness({ titleDuringGeneration: 'Manual name' });
+
+    await controller.regenerateTitle('conv-1');
+
+    expect(deps.plugin.renameConversation).not.toHaveBeenCalled();
+    expect(deps.plugin.updateConversation).toHaveBeenCalledWith('conv-1', { titleGenerationStatus: undefined });
+  });
+
+  it('does nothing when auto title generation is disabled', async () => {
+    const { controller, deps } = createRegenerateHarness({ enabled: false });
+
+    await controller.regenerateTitle('conv-1');
+
+    expect(deps.plugin.updateConversation).not.toHaveBeenCalled();
+    expect(deps.plugin.renameConversation).not.toHaveBeenCalled();
+  });
+});
