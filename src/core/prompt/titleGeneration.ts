@@ -46,21 +46,56 @@ export function buildTitleGenerationPrompt(userMessage: string): string {
   return `User's request:\n"""\n${truncated}\n"""\n\nGenerate a title for this conversation:`;
 }
 
+// Weaker local models tend to ignore "return ONLY the raw title" and prepend a
+// label ("Generated title:", "Title -", "Заголовок:") or wrap the answer in a
+// conversational preamble / markdown heading. Strip those before using the text.
+const TITLE_NOISE_PREFIXES: readonly RegExp[] = [
+  /^\s*(?:#{1,6}\s+|>\s+|[-*•]\s+)/,
+  /^\s*(?:(?:here(?:'s| is)|this is)\s+(?:a|the)\s+)?(?:(?:auto[-\s]?)?generated|suggested|proposed|conversation|chat)?\s*(?:title|name|заголовок|название|тема)\s*[:：\-–—]\s*/i,
+  /^\s*(?:auto[-\s]?)?generated\s*[:：\-–—]\s*/i,
+];
+
+function stripTitleNoise(text: string): string {
+  let out = text.trim();
+  for (let pass = 0; pass < 4; pass += 1) {
+    let changed = false;
+    for (const pattern of TITLE_NOISE_PREFIXES) {
+      const next = out.replace(pattern, '');
+      if (next !== out) {
+        out = next.trim();
+        changed = true;
+      }
+    }
+    if (!changed) {
+      break;
+    }
+  }
+  return out;
+}
+
 export function parseTitleGenerationResponse(responseText: string): string | null {
-  const trimmed = responseText.trim();
-  if (!trimmed) {
+  const stripped = stripTitleNoise(responseText);
+  if (!stripped) {
     return null;
   }
 
-  let title = trimmed;
+  const firstLine = stripped
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .find(Boolean);
+  if (!firstLine) {
+    return null;
+  }
+
+  let title = firstLine;
   if (
     (title.startsWith('"') && title.endsWith('"'))
     || (title.startsWith("'") && title.endsWith("'"))
   ) {
-    title = title.slice(1, -1);
+    title = title.slice(1, -1).trim();
   }
 
-  title = title.replace(/[.!?:;,]+$/, '');
+  title = title.replace(/[.!?:;,]+$/, '').trim();
 
   if (title.length > MAX_TITLE_LENGTH) {
     title = `${title.slice(0, MAX_TITLE_LENGTH - 3)}...`;

@@ -1,5 +1,6 @@
 import {
   buildTitleGenerationSystemPrompt,
+  parseTitleGenerationResponse,
   resolveTitleLanguageName,
   TITLE_GENERATION_SYSTEM_PROMPT,
 } from '@/core/prompt/titleGeneration';
@@ -46,6 +47,43 @@ describe('titleGeneration', () => {
 
     it('honours an explicit locale argument', () => {
       expect(buildTitleGenerationSystemPrompt('ja')).toContain('Write the title in Japanese');
+    });
+  });
+
+  describe('parseTitleGenerationResponse', () => {
+    it('returns a clean title unchanged', () => {
+      expect(parseTitleGenerationResponse('Fix the title parser')).toBe('Fix the title parser');
+    });
+
+    it('strips a leading "Generated" prefix from weak models', () => {
+      expect(parseTitleGenerationResponse('generated: Fix the title parser'))
+        .toBe('Fix the title parser');
+      expect(parseTitleGenerationResponse('Generated title - Fix the title parser'))
+        .toBe('Fix the title parser');
+    });
+
+    it('strips a leading "Title:" / localized label prefix', () => {
+      expect(parseTitleGenerationResponse('Title: Debug Python script')).toBe('Debug Python script');
+      expect(parseTitleGenerationResponse('Заголовок: Настроить Klipper')).toBe('Настроить Klipper');
+    });
+
+    it('strips leading markdown noise and conversational preambles', () => {
+      expect(parseTitleGenerationResponse('- Fix the parser')).toBe('Fix the parser');
+      expect(parseTitleGenerationResponse('## Fix the parser')).toBe('Fix the parser');
+      expect(parseTitleGenerationResponse("Here is the title: Fix the parser")).toBe('Fix the parser');
+    });
+
+    it('takes the real title when a label sits on its own line', () => {
+      expect(parseTitleGenerationResponse('Generated title:\n\nFix the parser')).toBe('Fix the parser');
+    });
+
+    it('still trims wrapping quotes and trailing punctuation', () => {
+      expect(parseTitleGenerationResponse('"Fix the parser."')).toBe('Fix the parser');
+    });
+
+    it('returns null when nothing survives stripping', () => {
+      expect(parseTitleGenerationResponse('   ')).toBeNull();
+      expect(parseTitleGenerationResponse('Title:')).toBeNull();
     });
   });
 });
