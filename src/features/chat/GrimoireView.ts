@@ -591,6 +591,20 @@ export class GrimoireView extends ItemView {
     menu.addItem(item => item
       .setTitle(t('chat.ui.tabs.rename'))
       .onClick(() => { void this.renameTab(tabId); }));
+    const titleController = tab.controllers.conversationController;
+    if (titleController?.isAutoTitleEnabled()) {
+      const conversationId = tab.conversationId;
+      const canAutoRename = titleController.canSuggestTitle(conversationId);
+      menu.addItem(item => item
+        .setTitle(t('chat.ui.tabs.autoRename'))
+        .setDisabled(!canAutoRename)
+        .onClick(() => {
+          if (!canAutoRename || !conversationId) return;
+          void titleController.regenerateTitle(conversationId).catch(() => {
+            new Notice(t('chat.ui.tabs.autoRenameFailed'));
+          });
+        }));
+    }
     menu.addItem(item => item
       .setTitle(t('chat.ui.tabs.duplicate'))
       .setDisabled(!manager.canCreateTab())
