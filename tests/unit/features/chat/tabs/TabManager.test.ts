@@ -3373,7 +3373,7 @@ describe('TabManager - buildForkTitle', () => {
     const manager = createManager({ plugin });
     await manager.createTab();
 
-    const longTitle = 'A'.repeat(100);
+    const longTitle = 'A'.repeat(200);
     await manager.forkToNewTab({
       messages: [],
       sourceSessionId: 'session-1',
@@ -3383,7 +3383,7 @@ describe('TabManager - buildForkTitle', () => {
     });
 
     const updateCall = mockUpdateConversation.mock.calls[0][1];
-    expect(updateCall.title.length).toBeLessThanOrEqual(50);
+    expect(updateCall.title.length).toBeLessThanOrEqual(100);
     expect(updateCall.title).toContain('…');
     expect(updateCall.title).toContain('Fork: ');
     expect(updateCall.title).toContain('(#1)');

@@ -857,10 +857,9 @@ export class TabManager implements TabManagerInterface {
   }
 
   private buildForkTitle(sourceTitle: string, forkAtUserMessage?: number): string {
-    const MAX_TITLE_LENGTH = 50;
     const forkSuffix = forkAtUserMessage ? ` (#${forkAtUserMessage})` : '';
     const forkPrefix = 'Fork: ';
-    const maxSourceLength = MAX_TITLE_LENGTH - forkPrefix.length - forkSuffix.length;
+    const maxSourceLength = MAX_TAB_TITLE_LENGTH - forkPrefix.length - forkSuffix.length;
     const truncatedSource = sourceTitle.length > maxSourceLength
       ? sourceTitle.slice(0, maxSourceLength - 1) + '…'
       : sourceTitle;
