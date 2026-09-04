@@ -44,7 +44,7 @@
   width: 100%;
   height: 42px;
   min-width: 0;
-  padding: 0 42px 0 12px;
+  padding: 0 78px 0 12px;
   border: 0;
   border-radius: inherit;
   background: transparent;
@@ -84,6 +84,49 @@ button.grimoire-rename-tab-reset:focus-visible {
 }
 
 button.grimoire-rename-tab-reset svg {
+  width: 16px;
+  height: 16px;
+}
+
+button.grimoire-rename-tab-suggest {
+  position: absolute;
+  right: 41px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 6px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-muted);
+}
+
+button.grimoire-rename-tab-suggest:hover:not(:disabled),
+button.grimoire-rename-tab-suggest:focus-visible:not(:disabled) {
+  background: var(--background-modifier-hover);
+  box-shadow: none;
+  color: var(--text-normal);
+}
+
+button.grimoire-rename-tab-suggest:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+button.grimoire-rename-tab-suggest.is-loading svg {
+  animation: grimoire-rename-tab-spin 0.9s linear infinite;
+}
+
+@keyframes grimoire-rename-tab-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+button.grimoire-rename-tab-suggest svg {
   width: 16px;
   height: 16px;
 }
