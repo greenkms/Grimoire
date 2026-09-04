@@ -997,6 +997,14 @@ export default class GrimoirePlugin extends Plugin {
     }));
   }
 
+  /**
+   * Titles only. Callers that just need uniqueness would otherwise pay for the
+   * preview, model label and source count of every conversation.
+   */
+  getConversationTitles(): string[] {
+    return this.conversations.map(c => c.title);
+  }
+
   async persistTabManagerState(state: AppTabManagerState): Promise<void> {
     this.lastKnownTabManagerState = state;
     await this.storage.setTabManagerState(state);
