@@ -22,13 +22,20 @@ describe('rename-tab.css', () => {
     expect(getRule(css, '.grimoire-rename-tab-footer')).toContain('justify-content: space-between');
   });
 
-  it('reserves input space for both field controls', () => {
+  it('lets the flex row, not input padding, reserve space for the field controls', () => {
     const css = readCss();
 
-    expect(getRule(css, '.grimoire-rename-tab-input')).toContain('padding: 0 78px 0 12px');
-    expect(getRule(css, 'button.grimoire-rename-tab-reset')).toContain('position: absolute');
-    expect(getRule(css, 'button.grimoire-rename-tab-suggest')).toContain('position: absolute');
-    expect(getRule(css, 'button.grimoire-rename-tab-suggest')).toContain('right: 41px');
+    // A Chromium input paints its overflowing text across its own padding box, so
+    // padding cannot keep a long title off the controls: they must be flex siblings.
+    const input = getRule(css, '.grimoire-rename-tab-input');
+    expect(input).toContain('flex: 1 1 auto');
+    expect(input).not.toContain('78px');
+
+    for (const selector of ['button.grimoire-rename-tab-reset', 'button.grimoire-rename-tab-suggest']) {
+      const rule = getRule(css, selector);
+      expect(rule).not.toContain('position: absolute');
+      expect(rule).toContain('flex: 0 0 auto');
+    }
   });
 
   it('dims the suggest control while it is disabled or loading', () => {
