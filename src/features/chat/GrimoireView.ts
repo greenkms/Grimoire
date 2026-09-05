@@ -1,5 +1,5 @@
 import type { EventRef, WorkspaceLeaf } from 'obsidian';
-import { ItemView, Menu, Notice, Platform, Scope } from 'obsidian';
+import { ItemView, Menu, Notice, Platform, Scope, setTooltip } from 'obsidian';
 
 import { GRIMOIRE_CHANGELOG_URL } from '../../app/changelog/source';
 import { getHiddenProviderCommandSet } from '../../core/providers/commands/hiddenCommands';
@@ -79,10 +79,19 @@ let historyDialogSequence = 0;
 /** A tab title may run to `MAX_TAB_TITLE_LENGTH`; a menu heading that long stretches the menu. */
 export const MAX_TAB_MENU_HEADING_LENGTH = 40;
 
-function shortenTabMenuHeading(title: string): string {
-  return title.length > MAX_TAB_MENU_HEADING_LENGTH
-    ? title.slice(0, MAX_TAB_MENU_HEADING_LENGTH - 1) + '…'
-    : title;
+/**
+ * A shortened heading must still surface the whole name: two tabs can share the first
+ * `MAX_TAB_MENU_HEADING_LENGTH` characters and would otherwise be indistinguishable here.
+ */
+export function buildTabMenuHeading(title: string): string | DocumentFragment {
+  if (title.length <= MAX_TAB_MENU_HEADING_LENGTH) return title;
+
+  const shortened = title.slice(0, MAX_TAB_MENU_HEADING_LENGTH - 1) + '…';
+  return createFragment((fragment) => {
+    const span = createSpan({ text: shortened, attr: { 'aria-label': title } });
+    setTooltip(span, title, { placement: 'top' });
+    fragment.appendChild(span);
+  });
 }
 
 function appendHistoryHeaderIcon(container: HTMLElement): void {
@@ -582,7 +591,7 @@ export class GrimoireView extends ItemView {
     const menu = new Menu();
 
     menu.addItem(item => item
-      .setTitle(shortenTabMenuHeading(getTabTitle(tab, this.plugin)))
+      .setTitle(buildTabMenuHeading(getTabTitle(tab, this.plugin)))
       .setIsLabel(true));
     menu.addItem(item => item
       .setTitle(`${t('chat.ui.tabs.closeTab')} (${hotkey})`)

@@ -3,7 +3,7 @@ import '@/providers';
 import { createMockEl } from '@test/helpers/mockElement';
 import { Menu, Scope, setIcon } from 'obsidian';
 
-import { GrimoireView, MAX_TAB_MENU_HEADING_LENGTH } from '@/features/chat/GrimoireView';
+import { GrimoireView } from '@/features/chat/GrimoireView';
 
 const MockScope = Scope as typeof Scope & { instances: Scope[] };
 const MockMenu = Menu as unknown as typeof Menu & { instances: any[] };
@@ -772,13 +772,5 @@ describe('GrimoireView tab context menu auto-rename', () => {
     expect(menu.items[0].title).toBe('Объяснить логику Grimoire');
   });
 
-  it('shortens a heading that would stretch the menu', () => {
-    const title = 'Объяснить логику системного промпта и генерации заголовков Grimoire';
-    const { menu } = createMenuHarness({ title });
-
-    const heading = menu.items[0].title as string;
-    expect(heading.length).toBe(MAX_TAB_MENU_HEADING_LENGTH);
-    expect(heading.endsWith('…')).toBe(true);
-    expect(title.startsWith(heading.slice(0, -1))).toBe(true);
-  });
+  // The shortened form needs a DOM; it is covered in tabMenuHeading.test.ts (jsdom).
 });
