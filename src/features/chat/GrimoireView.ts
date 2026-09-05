@@ -76,6 +76,15 @@ const HISTORY_ICON_PATHS = [
 
 let historyDialogSequence = 0;
 
+/** A tab title may run to `MAX_TAB_TITLE_LENGTH`; a menu heading that long stretches the menu. */
+export const MAX_TAB_MENU_HEADING_LENGTH = 40;
+
+function shortenTabMenuHeading(title: string): string {
+  return title.length > MAX_TAB_MENU_HEADING_LENGTH
+    ? title.slice(0, MAX_TAB_MENU_HEADING_LENGTH - 1) + '…'
+    : title;
+}
+
 function appendHistoryHeaderIcon(container: HTMLElement): void {
   container.empty();
 
@@ -573,7 +582,7 @@ export class GrimoireView extends ItemView {
     const menu = new Menu();
 
     menu.addItem(item => item
-      .setTitle(getTabTitle(tab, this.plugin).toUpperCase())
+      .setTitle(shortenTabMenuHeading(getTabTitle(tab, this.plugin)))
       .setIsLabel(true));
     menu.addItem(item => item
       .setTitle(`${t('chat.ui.tabs.closeTab')} (${hotkey})`)

@@ -3,7 +3,7 @@ import '@/providers';
 import { createMockEl } from '@test/helpers/mockElement';
 import { Menu, Scope, setIcon } from 'obsidian';
 
-import { GrimoireView } from '@/features/chat/GrimoireView';
+import { GrimoireView, MAX_TAB_MENU_HEADING_LENGTH } from '@/features/chat/GrimoireView';
 
 const MockScope = Scope as typeof Scope & { instances: Scope[] };
 const MockMenu = Menu as unknown as typeof Menu & { instances: any[] };
@@ -704,6 +704,7 @@ describe('GrimoireView tab context menu auto-rename', () => {
     enabled?: boolean;
     canSuggest?: boolean;
     hasController?: boolean;
+    title?: string;
   } = {}) {
     const regenerateTitle = jest.fn().mockResolvedValue(undefined);
     const controller = {
@@ -714,7 +715,7 @@ describe('GrimoireView tab context menu auto-rename', () => {
     const tab = {
       id: 'tab-1',
       conversationId: 'conv-1',
-      titleOverride: 'Tab One',
+      titleOverride: options.title ?? 'Tab One',
       controllers: {
         conversationController: (options.hasController ?? true) ? controller : null,
       },
@@ -736,7 +737,7 @@ describe('GrimoireView tab context menu auto-rename', () => {
 
     const menu = MockMenu.instances[MockMenu.instances.length - 1];
     const item = menu.items.find((entry: any) => entry.title === 'Auto-rename');
-    return { item, regenerateTitle, controller };
+    return { item, regenerateTitle, controller, menu };
   }
 
   it('offers auto-rename for a tab with a conversation', () => {
@@ -763,5 +764,21 @@ describe('GrimoireView tab context menu auto-rename', () => {
 
     expect(item?.disabled).toBe(true);
     expect(regenerateTitle).not.toHaveBeenCalled();
+  });
+
+  it('heads the menu with the tab title as the user wrote it', () => {
+    const { menu } = createMenuHarness({ title: 'Объяснить логику Grimoire' });
+
+    expect(menu.items[0].title).toBe('Объяснить логику Grimoire');
+  });
+
+  it('shortens a heading that would stretch the menu', () => {
+    const title = 'Объяснить логику системного промпта и генерации заголовков Grimoire';
+    const { menu } = createMenuHarness({ title });
+
+    const heading = menu.items[0].title as string;
+    expect(heading.length).toBe(MAX_TAB_MENU_HEADING_LENGTH);
+    expect(heading.endsWith('…')).toBe(true);
+    expect(title.startsWith(heading.slice(0, -1))).toBe(true);
   });
 });
