@@ -215,6 +215,31 @@ describe('AntigravityPrintProcessRunner', () => {
     expect(outcome.stdout).toHaveLength(spoken);
   });
 
+  it('finishes a turn whose pipes an orphan still holds after the process exited', async () => {
+    // 1.3.2 gave `close` a grace period after `exit` and then forced the
+    // streams shut, because "an orphaned grandchild holding the pipes would
+    // otherwise hold the whole run hostage". Waiting on the streams with no
+    // deadline brings the hostage back: agy answers, exits, and the tab spins
+    // forever on a pipe nobody will close.
+    const child = new FakeManagedChild();
+    // A stdout that never ends, the way a held pipe behaves.
+    (child as { stdout: AsyncIterable<Uint8Array> }).stdout = {
+      [Symbol.asyncIterator]: () => ({ next: () => new Promise<never>(() => {}) }),
+    } as AsyncIterable<Uint8Array>;
+    const runner = new AntigravityPrintProcessRunner({
+      transport: new FakeTransport(child),
+      outputByteLimit: ANTIGRAVITY_OUTPUT_BYTE_LIMIT,
+      drainGraceMs: 1,
+      createLogPath: () => '/tmp/antigravity.log',
+      removeLog: async () => undefined,
+      recoverTranscript: async () => ({ output: 'answered', outputLimitExceeded: false }),
+    });
+    const handle = runner.start(INVOCATION);
+    child.exit.resolve({ code: 0 });
+
+    await expect(handle.completed).resolves.toMatchObject({ exitCode: 0 });
+  });
+
   it('recovers the Windows transcript only after a successful empty stdout', async () => {
     const child = new FakeManagedChild();
     const recoverTranscript = jest.fn().mockResolvedValue({
