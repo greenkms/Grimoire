@@ -240,6 +240,32 @@ describe('AntigravityPrintProcessRunner', () => {
     await expect(handle.completed).resolves.toMatchObject({ exitCode: 0 });
   });
 
+  it('ends a turn on the result frame even when the CLI never leaves', async () => {
+    // Observed live: `agy` answered and stayed resident. Treating process exit
+    // as the end of the turn leaves the tab spinning on an answer it already
+    // has. The turn is over when the last `result` frame arrives.
+    const child = new FakeManagedChild({
+      stdout: [
+        '{"event":"result","result":{"status":"ok","response":"done","error":null}}\n',
+      ],
+    });
+    // `exit` is never resolved: the process outlives its own answer.
+    const runner = new AntigravityPrintProcessRunner({
+      transport: new FakeTransport(child),
+      drainGraceMs: 1,
+      createLogPath: () => '/tmp/antigravity.log',
+      removeLog: async () => undefined,
+    });
+
+    const handle = runner.start({
+      ...INVOCATION,
+      cliCapabilities: { addDir: false, printTimeout: false, streamJson: true },
+    });
+
+    await expect(handle.completed).resolves.toMatchObject({ stdout: 'done' });
+    expect(child.terminationModes.length).toBeGreaterThan(0);
+  });
+
   it('recovers the Windows transcript only after a successful empty stdout', async () => {
     const child = new FakeManagedChild();
     const recoverTranscript = jest.fn().mockResolvedValue({

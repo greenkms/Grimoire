@@ -220,8 +220,22 @@ export class AntigravityPrintProcessRunner implements AntigravityProcessRunner {
         // A pipe that fails after the process already left says nothing about
         // the turn, and must not replace its outcome with a rejection.
       ]).catch(() => undefined);
-      const exit = await child.exited;
-      await Promise.race([drained, delay(this.drainGraceMs())]);
+      // **The frame, not the process.** Observed live: `agy` answers and stays
+      // resident, so waiting for it to leave leaves the tab spinning on an
+      // answer it already has. Whichever comes first ends the wait, and a CLI
+      // that overstayed its own answer is asked to go.
+      await Promise.race([drained, child.exited]);
+      let exit: { readonly code: number | null; readonly signal?: string } | undefined;
+      if (parser?.getResult()) {
+        void child.terminate('graceful');
+        exit = await Promise.race([
+          child.exited,
+          delay(this.drainGraceMs()).then(() => undefined),
+        ]);
+      } else {
+        exit = await child.exited;
+        await Promise.race([drained, delay(this.drainGraceMs())]);
+      }
       // **The frame, not the pipe.** In stream-json the answer is one field of
       // the last `result` frame, and the frames around it are progress this
       // turn has already published. Accumulating the pipe instead would spend
@@ -231,8 +245,8 @@ export class AntigravityPrintProcessRunner implements AntigravityProcessRunner {
         parser.end();
         const result = parser.getResult();
         return {
-          exitCode: exit.code,
-          ...(exit.signal ? { signal: exit.signal } : {}),
+          exitCode: exit?.code ?? 0,
+          ...(exit?.signal ? { signal: exit.signal } : {}),
           stdout: result?.response ?? '',
           stderr: stderr.value(),
           // Carried as its own fields rather than folded into `stderr`: the
@@ -245,7 +259,7 @@ export class AntigravityPrintProcessRunner implements AntigravityProcessRunner {
         };
       }
       const stdoutText = stdout.value();
-      const transcript = exit.code === 0 && !stdoutText && !outputLimit.didExceed
+      const transcript = (exit?.code ?? 0) === 0 && !stdoutText && !outputLimit.didExceed
         ? await (this.options.recoverTranscript ?? recoverAntigravityPrintTranscriptBounded)(
           logFilePath,
           invocation.environment,
@@ -259,8 +273,8 @@ export class AntigravityPrintProcessRunner implements AntigravityProcessRunner {
         outputLimit.consume(Buffer.byteLength(transcript.output, 'utf8'));
       }
       return {
-        exitCode: exit.code,
-        ...(exit.signal ? { signal: exit.signal } : {}),
+        exitCode: exit?.code ?? 0,
+        ...(exit?.signal ? { signal: exit.signal } : {}),
         stdout: stdoutText,
         stderr: stderr.value(),
         ...(transcript.output ? { transcriptOutput: transcript.output } : {}),
@@ -355,6 +369,11 @@ async function consumeFrames(
       return;
     }
     parser.write(decoder.decode(chunk, { stream: true }));
+    // agy emits `result` last, so the answer is complete here. Reading on would
+    // wait for a pipe the CLI is under no obligation to close.
+    if (parser.getResult()) {
+      return;
+    }
   }
 }
 
