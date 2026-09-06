@@ -67,6 +67,14 @@ export interface AntigravityPrintProcessRunnerOptions {
   readonly logSize?: (logFilePath: string) => Promise<number>;
   /** Combined stdout, stderr, and recovered-result byte ceiling. */
   readonly outputByteLimit?: number;
+  /**
+   * How long the pipes may keep talking after the process has gone.
+   *
+   * Not a timeout for the turn: the turn is over when `agy` exits. This only
+   * bounds the wait for buffered output that an orphaned grandchild may be
+   * holding open, so a finished run cannot hang on a pipe nobody will close.
+   */
+  readonly drainGraceMs?: number;
   readonly createLogPath?: () => string;
   readonly recoverTranscript?: (
     logFilePath: string,
@@ -182,6 +190,10 @@ export class AntigravityPrintProcessRunner implements AntigravityProcessRunner {
     };
   }
 
+  private drainGraceMs(): number {
+    return this.options.drainGraceMs ?? 2_000;
+  }
+
   private async observeCompletion(
     child: AntigravityManagedChildProcess,
     invocation: AntigravityInvocation,
@@ -194,13 +206,22 @@ export class AntigravityPrintProcessRunner implements AntigravityProcessRunner {
     const stderr = new LimitedBytes(outputLimit);
     const onActivity = hooks.onActivity;
     try {
-      const [exit] = await Promise.all([
-        child.exited,
+      // The process leaving is the event; the pipes closing is not. A grandchild
+      // that outlives `agy` keeps them open, and waiting on them with no
+      // deadline holds the run hostage: the answer is in, the process is gone,
+      // and the tab spins forever. So the streams get a grace period *after*
+      // exit and the outcome is built from whatever arrived by then — which is
+      // what 1.3.2 did by forcing the streams shut once `close` lagged `exit`.
+      const drained = Promise.all([
         parser
           ? consumeFrames(child.stdout, parser, outputLimit, onActivity)
           : consume(child.stdout, stdout, onActivity),
         consume(child.stderr, stderr, onActivity),
-      ]);
+        // A pipe that fails after the process already left says nothing about
+        // the turn, and must not replace its outcome with a rejection.
+      ]).catch(() => undefined);
+      const exit = await child.exited;
+      await Promise.race([drained, delay(this.drainGraceMs())]);
       // **The frame, not the pipe.** In stream-json the answer is one field of
       // the last `result` frame, and the frames around it are progress this
       // turn has already published. Accumulating the pipe instead would spend
@@ -335,6 +356,10 @@ async function consumeFrames(
     }
     parser.write(decoder.decode(chunk, { stream: true }));
   }
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => { window.setTimeout(resolve, ms); });
 }
 
 function removeLog(logFilePath: string): Promise<void> {
