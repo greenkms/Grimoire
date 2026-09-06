@@ -1,6 +1,7 @@
 import { executionSessionId, runId, sessionInstanceId } from '@/core/execution/ExecutionIds';
 import type { AntigravityInvocation } from '@/providers/antigravity/execution/AntigravityExecutionBackend';
 import { AntigravityExecutionBackend } from '@/providers/antigravity/execution/AntigravityExecutionBackend';
+import { ANTIGRAVITY_OUTPUT_BYTE_LIMIT } from '@/providers/antigravity/execution/AntigravityExecutionComposition';
 import {
   type AntigravityManagedChildProcess,
   AntigravityPrintProcessRunner,
@@ -188,6 +189,30 @@ describe('AntigravityPrintProcessRunner', () => {
       stdout: '123',
       outputLimitExceeded: true,
     });
+  });
+
+  it('lets a turn print far more than the old buffer size on the configured budget', async () => {
+    // The budget is what the product actually runs with, not a test value: it
+    // used to be a *sliding buffer* size (`.slice(-64_000)`), and carrying the
+    // number over to a cumulative budget turned "keep the last 64 KB" into
+    // "kill any turn that says more than 64 KB". A trivial agy probe already
+    // writes ~30 KB, so real turns died and stored an empty answer.
+    const spoken = 200_000;
+    const child = new FakeManagedChild({
+      stdout: ['x'.repeat(spoken)],
+    });
+    const runner = new AntigravityPrintProcessRunner({
+      transport: new FakeTransport(child),
+      outputByteLimit: ANTIGRAVITY_OUTPUT_BYTE_LIMIT,
+      createLogPath: () => '/tmp/antigravity.log',
+      removeLog: async () => undefined,
+    });
+    const handle = runner.start(INVOCATION);
+    child.exit.resolve({ code: 0 });
+
+    const outcome = await handle.completed;
+    expect(outcome.outputLimitExceeded).toBeUndefined();
+    expect(outcome.stdout).toHaveLength(spoken);
   });
 
   it('recovers the Windows transcript only after a successful empty stdout', async () => {
