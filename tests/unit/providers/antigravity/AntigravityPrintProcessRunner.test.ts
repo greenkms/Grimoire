@@ -266,6 +266,113 @@ describe('AntigravityPrintProcessRunner', () => {
     expect(child.terminationModes.length).toBeGreaterThan(0);
   });
 
+  it('ends a turn on the result frame while the CLI still holds its pipe open', async () => {
+    // The case the previous test cannot reach. Its fake stdout *ends* after the
+    // result frame, so the drain resolves and the wait is released by the pipe
+    // rather than by the frame. A resident `agy` closes neither: it answers,
+    // keeps stdout open, and does not exit. Then `Promise.race([drained,
+    // exited])` has nothing to settle it, the frame is parsed but never
+    // examined, and the run spins until the user cancels it — the reported
+    // symptom, with a visible complete answer and an active run (#139).
+    const child = new FakeManagedChild();
+    (child as { stdout: AsyncIterable<Uint8Array> }).stdout = residentStdout([
+      '{"event":"step_update","step_update":{"step_type":"text","text_delta":"done"}}\n',
+      '{"event":"result","result":{"status":"ok","response":"done","error":null}}\n',
+    ]);
+    // `exit` is never resolved and the pipe never closes: both boundaries the
+    // wait knows about are absent, which is what a resident CLI looks like.
+    const runner = new AntigravityPrintProcessRunner({
+      transport: new FakeTransport(child),
+      drainGraceMs: 1,
+      createLogPath: () => '/tmp/antigravity.log',
+      removeLog: async () => undefined,
+    });
+
+    const handle = runner.start({
+      ...INVOCATION,
+      cliCapabilities: { addDir: false, printTimeout: false, streamJson: true },
+    });
+
+    await expect(settledWithin(handle.completed, 250)).resolves.toMatchObject({
+      stdout: 'done',
+    });
+    expect(child.terminationModes.length).toBeGreaterThan(0);
+  });
+
+  it('stops calling a growing log a sign of life once no tool call is open', async () => {
+    // The log tells a long tool call apart from a hang (#70), but it is the
+    // CLI's own file: a resident `agy` keeps appending to it after the answer
+    // is delivered. Reported as activity regardless, it re-arms the backend's
+    // inactivity timeout forever, so the one mechanism that could end a turn
+    // with no `result` frame never fires and only cancellation ends the run
+    // (#139). Growth counts while a call is out; silence after it is silence.
+    const poll = new ManualPoll();
+    const child = new FakeManagedChild();
+    (child as { stdout: AsyncIterable<Uint8Array> }).stdout = residentStdout([
+      '{"event":"step_update","step_update":{"step_type":"text","text_delta":"done"}}\n',
+    ]);
+    let logBytes = 0;
+    const onActivity = jest.fn();
+    const runner = new AntigravityPrintProcessRunner({
+      transport: new FakeTransport(child),
+      drainGraceMs: 1,
+      createLogPath: () => '/tmp/antigravity.log',
+      removeLog: async () => undefined,
+      setPoll: poll.set,
+      clearPoll: poll.clear,
+      logSize: async () => logBytes,
+    });
+
+    runner.start(
+      { ...INVOCATION, cliCapabilities: { addDir: false, printTimeout: false, streamJson: true } },
+      { onActivity },
+    );
+    // Let the text frame arrive, then ignore the activity it legitimately
+    // reported: what follows is only the log growing on its own.
+    await flush();
+    onActivity.mockClear();
+
+    logBytes += 4_096;
+    await poll.fire();
+
+    expect(onActivity).not.toHaveBeenCalled();
+  });
+
+  it('still calls a growing log a sign of life while a tool call is out', async () => {
+    // The other half, and the reason the log is watched at all: a tool call can
+    // keep both pipes quiet for minutes (#70). While its `ACTIVE` frame has no
+    // `DONE`, growth is the only evidence the run is alive.
+    const poll = new ManualPoll();
+    const child = new FakeManagedChild();
+    (child as { stdout: AsyncIterable<Uint8Array> }).stdout = residentStdout([
+      '{"event":"step_update","step_update":{"step_type":"tool","state":"ACTIVE","step_index":1,'
+        + '"tool_name":"run","tool_info":{"parameters":{}}}}\n',
+    ]);
+    let logBytes = 0;
+    const onActivity = jest.fn();
+    const runner = new AntigravityPrintProcessRunner({
+      transport: new FakeTransport(child),
+      drainGraceMs: 1,
+      createLogPath: () => '/tmp/antigravity.log',
+      removeLog: async () => undefined,
+      setPoll: poll.set,
+      clearPoll: poll.clear,
+      logSize: async () => logBytes,
+    });
+
+    runner.start(
+      { ...INVOCATION, cliCapabilities: { addDir: false, printTimeout: false, streamJson: true } },
+      { onActivity },
+    );
+    await flush();
+    onActivity.mockClear();
+
+    logBytes += 4_096;
+    await poll.fire();
+
+    expect(onActivity).toHaveBeenCalled();
+  });
+
   it('recovers the Windows transcript only after a successful empty stdout', async () => {
     const child = new FakeManagedChild();
     const recoverTranscript = jest.fn().mockResolvedValue({
@@ -419,6 +526,65 @@ function chunks(values: readonly string[]): AsyncIterable<Uint8Array> {
       }
     },
   };
+}
+
+/**
+ * Frames on a pipe that never closes, the way a resident CLI leaves stdout.
+ *
+ * Deliberately different from `chunks`: that helper ends its iteration, which
+ * closes the stream and releases anything waiting on the drain. Nothing here
+ * ever ends, so only the frames themselves can end the turn.
+ */
+function residentStdout(values: readonly string[]): AsyncIterable<Uint8Array> {
+  return {
+    async *[Symbol.asyncIterator]() {
+      for (const value of values) {
+        yield Buffer.from(value, 'utf8');
+      }
+      await new Promise<never>(() => {});
+    },
+  };
+}
+
+/**
+ * Fails loudly instead of hanging the suite: a run that never settles is the
+ * defect under test, and jest's own timeout would report it as an unhelpful
+ * whole-test expiry rather than as this assertion.
+ */
+function settledWithin<T>(work: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    work,
+    new Promise<never>((_resolve, reject) => {
+      setTimeout(() => reject(new Error(`run did not settle within ${ms}ms`)), ms).unref?.();
+    }),
+  ]);
+}
+
+/** The liveness poll, driven by the test rather than by a clock. */
+class ManualPoll {
+  private callback: (() => void) | undefined;
+
+  readonly set = (callback: () => void): unknown => {
+    this.callback = callback;
+    return 'poll';
+  };
+
+  readonly clear = (): void => {
+    this.callback = undefined;
+  };
+
+  /** Runs one tick and lets the size read it awaits settle. */
+  async fire(): Promise<void> {
+    this.callback?.();
+    await flush();
+  }
+}
+
+/** Drains the microtask queue so awaited reads and frames land. */
+async function flush(): Promise<void> {
+  for (let index = 0; index < 10; index += 1) {
+    await Promise.resolve();
+  }
 }
 
 function deferred<T>() {

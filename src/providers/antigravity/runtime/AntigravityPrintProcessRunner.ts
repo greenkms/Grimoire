@@ -117,12 +117,22 @@ export class AntigravityPrintProcessRunner implements AntigravityProcessRunner {
       shell: launch.shell,
       ...(streamJson ? { stdin: 'pipe' as const } : {}),
     });
+    // The calls this turn has started and not yet seen finish. `agy` brackets
+    // every call with an `ACTIVE`/`DONE` pair sharing one step id, so a
+    // non-empty set means the CLI owes this turn an answer it is still working
+    // on — which is exactly when its log growing is worth believing.
+    const openToolSteps = new Set<string>();
     const parser = streamJson
       ? createAntigravityStreamJsonParser({
         onEvent: (event) => {
           if (event.type === 'text') {
             hooks.onAssistantText?.(event.text);
             return;
+          }
+          if (event.type === 'tool_start') {
+            openToolSteps.add(event.stepId);
+          } else {
+            openToolSteps.delete(event.stepId);
           }
           hooks.onToolStep?.(event);
         },
@@ -140,7 +150,13 @@ export class AntigravityPrintProcessRunner implements AntigravityProcessRunner {
     }
     const outputLimit = new OutputLimitMonitor(this.options.outputByteLimit ?? 64_000);
     const stopLiveness = hooks.onActivity
-      ? this.watchLogLiveness(logFilePath, hooks.onActivity)
+      ? this.watchLogLiveness(
+        logFilePath,
+        hooks.onActivity,
+        // Without frames there is no call to be out, so a non-stream-json run
+        // keeps the unconditional watch it has always had.
+        parser ? () => openToolSteps.size > 0 : () => true,
+      )
       : () => undefined;
     return {
       started: child.started,
@@ -160,7 +176,11 @@ export class AntigravityPrintProcessRunner implements AntigravityProcessRunner {
    * minutes in the wild. The log keeps growing throughout, which is what tells
    * a long call apart from a hang (#70).
    */
-  private watchLogLiveness(logFilePath: string, onActivity: () => void): () => void {
+  private watchLogLiveness(
+    logFilePath: string,
+    onActivity: () => void,
+    isWorkOutstanding: () => boolean,
+  ): () => void {
     // `window`, per the popout-window rule: a timer from the wrong global stops
     // when that window closes, and this one has to outlive a popout the user
     // shuts while a turn is running.
@@ -176,7 +196,18 @@ export class AntigravityPrintProcessRunner implements AntigravityProcessRunner {
         if (stopped || size <= lastSize) {
           return;
         }
+        // Recorded even when it is not reported, so growth that happened while
+        // nothing was outstanding cannot arrive later as one large jump and be
+        // read as the run waking up.
         lastSize = size;
+        // **Process liveness is not turn liveness.** `agy` keeps writing to its
+        // own log after the answer is delivered, and reporting that as activity
+        // re-arms the inactivity timeout indefinitely — the run then has no
+        // boundary left but the absolute ceiling, which is the reported hang
+        // (#139). A growing log is evidence about a call that is still out.
+        if (!isWorkOutstanding()) {
+          return;
+        }
         onActivity();
       }).catch(() => undefined);
     }, this.options.livenessPollMs ?? 15_000);
