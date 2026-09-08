@@ -1461,6 +1461,87 @@ describe('ConversationController', () => {
       expect(titleEl!.replaceWith).toHaveBeenCalledWith(mockInput);
     });
 
+    it('does not commit a rename the user never typed when the menu takes the focus back', () => {
+      // Obsidian's Menu closes after onClick and returns focus to the document,
+      // so the field the rename item just opened is blurred before it is ever
+      // focused. Committing on that blur renamed a conversation to the title it
+      // already had - and recorded the title as manual, so the row grew a
+      // marker saying the reader wrote a name they never typed.
+
+      (deps.plugin.getConversationList as jest.Mock).mockReturnValue([
+        { id: 'conv-1', providerId: 'claude', title: 'Test Title', createdAt: 1000, lastResponseAt: 1000, messageCount: 1, preview: 'Preview' },
+      ]);
+
+      controller.updateHistoryDropdown();
+
+      const item = getHistoryItem(dropdown, 'conv-1');
+      item.dispatchEvent({
+        type: 'contextmenu',
+        stopPropagation: jest.fn(),
+        preventDefault: jest.fn(),
+      });
+      const menu = (Menu as typeof Menu & { instances: Array<{ items: Array<{ title: string; clickHandler: () => void }> }> }).instances[0];
+      const renameItem = menu.items.find(entry => entry.title === 'Rename');
+
+      const mockInput = createMockEl();
+      (mockInput).type = '';
+      (mockInput).className = '';
+      (mockInput).value = '';
+      (mockInput).focus = jest.fn();
+      (mockInput).select = jest.fn();
+      const titleEl = item.querySelector('.grimoire-history-item-title');
+      if (titleEl) {
+        (titleEl).replaceWith = jest.fn();
+      }
+      jest.spyOn(item, 'createEl').mockReturnValue(mockInput);
+
+      renameItem!.clickHandler();
+
+      // The blur that arrives without the field ever having been focused.
+      const blurHandlers = (mockInput)._eventListeners?.get('blur');
+      expect(blurHandlers).toBeDefined();
+      blurHandlers![0]({});
+
+      expect(deps.plugin.renameConversation).not.toHaveBeenCalled();
+    });
+
+    it('commits a rename once the field has actually been focused', () => {
+      (deps.plugin.getConversationList as jest.Mock).mockReturnValue([
+        { id: 'conv-1', providerId: 'claude', title: 'Test Title', createdAt: 1000, lastResponseAt: 1000, messageCount: 1, preview: 'Preview' },
+      ]);
+
+      controller.updateHistoryDropdown();
+
+      const item = getHistoryItem(dropdown, 'conv-1');
+      item.dispatchEvent({
+        type: 'contextmenu',
+        stopPropagation: jest.fn(),
+        preventDefault: jest.fn(),
+      });
+      const menu = (Menu as typeof Menu & { instances: Array<{ items: Array<{ title: string; clickHandler: () => void }> }> }).instances[0];
+      const renameItem = menu.items.find(entry => entry.title === 'Rename');
+
+      const mockInput = createMockEl();
+      (mockInput).type = '';
+      (mockInput).className = '';
+      (mockInput).value = '';
+      (mockInput).focus = jest.fn();
+      (mockInput).select = jest.fn();
+      const titleEl = item.querySelector('.grimoire-history-item-title');
+      if (titleEl) {
+        (titleEl).replaceWith = jest.fn();
+      }
+      jest.spyOn(item, 'createEl').mockReturnValue(mockInput);
+
+      renameItem!.clickHandler();
+
+      (mockInput)._eventListeners?.get('focus')![0]({});
+      (mockInput).value = 'A name the reader typed';
+      (mockInput)._eventListeners?.get('blur')![0]({});
+
+      expect(deps.plugin.renameConversation).toHaveBeenCalledWith('conv-1', 'A name the reader typed', 'manual');
+    });
+
     it('should delete conversation and reload active when deleting current conversation', async () => {
       deps.state.currentConversationId = 'conv-1';
 

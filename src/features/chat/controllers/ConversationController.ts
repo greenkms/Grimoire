@@ -1322,6 +1322,28 @@ export class ConversationController {
     input.select();
     input.addEventListener('click', (event) => event.stopPropagation());
 
+    /*
+     * The field commits on blur, which is right for a field the reader is
+     * typing in and wrong for one that never got the caret. Obsidian's Menu
+     * closes after its onClick and hands focus back to the document, so a
+     * rename started from the context menu was blurred before it was focused:
+     * the conversation was renamed to the title it already had, and recorded
+     * as `manual`, which put a marker on the row claiming a name the reader
+     * never typed. From the row's pencil the same code worked, because a
+     * button click closes no menu.
+     *
+     * So blur only means "done" once focus has actually arrived, and the focus
+     * is asked for again on the next tick for the case where the menu was
+     * still closing during the first attempt.
+     */
+    let focused = false;
+    input.addEventListener('focus', () => { focused = true; });
+    window.setTimeout(() => {
+      if (focused) return;
+      input.focus();
+      input.select();
+    }, 0);
+
     let settled = false;
     let cancelled = false;
     const finishRename = async () => {
@@ -1342,6 +1364,7 @@ export class ConversationController {
     };
 
     input.addEventListener('blur', () => {
+      if (!focused) return;
       runConversationAction(finishRename, t('chat.ui.errors.renameConversationFailed'));
     });
     input.addEventListener('keydown', (e) => {
