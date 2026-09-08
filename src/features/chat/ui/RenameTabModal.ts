@@ -1,8 +1,10 @@
 import { type App, Modal, Notice, setIcon, setTooltip } from 'obsidian';
 
+import type { TitleSource } from '../../../core/types';
 import { t } from '../../../i18n/i18n';
 import type { ConversationController } from '../controllers/ConversationController';
 import { MAX_TAB_TITLE_LENGTH } from '../tabs/types';
+import { appendTitleSourceStar } from './titleSourceMarker';
 
 export interface TabRenameAutoSource {
   controller: ConversationController;
@@ -13,9 +15,10 @@ export function requestTabRename(
   app: App,
   currentTitle: string,
   autoSource?: TabRenameAutoSource | null,
+  titleSource?: TitleSource,
 ): Promise<string | null> {
   return new Promise((resolve) => {
-    new RenameTabModal(app, currentTitle, autoSource ?? null, resolve).open();
+    new RenameTabModal(app, currentTitle, autoSource ?? null, resolve, titleSource).open();
   });
 }
 
@@ -31,6 +34,7 @@ export class RenameTabModal extends Modal {
     private readonly currentTitle: string,
     private readonly autoSource: TabRenameAutoSource | null,
     private readonly resolveResult: (title: string | null) => void,
+    private readonly titleSource?: TitleSource,
   ) {
     super(app);
   }
@@ -41,11 +45,14 @@ export class RenameTabModal extends Modal {
 
     const form = this.contentEl.createEl('form', { cls: 'grimoire-rename-tab-form' });
     const inputId = 'grimoire-rename-tab-input';
-    form.createEl('label', {
+    const label = form.createEl('label', {
       cls: 'grimoire-rename-tab-label',
       text: t('chat.ui.tabs.name'),
       attr: { for: inputId },
     });
+    // Beside the field, never inside it: the input holds the title itself, and a
+    // marker prefixed to that value would be saved as part of the name.
+    appendTitleSourceStar(label, this.titleSource);
     const field = form.createDiv({ cls: 'grimoire-rename-tab-field' });
     const input = field.createEl('input', {
       cls: 'grimoire-rename-tab-input',

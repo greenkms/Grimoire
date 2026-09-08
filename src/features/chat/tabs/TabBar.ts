@@ -1,3 +1,4 @@
+import { t } from '../../../i18n/i18n';
 import type { TabBarItem, TabId } from './types';
 
 /** Callbacks for TabBar interactions. */
@@ -86,7 +87,14 @@ export class TabBar {
   private getAccessibleTitle(item: TabBarItem): string {
     // No orchestrator or worker variants any more: a worker is a dispatched
     // agent rather than a tab, so no tab is one and no tab owns one.
-    return item.title;
+    //
+    // A word rather than the coloured star the menu and the history rows show:
+    // this is an `aria-label`, so it is a string with no DOM to colour, and a
+    // screen reader cannot see a colour anyway. Only the placeholder is called
+    // out — a title the model or the user wrote needs no announcing.
+    return item.titleSource === 'fallback'
+      ? `${t('chat.ui.tabs.titleSourceFallbackPrefix')} · ${item.title}`
+      : item.title;
   }
 
   /** Destroys the tab bar. */
